@@ -286,6 +286,9 @@ class GpuProbe:
         self.started = time.perf_counter()
         self.rows = []
         if str(device).startswith("cuda"):
+            # Torch 2.7's allocator-stat reset does not perform lazy CUDA init.
+            # Kit may own a CUDA context while Torch's allocator is still cold.
+            torch.cuda.init()
             torch.cuda.reset_peak_memory_stats(device)
 
     def sample(self, event):

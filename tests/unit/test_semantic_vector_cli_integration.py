@@ -1,6 +1,8 @@
 """Offline entry/continuation checks; synthetic smoke fixtures are not live proof."""
 import json
 from pathlib import Path
+import subprocess
+import sys
 from types import SimpleNamespace
 import pytest
 from wlr50_clean.ppo.semantic_migration import topology, source_num_envs, stage_partition
@@ -69,6 +71,47 @@ def test_gpu_probe_really_constructs_and_records_unavailable_not_zero(tmp_path,m
         assert json.loads((tmp_path/"gpu_memory.jsonl").read_text())["event"] == "CPU_contract_probe"
     finally:
         probe.close()
+
+
+def test_gpu_probe_initializes_torch_allocator_before_resetting_stats(tmp_path,monkeypatch):
+    import torch
+    events=[]
+    monkeypatch.setattr(torch.cuda,"init",lambda:events.append("init"))
+    def reset(device):
+        assert events==["init"]
+        events.append(("reset",device))
+    monkeypatch.setattr(torch.cuda,"reset_peak_memory_stats",reset)
+    probe=semantic_cli.GpuProbe(tmp_path,"cuda:0")
+    probe.close()
+    assert events==["init",("reset","cuda:0")]
+
+
+def test_gpu_probe_actual_installed_torch_cold_process_without_isaac(tmp_path):
+    import torch
+    if not torch.cuda.is_available():
+        pytest.skip("requires an actual CUDA device; CPU mocks do not prove allocator initialization")
+    code = """
+import json,sys
+from pathlib import Path
+import torch
+from wlr50_clean.ppo.semantic_cli import GpuProbe
+assert not torch.cuda.is_initialized(), 'test requires cold Torch allocator'
+probe=GpuProbe(Path(sys.argv[1]),'cuda:0')
+try:
+    assert torch.cuda.is_initialized()
+    row=probe.sample('cold_torch_no_isaac')
+    assert row['device_total_bytes']>0
+    assert row['torch_allocated_bytes']>=0
+    assert row['torch_peak_allocated_bytes']>=row['torch_allocated_bytes']
+    assert probe.summary()['sample_count']==1
+    print(json.dumps({'event':row['event'],'total':row['device_total_bytes']}))
+finally:
+    probe.close()
+"""
+    result=subprocess.run([sys.executable,"-c",code,str(tmp_path)],capture_output=True,text=True,timeout=45)
+    assert result.returncode==0,result.stdout+result.stderr
+    assert json.loads(result.stdout.strip())["event"]=="cold_torch_no_isaac"
+    assert json.loads((tmp_path/"gpu_memory.jsonl").read_text())["event"]=="cold_torch_no_isaac"
 
 
 def test_physical_row_probe_consumes_real_authoritative_raw_dataclasses(tmp_path):
