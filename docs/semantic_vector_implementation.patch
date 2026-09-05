@@ -1,0 +1,906 @@
+diff --git a/src/wlr50_clean/ppo/semantic_vector_backend.py b/src/wlr50_clean/ppo/semantic_vector_backend.py
+new file mode 100644
+--- /dev/null
++++ b/src/wlr50_clean/ppo/semantic_vector_backend.py
+@@ -0,0 +1,230 @@
++"""DRAFT: eight semantic clones, one physical advance, no legacy control gates.
++
++This module reuses frozen scene/actuator primitives, not the legacy controller.
++It supports only synchronous P01 reset. Never call row semantic reset/step.
++"""
++from __future__ import annotations
++
++from pathlib import Path
++from typing import Any, Mapping, Sequence
++
++from wlr50_clean.infrastructure.command_batch import SERVO_ORDER
++from wlr50_clean.sensing.contact_classifier import SENSED_BODIES
++from .actuator_target_effect import build_actuator_target_effect_audit, actuator_target_audit_request
++from .isaac_fsm_backend import (
++    SETTLE_TICKS, PHYSICS_DT_S, _validate_controller_clock,
++    _validate_sensor_contract, _validate_rate_contract, build_residual_actuation_plan,
++)
++from .semantic_backend import (
++    CONFIG_ROOT, DEFAULT_EXECUTION_PROFILE, SemanticIsaacBackend, load_execution_profile,
++)
++from .semantic_env import _terminal_reason
++from .semantic_supervisor import SemanticControllerAdapter
++from .vectorized_isaac_backend import (
++    VectorizedIsaacFSMBackend, VectorizedIsaacBackendError, _BatchedCommandAdapter,
++    _BatchAck, _RowRobotData, ZERO12,
++)
++
++
++class _RowTargetRobot:
++    """Read-only one-row tensor facade; no write method is exposed."""
++    def __init__(self, robot: Any, row: int, origin: Any, count: int):
++        self._robot, self._row, self._count = robot, row, count
++        self.joint_names = tuple(robot.joint_names)
++        self.body_names = tuple(robot.body_names)
++        self.data = _RowRobotData(robot.data, row, origin, count)
++
++    def __getattr__(self, name: str) -> Any:
++        if name not in ("_joint_pos_target_sim", "_joint_vel_target_sim"):
++            raise AttributeError(name)
++        tensor = getattr(self._robot, name)
++        if tensor.ndim != 2 or tensor.shape[0] != self._count:
++            raise VectorizedIsaacBackendError("dispatch target tensor lost its row dimension")
++        return tensor[self._row:self._row+1]
++
++
++class _RowMapperAdapter:
++    """Existing audit/source-mapper helpers inspect this row without advancing it."""
++    def __init__(self, owner: Any, row: int):
++        self.robot = _RowTargetRobot(owner.robot, row, owner.origins[row], owner.num_envs)
++        self.joint_map = owner.joint_map
++        self.standing_pose_deg = owner.standing_pose_deg[row]
++        self.servo_target_mapper = owner.mappers[row]
++        self._final_drive_servo_deg = owner._final_drive[row]
++
++
++class _SemanticBatchedCommandAdapter(_BatchedCommandAdapter):
++    def __init__(self, robot: Any, count: int, origins: Any):
++        super().__init__(robot, count)
++        self.origins = origins
++
++    def row_adapter(self, row: int) -> _RowMapperAdapter:
++        if not 0 <= row < self.num_envs:
++            raise ValueError("invalid row")
++        return _RowMapperAdapter(self, row)
++
++    def apply_batch(self, commands, *, physics_tick, tracking_servo_names, drive_feedback_bias_full12):
++        # Exactly one inherited mapper.advance per row and one write_data_to_sim.
++        batch = super().apply_batch(commands, physics_tick=physics_tick,
++            tracking_servo_names=tracking_servo_names,
++            drive_feedback_bias_full12=drive_feedback_bias_full12)
++        rows = []
++        for index, ack in enumerate(batch.rows):
++            mapper = self.mappers[index]
++            native = tuple(mapper._applied[name] for name in SERVO_ORDER) + tuple(commands[index][8:])
++            rows.append({**ack, "native_drive_target_full12":list(native),
++                "drive_feedback_final_slew_limit_deg_per_tick":mapper.maximum_delta_deg,
++                "env_index":index})
++        return _BatchAck(tuple(rows), batch.articulation_writes_this_call, batch.physics_tick)
++
++
++class SemanticVectorIsaacBackend(VectorizedIsaacFSMBackend):
++    """Eight isolated semantic B/C rows; global hard reset only at episode barrier."""
++    def __init__(self, simulation_app: Any, *, num_envs: int = 8,
++                 execution_profile: Path | str = DEFAULT_EXECUTION_PROFILE, **kwargs):
++        if type(num_envs) is not int or num_envs != 8:
++            raise ValueError("first semantic vector revision supports only N=8")
++        self.execution_profile_path = Path(execution_profile).resolve()
++        self.execution_profile = load_execution_profile(self.execution_profile_path)
++        self._policy_requests = (None,)*8
++        self._row_adapters = ()
++        # Creates only the one physical scene/contact bank, not legacy controllers.
++        super().__init__(simulation_app, num_envs=num_envs, **kwargs)
++
++    def reset_all(self, *, seeds: Sequence[int] | None = None,
++                  options: Sequence[Mapping[str, Any]] | None = None):
++        seed_rows = tuple(range(1001,1009)) if seeds is None else tuple(seeds)
++        option_rows = ({},)*8 if options is None else tuple(options)
++        if len(seed_rows)!=8 or any(type(seed) is not int or seed<0 for seed in seed_rows):
++            raise ValueError("exactly eight nonnegative integer seeds required")
++        if len(option_rows)!=8 or any(dict(option) for option in option_rows):
++            raise ValueError("semantic vector v1 supports natural P01 only, no snapshots")
++        if self._reset_transaction_poisoned:
++            raise VectorizedIsaacBackendError("previous reset transaction failed")
++        self._policy_requests = (None,)*8
++        try:
++            lifecycle = self._prepare_physical_reset()
++            self.command_adapter = _SemanticBatchedCommandAdapter(self.robot,8,self.scene.env_origins)
++            self.contact_bank.reset()
++            zeros = (ZERO12,)*8
++            ack = None
++            for _ in range(SETTLE_TICKS):
++                ack = self.command_adapter.apply_batch(zeros,
++                    physics_tick=self.global_physics_step_count, tracking_servo_names=((),)*8,
++                    drive_feedback_bias_full12=zeros)
++                self._advance_global_physics()
++            if ack is None:
++                raise VectorizedIsaacBackendError("settle produced no atomic dispatch")
++            self.readers = self._make_readers()
++            self.controllers = tuple(SemanticControllerAdapter.from_paths(
++                self.fsm_path,self.motion_contract_path,
++                task_spec_path=CONFIG_ROOT/"stage_task_spec.yaml") for _ in range(8))
++            self._assert_independent_python_state()
++            self._row_adapters = tuple(self.command_adapter.row_adapter(row) for row in range(8))
++            self._semantics = tuple(SemanticIsaacBackend(
++                execution_profile=self.execution_profile_path,
++                audit_actuator_target_effect=False) for _ in range(8))
++            if len({id(x.supervisor.evaluator) for x in self.controllers})!=8:
++                raise VectorizedIsaacBackendError("semantic evaluator history is shared")
++            frames, controller_frames = [],[]
++            for row,(reader,controller,semantic) in enumerate(zip(
++                    self.readers,self.controllers,self._semantics,strict=True)):
++                observation = reader.read(physics_tick=0,simulation_time_s=0.,
++                                         commanded_full12=ack.rows[row]["drive_target_full12"])
++                _validate_sensor_contract(observation,SENSED_BODIES,require_finite=True)
++                _validate_rate_contract(self._row_adapters[row],controller)
++                control = controller.step(observation,sim_time_s=0.)
++                _validate_controller_clock(control,physics_tick=0,sim_time_s=0.)
++                semantic._controller = controller
++                semantic._adapter = self._row_adapters[row]
++                semantic._level_reference_orientation = semantic._level_fixed
++                semantic._reset_metadata = {
++                    **self._reset_metadata(row=row,seed=seed_rows[row],options={},
++                        reset_lifecycle=lifecycle,logical_state_id="P01"),
++                    "schema":"wlr50_clean.semantic_vector_reset.v1",
++                    "execution_mode":"semantic_B_or_C",
++                    "level_calibration_sample_count":0,
++                    "level_reference_source":"versioned_fixed_chassis_axes",
++                    "effective_phase_entry_semantics":"current_physical_validity_no_reference_entry_gate",
++                    "reset_only_prime_physics_ticks":SETTLE_TICKS,
++                    "independent_semantic_evaluator_per_environment":True,
++                    "policy_credit_excludes_settle":True,
++                }
++                semantic._last_atomic_ack = ack.rows[row]
++                semantic._raw_observation = observation
++                semantic._controller_frame = control
++                frame = semantic._build_authoritative_frame(observation,control,previous_frame=None)
++                if _terminal_reason(frame) is not None:
++                    raise VectorizedIsaacBackendError(f"row {row} natural P01 reset produced a terminal physical state")
++                semantic._authoritative_frame = frame
++                semantic._done = False
++                frames.append(frame)
++                controller_frames.append(control)
++            self._frames,self._controller_frames = tuple(frames),tuple(controller_frames)
++            self._done = (False,)*8
++            self._episode_tick = 0
++            self._reset_count += 1
++            return self._batched_frame()
++        except Exception:
++            self._reset_transaction_poisoned = True
++            raise
++
++    def set_actuator_target_audit_requests(self, phase_ids, raw_actions, masks):
++        if len(phase_ids)!=8 or len(raw_actions)!=8 or len(masks)!=8:
++            raise ValueError("audit request must contain exactly eight rows")
++        self._policy_requests = tuple(actuator_target_audit_request(phase,raw,mask)
++            for phase,raw,mask in zip(phase_ids,raw_actions,masks,strict=True))
++
++    def step_physics_batch(self, applied_actions_full12):
++        if not self._frames or any(self._done):
++            raise VectorizedIsaacBackendError("valid whole-batch reset is required")
++        if len(applied_actions_full12)!=8 or any(request is None for request in self._policy_requests):
++            raise ValueError("one full audited action request per row is required")
++        plans = tuple(build_residual_actuation_plan(action,
++            frozen_nominal_full12=control.full12,
++            drive_feedback_bias_full12=control.drive_feedback_bias_full12,
++            normal_drive_bias_full12=control.normal_drive_bias_full12)
++            for action,control in zip(applied_actions_full12,self._controller_frames,strict=True))
++        if any(not control.full12_atomic_write_required for control in self._controller_frames):
++            raise VectorizedIsaacBackendError("semantic controller did not request atomic Full12")
++        previous_final = tuple(tuple(self.command_adapter._final_drive[row][name]
++                                     for name in SERVO_ORDER) for row in range(8))
++        raw_ack = self.command_adapter.apply_batch(
++            tuple(plan.frozen_nominal_full12 for plan in plans),
++            physics_tick=self.global_physics_step_count,
++            tracking_servo_names=tuple(control.tracking_servo_names for control in self._controller_frames),
++            drive_feedback_bias_full12=tuple(plan.combined_post_mapper_bias_full12 for plan in plans))
++        acks = []
++        for row,plan in enumerate(plans):
++            audit = build_actuator_target_effect_audit(adapter=self._row_adapters[row],
++                actuation=plan,raw_ack=raw_ack.rows[row],
++                previous_final_drive_servo_deg=previous_final[row],
++                source_phase_id=self._frames[row].state_id,
++                policy_request=self._policy_requests[row])
++            acks.append({**plan.annotate_ack(raw_ack.rows[row]),"actuator_target_effect_audit":audit})
++        before_global = self.global_physics_step_count
++        self._advance_global_physics()
++        if self.global_physics_step_count!=before_global+1:
++            raise VectorizedIsaacBackendError("batch must advance the one SimulationContext once")
++        tick = self._episode_tick+1
++        frames,controls = [],[]
++        for row,(reader,controller,semantic,previous) in enumerate(zip(
++                self.readers,self.controllers,self._semantics,self._frames,strict=True)):
++            observation = reader.read(physics_tick=tick,simulation_time_s=tick*PHYSICS_DT_S,
++                                     commanded_full12=acks[row]["drive_target_full12"])
++            _validate_sensor_contract(observation,SENSED_BODIES,require_finite=False)
++            control = controller.step(observation,sim_time_s=tick*PHYSICS_DT_S)
++            _validate_controller_clock(control,physics_tick=tick,sim_time_s=tick*PHYSICS_DT_S)
++            semantic._last_atomic_ack = acks[row]
++            semantic._previous_action_full12 = tuple(applied_actions_full12[row])
++            semantic._raw_observation,semantic._controller_frame = observation,control
++            semantic._episode_tick = tick
++            frame = semantic._build_authoritative_frame(observation,control,previous_frame=previous)
++            semantic._authoritative_frame = frame
++            semantic._done = _terminal_reason(frame) is not None
++            frames.append(frame)
++            controls.append(control)
++        self._episode_tick = tick
++        self._frames,self._controller_frames = tuple(frames),tuple(controls)
++        self._done = tuple(_terminal_reason(frame) is not None for frame in frames)
++        return self._batched_frame()
+diff --git a/src/wlr50_clean/ppo/semantic_vector_env.py b/src/wlr50_clean/ppo/semantic_vector_env.py
+new file mode 100644
+--- /dev/null
++++ b/src/wlr50_clean/ppo/semantic_vector_env.py
+@@ -0,0 +1,313 @@
++"""DRAFT: N=8 semantic PPO kernel with honest whole-batch reset boundaries.
++
++Physics is never advanced through eight SemanticEpisodeEnv.step calls. Each
++row owns a semantic builder/bridge/reward history; one coordinator stages all
++actions, advances the one physics scene, then consumes all resulting frames.
++"""
++from __future__ import annotations
++
++import math
++from collections import Counter
++from typing import Any, Callable
++
++from .phase_action_masks_v2 import PhaseTransitionBridge
++from .semantic_backend import build_semantic_projector
++from .semantic_env import ZERO12, PHYSICS_DT_S, WRITE_COUNTERS, _native_tick_evidence, _terminal_reason
++from .semantic_observation import (
++    HISTORY_GROUPS, SemanticObservationBuilder, SemanticNonFiniteObservation,
++    load_semantic_observation_schema, semantic_task, vector,
++)
++from .semantic_reward import SemanticRewardCalculator, SemanticRewardSample, load_semantic_reward_config
++
++BARRIER_REASON = "SEMANTIC_VECTOR_PEER_RESET"
++
++
++class _SemanticRow:
++    def __init__(self, *, schema, projector, reward):
++        self.schema,self.projector,self.reward = schema,projector,reward
++        self.builder = SemanticObservationBuilder(schema)
++        self.bridge = PhaseTransitionBridge(projector)
++        self.phase_decisions = Counter()
++        self.total_decisions = 0
++        self.total_ticks = 0
++
++    def reset(self, frame):
++        if _terminal_reason(frame) is not None:
++            raise ValueError("row reset must be valid natural P01")
++        self.builder.reset()
++        nominal = vector(frame.nominal_action_full12,12,"reset nominal")
++        drive = vector(frame.info["drive_target_full12"],12,"reset drive")
++        self.history = dict.fromkeys(HISTORY_GROUPS,ZERO12)
++        self.history.update(previous_applied_full12=drive,previous_previous_applied_full12=drive,
++                            previous_nominal_full12=nominal)
++        self.semantic = self.builder.build(frame,self.history)
++        self.frame = frame
++        self.bridge.reset(state_id=frame.state_id,applied_action_full12=nominal)
++        self.episode_decisions = 0
++        self.episode_return = 0.
++        self.transition_count = len(semantic_task(frame).get("transition_evidence",()))
++        return self.schema.encode(self.semantic.groups)
++
++    def begin(self, raw):
++        self.raw = vector(raw,12,"raw policy action")
++        self.start_frame,self.start_semantic = self.frame,self.semantic
++        self.samples,self.transitions,self.native_ticks = [],[],[]
++        self.write_samples = {name:[] for name in WRITE_COUNTERS}
++        self.reason = None
++        self.finite_fallback = False
++
++    def prepare(self):
++        source = self.frame
++        return self.bridge.project_tick(self.raw,state_id=source.state_id,
++            nominal_action_full12=source.nominal_action_full12,
++            reference_action_full12=source.nominal_action_full12,reference_delta_full12=ZERO12,
++            runtime_action_mask_full12=source.action_mask_full12,
++            safety=source.safety_projection,dt_s=PHYSICS_DT_S)
++
++    def consume(self, current, bridged):
++        source,before = self.frame,self.semantic
++        if current.physics_tick!=source.physics_tick+1 or not math.isclose(
++                current.sim_time_s-source.sim_time_s,PHYSICS_DT_S,rel_tol=0.,abs_tol=1e-8):
++            raise ValueError("row physics clock did not advance once")
++        projection = bridged.projection
++        self.last_projection = projection
++        self.reason = _terminal_reason(current)
++        drive = vector(current.info["drive_target_full12"],12,"actual drive")
++        nominal = vector(source.nominal_action_full12,12,"source nominal")
++        residual = vector(projection.safe_projected_residual_full12,12,"projected residual")
++        old = dict(self.history)
++        self.history.update(previous_raw_full12=self.raw,previous_residual_full12=residual,
++            previous_previous_residual_full12=old["previous_residual_full12"],
++            previous_applied_full12=drive,previous_previous_applied_full12=old["previous_applied_full12"],
++            previous_nominal_full12=nominal)
++        try:
++            after = self.builder.build(current,self.history)
++        except SemanticNonFiniteObservation:
++            if self.reason not in ("NAN_INF","PHYSICS_EXPLOSION"):
++                raise
++            after = before
++            self.finite_fallback = True
++        caps = tuple(a*b for a,b in zip(self.projector.config.scale_for(source.state_id),
++                                        self.projector.config.physical_residual_scale_full12,strict=True))
++        self.samples.append(SemanticRewardSample(before,after,PHYSICS_DT_S,nominal,
++            old["previous_nominal_full12"],residual,old["previous_residual_full12"],
++            drive,old["previous_applied_full12"],old["previous_previous_applied_full12"],caps))
++        evidence = _native_tick_evidence(source,current,request_phase=self.start_frame.state_id,raw=self.raw,
++            handoff_hold=bool(bridged.transition_metric and bridged.transition_metric.handoff_hold_used))
++        if not evidence["verified"]:
++            raise ValueError("one vector physics tick lacks verified row-bound native target evidence")
++        self.native_ticks.append(evidence)
++        for name in WRITE_COUNTERS:
++            value = current.info.get(name)
++            if type(value) is not int or value!=0:
++                raise ValueError(f"missing or forbidden in-episode write evidence: {name}")
++            self.write_samples[name].append(value)
++        if bridged.transition_metric is not None:
++            self.transitions.append(bridged.transition_metric.as_dict())
++        self.frame,self.semantic = current,after
++        self.total_ticks += 1
++
++    def finish(self, row_index):
++        # A peer reset is NOT passed as a task failure to the reward calculator.
++        # Its final physical potential remains intact for correct PBRS/bootstrap.
++        reward = self.reward.evaluate(self.start_semantic,self.semantic,self.samples,
++            termination_reason=self.reason,task_success=self.reason=="SUCCESS")
++        self.episode_return += reward["total"]
++        self.episode_decisions += 1
++        self.total_decisions += 1
++        self.phase_decisions[self.start_frame.state_id] += 1
++        all_transitions = semantic_task(self.frame).get("transition_evidence",())
++        if len(all_transitions)<self.transition_count:
++            raise ValueError("semantic transition history shrank during episode")
++        new_transitions = list(all_transitions[self.transition_count:])
++        self.transition_count = len(all_transitions)
++        last = self.samples[-1]
++        info = {"schema":"wlr50_clean.semantic_vector_decision.v1","env_index":row_index,
++            "phase_id":self.start_frame.state_id,"end_phase_id":self.frame.state_id,
++            "physics_tick":self.frame.physics_tick,"sim_time_s":self.frame.sim_time_s,
++            "physics_ticks":len(self.samples),"decision_count":self.episode_decisions,
++            "raw_policy_action_full12":self.raw,
++            "nominal_action_full12":last.nominal,"projected_residual_full12":last.residual,
++            "applied_action_full12":self.last_projection.applied_action_full12,
++            "actual_drive_target_full12":last.actual_drive,
++            "actuator_target_effect_audit":self.frame.info["actuator_target_effect_audit"],
++            "actuator_target_effect_audit_ticks":list(self.native_ticks),
++            "actuator_target_effect_audit_summary":{
++                "physics_ticks":len(self.native_ticks),"verified_tick_count":len(self.native_ticks),
++                "all_ticks_verified":True,
++                "actual_native_effect_tick_count":sum(x["actual_native_effect"] for x in self.native_ticks),
++                "own_phase_request_effect_tick_count":sum(x["own_phase_request_effect"] for x in self.native_ticks)},
++            **{name:max(values) for name,values in self.write_samples.items()},
++            "no_in_episode_state_writes_verified":True,
++            "semantic_task":dict(semantic_task(self.frame)),
++            "stage_transition_evidence":new_transitions,
++            "phase_transition_action_jump":list(self.transitions),
++            "reward":reward,"reward_breakdown":reward,
++            "environment_reward":reward["total"],"termination_reason":self.reason,
++            "task_success":self.reason=="SUCCESS","task_terminated":self.reason is not None,
++            "episode_return":self.episode_return,"episode_elapsed_s":self.frame.sim_time_s,
++            "terminal_observation_finite_fallback":self.finite_fallback,
++            "terminal_bootstrap_allowed":self.reason is None}
++        return self.schema.encode(self.semantic.groups),reward["total"],info
++
++
++class SemanticVectorRslEnv:
++    """Initial N=8/P01-only ABI. True task endings are distinct from peer resets."""
++    num_envs = 8
++    num_actions = 12
++    max_episode_length = 3000
++
++    def __init__(self, backend: Any, *, seeds=tuple(range(1001,1009)),
++                 device="cuda:0", tick_observers=None):
++        import torch
++        if type(getattr(backend,"num_envs",None)) is not int or backend.num_envs!=8:
++            raise ValueError("first semantic vector revision requires N=8")
++        self.backend,self.device = backend,torch.device(device)
++        self.seeds = tuple(seeds)
++        if len(self.seeds)!=8 or any(type(x) is not int or x<0 for x in self.seeds):
++            raise ValueError("eight nonnegative integer seed rows required")
++        self.schema = load_semantic_observation_schema()
++        config = load_semantic_reward_config()
++        if self.schema.maximum_task_duration_s!=config.values["maximum_task_duration_s"]:
++            raise ValueError("observation/reward task horizons differ")
++        self.gamma = config.gamma
++        self.rows = tuple(_SemanticRow(schema=self.schema,
++            projector=build_semantic_projector(backend.execution_profile_path),
++            reward=SemanticRewardCalculator(config)) for _ in range(8))
++        self.tick_observers = (None,)*8 if tick_observers is None else tuple(tick_observers)
++        if len(self.tick_observers)!=8 or any(observer is not None and not all(callable(getattr(observer,name,None)) for name in ("observe","reset","summary")) for observer in self.tick_observers):
++            raise ValueError("eight optional observer objects with observe/reset/summary required")
++        self._final_value_function = None
++        self.episode_length_buf = torch.zeros(8,dtype=torch.long,device=self.device)
++        self.completed_episodes = []
++        self.peer_truncations = []
++        self.total_decisions = 0
++        self.reset_count = 0
++        self.cfg = {"schema":"wlr50_clean.semantic_vector_env.v1","num_envs":8,
++            "observation_dimension":self.schema.dimension,"physics_hz":120,"decision_hz":15,
++            "reset_sampling":"P01_full_task_only","independent_subset_reset":False,
++            "physical_backend":"one_scene_one_write_one_step",
++            "task_deadline_bootstrap":False,
++            "peer_reset_bootstrap":"gamma_times_critic_of_actual_final_observation_added_before_reset",
++            "upstream_time_outs":False}
++        self._reset_all()
++
++    def _encode_batch(self, observations):
++        import torch
++        from tensordict import TensorDict
++        tensor = torch.tensor(observations,dtype=torch.float32,device=self.device)
++        if tensor.shape!=(8,self.schema.dimension) or not bool(torch.isfinite(tensor).all()):
++            raise ValueError("semantic batch observations changed shape or became nonfinite")
++        return TensorDict({"policy":tensor,"critic":tensor.clone()},batch_size=[8],device=self.device)
++
++    def _reset_all(self):
++        batch = self.backend.reset_all(seeds=self.seeds)
++        if len(batch.frames)!=8 or len({id(frame) for frame in batch.frames})!=8:
++            raise ValueError("backend reset did not return eight distinct frames")
++        for group in (self.backend.controllers,self.backend.readers):
++            if len(group)!=8 or len({id(x) for x in group})!=8:
++                raise ValueError("row controller/reader histories are shared")
++        self._batch = batch
++        for observer in self.tick_observers:
++            if observer is not None:
++                observer.reset()
++        self._observations = self._encode_batch([row.reset(frame) for row,frame in zip(self.rows,batch.frames,strict=True)])
++        self.episode_length_buf.zero_()
++        self.reset_count += 1
++
++    def bind_final_value_function(self, value_function: Callable, *, gamma: float):
++        if not callable(value_function) or float(gamma)!=self.gamma:
++            raise ValueError("final-observation critic and task reward gamma must agree")
++        self._final_value_function = value_function
++
++    def get_observations(self):
++        return self._observations
++
++    def step(self, actions):
++        import torch
++        if actions.shape!=(8,12) or not bool(torch.isfinite(actions).all()):
++            raise ValueError("one finite raw Full12 action per row required")
++        raw = tuple(tuple(float(x) for x in row) for row in actions.detach().cpu().tolist())
++        for row,action in zip(self.rows,raw,strict=True):
++            row.begin(action)
++        self.backend.set_actuator_target_audit_requests(
++            tuple(row.frame.state_id for row in self.rows),raw,
++            tuple(row.projector.config.mask_for(row.frame.state_id) for row in self.rows))
++        for _ in range(8):
++            previous = self._batch
++            projections = tuple(row.prepare() for row in self.rows)
++            current = self.backend.step_physics_batch(tuple(x.projection.applied_action_full12 for x in projections))
++            if len(current.frames)!=8 or current.physics_tick!=previous.physics_tick+1:
++                raise ValueError("physical batch did not advance one tick")
++            for name in ("global_physics_step_count","batched_articulation_write_count","exact_pair_capture_count"):
++                if getattr(current,name)!=getattr(previous,name)+1:
++                    raise ValueError(f"invalid one-step batch counter: {name}")
++            for index,(row,frame,projection) in enumerate(zip(self.rows,current.frames,projections,strict=True)):
++                source = row.frame
++                row.consume(frame,projection)
++                observer = self.tick_observers[index]
++                if observer is not None:
++                    observer.observe(source,frame,projection.projection)
++            self._batch = current
++            if any(row.reason is not None for row in self.rows):
++                break
++        finished = [row.finish(index) for index,row in enumerate(self.rows)]
++        final_obs = self._encode_batch([x[0] for x in finished])
++        environment_rewards = torch.tensor([x[1] for x in finished],device=self.device)
++        rewards = environment_rewards.clone()
++        infos = [x[2] for x in finished]
++        task_done = torch.tensor([row.reason is not None for row in self.rows],dtype=torch.bool,device=self.device)
++        barrier = bool(task_done.any())
++        peers = ~task_done if barrier else torch.zeros(8,dtype=torch.bool,device=self.device)
++        bootstrap = torch.zeros(8,dtype=rewards.dtype,device=self.device)
++        if bool(peers.any()):
++            if self._final_value_function is None:
++                raise RuntimeError("bind live critic before any peer-reset transition")
++            # Evaluate BEFORE reset, with unchanged rollout policy/critic weights.
++            # Done=True severs GAE; folding gamma*V(final) into reward gives the
++            # correct one-step target without RSL's pre-action timeout value.
++            with torch.inference_mode():
++                values = self._final_value_function(final_obs).detach().reshape(-1).to(self.device)
++            if values.shape!=(8,) or not bool(torch.isfinite(values).all()):
++                raise ValueError("final-observation critic produced invalid values")
++            bootstrap[peers] = self.gamma*values[peers]
++            rewards += bootstrap
++        self.episode_length_buf += 1
++        self.total_decisions += 8
++        summaries = []
++        for index,info in enumerate(infos):
++            info.update(external_peer_reset_truncation=bool(peers[index]),
++                bootstrap_credit=float(bootstrap[index]),ppo_storage_reward=float(rewards[index]),
++                time_outs=False,bootstrap_source="actual_final_observation_before_reset" if peers[index] else None)
++            if barrier:
++                summary = {"env_index":index,"seed":self.seeds[index],
++                    "policy_decisions":int(self.episode_length_buf[index]),
++                    "duration_s":float(self.rows[index].frame.sim_time_s),
++                    "task_terminated":bool(task_done[index]),"external_peer_reset_truncation":bool(peers[index]),
++                    "termination_reason":info["termination_reason"] if task_done[index] else BARRIER_REASON,
++                    "task_success":info["task_success"],"terminal_info":info}
++                if self.tick_observers[index] is not None:
++                    summary["quality_metrics"] = self.tick_observers[index].summary()
++                summaries.append(summary)
++                (self.completed_episodes if task_done[index] else self.peer_truncations).append(summary)
++        extras = {"semantic_decisions":infos,"episode_summaries":summaries,
++            "time_outs":torch.zeros(8,dtype=torch.bool,device=self.device),
++            "true_task_terminations":task_done,"external_peer_reset_truncations":peers,
++            "environment_rewards":environment_rewards,"peer_bootstrap_credit":bootstrap}
++        if barrier:
++            extras["terminal_observation"] = final_obs.clone()
++            self._reset_all()
++        else:
++            self._observations = final_obs
++        dones = torch.full((8,),barrier,dtype=torch.bool,device=self.device)
++        return self.get_observations(),rewards,dones,extras
++
++    def telemetry_summary(self):
++        return {"policy_decisions":self.total_decisions,"num_envs":8,
++            "reset_count":self.reset_count,"completed_episode_count":len(self.completed_episodes),
++            "external_peer_truncation_count":len(self.peer_truncations),
++            "success_count":sum(x["task_success"] for x in self.completed_episodes),
++            "row_phase_decisions":[dict(row.phase_decisions) for row in self.rows],
++            "row_physics_ticks":[row.total_ticks for row in self.rows],
++            "sampling":"P01_only_synchronous_full_batch_reset",
++            "peer_truncations_are_not_physical_failures":True}
+diff --git a/src/wlr50_clean/ppo/semantic_vector_training.py b/src/wlr50_clean/ppo/semantic_vector_training.py
+new file mode 100644
+--- /dev/null
++++ b/src/wlr50_clean/ppo/semantic_vector_training.py
+@@ -0,0 +1,22 @@
++"""DRAFT: attach the unchanged official RSL critic to peer-final bootstrap."""
++from __future__ import annotations
++
++from .semantic_training import construct_semantic_runner, train_semantic
++from .rl_library_wrapper import seed_training_rngs
++
++
++def construct_semantic_vector_runner(env, *, seed: int, device: str):
++    seed_training_rngs(seed)
++    runner, config = construct_semantic_runner(env,seed=seed,device=device)
++    env.bind_final_value_function(runner.alg.critic,gamma=runner.alg.gamma)
++    return runner,config
++
++
++def train_semantic_vector(runner, env, *, decisions: int, **kwargs):
++    """Keep N=8 and exact total budgets; no silent 1024-transition tail overrun."""
++    batch = int(runner.cfg["num_steps_per_env"])*env.num_envs
++    if env.num_envs!=8 or type(decisions) is not int or decisions<=0 or decisions%batch:
++        raise ValueError(f"semantic vector v1 requires N=8 and an exact multiple of {batch} total decisions")
++    if env._final_value_function is None:
++        raise RuntimeError("construct_semantic_vector_runner must bind final critic")
++    return train_semantic(runner,env,decisions=decisions,**kwargs)
+diff --git a/tests/unit/test_semantic_vector_draft.py b/tests/unit/test_semantic_vector_draft.py
+new file mode 100644
+--- /dev/null
++++ b/tests/unit/test_semantic_vector_draft.py
+@@ -0,0 +1,321 @@
++"""Offline contract regressions for the reviewed semantic vector draft.
++
++Synthetic physical observations here are explicitly NOT live vector evidence.
++"""
++from __future__ import annotations
++
++from types import SimpleNamespace
++from dataclasses import replace
++
++import pytest
++torch = pytest.importorskip("torch")
++
++from test_semantic_observation_reward_env import _frame, Backend, ZERO12
++from wlr50_clean.infrastructure.command_batch import (
++    FULL12_ORDER,SERVO_ORDER,resolve_joint_indices,
++)
++from wlr50_clean.infrastructure.servo_target_mapper import ServoTargetMapper
++from wlr50_clean.ppo.actuator_target_effect import (
++    actuator_target_audit_request,build_actuator_target_effect_audit,
++)
++from wlr50_clean.ppo.isaac_fsm_backend import build_residual_actuation_plan
++from wlr50_clean.ppo.semantic_backend import DEFAULT_EXECUTION_PROFILE
++from wlr50_clean.ppo.semantic_env import SemanticEpisodeEnv,WRITE_COUNTERS
++from wlr50_clean.ppo.semantic_vector_backend import _SemanticBatchedCommandAdapter
++from wlr50_clean.ppo.semantic_vector_env import SemanticVectorRslEnv
++from wlr50_clean.ppo.semantic_vector_training import (
++    construct_semantic_vector_runner,train_semantic_vector,
++)
++from wlr50_clean.ppo.termination import TerminationSignals
++
++
++class FakeVectorBackend:
++    """Pure CPU tensor/clock seam; no scene, no live capacity attestation."""
++    num_envs = 8
++    execution_profile_path = DEFAULT_EXECUTION_PROFILE
++    def __init__(self, terminal_tick=None):
++        self.terminal_tick = terminal_tick
++        self.resets = 0
++        self.global_ticks = self.writes = self.captures = 0
++        self.controllers = tuple(object() for _ in range(8))
++        self.readers = tuple(object() for _ in range(8))
++
++    def _batch(self,frames):
++        return SimpleNamespace(frames=tuple(frames),physics_tick=self.tick,
++            global_physics_step_count=self.global_ticks,
++            batched_articulation_write_count=self.writes,
++            exact_pair_capture_count=self.captures)
++
++    def reset_all(self, *, seeds):
++        assert len(seeds)==8
++        self.resets += 1
++        self.tick = 0
++        self.requests = None
++        frames = [_frame() for _ in range(8)]
++        self.frames = frames
++        return self._batch(frames)
++
++    def set_actuator_target_audit_requests(self, phases, raws, masks):
++        self.requests = tuple(zip(phases,raws,masks,strict=True))
++
++    def step_physics_batch(self, actions):
++        self.tick += 1
++        self.global_ticks += 1
++        self.writes += 1
++        self.captures += 1
++        frames = []
++        for index,(action,request) in enumerate(zip(actions,self.requests,strict=True)):
++            phase,raw,mask = request
++            current = _frame(self.tick)
++            if index==0 and self.tick==self.terminal_tick:
++                current.termination_signals = TerminationSignals(fall=True)
++            current.info["drive_target_full12"] = tuple(action)
++            current.info.update(dict.fromkeys(WRITE_COUNTERS,0))
++            command_tick = self.global_ticks+300
++            current.info["atomic_ack"] = {"physics_tick":command_tick}
++            changed = tuple(x!=0 for x in action)
++            current.info["actuator_target_effect_audit"] = {
++                "schema":"wlr50_clean.actuator_target_effect_audit.v1",
++                "verified":True,"actual_mapping_matches_dispatch":True,
++                "setter_dispatch_targets_equal":True,"same_tick_counterfactual":True,
++                "physics_tick":command_tick,"source_phase_id":phase,
++                "policy_request_phase":phase,"raw_policy_action_full12":list(raw),
++                "phase_mask_full12":list(mask),"changed_channels_full12":changed,
++                "changed_target_channel_count":sum(changed),"target_dtype":"torch.float32",
++                "fixture_only_not_live_evidence":True}
++            frames.append(current)
++        self.frames = frames
++        return self._batch(frames)
++
++
++def test_rows_match_real_single_semantic_kernel_without_advancing_eight_scenes():
++    backend = FakeVectorBackend()
++    env = SemanticVectorRslEnv(backend,device="cpu")
++    actions = torch.full((8,12),.05)
++    observation,rewards,dones,extras = env.step(actions)
++    single = SemanticEpisodeEnv(Backend())
++    single.reset()
++    step = single.step(tuple(float(x) for x in actions[0]))
++    assert observation["policy"].shape==(8,single.observation_dimension)
++    assert observation["policy"][0].tolist()==pytest.approx(step.observation)
++    assert rewards[0].item()==pytest.approx(step.reward)
++    assert extras["semantic_decisions"][0]["reward"]==step.info["reward"]
++    assert extras["semantic_decisions"][0]["applied_action_full12"]==step.info["applied_action_full12"]
++    assert backend.global_ticks==backend.writes==backend.captures==8
++    assert not bool(dones.any())
++    assert len({id(row.builder) for row in env.rows})==8
++    assert len({id(row.bridge) for row in env.rows})==8
++
++
++def test_peer_bootstrap_uses_final_obs_before_reset_and_keeps_task_reward_separate():
++    backend = FakeVectorBackend(terminal_tick=3)
++    env = SemanticVectorRslEnv(backend,device="cpu")
++    calls = []
++    def critic(final_obs):
++        calls.append((backend.resets,final_obs["policy"].clone()))
++        return torch.arange(1,9,dtype=torch.float32).reshape(8,1)
++    env.bind_final_value_function(critic,gamma=env.gamma)
++    reset_observation = env.get_observations()["policy"].clone()
++    obs,rewards,dones,extras = env.step(torch.zeros(8,12))
++    assert calls[0][0]==1 and backend.resets==2
++    assert bool(dones.all())
++    assert extras["true_task_terminations"].tolist()==[True]+[False]*7
++    assert extras["external_peer_reset_truncations"].tolist()==[False]+[True]*7
++    assert not bool(extras["time_outs"].any())
++    assert extras["peer_bootstrap_credit"][0]==0
++    assert torch.allclose(extras["peer_bootstrap_credit"][1:],env.gamma*torch.arange(2,9))
++    assert torch.allclose(rewards,extras["environment_rewards"]+extras["peer_bootstrap_credit"])
++    assert torch.equal(obs["policy"],reset_observation)
++    assert not torch.equal(calls[0][1],reset_observation)
++    assert torch.equal(extras["terminal_observation"]["policy"],calls[0][1])
++    assert extras["semantic_decisions"][0]["reward"]["potential_after"]==0
++    assert extras["semantic_decisions"][1]["reward"]["potential_after"]>0
++    assert extras["semantic_decisions"][1]["environment_reward"]==pytest.approx(extras["environment_rewards"][1].item())
++    assert len(env.completed_episodes)==1 and len(env.peer_truncations)==7
++
++
++def test_missing_final_value_binding_fails_before_reset():
++    backend = FakeVectorBackend(terminal_tick=1)
++    env = SemanticVectorRslEnv(backend,device="cpu")
++    with pytest.raises(RuntimeError,match="bind live critic"):
++        env.step(torch.zeros(8,12))
++    assert backend.resets==1
++
++
++class TensorRobot:
++    def __init__(self):
++        self.joint_names = FULL12_ORDER
++        self.body_names = ("base_link",)
++        self.data = SimpleNamespace(joint_pos=torch.zeros(8,12),joint_vel=torch.zeros(8,12),
++            joint_pos_target=torch.zeros(8,12),joint_vel_target=torch.zeros(8,12))
++        self._joint_pos_target_sim = torch.zeros(8,12)
++        self._joint_vel_target_sim = torch.zeros(8,12)
++        self.writes = 0
++    def set_joint_position_target(self,values,*,joint_ids):
++        self.data.joint_pos_target[:,joint_ids] = values
++    def set_joint_velocity_target(self,values,*,joint_ids):
++        self.data.joint_vel_target[:,joint_ids] = values
++    def write_data_to_sim(self):
++        self._joint_pos_target_sim.copy_(self.data.joint_pos_target)
++        self._joint_vel_target_sim.copy_(self.data.joint_vel_target)
++        self.writes += 1
++
++
++def test_actual_batched_mapper_physical_conversion_and_native_audit_row_facade():
++    # Bypass only the unrelated PhysX limit-install constructor in this CPU test.
++    # The actual inherited batched apply, real mapper, sign/unit conversion and
++    # production native-target helper all execute unchanged.
++    adapter = object.__new__(_SemanticBatchedCommandAdapter)
++    adapter.robot,adapter.num_envs = TensorRobot(),8
++    adapter.origins = torch.zeros(8,3)
++    adapter.joint_map = resolve_joint_indices(FULL12_ORDER)
++    adapter._standing_servo = torch.zeros(8,8)
++    adapter.standing_pose_deg = [dict.fromkeys(SERVO_ORDER,0.) for _ in range(8)]
++    adapter.mappers = [ServoTargetMapper(standing,physics_dt_s=1/120) for standing in adapter.standing_pose_deg]
++    adapter._final_drive = [dict.fromkeys(SERVO_ORDER,0.) for _ in range(8)]
++    adapter.write_count,adapter._last_tick = 0,None
++    actions = [ZERO12[:8]+(.01*(row+1),0.,0.,0.) for row in range(8)]
++    plans = [build_residual_actuation_plan(action,frozen_nominal_full12=ZERO12,
++        drive_feedback_bias_full12=ZERO12,normal_drive_bias_full12=ZERO12) for action in actions]
++    ack = adapter.apply_batch((ZERO12,)*8,physics_tick=100,
++        tracking_servo_names=((),)*8,
++        drive_feedback_bias_full12=tuple(plan.combined_post_mapper_bias_full12 for plan in plans))
++    for row,plan in enumerate(plans):
++        audit = build_actuator_target_effect_audit(adapter=adapter.row_adapter(row),
++            actuation=plan,raw_ack=ack.rows[row],previous_final_drive_servo_deg=(0.,)*8,
++            source_phase_id="P01",policy_request=actuator_target_audit_request("P01",(.05,)*12,(1,)*12))
++        assert audit["verified"] is True
++        assert audit["changed_target_channel_count"]==1
++        assert audit["actual_native_targets"]["wheel_velocity_rad_s"][0]==pytest.approx(-.01*(row+1))
++        assert adapter.mappers[row]._feedback_tick==1
++    assert adapter.robot.writes==adapter.write_count==1
++
++
++def test_real_official_rsl_update_keeps_failed_rows_and_bootstrapped_peers(tmp_path):
++    pytest.importorskip("rsl_rl")
++    old_threads = torch.get_num_threads()
++    torch.set_num_threads(1)
++    try:
++        env = SemanticVectorRslEnv(FakeVectorBackend(terminal_tick=3),device="cpu")
++        runner,_ = construct_semantic_vector_runner(env,seed=1001,device="cpu")
++        result = train_semantic_vector(runner,env,decisions=1024,run_dir=tmp_path/"run",
++            output_root=tmp_path/"out",stage="smoke",contract={"revision":"offline_fixture"},seed=1001)
++        assert result["actual_policy_decisions"]==1024
++        assert result["ppo_updates_this_run"]==1
++        assert result["optimizer_steps_this_run"]==20
++        assert result["actor_parameter_sha256_before"]!=result["actor_parameter_sha256_after"]
++        assert result["finite_nonzero_gradient_observed"] is True
++        assert result["telemetry"]["completed_episode_count"]==128
++        assert result["telemetry"]["external_peer_truncation_count"]==128*7
++        storage = torch.load(tmp_path/"run"/"rollouts"/"rollout_000001.pt",weights_only=False)
++        assert storage["actions"].shape==(128,8,12)
++        assert bool(storage["dones"].all())
++        assert torch.isfinite(storage["returns"]).all()
++    finally:
++        torch.set_num_threads(old_threads)
++
++
++@pytest.mark.parametrize("decisions",[1,128,10000,1025])
++def test_vector_total_budget_cannot_silently_round_a_tail(decisions):
++    env = SimpleNamespace(num_envs=8,_final_value_function=lambda x:x)
++    runner = SimpleNamespace(cfg={"num_steps_per_env":128})
++    with pytest.raises(ValueError,match="exact multiple"):
++        train_semantic_vector(runner,env,decisions=decisions)
++
++
++def test_actual_semantic_batch_reset_step_and_second_reset_interfaces(monkeypatch):
++    # Mock only scene construction/physical integration and reader acquisition.
++    # Actual reset coordinator, semantic controller, sensor validation, frame
++    # builder, mapper, native audit and semantic env all execute unchanged.
++    from test_semantic_observation_reward_env import _raw
++    from wlr50_clean.sensing.contact_classifier import SENSED_BODIES, DEFAULT_ROLE_MAP
++    from wlr50_clean.sensing.observation import (
++        BodyContactObservation, PairContactObservation, RigidBodyObservation, ContactClass,
++    )
++    from wlr50_clean.ppo import semantic_vector_backend as module
++    from wlr50_clean.ppo.isaac_fsm_backend import DEFAULT_FSM_PATH, DEFAULT_MOTION_CONTRACT_PATH
++
++    def complete_raw(tick, row):
++        raw = _raw(tick,joint=0.)
++        bodies,contacts = dict(raw.bodies),dict(raw.contacts)
++        for name in SENSED_BODIES:
++            if name not in bodies:
++                bodies[name] = RigidBodyObservation(name,(0.,0.,.2),(1.,0.,0.,0.),(0.,)*3,(0.,)*3)
++            if name not in contacts:
++                def pair(kind):
++                    return PairContactObservation(name,kind,False,(0.,)*3,0.,0.,None,
++                        ((0.,)*3,)*8,(False,)*8,0,"offline_exact_fixture",True)
++                contacts[name] = BodyContactObservation(name,DEFAULT_ROLE_MAP[name],ContactClass.AIR,
++                    pair("ground"),pair("obstacle"))
++        return replace(raw,bodies=bodies,contacts=contacts,
++            center_of_mass=replace(raw.center_of_mass,included_bodies=tuple(bodies)))
++
++    class Reader:
++        def __init__(self,row):
++            self.row = row
++            self.contact_classifier,self.guard_tracker,self.body_collision_detector = object(),object(),object()
++        def read(self,*,physics_tick,simulation_time_s,commanded_full12):
++            assert simulation_time_s==physics_tick/120
++            return replace(complete_raw(physics_tick,self.row),commanded_full12=tuple(commanded_full12))
++
++    class ContactBank:
++        capture_count = 0
++        def reset(self):
++            self.capture_count = 0
++        def capture(self,tick):
++            self.capture_count += 1
++
++    backend = object.__new__(module.SemanticVectorIsaacBackend)
++    backend.num_envs,backend.env_spacing_m = 8,8.
++    backend.execution_profile_path = DEFAULT_EXECUTION_PROFILE
++    backend.execution_profile = module.load_execution_profile(DEFAULT_EXECUTION_PROFILE)
++    backend.fsm_path,backend.motion_contract_path = DEFAULT_FSM_PATH,DEFAULT_MOTION_CONTRACT_PATH
++    backend.robot = TensorRobot()
++    origins = torch.zeros(8,3)
++    origins[:,0] = torch.arange(8)*8
++    backend.scene = SimpleNamespace(env_origins=origins,update=lambda dt:None)
++    backend.sim = SimpleNamespace(step=lambda *,render:None)
++    backend.simulation_app = SimpleNamespace(is_running=lambda:True)
++    backend.contact_bank = ContactBank()
++    backend._canonical_reset_state = SimpleNamespace(state_sha256="offline_not_live")
++    backend._reset_transaction_poisoned = False
++    backend._reset_count,backend.global_physics_step_count = 0,0
++    backend._prepare_physical_reset = lambda:{"fixture_only_not_live":True}
++    backend._make_readers = lambda:tuple(Reader(row) for row in range(8))
++    monkeypatch.setattr(module._BatchedCommandAdapter,"_install_limits",lambda self:None)
++
++    env = SemanticVectorRslEnv(backend,device="cpu")
++    old_controllers,old_readers = backend.controllers,backend.readers
++    assert len({id(item.evaluator) for item in old_controllers})==8
++    assert all(frame.info["level_calibration_sample_count"]==0 for frame in backend.frames)
++    assert all(frame.info["semantic_task"]["completed_stage_ids"]==[] for frame in backend.frames)
++    actions = torch.zeros(8,12)
++    actions[:,8] = torch.arange(1,9)*.02
++    obs,rewards,dones,extras = env.step(actions)
++    assert not bool(dones.any())
++    assert obs["policy"].shape==(8,env.schema.dimension)
++    assert all(info["actuator_target_effect_audit_summary"]["all_ticks_verified"] for info in extras["semantic_decisions"])
++    assert all(info["no_in_episode_state_writes_verified"] for info in extras["semantic_decisions"])
++    effects = [info["actuator_target_effect_audit"]["actual_native_targets"]["wheel_velocity_rad_s"][0]
++               for info in extras["semantic_decisions"]]
++    assert len(set(effects))==8
++    env._reset_all()
++    assert all(new is not old for new,old in zip(backend.controllers,old_controllers,strict=True))
++    assert all(new is not old for new,old in zip(backend.readers,old_readers,strict=True))
++    assert all(frame.info["semantic_task"]["completed_stage_ids"]==[] for frame in backend.frames)
++    assert backend._policy_requests==(None,)*8
++
++
++def test_read_only_native_row_facade_cannot_mix_or_write_peer_target_rows():
++    from wlr50_clean.ppo.semantic_vector_backend import _RowTargetRobot
++    robot = TensorRobot()
++    for row in range(8):
++        robot.data.joint_pos_target[row,:] = row+1
++        robot._joint_pos_target_sim[row,:] = row+1
++    facade = _RowTargetRobot(robot,3,torch.zeros(3),8)
++    assert facade.data.joint_pos_target.shape==(1,12)
++    assert facade._joint_pos_target_sim.shape==(1,12)
++    assert bool((facade.data.joint_pos_target==4).all())
++    assert bool((facade._joint_pos_target_sim==4).all())
++    with pytest.raises(AttributeError):
++        facade.write_data_to_sim()

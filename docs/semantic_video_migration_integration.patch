@@ -1,0 +1,88 @@
+diff --git a/src/wlr50_clean/ppo/semantic_migration.py b/src/wlr50_clean/ppo/semantic_migration.py
+--- a/src/wlr50_clean/ppo/semantic_migration.py
++++ b/src/wlr50_clean/ppo/semantic_migration.py
+@@ -28,6 +28,11 @@
+     "scripts/run_semantic_ppo.ps1",
+ })
++VIDEO_FILES = frozenset({
++    "src/wlr50_clean/ppo/semantic_video.py",
++    "src/wlr50_clean/ppo/semantic_video_cli.py",
++    "scripts/run_semantic_video.ps1",
++})
+ PROJECT_ROOT = Path(__file__).resolve().parents[3]
+ 
+ 
+@@ -239,12 +244,32 @@
+             "old_rollouts_are_not_reused": True, "old_checkpoint_is_not_a_full_success_claim": True}
+ 
+ 
++def _video_instrumentation_factor(old, new, review, delta, project_root):
++    """Bind reviewed video source changes; never prove behavior or certify an outcome."""
++    if (not isinstance(review, Mapping) or set(review) != {"reason"}
++            or not isinstance(review["reason"], str) or not review["reason"].strip()):
++        raise ValueError("video instrumentation requires an explicit review reason")
++    if set(delta) - INSTRUMENTATION_FILES - VIDEO_FILES:
++        raise ValueError("video publication cannot change task/nominal/reward/action/backend or execution modules")
++    source_files = VIDEO_FILES & set(old["files"])
++    if source_files not in (set(), VIDEO_FILES) or not VIDEO_FILES <= set(new["files"]):
++        raise ValueError("video source must be absent or complete and target must retain all three reviewed files")
++    hashes = {path: file_sha(project_root / path) for path in sorted(VIDEO_FILES)}
++    if any(hashes[path] != new["files"][path] for path in VIDEO_FILES):
++        raise ValueError("video source bytes differ from reviewed target contract")
++    return {"schema": "wlr50_clean.semantic_video_instrumentation_migration.v1",
++            "review_reason": review["reason"].strip(),
++            "video_file_hashes": {path: {"before": old["files"].get(path), "after": hashes[path]}
++                                  for path in sorted(VIDEO_FILES)},
++            "added_files": sorted(VIDEO_FILES - source_files),
++            "modified_files": sorted(path for path in source_files if old["files"][path] != hashes[path]),
++            "reviewed_scope": "video_instrumentation_only_no_task_reward_or_topology_change",
++            "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True,
++            "video_success_or_improvement_certified": False}
++
++
+ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
+                          allowed_changed_files: Sequence[str], reason: str,
+                          prior_evidence: Mapping[str, Any] | None = None,
+                          qualification_evidence: Path | None = None,
+                          evaluator_review: Mapping[str, Any] | None = None,
+                          execution_evidence: Mapping[str, Any] | None = None,
++                         video_review: Mapping[str, Any] | None = None,
+                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
+     """Build a reviewed plan after committing the new runtime; does not write."""
+     checkpoint = Path(checkpoint).resolve(strict=True)
+@@ -259,8 +284,14 @@
+     if not reason.strip() or len(set(declared)) != len(declared):
+         raise ValueError("migration requires a reason and unique exact changed-file names")
+     delta = sorted(path for path in set(old["files"]) | set(new["files"]) if old["files"].get(path) != new["files"].get(path))
++    video = None
++    if video_review is not None:
++        if any(value is not None for value in (
++                prior_evidence, qualification_evidence, evaluator_review, execution_evidence)):
++            raise ValueError("video instrumentation and task/execution factors require separate reviewed boundaries")
++        video = _video_instrumentation_factor(old, new, video_review, delta, Path(project_root))
+     execution = None
+-    additional = set()
++    additional = set(VIDEO_FILES) if video is not None else set()
+     if execution_evidence is not None:
+         if (set(delta) - INSTRUMENTATION_FILES - VECTOR_FILES or prior_evidence is not None
+                 or qualification_evidence is not None or evaluator_review is not None):
+@@ -305,6 +336,8 @@
+         result["reviewed_evaluator_factor"] = evaluator
+     if execution is not None:
+         result["execution_factor"] = execution
++    if video is not None:
++        result["video_instrumentation_factor"] = video
+     return result
+ 
+ 
+@@ -323,7 +356,9 @@
+                                         "counterexample_tests": supplied["reviewed_evaluator_factor"]["counterexample_tests"]},
+                                     execution_evidence=None if "execution_factor" not in supplied else {
+                                         "target_num_envs": supplied["execution_factor"]["target_num_envs"],
+-                                        "vector_smoke": supplied["execution_factor"]["vector_smoke"]["manifest"]})
++                                        "vector_smoke": supplied["execution_factor"]["vector_smoke"]["manifest"]},
++                                    video_review=None if "video_instrumentation_factor" not in supplied else {
++                                        "reason": supplied["video_instrumentation_factor"]["review_reason"]})
+     if supplied != expected:
+         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
+     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}

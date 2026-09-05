@@ -1,0 +1,446 @@
+# DOCS-ONLY PROPOSAL. NOT APPLIED/IMPORTED/TESTED. No Python during live N8 training.
+# Companion: semantic_prefix_implementation.patch; video publication is a separate boundary.
+# No new policy/nominal/evaluator behavior change is allowed; only explicit reset-only DI.
+diff --git a/src/wlr50_clean/ppo/semantic_cli.py b/src/wlr50_clean/ppo/semantic_cli.py
+--- a/src/wlr50_clean/ppo/semantic_cli.py
++++ b/src/wlr50_clean/ppo/semantic_cli.py
+@@ -21,7 +21,7 @@
+     load_semantic_checkpoint, save_semantic_checkpoint, seed_training_rngs,
+     semantic_runner_config, sha256_file, train_semantic, verified_native_effect, write_json,
+ )
+-from .semantic_migration import topology, stage_partition
++from .semantic_migration import topology, stage_partition, reset_distribution
+ 
+ PROJECT_ROOT = Path(__file__).resolve().parents[3]
+ RUNS_ROOT = PROJECT_ROOT / "runs/ppo_semantic_v2"
+@@ -46,6 +46,7 @@
+     result.add_argument("--seed", type=int, default=1001)
+     result.add_argument("--num-envs", type=int, choices=(1, 8), default=1)
+     result.add_argument("--vector-smoke-evidence", type=Path)
++    result.add_argument("--prefix-target", choices=("P09", "P10"))
+     result.add_argument("--stage", choices=tuple(STAGE_BUDGETS), default="smoke")
+     result.add_argument("--decisions", type=int)
+     result.add_argument("--max-decisions", type=int, default=3000)
+@@ -112,7 +113,14 @@
+         raise ValueError("--decisions is an additional train request within the stage budget")
+     if not 1 <= args.max_decisions <= 3000 or args.checkpoint_interval_updates < 1:
+         raise ValueError("semantic window must remain within the 200 second task horizon")
+-    if args.command == "smoke" and args.max_decisions < 72:
++    if args.prefix_target is not None:
++        if args.command not in ("train", "smoke") or args.num_envs != 1:
++            raise ValueError("initial teacher suffix supports N1 train/smoke only; final evaluation is fresh P01")
++        if args.command == "train" and (args.stage != "phase_suffix" or args.checkpoint is None):
++            raise ValueError("fixed suffix training resumes saved weights under the existing phase_suffix budget")
++        if args.command == "smoke" and not 8 <= args.max_decisions <= 128:
++            raise ValueError("prefix interface probe uses 8..128 post-prefix decisions, not a full success gate")
++    if args.command == "smoke" and args.prefix_target is None and args.max_decisions < 72:
+         raise ValueError("functional smoke requires at least 64 decisions then reset and 8 decisions")
+     if args.command == "train" and args.seed not in range(1001, 1009):
+         raise ValueError("training seed must belong to the declared training split")
+@@ -174,6 +182,14 @@
+             raise ValueError("migration cannot change PPO hyperparameters or normalization")
+     if args.command == "train" and metadata["seed"] != args.seed:
+         raise ValueError("resume must preserve the checkpoint training RNG seed")
++    if args.command == "train":
++        from .semantic_migration import checkpoint_reset_distribution
++        source, target = checkpoint_reset_distribution(metadata), reset_distribution(args.prefix_target)
++        factor = (args._migration_record or {}).get("reset_distribution_factor")
++        if factor is not None and (factor["source"] != source or factor["target"] != target):
++            raise ValueError("reset distribution plan differs from requested fixed prefix")
++        if source != target and factor is None:
++            raise ValueError("training reset distribution change requires an explicit reviewed migration")
+ 
+ 
+ def _evaluation(core: Any, args: argparse.Namespace, *, contract: dict[str, Any]) -> dict[str, Any]:
+@@ -490,6 +506,63 @@
+         gpu.close()
+ 
+ 
++
++def dispatch_prefix(app, args, contract):
++    """One reset-only source; ordinary PPO starts only after its credit seam."""
++    import torch
++    from .semantic_prefix import PrefixRequest, PrefixSemanticIsaacBackend, PrefixRslAdapter
++    from .semantic_env import SemanticEpisodeEnv
++    request = PrefixRequest(args.prefix_target)
++    seed_training_rngs(args.seed)
++    with (args.run_dir / "reset_prefix_audit.jsonl").open("x", encoding="utf-8") as stream:
++        def evidence_sink(record):
++            stream.write(json.dumps(jsonable(record), allow_nan=False) + "\n")
++            # Propagate errors and leave a durable boundary/attempt result.
++            if record.get("kind") != "reset_only_prefix_tick":
++                stream.flush()
++        backend = PrefixSemanticIsaacBackend(app, prefix_request=request, audit_actuator_target_effect=True)
++        core = SemanticEpisodeEnv(backend, collect_trace=False)
++        env = PrefixRslAdapter(core, seed=args.seed, device=args.device, evidence_sink=evidence_sink)
++        env.cfg["reset_distribution"] = reset_distribution(args.prefix_target)
++        if request.as_dict() != {key: env.cfg["reset_distribution"][key] for key in request.as_dict()}:
++            raise RuntimeError("actual prefix request differs from the explicit reset-distribution plan")
++        if args.command == "smoke":
++            # No actor/critic or optimizer exists. Prefix fallback is reported,
++            # not relabeled as P09/P10 reachability or used as a success gate.
++            initial = jsonable(env.core.start_record)
++            effects, observations = 0, 0
++            with (args.run_dir / "post_prefix_probe.jsonl").open("x", encoding="utf-8") as probe:
++                for index in range(args.max_decisions):
++                    raw = torch.full((1, 12), 0.05 if index % 2 else -0.05, device=args.device)
++                    _, _, dones, extras = env.step(raw)
++                    info = extras["semantic_decisions"][0]
++                    effects += verified_native_effect(info, tuple(raw[0].cpu().tolist()))
++                    probe.write(json.dumps({"policy_credit": False, "probe_decision": index + 1,
++                                             "info": jsonable(info)}, allow_nan=False) + "\n")
++                    observations += 1
++                    if bool(dones.any()):
++                        break
++            result = {"schema": "wlr50_clean.semantic_prefix_interface_probe.v1",
++                      "requested_phase": args.prefix_target, "initial_credit_state": initial,
++                      "post_prefix_probe_decisions": observations, "native_effect_channel_observations": effects,
++                      "optimizer_steps": 0, "teacher_or_probe_data_in_PPO_storage": False,
++                      "functional_interface_completed": True, "task_success_required": False,
++                      "actual_suffix_available": initial["mode"] == "teacher_initialized_suffix",
++                      "telemetry": env.telemetry_summary(), "runtime_contract": contract}
++            write_json(args.run_dir / "prefix_probe_manifest.json", result)
++            return result
++        runner, _ = construct_semantic_runner(env, seed=args.seed, device=args.device)
++        # The freshly created official storage has never sampled the teacher.
++        previous = load_semantic_checkpoint(runner, args.checkpoint, contract=contract, seed=args.seed,
++                    migration=args._migration_record, target_reset_distribution=env.cfg["reset_distribution"])
++        if runner.alg.storage.step != 0 or runner.alg.transition.actions is not None:
++            raise RuntimeError("prefix training must begin with empty current-policy rollout storage")
++        remaining = STAGE_BUDGETS[args.stage] - previous["stage_requested_decisions"][args.stage]
++        return train_semantic(runner, env, run_dir=args.run_dir, output_root=OUTPUT_ROOT,
++            stage=args.stage, decisions=remaining if args.decisions is None else args.decisions,
++            contract=contract, seed=args.seed, resume_infos=previous,
++            checkpoint_interval_updates=args.checkpoint_interval_updates)
++
+ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[str, Any]:
+     # Resolve the installed PyTorch/TensorDict native DLLs before Kit extends
+     # the Windows DLL search path. Loading tensordict._C after Kit produced an
+@@ -507,6 +580,8 @@
+             return _evaluation_legacy(app, args, contract)
+         if args.num_envs == 8:
+             return dispatch_vector(app, args, contract, OUTPUT_ROOT)
++        if args.prefix_target is not None:
++            return dispatch_prefix(app, args, contract)
+         from .semantic_backend import SemanticIsaacBackend
+         from .semantic_env import SemanticEpisodeEnv
+         seed_training_rngs(args.seed)
+@@ -519,12 +594,13 @@
+         previous = None
+         if args.checkpoint is not None:
+             previous = load_semantic_checkpoint(runner, args.checkpoint, contract=contract, seed=args.seed,
+-                                                migration=getattr(args, "_migration_record", None))
++                                                migration=getattr(args, "_migration_record", None),
++                                                target_reset_distribution=reset_distribution())
+         else:
+             initial = OUTPUT_ROOT / "checkpoints/history/checkpoint_initial_semantic.pt"
+             save_semantic_checkpoint(runner, initial, {
+                 "seed": args.seed, "runtime_contract": contract, "stage": "initial",
+-                "execution_topology": topology(1),
++                "execution_topology": topology(1), "reset_distribution": reset_distribution(),
+                 "global_policy_decisions": 0, "ppo_updates": 0, "optimizer_steps": 0,
+                 "stage_requested_decisions": {stage: 0 for stage in STAGE_BUDGETS},
+                 "runner_config": semantic_runner_config(seed=args.seed, device=args.device),
+diff --git a/src/wlr50_clean/ppo/semantic_training.py b/src/wlr50_clean/ppo/semantic_training.py
+--- a/src/wlr50_clean/ppo/semantic_training.py
++++ b/src/wlr50_clean/ppo/semantic_training.py
+@@ -312,10 +312,19 @@
+ 
+ 
+ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping[str, Any], seed: int,
+-                             migration: Mapping[str, Any] | None = None) -> dict[str, Any]:
++                             migration: Mapping[str, Any] | None = None,
++                             target_reset_distribution: Mapping[str, Any] | None = None) -> dict[str, Any]:
+     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
+     metadata = json.loads(sidecar.read_text(encoding="utf-8"))
+     expected_contract = dict(contract)
++    from .semantic_migration import checkpoint_reset_distribution
++    if target_reset_distribution is not None:
++        source_distribution = checkpoint_reset_distribution(metadata)
++        reset_factor = (migration or {}).get("reset_distribution_factor")
++        if source_distribution != dict(target_reset_distribution) and (
++                reset_factor is None or reset_factor["source"] != source_distribution
++                or reset_factor["target"] != dict(target_reset_distribution)):
++            raise RuntimeError("training reset distribution requires its explicit reviewed boundary")
+     from .semantic_migration import source_num_envs
+     source_count = source_num_envs(metadata)
+     target_count = int(runner.alg.storage.actions.shape[1])
+@@ -506,10 +515,13 @@
+             if stop_record is not None or iteration == 0 or (iteration + 1) % checkpoint_interval_updates == 0 or iteration + 1 == iterations:
+                 spent = dict(stage_spent)
+                 spent[stage] += min((iteration + 1) * batch, decisions)
+-                from .semantic_migration import topology
++                from .semantic_migration import topology, prefix_topology, reset_distribution
++                prefix_target = env.cfg.get("prefix_request", {}).get("target_phase")
+                 infos = {"runtime_contract": dict(contract), "seed": seed, "stage": stage,
+-                         "execution_topology": topology(env.num_envs),
+-                         "phase_suffix_curriculum_implemented": False,
++                         "execution_topology": prefix_topology(prefix_target) if prefix_target else topology(env.num_envs),
++                         "reset_distribution": env.cfg.get("reset_distribution", reset_distribution()),
++                         "phase_suffix_curriculum_implemented": prefix_target is not None,
++                         "phase_suffix_scope": "one_fixed_target_not_mixture" if prefix_target else "not_implemented",
+                          "implemented_reset_sampling": env.cfg.get("reset_sampling", "P01_only"),
+                          "vector_smoke_evidence": env.cfg.get("vector_smoke_evidence"),
+                          "global_policy_decisions": global_step, "ppo_updates": base_updates + iteration + 1,
+@@ -548,7 +560,10 @@
+               "runtime_contract": dict(contract), "checkpoints": checkpoints, "training_success_is_not_task_success": True}
+     result["lifecycle"] = "STOPPED_AT_VERIFIED_UPDATE_BOUNDARY" if stop_record is not None else "SUCCEEDED"
+     result["stop_after_update"] = stop_record
+-    result["phase_suffix_curriculum_implemented"] = False
++    result["phase_suffix_curriculum_implemented"] = bool(env.cfg.get("prefix_request"))
++    result["phase_suffix_scope"] = "one_fixed_target_not_mixture" if env.cfg.get("prefix_request") else "not_implemented"
++    from .semantic_migration import reset_distribution
++    result["reset_distribution"] = env.cfg.get("reset_distribution", reset_distribution())
+     result["implemented_sampling"] = env.cfg.get("reset_sampling", "P01_only")
+     if gpu_probe is not None:
+         gpu_probe.sample("after_training_and_verified_checkpoint")
+diff --git a/src/wlr50_clean/ppo/semantic_migration.py b/src/wlr50_clean/ppo/semantic_migration.py
+--- a/src/wlr50_clean/ppo/semantic_migration.py
++++ b/src/wlr50_clean/ppo/semantic_migration.py
+@@ -246,6 +246,8 @@
+                          qualification_evidence: Path | None = None,
+                          evaluator_review: Mapping[str, Any] | None = None,
+                          execution_evidence: Mapping[str, Any] | None = None,
++                         reset_review: Mapping[str, Any] | None = None,
++                         video_review: Mapping[str, Any] | None = None,
+                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
+     """Build a reviewed plan after committing the new runtime; does not write."""
+     checkpoint = Path(checkpoint).resolve(strict=True)
+@@ -259,8 +261,17 @@
+     if not reason.strip() or len(set(declared)) != len(declared):
+         raise ValueError("migration requires a reason and unique exact changed-file names")
+     delta = sorted(path for path in set(old["files"]) | set(new["files"]) if old["files"].get(path) != new["files"].get(path))
++    reset_factor = video_factor = None
++    if reset_review is not None or video_review is not None:
++        if (reset_review is not None and video_review is not None) or any(value is not None for value in (
++                prior_evidence, qualification_evidence, evaluator_review, execution_evidence)):
++            raise ValueError("reset/video/execution/task factors require separate reviewed boundaries")
++        if reset_review is not None:
++            reset_factor = _reset_distribution_factor(metadata, new, reset_review, delta, Path(project_root))
++        else:
++            video_factor = _video_instrumentation_factor(old, new, video_review, delta, Path(project_root))
+     execution = None
+-    additional = set()
++    additional = ({PREFIX_FILE} if reset_factor is not None else set(VIDEO_FILES) if video_factor is not None else set())
+     if execution_evidence is not None:
+         if (set(delta) - INSTRUMENTATION_FILES - VECTOR_FILES or prior_evidence is not None
+                 or qualification_evidence is not None or evaluator_review is not None):
+@@ -277,7 +288,7 @@
+                 or qualification_evidence is not None):
+             raise ValueError("reviewed evaluator repair cannot mix prior/configuration or historical qualification factors")
+         evaluator = _reviewed_evaluator_factor(Path(project_root), old, new, evaluator_review)
+-    prior_transition = SUPERVISOR in delta and evaluator is None
++    prior_transition = SUPERVISOR in delta and evaluator is None and reset_factor is None
+     if prior_transition != (prior_evidence is not None) or (prior_transition and STAGE_SPEC not in delta):
+         raise ValueError("nominal source change and explicit prior evidence/config change must occur together")
+     if qualification_evidence is not None and not prior_transition:
+@@ -303,6 +314,10 @@
+         result["reviewed_evaluator_factor"] = evaluator
+     if execution is not None:
+         result["execution_factor"] = execution
++    if reset_factor is not None:
++        result["reset_distribution_factor"] = reset_factor
++    if video_factor is not None:
++        result["video_instrumentation_factor"] = video_factor
+     return result
+ 
+ 
+@@ -321,7 +336,12 @@
+                                         "counterexample_tests": supplied["reviewed_evaluator_factor"]["counterexample_tests"]},
+                                     execution_evidence=None if "execution_factor" not in supplied else {
+                                         "target_num_envs": supplied["execution_factor"]["target_num_envs"],
+-                                        "vector_smoke": supplied["execution_factor"]["vector_smoke"]["manifest"]})
++                                        "vector_smoke": supplied["execution_factor"]["vector_smoke"]["manifest"]},
++                                    reset_review=None if "reset_distribution_factor" not in supplied else {
++                                        "reason": supplied["reset_distribution_factor"]["review_reason"],
++                                        "target_phase": supplied["reset_distribution_factor"]["target"].get("target_phase")},
++                                    video_review=None if "video_instrumentation_factor" not in supplied else {
++                                        "reason": supplied["video_instrumentation_factor"]["review_reason"]})
+     if supplied != expected:
+         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
+     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}
+@@ -347,7 +367,9 @@
+     declared = metadata.get("execution_topology")
+     if declared is not None:
+         count = declared.get("num_envs")
+-        if declared != topology(count):
++        expected = (prefix_topology(declared.get("prefix_target"))
++                    if declared.get("schema") == "wlr50_clean.semantic_execution_topology.v2" else topology(count))
++        if declared != expected:
+             raise ValueError("checkpoint execution topology is malformed")
+         return count
+     # Legacy semantic checkpoints existed only before vector code was added.
+@@ -398,6 +420,8 @@
+ def build_execution_factor(metadata, new, evidence, *, project_root: Path):
+     if not isinstance(evidence, Mapping) or set(evidence) != {"target_num_envs", "vector_smoke"}:
+         raise ValueError("execution boundary requires exact target count and current live N8 proof")
++    if checkpoint_reset_distribution(metadata)["kind"] != "P01":
++        raise ValueError("return to P01 reset distribution before a separate vector topology migration")
+     source, target = source_num_envs(metadata), evidence["target_num_envs"]
+     topology(target)
+     if (source, target) not in ((1, 8), (8, 1)):
+@@ -424,3 +448,145 @@
+             "restore_actor_critic_Adam_normalizer_RNG_and_global_budget": True,
+             "reset": "fresh_legal_P01_all_target_rows", "observation_dimension": 324,
+             "policy_action_dimension": 12, "PPO_algorithm_and_hyperparameters_changed": False}
++
++
++PREFIX_FILE = "src/wlr50_clean/ppo/semantic_prefix.py"
++VIDEO_FILES = frozenset({
++    "src/wlr50_clean/ppo/semantic_video.py",
++    "src/wlr50_clean/ppo/semantic_video_cli.py",
++    "scripts/run_semantic_video.ps1",
++})
++PREFIX_SAMPLING = "natural_P01_A_teacher_prefix_then_semantic_suffix_N1.v1"
++
++
++def reset_distribution(target=None):
++    if target is None:
++        return {"schema": "wlr50_clean.semantic_reset_distribution.v1", "kind": "P01",
++                "teacher": None, "task_horizon_includes_prefix": True}
++    if target not in ("P09", "P10"):
++        raise ValueError("only a fixed P09 or P10 prefix request is reviewed")
++    return {"schema": "wlr50_clean.semantic_reset_distribution.v1", "kind": "fixed_teacher_suffix",
++            "target_phase": target, "maximum_prefix_decisions": 1800, "maximum_takeover_decisions": 30,
++            "teacher": "unmodified_SensorFsmController_reset_only", "fallback": "one_fresh_P01",
++            "task_horizon_includes_prefix": True, "prefix_credit": False, "mixture_implemented": False}
++
++
++def checkpoint_reset_distribution(metadata):
++    value = metadata.get("reset_distribution")
++    if value is None:
++        if PREFIX_FILE in metadata["runtime_contract"].get("files", {}):
++            raise ValueError("prefix-capable checkpoint must declare its reset distribution")
++        return reset_distribution()
++    target = value.get("target_phase") if value.get("kind") == "fixed_teacher_suffix" else None
++    if value != reset_distribution(target):
++        raise ValueError("checkpoint reset distribution is malformed")
++    return value
++
++
++def prefix_topology(target):
++    reset_distribution(target)
++    if target is None:
++        return topology(1)
++    return {**topology(1), "schema": "wlr50_clean.semantic_execution_topology.v2",
++            "reset_sampling": PREFIX_SAMPLING, "prefix_target": target,
++            "phase_suffix_curriculum_implemented": True,
++            "phase_suffix_scope": "one_fixed_P09_or_P10_request_not_full_mixture"}
++
++
++def _prefix_di_only(before, after):
++    """Remove precisely the additive DI seams; existing behavior must be identical."""
++    import ast
++    # The evaluator and task supervisor are not an extension point for this factor.
++    marker = "class NominalMotionProvider:"
++    if before.split(marker, 1)[0] != after.split(marker, 1)[0]:
++        raise ValueError("prefix adoption cannot change evaluator/task supervisor bytes")
++    old, new = ast.parse(before), ast.parse(after)
++    old_classes = {node.name: node for node in old.body if isinstance(node, ast.ClassDef)}
++    new_classes = {node.name: node for node in new.body if isinstance(node, ast.ClassDef)}
++    additions = {"NominalMotionProvider": "from_handoff",
++                 "SemanticControllerAdapter": "from_live_prefix"}
++    for class_name, method_name in additions.items():
++        source_class, target_class = old_classes[class_name], new_classes[class_name]
++        if any(isinstance(node, ast.FunctionDef) and node.name == method_name for node in source_class.body):
++            raise ValueError("prefix DI addition is only allowed at its first reviewed publication")
++        methods = [node for node in target_class.body if isinstance(node, ast.FunctionDef) and node.name == method_name]
++        if len(methods) != 1:
++            raise ValueError("prefix DI public method addition is missing/ambiguous")
++        target_class.body.remove(methods[0])
++    constructor = next(node for node in new_classes["SemanticControllerAdapter"].body
++                       if isinstance(node, ast.FunctionDef) and node.name == "__init__")
++    # Exactly the two default-None injection options; no altered ordinary constructor.
++    for name in ("supervisor", "nominal_provider"):
++        positions = [i for i, arg in enumerate(constructor.args.kwonlyargs) if arg.arg == name]
++        if len(positions) != 1:
++            raise ValueError("prefix DI constructor option is missing/ambiguous")
++        index = positions[0]
++        if not isinstance(constructor.args.kw_defaults[index], ast.Constant) or constructor.args.kw_defaults[index].value is not None:
++            raise ValueError("prefix DI must leave default construction unchanged")
++        constructor.args.kwonlyargs.pop(index); constructor.args.kw_defaults.pop(index)
++    expected = {
++        "supervisor": "TaskStageSupervisor(task_spec_path)",
++        "nominal_provider": "NominalMotionProvider(contract, spec=self.supervisor.spec)",
++    }
++    for name, expression in expected.items():
++        matches = [node for node in constructor.body if isinstance(node, ast.Assign) and
++                   len(node.targets) == 1 and ast.unparse(node.targets[0]) == "self." + name]
++        expected_value = ast.parse(f"{expression} if {name} is None else {name}", mode="eval").body
++        if len(matches) != 1 or ast.dump(matches[0].value) != ast.dump(expected_value):
++            raise ValueError("prefix DI altered ordinary controller construction")
++        matches[0].value = ast.parse(expression, mode="eval").body
++    if ast.dump(old) != ast.dump(new):
++        raise ValueError("prefix publication changed existing nominal/controller behavior outside DI")
++    return {"evaluator_and_task_supervisor_bytes_unchanged": True,
++            "ordinary_nominal_and_controller_behavior_AST_unchanged": True,
++            "before_source_sha256_LF": hashlib.sha256(before.encode()).hexdigest(),
++            "after_source_sha256_LF": hashlib.sha256(after.encode()).hexdigest(),
++            "added_public_methods": list(additions.values())}
++
++
++def _reset_distribution_factor(metadata, new, review, delta, project_root):
++    if not isinstance(review, Mapping) or set(review) != {"reason", "target_phase"} or not str(review["reason"]).strip():
++        raise ValueError("reset distribution requires explicit reviewed reason and target phase")
++    if source_num_envs(metadata) != 1:
++        raise ValueError("finish an explicit 8-to-1 boundary before changing reset distribution")
++    old = metadata["runtime_contract"]
++    source, target = checkpoint_reset_distribution(metadata), reset_distribution(review["target_phase"])
++    if source == target:
++        raise ValueError("reset distribution factor must name an actual distribution boundary")
++    allowed = INSTRUMENTATION_FILES | {PREFIX_FILE, SUPERVISOR}
++    if set(delta) - allowed or PREFIX_FILE not in new["files"]:
++        raise ValueError("reset distribution touched protected behavior/configuration")
++    di = None
++    if SUPERVISOR in delta:
++        if PREFIX_FILE in old["files"]:
++            raise ValueError("reset factor cannot revise existing prefix adoption behavior")
++        di = _prefix_di_only(_version_text(project_root, old, SUPERVISOR),
++                             _version_text(project_root, new, SUPERVISOR, prefer_worktree=True))
++    elif PREFIX_FILE not in old["files"]:
++        raise ValueError("first prefix publication must bind the reviewed public DI extension")
++    if PREFIX_FILE in old["files"] and old["files"][PREFIX_FILE] != new["files"][PREFIX_FILE]:
++        raise ValueError("distribution selection does not authorize changing prefix implementation")
++    if file_sha(project_root / PREFIX_FILE) != new["files"][PREFIX_FILE]:
++        raise ValueError("prefix source bytes differ from reviewed target contract")
++    return {"schema": "wlr50_clean.semantic_reset_distribution_migration.v1",
++            "review_reason": str(review["reason"]).strip(), "source": source, "target": target,
++            "public_DI_delta": di, "prefix_source_sha256": new["files"][PREFIX_FILE],
++            "old_rollout_storage_reused": False, "saved_actor_critic_Adam_normalizer_RNG_preserved": True,
++            "physical_reset": "fresh_P01_then_bounded_teacher_prefix_before_any_policy_sample",
++            "task_deadline_s": 200, "prefix_clock_reset_at_credit_boundary": False}
++
++
++def _video_instrumentation_factor(old, new, review, delta, project_root):
++    if not isinstance(review, Mapping) or set(review) != {"reason"} or not str(review["reason"]).strip():
++        raise ValueError("video instrumentation requires an explicit review reason")
++    if set(delta) - INSTRUMENTATION_FILES - VIDEO_FILES:
++        raise ValueError("video publication cannot change task/nominal/reward/action/backend")
++    if any(path in old["files"] for path in VIDEO_FILES) or not VIDEO_FILES <= set(new["files"]):
++        raise ValueError("video factor permits only the complete reviewed additive three-file publication")
++    hashes = {path: file_sha(project_root / path) for path in sorted(VIDEO_FILES)}
++    if any(hashes[path] != new["files"][path] for path in VIDEO_FILES):
++        raise ValueError("video source bytes differ from reviewed target contract")
++    return {"schema": "wlr50_clean.semantic_video_instrumentation_migration.v1",
++            "review_reason": str(review["reason"]).strip(), "added_file_sha256": hashes,
++            "training_or_task_behavior_changed": False,
++            "evaluation_optimizer_updates": 0, "video_success_or_improvement_certified": False}
+diff --git a/scripts/run_semantic_ppo.ps1 b/scripts/run_semantic_ppo.ps1
+--- a/scripts/run_semantic_ppo.ps1
++++ b/scripts/run_semantic_ppo.ps1
+@@ -8,6 +8,7 @@
+     [int]$Seed = 1001,
+     [ValidateSet(1,8)][int]$NumEnvs = 1,
+     [string]$VectorSmokeEvidence,
++    [ValidateSet('P09','P10')][string]$PrefixTarget,
+     [string]$Checkpoint,
+     [string]$ResumeMigration,
+     [ValidateSet('legacy_fsm_eval','semantic_prior_eval','semantic_residual_eval')][string]$Mode = 'semantic_prior_eval',
+@@ -47,6 +48,7 @@
+         '--expected-head',$ExpectedHead,'--stage',$Stage,'--seed',[string]$Seed,'--num-envs',[string]$NumEnvs,
+         '--max-decisions',[string]$MaxDecisions,'--mode',$Mode,'--device',$Device,
+         '--checkpoint-interval-updates',[string]$CheckpointIntervalUpdates,'--headless')
++    if ($PSBoundParameters.ContainsKey('PrefixTarget')) { $arguments += @('--prefix-target',$PrefixTarget) }
+     if ($PSBoundParameters.ContainsKey('Decisions')) { $arguments += @('--decisions',[string]$Decisions) }
+     if (-not [string]::IsNullOrWhiteSpace($VectorSmokeEvidence)) {
+         $proof = if ([IO.Path]::IsPathRooted($VectorSmokeEvidence)) { $VectorSmokeEvidence } else { Join-Path $project $VectorSmokeEvidence }

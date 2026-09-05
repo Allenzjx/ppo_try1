@@ -1,0 +1,617 @@
+UNAPPLIED N1 reset-only teacher-prefix draft; do not include in live inventory.
+Runtime baseline: semantic supervisor 57fa0583; root N8 work is independent.
+Only semantic_supervisor public-DI hunks plus additive semantic_prefix/tests.
+Existing training metadata now reads env.cfg.reset_sampling; no training hunk needed.
+Use PrefixRslAdapter(SemanticEpisodeEnv(PrefixSemanticIsaacBackend(app,
+    prefix_request=PrefixRequest("P09"))), seed=1001, evidence_sink=persistent_jsonl_sink).
+The sink must persist records and propagate I/O failures; never silently discard evidence.
+Fresh physical P01 remains the only fallback; all teacher/takeover data is excluded
+from PPO storage, optimizer decisions and current-policy whole-task success counts.
+Whole task 200 seconds includes prefix; no history, mapper or physics clock restart
+at credit seam. N1 suffix only: external nonterminal windows/N8 are unsupported.
+No claim P09/P10 available until real teacher + shadow + takeover is observed.
+CPU rerun: all 11 proposed tests passed on the final draft loaded in memory;
+the negative fixture now uses a genuinely different (1,)*12 nominal. The final
+native-summary/metadata additions import successfully but are not specifically
+covered by these tests. Before applying, add an actual backend/core/RSL credit-seam
+test with receipt capture and exercise those additions. No Isaac run.
+JUnit: C:/robotics_sim/wlr_robot/semantic_prefix_draft_cpu_20260905T081605Z/junit.xml
+
+diff --git a/src/wlr50_clean/ppo/semantic_supervisor.py b/src/wlr50_clean/ppo/semantic_supervisor.py
+--- a/src/wlr50_clean/ppo/semantic_supervisor.py
++++ b/src/wlr50_clean/ppo/semantic_supervisor.py
+@@ -468,6 +468,28 @@
+         self._source_motion=MotionExecutor(physics_hz=self.physics_hz,
+             servo_rate_limit_deg_s=self.servo_rate_limit_deg_s,initial_full12=self.nominal_full12)
+ 
++
++    @classmethod
++    def from_handoff(cls, contract: Any, *, spec: Mapping[str, Any],
++                     stage_id: str, nominal_full12: Sequence[float],
++                     tracking_servo_names: Sequence[str]):
++        """Seed only nominal scheduling; keep the live RobotAdapter mapper untouched."""
++        command = _vector(tuple(nominal_full12), 12, "executed handoff nominal")
++        if Full12Command.from_full12(command).clamped().to_full12() != command:
++            raise SemanticObservationError("handoff nominal is outside actuator limits")
++        names = tuple(tracking_servo_names)
++        if len(names) != len(set(names)) or any(name not in SERVO_ORDER for name in names):
++            raise SemanticObservationError("invalid executed handoff tracking")
++        phase = contract.phase(stage_id)
++        result = cls(contract, spec=spec)
++        result.nominal_full12 = command
++        result.tracking_servo_names = names
++        result.state_id = stage_id
++        result._source_motion = MotionExecutor(physics_hz=result.physics_hz,
++            servo_rate_limit_deg_s=result.servo_rate_limit_deg_s, initial_full12=command)
++        result._source_motion.start_phase(phase)
++        return result
++
+     def _approach_assist_required(self, task: Mapping[str,Any]) -> bool:
+         evaluation=task.get("physical_evaluator")
+         if (task.get("termination_reason") is not None or not isinstance(evaluation,Mapping)
+@@ -510,11 +532,14 @@
+ 
+ class SemanticControllerAdapter:
+     """Explicit startup replacement producing the established ControllerFrame."""
++    def __init__(self, spec: Any, contract: Any, *, task_spec_path: Path | str = DEFAULT_TASK_SPEC_PATH,
++                 supervisor: TaskStageSupervisor | None = None,
++                 nominal_provider: NominalMotionProvider | None = None):
+-    def __init__(self, spec: Any, contract: Any, *, task_spec_path: Path | str = DEFAULT_TASK_SPEC_PATH):
+         self.spec=spec; self.contract=contract
++        self.supervisor=TaskStageSupervisor(task_spec_path) if supervisor is None else supervisor
+-        self.supervisor=TaskStageSupervisor(task_spec_path)
+         self.evaluator=self.supervisor.evaluator
++        self.nominal_provider=(NominalMotionProvider(contract,spec=self.supervisor.spec)
++                               if nominal_provider is None else nominal_provider)
+-        self.nominal_provider=NominalMotionProvider(contract,spec=self.supervisor.spec)
+         self.motion=self.nominal_provider
+         self.physics_tick=0; self.lifecycle=Lifecycle.EXECUTE_MOTION
+         self.history:list[ControllerEvent]=[]; self.termination:TaskTermination|None=None
+@@ -524,6 +549,34 @@
+     def from_paths(cls, fsm_path: Path | str, motion_contract_path: Path | str, *, task_spec_path: Path | str=DEFAULT_TASK_SPEC_PATH):
+         return cls(load_fsm_spec(Path(fsm_path)),load_motion_contract(Path(motion_contract_path)),task_spec_path=task_spec_path)
+ 
++
++    @classmethod
++    def from_live_prefix(cls, spec: Any, contract: Any, *, supervisor: TaskStageSupervisor,
++                         nominal_full12: Sequence[float], tracking_servo_names: Sequence[str],
++                         physics_tick: int, sim_time_s: float):
++        """Adopt the live observer object without restoring labels or re-observing a tick."""
++        task = supervisor.snapshot
++        if (type(physics_tick) is not int or physics_tick <= 0 or physics_tick % 8
++                or supervisor._last_observation_tick != physics_tick
++                or not math.isclose(sim_time_s, physics_tick/120., rel_tol=0., abs_tol=1e-9)
++                or supervisor.episode_started_s != 0.
++                or task.get("termination_reason") is not None
++                or task.get("entry_valid") is not True
++                or task.get("stage_id") != supervisor.stage_id):
++            raise SemanticObservationError("handoff must be a valid live natural-prefix decision tick")
++        provider = NominalMotionProvider.from_handoff(contract, spec=supervisor.spec,
++            stage_id=supervisor.stage_id, nominal_full12=nominal_full12,
++            tracking_servo_names=tracking_servo_names)
++        result = cls(spec, contract, supervisor=supervisor, nominal_provider=provider)
++        result.physics_tick = physics_tick + 1
++        result._last_time = sim_time_s
++        result.lifecycle = Lifecycle.EXECUTE_MOTION
++        frame = ControllerFrame(physics_tick, sim_time_s, supervisor.stage_id, result.lifecycle,
++            provider.nominal_full12, True, True, False, provider.tracking_servo_names,
++            ZERO12, ZERO12, {"mode":"semantic_live_prefix_handoff","semantic_task":task},
++            False, None, None, ())
++        return result, frame
++
+     @property
+     def state(self): return SimpleNamespace(state_id=self.supervisor.stage_id)
+     @property
+diff --git a/src/wlr50_clean/ppo/semantic_prefix.py b/src/wlr50_clean/ppo/semantic_prefix.py
+new file mode 100644
+--- /dev/null
++++ b/src/wlr50_clean/ppo/semantic_prefix.py
+@@ -0,0 +1,362 @@
++"""DRAFT: N=1 reset-only frozen teacher, continuous semantic state and credit seam."""
++from __future__ import annotations
++
++import math
++from dataclasses import dataclass, replace
++from typing import Any, Callable, Mapping
++
++from wlr50_clean.fsm.controller import ControllerFrame, SensorFsmController
++from wlr50_clean.fsm.state_spec import Lifecycle, load_fsm_spec
++from wlr50_clean.fsm.task_result import TaskResult, TaskTermination
++from wlr50_clean.infrastructure.command_batch import SERVO_ORDER
++from wlr50_clean.reference.motion_contract import load_motion_contract
++from .semantic_backend import CONFIG_ROOT, SemanticIsaacBackend
++from .semantic_env import ZERO12
++from .semantic_legacy_evaluation import measured_observation
++from .semantic_observation import vector
++from .semantic_supervisor import SemanticControllerAdapter, TaskStageSupervisor
++from .semantic_training import SemanticRslAdapter, jsonable, verified_native_effect
++
++SAMPLING = "natural_P01_A_teacher_prefix_then_semantic_suffix_N1.v1"
++
++
++class PrefixUnavailable(RuntimeError):
++    """A recorded initialization miss, never a discarded credited PPO failure."""
++    def __init__(self, reason: str, *, tick: int, task: Mapping[str, Any], observation=None, receipt=None):
++        super().__init__(reason)
++        self.record = {"reason":reason,"physics_tick":tick,"semantic_task":dict(task),
++            "last_observation":None if observation is None else measured_observation(observation),
++            "last_executed_dispatch":None if receipt is None else receipt.record()}
++
++
++@dataclass(frozen=True)
++class PrefixRequest:
++    target_phase: str = "P09"
++    maximum_prefix_decisions: int = 1800
++    maximum_takeover_decisions: int = 30
++
++    def __post_init__(self):
++        if self.target_phase not in ("P09","P10"):
++            raise ValueError("first prefix revision supports actual P09/P10 targets only")
++        for value in (self.maximum_prefix_decisions,self.maximum_takeover_decisions):
++            if type(value) is not int or not 1 <= value <= 3000:
++                raise ValueError("prefix limits must be bounded positive decision counts")
++
++    def as_dict(self):
++        return {"target_phase":self.target_phase,
++                "maximum_prefix_decisions":self.maximum_prefix_decisions,
++                "maximum_takeover_decisions":self.maximum_takeover_decisions,
++                "teacher":"unmodified_SensorFsmController_reset_only",
++                "fallback":"one_fresh_P01","task_horizon_includes_prefix":True}
++
++
++@dataclass(frozen=True)
++class DispatchReceipt:
++    source_tick: int
++    command_tick: int
++    nominal: tuple[float, ...]
++    tracking: tuple[str, ...]
++    bias: tuple[float, ...]
++    ack: Mapping[str, Any]
++
++    @classmethod
++    def from_ack(cls, *, source_tick, command, tracking, bias, ack):
++        if type(source_tick) is not int or source_tick < 0:
++            raise ValueError("receipt requires actual source control tick")
++        nominal = vector(command,12,"receipt nominal")
++        total_bias = vector(bias,12,"receipt post-mapper bias")
++        names = tuple(tracking)
++        if len(set(names))!=len(names) or any(name not in SERVO_ORDER for name in names):
++            raise ValueError("invalid dispatch tracking names")
++        if (type(ack.get("physics_tick")) is not int
++                or ack.get("articulation_writes_this_call")!=1
++                or tuple(ack.get("applied_full12",()))!=nominal
++                or tuple(ack.get("drive_feedback_bias_requested_full12",()))!=total_bias):
++            raise ValueError("handoff seed is not bound to the actual atomic dispatch")
++        vector(ack["native_drive_target_full12"],12,"receipt native")
++        vector(ack["drive_target_full12"],12,"receipt final drive")
++        return cls(source_tick,ack["physics_tick"],nominal,names,total_bias,dict(ack))
++
++    def record(self):
++        return {"source_control_tick":self.source_tick,"command_physics_tick":self.command_tick,
++                "nominal_full12":self.nominal,"tracking_servo_names":self.tracking,
++                "controller_bias_full12":self.bias,"atomic_ack":dict(self.ack)}
++
++
++def _task_frame(tick, now, task, nominal, tracking=(), bias=ZERO12):
++    reason = task["termination_reason"]
++    lifecycle = Lifecycle.DONE if reason else (Lifecycle.EXECUTE_MOTION if task["entry_valid"] else Lifecycle.WAIT_ENTRY)
++    termination = None if reason is None else TaskTermination(
++        TaskResult(reason),task["stage_id"],lifecycle.value,now,
++        task["physical_evaluator"].get("reason") or reason,task)
++    command = tuple(nominal) if reason is None else tuple(nominal[:8])+ZERO12[8:]
++    return ControllerFrame(tick,now,task["stage_id"],lifecycle,command,tick%8==0,
++        True,False,tuple(tracking),ZERO12,tuple(bias),
++        {"mode":"reset_only_teacher_semantic_task_owner","semantic_task":task},
++        False,termination,None,())
++
++
++class ResetOnlyPrefixController:
++    """The semantic supervisor owns task truth from tick zero; only one command source."""
++    def __init__(self, teacher, supervisor, spec, contract, request: PrefixRequest):
++        self.teacher,self.supervisor,self.spec,self.contract = teacher,supervisor,spec,contract
++        self.evaluator = supervisor.evaluator
++        self.request = request
++        self.motion = teacher.motion
++        self.physics_tick = 0
++        self.mode = "TEACHER"
++        self._receipt = None
++        self._semantic = None
++        self._bias = ZERO12
++        self._handoff_tick = None
++        self.handoff_record = None
++        self.teacher_calls = 0
++
++    @property
++    def task_snapshot(self):
++        return self.supervisor.snapshot
++
++    @property
++    def task_progress(self):
++        return float(self.task_snapshot.get("phase_progress",0.))
++
++    def record_verified_dispatch(self, receipt: DispatchReceipt):
++        if receipt.source_tick != self.physics_tick-1:
++            raise ValueError("receipt source does not match the emitted controller frame")
++        self._receipt = receipt
++
++    def step(self, observation, *, sim_time_s=None):
++        tick = self.physics_tick
++        now = tick/120 if sim_time_s is None else float(sim_time_s)
++        observed_tick = observation.get("physics_tick") if isinstance(observation,Mapping) else observation.physics_tick
++        if observed_tick != tick or not math.isclose(now,tick/120,rel_tol=0.,abs_tol=1e-9):
++            raise ValueError("teacher/shadow observation clock is not the real continuous clock")
++        if tick and (self._receipt is None or self._receipt.source_tick!=tick-1):
++            raise ValueError("new observation has no matching executed dispatch receipt")
++        if self._semantic is not None:
++            frame = self._semantic.step(observation,sim_time_s=now)
++            if self.mode!="READY":
++                rates=(self.supervisor.spec["nominal"]["servo_handoff_rate_deg_s"],)*8+(
++                    self.supervisor.spec["nominal"]["wheel_handoff_rate_rad_s2"],)*4
++                self._bias=tuple(x-math.copysign(min(abs(x),rate/120),x) if x else 0.
++                                 for x,rate in zip(self._bias,rates,strict=True))
++                # Both the generated command and the last actual dispatch must
++                # be bias-free before ordinary B/C credit can begin.
++                if self._bias==ZERO12 and self._receipt.bias==ZERO12:
++                    self.mode="READY"
++                elif tick-self._handoff_tick > self.request.maximum_takeover_decisions*8:
++                    raise PrefixUnavailable("bounded takeover did not retire teacher bias",tick=tick,task=self.task_snapshot,observation=observation,receipt=self._receipt)
++            frame=replace(frame,normal_drive_bias_full12=self._bias,
++                drive_feedback_details={**frame.drive_feedback_details,"reset_only_teacher_takeover":self.mode!="READY"})
++        else:
++            task=self.supervisor.observe_and_update(observation,sim_time_s=now)
++            if task["termination_reason"] is not None:
++                frame=_task_frame(tick,now,task,self._receipt.nominal if self._receipt else ZERO12)
++            elif tick and tick%8==0 and task["stage_id"]==self.request.target_phase and task["entry_valid"]:
++                self._semantic,frame=SemanticControllerAdapter.from_live_prefix(
++                    self.spec,self.contract,supervisor=self.supervisor,
++                    nominal_full12=self._receipt.nominal,tracking_servo_names=self._receipt.tracking,
++                    physics_tick=tick,sim_time_s=now)
++                self.motion=self._semantic.motion
++                self._bias=self._receipt.bias
++                self._handoff_tick=tick
++                self.mode="TAKEOVER"
++                self.handoff_record={**self._receipt.record(),"handoff_tick":tick,
++                    "handoff_time_s":now,"actual_phase":task["stage_id"],
++                    "semantic_task":dict(task),"teacher_calls":self.teacher_calls}
++                frame=replace(frame,normal_drive_bias_full12=self._bias)
++                # Releasing the object is not editing/forcing its old FSM state.
++                self.teacher=None
++            else:
++                teacher_frame=self.teacher.step(observation,sim_time_s=now)
++                self.teacher_calls+=1
++                if teacher_frame.termination is not None:
++                    raise PrefixUnavailable("teacher ended before requested semantic start",tick=tick,task=task,observation=observation,receipt=self._receipt)
++                if not teacher_frame.full12_atomic_write_required:
++                    raise ValueError("teacher failed the established atomic Full12 interface")
++                frame=replace(teacher_frame,state_id=task["stage_id"],
++                    lifecycle=Lifecycle.EXECUTE_MOTION if task["entry_valid"] else Lifecycle.WAIT_ENTRY,
++                    drive_feedback_details={**teacher_frame.drive_feedback_details,
++                        "mode":"reset_only_frozen_teacher","semantic_task":task,
++                        "teacher_phase":teacher_frame.state_id,"teacher_lifecycle":teacher_frame.lifecycle.value})
++        self.physics_tick+=1
++        return frame
++
++
++class PrefixSemanticIsaacBackend(SemanticIsaacBackend):
++    """Reuse physical reset and execution; capture the fresh ACK before controller.step."""
++    def __init__(self, simulation_app=None, *, prefix_request=None, **kwargs):
++        if "controller_factory" in kwargs or kwargs.get("audit_actuator_target_effect",True) is not True:
++            raise ValueError("prefix owns explicit controller injection and requires native auditing")
++        kwargs["audit_actuator_target_effect"]=True
++        self.prefix_request=prefix_request or PrefixRequest()
++        self._prefix_enabled=True
++        super().__init__(simulation_app,controller_factory=self._new_prefix_controller,**kwargs)
++
++    def configure_prefix(self, enabled: bool):
++        if type(enabled) is not bool:
++            raise ValueError("explicit prefix mode boolean required")
++        self._prefix_enabled=enabled
++
++    def _new_prefix_controller(self,fsm_path,contract_path):
++        if not self._prefix_enabled:
++            return SemanticControllerAdapter.from_paths(fsm_path,contract_path,
++                task_spec_path=CONFIG_ROOT/"stage_task_spec.yaml")
++        teacher=SensorFsmController.from_paths(fsm_path,contract_path)
++        return ResetOnlyPrefixController(teacher,TaskStageSupervisor(CONFIG_ROOT/"stage_task_spec.yaml"),
++            load_fsm_spec(fsm_path),load_motion_contract(contract_path),self.prefix_request)
++
++    @property
++    def prefix_controller(self):
++        return self._controller if isinstance(self._controller,ResetOnlyPrefixController) else None
++
++    def _build_authoritative_frame(self,observation,controller_frame,*,previous_frame):
++        frame=super()._build_authoritative_frame(observation,controller_frame,previous_frame=previous_frame)
++        controller=self.prefix_controller
++        mode=controller.mode if controller is not None else "FRESH_P01"
++        frame.info.update(reset_sampling=SAMPLING,reset_only_prefix_mode=mode,
++            execution_mode={"TEACHER":"reset_only_A_teacher_prime",
++                "TAKEOVER":"reset_only_semantic_takeover","READY":"semantic_teacher_initialized_suffix",
++                "FRESH_P01":"semantic_fresh_P01_fallback"}[mode])
++        return frame
++
++    def _atomic_apply(self,adapter,command,*,physics_tick,tracking_servo_names,drive_feedback_bias_full12):
++        controller=self.prefix_controller
++        if controller is not None and controller.mode!="READY":
++            request=self._actuator_target_audit_request
++            if request is None or any(request["raw_policy_action_full12"]):
++                raise ValueError("teacher/takeover initialization must use zero raw residual")
++        ack=super()._atomic_apply(adapter,command,physics_tick=physics_tick,
++            tracking_servo_names=tracking_servo_names,drive_feedback_bias_full12=drive_feedback_bias_full12)
++        if controller is not None:
++            controller.record_verified_dispatch(DispatchReceipt.from_ack(
++                source_tick=self._controller_frame.physics_tick,command=command,
++                tracking=tracking_servo_names,bias=drive_feedback_bias_full12,ack=ack))
++        return ack
++
++
++class PrefixCreditCore:
++    """Proxy whose reset executes teacher initialization but whose step is only C data."""
++    def __init__(self, core, *, evidence_sink: Callable[[Mapping[str,Any]],None]):
++        if not isinstance(core.backend,PrefixSemanticIsaacBackend) or not callable(evidence_sink):
++            raise ValueError("prefix requires the explicit backend and a persistent evidence sink")
++        self.core,self.sink=core,evidence_sink
++        self._initializing=False
++        self._credit_open=False
++        self.prefix_decisions=0
++        self.prefix_ticks=0
++        self.attempts=[]
++        self._credit_return_offset=0.
++        self._previous_observer=core.tick_observer
++        core.tick_observer=self._observe
++
++    @property
++    def frame(self):
++        return self.core.frame
++
++    def _observe(self,before,after,projection):
++        if self._initializing:
++            self.prefix_ticks+=1
++            self.sink({"kind":"reset_only_prefix_tick","policy_credit":False,
++                "observation":measured_observation(after.info["raw_observation"]),
++                "native_audit":after.info["actuator_target_effect_audit"],
++                "source_phase":before.state_id,"actual_phase":after.state_id,
++                "projected_applied_full12":projection.applied_action_full12})
++        if self._previous_observer is not None:
++            self._previous_observer(before,after,projection)
++
++    def reset(self,seed=1001,options=None):
++        if options:
++            raise ValueError("suffix source is natural P01; snapshot options are unsupported")
++        self._credit_open=False
++        self._initializing=True
++        backend=self.core.backend
++        request=backend.prefix_request
++        backend.configure_prefix(True)
++        start_decisions,start_ticks=self.prefix_decisions,self.prefix_ticks
++        last_info={}
++        miss=None
++        try:
++            observation=self.core.reset(seed=seed)
++            self.sink({"kind":"reset_only_prefix_start","policy_credit":False,
++                "seed":seed,"request":request.as_dict(),
++                "observation":measured_observation(self.frame.info["raw_observation"])})
++            for _ in range(request.maximum_prefix_decisions):
++                step=self.core.step(ZERO12)
++                self.prefix_decisions+=1
++                last_info=dict(step.info)
++                verified_native_effect(last_info,ZERO12)
++                if (last_info["actuator_target_effect_audit_summary"]["all_ticks_verified"] is not True
++                        or last_info["no_in_episode_state_writes_verified"] is not True):
++                    raise RuntimeError("prefix native audit/state-write evidence is incomplete")
++                if step.terminated:
++                    miss={"reason":"physical_prefix_terminal","terminal_info":last_info}
++                    break
++                controller=backend.prefix_controller
++                if controller.mode=="READY":
++                    if self.frame.state_id!=request.target_phase:
++                        miss={"reason":"requested_phase_completed_during_takeover",
++                              "actual_phase":self.frame.state_id}
++                        break
++                    self.start_record={"mode":"teacher_initialized_suffix","requested_phase":request.target_phase,
++                        "actual_phase":self.frame.state_id,"physics_tick":self.frame.physics_tick,
++                        "sim_time_s":self.frame.sim_time_s,"remaining_task_time_s":self.frame.info["semantic_task"]["remaining_task_time_s"],
++                        "handoff":controller.handoff_record,"from_P01_current_policy":False}
++                    break
++            else:
++                miss={"reason":"bounded_prefix_exhausted"}
++            if miss is None and backend.prefix_controller.mode!="READY":
++                miss={"reason":"prefix_did_not_open_credit"}
++        except PrefixUnavailable as exc:
++            miss=exc.record
++        finally:
++            self._initializing=False
++        attempt={"request":request.as_dict(),"prefix_decisions":self.prefix_decisions-start_decisions,
++            "prefix_physics_ticks":self.prefix_ticks-start_ticks,"accepted":miss is None,"miss":miss}
++        self.attempts.append(attempt)
++        self.sink({"kind":"reset_only_prefix_result","policy_credit":False,**attempt})
++        if miss is not None:
++            backend.configure_prefix(False)
++            observation=self.core.reset(seed=seed)
++            last_info={}
++            self.start_record={"mode":"fresh_P01_fallback","actual_phase":self.frame.state_id,
++                "physics_tick":self.frame.physics_tick,"sim_time_s":self.frame.sim_time_s,
++                "from_P01_current_policy":True,"prefix_miss":miss}
++        else:
++            observation=self.core.observation
++        self._credit_return_offset=float(last_info.get("episode_return",0.))
++        self._credit_open=True
++        return tuple(observation)
++
++    def step(self,raw):
++        if not self._credit_open:
++            raise RuntimeError("prefix reset must finish before policy collection")
++        step=self.core.step(raw)
++        info=dict(step.info)
++        info["curriculum_start"]=self.start_record
++        info["physical_episode_return_including_prefix"]=info["episode_return"]
++        info["episode_return"]=info["episode_return"]-self._credit_return_offset
++        info["prefix_teacher_data_in_ppo_storage"]=False
++        return replace(step,info=info)
++
++    def telemetry_summary(self):
++        return {"reset_sampling":SAMPLING,"prefix_behavior_decisions":self.prefix_decisions,
++            "prefix_physics_ticks":self.prefix_ticks,"prefix_attempts":jsonable(self.attempts),
++            "physical_core_including_prefix":self.core.telemetry_summary()}
++
++
++class PrefixRslAdapter(SemanticRslAdapter):
++    """Ordinary N=1 RSL storage; teacher work happens inside reset, never alg.act."""
++    def __init__(self,core,*,seed,device="cuda:0",evidence_sink):
++        super().__init__(PrefixCreditCore(core,evidence_sink=evidence_sink),seed=seed,device=device)
++        self.cfg.update(reset_sampling=SAMPLING,prefix_request=core.backend.prefix_request.as_dict(),
++            teacher_data_in_ppo_storage=False,external_window_truncation_supported=False)
++
++    def telemetry_summary(self):
++        result=super().telemetry_summary()
++        suffix_success=sum(row["task_success"] and not row["terminal_info"]["curriculum_start"]["from_P01_current_policy"]
++                           for row in self.completed_episodes)
++        result.update(reset_sampling=SAMPLING,teacher_initialized_task_success_count=suffix_success,
++            success_count=result["success_count"]-suffix_success,
++            success_count_scope="fresh_P01_current_policy_only")
++        return result
+diff --git a/tests/unit/test_semantic_prefix.py b/tests/unit/test_semantic_prefix.py
+new file mode 100644
+--- /dev/null
++++ b/tests/unit/test_semantic_prefix.py
+@@ -0,0 +1,141 @@
++"""CPU contract checks; synthetic sensor sequences are not live suffix availability."""
++from copy import deepcopy
++from dataclasses import replace
++from types import SimpleNamespace
++from pathlib import Path
++import sys
++
++import pytest
++
++sys.path.insert(0, str(Path(__file__).resolve().parent))
++from test_semantic_supervisor import observation, advance, leg_state
++from wlr50_clean.ppo.semantic_supervisor import TaskStageSupervisor, SemanticControllerAdapter
++from wlr50_clean.ppo.semantic_prefix import (
++    DispatchReceipt, PrefixRequest, PrefixUnavailable, ResetOnlyPrefixController,
++    PrefixSemanticIsaacBackend, PrefixCreditCore, ZERO12,
++)
++from wlr50_clean.ppo.isaac_fsm_backend import DEFAULT_FSM_PATH, DEFAULT_MOTION_CONTRACT_PATH
++from wlr50_clean.fsm.state_spec import load_fsm_spec, Lifecycle
++from wlr50_clean.reference.motion_contract import load_motion_contract
++from wlr50_clean.fsm.controller import ControllerFrame
++from wlr50_clean.infrastructure.command_batch import SERVO_ORDER
++
++
++def resources():
++    return load_fsm_spec(DEFAULT_FSM_PATH),load_motion_contract(DEFAULT_MOTION_CONTRACT_PATH)
++
++
++def receipt(tick, nominal=None, bias=ZERO12, tracking=()):
++    if nominal is None: nominal=resources()[1].phases[0].start_full12
++    ack={"physics_tick":tick+600,"articulation_writes_this_call":1,
++         "applied_full12":tuple(nominal),"drive_feedback_bias_requested_full12":bias,
++         "native_drive_target_full12":tuple(nominal),"drive_target_full12":tuple(nominal)}
++    return DispatchReceipt.from_ack(source_tick=tick,command=nominal,tracking=tracking,bias=bias,ack=ack)
++
++
++class Teacher:
++    def __init__(self,nominal):
++        self.nominal=tuple(nominal);self.motion=SimpleNamespace();self.calls=0
++    def step(self,observation,*,sim_time_s):
++        tick=observation["physics_tick"];self.calls+=1
++        return ControllerFrame(tick,sim_time_s,"P01",Lifecycle.EXECUTE_MOTION,self.nominal,
++            tick%8==0,True,False,(SERVO_ORDER[0],),ZERO12,(.1,)*8+(0.,)*4,
++            {"teacher":True},False,None,None,())
++
++
++def synthetic_prefix(target="P09"):
++    """Every supervisor update consumes a contiguous measured sensor sample."""
++    spec,contract=resources();teacher=Teacher(contract.phases[0].start_full12)
++    controller=ResetOnlyPrefixController(teacher,TaskStageSupervisor(),spec,contract,PrefixRequest(target))
++    obs=observation()
++    schedules={
++        "P01":("FR",{"air":True,"bottom":.012,"hip":1.5}),
++        "P02":("FR",{"air":True,"bottom":.075,"hip":4.,"x":.499}),
++        "P03":("FR",{"top":True,"bottom":.05,"x":.53}),
++        "P04":("FL",{"air":True,"bottom":.012,"hip":1.5}),
++        "P05":("FL",None),
++        "P08":("RR",{"air":True,"bottom":.012,"hip":1.5}),
++        "P09":("RR",None),
++    }
++    phase_age={}
++    for tick in range(180):
++        if tick: obs=advance(obs)
++        stage=controller.supervisor.stage_id
++        phase_age[stage]=phase_age.get(stage,0)+1
++        if stage in schedules:
++            leg,values=schedules[stage]
++            if values is None:
++                values=({"air":True,"bottom":.075,"hip":4.,"x":.499}
++                        if phase_age[stage]<=3 else {"top":True,"bottom":.05,"x":.53})
++            leg_state(obs,leg,**values)
++        frame=controller.step(obs,sim_time_s=tick/120)
++        controller.record_verified_dispatch(receipt(tick,frame.full12,
++            tuple(a+b for a,b in zip(frame.normal_drive_bias_full12,frame.drive_feedback_bias_full12)),
++            frame.tracking_servo_names))
++        if controller.mode=="READY":
++            return controller,teacher,obs,frame
++        assert controller.task_snapshot["termination_reason"] is None, controller.task_snapshot
++    raise AssertionError(controller.task_snapshot)
++
++
++@pytest.mark.parametrize("phase",["P09","P10"])
++def test_actual_shadow_history_reaches_handoff_without_label_restore(phase):
++    controller,teacher,obs,frame=synthetic_prefix(phase)
++    assert controller.handoff_record["actual_phase"]==phase
++    assert controller.teacher is None and controller._semantic.supervisor is controller.supervisor
++    assert controller._semantic.evaluator is controller.evaluator
++    assert controller.handoff_record["atomic_ack"]["physics_tick"]==controller.handoff_record["source_control_tick"]+600
++    assert controller.handoff_record["handoff_tick"]==controller.handoff_record["source_control_tick"]+1
++    assert controller.supervisor.episode_started_s==0.
++    assert frame.physics_tick==obs["physics_tick"] and frame.sim_time_s>0
++    assert controller.task_snapshot["remaining_task_time_s"]==pytest.approx(200-frame.sim_time_s)
++    assert controller.task_snapshot["placed_history"]["FR"]
++    assert controller.task_snapshot["placed_history"]["FL"]
++    if phase=="P10": assert controller.task_snapshot["placed_history"]["RR"]
++    calls=teacher.calls
++    next_obs=advance(obs)
++    controller.step(next_obs,sim_time_s=next_obs["simulation_time_s"])
++    assert teacher.calls==calls
++
++
++def test_public_handoff_preserves_seed_and_does_not_observe_twice():
++    spec,contract=resources();supervisor=TaskStageSupervisor();obs=observation()
++    for _ in range(9):
++        task=supervisor.observe_and_update(obs)
++        if obs["physics_tick"]<8:obs=advance(obs)
++    before=deepcopy(supervisor.snapshot)
++    seed=contract.phases[0].start_full12
++    controller,frame=SemanticControllerAdapter.from_live_prefix(spec,contract,supervisor=supervisor,
++        nominal_full12=seed,tracking_servo_names=(SERVO_ORDER[0],),physics_tick=8,sim_time_s=8/120)
++    assert supervisor.snapshot==before
++    assert frame.full12==tuple(seed) and frame.tracking_servo_names==(SERVO_ORDER[0],)
++    assert controller.physics_tick==9 and controller._last_time==8/120
++    controller.step(advance(obs),sim_time_s=9/120)
++    assert controller.physics_tick==10
++
++
++@pytest.mark.parametrize("field,value",[("physics_tick",True),("articulation_writes_this_call",0),
++                                       ("applied_full12",(1.,)*12)])
++def test_receipt_rejects_unbound_dispatch(field,value):
++    good=receipt(0);bad=dict(good.ack);bad[field]=value
++    with pytest.raises(ValueError):
++        DispatchReceipt.from_ack(source_tick=0,command=good.nominal,tracking=(),bias=ZERO12,ack=bad)
++
++
++def test_controller_rejects_new_observation_without_dispatch():
++    spec,contract=resources()
++    c=ResetOnlyPrefixController(Teacher(contract.phases[0].start_full12),TaskStageSupervisor(),spec,contract,PrefixRequest())
++    c.step(observation(),sim_time_s=0.)
++    with pytest.raises(ValueError,match="dispatch receipt"):c.step(observation(1),sim_time_s=1/120)
++
++
++@pytest.mark.parametrize("target",["P01","P11","SUCCESS"])
++def test_initial_target_scope_is_explicit(target):
++    with pytest.raises(ValueError):PrefixRequest(target)
++
++
++def test_configure_prefix_is_not_a_snapshot_restore():
++    backend=object.__new__(PrefixSemanticIsaacBackend)
++    with pytest.raises(ValueError):backend.configure_prefix("true")
++    backend.configure_prefix(False)
++    assert backend._prefix_enabled is False
