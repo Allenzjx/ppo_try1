@@ -228,6 +228,7 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
     # No Isaac scene or environment imports before AppLauncher.
     from isaaclab.app import AppLauncher
     app = AppLauncher(headless=bool(args.headless), enable_cameras=False).app
+    args._live_app = app
     app.update()
     try:
         from .semantic_backend import SemanticIsaacBackend
@@ -256,7 +257,9 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                               contract=contract, seed=args.seed, resume_infos=previous,
                               checkpoint_interval_updates=args.checkpoint_interval_updates)
     finally:
-        app.close(wait_for_replicator=False, skip_cleanup=True)
+        # main persists the final lifecycle BEFORE closing Kit. Its native
+        # immediate-exit path does not return to Python on this Windows stack.
+        pass
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -286,6 +289,10 @@ def main(argv: list[str] | None = None) -> int:
                          completed_at_utc=datetime.now(timezone.utc).isoformat())
         write_json(args.run_dir / "run_manifest.json", lifecycle)
         raise
+    finally:
+        app = getattr(args, "_live_app", None)
+        if app is not None:
+            app.close(wait_for_replicator=False, skip_cleanup=True)
 
 
 if __name__ == "__main__":
