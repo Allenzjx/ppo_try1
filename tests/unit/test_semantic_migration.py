@@ -160,3 +160,96 @@ def test_stop_during_second_rollout_waits_for_exact_256_boundary(tmp_path):
         assert metadata["stop_after_update"]["reason"] == "review geometry"
     finally:
         torch.set_num_threads(prior_threads)
+
+
+def prior_fixture(tmp_path, monkeypatch):
+    import wlr50_clean.ppo.semantic_migration as module
+    from types import SimpleNamespace
+    before_config = b"geometry:\n  approach_min_m: -0.18\nnominal:\n  source: recording.json\nstage_defaults:\n  unchanged: true\n"
+    before_source = b"# frozen evaluator\nclass NominalMotionProvider:\n    old = True\n\nclass SemanticControllerAdapter:\n    unchanged = True\n"
+    after_config = before_config.replace(b"-0.18", b"-0.005").replace(b"  source: recording.json\n", b"  source: recording.json\n" + module.PRIOR_CONFIG_LINES.encode())
+    after_source = before_source.replace(b"    old = True", b"    task_driven_prior = True")
+    old, new = contract(1), contract(2)
+    for relative, before, after in ((module.STAGE_SPEC, before_config, after_config), (module.SUPERVISOR, before_source, after_source)):
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(after)
+        old["files"][relative] = module.hashlib.sha256(before).hexdigest()
+        new["files"][relative] = module.hashlib.sha256(after).hexdigest()
+    for data in (old, new):
+        data["runtime_content_sha256"] = digest(data["files"])
+    monkeypatch.setattr(module.subprocess, "run", lambda args, **kw: SimpleNamespace(
+        stdout=before_config if args[-1].endswith(module.STAGE_SPEC) else before_source))
+    source = checkpoint(tmp_path, old)
+    evidence = {}
+    for role, mode in (("B", "semantic_prior_eval"), ("C", "semantic_residual_eval")):
+        directory = tmp_path / "runs/ppo_semantic_v2" / role
+        directory.mkdir(parents=True)
+        path = directory / "evaluation_manifest.json"
+        data = {"mode": mode, "runtime_contract": {"source_git_commit": module.PRIOR_DIAGNOSTIC_HEAD},
+                "optimizer_updates_during_evaluation": 0, "task_success": False,
+                "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED", "policy_decisions": 226,
+                "duration_s": 15.0666666666667, "checkpoint": str(source) if role == "C" else None,
+                "checkpoint_sha256": file_sha(source) if role == "C" else None}
+        write_json(path, data)
+        write_json(directory / "run_manifest.json", {"lifecycle": "SUCCEEDED", "result": data})
+        evidence[role] = path
+    return source, old, new, evidence, [CODE, module.STAGE_SPEC, module.SUPERVISOR]
+
+
+def test_prior_transition_binds_exact_class_configuration_and_b_c_evidence(tmp_path, monkeypatch):
+    source, old, new, evidence, changed = prior_fixture(tmp_path, monkeypatch)
+    plan = build_migration_plan(source, new, allowed_changed_files=changed, reason="restore lost forward prior",
+                                prior_evidence=evidence, project_root=tmp_path)
+    assert plan["geometric_factor"]["after"] == -0.005
+    assert plan["prior_factor"]["wheel_prior_rad_s"] == [0.3] * 4
+    assert plan["prior_factor"]["evidence"]["C"]["evaluation_manifest_sha256"] == file_sha(evidence["C"])
+    path = tmp_path / "new_plan.json"
+    write_json(path, plan)
+    assert validate_migration_plan(source, new, path, project_root=tmp_path)["prior_factor"] == plan["prior_factor"]
+
+
+@pytest.mark.parametrize("fault", ["before_class", "after_class", "extra_config", "missing_evidence", "wrong_evidence_checkpoint"])
+def test_prior_transition_cannot_relax_outside_nominal_block_or_evidence(tmp_path, monkeypatch, fault):
+    import wlr50_clean.ppo.semantic_migration as module
+    source, old, new, evidence, changed = prior_fixture(tmp_path, monkeypatch)
+    if fault in ("before_class", "after_class"):
+        path = tmp_path / module.SUPERVISOR
+        text = path.read_text()
+        path.write_text(text.replace("# frozen evaluator", "# changed evaluator") if fault == "before_class" else text.replace("unchanged = True", "unchanged = False"))
+        new["files"][module.SUPERVISOR] = file_sha(path)
+    elif fault == "extra_config":
+        path = tmp_path / module.STAGE_SPEC
+        path.write_text(path.read_text().replace("unchanged: true", "unchanged: false"))
+        new["files"][module.STAGE_SPEC] = file_sha(path)
+    elif fault == "missing_evidence":
+        evidence = None
+    else:
+        path = evidence["C"]
+        data = json.loads(path.read_text())
+        data["checkpoint_sha256"] = "0" * 64
+        path.write_text(json.dumps(data))
+        path.with_name("run_manifest.json").write_text(json.dumps({"lifecycle": "SUCCEEDED", "result": data}))
+    new["runtime_content_sha256"] = digest(new["files"])
+    with pytest.raises(ValueError):
+        build_migration_plan(source, new, allowed_changed_files=changed, reason="invalid broadening", prior_evidence=evidence, project_root=tmp_path)
+
+
+def test_historical_geometry_only_plan_remains_optional_prior_free(tmp_path, monkeypatch):
+    import wlr50_clean.ppo.semantic_migration as module
+    from types import SimpleNamespace
+    before = b"geometry:\n  approach_min_m: -0.18\n"
+    target = before.replace(b"-0.18", b"-0.005")
+    old, new = contract(1), contract(1)
+    old["files"][module.STAGE_SPEC] = module.hashlib.sha256(before).hexdigest()
+    new["files"][module.STAGE_SPEC] = module.hashlib.sha256(target).hexdigest()
+    new["source_git_commit"] = "2" * 40
+    for data in (old, new):
+        data["runtime_content_sha256"] = digest(data["files"])
+    monkeypatch.setattr(module.subprocess, "run", lambda args, **kw: SimpleNamespace(stdout=before if args[-1].startswith("1") else target))
+    source = checkpoint(tmp_path, old)
+    plan = build_migration_plan(source, new, allowed_changed_files=[module.STAGE_SPEC], reason="historical geometry", project_root=tmp_path)
+    assert "prior_factor" not in plan
+    path = tmp_path / "historical.json"
+    write_json(path, plan)
+    assert validate_migration_plan(source, new, path, project_root=tmp_path)["geometric_factor"] == plan["geometric_factor"]

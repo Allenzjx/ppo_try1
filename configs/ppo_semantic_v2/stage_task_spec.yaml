@@ -43,6 +43,9 @@ nominal:
   handoff: persistent_nominal_slew_toward_advisory_targets_without_anchor_reset
   servo_handoff_rate_deg_s: 150.0
   wheel_handoff_rate_rad_s2: 3.0
+  approach_wheel_prior_rad_s: [0.3, 0.3, 0.3, 0.3]
+  approach_wheel_prior_source: P01
+  approach_wheel_prior_scope: P02_current_physical_goal_feedback_only
   nominal_tail: finite_home_advisory_with_residual_enabled_until_task_deadline
 stage_defaults: &stage_defaults
   allowed_action_channels: [front_left_hip, front_left_knee, front_right_hip, front_right_knee, rear_left_hip, rear_left_knee, rear_right_hip, rear_right_knee, front_left_ankle, front_right_ankle, rear_left_ankle, rear_right_ankle]

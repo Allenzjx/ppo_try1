@@ -412,6 +412,8 @@ class NominalMotionProvider:
     limits; it is never reset to a historical entry anchor. The first handoff
     sample retains both nominal and tracking. Adapter compensation is never
     reset. After the suggestion tail, PPO remains active under task deadlines.
+    P02 may reuse P01's rolling suggestion from current measured task goals;
+    this does not replay P01 or make source duration an entry/finish condition.
     """
     def __init__(self, contract: Any, *, spec: Mapping[str, Any] | None = None):
         self.contract=contract; self.spec=dict(spec) if spec is not None else load_task_spec()
@@ -420,8 +422,32 @@ class NominalMotionProvider:
         self.nominal_full12=tuple(contract.phases[0].start_full12)
         self.state_id: str | None=None; self.elapsed_s=0.; self.endpoint_issued=False
         self.tracking_servo_names: tuple[str,...]=()
+        nominal=self.spec["nominal"]
+        self._approach_wheel_prior=_vector(nominal["approach_wheel_prior_rad_s"],4,"approach wheel prior rad/s")
+        source_wheels={tuple(waypoint.full12[8:]) for waypoint in contract.phase("P01").waypoints
+                       if any(value != 0. for value in waypoint.full12[8:])}
+        if (nominal.get("approach_wheel_prior_source")!="P01"
+                or nominal.get("approach_wheel_prior_scope")!="P02_current_physical_goal_feedback_only"
+                or any(value <= 0. for value in self._approach_wheel_prior)
+                or source_wheels!={self._approach_wheel_prior}):
+            raise ValueError("approach wheel prior must equal the verified P01 rolling waypoint in rad/s")
         self._source_motion=MotionExecutor(physics_hz=self.physics_hz,
             servo_rate_limit_deg_s=self.servo_rate_limit_deg_s,initial_full12=self.nominal_full12)
+
+    def _approach_assist_required(self, task: Mapping[str,Any]) -> bool:
+        evaluation=task.get("physical_evaluator")
+        if (task.get("termination_reason") is not None or not isinstance(evaluation,Mapping)
+                or evaluation.get("valid") is not True or evaluation.get("termination_reason") is not None):
+            return False
+        history=evaluation.get("history",{}).get("active_lift",{})
+        legs=evaluation.get("current_legs",{})
+        if history.get("FR") is not True or "FR" not in legs:
+            return False
+        other_supports=sum(legs.get(leg,{}).get("support") is True for leg in LEG_ORDER if leg!="FR")
+        current=legs["FR"]; geometry=self.spec["geometry"]
+        return (other_supports >= self.spec["support"]["minimum_other_supports"]
+            and _number(current.get("clearance_m"),"current FR clearance") >= geometry["airborne_clearance_above_top_m"]
+            and _number(current.get("front_distance_m"),"current FR front distance") < geometry["approach_min_m"])
 
     def evaluate(self, stage: str | Mapping[str,Any], observation: Any=None) -> tuple[float,...]:
         stage_id=stage if isinstance(stage,str) else str(stage["stage_id"])
@@ -434,6 +460,11 @@ class NominalMotionProvider:
         self.elapsed_s=source.elapsed_s
         proposed=source.full12
         self.endpoint_issued=source.endpoint_issued
+        # The string-only test seam remains the unmodified finite advisory.
+        # All feedback here is in the current task snapshot, with no timer,
+        # integral, hidden latch, historical posture or reference-force gate.
+        if stage_id=="P02" and isinstance(stage,Mapping) and self._approach_assist_required(stage):
+            proposed=proposed[:8]+self._approach_wheel_prior
         if stage_id=="P13" and self.endpoint_issued:
             proposed=tuple(self.spec["final"]["home_servo_pose_deg"])+(0.,)*4
         if not handoff:

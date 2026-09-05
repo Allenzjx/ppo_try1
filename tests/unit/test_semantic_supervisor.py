@@ -341,6 +341,106 @@ def test_early_handoff_still_approaches_usable_absolute_advisory_not_a_lost_delt
     assert provider.nominal_full12==contract.phase("P02").end_full12
 
 
+@pytest.fixture
+def p02_approach_task(p02_airborne_sensor_prefix):
+    supervisor=TaskStageSupervisor(initial_stage_id="P02")
+    for obs in p02_airborne_sensor_prefix:task=supervisor.observe_and_update(obs)
+    assert task["stage_id"]=="P02" and task["active_lift_history"]["FR"]
+    return task
+
+
+def test_p02_reuses_verified_p01_wheel_prior_after_finite_lift_tail(p02_approach_task):
+    contract=load_motion_contract(PROJECT/"configs/recording_motion_contract.json")
+    provider=NominalMotionProvider(contract)
+    previous=(0.,)*4
+    for _ in range(120):
+        command=provider.evaluate(p02_approach_task)
+        assert all(abs(now-old)<=3./120.+1e-12 for now,old in zip(command[8:],previous))
+        previous=command[8:]
+    assert provider.endpoint_issued
+    assert command[8:]==(.3,)*4
+    assert command[:8]==contract.phase("P02").end_full12[:8]
+    assert p02_approach_task["completed_stage_ids"]==[]
+
+
+@pytest.mark.parametrize("unavailable",[
+    "arrival","overrun","no_lift","no_clearance","one_support","invalid","unsafe","task_terminal",
+])
+def test_p02_approach_assist_is_current_goal_feedback_and_slews_to_stop(p02_approach_task,unavailable):
+    contract=load_motion_contract(PROJECT/"configs/recording_motion_contract.json")
+    provider=NominalMotionProvider(contract)
+    for _ in range(24):provider.evaluate(p02_approach_task)
+    assert provider.nominal_full12[8:]==(.3,)*4
+    task=deepcopy(p02_approach_task); evaluation=task["physical_evaluator"]
+    if unavailable=="arrival":evaluation["current_legs"]["FR"]["front_distance_m"]=-.005
+    if unavailable=="overrun":evaluation["current_legs"]["FR"]["front_distance_m"]=.2
+    if unavailable=="no_lift":evaluation["history"]["active_lift"]["FR"]=False
+    if unavailable=="no_clearance":evaluation["current_legs"]["FR"]["clearance_m"]=.0149
+    if unavailable=="one_support":
+        for leg in ("FL","RL"):evaluation["current_legs"][leg]["support"]=False
+    if unavailable=="invalid":evaluation["valid"]=False
+    if unavailable=="unsafe":evaluation["termination_reason"]="TASK_FAILURE_BODY_COLLISION"
+    if unavailable=="task_terminal":task["termination_reason"]="INCOMPLETE_CONTROLLER_BLOCKED"
+    assert provider.evaluate(task)[8:]==pytest.approx((.275,)*4)
+    for _ in range(12):command=provider.evaluate(task)
+    assert command[8:]==(0.,)*4
+
+
+def test_p02_assist_handoff_preserves_current_target_then_uses_next_advisory(p02_approach_task):
+    contract=load_motion_contract(PROJECT/"configs/recording_motion_contract.json")
+    provider=NominalMotionProvider(contract)
+    for _ in range(24):provider.evaluate(p02_approach_task)
+    previous=provider.nominal_full12
+    assert provider.evaluate("P03")==previous
+    changed=provider.evaluate("P03")
+    assert all(abs(a-b)<=3./120.+1e-12 for a,b in zip(changed[8:],previous[8:]))
+
+
+def test_p02_assist_accepts_existing_clearance_and_two_support_boundary(p02_approach_task):
+    task=deepcopy(p02_approach_task)
+    task["physical_evaluator"]["current_legs"]["FR"]["clearance_m"]=.015
+    task["physical_evaluator"]["current_legs"]["FL"]["support"]=False
+    provider=NominalMotionProvider(load_motion_contract(PROJECT/"configs/recording_motion_contract.json"))
+    assert provider.evaluate(task)[8:]==pytest.approx((.025,)*4)
+
+
+@pytest.mark.parametrize("phase",[f"P{i:02d}" for i in range(1,14) if i!=2])
+def test_approach_assist_does_not_change_any_other_phase_prior(p02_approach_task,phase):
+    contract=load_motion_contract(PROJECT/"configs/recording_motion_contract.json")
+    original=NominalMotionProvider(contract);with_task=NominalMotionProvider(contract)
+    task={**p02_approach_task,"stage_id":phase}
+    for _ in range(48):
+        assert with_task.evaluate(task)==original.evaluate(phase)
+
+
+@pytest.mark.parametrize("stage",["P02",{"stage_id":"P02"}])
+def test_missing_physical_task_data_keeps_original_p02_advisory(stage):
+    provider=NominalMotionProvider(load_motion_contract(PROJECT/"configs/recording_motion_contract.json"))
+    for _ in range(120):command=provider.evaluate(stage)
+    assert command[8:]==(0.,)*4
+
+
+def test_approach_prior_configuration_is_bound_to_p01_logical_rad_per_second():
+    contract=load_motion_contract(PROJECT/"configs/recording_motion_contract.json")
+    spec=load_task_spec()
+    assert spec["nominal"]["approach_wheel_prior_rad_s"]==[.3]*4
+    for wrong in ([.12]*4,[.3]*3,[-.3]*4,[float("nan")]*4):
+        changed=deepcopy(spec);changed["nominal"]["approach_wheel_prior_rad_s"]=wrong
+        with pytest.raises(ValueError):NominalMotionProvider(contract,spec=changed)
+    changed=deepcopy(spec);changed["nominal"]["approach_wheel_prior_source"]="P03"
+    with pytest.raises(ValueError,match="verified P01"):NominalMotionProvider(contract,spec=changed)
+
+
+def test_controller_passes_live_goals_to_p02_prior_without_replaying_p01(p02_airborne_sensor_prefix):
+    controller=SemanticControllerAdapter.from_paths(PROJECT/"configs/fsm_states.yaml",PROJECT/"configs/recording_motion_contract.json")
+    for obs in p02_airborne_sensor_prefix:frame=controller.step(obs,sim_time_s=obs["simulation_time_s"])
+    assert frame.state_id=="P02" and frame.full12[8:]==(0.,)*4
+    obs=advance(obs)
+    frame=controller.step(obs,sim_time_s=obs["simulation_time_s"])
+    assert frame.full12[8:]==pytest.approx((.025,)*4)
+    assert controller.task_snapshot["completed_stage_ids"]==["P01"]
+
+
 def test_placement_progress_is_continuous_but_does_not_forge_completion():
     ev=TaskEvaluator();sup=TaskStageSupervisor(evaluator=ev,initial_stage_id="P03")
     obs=observation();before=ev.observe(obs)
