@@ -200,6 +200,102 @@ def test_single_air_sample_is_not_active_lift():
     assert not ev.observe(obs)["history"]["active_lift"]["FR"]
 
 
+def test_monotonic_airborne_descent_is_not_positive_lift_excursion():
+    ev=TaskEvaluator()
+    for tick,bottom in enumerate((.09,.08,.07)):
+        obs=observation(tick);leg_state(obs,"FR",bottom=bottom,air=True,hip=2.*tick)
+        snap=ev.observe(obs)
+    assert snap["current_legs"]["FR"]["recent_joint_motion_deg"]==4.
+    assert snap["current_legs"]["FR"]["recent_clearance_gain_m"]==0.
+    assert not snap["history"]["active_lift"]["FR"]
+    assert not snap["history"]["lift_attempt_events"]
+
+
+def _lift_then_land_before_front(ev):
+    obs=observation();ev.observe(obs)
+    for bottom,hip in ((.012,1.5),(.020,3.)):
+        obs=advance(obs);leg_state(obs,"FR",bottom=bottom,air=True,hip=hip);ev.observe(obs)
+    qualified=ev.snapshot
+    assert qualified["history"]["active_lift"]["FR"]
+    obs=advance(obs);leg_state(obs,"FR",bottom=0.,hip=3.)
+    revoked=ev.observe(obs)
+    assert not revoked["history"]["active_lift"]["FR"]
+    assert revoked["history"]["event_ticks"]["active_lift"]["FR"]==2
+    assert [row["event"] for row in revoked["history"]["lift_attempt_events"]]==[
+        "qualified_measured_upward_lift","qualification_revoked_ground_before_cross"]
+    assert revoked["termination_reason"] is None
+    return obs
+
+
+def test_lift_land_then_wheel_only_roll_cannot_reuse_old_crossing_qualification():
+    ev=TaskEvaluator();obs=_lift_then_land_before_front(ev)
+    for _ in range(2):
+        obs=advance(obs);leg_state(obs,"FR",x=.53,bottom=.05,top=True,hip=3.)
+        snap=ev.observe(obs)
+    assert snap["termination_reason"]=="TASK_FAILURE_WHEEL_ONLY_CLIMB"
+    assert not snap["history"]["front_edge_crossed"]["FR"]
+    assert not snap["history"]["placed"]["FR"]
+
+
+def test_old_excursion_window_cannot_requalify_after_ground_contact():
+    ev=TaskEvaluator();obs=_lift_then_land_before_front(ev)
+    for _ in range(3):
+        obs=advance(obs);leg_state(obs,"FR",bottom=.001,air=True,hip=3.)
+        snap=ev.observe(obs)
+    assert not snap["history"]["active_lift"]["FR"]
+    assert snap["current_legs"]["FR"]["recent_clearance_gain_m"]==pytest.approx(.001)
+    assert snap["termination_reason"] is None
+
+
+def test_new_genuine_lift_after_landing_can_retry_and_preserves_both_attempts():
+    ev=TaskEvaluator();obs=_lift_then_land_before_front(ev)
+    for data in ({"bottom":.012,"air":True,"hip":4.5},
+                 {"bottom":.020,"air":True,"hip":6.},
+                 {"x":.53,"bottom":.075,"air":True,"hip":7.},
+                 {"x":.53,"bottom":.05,"top":True},
+                 {"x":.53,"bottom":.05,"top":True}):
+        obs=advance(obs);leg_state(obs,"FR",**data);snap=ev.observe(obs)
+    assert snap["history"]["placed"]["FR"] and snap["termination_reason"] is None
+    assert snap["history"]["event_ticks"]["active_lift"]["FR"]==2
+    assert [row["physics_tick"] for row in snap["history"]["lift_attempt_events"]
+            if row["event"]=="qualified_measured_upward_lift"]==[2,5]
+
+
+@pytest.mark.parametrize("mode",["low_air","low_air_to_top","ground_to_top","clear_air_to_top"])
+def test_crossing_geometry_rejects_low_wheel_climb_but_allows_real_air_to_top(mode):
+    ev=TaskEvaluator();obs=observation();ev.observe(obs)
+    for bottom,hip in ((.012,1.5),(.020,3.)):
+        obs=advance(obs);leg_state(obs,"FR",bottom=bottom,air=True,hip=hip);ev.observe(obs)
+    obs=advance(obs)
+    leg_state(obs,"FR",x=.49,bottom=.075 if mode=="clear_air_to_top" else .02,
+              air=mode!="ground_to_top",hip=4.)
+    ev.observe(obs)
+    obs=advance(obs)
+    leg_state(obs,"FR",x=.51,bottom=.04 if mode=="low_air" else .049,
+              air=mode=="low_air",top=mode!="low_air",hip=4.)
+    snap=ev.observe(obs)
+    if mode=="clear_air_to_top":
+        assert snap["history"]["front_edge_crossed"]["FR"] and snap["termination_reason"] is None
+        obs=advance(obs);snap=ev.observe(obs)
+        assert snap["history"]["placed"]["FR"]
+    else:
+        assert snap["termination_reason"]=="TASK_FAILURE_WHEEL_ONLY_CLIMB"
+        assert not snap["history"]["front_edge_crossed"]["FR"]
+
+
+def test_revoked_lift_qualification_is_visible_in_existing_task_history_features():
+    ev=TaskEvaluator();sup=TaskStageSupervisor(evaluator=ev,initial_stage_id="P02")
+    obs=_lift_then_land_before_front(ev)
+    task=sup.observe_and_update(obs)
+    assert not task["active_lift_history"]["FR"]
+    assert task["completion_values"]["lifted_FR"]<1.
+    assert tuple(task["goal_features"])==GOAL_FEATURE_KEYS
+    from wlr50_clean.ppo.semantic_observation import load_semantic_observation_schema
+    schema=load_semantic_observation_schema()
+    assert schema.dimension==324
+    assert next(group["size"] for group in schema.groups if group["name"]=="active_lift_history")==4
+
+
 def test_rr_first_order_is_actual_history_not_phase_name():
     ev=TaskEvaluator();obs=observation();ev.observe(obs)
     for step in range(1,4):

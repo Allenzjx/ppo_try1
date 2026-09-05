@@ -112,6 +112,9 @@ class TaskEvaluator:
     Initializing this class does not import snapshot success latches. Curriculum
     history must be established by real prefix observations; no history setter
     is exposed. Invalid geometry/contact cannot be replaced by knee numbers.
+    The existing observable active_lift bits are current crossing qualifications
+    until crossing, then completed lift history. Ground contact before crossing
+    revokes qualification, not the append-only evidence that a lift occurred.
     """
 
     def __init__(self, task_spec_path: Path | str = DEFAULT_TASK_SPEC_PATH, *, spec: Mapping[str, Any] | None = None):
@@ -124,6 +127,7 @@ class TaskEvaluator:
         self._top_count = dict.fromkeys(LEG_ORDER, 0)
         self._history = {key: dict.fromkeys(LEG_ORDER, False) for key in ("active_lift", "front_edge_crossed", "placed")}
         self._event_ticks = {key: {} for key in self._history}
+        self._lift_attempt_events: list[dict[str, Any]] = []
         self._snapshot: dict[str, Any] = {"valid": False, "success": False, "termination_reason": None,
             "reason": "no live observation", "goal_features": dict.fromkeys(GOAL_FEATURE_KEYS, 0.0)}
         self._failure: str | None = None
@@ -133,7 +137,9 @@ class TaskEvaluator:
     def snapshot(self) -> dict[str, Any]:
         return {**self._snapshot, "goal_features": dict(self._snapshot["goal_features"]),
             "history": {**{k: dict(v) for k, v in self._history.items()},
-                        "event_ticks": {k: dict(v) for k, v in self._event_ticks.items()}}}
+                        "event_ticks": {k: dict(v) for k, v in self._event_ticks.items()},
+                        "active_lift_semantics": "current_uninterrupted_qualification_until_crossing_then_completed_history",
+                        "lift_attempt_events": [dict(event) for event in self._lift_attempt_events]}}
 
     def _fail(self, result: TaskResult, reason: str) -> None:
         if self._failure is None:
@@ -205,29 +211,51 @@ class TaskEvaluator:
             air = not ground_active and not top_active
             self._air_count[leg] = self._air_count[leg] + 1 if air else 0
             samples = self._samples[leg]
-            samples.append((now, bottom[2], positions[SERVO_ORDER[index*2]], positions[SERVO_ORDER[index*2+1]]))
+            if ground_active and not self._history["front_edge_crossed"][leg]:
+                if self._history["active_lift"][leg]:
+                    self._history["active_lift"][leg] = False
+                    self._lift_attempt_events.append({"leg": leg, "event": "qualification_revoked_ground_before_cross",
+                        "physics_tick": tick, "simulation_time_s": now})
+                # A later lift must earn new upward/joint evidence, not reuse
+                # the old hop still present in the half-second window.
+                samples.clear()
+            samples.append((now, bottom[2], positions[SERVO_ORDER[index*2]], positions[SERVO_ORDER[index*2+1]], air))
             while len(samples) > 1 and now - samples[0][0] > hist_cfg["window_s"]:
                 samples.popleft()
-            gain = max(v[1] for v in samples) - min(v[1] for v in samples)
+            minimum_so_far = samples[0][1]; gain = 0.
+            for sample in samples:
+                gain = max(gain, sample[1]-minimum_so_far)
+                minimum_so_far = min(minimum_so_far, sample[1])
             movement = sum(abs(b[j]-a[j]) for a,b in zip(samples, list(samples)[1:]) for j in (2,3))
             distance = center[0] - front
             lift = (hist_cfg["near_front_min_m"] <= distance <= hist_cfg["near_front_max_m"]
                 and self._air_count[leg] >= hist_cfg["minimum_air_samples"]
                 and gain >= hist_cfg["minimum_lift_gain_m"] and movement >= hist_cfg["minimum_joint_motion_deg"])
             if lift and not self._history["active_lift"][leg]:
-                self._history["active_lift"][leg] = True; self._event_ticks["active_lift"][leg] = tick
-            if distance >= 0 and not self._history["front_edge_crossed"][leg]:
-                if not self._history["active_lift"][leg]:
-                    self._fail(TaskResult.TASK_FAILURE_WHEEL_ONLY_CLIMB, f"{leg} crossed front without measured active lift")
-                elif leg == "RL" and not self._history["placed"]["RR"]:
-                    self._fail(TaskResult.INCOMPLETE_CONTROLLER_BLOCKED, "RR_FIRST order violated: RL crossed before RR placement")
-                else:
-                    self._history["front_edge_crossed"][leg] = True; self._event_ticks["front_edge_crossed"][leg] = tick
+                self._history["active_lift"][leg] = True
+                self._event_ticks["active_lift"].setdefault(leg, tick)
+                self._lift_attempt_events.append({"leg": leg, "event": "qualified_measured_upward_lift",
+                    "physics_tick": tick, "simulation_time_s": now, "upward_excursion_m": gain,
+                    "joint_motion_deg": movement})
             xy_tolerance = geo["xy_measurement_tolerance_m"]
             within_lateral_span = right-xy_tolerance <= center[1] <= left+xy_tolerance
             within_top_xy = within_lateral_span and front-xy_tolerance <= center[0] <= back+xy_tolerance
             top_geometry = within_top_xy and geo["top_gap_min_m"] <= bottom[2]-top <= geo["top_gap_max_m"]
             loaded = bool(top_active and top_geometry and distance >= 0)
+            # AIR needs genuine clearance above the front edge. A legitimate
+            # AIR->TOP observation may already have contact/compliance at this
+            # tick, but its immediately preceding sample must have cleared it.
+            previous_air_clear = len(samples)>1 and samples[-2][4] and samples[-2][1]>=top
+            crossing_geometry = (not ground_active and within_top_xy
+                and ((air and bottom[2]>=top) or (loaded and previous_air_clear)))
+            if distance >= 0 and not self._history["front_edge_crossed"][leg]:
+                if not self._history["active_lift"][leg] or not crossing_geometry:
+                    self._fail(TaskResult.TASK_FAILURE_WHEEL_ONLY_CLIMB,
+                        f"{leg} crossed front without current uninterrupted active lift and geometric clearance")
+                elif leg == "RL" and not self._history["placed"]["RR"]:
+                    self._fail(TaskResult.INCOMPLETE_CONTROLLER_BLOCKED, "RR_FIRST order violated: RL crossed before RR placement")
+                else:
+                    self._history["front_edge_crossed"][leg] = True; self._event_ticks["front_edge_crossed"][leg] = tick
             self._top_count[leg] = self._top_count[leg]+1 if loaded else 0
             if self._history["front_edge_crossed"][leg] and self._top_count[leg] >= hist_cfg["minimum_top_samples"] and not self._history["placed"][leg]:
                 self._history["placed"][leg] = True; self._event_ticks["placed"][leg] = tick

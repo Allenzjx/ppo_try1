@@ -253,3 +253,83 @@ def test_historical_geometry_only_plan_remains_optional_prior_free(tmp_path, mon
     path = tmp_path / "historical.json"
     write_json(path, plan)
     assert validate_migration_plan(source, new, path, project_root=tmp_path)["geometric_factor"] == plan["geometric_factor"]
+
+
+def qualification_fixture(tmp_path, monkeypatch):
+    import wlr50_clean.ppo.semantic_migration as module
+    from types import SimpleNamespace
+    source, old, new, prior_evidence, changed = prior_fixture(tmp_path, monkeypatch)
+    source_path = tmp_path / module.SUPERVISOR
+    after_prior = source_path.read_text()
+    before_prior = after_prior.replace("task_driven_prior = True", "old = True")
+    old_class = "class TaskEvaluator:\n    old_range = True\n\n"
+    new_class = "class TaskEvaluator:\n    genuine_upward_qualification = True\n\n"
+    unchanged = "class TaskStageSupervisor:\n    unchanged = True\n\n"
+    before = old_class + unchanged + before_prior
+    after = new_class + unchanged + after_prior
+    source_path.write_text(after)
+    old["files"][module.SUPERVISOR] = module.hashlib.sha256(before.encode()).hexdigest()
+    new["files"][module.SUPERVISOR] = file_sha(source_path)
+    for data in (old, new):
+        data["runtime_content_sha256"] = digest(data["files"])
+    metadata_path = source.with_name("source_manifest.json")
+    metadata = json.loads(metadata_path.read_text())
+    metadata["runtime_contract"] = old
+    metadata_path.write_text(json.dumps(metadata))
+    old_config = (tmp_path / module.STAGE_SPEC).read_text().replace(module.PRIOR_CONFIG_LINES, "").replace("-0.005", "-0.18")
+    monkeypatch.setattr(module.subprocess, "run", lambda args, **kw: SimpleNamespace(
+        stdout=(old_config if args[-1].endswith(module.STAGE_SPEC) else before).encode()))
+    monkeypatch.setattr(module, "QUALIFICATION_OLD_CLASS_SHA256", module.hashlib.sha256(old_class.encode()).hexdigest())
+    monkeypatch.setattr(module, "QUALIFICATION_NEW_CLASS_SHA256", module.hashlib.sha256(new_class.encode()).hexdigest())
+    directory = tmp_path / "runs/ppo_semantic_v2/prior_B/B382"
+    directory.mkdir(parents=True)
+    artifacts = {}
+    for name in ("physical_observations.jsonl", "native_tick_audit.jsonl", "stage_transition_evidence.jsonl"):
+        path = directory / name
+        path.write_text("{}\n" * (9121 if name == "physical_observations.jsonl" else 1))
+        artifacts[name] = str(path)
+    evidence = directory / "evaluation_manifest.json"
+    data = {"mode": "semantic_prior_eval", "checkpoint": None,
+            "runtime_contract": {"source_git_commit": module.QUALIFICATION_DIAGNOSTIC_HEAD},
+            "optimizer_updates_during_evaluation": 0, "task_success": False,
+            "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED", "policy_decisions": 1140,
+            "observed_physics_ticks": 9120, "duration_s": 76.0, "evaluation_artifacts": artifacts}
+    write_json(evidence, data)
+    write_json(directory / "run_manifest.json", {"lifecycle": "SUCCEEDED", "result": data})
+    return source, old, new, prior_evidence, evidence, changed
+
+
+def test_exact_qualification_revision_retains_prior_lineage_and_raw_failure_evidence(tmp_path, monkeypatch):
+    source, old, new, prior, evidence, changed = qualification_fixture(tmp_path, monkeypatch)
+    plan = build_migration_plan(source, new, allowed_changed_files=changed, reason="physical qualification repair",
+                                prior_evidence=prior, qualification_evidence=evidence, project_root=tmp_path)
+    assert plan["prior_factor"]["wheel_prior_rad_s"] == [0.3] * 4
+    assert plan["qualification_factor"]["old_rollouts_are_not_reused"] is True
+    assert plan["qualification_factor"]["raw_artifacts"]["physical_observations.jsonl"]["sha256"] == file_sha(evidence.with_name("physical_observations.jsonl"))
+    path = tmp_path / "qualified_plan.json"
+    write_json(path, plan)
+    assert validate_migration_plan(source, new, path, project_root=tmp_path)["qualification_factor"] == plan["qualification_factor"]
+
+
+@pytest.mark.parametrize("fault", ["extra_evaluator_edit", "outside_evaluator", "missing_permission", "wrong_diagnostic_head", "raw_tail_removed"])
+def test_qualification_permission_is_not_a_general_semantic_relaxation(tmp_path, monkeypatch, fault):
+    import wlr50_clean.ppo.semantic_migration as module
+    source, old, new, prior, evidence, changed = qualification_fixture(tmp_path, monkeypatch)
+    if fault in ("extra_evaluator_edit", "outside_evaluator"):
+        path = tmp_path / module.SUPERVISOR
+        text = path.read_text()
+        path.write_text(text.replace("genuine_upward_qualification = True", "genuine_upward_qualification = False") if fault == "extra_evaluator_edit" else text.replace("class TaskStageSupervisor:", "class TaskStageSupervisor:\n    forbidden = True"))
+        new["files"][module.SUPERVISOR] = file_sha(path)
+        new["runtime_content_sha256"] = digest(new["files"])
+    elif fault == "missing_permission":
+        evidence = None
+    elif fault == "wrong_diagnostic_head":
+        data = json.loads(evidence.read_text())
+        data["runtime_contract"]["source_git_commit"] = "f" * 40
+        evidence.write_text(json.dumps(data))
+        evidence.with_name("run_manifest.json").write_text(json.dumps({"lifecycle": "SUCCEEDED", "result": data}))
+    else:
+        evidence.with_name("physical_observations.jsonl").write_text("{}\n")
+    with pytest.raises(ValueError):
+        build_migration_plan(source, new, allowed_changed_files=changed, reason="invalid broadening",
+                             prior_evidence=prior, qualification_evidence=evidence, project_root=tmp_path)

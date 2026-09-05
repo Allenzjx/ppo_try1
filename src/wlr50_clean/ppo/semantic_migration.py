@@ -11,6 +11,10 @@ SCHEMA = "wlr50_clean.semantic_checkpoint_migration.v1"
 STAGE_SPEC = "configs/ppo_semantic_v2/stage_task_spec.yaml"
 SUPERVISOR = "src/wlr50_clean/ppo/semantic_supervisor.py"
 PRIOR_DIAGNOSTIC_HEAD = "84c607a2ffbba36f46a0e70dbb886227c0c32ec5"
+QUALIFICATION_DIAGNOSTIC_HEAD = "38276d12f9dc1bdc3c81f3d0130e59ff162d2597"
+# Deliberately exact reviewed class revisions, not a general evaluator exemption.
+QUALIFICATION_OLD_CLASS_SHA256 = "7b22b0c4eae20a448cca23218aab3aadfd585dc64aa0197af568859276c303c6"
+QUALIFICATION_NEW_CLASS_SHA256 = "8eaebeec34ac32d79d3eb7cfa810a8a966a92a6aa10095d32c6e2efeae351d36"
 PRIOR_CONFIG_LINES = (
     "  approach_wheel_prior_rad_s: [0.3, 0.3, 0.3, 0.3]\n"
     "  approach_wheel_prior_source: P01\n"
@@ -30,7 +34,11 @@ def digest(value: Any) -> str:
 
 
 def file_sha(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    result = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            result.update(chunk)
+    return result.hexdigest()
 
 
 def checkpoint_metadata(checkpoint: Path) -> dict[str, Any]:
@@ -87,11 +95,13 @@ def _geometric_factor(project_root: Path, old: dict, new: dict, *, prior_transit
 
 
 def _prior_factor(project_root: Path, old: dict, new: dict, evidence: Mapping[str, Any] | None,
-                  source_checkpoint: Path) -> dict[str, Any]:
+                  source_checkpoint: Path, *, qualification_transition: bool = False) -> dict[str, Any]:
     if not isinstance(evidence, Mapping) or set(evidence) != {"B", "C"}:
         raise ValueError("nominal prior transition requires explicit B84c and C84c diagnostic evidence")
     before = _version_text(project_root, old, SUPERVISOR)
     after = _version_text(project_root, new, SUPERVISOR, prefer_worktree=True)
+    if qualification_transition:
+        _, _, after = _qualified_class_delta(before, after)
     def split(text):
         start, end = "class NominalMotionProvider:", "class SemanticControllerAdapter:"
         if text.count(start) != 1 or text.count(end) != 1:
@@ -131,9 +141,64 @@ def _prior_factor(project_root: Path, old: dict, new: dict, evidence: Mapping[st
             "scope": "P02_current_physical_goal_feedback_only", "evidence": rows}
 
 
+def _qualified_class_delta(before: str, after: str) -> tuple[str, str, str]:
+    start, end = "class TaskEvaluator:", "class TaskStageSupervisor:"
+    def split(text):
+        if text.count(start) != 1 or text.count(end) != 1:
+            raise ValueError("physical qualification class boundaries are ambiguous")
+        prefix, rest = text.split(start, 1)
+        body, suffix = rest.split(end, 1)
+        return prefix, start + body, end + suffix
+    old, new = split(before), split(after)
+    old_sha, new_sha = (hashlib.sha256(value[1].encode()).hexdigest() for value in (old, new))
+    if old_sha != QUALIFICATION_OLD_CLASS_SHA256 or new_sha != QUALIFICATION_NEW_CLASS_SHA256:
+        raise ValueError("physical qualification change is not the exact reviewed TaskEvaluator revision")
+    return old_sha, new_sha, new[0] + old[1] + new[2]
+
+
+def _qualification_factor(project_root: Path, old: dict, new: dict, evidence: Path) -> dict[str, Any]:
+    before = _version_text(project_root, old, SUPERVISOR)
+    after = _version_text(project_root, new, SUPERVISOR, prefer_worktree=True)
+    old_sha, new_sha, _ = _qualified_class_delta(before, after)
+    path = Path(evidence).resolve(strict=True)
+    if not path.is_relative_to((project_root / "runs/ppo_semantic_v2/prior_B").resolve()) or path.name != "evaluation_manifest.json":
+        raise ValueError("qualification evidence must be the isolated B382 physical evaluation")
+    data = json.loads(path.read_text(encoding="utf-8"))
+    run_path = path.with_name("run_manifest.json")
+    run = json.loads(run_path.read_text(encoding="utf-8"))
+    if (data.get("mode") != "semantic_prior_eval" or data.get("checkpoint") is not None
+            or data.get("runtime_contract", {}).get("source_git_commit") != QUALIFICATION_DIAGNOSTIC_HEAD
+            or data.get("optimizer_updates_during_evaluation") != 0 or data.get("task_success") is not False
+            or data.get("termination_reason") != "INCOMPLETE_CONTROLLER_BLOCKED"
+            or data.get("policy_decisions") != 1140 or data.get("observed_physics_ticks") != 9120
+            or abs(float(data.get("duration_s", -1)) - 76.0) > 1e-8
+            or run.get("lifecycle") != "SUCCEEDED" or run.get("result") != data):
+        raise ValueError("qualification evidence is not the finalized 76s B382 zero-update failure")
+    artifacts = {}
+    for name in ("physical_observations.jsonl", "native_tick_audit.jsonl", "stage_transition_evidence.jsonl"):
+        source = Path(data["evaluation_artifacts"][name]).resolve(strict=True)
+        if source != path.with_name(name):
+            raise ValueError("qualification raw evidence is not owned by the diagnostic run")
+        artifacts[name] = {"path": str(source), "sha256": file_sha(source), "bytes": source.stat().st_size}
+    raw_path = Path(artifacts["physical_observations.jsonl"]["path"])
+    with raw_path.open("rb") as stream:
+        count = sum(1 for _ in stream)
+    if count != 9121:
+        raise ValueError("qualification evidence must retain initial plus all 9120 real physics observations")
+    return {"diagnostic_git_commit": QUALIFICATION_DIAGNOSTIC_HEAD,
+            "evaluation_manifest": str(path), "evaluation_manifest_sha256": file_sha(path),
+            "run_manifest_sha256": file_sha(run_path), "raw_artifacts": artifacts,
+            "source_file": SUPERVISOR, "allowed_source_scope": "exact_reviewed_TaskEvaluator_physical_qualification_revision",
+            "before_class_sha256": old_sha, "after_class_sha256": new_sha,
+            "semantics": ["positive_temporal_lift_not_descent_range", "pre_cross_ground_contact_invalidates_lift_eligibility",
+                          "crossing_requires_current_air_clearance_or_real_top_contact"],
+            "old_rollouts_are_not_reused": True, "old_checkpoint_is_not_a_full_success_claim": True}
+
+
 def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
                          allowed_changed_files: Sequence[str], reason: str,
                          prior_evidence: Mapping[str, Any] | None = None,
+                         qualification_evidence: Path | None = None,
                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Build a reviewed plan after committing the new runtime; does not write."""
     checkpoint = Path(checkpoint).resolve(strict=True)
@@ -154,8 +219,12 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
     prior_transition = SUPERVISOR in delta
     if prior_transition != (prior_evidence is not None) or (prior_transition and STAGE_SPEC not in delta):
         raise ValueError("nominal source change and explicit prior evidence/config change must occur together")
+    if qualification_evidence is not None and not prior_transition:
+        raise ValueError("qualification permission requires the explicitly declared supervisor source change")
     geometric = _geometric_factor(Path(project_root), old, new, prior_transition=prior_transition) if STAGE_SPEC in delta else None
-    prior = _prior_factor(Path(project_root), old, new, prior_evidence, checkpoint) if prior_transition else None
+    prior = _prior_factor(Path(project_root), old, new, prior_evidence, checkpoint,
+                           qualification_transition=qualification_evidence is not None) if prior_transition else None
+    qualification = _qualification_factor(Path(project_root), old, new, qualification_evidence) if qualification_evidence is not None else None
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
     result = {"schema": SCHEMA, "reason": reason.strip(), "source_checkpoint": str(checkpoint),
             "source_checkpoint_sha256": file_sha(checkpoint), "source_manifest_sha256": file_sha(sidecar),
@@ -167,6 +236,8 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
             "discard_old_rollout_storage": True, "physics_resume": "fresh_legal_P01_reset"}
     if prior is not None:
         result["prior_factor"] = prior
+    if qualification is not None:
+        result["qualification_factor"] = qualification
     return result
 
 
@@ -178,7 +249,8 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                                     allowed_changed_files=supplied.get("allowed_changed_files", []),
                                     reason=supplied.get("reason", ""), project_root=project_root,
                                     prior_evidence=None if "prior_factor" not in supplied else {
-                                        role: row["evaluation_manifest"] for role, row in supplied["prior_factor"]["evidence"].items()})
+                                        role: row["evaluation_manifest"] for role, row in supplied["prior_factor"]["evidence"].items()},
+                                    qualification_evidence=None if "qualification_factor" not in supplied else Path(supplied["qualification_factor"]["evaluation_manifest"]))
     if supplied != expected:
         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}
