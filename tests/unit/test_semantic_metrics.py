@@ -68,7 +68,16 @@ def test_actual_core_eval_installs_quality_callback_and_preserves_failed_task(tm
 
         def step_physics(self, applied_action_full12):
             result = super().step_physics(applied_action_full12)
+            if self.tick == self.terminal_tick:
+                from dataclasses import replace
+                raw = result.info["raw_observation"]
+                result.info["raw_observation"] = replace(raw, body_collision=replace(raw.body_collision, detected=True, real_pair_active=True))
             result.info["atomic_ack"] = {"drive_target_full12": result.info["drive_target_full12"]}
+            from test_semantic_training import native_audit
+            result.info["actuator_target_effect_audit"] = {**native_audit(self.requests[-1][1]), "source_phase_id": "P01"}
+            for key in ("in_episode_root_pose_writes", "in_episode_root_velocity_writes",
+                        "in_episode_force_or_impulse_writes", "in_episode_gravity_writes"):
+                result.info[key] = 0
             return result
 
     core = SemanticEpisodeEnv(QualityBackend(terminal_tick=3, reason="BODY_COLLISION"), collect_trace=False)
@@ -80,3 +89,4 @@ def test_actual_core_eval_installs_quality_callback_and_preserves_failed_task(tm
     assert result["quality_metrics"]["global"]["physics_ticks"] == 3
     assert result["quality_metrics"]["global"]["duration_s"] == pytest.approx(3 / 120)
     assert result["quality_metrics"]["fixed_quality_score"] is None
+    assert result["physical_task_evaluation"]["termination_reason"] == "TASK_FAILURE_BODY_COLLISION"

@@ -68,6 +68,71 @@ def rr_placed():
     return ev,obs
 
 
+@pytest.fixture
+def p02_airborne_sensor_prefix():
+    """Complete sensor fixture; lift is earned through the real evaluator API.
+
+    Only the final FR horizontal position varies in the paired tests. These
+    synthetic contiguous measurements are not a claim of a new physical run.
+    """
+    obs=observation()
+    obs["obstacle"]["front_x_m"]=.5213121737735307
+    front=obs["obstacle"]["front_x_m"]
+    leg_state(obs,"FR",x=front-.15)
+    frames=[obs]
+    for tick in range(1,9):
+        obs=advance(obs)
+        leg_state(obs,"FR",bottom=.075*tick/8,air=True,hip=3.*tick/8)
+        frames.append(obs)
+    return frames
+
+
+@pytest.mark.parametrize("front_distance,completed",[
+    (-.15,False),(-.005001,False),(-.005,True),(-.001,True),
+])
+def test_p02_descent_handoff_requires_front_edge_capture_geometry(
+        p02_airborne_sensor_prefix,front_distance,completed):
+    frames=deepcopy(p02_airborne_sensor_prefix)
+    final=frames[-1]
+    leg_state(final,"FR",x=final["obstacle"]["front_x_m"]+front_distance,air=True)
+    sup=TaskStageSupervisor(initial_stage_id="P02")
+    for obs in frames:snap=sup.observe_and_update(obs)
+    evaluation=sup.evaluator.snapshot
+    assert evaluation["history"]["active_lift"]["FR"]
+    assert not evaluation["history"]["front_edge_crossed"]["FR"]
+    assert sup.predicate("lifted_FR",evaluation)==1.
+    assert sup.predicate("clear_FR",evaluation)==1.
+    assert evaluation["current_legs"]["FR"]["clearance_m"]==pytest.approx(.025)
+    assert evaluation["current_legs"]["FR"]["front_distance_m"]==pytest.approx(front_distance)
+    assert snap["stage_id"]==("P03" if completed else "P02")
+    assert snap["completed_stage_ids"]==(["P02"] if completed else [])
+    assert snap["termination_reason"] is None and not snap["success"]
+    if completed:
+        assert snap["transition_evidence"][0]["completion_values"]=={
+            "lifted_FR":1.,"clear_FR":1.,"approach_FR":1.}
+    else:
+        assert snap["completion_values"]["approach_FR"]<1.
+        assert not snap["transition_evidence"]
+
+
+@pytest.mark.parametrize("missing_requirement",["lift","clearance"])
+def test_p02_front_edge_geometry_does_not_replace_lift_or_clearance(
+        p02_airborne_sensor_prefix,missing_requirement):
+    frames=deepcopy(p02_airborne_sensor_prefix)
+    if missing_requirement=="lift":
+        for obs in frames:
+            obs["joints"]["front_right_hip"]["position_deg"]=0.
+    final=frames[-1]
+    leg_state(final,"FR",x=final["obstacle"]["front_x_m"]-.005,air=True,
+              bottom=.05 if missing_requirement=="clearance" else None)
+    sup=TaskStageSupervisor(initial_stage_id="P02")
+    for obs in frames:snap=sup.observe_and_update(obs)
+    assert snap["completion_values"]["approach_FR"]==1.
+    assert snap["completion_values"]["lifted_FR" if missing_requirement=="lift" else "clear_FR"]<1.
+    assert snap["stage_id"]=="P02" and snap["completed_stage_ids"]==[]
+    assert snap["termination_reason"] is None
+
+
 @pytest.mark.parametrize("angle,velocity",[(-30.,0.),(-43.,-3.),(-50.3975984,0.),(10.,-20.)])
 def test_p10_entry_accepts_actual_rr_placement_without_historical_rebound(angle,velocity):
     ev,obs=rr_placed();sup=TaskStageSupervisor(evaluator=ev,initial_stage_id="P10")

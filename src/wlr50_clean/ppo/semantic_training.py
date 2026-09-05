@@ -311,13 +311,27 @@ def save_semantic_checkpoint(runner: Any, checkpoint: Path, infos: Mapping[str, 
     return checkpoint, sidecar
 
 
-def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping[str, Any], seed: int) -> dict[str, Any]:
+def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping[str, Any], seed: int,
+                             migration: Mapping[str, Any] | None = None) -> dict[str, Any]:
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
     metadata = json.loads(sidecar.read_text(encoding="utf-8"))
+    expected_contract = dict(contract)
+    if migration is not None:
+        from .semantic_migration import validate_migration_plan
+        verified = validate_migration_plan(checkpoint, contract, Path(migration["plan_path"]))
+        if verified != dict(migration):
+            raise RuntimeError("migration changed since pre-AppLauncher validation")
+        expected_contract = metadata["runtime_contract"]
+        if (runner.alg.storage.observations["policy"].shape[-1] != 324
+                or runner.alg.storage.actions.shape[-1] != 12
+                or runner.alg.storage.step != 0 or runner.alg.transition.actions is not None):
+            raise RuntimeError("migration requires fresh 324-observation/12-action storage with no old rollout")
+        if metadata.get("runner_config") != semantic_runner_config(seed=seed, device=str(runner.device)):
+            raise RuntimeError("migration cannot change PPO hyperparameters or normalization")
     if (metadata.get("schema") != SEMANTIC_CHECKPOINT_SCHEMA
             or metadata.get("checkpoint_path") != str(checkpoint.resolve())
             or metadata.get("checkpoint_sha256") != sha256_file(checkpoint)
-            or metadata.get("runtime_contract") != dict(contract)
+            or metadata.get("runtime_contract") != expected_contract
             or metadata.get("seed") != seed or metadata.get("save_load_round_trip") is not True):
         raise RuntimeError("semantic resume checkpoint version/hash/seed contract mismatch")
     infos = dict(load_checkpoint_round_trip(runner, checkpoint))
@@ -330,7 +344,30 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         if infos.get(key) != actual:
             raise RuntimeError(f"semantic resume failed actual {key} verification")
     restore_training_rng_state(infos["training_rng_state"], expected_seed=seed)
+    if migration is not None:
+        infos = {**infos, "resume_migration": dict(migration)}
+    infos = {**infos, "resume_source_checkpoint": {
+        "checkpoint": str(checkpoint.resolve()), "checkpoint_sha256": sha256_file(checkpoint),
+        "manifest": str(sidecar.resolve()), "manifest_sha256": sha256_file(sidecar)}}
     return infos
+
+
+def build_stop_request(run_dir: Path, source_git_commit: str, reason: str) -> dict[str, Any]:
+    if not reason.strip() or len(source_git_commit) != 40:
+        raise ValueError("stop request requires its pinned HEAD and a reason")
+    return {"schema": "wlr50_clean.semantic_stop_after_update.v1", "run_dir": str(run_dir.resolve()),
+            "source_git_commit": source_git_commit, "reason": reason.strip()}
+
+
+def _stop_request(run_dir: Path, contract: Mapping[str, Any]) -> dict[str, Any] | None:
+    path = run_dir / "stop_after_update.request.json"
+    if not path.exists():
+        return None
+    supplied = json.loads(path.read_text(encoding="utf-8-sig"))
+    expected = build_stop_request(run_dir, str(contract.get("source_git_commit", "")), supplied.get("reason", ""))
+    if supplied != expected:
+        raise ValueError("stop request does not match this run and pinned runtime")
+    return {**expected, "request_path": str(path.resolve()), "request_sha256": sha256_file(path)}
 
 
 @contextmanager
@@ -391,6 +428,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     rollout_dir = run_dir / "rollouts"
     rollout_dir.mkdir(exist_ok=False)
     updates, checkpoints = [], []
+    stop_record = None
     initial_actor = parameter_hash(runner.alg.actor)
     started = time.perf_counter()
     runner.alg.train_mode()
@@ -444,7 +482,8 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
             episode_stream.flush()
             runner.current_learning_iteration = base_updates + iteration + 1
             print(json.dumps({"semantic_ppo_update": update}, separators=(",", ":")), flush=True)
-            if iteration == 0 or (iteration + 1) % checkpoint_interval_updates == 0 or iteration + 1 == iterations:
+            stop_record = _stop_request(run_dir, contract)
+            if stop_record is not None or iteration == 0 or (iteration + 1) % checkpoint_interval_updates == 0 or iteration + 1 == iterations:
                 spent = dict(stage_spent)
                 spent[stage] += min((iteration + 1) * batch, decisions)
                 infos = {"runtime_contract": dict(contract), "seed": seed, "stage": stage,
@@ -453,18 +492,36 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                          "stage_requested_decisions": spent, "source_run": str(run_dir.resolve()),
                          "sampling": "P01_full_task_only_initial_version", "runner_config": semantic_runner_config(seed=seed, device=str(runner.device)),
                          "last_update": update}
+                if previous:
+                    infos["resume_ancestry"] = {
+                        "source_global_policy_decisions": base_global, "source_ppo_updates": base_updates,
+                        "source_optimizer_steps": base_optimizer,
+                        "source_actor_parameter_sha256": previous["actor_parameter_sha256"],
+                        "source_runtime_contract": previous["runtime_contract"],
+                        "source_checkpoint": previous.get("resume_source_checkpoint"),
+                        "resume_migration": previous.get("resume_migration"),
+                    }
+                if stop_record is not None:
+                    infos["stop_after_update"] = stop_record
                 checkpoint = output_root / "checkpoints" / "history" / f"checkpoint_step_{global_step:09d}.pt"
                 pair = save_semantic_checkpoint(runner, checkpoint, infos)
                 _publish_last(*pair, output_root)
                 checkpoints.append({"checkpoint": str(pair[0]), "manifest": str(pair[1]), "global_policy_decisions": global_step})
-    result = {"schema": SEMANTIC_TRAINING_SCHEMA, "stage": stage, "requested_policy_decisions": decisions,
-              "actual_policy_decisions": iterations * batch, "rounding_overrun": iterations * batch - decisions,
-              "num_envs": env.num_envs, "policy_decisions_per_env": iterations * batch // env.num_envs,
-              "global_policy_decisions": base_global + iterations * batch,
+            if stop_record is not None:
+                break
+    completed = len(updates)
+    consumed = min(completed * batch, decisions)
+    result = {"schema": SEMANTIC_TRAINING_SCHEMA, "stage": stage, "planned_requested_policy_decisions": decisions,
+              "requested_policy_decisions": consumed, "unconsumed_requested_policy_decisions": decisions - consumed,
+              "actual_policy_decisions": completed * batch, "rounding_overrun": completed * batch - consumed,
+              "num_envs": env.num_envs, "policy_decisions_per_env": completed * batch // env.num_envs,
+              "global_policy_decisions": base_global + completed * batch,
               "ppo_updates_this_run": len(updates), "optimizer_steps_this_run": sum(row["optimizer_steps"] for row in updates),
               "actor_parameter_sha256_before": initial_actor, "actor_parameter_sha256_after": parameter_hash(runner.alg.actor),
               "finite_nonzero_gradient_observed": any(row["finite_nonzero_gradient_observed"] for row in updates),
               "wall_time_s": time.perf_counter() - started, "telemetry": env.telemetry_summary(),
               "runtime_contract": dict(contract), "checkpoints": checkpoints, "training_success_is_not_task_success": True}
+    result["lifecycle"] = "STOPPED_AT_VERIFIED_UPDATE_BOUNDARY" if stop_record is not None else "SUCCEEDED"
+    result["stop_after_update"] = stop_record
     write_json(run_dir / "training_manifest.json", result)
     return result

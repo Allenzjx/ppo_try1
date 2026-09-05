@@ -7,7 +7,8 @@ param(
     [ValidateRange(1,3000)][int]$MaxDecisions = 3000,
     [int]$Seed = 1001,
     [string]$Checkpoint,
-    [ValidateSet('semantic_prior_eval','semantic_residual_eval')][string]$Mode = 'semantic_prior_eval',
+    [string]$ResumeMigration,
+    [ValidateSet('legacy_fsm_eval','semantic_prior_eval','semantic_residual_eval')][string]$Mode = 'semantic_prior_eval',
     [ValidateSet('cpu','cuda:0')][string]$Device = 'cuda:0',
     [ValidateRange(1,100)][int]$CheckpointIntervalUpdates = 10
 )
@@ -25,7 +26,7 @@ if ($LASTEXITCODE -ne 0 -or $head.Count -ne 1 -or ([string]$head[0]).Trim() -cne
 $dirty = @(& git -C $project status --porcelain=v1 --untracked-files=all -- src/wlr50_clean scripts configs artifacts/ppo_phase_v1_start pyproject.toml)
 if ($LASTEXITCODE -ne 0 -or $dirty.Count) { throw 'Semantic runtime is not clean/committed' }
 $kind = switch ($Command) { 'train' { 'train' }; 'smoke' { 'interface_smoke' }; 'preflight' { 'interface_smoke' }; 'eval' {
-    if ($Mode -eq 'semantic_prior_eval') { 'prior_B' } elseif ($Seed -ge 3001 -and $Seed -le 3005) { 'locked_test' } else { 'validation' }
+    if ($Mode -eq 'legacy_fsm_eval') { 'baseline_A' } elseif ($Mode -eq 'semantic_prior_eval') { 'prior_B' } elseif ($Seed -ge 3001 -and $Seed -le 3005) { 'locked_test' } else { 'validation' }
 } }
 $runId = [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfffffffZ') + '_g' + $ExpectedHead.Substring(0,12) + '_' + [Guid]::NewGuid().ToString('N')
 $runDir = Join-Path $project ("runs\ppo_semantic_v2\$kind\$runId")
@@ -49,11 +50,15 @@ try {
         $checkpointPath = if ([IO.Path]::IsPathRooted($Checkpoint)) { $Checkpoint } else { Join-Path $project $Checkpoint }
         $arguments += @('--checkpoint',[IO.Path]::GetFullPath($checkpointPath))
     }
+    if (-not [string]::IsNullOrWhiteSpace($ResumeMigration)) {
+        $migrationPath = if ([IO.Path]::IsPathRooted($ResumeMigration)) { $ResumeMigration } else { Join-Path $project $ResumeMigration }
+        $arguments += @('--resume-migration',[IO.Path]::GetFullPath($migrationPath))
+    }
     $arguments | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $logDir 'arguments.json') -Encoding utf8
     & $python @arguments 1> (Join-Path $logDir 'stdout.log') 2> (Join-Path $logDir 'stderr.log')
     if ($LASTEXITCODE -ne 0) { throw "Semantic command failed; preserved run $runDir and logs $logDir" }
     $manifest = Get-Content -LiteralPath (Join-Path $runDir 'run_manifest.json') -Raw | ConvertFrom-Json
-    if ($manifest.lifecycle -cne 'SUCCEEDED') { throw 'Semantic process did not finalize successful execution' }
+    if ($manifest.lifecycle -cnotin @('SUCCEEDED','STOPPED_AT_VERIFIED_UPDATE_BOUNDARY')) { throw 'Semantic process did not finalize successful execution or verified graceful stop' }
     Write-Output $runDir
 } finally {
     $env:PYTHONPATH = $previousPath

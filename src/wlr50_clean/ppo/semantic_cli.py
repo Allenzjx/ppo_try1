@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import closing, nullcontext
 import hashlib
 import importlib.metadata
 import json
@@ -45,7 +46,8 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--decisions", type=int)
     result.add_argument("--max-decisions", type=int, default=3000)
     result.add_argument("--checkpoint", type=Path)
-    result.add_argument("--mode", choices=("semantic_prior_eval", "semantic_residual_eval"), default="semantic_prior_eval")
+    result.add_argument("--resume-migration", type=Path)
+    result.add_argument("--mode", choices=("legacy_fsm_eval", "semantic_prior_eval", "semantic_residual_eval"), default="semantic_prior_eval")
     result.add_argument("--device", choices=("cpu", "cuda:0"), default="cuda:0")
     result.add_argument("--checkpoint-interval-updates", type=int, default=10)
     result.add_argument("--headless", action=argparse.BooleanOptionalAction, default=True)
@@ -114,8 +116,10 @@ def validate_request(args: argparse.Namespace) -> None:
         raise ValueError("evaluation seed must belong to validation, locked-test or video split")
     if args.command == "eval" and args.mode == "semantic_residual_eval" and args.checkpoint is None:
         raise ValueError("residual evaluation requires a saved checkpoint")
-    if args.command == "eval" and args.mode == "semantic_prior_eval" and args.checkpoint is not None:
-        raise ValueError("prior B evaluation must not load a PPO checkpoint")
+    if args.command == "eval" and args.mode in ("legacy_fsm_eval", "semantic_prior_eval") and args.checkpoint is not None:
+        raise ValueError("legacy A and prior B evaluation must not load a PPO checkpoint")
+    if args.resume_migration is not None and (args.command not in ("train", "eval") or args.checkpoint is None):
+        raise ValueError("explicit migration requires a train or residual-eval checkpoint")
     if args.command in ("preflight", "smoke") and args.checkpoint is not None:
         raise ValueError("functional preflight/smoke must not silently load a policy")
     if args.command == "train" and args.checkpoint is None and any(path.exists() for path in (
@@ -132,15 +136,41 @@ def validate_request(args: argparse.Namespace) -> None:
     args.run_dir = directory
 
 
+def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) -> None:
+    """Reject stale or unauthorized weights before loading any native library."""
+    args._migration_record = None
+    if args.checkpoint is None:
+        return
+    from .semantic_migration import checkpoint_metadata, validate_migration_plan
+    metadata = checkpoint_metadata(args.checkpoint)
+    if args.resume_migration is None:
+        if metadata["runtime_contract"] != contract:
+            raise ValueError("checkpoint runtime changed; an explicit reviewed resume migration is required")
+    else:
+        args._migration_record = validate_migration_plan(args.checkpoint, contract, args.resume_migration)
+        if metadata.get("runner_config") != semantic_runner_config(seed=int(metadata["seed"]), device=args.device):
+            raise ValueError("migration cannot change PPO hyperparameters or normalization")
+    if args.command == "train" and metadata["seed"] != args.seed:
+        raise ValueError("resume must preserve the checkpoint training RNG seed")
+
+
 def _evaluation(core: Any, args: argparse.Namespace, *, contract: dict[str, Any]) -> dict[str, Any]:
+    if args.command == "eval":
+        from .semantic_legacy_evaluation import PhysicalEvaluationRecorder
+        scope = closing(PhysicalEvaluationRecorder(args.run_dir))
+    else:
+        scope = nullcontext(None)
+    with scope as recorder:
+        return _evaluation_body(core, args, contract=contract, recorder=recorder)
+
+
+def _evaluation_body(core: Any, args: argparse.Namespace, *, contract: dict[str, Any], recorder: Any) -> dict[str, Any]:
     import torch
     from tensordict import TensorDict
     observation = tuple(core.reset(seed=args.seed))
-    metrics = None
-    if args.command == "eval":
-        from .semantic_metrics import SemanticMetricsAccumulator
-        metrics = SemanticMetricsAccumulator()
-        core.tick_observer = metrics.observe
+    if recorder is not None:
+        recorder.start(core.frame)
+        core.tick_observer = recorder.observe
     runner = None
     if args.checkpoint is not None:
         class ObservationEnv:
@@ -151,7 +181,8 @@ def _evaluation(core: Any, args: argparse.Namespace, *, contract: dict[str, Any]
                 return TensorDict({"policy": tensor, "critic": tensor.clone()}, batch_size=[1], device=args.device)
         runner, _ = construct_semantic_runner(ObservationEnv(), seed=1001, device=args.device)
         metadata = json.loads(args.checkpoint.with_name(args.checkpoint.stem + "_manifest.json").read_text())
-        load_semantic_checkpoint(runner, args.checkpoint, contract=contract, seed=int(metadata["seed"]))
+        load_semantic_checkpoint(runner, args.checkpoint, contract=contract, seed=int(metadata["seed"]),
+                                 migration=getattr(args, "_migration_record", None))
         runner.alg.eval_mode()
     total_reward = 0.0
     last_info: dict[str, Any] = {}
@@ -209,12 +240,18 @@ def _evaluation(core: Any, args: argparse.Namespace, *, contract: dict[str, Any]
               "reward_total": total_reward, "telemetry": jsonable(core.telemetry_summary()),
               "runtime_contract": contract, "physical_failure_is_not_interface_failure": True,
               "evaluation_seed_interpretation": "deterministic_repetition_without_randomization"}
+    result["checkpoint_resume_migration"] = getattr(args, "_migration_record", None)
+    result["optimizer_updates_during_evaluation"] = 0
     if args.command == "smoke":
         result["interface_smoke"] = {"reset_count": reset_count, "reset_records": reset_records,
                                      "native_effect_decisions": native_effect_decisions,
                                      "all_decisions_native_audit_verified": True, "functional_passed": True}
-    if metrics is not None:
-        result["quality_metrics"] = metrics.summary()
+    if recorder is not None:
+        result["controller_task_success"] = result["task_success"]
+        result.update(recorder.summary())
+        if result["controller_task_success"] and not result["task_success"]:
+            result["controller_termination_reason"] = result["termination_reason"]
+            result["termination_reason"] = "INCOMPLETE_PHYSICAL_TASK"
     write_json(args.run_dir / "evaluation_manifest.json", result)
     return result
 
@@ -231,6 +268,9 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
     args._live_app = app
     app.update()
     try:
+        if args.command == "eval" and args.mode == "legacy_fsm_eval":
+            from .semantic_legacy_evaluation import _evaluation_legacy
+            return _evaluation_legacy(app, args, contract)
         from .semantic_backend import SemanticIsaacBackend
         from .semantic_env import SemanticEpisodeEnv
         seed_training_rngs(args.seed)
@@ -242,7 +282,8 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
         runner, _ = construct_semantic_runner(env, seed=args.seed, device=args.device)
         previous = None
         if args.checkpoint is not None:
-            previous = load_semantic_checkpoint(runner, args.checkpoint, contract=contract, seed=args.seed)
+            previous = load_semantic_checkpoint(runner, args.checkpoint, contract=contract, seed=args.seed,
+                                                migration=getattr(args, "_migration_record", None))
         else:
             initial = OUTPUT_ROOT / "checkpoints/history/checkpoint_initial_semantic.pt"
             save_semantic_checkpoint(runner, initial, {
@@ -266,6 +307,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     validate_request(args)
     contract = runtime_contract(expected_head=args.expected_head)
+    _preflight_checkpoint(args, contract)
     args.run_dir.mkdir(parents=True, exist_ok=False)
     started = datetime.now(timezone.utc).isoformat()
     lifecycle = {"schema": "wlr50_clean.semantic_run.v1", "command": args.command,
@@ -280,9 +322,10 @@ def main(argv: list[str] | None = None) -> int:
             result = dispatch_live(args, contract)
         if runtime_contract(expected_head=args.expected_head) != contract:
             raise RuntimeError("semantic runtime bytes changed during the run")
-        lifecycle.update(lifecycle="SUCCEEDED", result=result, completed_at_utc=datetime.now(timezone.utc).isoformat())
+        final_status = result.get("lifecycle", "SUCCEEDED")
+        lifecycle.update(lifecycle=final_status, result=result, completed_at_utc=datetime.now(timezone.utc).isoformat())
         write_json(args.run_dir / "run_manifest.json", lifecycle)
-        print(json.dumps({"semantic_run": str(args.run_dir), "lifecycle": "SUCCEEDED"}), flush=True)
+        print(json.dumps({"semantic_run": str(args.run_dir), "lifecycle": final_status}), flush=True)
         return 0
     except BaseException as exc:
         lifecycle.update(lifecycle="FAILED", error=str(exc), traceback=traceback.format_exc(),
