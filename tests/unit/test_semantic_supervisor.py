@@ -213,7 +213,7 @@ def test_monotonic_airborne_descent_is_not_positive_lift_excursion():
 
 def _lift_then_land_before_front(ev):
     obs=observation();ev.observe(obs)
-    for bottom,hip in ((.012,1.5),(.020,3.)):
+    for bottom,hip in ((.012,1.5),(.060,3.)):
         obs=advance(obs);leg_state(obs,"FR",bottom=bottom,air=True,hip=hip);ev.observe(obs)
     qualified=ev.snapshot
     assert qualified["history"]["active_lift"]["FR"]
@@ -250,7 +250,7 @@ def test_old_excursion_window_cannot_requalify_after_ground_contact():
 def test_new_genuine_lift_after_landing_can_retry_and_preserves_both_attempts():
     ev=TaskEvaluator();obs=_lift_then_land_before_front(ev)
     for data in ({"bottom":.012,"air":True,"hip":4.5},
-                 {"bottom":.020,"air":True,"hip":6.},
+                 {"bottom":.060,"air":True,"hip":6.},
                  {"x":.53,"bottom":.075,"air":True,"hip":7.},
                  {"x":.53,"bottom":.05,"top":True},
                  {"x":.53,"bottom":.05,"top":True}):
@@ -294,6 +294,65 @@ def test_revoked_lift_qualification_is_visible_in_existing_task_history_features
     schema=load_semantic_observation_schema()
     assert schema.dimension==324
     assert next(group["size"] for group in schema.groups if group["name"]=="active_lift_history")==4
+
+
+@pytest.mark.parametrize("contact_point",[None,[.5,.1,.05],[.5,.1,.04]],
+                         ids=["missing_point","top_point","mixed_contact_mean"])
+def test_active_clearance_then_early_top_landing_can_cross_after_multiple_contact_ticks(contact_point):
+    ev=TaskEvaluator();obs=observation();ev.observe(obs)
+    for bottom,hip in ((.012,1.5),(.060,3.)):
+        obs=advance(obs);leg_state(obs,"FR",bottom=bottom,air=True,hip=hip);ev.observe(obs)
+    assert ev.snapshot["history"]["active_lift"]["FR"]
+    # Wheel-center approaches while its finite-radius rim can already touch
+    # the top corner. Remain on top longer than the .5 s excursion window.
+    for _ in range(64):
+        obs=advance(obs);leg_state(obs,"FR",x=.498,bottom=.049,top=True,hip=3.)
+        obs["contacts"]["front_right_wheel"]["obstacle"]["contact_point_w_m"]=contact_point
+        snap=ev.observe(obs)
+        assert not snap["current_legs"]["FR"]["air"]
+        assert snap["history"]["active_lift"]["FR"] and snap["termination_reason"] is None
+    obs=advance(obs);leg_state(obs,"FR",x=.501,bottom=.049,top=True,hip=3.)
+    snap=ev.observe(obs)
+    assert snap["history"]["front_edge_crossed"]["FR"]
+    assert snap["termination_reason"] is None and not snap["history"]["placed"]["FR"]
+    obs=advance(obs);snap=ev.observe(obs)
+    assert snap["history"]["placed"]["FR"]
+    assert snap["crossing_contact_evidence"]=="verified_body_pair_and_live_wheel_geometry_no_contact_point_classification"
+
+
+def test_low_joint_driven_hop_never_earns_observable_above_top_qualification():
+    ev=TaskEvaluator();sup=TaskStageSupervisor(evaluator=ev,initial_stage_id="P02")
+    obs=observation();ev.observe(obs)
+    for bottom,hip in ((.012,1.5),(.049,3.)):
+        obs=advance(obs);leg_state(obs,"FR",bottom=bottom,air=True,hip=hip);ev.observe(obs)
+    task=sup.observe_and_update(obs)
+    assert not task["active_lift_history"]["FR"]
+    assert not ev.snapshot["history"]["lift_attempt_events"]
+    obs=advance(obs);leg_state(obs,"FR",x=.501,bottom=.049,top=True)
+    assert ev.observe(obs)["termination_reason"]=="TASK_FAILURE_WHEEL_ONLY_CLIMB"
+
+
+def test_corner_contact_does_not_invent_ground_or_expire_true_clearance_history():
+    ev=TaskEvaluator();obs=observation();ev.observe(obs)
+    for bottom,hip in ((.012,1.5),(.075,3.)):
+        obs=advance(obs);leg_state(obs,"FR",bottom=bottom,air=True,hip=hip);ev.observe(obs)
+    for x,bottom in ((.465,.033),(.48,.04),(.498,.049),(.501,.049)):
+        obs=advance(obs);leg_state(obs,"FR",x=x,bottom=bottom,top=True,hip=3.)
+        obs["contacts"]["front_right_wheel"]["obstacle"]["contact_point_w_m"]=None
+        snap=ev.observe(obs)
+    # No finite contact point exists to classify a side wall. Bottom height
+    # alone must not fabricate that classification for a rounded wheel.
+    assert snap["termination_reason"] is None and snap["history"]["front_edge_crossed"]["FR"]
+
+
+def test_air_cross_still_needs_current_clearance_after_earlier_qualified_lift():
+    ev=TaskEvaluator();obs=observation();ev.observe(obs)
+    for bottom,hip in ((.012,1.5),(.075,3.)):
+        obs=advance(obs);leg_state(obs,"FR",bottom=bottom,air=True,hip=hip);ev.observe(obs)
+    obs=advance(obs);leg_state(obs,"FR",x=.501,bottom=.02,air=True,hip=3.)
+    snap=ev.observe(obs)
+    assert snap["history"]["active_lift"]["FR"]
+    assert snap["termination_reason"]=="TASK_FAILURE_WHEEL_ONLY_CLIMB"
 
 
 def test_rr_first_order_is_actual_history_not_phase_name():

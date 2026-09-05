@@ -195,10 +195,56 @@ def _qualification_factor(project_root: Path, old: dict, new: dict, evidence: Pa
             "old_rollouts_are_not_reused": True, "old_checkpoint_is_not_a_full_success_claim": True}
 
 
+def _reviewed_evaluator_factor(project_root: Path, old: dict, new: dict,
+                               review: Mapping[str, Any]) -> dict[str, Any]:
+    """Bind a separately reviewed evaluator-only repair, not a general MDP waiver."""
+    if not isinstance(review, Mapping) or set(review) != {"reason", "counterexample_tests"}:
+        raise ValueError("evaluator review requires exact reason and counterexample tests")
+    reason, nodes = review["reason"], review["counterexample_tests"]
+    if (not isinstance(reason, str) or not reason.strip() or not isinstance(nodes, (list, tuple))
+            or not nodes or any(not isinstance(node, str) for node in nodes) or len(set(nodes)) != len(nodes)):
+        raise ValueError("evaluator review needs a reason and unique counterexample test nodes")
+    before = _version_text(project_root, old, SUPERVISOR)
+    after = _version_text(project_root, new, SUPERVISOR, prefer_worktree=True)
+    def split(text):
+        start, end = "class TaskEvaluator:", "class TaskStageSupervisor:"
+        if text.count(start) != 1 or text.count(end) != 1:
+            raise ValueError("reviewed TaskEvaluator class boundaries are ambiguous")
+        prefix, rest = text.split(start, 1)
+        body, suffix = rest.split(end, 1)
+        return prefix, start + body, end + suffix
+    old_parts, new_parts = split(before), split(after)
+    if old_parts[0] != new_parts[0] or old_parts[2] != new_parts[2] or old_parts[1] == new_parts[1]:
+        raise ValueError("reviewed evaluator repair must change only TaskEvaluator; all outside bytes remain identical")
+    sources = {}
+    for node in nodes:
+        parts = node.split("::")
+        if len(parts) != 2:
+            raise ValueError("counterexample test must be an explicit file::function node")
+        relative, function = parts
+        path = (project_root / relative).resolve(strict=True)
+        if (not relative.startswith("tests/unit/") or "\\" in relative or path.suffix != ".py"
+                or not path.is_relative_to((project_root / "tests/unit").resolve())
+                or not function.startswith("test_")):
+            raise ValueError("counterexample source must be a named unit test inside the project")
+        sources[relative] = {"path": str(path), "sha256": file_sha(path)}
+    sha = lambda text: hashlib.sha256(text.encode()).hexdigest()
+    return {"schema": "wlr50_clean.reviewed_task_evaluator_factor.v1",
+            "source_file": SUPERVISOR, "allowed_source_scope": "TaskEvaluator_class_only",
+            "review_reason": reason.strip(), "counterexample_tests": list(nodes),
+            "test_sources": sources, "test_nodes_are_review_references_not_pass_certification": True,
+            "before_class_sha256": sha(old_parts[1]), "after_class_sha256": sha(new_parts[1]),
+            "unchanged_prefix_sha256": sha(old_parts[0]), "unchanged_suffix_sha256": sha(old_parts[2]),
+            "source_git_commit": old["source_git_commit"], "target_git_commit": new["source_git_commit"],
+            "source_contract_sha256": digest(old), "target_contract_sha256": digest(new),
+            "old_rollouts_are_not_reused": True, "old_checkpoint_is_not_a_full_success_claim": True}
+
+
 def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
                          allowed_changed_files: Sequence[str], reason: str,
                          prior_evidence: Mapping[str, Any] | None = None,
                          qualification_evidence: Path | None = None,
+                         evaluator_review: Mapping[str, Any] | None = None,
                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Build a reviewed plan after committing the new runtime; does not write."""
     checkpoint = Path(checkpoint).resolve(strict=True)
@@ -216,7 +262,13 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
         raise ValueError("migration delta is undeclared or touches protected observation/action/reward/backend/physics files")
     if any(path not in new["files"] for path in delta):
         raise ValueError("migration cannot delete runtime files")
-    prior_transition = SUPERVISOR in delta
+    evaluator = None
+    if evaluator_review is not None:
+        if (SUPERVISOR not in delta or STAGE_SPEC in delta or prior_evidence is not None
+                or qualification_evidence is not None):
+            raise ValueError("reviewed evaluator repair cannot mix prior/configuration or historical qualification factors")
+        evaluator = _reviewed_evaluator_factor(Path(project_root), old, new, evaluator_review)
+    prior_transition = SUPERVISOR in delta and evaluator is None
     if prior_transition != (prior_evidence is not None) or (prior_transition and STAGE_SPEC not in delta):
         raise ValueError("nominal source change and explicit prior evidence/config change must occur together")
     if qualification_evidence is not None and not prior_transition:
@@ -238,6 +290,8 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
         result["prior_factor"] = prior
     if qualification is not None:
         result["qualification_factor"] = qualification
+    if evaluator is not None:
+        result["reviewed_evaluator_factor"] = evaluator
     return result
 
 
@@ -250,7 +304,10 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                                     reason=supplied.get("reason", ""), project_root=project_root,
                                     prior_evidence=None if "prior_factor" not in supplied else {
                                         role: row["evaluation_manifest"] for role, row in supplied["prior_factor"]["evidence"].items()},
-                                    qualification_evidence=None if "qualification_factor" not in supplied else Path(supplied["qualification_factor"]["evaluation_manifest"]))
+                                    qualification_evidence=None if "qualification_factor" not in supplied else Path(supplied["qualification_factor"]["evaluation_manifest"]),
+                                    evaluator_review=None if "reviewed_evaluator_factor" not in supplied else {
+                                        "reason": supplied["reviewed_evaluator_factor"]["review_reason"],
+                                        "counterexample_tests": supplied["reviewed_evaluator_factor"]["counterexample_tests"]})
     if supplied != expected:
         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}

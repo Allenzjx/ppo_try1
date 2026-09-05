@@ -112,9 +112,10 @@ class TaskEvaluator:
     Initializing this class does not import snapshot success latches. Curriculum
     history must be established by real prefix observations; no history setter
     is exposed. Invalid geometry/contact cannot be replaced by knee numbers.
-    The existing observable active_lift bits are current crossing qualifications
-    until crossing, then completed lift history. Ground contact before crossing
-    revokes qualification, not the append-only evidence that a lift occurred.
+    The existing observable active_lift bits require measured upward/joint
+    motion in AIR that reaches above the obstacle top. They are current
+    uninterrupted crossing qualifications until crossing, then completed lift
+    history. Ground contact before crossing revokes qualification, not evidence.
     """
 
     def __init__(self, task_spec_path: Path | str = DEFAULT_TASK_SPEC_PATH, *, spec: Mapping[str, Any] | None = None):
@@ -138,7 +139,7 @@ class TaskEvaluator:
         return {**self._snapshot, "goal_features": dict(self._snapshot["goal_features"]),
             "history": {**{k: dict(v) for k, v in self._history.items()},
                         "event_ticks": {k: dict(v) for k, v in self._event_ticks.items()},
-                        "active_lift_semantics": "current_uninterrupted_qualification_until_crossing_then_completed_history",
+                        "active_lift_semantics": "current_uninterrupted_airborne_above_top_qualification_until_crossing_then_completed_history",
                         "lift_attempt_events": [dict(event) for event in self._lift_attempt_events]}}
 
     def _fail(self, result: TaskResult, reason: str) -> None:
@@ -230,28 +231,32 @@ class TaskEvaluator:
             distance = center[0] - front
             lift = (hist_cfg["near_front_min_m"] <= distance <= hist_cfg["near_front_max_m"]
                 and self._air_count[leg] >= hist_cfg["minimum_air_samples"]
+                and bottom[2] >= top
                 and gain >= hist_cfg["minimum_lift_gain_m"] and movement >= hist_cfg["minimum_joint_motion_deg"])
             if lift and not self._history["active_lift"][leg]:
                 self._history["active_lift"][leg] = True
                 self._event_ticks["active_lift"].setdefault(leg, tick)
                 self._lift_attempt_events.append({"leg": leg, "event": "qualified_measured_upward_lift",
                     "physics_tick": tick, "simulation_time_s": now, "upward_excursion_m": gain,
-                    "joint_motion_deg": movement})
+                    "joint_motion_deg": movement, "airborne_clearance_above_top_m": bottom[2]-top})
             xy_tolerance = geo["xy_measurement_tolerance_m"]
             within_lateral_span = right-xy_tolerance <= center[1] <= left+xy_tolerance
             within_top_xy = within_lateral_span and front-xy_tolerance <= center[0] <= back+xy_tolerance
             top_geometry = within_top_xy and geo["top_gap_min_m"] <= bottom[2]-top <= geo["top_gap_max_m"]
             loaded = bool(top_active and top_geometry and distance >= 0)
-            # AIR needs genuine clearance above the front edge. A legitimate
-            # AIR->TOP observation may already have contact/compliance at this
-            # tick, but its immediately preceding sample must have cleared it.
-            previous_air_clear = len(samples)>1 and samples[-2][4] and samples[-2][1]>=top
+            # The observable qualification proves this same uninterrupted
+            # active lift reached AIR clearance. A finite-radius wheel may
+            # land near the edge before its center crosses; do not demand a
+            # ballistic AIR sample immediately before center-plane crossing.
+            # Exact body-pair contact plus live bottom/ROI geometry is the
+            # available fallback: it does not claim a verified contact point
+            # or label an earlier corner contact as a front-wall climb.
             crossing_geometry = (not ground_active and within_top_xy
-                and ((air and bottom[2]>=top) or (loaded and previous_air_clear)))
+                and ((air and bottom[2]>=top) or loaded))
             if distance >= 0 and not self._history["front_edge_crossed"][leg]:
                 if not self._history["active_lift"][leg] or not crossing_geometry:
                     self._fail(TaskResult.TASK_FAILURE_WHEEL_ONLY_CLIMB,
-                        f"{leg} crossed front without current uninterrupted active lift and geometric clearance")
+                        f"{leg} crossed front without uninterrupted above-top active lift and current AIR/TOP geometry")
                 elif leg == "RL" and not self._history["placed"]["RR"]:
                     self._fail(TaskResult.INCOMPLETE_CONTROLLER_BLOCKED, "RR_FIRST order violated: RL crossed before RR placement")
                 else:
@@ -294,6 +299,7 @@ class TaskEvaluator:
             "final_region_valid": final_region, "final_controlled": controlled, "final_support_available": current_support,
             "home_maximum_servo_error_deg": home_error, "maximum_commanded_wheel_speed_rad_s": max(map(abs,commands)),
             "final_stable_for_s": 0. if self._stable_since is None else now-self._stable_since,
+            "crossing_contact_evidence": "verified_body_pair_and_live_wheel_geometry_no_contact_point_classification",
             "source": "current_episode_live_joint_geometry_exact_contact_history",
             "physics_tick": tick, "simulation_time_s": now}
         self._last_tick, self._last_time = tick, now
