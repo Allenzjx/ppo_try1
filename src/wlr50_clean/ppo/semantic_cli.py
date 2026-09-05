@@ -220,7 +220,12 @@ def _evaluation(core: Any, args: argparse.Namespace, *, contract: dict[str, Any]
 
 
 def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[str, Any]:
-    # No scene, tensor backend or environment imports before AppLauncher.
+    # Resolve the installed PyTorch/TensorDict native DLLs before Kit extends
+    # the Windows DLL search path. Loading tensordict._C after Kit produced an
+    # access violation on this pinned stack; these imports create no scene.
+    import torch
+    import tensordict
+    # No Isaac scene or environment imports before AppLauncher.
     from isaaclab.app import AppLauncher
     app = AppLauncher(headless=bool(args.headless), enable_cameras=False).app
     app.update()
