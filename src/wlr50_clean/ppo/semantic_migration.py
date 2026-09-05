@@ -245,6 +245,7 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                          prior_evidence: Mapping[str, Any] | None = None,
                          qualification_evidence: Path | None = None,
                          evaluator_review: Mapping[str, Any] | None = None,
+                         execution_evidence: Mapping[str, Any] | None = None,
                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Build a reviewed plan after committing the new runtime; does not write."""
     checkpoint = Path(checkpoint).resolve(strict=True)
@@ -258,7 +259,15 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
     if not reason.strip() or len(set(declared)) != len(declared):
         raise ValueError("migration requires a reason and unique exact changed-file names")
     delta = sorted(path for path in set(old["files"]) | set(new["files"]) if old["files"].get(path) != new["files"].get(path))
-    if sorted(declared) != delta or not set(delta) <= INSTRUMENTATION_FILES | {STAGE_SPEC, SUPERVISOR}:
+    execution = None
+    additional = set()
+    if execution_evidence is not None:
+        if (set(delta) - INSTRUMENTATION_FILES - VECTOR_FILES or prior_evidence is not None
+                or qualification_evidence is not None or evaluator_review is not None):
+            raise ValueError("execution migration cannot mix task/nominal/configuration factors")
+        execution = build_execution_factor(metadata, new, execution_evidence, project_root=Path(project_root))
+        additional = set(VECTOR_FILES)
+    if sorted(declared) != delta or not set(delta) <= INSTRUMENTATION_FILES | {STAGE_SPEC, SUPERVISOR} | additional:
         raise ValueError("migration delta is undeclared or touches protected observation/action/reward/backend/physics files")
     if any(path not in new["files"] for path in delta):
         raise ValueError("migration cannot delete runtime files")
@@ -292,6 +301,8 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
         result["qualification_factor"] = qualification
     if evaluator is not None:
         result["reviewed_evaluator_factor"] = evaluator
+    if execution is not None:
+        result["execution_factor"] = execution
     return result
 
 
@@ -307,7 +318,109 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                                     qualification_evidence=None if "qualification_factor" not in supplied else Path(supplied["qualification_factor"]["evaluation_manifest"]),
                                     evaluator_review=None if "reviewed_evaluator_factor" not in supplied else {
                                         "reason": supplied["reviewed_evaluator_factor"]["review_reason"],
-                                        "counterexample_tests": supplied["reviewed_evaluator_factor"]["counterexample_tests"]})
+                                        "counterexample_tests": supplied["reviewed_evaluator_factor"]["counterexample_tests"]},
+                                    execution_evidence=None if "execution_factor" not in supplied else {
+                                        "target_num_envs": supplied["execution_factor"]["target_num_envs"],
+                                        "vector_smoke": supplied["execution_factor"]["vector_smoke"]["manifest"]})
     if supplied != expected:
         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}
+
+
+VECTOR_FILES = frozenset({
+    "src/wlr50_clean/ppo/semantic_vector_backend.py",
+    "src/wlr50_clean/ppo/semantic_vector_env.py",
+    "src/wlr50_clean/ppo/semantic_vector_training.py",
+})
+
+def topology(num_envs: int) -> dict[str, Any]:
+    if type(num_envs) is not int or num_envs not in (1, 8):
+        raise ValueError("only single or eight-row semantic execution is reviewed")
+    return {"schema": "wlr50_clean.semantic_execution_topology.v1",
+            "num_envs": num_envs, "observation_dimension": 324, "action_dimension": 12,
+            "rollout_decisions_per_env": 128, "reset_sampling": "P01_only",
+            "phase_suffix_curriculum_implemented": False,
+            "peer_reset": "none" if num_envs == 1 else "synchronous_done_with_gamma_V_actual_final_obs",
+            "task_timeout_bootstrap": False, "physical_state_saved": False}
+
+def source_num_envs(metadata: Mapping[str, Any]) -> int:
+    declared = metadata.get("execution_topology")
+    if declared is not None:
+        count = declared.get("num_envs")
+        if declared != topology(count):
+            raise ValueError("checkpoint execution topology is malformed")
+        return count
+    # Legacy semantic checkpoints existed only before vector code was added.
+    # Never infer one row for a checkpoint whose runtime already had vector code.
+    if any(path in metadata["runtime_contract"].get("files", {}) for path in VECTOR_FILES):
+        raise ValueError("vector-capable checkpoint lacks explicit execution topology")
+    return 1
+
+def stage_partition(remaining_requested: int) -> dict[str, int]:
+    if type(remaining_requested) is not int or remaining_requested < 1:
+        raise ValueError("remaining requested budget must be positive")
+    vector = remaining_requested // 1024 * 1024
+    tail = remaining_requested - vector
+    tail_actual = ((tail + 127) // 128) * 128
+    return {"N8_requested": vector, "N8_actual": vector, "N8_updates": vector // 1024,
+            "N1_requested": tail, "N1_actual": tail_actual, "N1_updates": tail_actual // 128,
+            "total_requested": remaining_requested, "total_actual": vector + tail_actual,
+            "rounding_overrun": tail_actual - tail}
+
+def verified_vector_smoke(path: Path, contract: Mapping[str, Any], project_root: Path) -> dict[str, Any]:
+    path = Path(path).resolve(strict=True)
+    if path.name != "vector_smoke_manifest.json" or not path.is_relative_to(
+            (project_root / "runs/ppo_semantic_v2/interface_smoke").resolve()):
+        raise ValueError("N8 proof must be an isolated live interface-smoke manifest")
+    data = json.loads(path.read_text(encoding="utf-8"))
+    run_path = path.with_name("run_manifest.json")
+    run = json.loads(run_path.read_text(encoding="utf-8"))
+    required = ("functional_passed", "all_row_native_audits_verified",
+                "one_step_write_capture_verified", "physical_isolation_verified")
+    if (data.get("schema") != "wlr50_clean.semantic_vector_smoke.v1"
+            or data.get("runtime_contract") != dict(contract) or data.get("num_envs") != 8
+            or data.get("explicit_reset_count") != 2
+            or data.get("optimizer_steps") != 0
+            or any(data.get(key) is not True for key in required)
+            or len(data.get("per_row_effect_counts", [])) != 8
+            or any(type(n) is not int or n < 1 for n in data["per_row_effect_counts"])
+            or run.get("lifecycle") != "SUCCEEDED" or run.get("result") != data):
+        raise ValueError("N8 proof lacks current-runtime real reset/native/isolation evidence")
+    files = {}
+    for name in ("vector_native_audit.jsonl", "vector_physical_probe.jsonl", "gpu_memory.jsonl"):
+        source = path.with_name(name)
+        if not source.is_file() or source.stat().st_size < 1:
+            raise ValueError("N8 proof omitted an actual measured artifact")
+        files[name] = {"path": str(source), "sha256": file_sha(source)}
+    return {"manifest": str(path), "manifest_sha256": file_sha(path),
+            "run_manifest_sha256": file_sha(run_path), "artifacts": files}
+
+def build_execution_factor(metadata, new, evidence, *, project_root: Path):
+    if not isinstance(evidence, Mapping) or set(evidence) != {"target_num_envs", "vector_smoke"}:
+        raise ValueError("execution boundary requires exact target count and current live N8 proof")
+    source, target = source_num_envs(metadata), evidence["target_num_envs"]
+    topology(target)
+    if (source, target) not in ((1, 8), (8, 1)):
+        raise ValueError("execution factor permits only explicit 1-to-8 or 8-to-1 boundaries")
+    old = metadata["runtime_contract"]
+    added = {path for path in VECTOR_FILES if path not in old["files"]}
+    if added not in (set(), set(VECTOR_FILES)) or not VECTOR_FILES <= set(new["files"]):
+        raise ValueError("vector execution must be a complete reviewed additive module set")
+    if source == 8 and added:
+        raise ValueError("an eight-row source checkpoint must already bind every vector module")
+    reviewed_files = {}
+    for relative in sorted(VECTOR_FILES):
+        path = project_root / relative
+        if file_sha(path) != new["files"][relative]:
+            raise ValueError("vector source bytes disagree with current runtime")
+        reviewed_files[relative] = new["files"][relative]
+        if relative in old["files"] and old["files"][relative] != new["files"][relative]:
+            raise ValueError("topology change cannot silently revise existing vector implementation")
+    smoke = verified_vector_smoke(Path(evidence["vector_smoke"]), new, project_root)
+    return {"schema": "wlr50_clean.semantic_execution_migration.v1",
+            "source_num_envs": source, "target_num_envs": target,
+            "reviewed_vector_source_sha256": reviewed_files, "vector_smoke": smoke,
+            "target_topology": topology(target), "old_storage_reused": False,
+            "restore_actor_critic_Adam_normalizer_RNG_and_global_budget": True,
+            "reset": "fresh_legal_P01_all_target_rows", "observation_dimension": 324,
+            "policy_action_dimension": 12, "PPO_algorithm_and_hyperparameters_changed": False}

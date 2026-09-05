@@ -316,6 +316,21 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
     metadata = json.loads(sidecar.read_text(encoding="utf-8"))
     expected_contract = dict(contract)
+    from .semantic_migration import source_num_envs
+    source_count = source_num_envs(metadata)
+    target_count = int(runner.alg.storage.actions.shape[1])
+    execution_factor = None if migration is None else migration.get("execution_factor")
+    if execution_factor is not None and (execution_factor["source_num_envs"] != source_count or
+            execution_factor["target_num_envs"] != target_count):
+        raise RuntimeError("explicit topology plan does not match actual source/target storage")
+    if source_count != target_count and (execution_factor is None or
+            execution_factor["source_num_envs"] != source_count or
+            execution_factor["target_num_envs"] != target_count):
+        raise RuntimeError("PPO topology change requires explicit reviewed 1-to-8/8-to-1 migration")
+    if runner.alg.storage.step != 0 or runner.alg.transition.actions is not None:
+        raise RuntimeError("checkpoint loading cannot reuse a partial old rollout")
+    if target_count == 8 and tuple(runner.alg.storage.actions.shape) != (128,8,12):
+        raise RuntimeError("N8 requires fresh128x8x12 raw-action storage")
     if migration is not None:
         from .semantic_migration import validate_migration_plan
         verified = validate_migration_plan(checkpoint, contract, Path(migration["plan_path"]))
@@ -431,6 +446,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     stop_record = None
     initial_actor = parameter_hash(runner.alg.actor)
     started = time.perf_counter()
+    gpu_probe = getattr(env, "gpu_probe", None)
     runner.alg.train_mode()
     obs = env.get_observations().to(runner.device)
     with _training_failure_ledger(run_dir, updates, checkpoints), \
@@ -463,6 +479,8 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                     if not torch.equal(runner.alg.storage.actions[tick], sampled_raw):
                         raise RuntimeError("stored PPO action differs from sampled raw latent")
                 runner.alg.compute_returns(obs)
+            if gpu_probe is not None:
+                gpu_probe.sample("after_complete_rollout")
             storage = runner.alg.storage
             snapshot = {key: getattr(storage, key).detach().cpu().clone() for key in (
                 "actions", "actions_log_prob", "values", "rewards", "dones", "returns", "advantages")}
@@ -474,6 +492,8 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
             global_step = base_global + (iteration + 1) * batch
             runner.alg.entropy_coef = 0.005 + (0.001 - 0.005) * min(global_step / sum(STAGE_BUDGETS.values()), 1.0)
             update = audited_ppo_update(runner)
+            if gpu_probe is not None:
+                gpu_probe.sample("after_official_optimizer_update")
             update.update(ppo_update=base_updates + iteration + 1, global_policy_decisions=global_step)
             updates.append(update)
             update_stream.write(json.dumps(update, allow_nan=False) + "\n")
@@ -486,11 +506,16 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
             if stop_record is not None or iteration == 0 or (iteration + 1) % checkpoint_interval_updates == 0 or iteration + 1 == iterations:
                 spent = dict(stage_spent)
                 spent[stage] += min((iteration + 1) * batch, decisions)
+                from .semantic_migration import topology
                 infos = {"runtime_contract": dict(contract), "seed": seed, "stage": stage,
+                         "execution_topology": topology(env.num_envs),
+                         "phase_suffix_curriculum_implemented": False,
+                         "implemented_reset_sampling": env.cfg.get("reset_sampling", "P01_only"),
+                         "vector_smoke_evidence": env.cfg.get("vector_smoke_evidence"),
                          "global_policy_decisions": global_step, "ppo_updates": base_updates + iteration + 1,
                          "optimizer_steps": base_optimizer + sum(row["optimizer_steps"] for row in updates),
                          "stage_requested_decisions": spent, "source_run": str(run_dir.resolve()),
-                         "sampling": "P01_full_task_only_initial_version", "runner_config": semantic_runner_config(seed=seed, device=str(runner.device)),
+                         "sampling": env.cfg.get("reset_sampling", "P01_only"), "runner_config": semantic_runner_config(seed=seed, device=str(runner.device)),
                          "last_update": update}
                 if previous:
                     infos["resume_ancestry"] = {
@@ -523,5 +548,10 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
               "runtime_contract": dict(contract), "checkpoints": checkpoints, "training_success_is_not_task_success": True}
     result["lifecycle"] = "STOPPED_AT_VERIFIED_UPDATE_BOUNDARY" if stop_record is not None else "SUCCEEDED"
     result["stop_after_update"] = stop_record
+    result["phase_suffix_curriculum_implemented"] = False
+    result["implemented_sampling"] = env.cfg.get("reset_sampling", "P01_only")
+    if gpu_probe is not None:
+        gpu_probe.sample("after_training_and_verified_checkpoint")
+        result["gpu_measurements"] = gpu_probe.summary()
     write_json(run_dir / "training_manifest.json", result)
     return result

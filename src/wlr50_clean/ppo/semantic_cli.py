@@ -7,6 +7,7 @@ import hashlib
 import importlib.metadata
 import json
 import math
+import os
 import subprocess
 import sys
 import time
@@ -20,6 +21,7 @@ from .semantic_training import (
     load_semantic_checkpoint, save_semantic_checkpoint, seed_training_rngs,
     semantic_runner_config, sha256_file, train_semantic, verified_native_effect, write_json,
 )
+from .semantic_migration import topology, stage_partition
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 RUNS_ROOT = PROJECT_ROOT / "runs/ppo_semantic_v2"
@@ -42,6 +44,8 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--run-dir", type=Path, required=True)
     result.add_argument("--expected-head", required=True)
     result.add_argument("--seed", type=int, default=1001)
+    result.add_argument("--num-envs", type=int, choices=(1, 8), default=1)
+    result.add_argument("--vector-smoke-evidence", type=Path)
     result.add_argument("--stage", choices=tuple(STAGE_BUDGETS), default="smoke")
     result.add_argument("--decisions", type=int)
     result.add_argument("--max-decisions", type=int, default=3000)
@@ -133,6 +137,24 @@ def validate_request(args: argparse.Namespace) -> None:
             remaining = STAGE_BUDGETS[args.stage] - int(metadata["stage_requested_decisions"].get(args.stage, 0))
             if remaining < 1 or (args.decisions is not None and args.decisions > remaining):
                 raise ValueError("additional request exceeds the remaining semantic stage budget")
+    if args.num_envs == 8:
+        if args.command not in ("preflight", "smoke", "train") or args.device != "cuda:0" or args.seed != 1001:
+            raise ValueError("initial N8 entry supports GPU preflight/smoke/train and seed1001 only")
+        if args.command == "smoke" and args.max_decisions != 128:
+            raise ValueError("N8 smoke requires two explicit 64-decision-per-row probes")
+        if args.command == "train":
+            if args.checkpoint is None or args.vector_smoke_evidence is None:
+                raise ValueError("N8 must load actual learned weights and current live N8 interface proof")
+            if args.decisions is not None and args.decisions % 1024:
+                raise ValueError("N8 training requests must be whole128x8 rollouts; use N1 for the tail")
+            from .semantic_migration import checkpoint_metadata
+            from .semantic_migration import stage_partition
+            metadata = checkpoint_metadata(args.checkpoint)
+            left = STAGE_BUDGETS[args.stage]-int(metadata["stage_requested_decisions"][args.stage])
+            if args.decisions is None and stage_partition(left)["N8_requested"] < 1024:
+                raise ValueError("remaining stage budget requires the explicit N1 tail")
+    elif args.vector_smoke_evidence is not None:
+        raise ValueError("standalone N8 proof is only consumed by N8 training")
     args.run_dir = directory
 
 
@@ -256,6 +278,215 @@ def _evaluation_body(core: Any, args: argparse.Namespace, *, contract: dict[str,
     return result
 
 
+class GpuProbe:
+    def __init__(self, run_dir, device):
+        import torch
+        self.device = device
+        self.stream = (Path(run_dir) / "gpu_memory.jsonl").open("x", encoding="utf-8")
+        self.started = time.perf_counter()
+        self.rows = []
+        if str(device).startswith("cuda"):
+            torch.cuda.reset_peak_memory_stats(device)
+
+    def sample(self, event):
+        import torch
+        row = {"event": event, "wall_time_s": time.perf_counter()-self.started,
+               "pid": os.getpid(), "CUDA_VISIBLE_DEVICES": os.environ.get("CUDA_VISIBLE_DEVICES")}
+        if str(self.device).startswith("cuda"):
+            torch.cuda.synchronize(self.device)
+            free, total = torch.cuda.mem_get_info(self.device)
+            row.update(torch_allocated_bytes=torch.cuda.memory_allocated(self.device),
+                torch_reserved_bytes=torch.cuda.memory_reserved(self.device),
+                torch_peak_allocated_bytes=torch.cuda.max_memory_allocated(self.device),
+                torch_peak_reserved_bytes=torch.cuda.max_memory_reserved(self.device),
+                device_free_bytes=free, device_total_bytes=total,
+                device_used_bytes=total-free, torch_only_is_not_Kit_process_memory=True)
+        for label, query in (
+            ("device_memory", ["--query-gpu=index,uuid,memory.used,memory.total"]),
+            ("process_memory", ["--query-compute-apps=pid,used_gpu_memory"])):
+            try:
+                result = subprocess.run(["nvidia-smi", *query, "--format=csv,noheader,nounits"],
+                    capture_output=True, text=True, timeout=5,
+                    creationflags=0x08000000 if os.name == "nt" else 0)
+                row[label] = {"exit_code": result.returncode, "stdout": result.stdout.strip(),
+                              "stderr": result.stderr.strip(),
+                              "N_A_is_unavailable_not_zero": True}
+            except (OSError, subprocess.TimeoutExpired) as exc:
+                row[label] = {"available": False, "reason": str(exc)}
+        self.rows.append(row)
+        self.stream.write(json.dumps(row, allow_nan=False)+"\n")
+        self.stream.flush()
+        return row
+
+    def summary(self):
+        return {"artifact": str(Path(self.stream.name).resolve()), "sample_count": len(self.rows),
+                "peak_of_sampled_device_used_bytes": max(
+                    (r["device_used_bytes"] for r in self.rows if "device_used_bytes" in r), default=None),
+                "process_peak_not_claimed_when_WDDM_reports_N_A": True}
+
+    def close(self):
+        self.stream.close()
+
+class _RowProbe:
+    def __init__(self, row, stream):
+        self.row, self.stream, self.batches = row, stream, []
+
+    def reset(self):
+        self.batches.append([])
+
+    def observe(self, before, after, projection):
+        from .isaac_fsm_backend import _member
+        raw = after.info["raw_observation"]
+        measured = tuple(float(v) for v in _member(raw, "actual_full12"))
+        position = tuple(float(v) for v in _member(_member(raw, "base"), "position_w_m"))
+        if len(measured) != 12 or len(position) != 3 or any(
+                not math.isfinite(v) for v in (*measured, *position)):
+            raise RuntimeError("N8 probe requires actual finite physical row measurements")
+        row = {"env_index": self.row, "reset_index": len(self.batches)-1,
+               "physics_tick": after.physics_tick, "sim_time_s": after.sim_time_s,
+               "actual_full12": measured, "base_position_m": position,
+               "source_phase": before.state_id, "phase": after.state_id}
+        self.batches[-1].append(row)
+        self.stream.write(json.dumps(row, allow_nan=False)+"\n")
+
+    def summary(self):
+        return {"measured_physics_ticks": sum(map(len, self.batches))}
+
+def smoke_actions(index):
+    # 0..7 zero; 8..31 row0-only wheel excitation; 32..63 row-identifiable.
+    if index < 8:
+        return [[0.0]*12 for _ in range(8)]
+    if index < 32:
+        rows = [[0.0]*12 for _ in range(8)]
+        rows[0][8] = math.atanh(0.10 if index < 20 else -0.10)
+        return rows
+    return [[math.atanh((0.05+0.01*row)*(1 if (row+channel)%2 else -1))
+             for channel in range(12)] for row in range(8)]
+
+def _isolation(control, treatment, backend):
+    other_servo, other_wheel, other_base = 0.0, 0.0, 0.0
+    active_servo, active_wheel, compared = 0.0, 0.0, 0
+    for row in range(8):
+        first = {r["physics_tick"]:r for r in control[row]}
+        second = {r["physics_tick"]:r for r in treatment[row]}
+        common = sorted(set(first) & set(second) & set(range(65,257)))
+        if len(common) < 32:
+            raise RuntimeError("N8 functional isolation probe ended before enough measured common ticks")
+        compared += len(common)
+        for tick in common:
+            a, b = first[tick], second[tick]
+            servo = max(abs(x-y) for x,y in zip(a["actual_full12"][:8], b["actual_full12"][:8]))
+            wheel = max(abs(x-y) for x,y in zip(a["actual_full12"][8:], b["actual_full12"][8:]))
+            position = max(abs(x-y) for x,y in zip(a["base_position_m"], b["base_position_m"]))
+            if row == 0:
+                active_servo, active_wheel = max(active_servo,servo), max(active_wheel,wheel)
+            else:
+                other_servo, other_wheel, other_base = max(other_servo,servo), max(other_wheel,wheel), max(other_base,position)
+    origins = backend.scene.env_origins.detach().cpu().tolist()
+    minimum_spacing = min(math.dist(origins[a], origins[b]) for a in range(8) for b in range(a))
+    # Interface repeatability/isolation tolerances; not reward or task-success gates.
+    passed = (other_servo <= 0.01 and other_wheel <= 0.002 and other_base <= 0.00002
+              and (active_servo > 0.0001 or active_wheel > 0.00001)
+              and minimum_spacing >= 6.0 and backend.scene.cfg.filter_collisions is True
+              and backend.scene.cfg.replicate_physics is True)
+    return {"passed": passed, "compared_physics_rows": compared,
+            "other_row_servo_delta_max_deg": other_servo, "other_row_wheel_delta_max_rad_s": other_wheel,
+            "other_row_base_delta_max_m": other_base, "active_row_servo_response_deg": active_servo,
+            "active_row_wheel_response_rad_s": active_wheel, "minimum_origin_spacing_m": minimum_spacing,
+            "collision_filtering": bool(backend.scene.cfg.filter_collisions),
+            "same_nominal_zero_control_then_row0_only_intervention": True}
+
+def _smoke(backend, args, contract, gpu):
+    import torch
+    from .semantic_vector_env import SemanticVectorRslEnv
+    effects = [0]*8
+    with (args.run_dir/"vector_physical_probe.jsonl").open("x",encoding="utf-8") as physical, \
+         (args.run_dir/"vector_native_audit.jsonl").open("x",encoding="utf-8") as audit:
+        probes = tuple(_RowProbe(row,physical) for row in range(8))
+        env = SemanticVectorRslEnv(backend,device=args.device,tick_observers=probes)
+        # No actor/optimizer is constructed for this functional test.
+        env.bind_final_value_function(lambda obs: torch.zeros((8,1),device=args.device),gamma=env.gamma)
+        selections = []
+        gpu.sample("after_explicit_reset_1")
+        for segment in range(2):
+            if segment:
+                env._reset_all()
+                gpu.sample("after_explicit_reset_2")
+            selected = [len(p.batches)-1 for p in probes]
+            selections.append(selected)
+            for decision in range(64):
+                requested = [[0.0]*12 for _ in range(8)] if segment == 0 else smoke_actions(decision)
+                actions = torch.tensor(requested,dtype=torch.float32,device=args.device)
+                _, _, dones, extras = env.step(actions)
+                if len(extras["semantic_decisions"]) != 8:
+                    raise RuntimeError("N8 smoke lost a physical row")
+                for row, info in enumerate(extras["semantic_decisions"]):
+                    # The real vector kernel has already bound every physical tick,
+                    # request, raw sample, target dispatch and four zero write counters.
+                    if (tuple(info["raw_policy_action_full12"]) != tuple(actions[row].cpu().tolist())
+                            or info["actuator_target_effect_audit_summary"]["all_ticks_verified"] is not True
+                            or info["no_in_episode_state_writes_verified"] is not True):
+                        raise RuntimeError("N8 smoke row/action/native evidence mismatch")
+                    n = info["actuator_target_effect_audit_summary"]["actual_native_effect_tick_count"]
+                    if (segment == 0 or decision < 8 or (decision < 32 and row != 0)) and n:
+                        raise RuntimeError("unexcited physical row received a residual native target change")
+                    if segment == 1 and decision >= 32:
+                        effects[row] += n
+                    audit.write(json.dumps({"segment":segment,"decision":decision,"env_index":row,
+                                            "info":jsonable(info)},allow_nan=False)+"\n")
+                if bool(dones.any()):
+                    break  # Valid failure; never continue a terminated scene secretly.
+            physical.flush(); audit.flush()
+        control = [p.batches[selections[0][row]] for row,p in enumerate(probes)]
+        treatment = [p.batches[selections[1][row]] for row,p in enumerate(probes)]
+        isolation = _isolation(control,treatment,backend)
+        gpu.sample("after_zero_identifiable_and_isolation_probes")
+        if not isolation["passed"] or any(n < 1 for n in effects):
+            raise RuntimeError("N8 interface evidence insufficient; this is not a full-task-success requirement")
+        result = {"schema":"wlr50_clean.semantic_vector_smoke.v1","num_envs":8,
+            "explicit_reset_count":2,"actual_reset_count":env.reset_count,"optimizer_steps":0,
+            "per_row_effect_counts":effects,"all_row_native_audits_verified":True,
+            "one_step_write_capture_verified":True,"physical_isolation_verified":True,
+            "physical_isolation":isolation,"functional_passed":True,
+            "raw_action_range_abs_max":math.atanh(0.12),"runtime_contract":contract,
+            "task_success_not_required":True,"telemetry":env.telemetry_summary(),
+            "gpu_measurements":gpu.summary()}
+        write_json(args.run_dir/"vector_smoke_manifest.json",result)
+        return result
+
+def dispatch_vector(app,args,contract,output_root):
+    from .semantic_vector_backend import SemanticVectorIsaacBackend
+    from .semantic_vector_env import SemanticVectorRslEnv
+    from .semantic_vector_training import construct_semantic_vector_runner, train_semantic_vector
+    gpu = GpuProbe(args.run_dir,args.device)
+    try:
+        gpu.sample("before_vector_scene")
+        backend = SemanticVectorIsaacBackend(app,num_envs=8)
+        gpu.sample("after_vector_scene")
+        if args.command == "smoke":
+            return _smoke(backend,args,contract,gpu)
+        env = SemanticVectorRslEnv(backend,device=args.device,seeds=tuple(range(1001,1009)))
+        env.gpu_probe = gpu
+        env.cfg["vector_smoke_evidence"] = args._vector_smoke_record
+        gpu.sample("after_training_legal_reset")
+        runner,_ = construct_semantic_vector_runner(env,seed=args.seed,device=args.device)
+        previous = load_semantic_checkpoint(runner,args.checkpoint,contract=contract,seed=args.seed,
+                                            migration=args._migration_record)
+        if runner.alg.storage.step != 0 or runner.alg.storage.actions.shape != (128,8,12):
+            raise RuntimeError("N8 migration must start with fresh complete 128x8 raw rollout storage")
+        # CLI already requires a declared stage budget; use canonical constant here.
+        from .semantic_training import STAGE_BUDGETS
+        remaining = STAGE_BUDGETS[args.stage]-int(previous["stage_requested_decisions"][args.stage])
+        requested = stage_partition(remaining)["N8_requested"] if args.decisions is None else args.decisions
+        gpu.sample("after_actual_checkpoint_reload")
+        result = train_semantic_vector(runner,env,decisions=requested,run_dir=args.run_dir,
+            output_root=output_root,stage=args.stage,contract=contract,seed=args.seed,
+            resume_infos=previous,checkpoint_interval_updates=args.checkpoint_interval_updates)
+        return result
+    finally:
+        gpu.close()
+
+
 def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[str, Any]:
     # Resolve the installed PyTorch/TensorDict native DLLs before Kit extends
     # the Windows DLL search path. Loading tensordict._C after Kit produced an
@@ -271,6 +502,8 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
         if args.command == "eval" and args.mode == "legacy_fsm_eval":
             from .semantic_legacy_evaluation import _evaluation_legacy
             return _evaluation_legacy(app, args, contract)
+        if args.num_envs == 8:
+            return dispatch_vector(app, args, contract, OUTPUT_ROOT)
         from .semantic_backend import SemanticIsaacBackend
         from .semantic_env import SemanticEpisodeEnv
         seed_training_rngs(args.seed)
@@ -288,6 +521,7 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
             initial = OUTPUT_ROOT / "checkpoints/history/checkpoint_initial_semantic.pt"
             save_semantic_checkpoint(runner, initial, {
                 "seed": args.seed, "runtime_contract": contract, "stage": "initial",
+                "execution_topology": topology(1),
                 "global_policy_decisions": 0, "ppo_updates": 0, "optimizer_steps": 0,
                 "stage_requested_decisions": {stage: 0 for stage in STAGE_BUDGETS},
                 "runner_config": semantic_runner_config(seed=args.seed, device=args.device),
@@ -308,6 +542,19 @@ def main(argv: list[str] | None = None) -> int:
     validate_request(args)
     contract = runtime_contract(expected_head=args.expected_head)
     _preflight_checkpoint(args, contract)
+    from .semantic_migration import source_num_envs, verified_vector_smoke
+    args._vector_smoke_record = None
+    if args.command == "train" and args.num_envs == 8:
+        args._vector_smoke_record = verified_vector_smoke(args.vector_smoke_evidence, contract, PROJECT_ROOT)
+    if args.checkpoint is not None:
+        from .semantic_migration import checkpoint_metadata
+        source_count = source_num_envs(checkpoint_metadata(args.checkpoint))
+        factor = (args._migration_record or {}).get("execution_factor")
+        if factor is not None and (factor["source_num_envs"] != source_count or factor["target_num_envs"] != args.num_envs):
+            raise ValueError("explicit execution plan does not match requested topology")
+        if source_count != args.num_envs and (factor is None or
+                factor["source_num_envs"] != source_count or factor["target_num_envs"] != args.num_envs):
+            raise ValueError("changing checkpoint execution topology requires an explicit exact migration factor")
     args.run_dir.mkdir(parents=True, exist_ok=False)
     started = datetime.now(timezone.utc).isoformat()
     lifecycle = {"schema": "wlr50_clean.semantic_run.v1", "command": args.command,

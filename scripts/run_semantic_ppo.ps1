@@ -6,6 +6,8 @@ param(
     [ValidateRange(1,100000)][int]$Decisions,
     [ValidateRange(1,3000)][int]$MaxDecisions = 3000,
     [int]$Seed = 1001,
+    [ValidateSet(1,8)][int]$NumEnvs = 1,
+    [string]$VectorSmokeEvidence,
     [string]$Checkpoint,
     [string]$ResumeMigration,
     [ValidateSet('legacy_fsm_eval','semantic_prior_eval','semantic_residual_eval')][string]$Mode = 'semantic_prior_eval',
@@ -42,10 +44,14 @@ try {
     $env:PYTHONNOUSERSITE = '1'
     $env:PYTHONHASHSEED = [string]$Seed
     $arguments = @('-P','-m','wlr50_clean.ppo.semantic_cli',$Command,'--run-dir',$runDir,
-        '--expected-head',$ExpectedHead,'--stage',$Stage,'--seed',[string]$Seed,
+        '--expected-head',$ExpectedHead,'--stage',$Stage,'--seed',[string]$Seed,'--num-envs',[string]$NumEnvs,
         '--max-decisions',[string]$MaxDecisions,'--mode',$Mode,'--device',$Device,
         '--checkpoint-interval-updates',[string]$CheckpointIntervalUpdates,'--headless')
     if ($PSBoundParameters.ContainsKey('Decisions')) { $arguments += @('--decisions',[string]$Decisions) }
+    if (-not [string]::IsNullOrWhiteSpace($VectorSmokeEvidence)) {
+        $proof = if ([IO.Path]::IsPathRooted($VectorSmokeEvidence)) { $VectorSmokeEvidence } else { Join-Path $project $VectorSmokeEvidence }
+        $arguments += @('--vector-smoke-evidence',[IO.Path]::GetFullPath($proof))
+    }
     if (-not [string]::IsNullOrWhiteSpace($Checkpoint)) {
         $checkpointPath = if ([IO.Path]::IsPathRooted($Checkpoint)) { $Checkpoint } else { Join-Path $project $Checkpoint }
         $arguments += @('--checkpoint',[IO.Path]::GetFullPath($checkpointPath))
