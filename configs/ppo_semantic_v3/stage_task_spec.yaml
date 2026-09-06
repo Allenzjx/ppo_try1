@@ -3,7 +3,7 @@ rear_leg_order: RR_FIRST
 physics_hz: 120.0
 decision_hz: 15.0
 episode_maximum_duration_s: 200.0
-revision: continuous_whole_body_v3_current_capture_retention
+revision: continuous_whole_body_v3_continuous_physical_stop_progress
 potential_definition: global_physical_progress_v3
 # Existing workspace credit only; later lift/carry/capture remain ordered.
 preparation_credit_semantics: current_workspace_before_predecessor_placement
@@ -41,7 +41,10 @@ final:
   # Home remains a finite nominal suggestion and diagnostic, not a unique
   # terminal joint configuration. Physical stop/region/support gates remain.
   stop_pose_semantics: physical_stable_pose
-  # Explicit new-MDP finish-potential revision; hard stop gates are unchanged.
+  # Explicit new-MDP progress/observation-scalar revision; no hard gate change.
+  # Replaces the whole stop aggregation with four continuous physical types.
+  stop_progress_semantics: per_wheel_four_type_threshold_ratio_v1
+  # Legacy fallback only when the above mode is absent, never counted twice.
   stop_command_progress: reciprocal_physical_stop_tolerance
   region: obstacle_top_after_front_plane
   minimum_rear_wheel_forward_m: 0.02

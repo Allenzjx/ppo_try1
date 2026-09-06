@@ -36,6 +36,7 @@ P06_RETIREMENT_MODE = "measured_workspace_interior_peak"
 LIFT_CREDIT_MODE = "measured_air_process_current_top_gap"
 PREPARATION_CREDIT_MODE = "current_workspace_before_predecessor_placement"
 CAPTURE_RETENTION_MODE = "current_platform_region_after_placement"
+STOP_PROGRESS_MODE = "per_wheel_four_type_threshold_ratio_v1"
 
 
 class SemanticObservationError(ValueError):
@@ -127,6 +128,16 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
     if (spec["final"].get("stop_command_progress") is not None
             and _number(spec["final"]["maximum_commanded_wheel_speed_rad_s"], "stop command tolerance") <= 0):
         raise ValueError("command progress requires a positive existing physical stop tolerance")
+    if spec["final"].get("stop_progress_semantics") not in (None, STOP_PROGRESS_MODE):
+        raise ValueError("unrecognized continuous stop progress semantics")
+    if spec["final"].get("stop_progress_semantics") == STOP_PROGRESS_MODE:
+        if (spec.get("potential_definition") != "global_physical_progress_v3"
+                or spec["final"].get("stop_pose_semantics") != "physical_stable_pose"):
+            raise ValueError("continuous stop progress requires global physical progress and physical stable pose")
+        for key in ("maximum_wheel_speed_rad_s", "maximum_commanded_wheel_speed_rad_s",
+                    "maximum_body_linear_speed_m_s", "maximum_body_angular_speed_rad_s"):
+            if _number(spec["final"][key], key) <= 0:
+                raise ValueError("continuous stop progress requires positive existing physical tolerances")
     _p06_retirement_bounds(spec)
     if spec.get("lift_credit_semantics") not in (None,LIFT_CREDIT_MODE):
         raise ValueError("unrecognized lift credit semantics")
@@ -475,6 +486,13 @@ class TaskEvaluator:
             "crossing_contact_evidence": "verified_body_pair_and_live_wheel_geometry_no_contact_point_classification",
             "source": "current_episode_live_joint_geometry_exact_contact_history",
             "physics_tick": tick, "simulation_time_s": now}
+        if final.get("stop_progress_semantics") == STOP_PROGRESS_MODE:
+            # These are the same measured speeds and canonical applied ACK
+            # commands used above, not nominal/raw actions or native readback.
+            # Keep diagnostics outside the fixed 17-key actor goal features.
+            self._snapshot.update(measured_wheel_velocity_rad_s=tuple(speeds),
+                applied_wheel_command_rad_s=tuple(commands),
+                stop_progress_wheel_order=tuple(WHEEL_ORDER))
         self._last_tick, self._last_time = tick, now
         return self.snapshot
 
@@ -508,18 +526,38 @@ class TaskStageSupervisor:
             history_fraction=sum(evaluation["history"]["placed"].values())/4.
             forward=min(_clip(features["body_forward_m"]/final["minimum_body_forward_m"]),
                         min(_clip(features[f"{leg}_front_distance_m"]/final["minimum_rear_wheel_forward_m"]) for leg in LEG_ORDER))
-            stop_terms=[_clip(1.-features["maximum_wheel_speed_rad_s"]/final["maximum_wheel_speed_rad_s"]),
-                      _clip(1.-features["body_linear_speed_m_s"]/final["maximum_body_linear_speed_m_s"]),
-                      _clip(1.-features["body_angular_speed_rad_s"]/final["maximum_body_angular_speed_rad_s"])]
-            if final.get("stop_pose_semantics") != "physical_stable_pose":
-                stop_terms.append(_clip(1.-evaluation["home_maximum_servo_error_deg"]/final["home_tolerance_deg"]))
-            if final.get("stop_command_progress") == "reciprocal_physical_stop_tolerance":
-                command = _number(evaluation["maximum_commanded_wheel_speed_rad_s"], "maximum wheel command")
-                tolerance = final["maximum_commanded_wheel_speed_rad_s"]
-                # Reuse the physical stop requirement without a dead region
-                # above it. This is one finish term, not another reward family;
-                # measured rates, region/support and stable-time gates are unchanged.
-                stop_terms.append(1. if command <= tolerance else tolerance/command)
+            if final.get("stop_progress_semantics") == STOP_PROGRESS_MODE:
+                order = evaluation.get("stop_progress_wheel_order")
+                if not isinstance(order, (tuple, list)) or tuple(order) != WHEEL_ORDER:
+                    raise SemanticObservationError("continuous stop progress requires canonical measured wheel order")
+                speeds = _vector(evaluation.get("measured_wheel_velocity_rad_s"), 4, "measured wheel velocities")
+                commands = _vector(evaluation.get("applied_wheel_command_rad_s"), 4, "applied wheel commands")
+
+                def ratio(value, tolerance_key):
+                    magnitude = abs(_number(value, "continuous stop measurement"))
+                    tolerance = _number(final[tolerance_key], "continuous stop tolerance")
+                    if tolerance <= 0:
+                        raise SemanticObservationError("continuous stop tolerance must be positive")
+                    return tolerance / (tolerance + magnitude)
+
+                # Four types, not ten separately weighted components. Replace
+                # the legacy aggregation; do not append its command term again.
+                # q(T)=.5 is soft progress, not a changed hard stopping threshold.
+                stop_terms = [sum(ratio(v, "maximum_wheel_speed_rad_s") for v in speeds) / 4.,
+                    sum(ratio(v, "maximum_commanded_wheel_speed_rad_s") for v in commands) / 4.,
+                    ratio(features["body_linear_speed_m_s"], "maximum_body_linear_speed_m_s"),
+                    ratio(features["body_angular_speed_rad_s"], "maximum_body_angular_speed_rad_s")]
+            else:
+                stop_terms=[_clip(1.-features["maximum_wheel_speed_rad_s"]/final["maximum_wheel_speed_rad_s"]),
+                          _clip(1.-features["body_linear_speed_m_s"]/final["maximum_body_linear_speed_m_s"]),
+                          _clip(1.-features["body_angular_speed_rad_s"]/final["maximum_body_angular_speed_rad_s"])]
+                if final.get("stop_pose_semantics") != "physical_stable_pose":
+                    stop_terms.append(_clip(1.-evaluation["home_maximum_servo_error_deg"]/final["home_tolerance_deg"]))
+                if final.get("stop_command_progress") == "reciprocal_physical_stop_tolerance":
+                    command = _number(evaluation["maximum_commanded_wheel_speed_rad_s"], "maximum wheel command")
+                    tolerance = final["maximum_commanded_wheel_speed_rad_s"]
+                    # Preserve the previous opt-in formula exactly for old MDPs.
+                    stop_terms.append(1. if command <= tolerance else tolerance/command)
             stop=sum(stop_terms)/len(stop_terms)
             settle=_clip(evaluation["final_stable_for_s"]/final["stable_duration_s"])
             return min(.99,.4*history_fraction+.3*forward+.2*stop+.1*settle)

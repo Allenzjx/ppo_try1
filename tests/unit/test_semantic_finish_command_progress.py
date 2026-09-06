@@ -19,6 +19,17 @@ CONFIG = Path(__file__).resolve().parents[2] / "configs/ppo_semantic_v3"
 SPEC = CONFIG / "stage_task_spec.yaml"
 
 
+@pytest.fixture
+def reciprocal_stop_spec(tmp_path):
+    """Pin the old opt-in formula even when the current spec selects a newer one."""
+    spec = load_task_spec(SPEC)
+    spec["final"].pop("stop_progress_semantics", None)
+    assert spec["final"]["stop_command_progress"] == "reciprocal_physical_stop_tolerance"
+    path = tmp_path / "reciprocal_stop_mode.yaml"
+    path.write_text(yaml.safe_dump(spec, sort_keys=False), encoding="utf-8")
+    return path
+
+
 def placed_entry(path=SPEC):
     """Earn all history through observations; never install success/history bits."""
     evaluator = TaskEvaluator(path)
@@ -45,14 +56,14 @@ def command_observation(obs, command):
     return result
 
 
-def test_same_physical_state_command_halving_strictly_increases_global_potential():
-    original, obs = placed_entry()
+def test_same_physical_state_command_halving_strictly_increases_global_potential(reciprocal_stop_spec):
+    original, obs = placed_entry(reciprocal_stop_spec)
     scores, potentials = [], []
     evaluations = []
     for command in (.16, .08, .04, .02):
         evaluator = deepcopy(original)
         evaluation = evaluator.observe(command_observation(obs, command))
-        supervisor = TaskStageSupervisor(SPEC, evaluator=evaluator, initial_stage_id="P13")
+        supervisor = TaskStageSupervisor(reciprocal_stop_spec, evaluator=evaluator, initial_stage_id="P13")
         scores.append(supervisor.predicate("whole_task_success", evaluation))
         potentials.append(supervisor.physical_potential(evaluation))
         evaluations.append(evaluation)
@@ -69,13 +80,13 @@ def test_same_physical_state_command_halving_strictly_increases_global_potential
             assert evaluation[key] == evaluations[0][key]
 
 
-def test_command_progress_is_continuous_at_tolerance_and_does_not_skip_stable_time():
-    original, obs = placed_entry()
+def test_command_progress_is_continuous_at_tolerance_and_does_not_skip_stable_time(reciprocal_stop_spec):
+    original, obs = placed_entry(reciprocal_stop_spec)
     scores = []
     for command in (.02 - 1e-9, .02, .02 + 1e-9):
         evaluator = deepcopy(original)
         snapshot = evaluator.observe(command_observation(obs, command))
-        scores.append(TaskStageSupervisor(SPEC, evaluator=evaluator).predicate("whole_task_success", snapshot))
+        scores.append(TaskStageSupervisor(reciprocal_stop_spec, evaluator=evaluator).predicate("whole_task_success", snapshot))
         assert not snapshot["success"]
     assert scores[0] == scores[1]
     assert 0 < scores[1] - scores[2] < 3e-9
@@ -137,6 +148,7 @@ def test_ordinary_phase_labels_cannot_change_global_finish_potential():
 
 def test_old_v3_without_optin_and_v2_home_stop_semantics_are_unchanged(tmp_path):
     old = load_task_spec(SPEC)
+    old["final"].pop("stop_progress_semantics", None)
     old["final"].pop("stop_command_progress")
     path = tmp_path / "old_v3.yaml"
     path.write_text(yaml.safe_dump(old, sort_keys=False), encoding="utf-8")
@@ -152,6 +164,7 @@ def test_old_v3_without_optin_and_v2_home_stop_semantics_are_unchanged(tmp_path)
     assert not snap["final_controlled"]  # V2 still requires its home tolerance.
     assert legacy_supervisor.predicate("whole_task_success", snap) == pytest.approx(.85)
     assert "stop_command_progress" not in load_task_spec(DEFAULT_TASK_SPEC_PATH)["final"]
+    assert "stop_progress_semantics" not in load_task_spec(DEFAULT_TASK_SPEC_PATH)["final"]
 
 
 @pytest.mark.parametrize("command", [float("nan"), float("inf"), None, True])
@@ -162,8 +175,8 @@ def test_existing_live_command_finite_validation_still_fails_closed(command):
         evaluator.observe(obs)
 
 
-def test_optin_config_rejects_unknown_mode_or_invalid_existing_tolerance(tmp_path):
-    spec = load_task_spec(SPEC)
+def test_optin_config_rejects_unknown_mode_or_invalid_existing_tolerance(tmp_path, reciprocal_stop_spec):
+    spec = load_task_spec(reciprocal_stop_spec)
     path = tmp_path / "invalid.yaml"
     for mode, tolerance in (("clipped_at_tolerance", .02), ("reciprocal_physical_stop_tolerance", 0.)):
         spec["final"].update(stop_command_progress=mode, maximum_commanded_wheel_speed_rad_s=tolerance)
@@ -172,9 +185,9 @@ def test_optin_config_rejects_unknown_mode_or_invalid_existing_tolerance(tmp_pat
             load_task_spec(path)
 
 
-def test_finish_command_progress_enters_only_existing_task_family_once():
-    evaluator, obs = placed_entry()
-    supervisor = TaskStageSupervisor(SPEC, evaluator=evaluator)
+def test_finish_command_progress_enters_only_existing_task_family_once(reciprocal_stop_spec):
+    evaluator, obs = placed_entry(reciprocal_stop_spec)
+    supervisor = TaskStageSupervisor(reciprocal_stop_spec, evaluator=evaluator)
     snapshots = [deepcopy(evaluator).observe(command_observation(obs, value)) for value in (.16, .02)]
     phis = [supervisor.physical_potential(snapshot) for snapshot in snapshots]
     before = _built(_frame(phi=phis[0]))
