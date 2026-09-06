@@ -1,6 +1,7 @@
 [CmdletBinding(PositionalBinding = $false)]
 param(
     [ValidateSet('eval')][string]$Command = 'eval',
+    [ValidateSet('v2','v3')][string]$SemanticVersion = 'v2',
     [Parameter(Mandatory = $true)][ValidatePattern('^[0-9a-f]{40}$')][string]$ExpectedHead,
     [ValidateSet('smoke','phase_suffix','full_episode')][string]$Stage = 'smoke',
     [ValidateRange(1,100000)][int]$Decisions,
@@ -29,8 +30,8 @@ $kind = switch ($Command) { 'train' { 'train' }; 'smoke' { 'interface_smoke' }; 
     if ($Mode -eq 'legacy_fsm_eval') { 'baseline_A' } elseif ($Mode -eq 'semantic_prior_eval') { 'prior_B' } elseif ($Seed -ge 3001 -and $Seed -le 3005) { 'locked_test' } else { 'validation' }
 } }
 $runId = [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfffffffZ') + '_g' + $ExpectedHead.Substring(0,12) + '_' + [Guid]::NewGuid().ToString('N')
-$runDir = Join-Path $project ("runs\ppo_semantic_v2\video_eval\$kind\$runId")
-$logDir = Join-Path $project ("runs\ppo_semantic_v2\video_eval\$kind\${runId}_launcher")
+$runDir = Join-Path $project ("runs\ppo_semantic_$SemanticVersion\video_eval\$kind\$runId")
+$logDir = Join-Path $project ("runs\ppo_semantic_$SemanticVersion\video_eval\$kind\${runId}_launcher")
 [void](New-Item -ItemType Directory -Path $logDir)
 $lockPath = Join-Path $project 'runs\ppo_semantic_v2\.single_process.lock'
 $lock = [IO.File]::Open($lockPath, [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
@@ -42,6 +43,7 @@ try {
     $env:PYTHONNOUSERSITE = '1'
     $env:PYTHONHASHSEED = [string]$Seed
     $arguments = @('-P','-m','wlr50_clean.ppo.semantic_video_cli',$Command,'--run-dir',$runDir,
+        '--semantic-version',$SemanticVersion,
         '--expected-head',$ExpectedHead,'--stage',$Stage,'--seed',[string]$Seed,
         '--max-decisions',[string]$MaxDecisions,'--mode',$Mode,'--device',$Device,
         '--checkpoint-interval-updates',[string]$CheckpointIntervalUpdates,'--no-headless')

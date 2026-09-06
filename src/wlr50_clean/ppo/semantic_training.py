@@ -422,8 +422,8 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
     return {**infos, "semantic_version": "v3", "new_mdp_warm_start": dict(record),
             "source_stage_requested_decisions": dict(infos.get("stage_requested_decisions", {})),
-            "stage_requested_decisions": {stage: 0 for stage in STAGE_BUDGETS},
-            "new_mdp_origin_global_policy_decisions": int(infos["global_policy_decisions"]),
+            "stage_requested_decisions": dict(verified["target_stage_requested_decisions"]),
+            "new_mdp_origin_global_policy_decisions": verified["new_mdp_origin_global_policy_decisions"],
             "resume_source_checkpoint": {"checkpoint": str(checkpoint.resolve()),
                 "checkpoint_sha256": sha256_file(checkpoint), "manifest": str(sidecar.resolve()),
                 "manifest_sha256": sha256_file(sidecar)}}

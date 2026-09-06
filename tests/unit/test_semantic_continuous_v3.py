@@ -125,14 +125,29 @@ def test_unfinished_p08_support_motion_continues_under_p09_without_old_entry_res
     for _ in range(8): provider.evaluate(task('P08',lift=False))
     before=provider.nominal_full12
     assert provider.evaluate(task('P09'))==before
-    for _ in range(80): provider.evaluate(task('P09'))
+    for _ in range(160): provider.evaluate(task('P09'))
     assert provider.nominal_full12[4]>before[4]+5.
     assert provider.nominal_full12[6]>20.
-    # No timed knee descent while RR still far from the placement region.
-    assert provider.nominal_full12[7]==pytest.approx(0.)
+    # The negative-knee segment is airborne forward carry in measured A.
+    # It must be available while still before the front plane, not gated on
+    # arrival at the very endpoint it helps create.
+    assert provider.nominal_full12[7]<-30.
     assert min(provider.nominal_full12[8:])>0.
-    for _ in range(20): provider.evaluate(task('P09',front=.0))
-    assert provider.nominal_full12[7]<-1.
+
+
+@pytest.mark.parametrize('phase,leg,knee,ticks',[('P09','RR',7,250),('P12','RL',5,600)])
+def test_rear_advisory_joint_motion_does_not_require_its_front_endpoint(phase,leg,knee,ticks):
+    contract=load_motion_contract(ROOT/'configs/recording_motion_contract.json')
+    providers=[NominalMotionProvider(contract,spec=load_task_spec(CFG/'stage_task_spec.yaml')) for _ in range(2)]
+    # Keep the entire task observation fixed on either side of the front. The
+    # wheel assist may differ, but joint suggestions cannot be held by that
+    # geometry. No fabricated evaluator history is introduced by the provider.
+    for _ in range(ticks):
+        far=providers[0].evaluate(task(phase,front=-.2))
+        near=providers[1].evaluate(task(phase,front=.02))
+        assert far[:8]==pytest.approx(near[:8])
+    assert far[knee]<-15.
+    assert providers[0]._continuous_layers[-1]['ticks']==ticks
 
 
 @pytest.mark.parametrize('pair',[('P01','P02'),('P02','P03'),('P05','P06'),('P07','P08'),('P08','P09'),('P09','P10'),('P10','P11'),('P11','P12'),('P12','P13')])

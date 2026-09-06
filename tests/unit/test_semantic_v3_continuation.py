@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -15,7 +16,7 @@ from wlr50_clean.ppo import semantic_migration as migration
 from wlr50_clean.ppo.semantic_training import (
     SemanticRslAdapter, construct_semantic_runner, load_semantic_checkpoint,
     parameter_hash, save_semantic_checkpoint, semantic_runner_config, train_semantic,
-    compare_warm_start_action,
+    compare_warm_start_action, state_hash,
 )
 
 
@@ -101,6 +102,36 @@ def test_real_rsl_v2_networks_to_v3_fresh_adam_rollout_and_exact_resume(tmp_path
     assert restored["new_mdp_origin_global_policy_decisions"] == 128
     assert restored["new_mdp_warm_start"] == record
     assert parameter_hash(fresh.alg.actor) == parameter_hash(target.alg.actor)
+    # A later v3 code/config boundary is not a second allocation of v3 budgets.
+    patched_contract = {**new, "source_git_commit": "3" * 40}
+    patched_record = original(new_checkpoint, patched_contract, project_root=tmp_path)
+    assert patched_record["source_semantic_version"] == "v3"
+    assert patched_record["configuration_transition"]["execution_profile.yaml"]["source_path"].startswith("configs/ppo_semantic_v3/")
+    patched, patched_env = runner("v3")
+    patch_previous = load_semantic_checkpoint(patched, new_checkpoint, contract=patched_contract,
+                                              seed=1001, warm_start=patched_record)
+    assert patch_previous["stage_requested_decisions"]["smoke"] == 128
+    assert patch_previous["new_mdp_origin_global_policy_decisions"] == 128
+    assert (patch_previous["global_policy_decisions"], patch_previous["ppo_updates"],
+            patch_previous["optimizer_steps"]) == (256, 2, 40)
+    assert parameter_hash(patched.alg.actor) == parameter_hash(target.alg.actor)
+    assert parameter_hash(patched.alg.critic) == parameter_hash(target.alg.critic)
+    assert patched.alg.optimizer.state_dict()["state"] == {}
+    next_result = train_semantic(patched, patched_env, run_dir=tmp_path / "patched_run",
+        output_root=tmp_path / "patched_outputs", stage="smoke", decisions=128,
+        contract=patched_contract, seed=1001, resume_infos=patch_previous)
+    next_metadata = migration.checkpoint_metadata(Path(next_result["checkpoints"][-1]["checkpoint"]))
+    assert next_metadata["stage_requested_decisions"]["smoke"] == 256
+    assert next_metadata["new_mdp_origin_global_policy_decisions"] == 128
+    assert (next_metadata["global_policy_decisions"], next_metadata["ppo_updates"],
+            next_metadata["optimizer_steps"]) == (384, 3, 60)
+    assert next_metadata["resume_ancestry"]["source_checkpoint"]["checkpoint"] == str(new_checkpoint.resolve())
+    assert migration.v3_warm_start_checkpoint_name(record) != migration.v3_warm_start_checkpoint_name(patched_record)
+    invalid_source = json.loads(new_checkpoint.with_name(new_checkpoint.stem + "_manifest.json").read_text())
+    invalid_source.pop("new_mdp_origin_global_policy_decisions")
+    new_checkpoint.with_name(new_checkpoint.stem + "_manifest.json").write_text(json.dumps(invalid_source))
+    with pytest.raises(ValueError, match="intact original budget accounting"):
+        original(new_checkpoint, patched_contract, project_root=tmp_path)
 
 
 def test_new_mdp_rejects_changed_encoder_or_physics_and_corrupt_source(tmp_path):
@@ -186,3 +217,126 @@ def test_same_state_action_comparison_uses_real_actor_projectors_without_samplin
     assert torch.equal(before_rng, torch.get_rng_state())
     assert parameter_hash(actual.alg.actor) == before_actor and actual.alg.actor.training == mode
     assert env.core.calls == 0
+
+
+def test_v3_source_cli_preserves_existing_budget_and_allows_new_boundary(tmp_path, monkeypatch):
+    monkeypatch.setattr(cli, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(cli, "OUTPUT_ROOT", tmp_path / "outputs/ppo_semantic_v2")
+    source = cli.version_paths("v3")[1] / "checkpoints/history/checkpoint_step_000011648.pt"
+    source.parent.mkdir(parents=True)
+    source.write_bytes(b"path/argument validation only")
+    source.with_name(source.stem + "_manifest.json").write_text(json.dumps({
+        "semantic_version": "v3", "stage_requested_decisions": {"phase_suffix": 1536}}))
+    (source.parent / "checkpoint_initial_v3_warm_start.pt").write_bytes(b"previous initial must remain")
+    (source.parent.parent / "checkpoint_last_pointer.json").write_text("{}")
+    argv = ["train", "--run-dir", str(tmp_path / "runs/ppo_semantic_v3/train/patch"),
+            "--expected-head", "a" * 40, "--semantic-version", "v3", "--from-phase", "P06",
+            "--new-mdp-warm-start", "--checkpoint", str(source), "--stage", "phase_suffix"]
+    args = cli.parser().parse_args([*argv, "--decisions", "98464"])
+    cli.validate_request(args)
+    assert args.checkpoint == source.resolve()
+    with pytest.raises(ValueError, match="remaining semantic stage budget"):
+        cli.validate_request(cli.parser().parse_args([*argv, "--decisions", "98465"]))
+    old_source = cli.OUTPUT_ROOT / "checkpoints/history/old_v2.pt"
+    old_source.parent.mkdir(parents=True)
+    old_source.write_bytes(b"old v2 path validation")
+    old_source.with_name(old_source.stem + "_manifest.json").write_text(json.dumps({"semantic_version": "v2"}))
+    old_args = cli.parser().parse_args([*argv, "--decisions", "128"])
+    old_args.checkpoint = old_source
+    with pytest.raises(ValueError, match="v3 training already exists"):
+        cli.validate_request(old_args)
+
+
+def test_warm_start_profile_recovers_hash_bound_git_bytes_not_current_v3_or_v2(tmp_path):
+    _, source_contract = contracts(tmp_path)
+    relative = "configs/ppo_semantic_v3/execution_profile.yaml"
+    current = tmp_path / relative
+    # Model the real Windows checkout: manifest hashes CRLF while Git stores LF.
+    source_bytes = current.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
+    current.write_bytes(source_bytes)
+    source_contract["files"][relative] = migration.file_sha(current)
+    source_contract["runtime_content_sha256"] = migration.digest(source_contract["files"])
+    def git(*args):
+        return subprocess.run(["git", "-C", str(tmp_path), *args], check=True, capture_output=True).stdout.decode().strip()
+    git("init")
+    git("-c", "core.autocrlf=true", "add", "configs")
+    git("-c", "user.name=CPU Test", "-c", "user.email=cpu@example.invalid", "commit", "-m", "source profile")
+    source_contract["source_git_commit"] = git("rev-parse", "HEAD")
+    record = {"source_runtime_contract": source_contract, "configuration_transition": {
+        "execution_profile.yaml": {"source_path": relative, "source_sha256": migration.file_sha(current)}}}
+    assert migration.warm_start_source_execution_profile(record, tmp_path / "run", project_root=tmp_path) == current.resolve()
+    current.write_bytes(source_bytes + b"\r\n# changed target profile\r\n")
+    restored = migration.warm_start_source_execution_profile(record, tmp_path / "run", project_root=tmp_path)
+    assert restored != current.resolve() and restored.read_bytes() == source_bytes
+    assert migration.file_sha(restored) == record["configuration_transition"]["execution_profile.yaml"]["source_sha256"]
+    assert migration.warm_start_source_execution_profile(record, tmp_path / "run", project_root=tmp_path) == restored
+    restored.write_bytes(b"corrupt materialized source")
+    with pytest.raises(ValueError, match="immutable source execution profile"):
+        migration.warm_start_source_execution_profile(record, tmp_path / "run", project_root=tmp_path)
+
+
+def test_real_local_v3_11648_checkpoint_official_load_retains_networks_and_spent_budget(tmp_path, monkeypatch):
+    """Optional local evidence: the actual stopped live checkpoint, not a tensor stub."""
+    import wlr50_clean.ppo.semantic_training as training
+    source = cli.PROJECT_ROOT / "outputs/ppo_semantic_v3/checkpoints/history/checkpoint_step_000011648.pt"
+    if not source.is_file():
+        pytest.skip("local immutable live 11648 checkpoint is not present")
+    metadata = migration.checkpoint_metadata(source)
+    target_contract = copy.deepcopy(metadata["runtime_contract"])
+    # CPU test inventory only: runtime_contract() intentionally forbids uncommitted
+    # worktrees. Bind today's actual bytes without claiming a live frozen revision.
+    for relative in target_contract["files"]:
+        target_contract["files"][relative] = migration.file_sha(cli.PROJECT_ROOT / relative)
+    target_contract["runtime_content_sha256"] = migration.digest(target_contract["files"])
+    record = migration.build_v3_warm_start_record(source, target_contract)
+    actual, env = runner("v3")
+    source_loads = []
+    official_load = training.load_checkpoint_round_trip
+    def observe_actual_load(runner, path):
+        source_loads.append(Path(path).resolve())
+        return official_load(runner, path)
+    monkeypatch.setattr(training, "load_checkpoint_round_trip", observe_actual_load)
+    previous = load_semantic_checkpoint(actual, source, contract=target_contract, seed=1001, warm_start=record)
+    assert source_loads == [source.resolve()]
+    assert (previous["global_policy_decisions"], previous["ppo_updates"], previous["optimizer_steps"]) == (11648, 56, 1120)
+    assert previous["stage_requested_decisions"] == {"smoke": 0, "phase_suffix": 1536, "full_episode": 0}
+    assert previous["new_mdp_origin_global_policy_decisions"] == 10112
+    assert parameter_hash(actual.alg.actor) == metadata["actor_parameter_sha256"]  # Includes learned std.
+    assert parameter_hash(actual.alg.critic) == metadata["critic_parameter_sha256"]
+    normalizers = {role: getattr(actual.alg, role).obs_normalizer.state_dict() for role in ("actor", "critic")}
+    assert not any(normalizers.values()) and state_hash(normalizers) == metadata["normalizer_state_sha256"]
+    assert actual.alg.optimizer.state_dict()["state"] == {}
+    assert state_hash(actual.alg.optimizer.state_dict()) != metadata["optimizer_state_sha256"]
+    assert actual.alg.learning_rate == 3e-5 and all(group["lr"] == 3e-5 for group in actual.alg.optimizer.param_groups)
+    assert actual.alg.storage.step == 0 and actual.alg.transition.actions is None
+    assert tuple(actual.alg.storage.actions.shape) == (128, 1, 12)
+    name = migration.v3_warm_start_checkpoint_name(record)
+    assert "000011648" in name and target_contract["source_git_commit"][:12] in name
+    assert target_contract["runtime_content_sha256"] in name
+    changed = copy.deepcopy(record)
+    changed["target_runtime_contract"]["source_git_commit"] = "f" * 40
+    assert migration.v3_warm_start_checkpoint_name(changed) != name
+    from test_semantic_observation_reward_env import _frame
+    env.core.frame = _frame(stage="P06")
+    old_profile = migration.warm_start_source_execution_profile(record, tmp_path / "run")
+    assert migration.file_sha(old_profile) == record["configuration_transition"]["execution_profile.yaml"]["source_sha256"]
+    comparison = compare_warm_start_action(actual, env, old_execution_profile=old_profile,
+        new_execution_profile=cli.version_paths("v3")[2] / "execution_profile.yaml")
+    if comparison["old"]["sha256"] == comparison["new"]["sha256"]:
+        assert not any(comparison["new_minus_old"]["scaled_residual_full12"])
+    # Real preflight branch refuses the exact already-published boundary before
+    # live dispatch, while the earlier differently named initial is harmless.
+    output_root = tmp_path / "isolated_v3_outputs"
+    config_root = cli.version_paths("v3")[2]
+    monkeypatch.setattr(cli, "version_paths", lambda version: (tmp_path / "runs", output_root, config_root))
+    args = cli.parser().parse_args(["train", "--run-dir", str(tmp_path / "runs/epoch"),
+        "--expected-head", target_contract["source_git_commit"], "--semantic-version", "v3",
+        "--new-mdp-warm-start", "--checkpoint", str(source)])
+    cli._preflight_checkpoint(args, target_contract)
+    assert args._warm_start_record == record
+    initial = output_root / "checkpoints/history" / name
+    initial.parent.mkdir(parents=True)
+    initial.write_bytes(b"existing immutable publication")
+    with pytest.raises(ValueError, match="initial checkpoint already exists"):
+        cli._preflight_checkpoint(args, target_contract)
+    assert initial.read_bytes() == b"existing immutable publication"

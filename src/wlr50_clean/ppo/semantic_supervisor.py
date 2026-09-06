@@ -583,30 +583,20 @@ class NominalMotionProvider:
             motion=MotionExecutor(physics_hz=self.physics_hz,servo_rate_limit_deg_s=self.servo_rate_limit_deg_s,
                                   initial_full12=self.nominal_full12)
             motion.start_phase(phase)
-            descent_at=None
-            if stage_id in ("P09","P12"):
-                knee=7 if stage_id=="P09" else 5
-                previous=phase.start_full12[knee]
-                for waypoint in phase.waypoints:
-                    if waypoint.full12[knee]<previous-1e-6:
-                        descent_at=waypoint.time_s; break
-                    previous=waypoint.full12[knee]
             self._continuous_layers.append({"stage":stage_id,"motion":motion,"last":tuple(phase.start_full12),
-                "touched":set(),"sample":None,"descent_at":descent_at,"ticks":0})
+                "touched":set(),"sample":None,"ticks":0})
         proposed=list(self.nominal_full12); tracking=set(self.tracking_servo_names)
         ev=task.get("physical_evaluator",{}); legs=ev.get("current_legs",{}); history=ev.get("history",{})
         for layer in self._continuous_layers:
-            active="RR" if layer["stage"]=="P09" else "RL"
-            current=legs.get(active,{})
-            pause=(layer["stage"]==stage_id and layer["descent_at"] is not None
-                and layer["ticks"]/self.physics_hz+1e-9>=layer["descent_at"]
-                and not history.get("front_edge_crossed",{}).get(active,False)
-                and current.get("front_distance_m",-1.)<self.spec["geometry"]["approach_min_m"])
-            if not pause or layer["sample"] is None:
-                sample=layer["motion"].tick(); layer["ticks"]+=1
-                layer["touched"].update(i for i,(a,b) in enumerate(zip(sample.full12,layer["last"])) if abs(a-b)>1e-9)
-                layer["last"]=sample.full12; layer["sample"]=sample
-            sample=layer["sample"]
+            # A decreasing logical knee/hip angle is not a physical descent
+            # predicate. Measured A uses these segments to carry an airborne
+            # rear wheel toward/across the front plane. Requiring that endpoint
+            # before dispatch would suppress the action that can create it.
+            # Keep this finite sequence advisory; actual clearance/crossing and
+            # placement are evaluated independently, with every residual open.
+            sample=layer["motion"].tick(); layer["ticks"]+=1
+            layer["touched"].update(i for i,(a,b) in enumerate(zip(sample.full12,layer["last"])) if abs(a-b)>1e-9)
+            layer["last"]=sample.full12; layer["sample"]=sample
             for i in layer["touched"]:
                 proposed[i]=sample.full12[i]
                 if i<8:

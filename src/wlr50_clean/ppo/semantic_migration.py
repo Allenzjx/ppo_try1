@@ -63,8 +63,20 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
     """Explicit new-MDP boundary; never a relaxation of v2 exact-resume rules."""
     metadata = checkpoint_metadata(checkpoint)
     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
-    if metadata.get("semantic_version", "v2") != "v2" or new.get("semantic_version") != "v3":
-        raise ValueError("new-MDP warm start must explicitly migrate a v2 checkpoint into v3")
+    source_version = metadata.get("semantic_version", "v2")
+    if source_version not in ("v2", "v3") or new.get("semantic_version") != "v3":
+        raise ValueError("new-MDP warm start requires a v2 or v3 source checkpoint and a v3 target")
+    if old.get("semantic_version", "v2") != source_version:
+        raise ValueError("new-MDP source semantic version differs from its runtime contract")
+    source_global = int(metadata.get("global_policy_decisions", 0))
+    source_spent = dict(metadata.get("stage_requested_decisions", {}))
+    origin = source_global
+    if source_version == "v3":
+        origin = metadata.get("new_mdp_origin_global_policy_decisions")
+        if (type(origin) is not int or not 0 <= origin <= source_global
+                or set(source_spent) != {"smoke", "phase_suffix", "full_episode"}
+                or any(type(value) is not int or value < 0 for value in source_spent.values())):
+            raise ValueError("v3 new-MDP continuation requires intact original budget accounting")
     for key in ("frozen_A_files", "physics_hz", "decision_hz", "task_timeout_s",
                 "timeout_bootstrap", "rsl_rl_version", "local_runtime_versions"):
         if old.get(key) != new.get(key):
@@ -73,7 +85,7 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
                     "observation_schema.json", "action_schema.json", "quality_score.yaml")
     config_records = {}
     for name in config_names:
-        source, target = f"configs/ppo_semantic_v2/{name}", f"configs/ppo_semantic_v3/{name}"
+        source, target = f"configs/ppo_semantic_{source_version}/{name}", f"configs/ppo_semantic_v3/{name}"
         if source not in old["files"] or target not in new["files"]:
             raise ValueError(f"new-MDP requires both versioned configuration records: {name}")
         if file_sha(project_root / target) != new["files"][target]:
@@ -83,7 +95,7 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
     # Identity learned normalizers do not imply identical fixed observation
     # preprocessing. Require the complete old/new group ordering and scales to
     # match; an incompatible encoder needs a separate reviewed transformation.
-    before = json.loads(_version_text(project_root, old, "configs/ppo_semantic_v2/observation_schema.json", prefer_worktree=True))
+    before = json.loads(_version_text(project_root, old, config_records["observation_schema.json"]["source_path"], prefer_worktree=True))
     after = json.loads((project_root / "configs/ppo_semantic_v3/observation_schema.json").read_text(encoding="utf-8"))
     for key in ("feature_groups", "clip", "maximum_task_duration_s", "fixed_chassis_to_body_wxyz",
                 "level_reference", "normalization"):
@@ -91,11 +103,19 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
             raise ValueError(f"warm-start actor observation preprocessing changed: {key}")
     if sum(group["size"] for group in before.get("feature_groups", ())) != 324:
         raise ValueError("warm start requires the existing 324-observation network")
+    # Verify the comparison's historical source before AppLauncher/reset; defer
+    # only immutable materialization, not source availability, to publication.
+    _version_bytes(project_root, old, config_records["execution_profile.yaml"]["source_path"], prefer_worktree=True)
     checkpoint = checkpoint.resolve(strict=True)
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
     return {"schema": "wlr50_clean.semantic_v3_new_mdp_warm_start.v1", "exact_mdp_resume": False,
             "source_checkpoint": str(checkpoint), "source_checkpoint_sha256": file_sha(checkpoint),
             "source_manifest_sha256": file_sha(sidecar),
+            "source_semantic_version": source_version, "source_global_policy_decisions": source_global,
+            "source_stage_requested_decisions": source_spent,
+            "target_stage_requested_decisions": (source_spent if source_version == "v3" else
+                                                    dict.fromkeys(("smoke", "phase_suffix", "full_episode"), 0)),
+            "new_mdp_origin_global_policy_decisions": origin,
             "source_runtime_contract": old, "target_runtime_contract": new,
             "configuration_transition": config_records,
             "runtime_changed_files": sorted(key for key in set(old["files"]) | set(new["files"])
@@ -105,12 +125,45 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
                         "critic": "preserve_weights_then_online_recalibration_on_new_rewards",
                         "normalizers": "identity_RSL_state; identical_fixed_schema_preprocessing"},
             "optimizer": {"kind": "Adam", "state": "reset_all_moments", "initial_learning_rate": 3e-5,
-                          "reason": "changed reward, action range and continuous task transition MDP"},
+                          "reason": "explicit versioned new-MDP boundary; changed files recorded above"},
             "old_rollout_buffer_inherited": False, "physical_state_inherited": False,
             "rng": "restore_verified_training_rng_then_sample_fresh_new_MDP_rollouts",
-            "action_output_semantics": "same raw actor output now uses explicitly versioned new physical ranges",
-            "stage_accounting": "new v3 requested budgets; preserve lifetime global/update counters",
+            "action_output_semantics": "same raw actor output uses hash-bound source/target physical profiles; ranges may be unchanged",
+            "stage_accounting": ("preserve existing v3 spent budgets and original v3 origin; preserve lifetime counters"
+                                 if source_version == "v3" else
+                                 "new v3 requested budgets; preserve lifetime global/update counters"),
             "reset_sampling": "explicit_fixed_from_phase_per_run; teacher_rollin_excluded_from_PPO_credit"}
+
+
+def v3_warm_start_checkpoint_name(record: Mapping[str, Any]) -> str:
+    """Immutable revision-bound initial publication, separate from every prior boundary."""
+    target = _contract(record["target_runtime_contract"])
+    return (f"checkpoint_initial_v3_from_{int(record['source_global_policy_decisions']):09d}"
+            f"_s{record['source_checkpoint_sha256'][:12]}"
+            f"_g{target['source_git_commit'][:12]}_{target['runtime_content_sha256']}.pt")
+
+
+def warm_start_source_execution_profile(record: Mapping[str, Any], output_directory: Path, *,
+                                        project_root: Path = PROJECT_ROOT) -> Path:
+    """Resolve exact source bytes, never substitute today's configuration silently."""
+    source = _contract(record["source_runtime_contract"])
+    binding = record["configuration_transition"]["execution_profile.yaml"]
+    relative, expected = binding["source_path"], binding["source_sha256"]
+    if source["files"].get(relative) != expected:
+        raise ValueError("source execution profile binding differs from checkpoint runtime")
+    current = project_root / relative
+    if current.is_file() and file_sha(current) == expected:
+        return current.resolve()
+    raw = _version_bytes(project_root, source, relative)
+    destination = output_directory / "source_configuration" / f"execution_profile_{expected}.yaml"
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if destination.exists():
+        if file_sha(destination) != expected:
+            raise ValueError("immutable source execution profile snapshot differs from checkpoint")
+    else:
+        with destination.open("xb") as stream:
+            stream.write(raw)
+    return destination.resolve()
 
 
 def _contract(value: Mapping[str, Any]) -> dict[str, Any]:
@@ -124,17 +177,22 @@ def _contract(value: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def _version_text(project_root: Path, contract: dict, relative: str, *, prefer_worktree: bool = False) -> str:
+    return _version_bytes(project_root, contract, relative, prefer_worktree=prefer_worktree).decode("utf-8").replace("\r\n", "\n")
+
+
+def _version_bytes(project_root: Path, contract: dict, relative: str, *, prefer_worktree: bool = False) -> bytes:
     current = project_root / relative
     expected = contract["files"][relative]
     if prefer_worktree and current.is_file() and file_sha(current) == expected:
-        return current.read_text(encoding="utf-8")
+        return current.read_bytes()
     raw = subprocess.run(["git", "-C", str(project_root), "show", f"{contract['source_git_commit']}:{relative}"],
                          check=True, capture_output=True).stdout
     # Git stores LF; the pinned Windows working tree may materialize CRLF.
     candidates = (raw, raw.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n"))
-    if expected not in {hashlib.sha256(data).hexdigest() for data in candidates}:
-        raise ValueError(f"versioned source bytes do not match the checkpoint contract: {relative}")
-    return raw.decode("utf-8").replace("\r\n", "\n")
+    for data in candidates:
+        if hashlib.sha256(data).hexdigest() == expected:
+            return data
+    raise ValueError(f"versioned source bytes do not match the checkpoint contract: {relative}")
 
 
 def _geometric_factor(project_root: Path, old: dict, new: dict, *, prior_transition: bool = False) -> dict[str, Any] | None:

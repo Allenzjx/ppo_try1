@@ -10,7 +10,7 @@ from .semantic_cli import (parser, validate_request, runtime_contract,
 from .semantic_training import (construct_semantic_runner, load_semantic_checkpoint,
     seed_training_rngs, parameter_hash, state_hash, _normalizers, write_json)
 from .semantic_video import (ROLES, require, capture_semantic_video,
-                             validate_semantic_video_source)
+                             validate_semantic_video_source, video_configuration)
 
 
 def checkpoint_loader(args, contract):
@@ -22,7 +22,7 @@ def checkpoint_loader(args, contract):
         training_seed = int(metadata["seed"])
         class ObservationEnv:
             num_envs, num_actions = 1, 12
-            cfg = {"evaluation": True}
+            cfg = {"evaluation": True, "semantic_version": args.semantic_version}
             def get_observations(self):
                 tensor = torch.tensor([observation], dtype=torch.float32, device=args.device)
                 return TensorDict({"policy": tensor, "critic": tensor.clone()},
@@ -63,13 +63,39 @@ def validate_video_args(args):
             "video requires eval, locked seed 4001 and --no-headless")
     require(args.max_decisions==3000 and args.decisions is None,
             "video stops on common physical endpoint, not an arbitrary short window")
+    require(args.num_envs == 1 and args.from_phase == "P01"
+            and args.teacher_offset_decisions == 0 and not args.new_mdp_warm_start,
+            "video requires one natural P01 episode without a prefix or warm start")
     return next(role for role,mode in ROLES.items() if mode==args.mode)
+
+
+def build_video_core(app, *, role, semantic_version):
+    """A control is unchanged; only B/C select semantic runtime configuration."""
+    configs = video_configuration(semantic_version)
+    if role == "A":
+        from .isaac_fsm_backend import IsaacFSMBackend
+        from .residual_direct_env import ResidualEpisodeEnv
+        return ResidualEpisodeEnv(IsaacFSMBackend(app, audit_actuator_target_effect=True),
+                                  collect_trace=False)
+    from .semantic_backend import SemanticIsaacBackend
+    from .semantic_env import SemanticEpisodeEnv
+    backend_options = {"audit_actuator_target_effect": True}
+    core_options = {"collect_trace": False}
+    if semantic_version == "v3":
+        backend_options.update(execution_profile=configs["execution_profile"],
+                               task_spec_path=configs["task_spec_path"])
+        core_options.update(action_config=configs["execution_profile"],
+                            reward_config_path=configs["reward_config_path"],
+                            observation_schema_path=configs["observation_schema_path"])
+    return SemanticEpisodeEnv(SemanticIsaacBackend(app, **backend_options), **core_options)
 
 
 def main(argv=None):
     args=parser().parse_args(argv)
     role=validate_video_args(args)
-    contract=runtime_contract(expected_head=args.expected_head)
+    contract_options = {"expected_head": args.expected_head,
+                        "semantic_version": args.semantic_version}
+    contract=runtime_contract(**contract_options)
     _preflight_checkpoint(args,contract)  # Strict contract before any native launch.
     args.run_dir.mkdir(parents=True,exist_ok=False)
     lifecycle={"schema":"wlr50_clean.semantic_video_run.v1","lifecycle":"RUNNING",
@@ -85,21 +111,13 @@ def main(argv=None):
         app=AppLauncher(headless=False,enable_cameras=False).app
         app.update()
         seed_training_rngs(args.seed)
-        if role=="A":
-            from .isaac_fsm_backend import IsaacFSMBackend
-            from .residual_direct_env import ResidualEpisodeEnv
-            core=ResidualEpisodeEnv(IsaacFSMBackend(app,audit_actuator_target_effect=True),
-                                    collect_trace=False)
-        else:
-            from .semantic_backend import SemanticIsaacBackend
-            from .semantic_env import SemanticEpisodeEnv
-            core=SemanticEpisodeEnv(SemanticIsaacBackend(app,audit_actuator_target_effect=True),
-                                    collect_trace=False)
+        core = build_video_core(app, role=role, semantic_version=args.semantic_version)
         source=args.run_dir/"source"
         result=capture_semantic_video(core,role=role,seed=args.seed,
             output_directory=source,contract=contract,
-            policy_loader=checkpoint_loader(args,contract) if role=="C" else None)
-        require(runtime_contract(expected_head=args.expected_head)==contract,
+            policy_loader=checkpoint_loader(args,contract) if role=="C" else None,
+            semantic_version=args.semantic_version)
+        require(runtime_contract(**contract_options)==contract,
                 "runtime changed during capture")
         if result["success_candidate"]:
             validate_semantic_video_source(source,expected_role=role)

@@ -88,6 +88,90 @@ def capture_frame(recorder, backend, global_tick):
     recorder.require_healthy()
 
 
+def video_configuration(semantic_version):
+    """One explicit configuration selection for capture AND independent replay."""
+    from .semantic_cli import version_paths
+    config = version_paths(semantic_version)[2]
+    return {name: config / filename for name, filename in (
+        ("task_spec_path", "stage_task_spec.yaml"),
+        ("quality_score_path", "quality_score.yaml"),
+        ("execution_profile", "execution_profile.yaml"),
+        ("reward_config_path", "reward_config.yaml"),
+        ("observation_schema_path", "observation_schema.json"))}
+
+
+def reset_with_existing_settle_tail(core, recorder, roll, *, seed):
+    """Observe the last 64 of the existing 180 reset steps, never add a step.
+
+    A before-dispatch observer sees the preceding step already completed by
+    the unchanged reset loop. The last receipt is observed after reset returns.
+    No reader call, controller refresh, mapper advance or state write is added.
+    The original per-instance method is restored even if reset/capture fails.
+    """
+    from .isaac_fsm_backend import SETTLE_TICKS
+    require(SETTLE_TICKS == 180, "video settle contract changed")
+    backend = core.backend
+    original = backend._atomic_apply
+    had_override = "_atomic_apply" in vars(backend)
+    saved_override = vars(backend).get("_atomic_apply")
+    first = SETTLE_TICKS - PRE_TICKS
+    count = 0
+    previous_ack = None
+
+    def completed(index, ack):
+        require(ack["physics_tick"] == first + index - 1,
+                "settle-tail receipt tick gap")
+        jsonl(roll, {"kind": "pre_action", "global_tick": index,
+            "task_credit": False, "source": "existing_reset_settle_tail",
+            "physical_hold": {"physics_tick": ack["physics_tick"],
+                "applied_full12": ack["applied_full12"], "root_state_write_count": 0,
+                "existing_reset_dispatch": True, "atomic_ack": ack},
+            "sensor_observation_sampled": False})
+        if index % STRIDE == 0:
+            capture_frame(recorder, backend, index)
+
+    def observe(adapter, command, *, physics_tick, tracking_servo_names,
+                drive_feedback_bias_full12):
+        nonlocal count, previous_ack
+        require(physics_tick == count and count < SETTLE_TICKS,
+                "video natural reset added or reordered physical dispatches")
+        require(tuple(command) == ZERO12 and not tracking_servo_names
+                and tuple(drive_feedback_bias_full12) == ZERO12,
+                "video reset is not the existing zero-command settle")
+        if count == first:
+            for _ in range(3):
+                backend.render_video_frame()  # Shader-only warmup; no app update.
+            require(recorder.start(), "viewport capture did not start")
+            capture_frame(recorder, backend, 0)
+        elif count > first:
+            completed(count - first, previous_ack)
+        ack = original(adapter, command, physics_tick=physics_tick,
+            tracking_servo_names=tracking_servo_names,
+            drive_feedback_bias_full12=drive_feedback_bias_full12)
+        require(tuple(ack["applied_full12"]) == ZERO12,
+                "existing settle did not dispatch zero Full12")
+        previous_ack = ack
+        count += 1
+        return ack
+
+    backend._atomic_apply = observe
+    try:
+        core.reset(seed=seed)
+        require(count == SETTLE_TICKS, "incomplete existing reset settle")
+        completed(PRE_TICKS, previous_ack)
+    finally:
+        if had_override:
+            backend._atomic_apply = saved_override
+        else:
+            del backend._atomic_apply
+    return {"source": "existing_reset_settle_tail", "existing_settle_ticks": count,
+            "first_observed_dispatch_tick": first,
+            "last_observed_dispatch_tick": SETTLE_TICKS - 1,
+            "extra_physics_ticks": 0, "extra_sensor_reads": 0,
+            "extra_controller_steps": 0, "extra_state_writes": 0,
+            "task_credit": False}
+
+
 def refresh_semantic_core_after_preroll(core):
     """Reset only episode-local sensing/controller/encoding, never physics.
 
@@ -181,6 +265,18 @@ def common_post_success_tick(backend, evaluator, *, episode_ticks, post_index):
     # Retaining the nominal request prevents mapper compensation reset; the
     # exact combined bias keeps PPO strictly on its original post-mapper path.
     hold, bias, tracking = post_success_hold_receipt(previous_ack)
+    if previous_ack.get("semantic_residual_composition") == "independent_post_mapper_residual.v1":
+        from .isaac_fsm_backend import ResidualActuationPlan, _full12
+        from .semantic_residual_adapter import SemanticActuationDispatch
+        controller = _full12(previous_ack["bounded_controller_bias_requested_full12"], "last bounded controller")
+        residual = _full12(previous_ack["independent_policy_residual_requested_full12"], "last independent residual")
+        require(tuple(a + b for a, b in zip(controller, residual)) ==
+                tuple(previous_ack["combined_post_mapper_bias_full12"]),
+                "independent post-roll receipt composition mismatch")
+        controller, residual = controller[:8] + ZERO12[8:], residual[:8] + ZERO12[8:]
+        plan = ResidualActuationPlan(hold, tuple(a + b for a, b in zip(hold, residual)),
+                                    residual, controller, bias)
+        adapter = SemanticActuationDispatch(adapter, plan)
     ack = backend._atomic_apply(adapter, hold, physics_tick=physical_tick,
         tracking_servo_names=tracking, drive_feedback_bias_full12=bias)
     # The next hold must use the same receipt contract, not an unannotated ack.
@@ -239,7 +335,8 @@ class EndpointObserver:
 
 
 def capture_semantic_video(core, *, role, seed, output_directory, contract,
-                           policy_loader=None, recorder_factory=ActiveViewportVideoRecorder):
+                           policy_loader=None, recorder_factory=ActiveViewportVideoRecorder,
+                           semantic_version="v2"):
     """Capture one fresh P01 episode in one live process.
 
     policy_loader(refreshed_observation) returns (deterministic_action_callable,
@@ -248,6 +345,9 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
     """
     require(role in ROLES and seed == 4001, "wrong role or locked video seed")
     require((role == "C") == (policy_loader is not None), "wrong checkpoint role")
+    configs = video_configuration(semantic_version)
+    require(contract.get("semantic_version", "v2") == semantic_version,
+            "capture version differs from runtime contract")
     root = Path(output_directory).resolve()
     root.mkdir(parents=True, exist_ok=False)
     recorder = recorder_factory(root)
@@ -263,8 +363,14 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
     issued_decisions, completed_decisions, partial_ticks = 0, 0, 0
     error = None
     reset_info = {}
+    settle_evidence = None
     try:
-        core.reset(seed=seed)
+        roll = (root/"physical_video_roll_ticks.jsonl").open("x", encoding="utf-8")
+        decisions = (root/"video_policy_decisions.jsonl").open("x", encoding="utf-8")
+        if semantic_version == "v3":
+            settle_evidence = reset_with_existing_settle_tail(core, recorder, roll, seed=seed)
+        else:
+            core.reset(seed=seed)
         require(core.frame.state_id == "P01" and core.frame.physics_tick == 0
                 and core.decision_count == 0 and not core.done, "video did not reset to P01")
         reset_info = dict(core.frame.info)
@@ -276,30 +382,32 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
         require(all(list(camera[key]) == value for key,value in CAMERA.items()),
                 "camera differs from common A/B/C view")
         legacy_controller = backend._controller if role == "A" else None
-        roll = (root/"physical_video_roll_ticks.jsonl").open("x", encoding="utf-8")
-        decisions = (root/"video_policy_decisions.jsonl").open("x", encoding="utf-8")
-        for _ in range(3):
-            backend.render_video_frame()  # Shader warmup, no physics or encoded time.
-        require(recorder.start(), "viewport capture did not start")
-        capture_frame(recorder, backend, 0)
-        for index in range(1, PRE_TICKS+1):
-            hold = backend.advance_video_pre_action_tick()
-            require(hold["root_state_write_count"] == 0, "pre-roll root write")
-            jsonl(roll, {"kind": "pre_action", "global_tick": index, "task_credit": False,
-                        "physical_hold": hold,
-                        "raw_observation": measured_observation(backend.raw_observation)})
-            if index % STRIDE == 0:
-                capture_frame(recorder, backend, index)
-        if role == "A":
-            observation, refreshed = core.refresh_after_video_pre_action_hold()
-            require(backend._controller is legacy_controller,
-                    "legacy controller was replaced during video pre-roll")
+        if semantic_version == "v3":
+            observation, refreshed = tuple(core.observation), dict(core.frame.info)
         else:
-            observation, refreshed = refresh_semantic_core_after_preroll(core)
+            for _ in range(3):
+                backend.render_video_frame()  # Shader warmup; no encoded time.
+            require(recorder.start(), "viewport capture did not start")
+            capture_frame(recorder, backend, 0)
+            for index in range(1, PRE_TICKS+1):
+                hold = backend.advance_video_pre_action_tick()
+                require(hold["root_state_write_count"] == 0, "pre-roll root write")
+                jsonl(roll, {"kind": "pre_action", "global_tick": index, "task_credit": False,
+                            "physical_hold": hold,
+                            "raw_observation": measured_observation(backend.raw_observation)})
+                if index % STRIDE == 0:
+                    capture_frame(recorder, backend, index)
+            if role == "A":
+                observation, refreshed = core.refresh_after_video_pre_action_hold()
+                require(backend._controller is legacy_controller,
+                        "legacy controller was replaced during video pre-roll")
+            else:
+                observation, refreshed = refresh_semantic_core_after_preroll(core)
         require(core.frame.physics_tick == 0 and core.frame.state_id == "P01",
                 "pre-roll did not preserve logical P01 tick zero")
         reset_info = dict(refreshed)
-        physical = PhysicalEvaluationRecorder(root)
+        physical = PhysicalEvaluationRecorder(root, task_spec_path=configs["task_spec_path"],
+                                               quality_score_path=configs["quality_score_path"])
         physical.start(core.frame)  # Prefix ticks cannot grant lift/cross/task credit.
         if policy_loader is not None:
             action, load_provenance, check_model = policy_loader(tuple(observation))
@@ -375,6 +483,11 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
              "native_tick_audit.jsonl", "stage_transition_evidence.jsonl",
              "phase_metrics.csv", "physics_quality_metrics.csv")
     payload = {"schema": "wlr50_clean.semantic_video_source.v1",
+        "semantic_version": semantic_version,
+        "evaluation_configuration": {name: file_record(path) for name, path in configs.items()},
+        "pre_action_source": "existing_reset_settle_tail" if semantic_version == "v3" else "additional_zero_hold",
+        "extra_pre_action_physics_ticks": 0 if semantic_version == "v3" else PRE_TICKS,
+        "settle_capture_evidence": settle_evidence,
         "role": role, "mode": ROLES[role], "seed": seed, "runtime_contract": dict(contract),
         "capture_process_id": os.getpid(), "capture_process_instance_id": uuid.uuid4().hex,
         "fresh_process_single_episode": True, "episode_count": 1,
@@ -400,6 +513,41 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
     return payload
 
 
+def validate_video_configuration(source):
+    version = source.get("semantic_version", "v2")
+    require(source["runtime_contract"].get("semantic_version", "v2") == version,
+            "source/runtime semantic version mismatch")
+    configs = video_configuration(version)
+    if version == "v3" or "evaluation_configuration" in source:
+        require(source.get("evaluation_configuration") ==
+                {name: file_record(path) for name, path in configs.items()},
+                "video evaluator/configuration differs from captured bytes")
+    return configs
+
+
+def validate_existing_settle_evidence(source, pre):
+    require(source["pre_action_source"] == "existing_reset_settle_tail"
+            and source["extra_pre_action_physics_ticks"] == 0,
+            "v3 video added physical warmup")
+    expected = {"source": "existing_reset_settle_tail", "existing_settle_ticks": 180,
+        "first_observed_dispatch_tick": 116, "last_observed_dispatch_tick": 179,
+        "extra_physics_ticks": 0, "extra_sensor_reads": 0,
+        "extra_controller_steps": 0, "extra_state_writes": 0, "task_credit": False}
+    require(source["settle_capture_evidence"] == expected, "invalid existing settle evidence")
+    require(len(pre) == PRE_TICKS, "incomplete existing settle tail")
+    for index, row in enumerate(pre, 1):
+        hold = row["physical_hold"]
+        ack = hold["atomic_ack"]
+        require(row["global_tick"] == index and row["source"] == expected["source"]
+                and row["task_credit"] is False and row["sensor_observation_sampled"] is False
+                and hold["existing_reset_dispatch"] is True
+                and hold["root_state_write_count"] == 0
+                and hold["physics_tick"] == ack["physics_tick"] == 115 + index
+                and tuple(hold["applied_full12"]) == tuple(ack["applied_full12"]) == ZERO12
+                and tuple(ack["drive_feedback_bias_requested_full12"]) == ZERO12,
+                "settle tail is not the original zero dispatch sequence")
+
+
 def validate_semantic_video_source(root, *, expected_role=None):
     """Independently replay physical task and bind source frames to native PTS."""
     root = Path(root).resolve(strict=True)
@@ -422,12 +570,14 @@ def validate_semantic_video_source(root, *, expected_role=None):
     endpoint = source["episode_physics_ticks"]
     require(frames_for_episode(endpoint) <= MAX_FRAMES, "video context exceeds 200 s")
     from .semantic_cli import runtime_contract
-    require(runtime_contract(expected_head=source["runtime_contract"]["source_git_commit"])
+    configs = validate_video_configuration(source)
+    require(runtime_contract(expected_head=source["runtime_contract"]["source_git_commit"],
+                             semantic_version=source.get("semantic_version", "v2"))
             == source["runtime_contract"], "validator runtime/task spec differs from capture")
     if source["role"] == "C":
         require(source["checkpoint_load_provenance"]["checkpoint_loaded_and_verified"] is True,
                 "C checkpoint load proof missing")
-    evaluator = TaskEvaluator()
+    evaluator = TaskEvaluator(configs["task_spec_path"])
     count = 0
     with paths["physical_observations.jsonl"].open(encoding="utf-8") as stream:
         for count,line in enumerate(stream, 1):
@@ -476,6 +626,8 @@ def validate_semantic_video_source(root, *, expected_role=None):
     pre = [row for row in roll_rows if row["kind"] == "pre_action"]
     post = [row for row in roll_rows if row["kind"] == "post_success"]
     require([row["global_tick"] for row in pre] == list(range(1,PRE_TICKS+1)), "pre-roll tick gap")
+    if source.get("semantic_version", "v2") == "v3":
+        validate_existing_settle_evidence(source, pre)
     require([row["global_tick"] for row in post] ==
             list(range(PRE_TICKS+endpoint+1, PRE_TICKS+endpoint+POST_TICKS+1)), "post-roll tick gap")
     for row in pre:
@@ -508,10 +660,72 @@ def validate_semantic_video_source(root, *, expected_role=None):
 def publication_name_allowed(role, name):
     # A requested baseline name is allowed only AFTER source validation below.
     # A physically successful C video is still a candidate, never improvement.
-    names = {"A": {"fsm_original_baseline.mp4", "semantic_A_success.mp4"},
+    names = {"A": {"fsm_original_baseline.mp4", "semantic_A_success.mp4", "fsm_baseline_clean.mp4"},
              "B": {"semantic_B_success.mp4"},
-             "C": {"semantic_C_candidate.mp4"}}
+             "C": {"semantic_C_candidate.mp4", "ppo_success_clean.mp4"}}
     return name in names.get(role, set())
+
+
+def comparison_title(source):
+    """Task outcome is not evidence of improved stability."""
+    name = {"A": "FSM baseline", "B": "Semantic prior", "C": "PPO candidate"}[source["role"]]
+    success = (source.get("success_candidate") is True
+               and source.get("diagnostic_only") is False
+               and (source.get("physical_episode") or {}).get("task_success") is True)
+    return name + (" - task SUCCESS" if success else " - diagnostic NOT SUCCESS")
+
+
+def comparison_filter(left, right):
+    """No retiming: the shorter completed source visibly freezes at its end."""
+    frame_counts = [frames_for_episode(item["episode_physics_ticks"]) for item in (left, right)]
+    total = max(frame_counts)
+    require(total <= MAX_FRAMES, "comparison exceeds 200 seconds")
+    parts = []
+    for index, (source, count) in enumerate(zip((left, right), frame_counts)):
+        branch = f"[{index}:v]setsar=1"
+        if count < total:
+            branch += f",tpad=stop_mode=clone:stop={total-count}"
+        branch += f",drawtext=text='{comparison_title(source)}':x=28:y=26:fontcolor=white:fontsize=26"
+        if count < total:
+            branch += (",drawtext=text='SOURCE COMPLETED - last frame held':x=28:y=64:"
+                       f"fontcolor=white:fontsize=22:enable='gte(n,{count})'")
+        parts.append(branch + f"[side{index}]")
+    return ";".join(parts + ["[side0][side1]hstack=inputs=2[out]"]), total
+
+
+def publish_success_comparison(baseline_root, candidate_root, destination):
+    """Publish common-condition actual A/C successes, with no improvement claim."""
+    left, _ = validate_semantic_video_source(baseline_root, expected_role="A")
+    right, _ = validate_semantic_video_source(candidate_root, expected_role="C")
+    for key in ("seed", "camera", "runtime_contract", "semantic_version",
+                "pre_action_source", "extra_pre_action_physics_ticks"):
+        require(left.get(key) == right.get(key), f"comparison condition differs: {key}")
+    destination = Path(destination).resolve()
+    require(destination.name == "fsm_vs_ppo_success.mp4" and not destination.exists(),
+            "comparison must be a new task-success video, not an improved claim")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    filters, count = comparison_filter(left, right)
+    command = [str(find_ffmpeg()), "-hide_banner", "-nostdin", "-v", "error", "-n"]
+    for source in (left, right):
+        command += ["-i", source["artifacts"]["actual_viewport_video.mp4"]["path"]]
+    command += ["-filter_complex", filters, "-map", "[out]", "-an", "-sn", "-dn",
+                "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18",
+                "-fps_mode", "passthrough", "-movflags", "+faststart", str(destination)]
+    completed = subprocess.run(command, capture_output=True, text=True, errors="replace")
+    require(completed.returncode == 0, completed.stderr[-2000:])
+    validation = validate_mp4(destination, expected_fps=FPS, expected_frame_count=count,
+        expected_width=2560, expected_height=720, maximum_duration_s=200.,
+        require_sane_container_duration=True)
+    require(validation["valid"] is True, "comparison decode/PTS validation failed")
+    result = {"schema": "wlr50_clean.semantic_video_comparison.v1",
+        "sources": [file_record(Path(root)/"semantic_video_source_manifest.json")
+                    for root in (baseline_root, candidate_root)],
+        "video": file_record(destination), "validation": validation,
+        "titles": [comparison_title(item) for item in (left, right)],
+        "ffmpeg_command": command, "speed_modified": False, "frame_interpolation": False,
+        "shorter_source_suffix": "visibly_labelled_last_frame_hold", "improved_claim": False}
+    write_json(destination.with_suffix(".manifest.json"), result)
+    return result
 
 
 def publish_success_source(source_root, destination):

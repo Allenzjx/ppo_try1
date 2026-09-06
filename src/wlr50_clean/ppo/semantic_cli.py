@@ -144,10 +144,7 @@ def validate_request(args: argparse.Namespace) -> None:
             raise ValueError("full_episode training must start from fresh P01")
     if args.new_mdp_warm_start and (args.semantic_version != "v3" or args.command != "train"
                                   or args.checkpoint is None or args.resume_migration is not None):
-        raise ValueError("new-MDP warm start requires v3 train with a v2 checkpoint, not exact resume migration")
-    if args.new_mdp_warm_start and any((output_root / relative).exists() for relative in (
-            "checkpoints/checkpoint_last_pointer.json", "checkpoints/history/checkpoint_initial_v3_warm_start.pt")):
-        raise ValueError("v3 training already exists; resume its checkpoint instead of restarting new-MDP budgets")
+        raise ValueError("new-MDP warm start requires v3 train with a v2 or v3 checkpoint, not exact resume migration")
     if args.decisions is not None and (args.command != "train" or not 1 <= args.decisions <= STAGE_BUDGETS[args.stage]):
         raise ValueError("--decisions is an additional train request within the stage budget")
     if not 1 <= args.max_decisions <= 3000 or args.checkpoint_interval_updates < 1:
@@ -171,10 +168,23 @@ def validate_request(args: argparse.Namespace) -> None:
             output_root / "checkpoints/history/checkpoint_initial_semantic.pt")):
         raise ValueError("training already exists; explicitly resume checkpoint_last instead of reinitializing")
     if args.checkpoint is not None:
-        args.checkpoint = _resolved_checkpoint(args.checkpoint, output_root=OUTPUT_ROOT if args.new_mdp_warm_start else output_root)
+        source_root = output_root
+        if args.new_mdp_warm_start:
+            if args.checkpoint.resolve(strict=True).is_relative_to((OUTPUT_ROOT / "checkpoints").resolve()):
+                source_root = OUTPUT_ROOT
+        args.checkpoint = _resolved_checkpoint(args.checkpoint, output_root=source_root)
         if args.command == "train":
             metadata = json.loads(args.checkpoint.with_name(args.checkpoint.stem + "_manifest.json").read_text())
-            remaining = STAGE_BUDGETS[args.stage] - (0 if args.new_mdp_warm_start else int(metadata["stage_requested_decisions"].get(args.stage, 0)))
+            source_version = metadata.get("semantic_version", "v2")
+            if args.new_mdp_warm_start:
+                expected_version = "v2" if source_root == OUTPUT_ROOT else "v3"
+                if source_version != expected_version:
+                    raise ValueError("warm-start checkpoint version differs from its isolated source root")
+                if source_version == "v2" and any((output_root / relative).exists() for relative in (
+                        "checkpoints/checkpoint_last_pointer.json", "checkpoints/history/checkpoint_initial_v3_warm_start.pt")):
+                    raise ValueError("v3 training already exists; continue its checkpoint without restarting v3 budgets")
+            reset_v3_budget = args.new_mdp_warm_start and source_version == "v2"
+            remaining = STAGE_BUDGETS[args.stage] - (0 if reset_v3_budget else int(metadata["stage_requested_decisions"].get(args.stage, 0)))
             if remaining < 1 or (args.decisions is not None and args.decisions > remaining):
                 raise ValueError("additional request exceeds the remaining semantic stage budget")
     if args.num_envs == 8:
@@ -207,10 +217,13 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
     from .semantic_migration import checkpoint_metadata, validate_migration_plan
     metadata = checkpoint_metadata(args.checkpoint)
     if args.new_mdp_warm_start:
-        from .semantic_migration import build_v3_warm_start_record
+        from .semantic_migration import build_v3_warm_start_record, v3_warm_start_checkpoint_name
         args._warm_start_record = build_v3_warm_start_record(args.checkpoint, contract, project_root=PROJECT_ROOT)
         if metadata["seed"] != args.seed:
             raise ValueError("warm start must preserve the recorded training RNG seed")
+        initial = version_paths("v3")[1] / "checkpoints/history" / v3_warm_start_checkpoint_name(args._warm_start_record)
+        if initial.exists() or initial.with_name(initial.stem + "_manifest.json").exists():
+            raise ValueError("this source/target new-MDP initial checkpoint already exists; resume its published weights")
         return
     if args.resume_migration is None:
         if metadata["runtime_contract"] != contract:
@@ -605,11 +618,13 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                                                 migration=getattr(args, "_migration_record", None),
                                                 warm_start=getattr(args, "_warm_start_record", None))
             if args.new_mdp_warm_start:
-                from .semantic_migration import continuation_topology
+                from .semantic_migration import (continuation_topology, v3_warm_start_checkpoint_name,
+                                                  warm_start_source_execution_profile)
                 from .semantic_training import compare_warm_start_action
                 write_json(args.run_dir / "new_mdp_warm_start.json", args._warm_start_record)
                 comparison = compare_warm_start_action(runner, env,
-                    old_execution_profile=version_paths("v2")[2] / "execution_profile.yaml",
+                    old_execution_profile=warm_start_source_execution_profile(
+                        args._warm_start_record, args.run_dir, project_root=PROJECT_ROOT),
                     new_execution_profile=config_root / "execution_profile.yaml")
                 comparison_path = args.run_dir / "new_mdp_initial_action_comparison.json"
                 write_json(comparison_path, comparison)
@@ -620,7 +635,8 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                                  "curriculum_epoch": {"reset_sampling": env.cfg["reset_sampling"], "prefix_request": env.cfg.get("prefix_request")},
                                  "sampling": env.cfg["reset_sampling"],
                                  "runner_config": semantic_runner_config(seed=args.seed, device=args.device, semantic_version="v3")}
-                save_semantic_checkpoint(runner, output_root / "checkpoints/history/checkpoint_initial_v3_warm_start.pt", initial_infos)
+                save_semantic_checkpoint(runner, output_root / "checkpoints/history" /
+                    v3_warm_start_checkpoint_name(args._warm_start_record), initial_infos)
         else:
             initial = output_root / "checkpoints/history/checkpoint_initial_semantic.pt"
             save_semantic_checkpoint(runner, initial, {
