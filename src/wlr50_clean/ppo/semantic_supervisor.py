@@ -35,6 +35,7 @@ ZERO12 = (0.0,) * 12
 P06_RETIREMENT_MODE = "measured_workspace_interior_peak"
 LIFT_CREDIT_MODE = "measured_air_process_current_top_gap"
 PREPARATION_CREDIT_MODE = "current_workspace_before_predecessor_placement"
+CAPTURE_RETENTION_MODE = "current_platform_region_after_placement"
 
 
 class SemanticObservationError(ValueError):
@@ -109,6 +110,16 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
     if (spec.get("preparation_credit_semantics") == PREPARATION_CREDIT_MODE
             and spec.get("potential_definition") != "global_physical_progress_v3"):
         raise ValueError("preparation credit requires global physical progress potential")
+    if spec.get("capture_retention_semantics") not in (None,CAPTURE_RETENTION_MODE):
+        raise ValueError("unrecognized capture retention semantics")
+    if spec.get("capture_retention_semantics") == CAPTURE_RETENTION_MODE:
+        if spec.get("potential_definition") != "global_physical_progress_v3":
+            raise ValueError("capture retention requires global physical progress potential")
+        if _number(spec["history"]["minimum_lift_gain_m"], "capture retention scale") <= 0:
+            raise ValueError("capture retention requires positive existing lift scale")
+        if _number(spec["geometry"]["xy_measurement_tolerance_m"], "capture XY tolerance") < 0:
+            raise ValueError("capture retention requires nonnegative existing XY tolerance")
+        _number(spec["geometry"]["top_gap_min_m"], "capture existing top gap")
     if spec["final"].get("stop_pose_semantics") not in (None,"physical_stable_pose"):
         raise ValueError("unrecognized final stop pose semantics")
     if spec["final"].get("stop_command_progress") not in (None,"reciprocal_physical_stop_tolerance"):
@@ -423,6 +434,14 @@ class TaskEvaluator:
                 "consecutive_air_samples": self._air_count[leg], "consecutive_top_samples": self._top_count[leg],
                 "within_top_xy": within_top_xy, "within_lateral_span": within_lateral_span,
                 "support": force >= self.spec["support"]["force_noise_floor_n"]}
+            if self.spec.get("capture_retention_semantics") == CAPTURE_RETENTION_MODE:
+                # Distance to the SAME measured, tolerance-expanded rectangle.
+                # This extra current diagnostic never changes contact/history,
+                # crossing, placement, stage entry or task success predicates.
+                dx = max(front-xy_tolerance-center[0], 0., center[0]-back-xy_tolerance)
+                dy = max(right-xy_tolerance-center[1], 0., center[1]-left-xy_tolerance)
+                current[leg]["top_xy_outside_distance_m"] = _number(
+                    math.hypot(dx, dy), f"{leg} current platform outside distance")
         total_force = sum(forces.values())
         features = {}
         for leg in LEG_ORDER:
@@ -556,7 +575,13 @@ class TaskStageSupervisor:
         values=[]
         for leg in LEG_ORDER:
             current=legs[leg]
-            if history["placed"][leg]: values.append(1.); continue
+            if history["placed"][leg]:
+                # Keep completed events/ordering, but reuse the original .2
+                # capture share for current region retention. AIR above the
+                # platform is fully eligible: no fixed contact or stop pose.
+                retention = (self._current_capture_retention(leg,evaluation)
+                    if self.spec.get("capture_retention_semantics") == CAPTURE_RETENTION_MODE else 1.)
+                values.append(.8+.2*retention); continue
             if not all(history["placed"][p] for p in PLACEMENT_PREDECESSORS[leg]):
                 # Workspace preparation can precede another leg's placement.
                 # Reuse only its existing weight; unload/lift/carry/capture
@@ -576,6 +601,18 @@ class TaskStageSupervisor:
             values.append(.1*workspace+.1*unload+.25*(.25*initial+.75*lift_credit)+.35*carry+.2*capture)
         finish=self.predicate("whole_task_success",evaluation) if all(history["placed"].values()) else 0.
         return min(1.,.85*sum(values)/4.+.15*finish)
+
+    def _current_capture_retention(self, leg: str, evaluation: Mapping[str,Any]) -> float:
+        current=evaluation["current_legs"][leg]
+        outside=_number(current.get("top_xy_outside_distance_m"), f"{leg} current platform outside distance")
+        if outside < 0.:
+            raise SemanticObservationError("current platform outside distance must be nonnegative")
+        clearance=_number(current["clearance_m"], f"{leg} capture clearance")
+        xy=_clip(1.-outside/.25)  # Existing workspace/carry decay length.
+        scale=self.spec["history"]["minimum_lift_gain_m"]
+        gap=max(0.,self.spec["geometry"]["top_gap_min_m"]-clearance)
+        vertical=scale/(scale+gap)
+        return min(xy,vertical)
 
     def _current_lift_credit(self, leg: str, evaluation: Mapping[str,Any]) -> float:
         if evaluation.get("valid") is not True or evaluation.get("termination_reason") is not None: return 0.
