@@ -3,9 +3,10 @@ rear_leg_order: RR_FIRST
 physics_hz: 120.0
 decision_hz: 15.0
 episode_maximum_duration_s: 200.0
-revision: continuous_whole_body_v3_carry_unblocked
+revision: continuous_whole_body_v3_pending_air_and_physical_stop
 potential_definition: global_physical_progress_v3
 history:
+  crossing_evidence_semantics: qualified_air_pending_geometry
   lift_motion_evidence: whole_body_actuation
   minimum_initial_clearance_gain_m: 0.003
   minimum_command_motion_deg: 0.1
@@ -31,6 +32,9 @@ support:
   force_noise_floor_n: 0.2
   unloaded_leg_maximum_load_fraction: 0.20
 final:
+  # Home remains a finite nominal suggestion and diagnostic, not a unique
+  # terminal joint configuration. Physical stop/region/support gates remain.
+  stop_pose_semantics: physical_stable_pose
   region: obstacle_top_after_front_plane
   minimum_rear_wheel_forward_m: 0.02
   minimum_body_forward_m: 0.15
@@ -171,7 +175,7 @@ stages:
     next_phase: P13
   P13:
     <<: *stage_defaults
-    purpose: Complete whole-body traversal and controlled home stop
+    purpose: Complete whole-body traversal and controlled physical stop
     valid_start_conditions: [physical_valid, placed_FR, placed_FL, placed_RR, placed_RL]
     goal_features: [whole_task_success]
     completion_predicates: [whole_task_success]

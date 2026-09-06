@@ -81,8 +81,12 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
         raise ValueError("semantic task horizon must be at most 200 seconds")
     if spec["history"].get("lift_motion_evidence") not in (None,"whole_body_actuation"):
         raise ValueError("unrecognized lift evidence semantics")
+    if spec["history"].get("crossing_evidence_semantics") not in (None,"qualified_air_pending_geometry"):
+        raise ValueError("unrecognized crossing evidence semantics")
     if spec.get("potential_definition") not in (None,"global_physical_progress_v3"):
         raise ValueError("unrecognized global potential semantics")
+    if spec["final"].get("stop_pose_semantics") not in (None,"physical_stable_pose"):
+        raise ValueError("unrecognized final stop pose semantics")
     required = {"purpose", "valid_start_conditions", "goal_features", "completion_predicates",
                 "progress_potential", "allowed_action_channels", "physical_limits",
                 "stall_diagnostic", "maximum_task_duration", "next_phase", "active_leg"}
@@ -299,8 +303,22 @@ class TaskEvaluator:
             # or label an earlier corner contact as a front-wall climb.
             crossing_geometry = (not ground_active and within_top_xy
                 and ((air and bottom[2]>=top) or loaded))
+            crossing_geometry_pending = False
             if distance >= 0 and not self._history["front_edge_crossed"][leg]:
-                if not self._history["active_lift"][leg] or not crossing_geometry:
+                # A previously qualified, still airborne wheel can straddle
+                # the center plane with a slightly negative measured gap.
+                # Missing CURRENT crossing geometry is not evidence that it
+                # climbed a wall. Keep it unfinished; do not relax crossing,
+                # placement, ground revocation, lateral ROI, or RR_FIRST.
+                crossing_geometry_pending = bool(
+                    hist_cfg.get("crossing_evidence_semantics") == "qualified_air_pending_geometry"
+                    and self._failure is None
+                    and self._history["active_lift"][leg] and air and within_top_xy
+                    and not crossing_geometry
+                    and (leg != "RL" or self._history["placed"]["RR"]))
+                if crossing_geometry_pending:
+                    pass
+                elif not self._history["active_lift"][leg] or not crossing_geometry:
                     self._fail(TaskResult.TASK_FAILURE_WHEEL_ONLY_CLIMB,
                         f"{leg} crossed front without uninterrupted above-top active lift and current AIR/TOP geometry")
                 elif leg == "RL" and not self._history["placed"]["RR"]:
@@ -312,6 +330,7 @@ class TaskEvaluator:
                 self._history["placed"][leg] = True; self._event_ticks["placed"][leg] = tick
             current[leg] = {"front_distance_m": distance, "clearance_m": bottom[2]-top,
                 "top_geometry": top_geometry, "top_contact": loaded, "air": air,
+                "crossing_geometry_pending": crossing_geometry_pending,
                 "recent_joint_motion_deg": movement, "recent_clearance_gain_m": gain,
                 "recent_whole_body_joint_motion_deg":all_joint_motion,
                 "whole_body_actuation_evidence":bool(motion_evidence) if whole_body else None,
@@ -339,7 +358,8 @@ class TaskEvaluator:
             and _norm(base_angular) <= final["maximum_body_angular_speed_rad_s"]
             and max(map(abs,speeds)) <= final["maximum_wheel_speed_rad_s"]
             and max(map(abs,commands)) <= final["maximum_commanded_wheel_speed_rad_s"]
-            and all(abs(positions[name]-target) <= final["home_tolerance_deg"] for name,target in zip(SERVO_ORDER,final["home_servo_pose_deg"])))
+            and (final.get("stop_pose_semantics") == "physical_stable_pose"
+                 or home_error <= final["home_tolerance_deg"]))
         current_support = sum(v["support"] and v["top_contact"] for v in current.values()) >= self.spec["support"]["minimum_other_supports"]
         eligible = self._failure is None and all(self._history["placed"].values()) and final_region and controlled and current_support
         self._stable_since = (now if self._stable_since is None else self._stable_since) if eligible else None
@@ -385,10 +405,12 @@ class TaskStageSupervisor:
             history_fraction=sum(evaluation["history"]["placed"].values())/4.
             forward=min(_clip(features["body_forward_m"]/final["minimum_body_forward_m"]),
                         min(_clip(features[f"{leg}_front_distance_m"]/final["minimum_rear_wheel_forward_m"]) for leg in LEG_ORDER))
-            stop=sum((_clip(1.-features["maximum_wheel_speed_rad_s"]/final["maximum_wheel_speed_rad_s"]),
+            stop_terms=[_clip(1.-features["maximum_wheel_speed_rad_s"]/final["maximum_wheel_speed_rad_s"]),
                       _clip(1.-features["body_linear_speed_m_s"]/final["maximum_body_linear_speed_m_s"]),
-                      _clip(1.-features["body_angular_speed_rad_s"]/final["maximum_body_angular_speed_rad_s"]),
-                      _clip(1.-evaluation["home_maximum_servo_error_deg"]/final["home_tolerance_deg"]))) / 4.
+                      _clip(1.-features["body_angular_speed_rad_s"]/final["maximum_body_angular_speed_rad_s"])]
+            if final.get("stop_pose_semantics") != "physical_stable_pose":
+                stop_terms.append(_clip(1.-evaluation["home_maximum_servo_error_deg"]/final["home_tolerance_deg"]))
+            stop=sum(stop_terms)/len(stop_terms)
             settle=_clip(evaluation["final_stable_for_s"]/final["stable_duration_s"])
             return min(.99,.4*history_fraction+.3*forward+.2*stop+.1*settle)
         if name == "rear_approach":
