@@ -1,5 +1,5 @@
 schema: wlr50_clean.semantic_execution_profile.v1
-revision: continuous_whole_body_exploration_v3_same_tick_servo_headroom
+revision: continuous_whole_body_exploration_v3_front_wheel_authority
 physics_hz: 120.0
 decision_hz: 15.0
 episode_timeout_s: 200.0
@@ -20,20 +20,22 @@ residual:
   initial_servo_cap_deg: 4.0
   # Symmetric requested search ranges, intersected with measured mapper/actuator headroom.
   # Nondecreasing along the phase graph: handoff cannot abruptly shrink a live residual.
+  # Rear preparation onward: front wheels can cancel strong finite nominal suggestions.
+  # Actual wheel hard bounds and the 1.8 rad/s2 residual slew remain unchanged.
   phase_caps_full12:
     P01: [18, 24, 18, 24, 12, 18, 12, 18, 0.3, 0.3, 0.3, 0.3]
     P02: [18, 24, 18, 24, 12, 18, 12, 18, 0.3, 0.3, 0.3, 0.3]
     P03: [18, 24, 18, 24, 12, 18, 12, 18, 0.3, 0.3, 0.3, 0.3]
     P04: [18, 24, 18, 24, 12, 18, 12, 18, 0.3, 0.3, 0.3, 0.3]
     P05: [18, 24, 18, 24, 12, 18, 12, 18, 0.3, 0.3, 0.3, 0.3]
-    P06: [24, 36, 24, 36, 24, 36, 24, 36, 0.6, 0.6, 0.6, 0.6]
-    P07: [24, 36, 24, 36, 24, 36, 24, 36, 0.6, 0.6, 0.6, 0.6]
-    P08: [24, 36, 24, 36, 24, 36, 24, 36, 0.6, 0.6, 0.6, 0.6]
-    P09: [24, 36, 24, 36, 24, 36, 24, 36, 0.6, 0.6, 0.6, 0.6]
-    P10: [24, 36, 24, 36, 24, 36, 24, 36, 0.6, 0.6, 0.6, 0.6]
-    P11: [24, 36, 24, 36, 24, 36, 24, 36, 0.6, 0.6, 0.6, 0.6]
-    P12: [24, 36, 24, 36, 24, 36, 24, 36, 0.6, 0.6, 0.6, 0.6]
-    P13: [24, 36, 24, 36, 24, 36, 24, 36, 0.6, 0.6, 0.6, 0.6]
+    P06: [24, 36, 24, 36, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
+    P07: [24, 36, 24, 36, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
+    P08: [24, 36, 24, 36, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
+    P09: [24, 36, 24, 36, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
+    P10: [24, 36, 24, 36, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
+    P11: [24, 36, 24, 36, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
+    P12: [24, 36, 24, 36, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
+    P13: [24, 36, 24, 36, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
   initial_wheel_cap_rad_s: 0.12
   servo_rate_deg_s: 60.0
   wheel_rate_rad_s2: 1.8
