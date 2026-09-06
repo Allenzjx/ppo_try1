@@ -134,7 +134,9 @@ class ResetOnlyPrefixController:
 
     @property
     def task_snapshot(self):
-        return self.supervisor.snapshot
+        # The inner getter only decorates the same live supervisor snapshot
+        # with copied nominal diagnostics; no teacher or controller step occurs.
+        return self._semantic.task_snapshot if self._semantic is not None else self.supervisor.snapshot
 
     @property
     def task_progress(self):

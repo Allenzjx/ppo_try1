@@ -145,7 +145,7 @@ def test_configure_prefix_is_not_a_snapshot_restore():
     assert backend._prefix_enabled is False
 
 
-def real_prefix_runtime(monkeypatch, target="P06"):
+def real_prefix_runtime(monkeypatch, target="P06", *, task_spec_path=None):
     """Production reset/controller/mapper/core seam with synthetic sensors and tensor physics.
 
     No causal claim that these scripted wheel motions follow the teacher.
@@ -212,7 +212,8 @@ def real_prefix_runtime(monkeypatch, target="P06"):
             return deepcopy(obs)
     dependencies=replace(runtime.dependencies(),adapter_from_scene=make_adapter,
         reader_from_scene=lambda scene,adapter,backends:Reader(),expected_contact_bodies=tuple(SENSED_BODIES))
-    backend=PrefixSemanticIsaacBackend(prefix_request=PrefixRequest(target),dependencies=dependencies)
+    options={} if task_spec_path is None else {"task_spec_path":task_spec_path}
+    backend=PrefixSemanticIsaacBackend(prefix_request=PrefixRequest(target),dependencies=dependencies,**options)
     holder["backend"]=backend
     factory=backend._new_prefix_controller
     def synthetic_teacher_factory(fsm_path,contract_path):
@@ -227,6 +228,83 @@ def real_prefix_runtime(monkeypatch, target="P06"):
         return controller
     backend._semantic_controller_factory=synthetic_teacher_factory
     return runtime,backend
+
+
+def test_teacher_task_snapshot_getter_stays_read_only_without_nominal_diagnostics():
+    cfg=Path(__file__).resolve().parents[2]/"configs/ppo_semantic_v3"
+    spec,contract=resources()
+    teacher=Teacher(contract.phases[0].start_full12)
+    supervisor=TaskStageSupervisor(cfg/"stage_task_spec.yaml")
+    controller=ResetOnlyPrefixController(teacher,supervisor,spec,contract,PrefixRequest("P06"))
+    raw=observation()
+    for name,command in zip(SERVO_ORDER,teacher.nominal[:8],strict=True):
+        raw["joints"][name]["command_deg"]=command
+    controller.step(raw,sim_time_s=0.)
+    before=deepcopy(supervisor.snapshot)
+    clock=(controller.physics_tick,supervisor._last_observation_tick,
+           supervisor.episode_started_s,controller.teacher_calls,teacher.calls)
+    assert controller._semantic is None and controller.mode=="TEACHER"
+    for _ in range(3):
+        task=controller.task_snapshot
+        assert task==before
+        assert "nominal_provider_diagnostics" not in task
+        task["stage_id"]="not_a_real_stage"
+    assert supervisor.snapshot==before
+    assert clock==(controller.physics_tick,supervisor._last_observation_tick,
+                   supervisor.episode_started_s,controller.teacher_calls,teacher.calls)
+
+
+def test_semantic_task_snapshot_forwards_live_diagnostics_without_alias_clock_or_encoding_changes(monkeypatch):
+    import torch
+    from wlr50_clean.ppo.semantic_env import SemanticEpisodeEnv
+    from wlr50_clean.ppo.semantic_observation import HISTORY_GROUPS,SemanticObservationBuilder
+    from wlr50_clean.ppo.semantic_prefix import PrefixRslAdapter
+    cfg=Path(__file__).resolve().parents[2]/"configs/ppo_semantic_v3"
+    runtime,backend=real_prefix_runtime(monkeypatch,"P06",task_spec_path=cfg/"stage_task_spec.yaml")
+    core=SemanticEpisodeEnv(backend,collect_trace=False,
+        action_config=cfg/"execution_profile.yaml",reward_config_path=cfg/"reward_config.yaml",
+        observation_schema_path=cfg/"observation_schema.json")
+    env=PrefixRslAdapter(core,seed=1001,device="cpu",evidence_sink=lambda record:None)
+    encoded,_,done,_=env.step(torch.zeros((1,12)))
+    controller=backend.prefix_controller
+    inner=controller._semantic
+    assert controller.mode=="READY" and inner is not None and not done.item()
+    assert encoded["policy"].shape==(1,324)
+    expected=inner.task_snapshot
+    diagnostics=expected["nominal_provider_diagnostics"]
+    assert "p06_rolling_retirement" in diagnostics and "p06_wheel_tail" in diagnostics
+    assert core.frame.info["semantic_task"]["nominal_provider_diagnostics"]==diagnostics
+    before=deepcopy(controller.supervisor.snapshot)
+    def read_state():
+        return (controller.physics_tick,inner.physics_tick,inner._last_time,
+                controller.supervisor._last_observation_tick,controller.supervisor.episode_started_s,
+                controller.teacher_calls,core.frame.physics_tick,core.decision_count,env.total_decisions,
+                runtime.sim.step_count,backend._adapter.write_count,inner.nominal_provider.nominal_full12,
+                inner.nominal_provider._source_motion._tick_index,
+                tuple(layer["ticks"] for layer in inner.nominal_provider._continuous_layers))
+    state=read_state()
+    for _ in range(3):
+        task=controller.task_snapshot
+        assert task==expected
+        task["nominal_provider_diagnostics"]["p06_rolling_retirement"]["wheel_gain"]=123.
+        task["nominal_provider_diagnostics"]["p06_wheel_tail"]["status"]="not_a_real_status"
+        assert controller.task_snapshot==expected
+        assert inner.task_snapshot==expected
+    assert read_state()==state and controller.supervisor.snapshot==before
+
+    # Suggestion metadata is visible to log consumers but does not add or
+    # replace any actor feature, reset its derivative history, or advance time.
+    info_without=dict(core.frame.info)
+    info_without["semantic_task"]={key:value for key,value in expected.items()
+                                   if key!="nominal_provider_diagnostics"}
+    frame_without=replace(core.frame,info=info_without)
+    history=dict.fromkeys(HISTORY_GROUPS,ZERO12)
+    schema=core.observation_schema
+    with_diagnostics=SemanticObservationBuilder(schema).build(core.frame,history)
+    without_diagnostics=SemanticObservationBuilder(schema).build(frame_without,history)
+    assert schema.dimension==324
+    assert schema.encode(with_diagnostics.groups)==schema.encode(without_diagnostics.groups)
+    assert read_state()==state and controller.supervisor.snapshot==before
 
 
 @pytest.mark.parametrize("target",["P06","P07"])

@@ -26,6 +26,15 @@ def contract():
     return load_motion_contract(ROOT/'configs/recording_motion_contract.json')
 
 
+@pytest.fixture
+def old_finite_tail_spec():
+    """Explicit pre-tail-revision fixture; retain the measured retirement rule."""
+    spec=load_task_spec(SPEC)
+    spec['nominal'].pop('p06_wheel_tail_semantics',None)
+    assert spec['nominal']['p06_rolling_retirement']=='measured_workspace_interior_peak'
+    return spec
+
+
 def measured(stage='P06', *, tick=0, rl=-.2175, rr=None, lateral=True):
     obs=observation(tick)
     for joint in obs['joints'].values(): joint['command_deg']=0.
@@ -39,9 +48,13 @@ def measured(stage='P06', *, tick=0, rl=-.2175, rr=None, lateral=True):
     return {'stage_id':stage,'termination_reason':None,'physical_evaluator':ev},obs
 
 
-def provider(contract, *, enabled=True):
-    spec=load_task_spec(SPEC)
-    if not enabled: spec['nominal'].pop('p06_rolling_retirement')
+def provider(contract, *, enabled=True, spec=None):
+    spec=load_task_spec(SPEC) if spec is None else deepcopy(spec)
+    if not enabled:
+        # The new tail depends on retirement; disabling retirement selects the
+        # old finite-source contract, not an invalid half-enabled new mode.
+        spec['nominal'].pop('p06_wheel_tail_semantics',None)
+        spec['nominal'].pop('p06_rolling_retirement')
     return NominalMotionProvider(contract,spec=spec)
 
 
@@ -208,14 +221,14 @@ def test_phase_labels_alone_cannot_retire_an_existing_p06_layer(contract):
         assert diag(p)['measured_fraction']==0. and diag(p)['peak_fraction']==0.
 
 
-def test_old_config_behavior_and_finite_p06_zero_tail_preserved(contract):
-    old=provider(contract,enabled=False)
-    absent=load_task_spec(SPEC);absent['nominal']['p06_rolling_retirement']=None
+def test_old_config_behavior_and_finite_p06_zero_tail_preserved(contract,old_finite_tail_spec):
+    old=provider(contract,enabled=False,spec=old_finite_tail_spec)
+    absent=deepcopy(old_finite_tail_spec);absent['nominal']['p06_rolling_retirement']=None
     compatibility=NominalMotionProvider(contract,spec=absent)
     legacy=NominalMotionProvider(contract,spec=load_task_spec(DEFAULT_TASK_SPEC_PATH))
     assert not legacy.nominal_suggestion_diagnostics
     assert not old.nominal_suggestion_diagnostics
-    p=provider(contract)
+    p=provider(contract,spec=old_finite_tail_spec)
     for tick in range(3090):
         task,obs=measured(tick=tick,rl=-.3)
         assert old.evaluate(task,obs)==compatibility.evaluate(task,obs)

@@ -37,6 +37,7 @@ LIFT_CREDIT_MODE = "measured_air_process_current_top_gap"
 PREPARATION_CREDIT_MODE = "current_workspace_before_predecessor_placement"
 CAPTURE_RETENTION_MODE = "current_platform_region_after_placement"
 STOP_PROGRESS_MODE = "per_wheel_four_type_threshold_ratio_v1"
+P06_TAIL_MODE = "measured_workspace_retirement_after_finite_source"
 
 
 class SemanticObservationError(ValueError):
@@ -89,6 +90,43 @@ def _p06_retirement_bounds(spec: Mapping[str,Any]) -> tuple[float,float] | None:
     return lower,width
 
 
+def _p06_tail_enabled(spec: Mapping[str, Any]) -> bool:
+    mode = spec["nominal"].get("p06_wheel_tail_semantics")
+    if mode is None:
+        return False
+    if mode != P06_TAIL_MODE:
+        raise ValueError("unrecognized P06 wheel tail semantics")
+    if _p06_retirement_bounds(spec) is None:
+        raise ValueError("P06 wheel tail requires continuous measured workspace retirement")
+    return True
+
+
+def _verified_p06_rolling_source(contract: Any, expected: tuple[float, ...]) -> tuple[float, ...]:
+    """Bind the advisory extension to the frozen wheel-only source, not a pose gate."""
+    phase = contract.phase("P06")
+    rows = tuple(phase.waypoints)
+    if len(rows) != 3:
+        raise ValueError("P06 wheel tail requires the verified three-waypoint rolling source")
+    start = _vector(tuple(phase.start_full12), 12, "P06 source start")
+    end = _vector(tuple(phase.end_full12), 12, "P06 source end")
+    values = tuple(_vector(tuple(row.full12), 12, "P06 source waypoint") for row in rows)
+    times = tuple(_number(row.time_s, "P06 source time") for row in rows)
+    duration = _number(phase.active_duration_s, "P06 source duration")
+    if (values[0] != start or values[2] != end
+            or start[8:] != ZERO12[8:] or end[8:] != ZERO12[8:]
+            or any(value[:8] != start[:8] for value in values)
+            or values[1][8:] != expected or any(value <= 0. for value in expected)
+            or tuple(phase.active_channels) != WHEEL_ORDER
+            or tuple(row.kind for row in rows) != ("phase_entry", "reference_waypoint", "reference_waypoint")
+            or rows[0].changed_channels or rows[0].atomic_channels
+            or any(tuple(row.changed_channels) != WHEEL_ORDER or tuple(row.atomic_channels) != WHEEL_ORDER for row in rows[1:])
+            or times[:2] != (0., 0.) or duration <= 0. or times[2] <= 0.
+            or round(times[2] * contract.physics_hz) != round(duration * contract.physics_hz)
+            or round(duration * contract.physics_hz) < 1):
+        raise ValueError("P06 wheel tail source is not the verified positive rolling / zero endpoint structure")
+    return values[1][8:]
+
+
 def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
     with Path(path).open(encoding="utf-8") as stream:
         spec = yaml.safe_load(stream)
@@ -139,6 +177,7 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
             if _number(spec["final"][key], key) <= 0:
                 raise ValueError("continuous stop progress requires positive existing physical tolerances")
     _p06_retirement_bounds(spec)
+    _p06_tail_enabled(spec)
     if spec.get("lift_credit_semantics") not in (None,LIFT_CREDIT_MODE):
         raise ValueError("unrecognized lift credit semantics")
     if spec.get("lift_credit_semantics") == LIFT_CREDIT_MODE:
@@ -766,6 +805,14 @@ class NominalMotionProvider:
             servo_rate_limit_deg_s=self.servo_rate_limit_deg_s,initial_full12=self.nominal_full12)
         self._continuous_layers: list[dict[str,Any]] = []
         self._retirement_bounds=_p06_retirement_bounds(self.spec)
+        self._p06_tail_source = (_verified_p06_rolling_source(contract, self._approach_wheel_prior)
+                                if _p06_tail_enabled(self.spec) else None)
+        self._tail_diagnostic: dict[str, Any] = {
+            "schema": "wlr50_clean.p06_wheel_tail.v1", "enabled": self._p06_tail_source is not None,
+            "timing": "P06_layer_contribution_before_later_owners_and_slew_not_applied_target",
+            "source_rolling_rad_s": self._p06_tail_source, "layer_present": False,
+            "source_endpoint_issued": False, "finite_source_tail_replaced": False,
+            "wheel_gain": None, "status": "not_applicable_no_P06_layer"}
         self._retirement_diagnostic: dict[str,Any] = {
             "schema":"wlr50_clean.p06_rolling_retirement.v1",
             "timing":"current_nominal_suggestion_before_slew_not_applied_target",
@@ -777,8 +824,11 @@ class NominalMotionProvider:
 
     @property
     def nominal_suggestion_diagnostics(self) -> dict[str,Any]:
-        return ({"p06_rolling_retirement":dict(self._retirement_diagnostic)}
-                if self._retirement_bounds is not None else {})
+        result = ({"p06_rolling_retirement":dict(self._retirement_diagnostic)}
+                  if self._retirement_bounds is not None else {})
+        if self._p06_tail_source is not None:
+            result["p06_wheel_tail"] = dict(self._tail_diagnostic)
+        return result
 
     def _retirement_measurement(self, task: Mapping[str,Any], observation: Any) -> dict[str,Any] | None:
         if (self._retirement_bounds is None or (task["stage_id"]!="P06"
@@ -845,6 +895,9 @@ class NominalMotionProvider:
                 "touched":set(),"sample":None,"ticks":0})
         proposed=list(self.nominal_full12); tracking=set(self.tracking_servo_names)
         ev=task.get("physical_evaluator",{}); legs=ev.get("current_legs",{}); history=ev.get("history",{})
+        if self._p06_tail_source is not None:
+            self._tail_diagnostic.update(layer_present=False, source_endpoint_issued=False,
+                finite_source_tail_replaced=False, wheel_gain=None, status="not_applicable_no_P06_layer")
         for layer in self._continuous_layers:
             # A decreasing logical knee/hip angle is not a physical descent
             # predicate. Measured A uses these segments to carry an airborne
@@ -863,9 +916,22 @@ class NominalMotionProvider:
                 layer["rolling_retirement_peak"]=peak; gain=1.-peak
                 self._retirement_diagnostic.update(retirement,layer_present=True,
                     origin="current_live_P06_layer",peak_fraction=peak,wheel_gain=gain)
+            replace_tail = False
+            if self._p06_tail_source is not None and layer["stage"] == "P06":
+                live = (retirement is not None and retirement["status"] == "live_measured"
+                        and retirement["measured_fraction"] is not None and ev.get("valid") is True
+                        and task.get("termination_reason") is None and ev.get("termination_reason") is None)
+                replace_tail = live and sample.endpoint_issued and gain > 0.
+                self._tail_diagnostic.update(layer_present=True, source_endpoint_issued=sample.endpoint_issued,
+                    finite_source_tail_replaced=replace_tail, wheel_gain=gain,
+                    status=("terminal_no_tail" if not live else "retired" if gain == 0. else
+                            "live_endpoint_tail" if replace_tail else "finite_source_before_endpoint"))
             for i in layer["touched"]:
                 # Scale this owner's contribution, never later owners or residuals.
-                proposed[i]=sample.full12[i]*(gain if i>=8 else 1.)
+                # Keep layer.last/sample as the original source (including its
+                # zero endpoint); only this local owner's contribution changes.
+                source_value = self._p06_tail_source[i-8] if replace_tail and i>=8 else sample.full12[i]
+                proposed[i]=source_value*(gain if i>=8 else 1.)
                 if i<8:
                     if SERVO_ORDER[i] in sample.tracking_servo_names: tracking.add(SERVO_ORDER[i])
                     else: tracking.discard(SERVO_ORDER[i])
