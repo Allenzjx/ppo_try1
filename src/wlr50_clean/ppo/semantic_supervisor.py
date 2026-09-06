@@ -32,6 +32,7 @@ GOAL_FEATURE_KEYS = tuple(
 ) + ("support_count", "body_forward_m", "body_linear_speed_m_s",
      "body_angular_speed_rad_s", "maximum_wheel_speed_rad_s")
 ZERO12 = (0.0,) * 12
+P06_RETIREMENT_MODE = "measured_workspace_interior_peak"
 
 
 class SemanticObservationError(ValueError):
@@ -68,6 +69,22 @@ def _clip(value: float) -> float:
     return max(0.0, min(1.0, value))
 
 
+def _p06_retirement_bounds(spec: Mapping[str,Any]) -> tuple[float,float] | None:
+    mode=spec["nominal"].get("p06_rolling_retirement")
+    if mode is None: return None
+    if mode != P06_RETIREMENT_MODE:
+        raise ValueError("unrecognized P06 rolling retirement semantics")
+    if spec["nominal"].get("continuous_channel_inheritance") is not True:
+        raise ValueError("P06 retirement requires continuous layer ownership")
+    geo=spec["geometry"]
+    lower=_number(geo["workspace_min_m"],"workspace lower bound")
+    upper=_number(geo["workspace_max_m"],"workspace upper bound")
+    width=_number(geo["xy_measurement_tolerance_m"],"workspace blending width")
+    if not 0 < width < upper-lower:
+        raise ValueError("P06 retirement requires positive measurement width inside workspace")
+    return lower,width
+
+
 def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
     with Path(path).open(encoding="utf-8") as stream:
         spec = yaml.safe_load(stream)
@@ -92,6 +109,7 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
     if (spec["final"].get("stop_command_progress") is not None
             and _number(spec["final"]["maximum_commanded_wheel_speed_rad_s"], "stop command tolerance") <= 0):
         raise ValueError("command progress requires a positive existing physical stop tolerance")
+    _p06_retirement_bounds(spec)
     required = {"purpose", "valid_start_conditions", "goal_features", "completion_predicates",
                 "progress_potential", "allowed_action_channels", "physical_limits",
                 "stall_diagnostic", "maximum_task_duration", "next_phase", "active_leg"}
@@ -587,6 +605,52 @@ class NominalMotionProvider:
         self._source_motion=MotionExecutor(physics_hz=self.physics_hz,
             servo_rate_limit_deg_s=self.servo_rate_limit_deg_s,initial_full12=self.nominal_full12)
         self._continuous_layers: list[dict[str,Any]] = []
+        self._retirement_bounds=_p06_retirement_bounds(self.spec)
+        self._retirement_diagnostic: dict[str,Any] = {
+            "schema":"wlr50_clean.p06_rolling_retirement.v1",
+            "timing":"current_nominal_suggestion_before_slew_not_applied_target",
+            "enabled":self._retirement_bounds is not None,"layer_present":False,
+            "status":"not_applicable_no_P06_layer","origin":None,
+            "source_observation_tick":None,"source_sim_time_s":None,
+            "front_distance_rl_m":None,"front_distance_rr_m":None,
+            "lateral_valid":None,"measured_fraction":None,"peak_fraction":None,"wheel_gain":None}
+
+    @property
+    def nominal_suggestion_diagnostics(self) -> dict[str,Any]:
+        return ({"p06_rolling_retirement":dict(self._retirement_diagnostic)}
+                if self._retirement_bounds is not None else {})
+
+    def _retirement_measurement(self, task: Mapping[str,Any], observation: Any) -> dict[str,Any] | None:
+        if (self._retirement_bounds is None or (task["stage_id"]!="P06"
+                and not any(layer["stage"]=="P06" for layer in self._continuous_layers))):
+            return None
+        ev=task.get("physical_evaluator")
+        # Preserve the existing terminal path (including nonfinite failures).
+        # Terminal samples cannot earn retirement or masquerade as live inputs.
+        if task.get("termination_reason") is not None or (isinstance(ev,Mapping) and ev.get("termination_reason") is not None):
+            return {"status":"terminal_no_new_retirement","source_observation_tick":None,
+                    "source_sim_time_s":None,"measured_fraction":None,
+                    "front_distance_rl_m":None,"front_distance_rr_m":None,"lateral_valid":None}
+        if not isinstance(ev,Mapping) or ev.get("valid") is not True:
+            raise SemanticObservationError("P06 retirement requires a valid live evaluator")
+        tick=ev.get("physics_tick"); now=_number(ev.get("simulation_time_s"),"retirement source time")
+        if type(tick) is not int or tick<0 or not math.isclose(now,tick/self.physics_hz,rel_tol=0.,abs_tol=1e-9):
+            raise SemanticObservationError("P06 retirement source clock is invalid")
+        if observation is not None and (tick!=_get(observation,"physics_tick") or not math.isclose(
+                now,_number(_get(observation,"simulation_time_s"),"observation time"),rel_tol=0.,abs_tol=1e-9)):
+            raise SemanticObservationError("P06 retirement source differs from current observation")
+        legs=ev.get("current_legs")
+        if not isinstance(legs,Mapping) or any(not isinstance(legs.get(leg),Mapping) for leg in ("RL","RR")):
+            raise SemanticObservationError("P06 retirement lacks measured rear geometry")
+        distances=tuple(_number(legs[leg].get("front_distance_m"),f"{leg} front distance") for leg in ("RL","RR"))
+        lateral=tuple(legs[leg].get("within_lateral_span") for leg in ("RL","RR"))
+        if any(type(value) is not bool for value in lateral):
+            raise SemanticObservationError("P06 retirement requires measured lateral flags")
+        lower,width=self._retirement_bounds
+        fraction=_clip((min(distances)-lower)/width) if all(lateral) else 0.
+        return {"status":"live_measured","source_observation_tick":tick,"source_sim_time_s":now,
+                "front_distance_rl_m":distances[0],"front_distance_rr_m":distances[1],
+                "lateral_valid":all(lateral),"measured_fraction":fraction}
 
     @classmethod
     def from_handoff(cls, contract: Any, *, spec: Mapping[str,Any], stage_id: str,
@@ -604,7 +668,7 @@ class NominalMotionProvider:
         result._source_motion.start_phase(contract.phase(stage_id))
         return result
 
-    def _continuous_advisory(self, task: Mapping[str,Any]) -> tuple[tuple[float,...],tuple[str,...]]:
+    def _continuous_advisory(self, task: Mapping[str,Any], retirement: Mapping[str,Any] | None=None) -> tuple[tuple[float,...],tuple[str,...]]:
         """Continue unfinished predecessor suggestions; never restore an entry vector.
 
         Each layer owns only channels it actually changes, and newer changes
@@ -631,8 +695,17 @@ class NominalMotionProvider:
             sample=layer["motion"].tick(); layer["ticks"]+=1
             layer["touched"].update(i for i,(a,b) in enumerate(zip(sample.full12,layer["last"])) if abs(a-b)>1e-9)
             layer["last"]=sample.full12; layer["sample"]=sample
+            gain=1.
+            if layer["stage"]=="P06" and retirement is not None:
+                peak=layer.get("rolling_retirement_peak",0.)
+                if retirement["measured_fraction"] is not None:
+                    peak=max(peak,retirement["measured_fraction"])
+                layer["rolling_retirement_peak"]=peak; gain=1.-peak
+                self._retirement_diagnostic.update(retirement,layer_present=True,
+                    origin="current_live_P06_layer",peak_fraction=peak,wheel_gain=gain)
             for i in layer["touched"]:
-                proposed[i]=sample.full12[i]
+                # Scale this owner's contribution, never later owners or residuals.
+                proposed[i]=sample.full12[i]*(gain if i>=8 else 1.)
                 if i<8:
                     if SERVO_ORDER[i] in sample.tracking_servo_names: tracking.add(SERVO_ORDER[i])
                     else: tracking.discard(SERVO_ORDER[i])
@@ -664,6 +737,8 @@ class NominalMotionProvider:
 
     def evaluate(self, stage: str | Mapping[str,Any], observation: Any=None) -> tuple[float,...]:
         stage_id=stage if isinstance(stage,str) else str(stage["stage_id"])
+        # Validate before any layer/source clock, ownership or nominal mutation.
+        retirement=self._retirement_measurement(stage,observation) if isinstance(stage,Mapping) else None
         phase=self.contract.phase(stage_id)
         handoff=self.state_id is not None and self.state_id!=stage_id
         if self.state_id!=stage_id:
@@ -675,10 +750,11 @@ class NominalMotionProvider:
         self.endpoint_issued=source.endpoint_issued
         proposed_tracking=source.tracking_servo_names
         if isinstance(stage,Mapping) and self.spec["nominal"].get("continuous_channel_inheritance") is True:
-            proposed,proposed_tracking=self._continuous_advisory(stage)
+            proposed,proposed_tracking=self._continuous_advisory(stage,retirement)
         # The string-only test seam remains the unmodified finite advisory.
         # All feedback here is in the current task snapshot, with no timer,
-        # integral, hidden latch, historical posture or reference-force gate.
+        # historical posture or reference-force gate. The opted-in P06 layer
+        # separately retains its audited peak of measured workspace retirement.
         if stage_id=="P02" and isinstance(stage,Mapping) and self._approach_assist_required(stage):
             proposed=proposed[:8]+self._approach_wheel_prior
         if stage_id=="P13" and self.endpoint_issued:
@@ -723,6 +799,7 @@ class SemanticControllerAdapter:
             nominal_full12=nominal_full12,tracking_servo_names=tracking_servo_names)
         result=cls(spec,contract,supervisor=supervisor,nominal_provider=provider)
         result.physics_tick=physics_tick+1; result._last_time=sim_time_s
+        task=result.task_snapshot
         frame=ControllerFrame(physics_tick,sim_time_s,supervisor.stage_id,result.lifecycle,
             provider.nominal_full12,True,True,False,provider.tracking_servo_names,ZERO12,ZERO12,
             {"mode":"semantic_live_prefix_handoff","semantic_task":task},False,None,None,())
@@ -735,7 +812,10 @@ class SemanticControllerAdapter:
     @property
     def task_progress(self): return float(self.supervisor.snapshot.get("phase_progress",0.))
     @property
-    def task_snapshot(self): return self.supervisor.snapshot
+    def task_snapshot(self):
+        task=self.supervisor.snapshot
+        diagnostics=self.nominal_provider.nominal_suggestion_diagnostics
+        return {**task,"nominal_provider_diagnostics":diagnostics} if diagnostics else task
 
     def step(self, observation: Any, *, sim_time_s: float | None=None) -> ControllerFrame:
         now=self.physics_tick/120. if sim_time_s is None else float(sim_time_s)
@@ -744,6 +824,7 @@ class SemanticControllerAdapter:
         old_events=len(self.supervisor.transition_evidence)
         task=self.supervisor.observe_and_update(observation,sim_time_s=now)
         command=self.nominal_provider.evaluate(task,observation)
+        task=self.task_snapshot  # Copied current suggestion diagnostics, not applied ACKs.
         events=[]
         for row in self.supervisor.transition_evidence[old_events:]:
             event=ControllerEvent(now,row["from_stage"],Lifecycle.EXECUTE_MOTION.value,Lifecycle.DONE.value,row["reason"],row)

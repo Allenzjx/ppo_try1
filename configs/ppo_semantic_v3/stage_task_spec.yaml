@@ -3,7 +3,7 @@ rear_leg_order: RR_FIRST
 physics_hz: 120.0
 decision_hz: 15.0
 episode_maximum_duration_s: 200.0
-revision: continuous_whole_body_v3_reciprocal_command_finish_progress
+revision: continuous_whole_body_v3_p06_workspace_rolling_retirement
 potential_definition: global_physical_progress_v3
 history:
   crossing_evidence_semantics: qualified_air_pending_geometry
@@ -51,6 +51,8 @@ final:
   stable_duration_s: 0.5
 nominal:
   continuous_channel_inheritance: true
+  # Retire only P06's rolling contribution inside the existing workspace margin.
+  p06_rolling_retirement: measured_workspace_interior_peak
   rear_advisory_semantics: finite_continuous_suggestion_no_joint_sign_or_front_arrival_dispatch_gate
   source: configs/recording_motion_contract.json
   ownership: advisory_only_no_reference_entry_or_completion_veto
