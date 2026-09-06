@@ -70,6 +70,23 @@ def build_actuator_target_effect_audit(
         raise ActuatorTargetEffectError("audit requires one completed articulation dispatch")
     previous = _finite_values(previous_final_drive_servo_deg, 8, "previous final drive")
     native = _finite_values(raw_ack["native_drive_target_full12"], 12, "native drive")
+    geometry_keys = ("geometry_adjusted_native_full12", "nominal_geometry_adjustment_full12",
+                     "nominal_geometry_evidence")
+    geometry_enabled = any(key in raw_ack for key in geometry_keys)
+    corrected_native = native
+    if geometry_enabled:
+        if not all(key in raw_ack for key in geometry_keys):
+            raise ActuatorTargetEffectError("incomplete nominal geometry dispatch evidence")
+        corrected_native = _finite_values(raw_ack[geometry_keys[0]], 12, "geometry adjusted native")
+        adjustment = _finite_values(raw_ack[geometry_keys[1]], 12, "nominal geometry adjustment")
+        if adjustment != tuple(after-before for before, after in zip(native, corrected_native, strict=True)):
+            raise ActuatorTargetEffectError("nominal geometry adjustment differs from native targets")
+        changed_geometry = {i for i, (before, after) in enumerate(zip(native, corrected_native, strict=True))
+                            if before != after}
+        if not (changed_geometry <= {4, 5} or changed_geometry <= {6, 7}):
+            raise ActuatorTargetEffectError("nominal geometry changed channels outside one rear pair")
+        if not isinstance(raw_ack[geometry_keys[2]], Mapping):
+            raise ActuatorTargetEffectError("invalid nominal geometry evidence")
     controller_bias = _finite_values(actuation.controller_drive_bias_full12, 12, "controller bias")
     combined_bias = _finite_values(actuation.combined_post_mapper_bias_full12, 12, "combined bias")
     if _finite_values(raw_ack["drive_feedback_bias_requested_full12"], 12, "ack bias") != combined_bias:
@@ -78,13 +95,13 @@ def build_actuator_target_effect_audit(
     if maximum_delta != float(adapter.servo_target_mapper.maximum_delta_deg):
         raise ActuatorTargetEffectError("actual dispatch slew limit differs from the frozen mapper")
 
-    def physical_targets(bias: Sequence[float]) -> Any:
+    def physical_targets(bias: Sequence[float], native_targets: Sequence[float] = corrected_native) -> Any:
         servo = []
         for index, name in enumerate(SERVO_ORDER):
             lower, upper = servo_limits_deg(name)
             servo.append(bounded_drive_feedback_step(
                 previous_deg=previous[index],
-                native_deg=native[index],
+                native_deg=native_targets[index],
                 bias_deg=bias[index],
                 maximum_delta_deg=maximum_delta,
                 lower_deg=lower,
@@ -93,7 +110,7 @@ def build_actuator_target_effect_audit(
         # Full12Command owns hard wheel limits; build_physical_batch owns all
         # standing offsets, joint signs, and degree-to-radian conversion.
         command = Full12Command(
-            tuple(servo), tuple(native[index] + bias[index] for index in range(8, 12))
+            tuple(servo), tuple(native_targets[index] + bias[index] for index in range(8, 12))
         ).clamped()
         return build_physical_batch(command, adapter.standing_pose_deg)
 
@@ -154,7 +171,7 @@ def build_actuator_target_effect_audit(
             policy_request["raw_policy_action_full12"],
             policy_request["phase_mask_full12"],
         )
-    return {
+    result = {
         "schema": ACTUATOR_TARGET_EFFECT_SCHEMA,
         "verified": True,
         "source_phase_id": source_phase_id,
@@ -180,6 +197,26 @@ def build_actuator_target_effect_audit(
         "controller_drive_bias_full12": list(controller_bias),
         "combined_post_mapper_bias_full12": list(combined_bias),
     }
+    if geometry_enabled:
+        # Remove geometry only in this third, zero-current-policy branch.
+        # The existing actual-minus-counterfactual fields remain PPO-only.
+        raw_nominal_servo, raw_nominal_wheel = cast_targets(physical_targets(controller_bias, native))
+        geometry_changed = torch.cat((nominal_servo != raw_nominal_servo,
+                                      nominal_wheel != raw_nominal_wheel), dim=1)
+        geometry_channels = [bool(value) for value in geometry_changed.cpu().tolist()[0]]
+        result.update({
+            "geometry_adjusted_native_full12": list(corrected_native),
+            "nominal_geometry_adjustment_full12": list(adjustment),
+            "nominal_geometry_evidence": dict(raw_ack["nominal_geometry_evidence"]),
+            "raw_nominal_native_targets": record(raw_nominal_servo, raw_nominal_wheel),
+            "geometry_nominal_native_targets": record(nominal_servo, nominal_wheel),
+            "nominal_geometry_native_target_delta": record(nominal_servo-raw_nominal_servo,
+                                                            nominal_wheel-raw_nominal_wheel),
+            "nominal_geometry_changed_channels_full12": geometry_channels,
+            "nominal_geometry_changed_target_channel_count": sum(geometry_channels),
+            "nominal_geometry_counterfactual_scope": "same_pre_tick_state_zero_current_ppo_without_nominal_geometry",
+        })
+    return result
 
 
 def _finite_values(values: Sequence[float], size: int, label: str) -> tuple[float, ...]:

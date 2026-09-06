@@ -1,0 +1,266 @@
+"""Measured, nominal-only rear-leg pre-placement target adjustment.
+
+The fixed-base first-order model adjusts a nominal target, not the current PPO
+residual. It cannot guarantee the next physical displacement under contacts.
+The frozen mapper is advanced elsewhere exactly once; this module only reads.
+"""
+from __future__ import annotations
+
+import math
+from collections.abc import Mapping, Sequence
+from typing import Any
+
+from wlr50_clean.infrastructure.command_batch import (
+    SERVO_ORDER, SERVO_COMMAND_SIGN, WHEEL_ORDER, servo_limits_deg,
+)
+from wlr50_clean.infrastructure.robot_adapter import bounded_drive_feedback_step
+from wlr50_clean.sensing.geometry import WHEEL_JOINT_TO_BODY
+from .semantic_nominal_projection import project_nominal_downward
+
+MODE = "preplace_world_down_nominal_advisory_v1"
+CONTEXT_SCHEMA = "wlr50_clean.semantic_nominal_geometry_context.v1"
+EVIDENCE_SCHEMA = "wlr50_clean.semantic_nominal_geometry.v1"
+ACTIVE = {"P09": ("RR", (6, 7), 3), "P12": ("RL", (4, 5), 2)}
+
+
+class NominalGeometryError(ValueError):
+    """A required current-state measurement/target contract was not valid."""
+
+
+def _member(owner, name):
+    return owner.get(name) if isinstance(owner, Mapping) else getattr(owner, name, None)
+
+
+def _finite(values, length, label):
+    try:
+        row = tuple(float(v) for v in values)
+    except (TypeError, ValueError) as exc:
+        raise NominalGeometryError(f"invalid {label}") from exc
+    if len(row) != length or not all(math.isfinite(v) for v in row):
+        raise NominalGeometryError(f"nonfinite/wrong-size {label}")
+    return row
+
+
+def _close(a, b, tolerance, label):
+    if (len(a) != len(b) or not all(math.isfinite(v) for v in (*a, *b))
+            or max((abs(x-y) for x, y in zip(a, b)), default=0.) > tolerance):
+        raise NominalGeometryError(f"current-state mismatch: {label}")
+
+
+def _physical_deg_to_rad(adapter, index, value):
+    name = SERVO_ORDER[index]
+    return math.radians(float(adapter.standing_pose_deg[name]) + SERVO_COMMAND_SIGN[name] * value)
+
+
+def capture_nominal_geometry_context(*, adapter, observation, source_frame,
+                                     task_snapshot, clearance_margin_m, physics_tick):
+    """Read a same-state wheel-link Jacobian without a write, step or reset.
+
+    PhysX dense Jacobians are at each link COM in world axes:
+    https://nvidia-omniverse.github.io/PhysX/physx/5.6.1/docs/Articulations.html#jacobian
+    The existing sensor measures link-origin translation plus cached wheel
+    extents. Convert the COM Jacobian to that same link-origin point, without
+    changing the evaluator's collider geometry definition.
+    """
+    phase = str(_member(source_frame, "state_id"))
+    if phase not in ACTIVE:
+        return None
+    ev = task_snapshot.get("physical_evaluator", {})
+    if ev.get("valid") is not True or ev.get("termination_reason") is not None or task_snapshot.get("termination_reason") is not None:
+        return None
+    leg, indices, wheel_index = ACTIVE[phase]
+    current = ev.get("current_legs", {}).get(leg)
+    if not isinstance(current, Mapping):
+        raise NominalGeometryError("missing current rear-leg geometry")
+    for flag in ("within_top_xy", "ground_contact", "within_lateral_span"):
+        if type(current.get(flag)) is not bool:
+            raise NominalGeometryError(f"missing physical boolean: {flag}")
+    tick = _member(source_frame, "physics_tick")
+    obs_tick = _member(observation, "physics_tick")
+    now = _member(observation, "simulation_time_s")
+    if (type(tick) is not int or tick < 0 or tick != obs_tick
+            or type(physics_tick) is not int or physics_tick < tick
+            or not isinstance(now, (int, float)) or not math.isfinite(now)
+            or not math.isclose(now, tick/120., rel_tol=0., abs_tol=1e-8)
+            or not math.isclose(float(_member(source_frame, "sim_time_s")), now, rel_tol=0., abs_tol=1e-8)):
+        raise NominalGeometryError("nominal geometry observation/controller clock mismatch")
+    ev_time = ev.get("simulation_time_s")
+    if (type(ev.get("physics_tick")) is not int or ev["physics_tick"] != tick
+            or not isinstance(ev_time, (int, float)) or not math.isfinite(ev_time)
+            or not math.isclose(ev_time, now, rel_tol=0., abs_tol=1e-8)):
+        raise NominalGeometryError("nominal geometry physical evaluator clock mismatch")
+    # Never hold a previous peak pose on a new grounded attempt. The residual
+    # and the finite source sequence remain free to create the next live lift.
+    if current["within_top_xy"] or current["ground_contact"] or not current["within_lateral_span"]:
+        return None
+    clearance, margin = _finite((current["clearance_m"], clearance_margin_m), 2, "clearance")
+    if margin <= 0.:
+        raise NominalGeometryError("positive existing clearance margin required")
+
+    import torch
+    robot = adapter.robot
+    names = tuple(robot.body_names)
+    joint_names = tuple(robot.joint_names)
+    servo_ids = tuple(adapter.joint_map.servo_ids)
+    wheel_ids = tuple(adapter.joint_map.wheel_ids)
+    if len(servo_ids) != 8 or len(wheel_ids) != 4 or len(set(servo_ids + wheel_ids)) != 12:
+        raise NominalGeometryError("twelve distinct actuator DOFs required")
+    if any(type(j) is not int or not 0 <= j < len(joint_names) for j in servo_ids + wheel_ids):
+        raise NominalGeometryError("actuator DOF indices are outside this articulation")
+    if any(joint_names[j] != name for j, name in zip(servo_ids, SERVO_ORDER)):
+        raise NominalGeometryError("canonical servo/DOF mapping differs")
+    if any(joint_names[j] != name for j, name in zip(wheel_ids, WHEEL_ORDER)):
+        raise NominalGeometryError("canonical wheel/DOF mapping differs")
+    wheel_name = WHEEL_ORDER[wheel_index]
+    body_name = WHEEL_JOINT_TO_BODY[wheel_name]
+    if names.count(body_name) != 1:
+        raise NominalGeometryError("rear wheel body mapping is not unique")
+    body_index = names.index(body_name)
+    fixed = robot.is_fixed_base
+    if type(fixed) is not bool:
+        raise NominalGeometryError("explicit articulation fixed-base flag required")
+    body_row = body_index - int(fixed)
+    dof_offset = 0 if fixed else 6
+    columns = tuple(servo_ids[i] + dof_offset for i in indices)
+    data = robot.data
+
+    def tensor(value, shape, label):
+        if (not isinstance(value, torch.Tensor) or tuple(value.shape) != shape
+                or not value.is_floating_point() or not bool(torch.isfinite(value).all().item())):
+            raise NominalGeometryError(f"invalid current tensor: {label}")
+        return value
+
+    dof_count = len(joint_names)
+    q_all = tensor(data.joint_pos, (1, dof_count), "joint_pos")
+    qd_all = tensor(data.joint_vel, (1, dof_count), "joint_vel")
+    link_pos = tensor(data.body_link_pos_w, (1, len(names), 3), "body_link_pos_w")
+    com_pos = tensor(data.body_com_pos_w, (1, len(names), 3), "body_com_pos_w")
+    com_vel = tensor(data.body_com_vel_w, (1, len(names), 6), "body_com_vel_w")
+    link_vel = tensor(data.body_link_vel_w, (1, len(names), 6), "body_link_vel_w")
+    jac = tensor(robot.root_physx_view.get_jacobians(),
+                 (1, len(names)-int(fixed), 6, dof_count+dof_offset), "world_COM_jacobian")
+    if body_row < 0 or body_row >= jac.shape[1]:
+        raise NominalGeometryError("invalid wheel Jacobian row")
+    wheel = _member(observation, "wheels")[wheel_name]
+    measured_center = _finite(_member(wheel, "center_w_m"), 3, "measured wheel center")
+    measured_bottom = _finite(_member(wheel, "bottom_w_m"), 3, "measured wheel bottom")
+    if _member(wheel, "geometry_verified") is not True:
+        raise NominalGeometryError("unverified measured wheel geometry")
+    live_center = tuple(link_pos[0, body_index].detach().cpu().tolist())
+    _close(live_center, measured_center, 1e-6, "wheel link versus sensor center")
+    obstacle_top = float(_member(_member(observation, "obstacle"), "top_z_m"))
+    _close((clearance,), (measured_bottom[2]-obstacle_top,), 1e-8, "evaluator clearance")
+    q = tuple(q_all[0, [servo_ids[i] for i in indices]].detach().cpu().tolist())
+    observed_joints = _member(observation, "joints")
+    expected_q = tuple(_physical_deg_to_rad(adapter, i,
+                       float(_member(observed_joints[SERVO_ORDER[i]], "position_deg"))) for i in indices)
+    _close(q, expected_q, 1e-6, "physical q versus sensor canonical angles")
+
+    offset = link_pos[0, body_index] - com_pos[0, body_index]
+    j_com = jac[0, body_row]
+    # For each column: v_link = v_com + omega x (p_link-p_com).
+    j_link_linear = j_com[:3] + torch.cross(
+        j_com[3:].transpose(0, 1), offset.expand(j_com.shape[1], 3), dim=1).transpose(0, 1)
+    if fixed:
+        generalized_vel = qd_all[0]
+    else:
+        root_vel = tensor(data.root_com_vel_w, (1, 6), "root_com_vel_w")
+        generalized_vel = torch.cat((root_vel[0], qd_all[0]))
+    predicted_com = j_com @ generalized_vel
+    predicted_link = j_link_linear @ generalized_vel
+    com_error = float((predicted_com-com_vel[0, body_index]).abs().max().item())
+    link_error = float((predicted_link-link_vel[0, body_index, :3]).abs().max().item())
+    # ABI/reference-point consistency, not a task/clearance/success gate.
+    if max(com_error, link_error) > 1e-3:
+        raise NominalGeometryError("Jacobian does not match same-state COM/link velocities")
+    jx = tuple(j_link_linear[0, list(columns)].detach().cpu().tolist())
+    jz = tuple(j_link_linear[2, list(columns)].detach().cpu().tolist())
+    return {
+        "schema": CONTEXT_SCHEMA, "mode": MODE, "source_phase_id": phase,
+        "source_control_tick": tick, "dispatch_physics_tick": physics_tick,
+        "source_sim_time_s": now, "active_leg": leg,
+        "canonical_servo_indices": indices, "physical_q_rad": q,
+        "jacobian_x_m_per_rad": jx, "jacobian_z_m_per_rad": jz,
+        "clearance_m": clearance, "clearance_margin_m": margin,
+        "place_xy": False, "ground_contact": False,
+        "body_name": body_name, "body_index": body_index, "jacobian_body_row": body_row,
+        "physical_joint_ids": tuple(servo_ids[i] for i in indices),
+        "jacobian_joint_columns": columns, "fixed_base": fixed,
+        "link_minus_com_world_m": tuple(offset.detach().cpu().tolist()),
+        "COM_velocity_identity_max_error": com_error,
+        "link_velocity_identity_max_error_m_s": link_error,
+        "geometry_model": "existing_link_origin_plus_cached_world_extent",
+        "jacobian_model": "world_COM_shifted_to_measured_link_origin_fixed_base_joint_columns",
+        "physical_motion_guaranteed": False,
+    }
+
+
+def correct_nominal_geometry(*, adapter, native_full12, controller_bias_full12, context):
+    """Return adjusted native nominal and evidence; never consume current r."""
+    native = _finite(native_full12, 12, "raw native nominal")
+    bias = _finite(controller_bias_full12, 12, "bounded controller bias")
+    if not isinstance(context, Mapping) or context.get("schema") != CONTEXT_SCHEMA or context.get("mode") != MODE:
+        raise NominalGeometryError("versioned nominal geometry context required")
+    phase = context.get("source_phase_id")
+    if phase not in ACTIVE or tuple(context.get("canonical_servo_indices", ())) != ACTIVE[phase][1]:
+        raise NominalGeometryError("active leg/context index mismatch")
+    indices = ACTIVE[phase][1]
+    q = _finite(context["physical_q_rad"], 2, "current physical q")
+    if context.get("place_xy") is not False or context.get("ground_contact") is not False:
+        raise NominalGeometryError("ineligible context must bypass before mapper dispatch")
+    previous = tuple(float(adapter._final_drive_servo_deg[name]) for name in SERVO_ORDER)
+    maximum_delta = float(adapter.servo_target_mapper.maximum_delta_deg)
+    if not math.isfinite(maximum_delta) or maximum_delta <= 0.:
+        raise NominalGeometryError("invalid frozen final slew")
+    old_targets, lower_targets, upper_targets = [], [], []
+    for index in indices:
+        name = SERVO_ORDER[index]
+        lo, hi = servo_limits_deg(name)
+        target = bounded_drive_feedback_step(previous_deg=previous[index], native_deg=native[index],
+            bias_deg=bias[index], maximum_delta_deg=maximum_delta, lower_deg=lo, upper_deg=hi)
+        lower = max(lo, previous[index]-maximum_delta)
+        upper = min(hi, previous[index]+maximum_delta)
+        bounds = sorted((_physical_deg_to_rad(adapter, index, lower),
+                         _physical_deg_to_rad(adapter, index, upper)))
+        old_targets.append(_physical_deg_to_rad(adapter, index, target))
+        lower_targets.append(bounds[0]); upper_targets.append(bounds[1])
+    clearance, margin = _finite((context["clearance_m"], context["clearance_margin_m"]), 2, "clearance")
+    if margin <= 0.:
+        raise NominalGeometryError("invalid existing margin")
+    result = project_nominal_downward(
+        nominal_delta_rad=tuple(t-p for t,p in zip(old_targets,q)),
+        jacobian_x_m_per_rad=context["jacobian_x_m_per_rad"],
+        jacobian_z_m_per_rad=context["jacobian_z_m_per_rad"],
+        delta_lower_rad=tuple(t-p for t,p in zip(lower_targets,q)),
+        delta_upper_rad=tuple(t-p for t,p in zip(upper_targets,q)),
+        available_descent_m=max(0.,clearance-margin), place_xy=False)
+    adjusted = list(native)
+    status = result.status
+    desired = None
+    if not result.feasible:
+        # An honest non-guaranteeing fallback, not a new failure/reset or frozen pose.
+        status = "degraded_bypass_" + status
+    elif result.nominal_correction_rad != (0., 0.):
+        desired = []
+        for index, actual, delta in zip(indices, q, result.corrected_delta_rad):
+            name = SERVO_ORDER[index]
+            value = (math.degrees(actual+delta)-float(adapter.standing_pose_deg[name])) / SERVO_COMMAND_SIGN[name]
+            adjusted[index] = value-bias[index]
+            desired.append(value)
+        # Active-only inverse: desired-(m+c), not desired-old_bounded_nominal.
+        for index, value in zip(indices, desired):
+            lo, hi = servo_limits_deg(SERVO_ORDER[index])
+            reconstructed = bounded_drive_feedback_step(previous_deg=previous[index],
+                native_deg=adjusted[index], bias_deg=bias[index],
+                maximum_delta_deg=maximum_delta, lower_deg=lo, upper_deg=hi)
+            _close((value,), (reconstructed,), 1e-9, "adjusted zero-policy final nominal")
+    evidence = {
+        "schema": EVIDENCE_SCHEMA, "mode": MODE, "status": status,
+        "context": dict(context), "projection": dict(result.proof),
+        "old_zero_policy_physical_target_rad": old_targets,
+        "desired_zero_policy_canonical_target_deg": desired,
+        "nominal_geometry_adjustment_full12": [a-b for a,b in zip(adjusted,native)],
+        "current_policy_residual_used": False, "physical_motion_guaranteed": False,
+        "degraded_bypass_is_clearance_guarantee": False,
+    }
+    return tuple(adjusted), evidence

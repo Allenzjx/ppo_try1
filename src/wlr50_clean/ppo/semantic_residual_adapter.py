@@ -8,7 +8,7 @@ never steps physics, resets state, or adds a second articulation write.
 from __future__ import annotations
 
 import math
-from typing import Any, Sequence
+from typing import Any, Mapping, Sequence
 
 from wlr50_clean.infrastructure.command_batch import (
     FULL12_ORDER, SERVO_ORDER, WHEEL_VELOCITY_LIMIT_RAD_S, Full12Command,
@@ -24,7 +24,8 @@ from wlr50_clean.infrastructure.servo_target_mapper import ServoTargetMapperErro
 def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
                             physics_tick: int, tracking_servo_names: Sequence[str],
                             controller_bias_full12: Sequence[float],
-                            projected_residual_full12: Sequence[float]) -> dict[str, Any]:
+                            projected_residual_full12: Sequence[float],
+                            nominal_geometry_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Dispatch independent policy residual without treating it as tracking bias."""
     # Keep the original controller envelope, including for the exact-zero path.
     controller = _full12_drive_feedback_bias(controller_bias_full12)
@@ -43,7 +44,7 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
         # field as the TOTAL post-mapper offset, not the controller-only bias.
         "drive_feedback_bias_requested_semantics": "combined_controller_plus_independent_policy_residual",
     }
-    if not any(residual):
+    if not any(residual) and nominal_geometry_context is None:
         ack = adapter.apply_full12(command, physics_tick=physics_tick,
             tracking_servo_names=tracking_servo_names, drive_feedback_bias_full12=controller)
         ack.update(evidence)
@@ -52,6 +53,18 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
 
     requested = adapter._coerce_command(command)
     tick = adapter._validate_tick(physics_tick)
+    if nominal_geometry_context is not None:
+        if not isinstance(nominal_geometry_context, Mapping):
+            raise RobotAdapterError("nominal geometry context must be a mapping")
+        context_tick = nominal_geometry_context.get("dispatch_physics_tick")
+        if type(context_tick) is not int or context_tick != tick:
+            raise RobotAdapterError("nominal geometry context does not match the dispatch physics tick")
+        context_indices = nominal_geometry_context.get("canonical_servo_indices")
+        if (not isinstance(context_indices, (tuple, list))
+                or any(type(index) is not int for index in context_indices)
+                or tuple(context_indices) not in ((4, 5), (6, 7))):
+            raise RobotAdapterError("nominal geometry context must identify one ordered rear hip/knee pair")
+        geometry_indices = frozenset(context_indices)
     logical_applied = requested.clamped()
     measured = _row_values(_joint_matrix(adapter.robot, "joint_pos")[:, list(adapter.joint_map.servo_ids)])
     try:
@@ -60,8 +73,33 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
     except ServoTargetMapperError as exc:
         raise RobotAdapterError(f"invalid servo target mapping: {exc}") from exc
     native = mapping.applied_drive_command_deg
+    native_drive = Full12Command(native, logical_applied.wheel_rad_s)
+    corrected_native = native_drive.to_full12()
+    if nominal_geometry_context is not None:
+        from .semantic_nominal_geometry import correct_nominal_geometry
+
+        # The helper sees the unique real mapper result and the bounded
+        # controller correction, never this tick's raw/projected PPO action.
+        corrected, geometry_evidence = correct_nominal_geometry(
+            adapter=adapter, native_full12=native_drive.to_full12(),
+            controller_bias_full12=controller, context=nominal_geometry_context)
+        corrected_native = tuple(float(value) for value in corrected)
+        if len(corrected_native) != 12 or any(not math.isfinite(value) for value in corrected_native):
+            raise RobotAdapterError("nominal geometry must return twelve finite native targets")
+        changed = {index for index, (before, after) in enumerate(
+            zip(native_drive.to_full12(), corrected_native, strict=True)) if before != after}
+        if not changed <= geometry_indices:
+            raise RobotAdapterError("nominal geometry changed channels outside its declared rear hip/knee pair")
+        if not isinstance(geometry_evidence, Mapping):
+            raise RobotAdapterError("nominal geometry evidence must be a mapping")
+        evidence.update({
+            "geometry_adjusted_native_full12": list(corrected_native),
+            "nominal_geometry_adjustment_full12": [after-before for before, after in
+                zip(native_drive.to_full12(), corrected_native, strict=True)],
+            "nominal_geometry_evidence": dict(geometry_evidence),
+        })
     final_servo = []
-    for name, target, bias in zip(SERVO_ORDER, native, combined[:8], strict=True):
+    for name, target, bias in zip(SERVO_ORDER, corrected_native[:8], combined[:8], strict=True):
         lower, upper = servo_limits_deg(name)
         final_servo.append(bounded_drive_feedback_step(
             previous_deg=adapter._final_drive_servo_deg[name], native_deg=target,
@@ -69,9 +107,8 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
             lower_deg=lower, upper_deg=upper))
     final_wheels = tuple(max(-WHEEL_VELOCITY_LIMIT_RAD_S,
         min(WHEEL_VELOCITY_LIMIT_RAD_S, target + bias))
-        for target, bias in zip(logical_applied.wheel_rad_s, combined[8:], strict=True))
+        for target, bias in zip(corrected_native[8:], combined[8:], strict=True))
     drive = Full12Command(tuple(final_servo), final_wheels)
-    native_drive = Full12Command(native, logical_applied.wheel_rad_s)
     physical = build_physical_batch(drive, adapter.standing_pose_deg)
     positions = _clone_tensor(adapter._standing_servo_tensor)
     for index, value in enumerate(physical.servo_target_rad):
@@ -120,8 +157,9 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
 class SemanticActuationDispatch:
     """Per-call view retaining the existing backend's atomic ACK validation."""
 
-    def __init__(self, adapter: Any, plan: Any):
+    def __init__(self, adapter: Any, plan: Any, *, nominal_geometry_context: Mapping[str, Any] | None = None):
         self.adapter, self.plan = adapter, plan
+        self.nominal_geometry_context = nominal_geometry_context
 
     def __getattr__(self, name):
         return getattr(self.adapter, name)
@@ -133,4 +171,5 @@ class SemanticActuationDispatch:
         return apply_semantic_residual(self.adapter, command, physics_tick=physics_tick,
             tracking_servo_names=tracking_servo_names,
             controller_bias_full12=self.plan.controller_drive_bias_full12,
-            projected_residual_full12=self.plan.projected_residual_full12)
+            projected_residual_full12=self.plan.projected_residual_full12,
+            nominal_geometry_context=self.nominal_geometry_context)

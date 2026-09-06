@@ -27,6 +27,7 @@ from .observation_schema import NonFiniteObservationError, PPOObservationFrame
 from .ppo_env_adapter import AuthoritativeFrame
 from .reward_terms import RewardSignals
 from .termination import TerminationSignals
+from .semantic_nominal_geometry import MODE as NOMINAL_GEOMETRY_MODE
 
 CONFIG_ROOT = Path(__file__).resolve().parents[3] / "configs" / "ppo_semantic_v2"
 DEFAULT_EXECUTION_PROFILE = CONFIG_ROOT / "execution_profile.yaml"
@@ -38,6 +39,11 @@ def load_execution_profile(path: Path | str = DEFAULT_EXECUTION_PROFILE) -> dict
         raise ValueError("unexpected semantic execution profile")
     if (profile["physics_hz"], profile["decision_hz"], profile["episode_timeout_s"]) != (120, 15, 200):
         raise ValueError("semantic timing must remain 120/15 Hz and a 200 second task horizon")
+    if profile.get("nominal_geometry_advisory") not in (None, NOMINAL_GEOMETRY_MODE):
+        raise ValueError("unknown nominal geometry advisory version")
+    if (profile.get("nominal_geometry_advisory") is not None
+            and profile["residual"].get("composition") != "independent_post_mapper_residual.v1"):
+        raise ValueError("nominal geometry requires independent post-mapper residual composition")
     return profile
 
 
@@ -96,6 +102,13 @@ class SemanticIsaacBackend(IsaacFSMBackend):
             raise ValueError("unknown semantic residual composition")
         self._independent_policy_residual = composition is not None
         self.task_spec_path = Path(task_spec_path).resolve()
+        self._nominal_geometry_mode = self.execution_profile.get("nominal_geometry_advisory")
+        self._nominal_geometry_margin_m = None
+        if self._nominal_geometry_mode is not None:
+            task_spec = yaml.safe_load(self.task_spec_path.read_text(encoding="utf-8"))
+            self._nominal_geometry_margin_m = float(task_spec["geometry"]["airborne_clearance_above_top_m"])
+            if not math.isfinite(self._nominal_geometry_margin_m) or self._nominal_geometry_margin_m <= 0.:
+                raise ValueError("nominal geometry requires the existing positive physical clearance margin")
         self._semantic_controller_factory = controller_factory
         self._semantic_actuation_plan = None
         self._level_fixed = tuple(float(x) for x in self.execution_profile["level_reference_orientation_wxyz"])
@@ -209,7 +222,23 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         plan = self._semantic_actuation_plan
         if plan is not None:
             from .semantic_residual_adapter import SemanticActuationDispatch
-            adapter = SemanticActuationDispatch(adapter, plan)
+            geometry = None
+            if getattr(self, "_nominal_geometry_mode", None) is not None:
+                controller = self._controller
+                source = self._controller_frame
+                prefix_mode = getattr(controller, "mode", None)
+                handoff_tick = getattr(controller, "_handoff_tick", None)
+                # Frozen teacher, bias takeover and the exact receipt handoff
+                # stay untouched. READY continuation uses the same B/C path.
+                if ((prefix_mode is None or prefix_mode == "READY")
+                        and source.physics_tick != handoff_tick):
+                    from .semantic_nominal_geometry import capture_nominal_geometry_context
+                    geometry = capture_nominal_geometry_context(
+                        adapter=adapter, observation=self._raw_observation,
+                        source_frame=source, task_snapshot=controller.task_snapshot,
+                        clearance_margin_m=self._nominal_geometry_margin_m,
+                        physics_tick=physics_tick)
+            adapter = SemanticActuationDispatch(adapter, plan, nominal_geometry_context=geometry)
         return super()._atomic_apply(adapter, command, physics_tick=physics_tick,
             tracking_servo_names=tracking_servo_names,
             drive_feedback_bias_full12=drive_feedback_bias_full12)
