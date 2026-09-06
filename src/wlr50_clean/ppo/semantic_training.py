@@ -94,17 +94,20 @@ def state_hash(value: Any) -> str:
     return digest.hexdigest()
 
 
-def semantic_runner_config(*, seed: int, device: str = "cuda:0") -> dict[str, Any]:
+def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_version: str = "v2") -> dict[str, Any]:
+    if semantic_version not in ("v2", "v3"):
+        raise ValueError("unsupported semantic runtime version")
     # Same installed PPO/network hyperparameters; independent semantic identity.
     profile = SimpleNamespace(
         activation="elu", entropy_start=0.005, actor_hidden_dims=(256, 256),
         critic_hidden_dims=(256, 256), initial_action_std=0.15,
         rollout_length=ROLLOUT_LENGTH, update_epochs=5, num_minibatches=4,
         clip_ratio=0.20, gamma=0.995, lam=0.95, value_loss_coefficient=1.0,
-        learning_rate=0.0003, max_grad_norm=1.0, schedule="adaptive", target_kl=0.01,
+        learning_rate=0.00003 if semantic_version == "v3" else 0.0003,
+        max_grad_norm=1.0, schedule="adaptive", target_kl=0.01,
     )
     config = build_rsl_runner_config(profile, seed=seed, max_iterations=2000,
-                                     experiment_name="wlr50_semantic_residual_v2")
+                                     experiment_name=f"wlr50_semantic_residual_{semantic_version}")
     config["device"] = device
     # Preserve the existing fixed-schema normalization contract. Its identity
     # normalizer state is still included in model checkpoints and verified.
@@ -183,6 +186,8 @@ class SemanticRslAdapter:
                        "policy_decisions": int(self.episode_length_buf.item()),
                        "termination_reason": info.get("termination_reason"),
                        "task_success": info.get("task_success") is True,
+                       "task_outcome_label": info.get("task_outcome_label"),
+                       "full_task_success": info.get("full_task_success", info.get("task_success")) is True,
                        "duration_s": float(self.core.frame.sim_time_s),
                        "terminal_info": info}
             self.completed_episodes.append(summary)
@@ -203,7 +208,8 @@ class SemanticRslAdapter:
 
 def construct_semantic_runner(env: Any, *, seed: int, device: str) -> tuple[Any, dict[str, Any]]:
     assert_supported_rsl_runtime()
-    config = semantic_runner_config(seed=seed, device=device)
+    config = semantic_runner_config(seed=seed, device=device,
+                                    semantic_version=env.cfg.get("semantic_version", "v2"))
     runner = construct_runner(env, config, log_dir=None)
     runner.logger.writer = None  # No hidden upstream automatic checkpoint writes.
     initialize_zero_mean_actor(runner)
@@ -312,7 +318,12 @@ def save_semantic_checkpoint(runner: Any, checkpoint: Path, infos: Mapping[str, 
 
 
 def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping[str, Any], seed: int,
-                             migration: Mapping[str, Any] | None = None) -> dict[str, Any]:
+                             migration: Mapping[str, Any] | None = None,
+                             warm_start: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    if warm_start is not None:
+        if migration is not None:
+            raise ValueError("new-MDP warm start and exact resume migration are distinct operations")
+        return _load_v3_warm_start(runner, checkpoint, contract=contract, seed=seed, record=warm_start)
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
     metadata = json.loads(sidecar.read_text(encoding="utf-8"))
     expected_contract = dict(contract)
@@ -365,6 +376,94 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         "checkpoint": str(checkpoint.resolve()), "checkpoint_sha256": sha256_file(checkpoint),
         "manifest": str(sidecar.resolve()), "manifest_sha256": sha256_file(sidecar)}}
     return infos
+
+
+def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str, Any],
+                        seed: int, record: Mapping[str, Any]) -> dict[str, Any]:
+    """Reuse learned networks, explicitly discard old optimizer and rollout state."""
+    import torch
+    from .semantic_migration import build_v3_warm_start_record
+    verified = build_v3_warm_start_record(checkpoint, contract)
+    if verified != dict(record):
+        raise RuntimeError("new-MDP checkpoint/configuration binding changed after preflight")
+    storage = runner.alg.storage
+    if (tuple(storage.actions.shape) != (128, 1, 12)
+            or storage.observations["policy"].shape[-1] != 324
+            or storage.step != 0 or runner.alg.transition.actions is not None):
+        raise RuntimeError("v3 warm start requires fresh N1 324-observation/12-action rollout storage")
+    expected_config = semantic_runner_config(seed=seed, device=str(runner.device), semantic_version="v3")
+    # Official RSL 5.0.1 consumes these factory-only entries during construction.
+    for role in ("actor", "critic", "algorithm"):
+        if type(getattr(runner.alg, role, runner.alg)).__name__ != expected_config[role].pop("class_name"):
+            raise RuntimeError("v3 runner factory produced an unexpected official model/algorithm")
+    expected_config["actor"]["distribution_cfg"].pop("class_name")
+    expected_config["algorithm"].pop("share_cnn_encoders")
+    if runner.cfg != expected_config:
+        raise RuntimeError("v3 runner must use the explicit continuation configuration")
+    infos = dict(load_checkpoint_round_trip(runner, checkpoint))
+    from .semantic_migration import checkpoint_metadata
+    metadata = checkpoint_metadata(checkpoint)
+    if infos.get("seed") != seed or any(metadata.get(key) != value for key, value in infos.items()):
+        raise RuntimeError("v3 warm start source embedded metadata/seed differs from verified sidecar")
+    for key, actual in (("actor_parameter_sha256", parameter_hash(runner.alg.actor)),
+                        ("critic_parameter_sha256", parameter_hash(runner.alg.critic)),
+                        ("optimizer_state_sha256", state_hash(runner.alg.optimizer.state_dict())),
+                        ("normalizer_state_sha256", state_hash(_normalizers(runner)))):
+        if infos.get(key) != actual:
+            raise RuntimeError(f"v3 warm start failed source {key} verification")
+    if any(_normalizers(runner).values()):
+        raise RuntimeError("v3 continuation requires verified identity RSL normalizers")
+    # The temporary official restore above proves the saved state before this
+    # deliberate new-MDP reset. No old Adam moment is used by any optimizer step.
+    runner.alg.optimizer = torch.optim.Adam(
+        list(runner.alg.actor.parameters()) + list(runner.alg.critic.parameters()), lr=3e-5)
+    runner.alg.learning_rate = 3e-5
+    restore_training_rng_state(infos["training_rng_state"], expected_seed=seed)
+    sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
+    return {**infos, "semantic_version": "v3", "new_mdp_warm_start": dict(record),
+            "source_stage_requested_decisions": dict(infos.get("stage_requested_decisions", {})),
+            "stage_requested_decisions": {stage: 0 for stage in STAGE_BUDGETS},
+            "new_mdp_origin_global_policy_decisions": int(infos["global_policy_decisions"]),
+            "resume_source_checkpoint": {"checkpoint": str(checkpoint.resolve()),
+                "checkpoint_sha256": sha256_file(checkpoint), "manifest": str(sidecar.resolve()),
+                "manifest_sha256": sha256_file(sidecar)}}
+
+
+def compare_warm_start_action(runner: Any, env: Any, *, old_execution_profile: Path,
+                              new_execution_profile: Path) -> dict[str, Any]:
+    """Same current reset observation/nominal, fresh zero-history projectors only."""
+    import torch
+    from .semantic_backend import build_semantic_projector
+    observations = env.get_observations().to(runner.device)
+    frame = env.core.frame
+    actor_training = runner.alg.actor.training
+    try:
+        runner.alg.actor.eval()
+        with torch.inference_mode():
+            raw = tuple(float(x) for x in runner.alg.actor(observations, stochastic_output=False)[0].cpu().tolist())
+    finally:
+        runner.alg.actor.train(actor_training)
+    nominal = tuple(frame.nominal_action_full12)
+    results = {}
+    fields = ("bounded_residual_full12", "scaled_residual_full12", "masked_residual_full12",
+              "rate_projected_residual_full12", "safe_projected_residual_full12", "applied_action_full12")
+    for name, path in (("old", old_execution_profile), ("new", new_execution_profile)):
+        result = build_semantic_projector(path).project(raw, state_id=frame.state_id,
+            nominal_action_full12=nominal, reference_action_full12=nominal,
+            reference_delta_full12=(0.0,) * 12, previous_projected_residual_full12=(0.0,) * 12,
+            runtime_action_mask_full12=frame.action_mask_full12, safety=frame.safety_projection, dt_s=1/120)
+        results[name] = {"execution_profile": str(path.resolve()), "sha256": sha256_file(path),
+                         **{field: list(getattr(result, field)) for field in fields}}
+    return {"schema": "wlr50_clean.semantic_new_mdp_same_state_action_comparison.v1",
+            "phase_id": frame.state_id, "physics_tick": frame.physics_tick, "sim_time_s": frame.sim_time_s,
+            "observation_sha256": state_hash(observations["policy"]),
+            "observation_dimension": int(observations["policy"].shape[-1]),
+            "raw_deterministic_actor_mean_full12": list(raw), "nominal_action_full12": list(nominal),
+            "previous_residual_full12": [0.0] * 12, "projection_dt_s": 1/120, **results,
+            "new_minus_old": {field: [a-b for a, b in zip(results["new"][field], results["old"][field])]
+                              for field in fields},
+            "scope": "same-state logical output/projected target, not native dispatch or subsequent trajectory",
+            "actual_environment_or_bridge_history_modified": False, "optimizer_updates": 0}
 
 
 def build_stop_request(run_dir: Path, source_git_commit: str, reason: str) -> dict[str, Any]:
@@ -431,6 +530,9 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     if checkpoint_interval_updates < 1:
         raise ValueError("checkpoint cadence must be positive")
     previous = dict(resume_infos or {})
+    sampling = jsonable(env.cfg.get("reset_sampling", "P01_only"))
+    prefix_request = jsonable(env.cfg.get("prefix_request"))
+    semantic_version = env.cfg.get("semantic_version", "v2")
     stage_spent = {name: int(previous.get("stage_requested_decisions", {}).get(name, 0)) for name in STAGE_BUDGETS}
     if stage_spent[stage] + decisions > STAGE_BUDGETS[stage]:
         raise ValueError("additional request exceeds the remaining semantic stage budget")
@@ -456,6 +558,9 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
         for iteration in range(iterations):
             with torch.inference_mode():
                 for tick in range(int(runner.cfg["num_steps_per_env"])):
+                    if (jsonable(env.cfg.get("reset_sampling", "P01_only")) != sampling
+                            or jsonable(env.cfg.get("prefix_request")) != prefix_request):
+                        raise RuntimeError("curriculum must remain fixed throughout this on-policy epoch")
                     raw = runner.alg.act(obs)
                     sampled_raw = raw.detach().clone()
                     old_log_prob = runner.alg.transition.actions_log_prob.detach().clone()
@@ -509,14 +614,24 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                 from .semantic_migration import topology
                 infos = {"runtime_contract": dict(contract), "seed": seed, "stage": stage,
                          "execution_topology": topology(env.num_envs),
-                         "phase_suffix_curriculum_implemented": False,
+                         "phase_suffix_curriculum_implemented": prefix_request is not None,
+                         "semantic_version": semantic_version,
+                         "curriculum_epoch": {"reset_sampling": sampling, "prefix_request": prefix_request,
+                                              "changes_allowed_only_between_complete_rollout_updates": True},
                          "implemented_reset_sampling": env.cfg.get("reset_sampling", "P01_only"),
                          "vector_smoke_evidence": env.cfg.get("vector_smoke_evidence"),
                          "global_policy_decisions": global_step, "ppo_updates": base_updates + iteration + 1,
                          "optimizer_steps": base_optimizer + sum(row["optimizer_steps"] for row in updates),
                          "stage_requested_decisions": spent, "source_run": str(run_dir.resolve()),
-                         "sampling": env.cfg.get("reset_sampling", "P01_only"), "runner_config": semantic_runner_config(seed=seed, device=str(runner.device)),
+                         "sampling": sampling, "runner_config": semantic_runner_config(seed=seed, device=str(runner.device), semantic_version=semantic_version),
                          "last_update": update}
+                if semantic_version == "v3":
+                    from .semantic_migration import continuation_topology
+                    infos["execution_topology"] = continuation_topology(sampling, prefix_request)
+                for key in ("new_mdp_warm_start", "new_mdp_origin_global_policy_decisions", "source_stage_requested_decisions",
+                            "new_mdp_initial_action_comparison"):
+                    if key in previous:
+                        infos[key] = previous[key]
                 if previous:
                     infos["resume_ancestry"] = {
                         "source_global_policy_decisions": base_global, "source_ppo_updates": base_updates,
@@ -548,7 +663,9 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
               "runtime_contract": dict(contract), "checkpoints": checkpoints, "training_success_is_not_task_success": True}
     result["lifecycle"] = "STOPPED_AT_VERIFIED_UPDATE_BOUNDARY" if stop_record is not None else "SUCCEEDED"
     result["stop_after_update"] = stop_record
-    result["phase_suffix_curriculum_implemented"] = False
+    result["phase_suffix_curriculum_implemented"] = prefix_request is not None
+    result["semantic_version"] = semantic_version
+    result["curriculum_epoch"] = {"reset_sampling": sampling, "prefix_request": prefix_request}
     result["implemented_sampling"] = env.cfg.get("reset_sampling", "P01_only")
     if gpu_probe is not None:
         gpu_probe.sample("after_training_and_verified_checkpoint")

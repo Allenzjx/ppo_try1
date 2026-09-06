@@ -1,0 +1,180 @@
+schema: wlr50_clean.semantic_stage_task_spec.v2
+rear_leg_order: RR_FIRST
+physics_hz: 120.0
+decision_hz: 15.0
+episode_maximum_duration_s: 200.0
+revision: continuous_whole_body_v3
+potential_definition: global_physical_progress_v3
+history:
+  lift_motion_evidence: whole_body_actuation
+  minimum_initial_clearance_gain_m: 0.003
+  minimum_command_motion_deg: 0.1
+  minimum_gravity_direction_change: 0.02
+  window_s: 0.5
+  minimum_lift_gain_m: 0.008
+  minimum_joint_motion_deg: 2.0
+  minimum_air_samples: 2
+  minimum_top_samples: 2
+  near_front_min_m: -0.40
+  near_front_max_m: 0.15
+geometry:
+  workspace_min_m: -0.22
+  workspace_max_m: 0.06
+  approach_min_m: -0.005
+  approach_max_m: 0.10
+  airborne_clearance_above_top_m: 0.015
+  top_gap_min_m: -0.015
+  top_gap_max_m: 0.025
+  xy_measurement_tolerance_m: 0.005
+support:
+  minimum_other_supports: 2
+  force_noise_floor_n: 0.2
+  unloaded_leg_maximum_load_fraction: 0.20
+final:
+  region: obstacle_top_after_front_plane
+  minimum_rear_wheel_forward_m: 0.02
+  minimum_body_forward_m: 0.15
+  home_servo_pose_deg: [0, 0, 0, 0, 0, 0, 0, 0]
+  home_tolerance_deg: 8.0
+  maximum_wheel_speed_rad_s: 0.25
+  # About 1 mm/s circumferential speed for the frozen 50 mm-radius wheels;
+  # this is a physical stop tolerance, not an exact-zero actor requirement.
+  maximum_commanded_wheel_speed_rad_s: 0.02
+  maximum_body_linear_speed_m_s: 0.05
+  maximum_body_angular_speed_rad_s: 0.30
+  stable_duration_s: 0.5
+nominal:
+  continuous_channel_inheritance: true
+  rear_descent_release: current_front_capture_geometry_not_nominal_clock
+  source: configs/recording_motion_contract.json
+  ownership: advisory_only_no_reference_entry_or_completion_veto
+  handoff: persistent_nominal_slew_toward_advisory_targets_without_anchor_reset
+  servo_handoff_rate_deg_s: 150.0
+  wheel_handoff_rate_rad_s2: 3.0
+  approach_wheel_prior_rad_s: [0.3, 0.3, 0.3, 0.3]
+  approach_wheel_prior_source: P01
+  approach_wheel_prior_scope: P02_current_physical_goal_feedback_only
+  nominal_tail: finite_home_advisory_with_residual_enabled_until_task_deadline
+stage_defaults: &stage_defaults
+  allowed_action_channels: [front_left_hip, front_left_knee, front_right_hip, front_right_knee, rear_left_hip, rear_left_knee, rear_right_hip, rear_right_knee, front_left_ankle, front_right_ankle, rear_left_ankle, rear_right_ankle]
+  physical_limits: frozen_full12_hard_limits_and_authoritative_live_safety
+  stall_diagnostic: {window_s: 6.0, minimum_potential_change: 0.01, terminates: false}
+  progress_potential: mean_of_current_physical_goal_features
+stages:
+  P01:
+    <<: *stage_defaults
+    purpose: Prepare FR support and load transfer
+    valid_start_conditions: [physical_valid]
+    goal_features: [load_ready_FR]
+    completion_predicates: [load_ready_FR]
+    active_leg: FR
+    maximum_task_duration: 30.0
+    next_phase: P02
+  P02:
+    <<: *stage_defaults
+    purpose: Lift FR with clearance and approach
+    valid_start_conditions: [physical_valid]
+    goal_features: [lifted_FR, clear_FR, approach_FR]
+    completion_predicates: [lifted_FR, clear_FR, approach_FR]
+    active_leg: FR
+    maximum_task_duration: 15.0
+    next_phase: P03
+  P03:
+    <<: *stage_defaults
+    purpose: Actively cross and place FR
+    valid_start_conditions: [physical_valid, lifted_FR]
+    goal_features: [placed_FR]
+    completion_predicates: [placed_FR]
+    active_leg: FR
+    maximum_task_duration: 20.0
+    next_phase: P04
+  P04:
+    <<: *stage_defaults
+    purpose: Create FL workspace and usable support
+    valid_start_conditions: [physical_valid, placed_FR]
+    goal_features: [workspace_FL, support_FL]
+    completion_predicates: [workspace_FL, support_FL]
+    active_leg: FL
+    maximum_task_duration: 20.0
+    next_phase: P05
+  P05:
+    <<: *stage_defaults
+    purpose: Actively lift cross and place FL
+    valid_start_conditions: [physical_valid, placed_FR]
+    goal_features: [placed_FL]
+    completion_predicates: [placed_FL]
+    active_leg: FL
+    maximum_task_duration: 30.0
+    next_phase: P06
+  P06:
+    <<: *stage_defaults
+    purpose: Advance front pair to rear-leg operating region
+    valid_start_conditions: [physical_valid, placed_FR, placed_FL]
+    goal_features: [rear_approach]
+    completion_predicates: [rear_approach]
+    active_leg: RR
+    maximum_task_duration: 40.0
+    next_phase: P07
+  P07:
+    <<: *stage_defaults
+    purpose: Establish a feasible rear-task geometry
+    valid_start_conditions: [physical_valid, placed_FR, placed_FL]
+    goal_features: [workspace_RR, workspace_RL, support_RR]
+    completion_predicates: [workspace_RR, workspace_RL, support_RR]
+    active_leg: RR
+    maximum_task_duration: 15.0
+    next_phase: P08
+  P08:
+    <<: *stage_defaults
+    purpose: Transfer load to permit RR lift
+    valid_start_conditions: [physical_valid, placed_FR, placed_FL]
+    goal_features: [workspace_RR, load_ready_RR]
+    completion_predicates: [workspace_RR, load_ready_RR]
+    active_leg: RR
+    maximum_task_duration: 20.0
+    next_phase: P09
+  P09:
+    <<: *stage_defaults
+    purpose: Actively lift cross and place RR first
+    valid_start_conditions: [physical_valid, placed_FR, placed_FL]
+    goal_features: [placed_RR]
+    completion_predicates: [placed_RR]
+    active_leg: RR
+    maximum_task_duration: 30.0
+    next_phase: P10
+  P10:
+    <<: *stage_defaults
+    purpose: Create RL workspace after actual RR placement
+    valid_start_conditions: [physical_valid, placed_FR, placed_FL, placed_RR]
+    goal_features: [workspace_RL, support_RL]
+    completion_predicates: [workspace_RL, support_RL]
+    active_leg: RL
+    maximum_task_duration: 20.0
+    next_phase: P11
+  P11:
+    <<: *stage_defaults
+    purpose: Transfer load to permit RL lift
+    valid_start_conditions: [physical_valid, placed_FR, placed_FL, placed_RR]
+    goal_features: [workspace_RL, load_ready_RL]
+    completion_predicates: [workspace_RL, load_ready_RL]
+    active_leg: RL
+    maximum_task_duration: 20.0
+    next_phase: P12
+  P12:
+    <<: *stage_defaults
+    purpose: Actively lift cross and place RL second
+    valid_start_conditions: [physical_valid, placed_RR]
+    goal_features: [placed_RL]
+    completion_predicates: [placed_RL]
+    active_leg: RL
+    maximum_task_duration: 30.0
+    next_phase: P13
+  P13:
+    <<: *stage_defaults
+    purpose: Complete whole-body traversal and controlled home stop
+    valid_start_conditions: [physical_valid, placed_FR, placed_FL, placed_RR, placed_RL]
+    goal_features: [whole_task_success]
+    completion_predicates: [whole_task_success]
+    active_leg: RL
+    maximum_task_duration: 60.0
+    next_phase: SUCCESS

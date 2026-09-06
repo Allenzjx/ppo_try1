@@ -50,10 +50,27 @@ def build_semantic_projector(path: Path | str = DEFAULT_EXECUTION_PROFILE) -> Ac
     fractions = tuple(cap / span for cap, span in zip(caps, base.physical_residual_scale_full12, strict=True))
     if any(x > 1 for x in fractions):
         raise ValueError("residual cap exceeds physical actuator span")
+    phase_fractions = {phase: fractions for phase in PHASE_IDS}
+    if "phase_caps_full12" in values:
+        configured = values["phase_caps_full12"]
+        if tuple(configured) != PHASE_IDS:
+            raise ValueError("phase caps must contain ordered P01-P13")
+        previous = None
+        for phase in PHASE_IDS:
+            row = tuple(float(x) for x in configured[phase])
+            if len(row)!=12 or any(not math.isfinite(x) or x<=0 for x in row):
+                raise ValueError("phase/channel ranges must contain twelve finite positive values")
+            if previous is not None and any(a<b for a,b in zip(row,previous)):
+                raise ValueError("this range version cannot shrink feasible residual history at phase handoff")
+            fractions = tuple(a/b for a,b in zip(row,base.physical_residual_scale_full12))
+            if any(x>1 for x in fractions):
+                raise ValueError("phase residual cap exceeds actuator span")
+            phase_fractions[phase] = fractions
+            previous = row
     config = replace(
         base, action_schema_name="wlr50_clean.semantic_residual_full12",
         action_schema_version=1, training_enabled=True, path=Path(path).resolve(),
-        phase_scale_full12={phase: fractions for phase in PHASE_IDS},
+        phase_scale_full12=phase_fractions,
         phase_mask_full12={phase: (1,) * 12 for phase in PHASE_IDS},
         servo_residual_rate_deg_s=float(values["servo_rate_deg_s"]),
         wheel_residual_rate_rad_s2=float(values["wheel_rate_rad_s2"]),
@@ -68,10 +85,12 @@ class SemanticIsaacBackend(IsaacFSMBackend):
     """Task-semantic runtime chosen before the first control frame."""
 
     def __init__(self, simulation_app: Any = None, *, execution_profile: Path | str = DEFAULT_EXECUTION_PROFILE,
+                 task_spec_path: Path | str = CONFIG_ROOT / "stage_task_spec.yaml",
                  controller_factory: Any = None, **kwargs: Any) -> None:
         super().__init__(simulation_app, **kwargs)
         self.execution_profile_path = Path(execution_profile).resolve()
         self.execution_profile = load_execution_profile(execution_profile)
+        self.task_spec_path = Path(task_spec_path).resolve()
         self._semantic_controller_factory = controller_factory
         self._level_fixed = tuple(float(x) for x in self.execution_profile["level_reference_orientation_wxyz"])
 
@@ -120,7 +139,7 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                 from .semantic_supervisor import SemanticControllerAdapter
                 controller = SemanticControllerAdapter.from_paths(
                     self.fsm_path, self.motion_contract_path,
-                    task_spec_path=CONFIG_ROOT / "stage_task_spec.yaml",
+                    task_spec_path=self.task_spec_path,
                 )
             else:
                 controller = self._semantic_controller_factory(self.fsm_path, self.motion_contract_path)
@@ -141,7 +160,7 @@ class SemanticIsaacBackend(IsaacFSMBackend):
             self._reset_metadata.update({
                 "execution_mode": "semantic_B_or_C", "supervisor_schema": "task_semantic_v2",
                 "controller_hash": _sha256_file(Path(__file__).with_name("semantic_supervisor.py")),
-                "stage_task_spec_hash": _sha256_file(CONFIG_ROOT / "stage_task_spec.yaml"),
+                "stage_task_spec_hash": _sha256_file(self.task_spec_path),
                 "execution_profile_hash": _sha256_file(self.execution_profile_path),
                 "effective_phase_entry_semantics": "current_physical_validity_no_reference_entry_gate",
                 "level_calibration_window_s": 0.0, "level_calibration_sample_count": 0,

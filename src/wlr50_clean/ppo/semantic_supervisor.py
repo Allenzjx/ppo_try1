@@ -78,6 +78,10 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
         raise ValueError("semantic timing must remain 120/15 Hz")
     if not 0 < float(spec["episode_maximum_duration_s"]) <= 200:
         raise ValueError("semantic task horizon must be at most 200 seconds")
+    if spec["history"].get("lift_motion_evidence") not in (None,"whole_body_actuation"):
+        raise ValueError("unrecognized lift evidence semantics")
+    if spec.get("potential_definition") not in (None,"global_physical_progress_v3"):
+        raise ValueError("unrecognized global potential semantics")
     required = {"purpose", "valid_start_conditions", "goal_features", "completion_predicates",
                 "progress_potential", "allowed_action_channels", "physical_limits",
                 "stall_diagnostic", "maximum_task_duration", "next_phase", "active_leg"}
@@ -112,8 +116,9 @@ class TaskEvaluator:
     Initializing this class does not import snapshot success latches. Curriculum
     history must be established by real prefix observations; no history setter
     is exposed. Invalid geometry/contact cannot be replaced by knee numbers.
-    The existing observable active_lift bits require measured upward/joint
-    motion in AIR that reaches above the obstacle top. They are current
+    V2 uses own-leg motion; explicit v3 uses measured whole-body actuation and
+    distinguishes initial clearance from AIR above the obstacle top. The
+    existing observable active_lift bits are current
     uninterrupted crossing qualifications until crossing, then completed lift
     history. Ground contact before crossing revokes qualification, not evidence.
     """
@@ -126,6 +131,8 @@ class TaskEvaluator:
         self._samples = {leg: deque() for leg in LEG_ORDER}
         self._air_count = dict.fromkeys(LEG_ORDER, 0)
         self._top_count = dict.fromkeys(LEG_ORDER, 0)
+        self._initial_clearance = dict.fromkeys(LEG_ORDER, False)
+        self._obstacle_before_clearance = dict.fromkeys(LEG_ORDER, False)
         self._history = {key: dict.fromkeys(LEG_ORDER, False) for key in ("active_lift", "front_edge_crossed", "placed")}
         self._event_ticks = {key: {} for key in self._history}
         self._lift_attempt_events: list[dict[str, Any]] = []
@@ -217,10 +224,22 @@ class TaskEvaluator:
                     self._history["active_lift"][leg] = False
                     self._lift_attempt_events.append({"leg": leg, "event": "qualification_revoked_ground_before_cross",
                         "physics_tick": tick, "simulation_time_s": now})
-                # A later lift must earn new upward/joint evidence, not reuse
+                # A later lift must earn new upward/actuation evidence, not reuse
                 # the old hop still present in the half-second window.
                 samples.clear()
-            samples.append((now, bottom[2], positions[SERVO_ORDER[index*2]], positions[SERVO_ORDER[index*2+1]], air))
+            whole_body = hist_cfg.get("lift_motion_evidence") == "whole_body_actuation"
+            if whole_body:
+                joint_targets = tuple(_number(_get(joints[name], "command_deg"), f"{name} command") for name in SERVO_ORDER)
+                wheel_targets = tuple(_number(_get(wheels[name], "command_rad_s"), f"{name} command") for name in WHEEL_ORDER)
+                if ground_active and not self._history["front_edge_crossed"][leg]:
+                    self._initial_clearance[leg] = False
+                    self._obstacle_before_clearance[leg] = bool(top_active)
+                elif top_active and not self._initial_clearance[leg]:
+                    self._obstacle_before_clearance[leg] = True
+            else:
+                joint_targets, wheel_targets = (), ()
+            samples.append((now, bottom[2], positions[SERVO_ORDER[index*2]], positions[SERVO_ORDER[index*2+1]], air,
+                            tuple(positions.values()), joint_targets, gravity, wheel_targets))
             while len(samples) > 1 and now - samples[0][0] > hist_cfg["window_s"]:
                 samples.popleft()
             minimum_so_far = samples[0][1]; gain = 0.
@@ -229,10 +248,36 @@ class TaskEvaluator:
                 minimum_so_far = min(minimum_so_far, sample[1])
             movement = sum(abs(b[j]-a[j]) for a,b in zip(samples, list(samples)[1:]) for j in (2,3))
             distance = center[0] - front
+            all_joint_motion = sum(sum(abs(x-y) for x,y in zip(a[5],b[5])) for a,b in zip(samples,list(samples)[1:]))
+            command_motion = (sum(sum(abs(x-y) for x,y in zip(a[6],b[6])) for a,b in zip(samples,list(samples)[1:]))
+                              if whole_body else 0.)
+            gravity_motion = _norm(tuple(a-b for a,b in zip(samples[-1][7],samples[0][7])))
+            commanded_effort = whole_body and (command_motion >= hist_cfg.get("minimum_command_motion_deg", .1)
+                or max(abs(a-b) for a,b in zip(joint_targets, positions.values())) >= .5
+                or max(map(abs,wheel_targets)) >= .02)
+            motion_evidence = movement >= hist_cfg["minimum_joint_motion_deg"]
+            if whole_body:
+                motion_evidence = bool(commanded_effort and (all_joint_motion >= hist_cfg["minimum_joint_motion_deg"]
+                    or gravity_motion >= hist_cfg.get("minimum_gravity_direction_change", .02)))
+                if (self._failure is None and air and self._air_count[leg] >= hist_cfg["minimum_air_samples"]
+                        and gain >= hist_cfg.get("minimum_initial_clearance_gain_m", .003)
+                        and motion_evidence
+                        # Earlier wheel/obstacle contact is allowed. If it
+                        # precedes any free clearance, require fresh commanded
+                        # whole-body joint motion rather than wheel spin alone.
+                        and (not self._obstacle_before_clearance[leg]
+                             or command_motion>=hist_cfg["minimum_joint_motion_deg"])
+                        and not self._initial_clearance[leg]):
+                    self._initial_clearance[leg] = True
+                    self._lift_attempt_events.append({"leg":leg,"event":"whole_body_initial_clearance",
+                        "physics_tick":tick,"simulation_time_s":now,"upward_excursion_m":gain,
+                        "own_joint_motion_deg":movement,"whole_body_joint_motion_deg":all_joint_motion,
+                        "command_motion_deg":command_motion,"gravity_direction_change":gravity_motion})
             lift = (hist_cfg["near_front_min_m"] <= distance <= hist_cfg["near_front_max_m"]
                 and self._air_count[leg] >= hist_cfg["minimum_air_samples"]
                 and bottom[2] >= top
-                and gain >= hist_cfg["minimum_lift_gain_m"] and movement >= hist_cfg["minimum_joint_motion_deg"])
+                and gain >= hist_cfg["minimum_lift_gain_m"] and motion_evidence
+                and (not whole_body or (self._initial_clearance[leg] and self._failure is None)))
             if lift and not self._history["active_lift"][leg]:
                 self._history["active_lift"][leg] = True
                 self._event_ticks["active_lift"].setdefault(leg, tick)
@@ -267,6 +312,10 @@ class TaskEvaluator:
             current[leg] = {"front_distance_m": distance, "clearance_m": bottom[2]-top,
                 "top_geometry": top_geometry, "top_contact": loaded, "air": air,
                 "recent_joint_motion_deg": movement, "recent_clearance_gain_m": gain,
+                "recent_whole_body_joint_motion_deg":all_joint_motion,
+                "whole_body_actuation_evidence":bool(motion_evidence) if whole_body else None,
+                "initial_clearance":bool(self._initial_clearance[leg]) if whole_body else False,
+                "ground_contact":ground_active,"obstacle_pair_active":top_active,
                 "consecutive_air_samples": self._air_count[leg], "consecutive_top_samples": self._top_count[leg],
                 "within_top_xy": within_top_xy, "within_lateral_span": within_lateral_span,
                 "support": force >= self.spec["support"]["force_noise_floor_n"]}
@@ -351,6 +400,10 @@ class TaskStageSupervisor:
             cfg = self.spec["history"]
             # Dense measurements provide a gradient of task progress, but only
             # the joint+clearance+AIR chronology can produce completion (=1).
+            if cfg.get("lift_motion_evidence") == "whole_body_actuation":
+                return .99 * (_clip(current["recent_clearance_gain_m"]/cfg["minimum_lift_gain_m"])
+                    + float(current.get("whole_body_actuation_evidence",False))
+                    + _clip(current["consecutive_air_samples"]/cfg["minimum_air_samples"])) / 3.
             return .99 * ( _clip(current["recent_clearance_gain_m"]/cfg["minimum_lift_gain_m"])
                 + _clip(current["recent_joint_motion_deg"]/cfg["minimum_joint_motion_deg"])
                 + _clip(current["consecutive_air_samples"]/cfg["minimum_air_samples"]) ) / 3.
@@ -381,6 +434,26 @@ class TaskStageSupervisor:
         conditions = self.spec["stages"][stage_id]["valid_start_conditions"]
         values = {name: self.predicate(name, ev) if ev["valid"] else 0. for name in conditions}
         return {"valid": all(v >= 1. for v in values.values()), "reasons": [k for k,v in values.items() if v < 1.], "values": values}
+
+    def physical_potential(self, evaluation: Mapping[str,Any]) -> float:
+        """One phase-label-independent potential over physical progress/history."""
+        if not evaluation.get("valid"): return 0.
+        history=evaluation["history"]; legs=evaluation["current_legs"]
+        predecessors={"FR":(),"FL":("FR",),"RR":("FR","FL"),"RL":("FR","FL","RR")}
+        values=[]
+        for leg in LEG_ORDER:
+            current=legs[leg]
+            if history["placed"][leg]: values.append(1.); continue
+            if not all(history["placed"][p] for p in predecessors[leg]): values.append(0.); continue
+            workspace=self.predicate(f"workspace_{leg}",evaluation)
+            unload=self.predicate(f"load_ready_{leg}",evaluation)
+            initial=float(current.get("initial_clearance",False))
+            lift=float(history["active_lift"][leg])
+            carry=(1. if history["front_edge_crossed"][leg] else _clip(1.+current["front_distance_m"]/.25)) if lift else 0.
+            capture=_clip(current["consecutive_top_samples"]/self.spec["history"]["minimum_top_samples"]) if history["front_edge_crossed"][leg] else 0.
+            values.append(.1*workspace+.1*unload+.25*(.25*initial+.75*lift)+.35*carry+.2*capture)
+        finish=self.predicate("whole_task_success",evaluation) if all(history["placed"].values()) else 0.
+        return min(1.,.85*sum(values)/4.+.15*finish)
 
     def observe_and_update(self, observation: Any, *, sim_time_s: float | None = None) -> dict[str, Any]:
         evaluation = self.evaluator.observe(observation)
@@ -431,6 +504,13 @@ class TaskStageSupervisor:
             "remaining_task_time_s":max(0.,self.spec["episode_maximum_duration_s"]-episode_age),
             "substage":"CAPTURE" if progress >= .8 else ("TRANSFER" if self.stage_id in ("P01","P04","P08","P10","P11") else "EXECUTION"),
             "stall_diagnostic":stalled,"transition_evidence":list(self.transition_evidence),"physical_evaluator":evaluation}
+        if self.spec.get("potential_definition") == "global_physical_progress_v3":
+            self._snapshot["task_progress_potential"] = self.physical_potential(evaluation)
+            # Physical airborne/load-transfer evidence overlaps phase labels.
+            # Smooth attitude costs use this continuous coefficient, not a label edge.
+            unfinished=[v for leg,v in evaluation.get("current_legs",{}).items() if not histories["placed"][leg]]
+            self._snapshot["physical_transfer_fraction"] = max((
+                _clip(1.-v["load_fraction"]/.35) for v in unfinished),default=0.)
         self._last_observation_tick = _get(observation, "physics_tick")
         return dict(self._snapshot)
 
@@ -467,6 +547,76 @@ class NominalMotionProvider:
             raise ValueError("approach wheel prior must equal the verified P01 rolling waypoint in rad/s")
         self._source_motion=MotionExecutor(physics_hz=self.physics_hz,
             servo_rate_limit_deg_s=self.servo_rate_limit_deg_s,initial_full12=self.nominal_full12)
+        self._continuous_layers: list[dict[str,Any]] = []
+
+    @classmethod
+    def from_handoff(cls, contract: Any, *, spec: Mapping[str,Any], stage_id: str,
+                     nominal_full12: Sequence[float], tracking_servo_names: Sequence[str]):
+        command=_vector(tuple(nominal_full12),12,"executed handoff nominal")
+        if Full12Command.from_full12(command).clamped().to_full12()!=command:
+            raise SemanticObservationError("handoff nominal is outside actuator limits")
+        names=tuple(tracking_servo_names)
+        if len(names)!=len(set(names)) or any(name not in SERVO_ORDER for name in names):
+            raise SemanticObservationError("invalid executed handoff tracking")
+        result=cls(contract,spec=spec)
+        result.nominal_full12=command; result.tracking_servo_names=names; result.state_id=stage_id
+        result._source_motion=MotionExecutor(physics_hz=result.physics_hz,
+            servo_rate_limit_deg_s=result.servo_rate_limit_deg_s,initial_full12=command)
+        result._source_motion.start_phase(contract.phase(stage_id))
+        return result
+
+    def _continuous_advisory(self, task: Mapping[str,Any]) -> tuple[tuple[float,...],tuple[str,...]]:
+        """Continue unfinished predecessor suggestions; never restore an entry vector.
+
+        Each layer owns only channels it actually changes, and newer changes
+        take precedence. This is nominal scheduling, not a success gate or a
+        policy trajectory: all twelve residual channels stay available.
+        """
+        stage_id=str(task["stage_id"])
+        if not self._continuous_layers or self._continuous_layers[-1]["stage"]!=stage_id:
+            phase=self.contract.phase(stage_id)
+            motion=MotionExecutor(physics_hz=self.physics_hz,servo_rate_limit_deg_s=self.servo_rate_limit_deg_s,
+                                  initial_full12=self.nominal_full12)
+            motion.start_phase(phase)
+            descent_at=None
+            if stage_id in ("P09","P12"):
+                knee=7 if stage_id=="P09" else 5
+                previous=phase.start_full12[knee]
+                for waypoint in phase.waypoints:
+                    if waypoint.full12[knee]<previous-1e-6:
+                        descent_at=waypoint.time_s; break
+                    previous=waypoint.full12[knee]
+            self._continuous_layers.append({"stage":stage_id,"motion":motion,"last":tuple(phase.start_full12),
+                "touched":set(),"sample":None,"descent_at":descent_at,"ticks":0})
+        proposed=list(self.nominal_full12); tracking=set(self.tracking_servo_names)
+        ev=task.get("physical_evaluator",{}); legs=ev.get("current_legs",{}); history=ev.get("history",{})
+        for layer in self._continuous_layers:
+            active="RR" if layer["stage"]=="P09" else "RL"
+            current=legs.get(active,{})
+            pause=(layer["stage"]==stage_id and layer["descent_at"] is not None
+                and layer["ticks"]/self.physics_hz+1e-9>=layer["descent_at"]
+                and not history.get("front_edge_crossed",{}).get(active,False)
+                and current.get("front_distance_m",-1.)<self.spec["geometry"]["approach_min_m"])
+            if not pause or layer["sample"] is None:
+                sample=layer["motion"].tick(); layer["ticks"]+=1
+                layer["touched"].update(i for i,(a,b) in enumerate(zip(sample.full12,layer["last"])) if abs(a-b)>1e-9)
+                layer["last"]=sample.full12; layer["sample"]=sample
+            sample=layer["sample"]
+            for i in layer["touched"]:
+                proposed[i]=sample.full12[i]
+                if i<8:
+                    if SERVO_ORDER[i] in sample.tracking_servo_names: tracking.add(SERVO_ORDER[i])
+                    else: tracking.discard(SERVO_ORDER[i])
+            if layer["stage"]==stage_id:
+                self.elapsed_s=sample.elapsed_s; self.endpoint_issued=sample.endpoint_issued
+        if stage_id in ("P09","P12"):
+            leg="RR" if stage_id=="P09" else "RL"; current=legs.get(leg,{})
+            if (task.get("termination_reason") is None and ev.get("termination_reason") is None
+                    and history.get("active_lift",{}).get(leg,False)
+                    and current.get("clearance_m",-1.)>=self.spec["geometry"]["airborne_clearance_above_top_m"]
+                    and current.get("front_distance_m",1.)<self.spec["geometry"]["approach_min_m"]):
+                proposed[8:]=self._approach_wheel_prior
+        return tuple(proposed),tuple(name for name in SERVO_ORDER if name in tracking)
 
     def _approach_assist_required(self, task: Mapping[str,Any]) -> bool:
         evaluation=task.get("physical_evaluator")
@@ -494,6 +644,9 @@ class NominalMotionProvider:
         self.elapsed_s=source.elapsed_s
         proposed=source.full12
         self.endpoint_issued=source.endpoint_issued
+        proposed_tracking=source.tracking_servo_names
+        if isinstance(stage,Mapping) and self.spec["nominal"].get("continuous_channel_inheritance") is True:
+            proposed,proposed_tracking=self._continuous_advisory(stage)
         # The string-only test seam remains the unmodified finite advisory.
         # All feedback here is in the current task snapshot, with no timer,
         # integral, hidden latch, historical posture or reference-force gate.
@@ -504,17 +657,18 @@ class NominalMotionProvider:
         if not handoff:
             rates=(self.spec["nominal"]["servo_handoff_rate_deg_s"],)*8+(self.spec["nominal"]["wheel_handoff_rate_rad_s2"],)*4
             self.nominal_full12=Full12Command.from_full12(tuple(old+max(-rate/self.physics_hz,min(rate/self.physics_hz,target-old)) for old,target,rate in zip(self.nominal_full12,proposed,rates))).clamped().to_full12()
-            self.tracking_servo_names=source.tracking_servo_names
+            self.tracking_servo_names=proposed_tracking
         return self.nominal_full12
 
 
 class SemanticControllerAdapter:
     """Explicit startup replacement producing the established ControllerFrame."""
-    def __init__(self, spec: Any, contract: Any, *, task_spec_path: Path | str = DEFAULT_TASK_SPEC_PATH):
+    def __init__(self, spec: Any, contract: Any, *, task_spec_path: Path | str = DEFAULT_TASK_SPEC_PATH,
+                 supervisor: TaskStageSupervisor | None = None, nominal_provider: NominalMotionProvider | None = None):
         self.spec=spec; self.contract=contract
-        self.supervisor=TaskStageSupervisor(task_spec_path)
+        self.supervisor=TaskStageSupervisor(task_spec_path) if supervisor is None else supervisor
         self.evaluator=self.supervisor.evaluator
-        self.nominal_provider=NominalMotionProvider(contract,spec=self.supervisor.spec)
+        self.nominal_provider=NominalMotionProvider(contract,spec=self.supervisor.spec) if nominal_provider is None else nominal_provider
         self.motion=self.nominal_provider
         self.physics_tick=0; self.lifecycle=Lifecycle.EXECUTE_MOTION
         self.history:list[ControllerEvent]=[]; self.termination:TaskTermination|None=None
@@ -523,6 +677,27 @@ class SemanticControllerAdapter:
     @classmethod
     def from_paths(cls, fsm_path: Path | str, motion_contract_path: Path | str, *, task_spec_path: Path | str=DEFAULT_TASK_SPEC_PATH):
         return cls(load_fsm_spec(Path(fsm_path)),load_motion_contract(Path(motion_contract_path)),task_spec_path=task_spec_path)
+
+    @classmethod
+    def from_live_prefix(cls, spec: Any, contract: Any, *, supervisor: TaskStageSupervisor,
+                         nominal_full12: Sequence[float], tracking_servo_names: Sequence[str],
+                         physics_tick: int, sim_time_s: float):
+        task=supervisor.snapshot; ev=task.get("physical_evaluator",{})
+        if (type(physics_tick) is not int or physics_tick<=0 or physics_tick%8
+                or supervisor._last_observation_tick!=physics_tick
+                or not math.isclose(sim_time_s,physics_tick/120.,rel_tol=0.,abs_tol=1e-9)
+                or supervisor.episode_started_s!=0. or task.get("termination_reason") is not None
+                or ev.get("valid") is not True or ev.get("termination_reason") is not None
+                or task.get("stage_id")!=supervisor.stage_id):
+            raise SemanticObservationError("handoff must be a valid live natural-prefix decision tick")
+        provider=NominalMotionProvider.from_handoff(contract,spec=supervisor.spec,stage_id=supervisor.stage_id,
+            nominal_full12=nominal_full12,tracking_servo_names=tracking_servo_names)
+        result=cls(spec,contract,supervisor=supervisor,nominal_provider=provider)
+        result.physics_tick=physics_tick+1; result._last_time=sim_time_s
+        frame=ControllerFrame(physics_tick,sim_time_s,supervisor.stage_id,result.lifecycle,
+            provider.nominal_full12,True,True,False,provider.tracking_servo_names,ZERO12,ZERO12,
+            {"mode":"semantic_live_prefix_handoff","semantic_task":task},False,None,None,())
+        return result,frame
 
     @property
     def state(self): return SimpleNamespace(state_id=self.supervisor.stage_id)

@@ -58,6 +58,61 @@ def checkpoint_metadata(checkpoint: Path) -> dict[str, Any]:
     return data
 
 
+def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, Any], *,
+                                project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
+    """Explicit new-MDP boundary; never a relaxation of v2 exact-resume rules."""
+    metadata = checkpoint_metadata(checkpoint)
+    old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
+    if metadata.get("semantic_version", "v2") != "v2" or new.get("semantic_version") != "v3":
+        raise ValueError("new-MDP warm start must explicitly migrate a v2 checkpoint into v3")
+    for key in ("frozen_A_files", "physics_hz", "decision_hz", "task_timeout_s",
+                "timeout_bootstrap", "rsl_rl_version", "local_runtime_versions"):
+        if old.get(key) != new.get(key):
+            raise ValueError(f"new-MDP continuation cannot change physical/runtime contract: {key}")
+    config_names = ("stage_task_spec.yaml", "execution_profile.yaml", "reward_config.yaml",
+                    "observation_schema.json", "action_schema.json", "quality_score.yaml")
+    config_records = {}
+    for name in config_names:
+        source, target = f"configs/ppo_semantic_v2/{name}", f"configs/ppo_semantic_v3/{name}"
+        if source not in old["files"] or target not in new["files"]:
+            raise ValueError(f"new-MDP requires both versioned configuration records: {name}")
+        if file_sha(project_root / target) != new["files"][target]:
+            raise ValueError(f"new-MDP target config bytes changed: {name}")
+        config_records[name] = {"source_path": source, "source_sha256": old["files"][source],
+                                "target_path": target, "target_sha256": new["files"][target]}
+    # Identity learned normalizers do not imply identical fixed observation
+    # preprocessing. Require the complete old/new group ordering and scales to
+    # match; an incompatible encoder needs a separate reviewed transformation.
+    before = json.loads(_version_text(project_root, old, "configs/ppo_semantic_v2/observation_schema.json", prefer_worktree=True))
+    after = json.loads((project_root / "configs/ppo_semantic_v3/observation_schema.json").read_text(encoding="utf-8"))
+    for key in ("feature_groups", "clip", "maximum_task_duration_s", "fixed_chassis_to_body_wxyz",
+                "level_reference", "normalization"):
+        if before.get(key) != after.get(key):
+            raise ValueError(f"warm-start actor observation preprocessing changed: {key}")
+    if sum(group["size"] for group in before.get("feature_groups", ())) != 324:
+        raise ValueError("warm start requires the existing 324-observation network")
+    checkpoint = checkpoint.resolve(strict=True)
+    sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
+    return {"schema": "wlr50_clean.semantic_v3_new_mdp_warm_start.v1", "exact_mdp_resume": False,
+            "source_checkpoint": str(checkpoint), "source_checkpoint_sha256": file_sha(checkpoint),
+            "source_manifest_sha256": file_sha(sidecar),
+            "source_runtime_contract": old, "target_runtime_contract": new,
+            "configuration_transition": config_records,
+            "runtime_changed_files": sorted(key for key in set(old["files"]) | set(new["files"])
+                                             if old["files"].get(key) != new["files"].get(key)),
+            "network": {"observation_dimension": 324, "raw_action_dimension": 12,
+                        "actor": "preserve_all_parameters_including_learned_std",
+                        "critic": "preserve_weights_then_online_recalibration_on_new_rewards",
+                        "normalizers": "identity_RSL_state; identical_fixed_schema_preprocessing"},
+            "optimizer": {"kind": "Adam", "state": "reset_all_moments", "initial_learning_rate": 3e-5,
+                          "reason": "changed reward, action range and continuous task transition MDP"},
+            "old_rollout_buffer_inherited": False, "physical_state_inherited": False,
+            "rng": "restore_verified_training_rng_then_sample_fresh_new_MDP_rollouts",
+            "action_output_semantics": "same raw actor output now uses explicitly versioned new physical ranges",
+            "stage_accounting": "new v3 requested budgets; preserve lifetime global/update counters",
+            "reset_sampling": "explicit_fixed_from_phase_per_run; teacher_rollin_excluded_from_PPO_credit"}
+
+
 def _contract(value: Mapping[str, Any]) -> dict[str, Any]:
     result = dict(value)
     files = result.get("files")
@@ -387,7 +442,13 @@ def source_num_envs(metadata: Mapping[str, Any]) -> int:
     declared = metadata.get("execution_topology")
     if declared is not None:
         count = declared.get("num_envs")
-        if declared != topology(count):
+        expected = topology(count)
+        if metadata.get("semantic_version") == "v3":
+            if count != 1:
+                raise ValueError("v3 continuation topology must be N1")
+            expected = continuation_topology(metadata.get("sampling"),
+                                             metadata.get("curriculum_epoch", {}).get("prefix_request"))
+        if declared != expected:
             raise ValueError("checkpoint execution topology is malformed")
         return count
     # Legacy semantic checkpoints existed only before vector code was added.
@@ -395,6 +456,20 @@ def source_num_envs(metadata: Mapping[str, Any]) -> int:
     if any(path in metadata["runtime_contract"].get("files", {}) for path in VECTOR_FILES):
         raise ValueError("vector-capable checkpoint lacks explicit execution topology")
     return 1
+
+
+def continuation_topology(sampling: str, prefix_request: Mapping[str, Any] | None) -> dict[str, Any]:
+    if prefix_request is None:
+        if sampling != "P01_full_task_only_initial_version":
+            raise ValueError("v3 P01 sampling metadata is malformed")
+    else:
+        from .semantic_prefix import PrefixRequest, sampling_label
+        request = PrefixRequest(**{name: prefix_request[name] for name in (
+            "target_phase", "maximum_prefix_decisions", "maximum_takeover_decisions", "teacher_offset_decisions")})
+        if request.as_dict() != dict(prefix_request) or sampling != sampling_label(request):
+            raise ValueError("v3 fixed suffix sampling metadata is malformed")
+    return {**topology(1), "schema": "wlr50_clean.semantic_execution_topology.v2",
+            "reset_sampling": sampling, "phase_suffix_curriculum_implemented": prefix_request is not None}
 
 def stage_partition(remaining_requested: int) -> dict[str, int]:
     if type(remaining_requested) is not int or remaining_requested < 1:

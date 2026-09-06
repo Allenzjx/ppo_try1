@@ -52,10 +52,12 @@ def _line(stream, row):
 
 class PhysicalEvaluationRecorder:
     """Same independent evaluator; no controller success label is substituted."""
-    def __init__(self, run_dir: Path | str):
+    def __init__(self, run_dir: Path | str, *, task_spec_path: Path | str | None = None,
+                 quality_score_path: Path | str | None = None):
         self.run_dir = Path(run_dir)
-        self.evaluator = TaskEvaluator()
-        self.metrics = SemanticMetricsAccumulator()
+        self.evaluator = TaskEvaluator() if task_spec_path is None else TaskEvaluator(task_spec_path)
+        self.metrics = (SemanticMetricsAccumulator() if quality_score_path is None
+                        else SemanticMetricsAccumulator(quality_score_path))
         self._streams = {name: (self.run_dir / name).open("x", encoding="utf-8") for name in (
             "physical_observations.jsonl", "stage_transition_evidence.jsonl", "native_tick_audit.jsonl")}
         self._started = False
@@ -139,13 +141,15 @@ class PhysicalEvaluationRecorder:
             stream.close()
 
 
-def _evaluation_legacy(app, args, contract):
+def _evaluation_legacy(app, args, contract, *, task_spec_path: Path | str | None = None,
+                       quality_score_path: Path | str | None = None):
     from .isaac_fsm_backend import IsaacFSMBackend
     from .residual_direct_env import ResidualEpisodeEnv
     backend = IsaacFSMBackend(app, audit_actuator_target_effect=True)
     core = ResidualEpisodeEnv(backend, collect_trace=False)
     core.reset(seed=args.seed)
-    recorder = PhysicalEvaluationRecorder(args.run_dir)
+    recorder = PhysicalEvaluationRecorder(args.run_dir, task_spec_path=task_spec_path,
+                                         quality_score_path=quality_score_path)
     recorder.start(core.frame)
     core.tick_callback = recorder.observe
     last_info = {}

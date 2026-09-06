@@ -7,6 +7,10 @@ param(
     [ValidateRange(1,3000)][int]$MaxDecisions = 3000,
     [int]$Seed = 1001,
     [ValidateSet(1,8)][int]$NumEnvs = 1,
+    [ValidateSet('v2','v3')][string]$SemanticVersion = 'v2',
+    [ValidateSet('P01','P06','P07','P08','P09','P10','P11','P12','P13')][string]$FromPhase = 'P01',
+    [ValidateRange(0,1799)][int]$TeacherOffsetDecisions = 0,
+    [switch]$NewMdpWarmStart,
     [string]$VectorSmokeEvidence,
     [string]$Checkpoint,
     [string]$ResumeMigration,
@@ -31,10 +35,12 @@ $kind = switch ($Command) { 'train' { 'train' }; 'smoke' { 'interface_smoke' }; 
     if ($Mode -eq 'legacy_fsm_eval') { 'baseline_A' } elseif ($Mode -eq 'semantic_prior_eval') { 'prior_B' } elseif ($Seed -ge 3001 -and $Seed -le 3005) { 'locked_test' } else { 'validation' }
 } }
 $runId = [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfffffffZ') + '_g' + $ExpectedHead.Substring(0,12) + '_' + [Guid]::NewGuid().ToString('N')
-$runDir = Join-Path $project ("runs\ppo_semantic_v2\$kind\$runId")
-$logDir = Join-Path $project ("runs\ppo_semantic_v2\$kind\${runId}_launcher")
+if ($SemanticVersion -eq 'v3' -and $kind -eq 'interface_smoke') { $kind = 'interface_checks' }
+$runDir = Join-Path $project ("runs\ppo_semantic_$SemanticVersion\$kind\$runId")
+$logDir = Join-Path $project ("runs\ppo_semantic_$SemanticVersion\$kind\${runId}_launcher")
 [void](New-Item -ItemType Directory -Path $logDir)
 $lockPath = Join-Path $project 'runs\ppo_semantic_v2\.single_process.lock'
+[void][IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($lockPath))
 $lock = [IO.File]::Open($lockPath, [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
 $previousPath = $env:PYTHONPATH
 $previousNoUser = $env:PYTHONNOUSERSITE
@@ -46,7 +52,10 @@ try {
     $arguments = @('-P','-m','wlr50_clean.ppo.semantic_cli',$Command,'--run-dir',$runDir,
         '--expected-head',$ExpectedHead,'--stage',$Stage,'--seed',[string]$Seed,'--num-envs',[string]$NumEnvs,
         '--max-decisions',[string]$MaxDecisions,'--mode',$Mode,'--device',$Device,
+        '--semantic-version',$SemanticVersion,'--from-phase',$FromPhase,
+        '--teacher-offset-decisions',[string]$TeacherOffsetDecisions,
         '--checkpoint-interval-updates',[string]$CheckpointIntervalUpdates,'--headless')
+    if ($NewMdpWarmStart) { $arguments += '--new-mdp-warm-start' }
     if ($PSBoundParameters.ContainsKey('Decisions')) { $arguments += @('--decisions',[string]$Decisions) }
     if (-not [string]::IsNullOrWhiteSpace($VectorSmokeEvidence)) {
         $proof = if ([IO.Path]::IsPathRooted($VectorSmokeEvidence)) { $VectorSmokeEvidence } else { Join-Path $project $VectorSmokeEvidence }

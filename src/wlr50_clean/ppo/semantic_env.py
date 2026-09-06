@@ -114,6 +114,7 @@ class SemanticEpisodeEnv:
         if _terminal_reason(frame) is not None:
             raise SemanticObservationError("reset must produce a valid nonterminal physical state")
         self.observation_builder.reset()
+        self.reward_calculator.reset()
         nominal = vector(frame.nominal_action_full12,12,"reset nominal")
         drive = vector(frame.info["drive_target_full12"],12,"reset actual drive")
         self._history = {name:ZERO12 for name in HISTORY_GROUPS}
@@ -223,7 +224,10 @@ class SemanticEpisodeEnv:
             "stage_transition_evidence":stage_evidence,
             "semantic_task":dict(semantic_task(self.frame)),"reward":reward,"reward_breakdown":reward,
             "termination_reason":reason,"task_success":reason=="SUCCESS","time_outs":False,
+            "task_outcome_label":"FULL_TASK_SUCCESS" if reason=="SUCCESS" else reason,
+            "full_task_success":reason=="SUCCESS",
             "terminal_bootstrap_allowed":False if reason else True,
+            "discount_convention":"gamma_once_per_issued_policy_action; task_terminal_no_bootstrap",
             "terminal_observation_finite_fallback":invalid_terminal_observation,
             "phase_transition_action_jump":transitions,"episode_return":self._episode_return,
             "episode_elapsed_s":self.frame.sim_time_s}

@@ -30,6 +30,14 @@ LOCKED_DISTRIBUTIONS = {"torch": "2.7.0+cu128", "rsl-rl-lib": "5.0.1",
                         "isaacsim": "5.1.0.0", "isaaclab": "0.54.3", "tensordict": "0.12.2"}
 
 
+def version_paths(version: str) -> tuple[Path, Path, Path]:
+    if version == "v2":
+        return RUNS_ROOT, OUTPUT_ROOT, PROJECT_ROOT / "configs/ppo_semantic_v2"
+    if version != "v3":
+        raise ValueError("unsupported semantic runtime version")
+    return tuple(PROJECT_ROOT / category / "ppo_semantic_v3" for category in ("runs", "outputs", "configs"))
+
+
 def local_versions() -> dict[str, Any]:
     versions = {name: importlib.metadata.version(name) for name in LOCKED_DISTRIBUTIONS}
     if versions != LOCKED_DISTRIBUTIONS or sys.version_info[:3] != (3, 11, 15):
@@ -45,6 +53,10 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--expected-head", required=True)
     result.add_argument("--seed", type=int, default=1001)
     result.add_argument("--num-envs", type=int, choices=(1, 8), default=1)
+    result.add_argument("--semantic-version", choices=("v2", "v3"), default="v2")
+    result.add_argument("--from-phase", choices=("P01", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13"), default="P01")
+    result.add_argument("--teacher-offset-decisions", type=int, default=0)
+    result.add_argument("--new-mdp-warm-start", action="store_true")
     result.add_argument("--vector-smoke-evidence", type=Path)
     result.add_argument("--stage", choices=tuple(STAGE_BUDGETS), default="smoke")
     result.add_argument("--decisions", type=int)
@@ -58,7 +70,7 @@ def parser() -> argparse.ArgumentParser:
     return result
 
 
-def runtime_contract(*, expected_head: str) -> dict[str, Any]:
+def runtime_contract(*, expected_head: str, semantic_version: str = "v2") -> dict[str, Any]:
     def git(*args: str) -> str:
         return subprocess.run(["git", "-C", str(PROJECT_ROOT), *args], check=True,
                               capture_output=True, text=True).stdout.strip()
@@ -80,22 +92,29 @@ def runtime_contract(*, expected_head: str) -> dict[str, Any]:
     if not files:
         raise ValueError("semantic runtime inventory is empty")
     data = json.dumps(files, sort_keys=True, separators=(",", ":")).encode()
-    return {"schema": "wlr50_clean.semantic_runtime_contract.v1", "source_git_commit": head,
+    contract = {"schema": "wlr50_clean.semantic_runtime_contract.v1", "source_git_commit": head,
             "runtime_content_sha256": hashlib.sha256(data).hexdigest(), "files": files,
             "frozen_A_files": dict(frozen["protected_files"]), "rsl_rl_version": "5.0.1",
             "physics_hz": 120.0, "decision_hz": 15.0, "task_timeout_s": 200.0,
             "timeout_bootstrap": False, "training_budgets": dict(STAGE_BUDGETS),
             "local_runtime_versions": local_versions()}
+    if semantic_version == "v3":
+        config_root = version_paths(semantic_version)[2]
+        contract.update(semantic_version="v3", selected_configuration={
+            path.name: {"path": str(path.relative_to(PROJECT_ROOT)).replace("\\", "/"),
+                        "sha256": sha256_file(path)} for path in sorted(config_root.iterdir()) if path.is_file()})
+    return contract
 
 
-def _resolved_checkpoint(path: Path) -> Path:
+def _resolved_checkpoint(path: Path, *, output_root: Path | None = None) -> Path:
+    output_root = OUTPUT_ROOT if output_root is None else output_root
     source = path.resolve(strict=True)
-    if not source.is_relative_to((OUTPUT_ROOT / "checkpoints").resolve()):
+    if not source.is_relative_to((output_root / "checkpoints").resolve()):
         raise ValueError("semantic checkpoint must be inside the new isolated checkpoint root")
     if source.name == "checkpoint_last.pt":
         pointer = json.loads(source.with_name("checkpoint_last_pointer.json").read_text(encoding="utf-8"))
         immutable = Path(pointer["checkpoint"]).resolve(strict=True)
-        if (not immutable.is_relative_to((OUTPUT_ROOT / "checkpoints/history").resolve())
+        if (not immutable.is_relative_to((output_root / "checkpoints/history").resolve())
                 or sha256_file(source) != pointer["checkpoint_sha256"]
                 or sha256_file(immutable) != pointer["checkpoint_sha256"]
                 or sha256_file(Path(pointer["manifest"])) != pointer["manifest_sha256"]):
@@ -105,9 +124,30 @@ def _resolved_checkpoint(path: Path) -> Path:
 
 
 def validate_request(args: argparse.Namespace) -> None:
+    runs_root, output_root, _ = version_paths(args.semantic_version)
     directory = args.run_dir.resolve()
-    if not directory.is_relative_to(RUNS_ROOT.resolve()) or directory == RUNS_ROOT.resolve():
-        raise ValueError("semantic run directory must be strictly inside runs/ppo_semantic_v2")
+    if not directory.is_relative_to(runs_root.resolve()) or directory == runs_root.resolve():
+        raise ValueError(f"semantic run directory must be strictly inside {runs_root}")
+    if args.semantic_version == "v3" and args.num_envs != 1:
+        raise ValueError("v3 continuation currently implements real N1 reset-only suffix sampling")
+    if (args.from_phase != "P01" or args.teacher_offset_decisions) and (
+            args.semantic_version != "v3" or args.command != "train" or args.from_phase == "P01"):
+        raise ValueError("suffix starts and teacher offsets require v3 N1 training; evaluation remains fresh P01")
+    if not 0 <= args.teacher_offset_decisions < 1800:
+        raise ValueError("teacher offset must be within the 200 second total task budget")
+    if args.command == "train" and args.semantic_version == "v3":
+        if args.checkpoint is None:
+            raise ValueError("v3 continuation requires existing learned checkpoint weights")
+        if args.stage == "phase_suffix" and args.from_phase == "P01":
+            raise ValueError("v3 phase_suffix must request an actual rear-leg precursor or suffix phase")
+        if args.stage == "full_episode" and args.from_phase != "P01":
+            raise ValueError("full_episode training must start from fresh P01")
+    if args.new_mdp_warm_start and (args.semantic_version != "v3" or args.command != "train"
+                                  or args.checkpoint is None or args.resume_migration is not None):
+        raise ValueError("new-MDP warm start requires v3 train with a v2 checkpoint, not exact resume migration")
+    if args.new_mdp_warm_start and any((output_root / relative).exists() for relative in (
+            "checkpoints/checkpoint_last_pointer.json", "checkpoints/history/checkpoint_initial_v3_warm_start.pt")):
+        raise ValueError("v3 training already exists; resume its checkpoint instead of restarting new-MDP budgets")
     if args.decisions is not None and (args.command != "train" or not 1 <= args.decisions <= STAGE_BUDGETS[args.stage]):
         raise ValueError("--decisions is an additional train request within the stage budget")
     if not 1 <= args.max_decisions <= 3000 or args.checkpoint_interval_updates < 1:
@@ -127,14 +167,14 @@ def validate_request(args: argparse.Namespace) -> None:
     if args.command in ("preflight", "smoke") and args.checkpoint is not None:
         raise ValueError("functional preflight/smoke must not silently load a policy")
     if args.command == "train" and args.checkpoint is None and any(path.exists() for path in (
-            OUTPUT_ROOT / "checkpoints/checkpoint_last_pointer.json",
-            OUTPUT_ROOT / "checkpoints/history/checkpoint_initial_semantic.pt")):
+            output_root / "checkpoints/checkpoint_last_pointer.json",
+            output_root / "checkpoints/history/checkpoint_initial_semantic.pt")):
         raise ValueError("training already exists; explicitly resume checkpoint_last instead of reinitializing")
     if args.checkpoint is not None:
-        args.checkpoint = _resolved_checkpoint(args.checkpoint)
+        args.checkpoint = _resolved_checkpoint(args.checkpoint, output_root=OUTPUT_ROOT if args.new_mdp_warm_start else output_root)
         if args.command == "train":
             metadata = json.loads(args.checkpoint.with_name(args.checkpoint.stem + "_manifest.json").read_text())
-            remaining = STAGE_BUDGETS[args.stage] - int(metadata["stage_requested_decisions"].get(args.stage, 0))
+            remaining = STAGE_BUDGETS[args.stage] - (0 if args.new_mdp_warm_start else int(metadata["stage_requested_decisions"].get(args.stage, 0)))
             if remaining < 1 or (args.decisions is not None and args.decisions > remaining):
                 raise ValueError("additional request exceeds the remaining semantic stage budget")
     if args.num_envs == 8:
@@ -161,10 +201,17 @@ def validate_request(args: argparse.Namespace) -> None:
 def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) -> None:
     """Reject stale or unauthorized weights before loading any native library."""
     args._migration_record = None
+    args._warm_start_record = None
     if args.checkpoint is None:
         return
     from .semantic_migration import checkpoint_metadata, validate_migration_plan
     metadata = checkpoint_metadata(args.checkpoint)
+    if args.new_mdp_warm_start:
+        from .semantic_migration import build_v3_warm_start_record
+        args._warm_start_record = build_v3_warm_start_record(args.checkpoint, contract, project_root=PROJECT_ROOT)
+        if metadata["seed"] != args.seed:
+            raise ValueError("warm start must preserve the recorded training RNG seed")
+        return
     if args.resume_migration is None:
         if metadata["runtime_contract"] != contract:
             raise ValueError("checkpoint runtime changed; an explicit reviewed resume migration is required")
@@ -179,7 +226,12 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
 def _evaluation(core: Any, args: argparse.Namespace, *, contract: dict[str, Any]) -> dict[str, Any]:
     if args.command == "eval":
         from .semantic_legacy_evaluation import PhysicalEvaluationRecorder
-        scope = closing(PhysicalEvaluationRecorder(args.run_dir))
+        kwargs = {}
+        if args.semantic_version == "v3":
+            config_root = version_paths("v3")[2]
+            kwargs = {"task_spec_path": config_root / "stage_task_spec.yaml",
+                      "quality_score_path": config_root / "quality_score.yaml"}
+        scope = closing(PhysicalEvaluationRecorder(args.run_dir, **kwargs))
     else:
         scope = nullcontext(None)
     with scope as recorder:
@@ -197,7 +249,7 @@ def _evaluation_body(core: Any, args: argparse.Namespace, *, contract: dict[str,
     if args.checkpoint is not None:
         class ObservationEnv:
             num_envs, num_actions = 1, 12
-            cfg = {"evaluation": True}
+            cfg = {"evaluation": True, "semantic_version": args.semantic_version}
             def get_observations(self):
                 tensor = torch.tensor([observation], dtype=torch.float32, device=args.device)
                 return TensorDict({"policy": tensor, "critic": tensor.clone()}, batch_size=[1], device=args.device)
@@ -504,24 +556,73 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
     try:
         if args.command == "eval" and args.mode == "legacy_fsm_eval":
             from .semantic_legacy_evaluation import _evaluation_legacy
-            return _evaluation_legacy(app, args, contract)
+            kwargs = {}
+            if args.semantic_version == "v3":
+                config_root = version_paths("v3")[2]
+                kwargs = {"task_spec_path": config_root / "stage_task_spec.yaml",
+                          "quality_score_path": config_root / "quality_score.yaml"}
+            return _evaluation_legacy(app, args, contract, **kwargs)
         if args.num_envs == 8:
             return dispatch_vector(app, args, contract, OUTPUT_ROOT)
         from .semantic_backend import SemanticIsaacBackend
         from .semantic_env import SemanticEpisodeEnv
         seed_training_rngs(args.seed)
-        backend = SemanticIsaacBackend(app, audit_actuator_target_effect=True)
-        core = SemanticEpisodeEnv(backend, collect_trace=False)
+        _, output_root, config_root = version_paths(args.semantic_version)
+        backend_options = {"audit_actuator_target_effect": True}
+        core_options = {"collect_trace": False}
+        if args.semantic_version == "v3":
+            backend_options.update(execution_profile=config_root / "execution_profile.yaml",
+                                   task_spec_path=config_root / "stage_task_spec.yaml")
+            core_options.update(action_config=config_root / "execution_profile.yaml",
+                                reward_config_path=config_root / "reward_config.yaml",
+                                observation_schema_path=config_root / "observation_schema.json")
+        if args.from_phase != "P01":
+            from .semantic_prefix import PrefixRequest, PrefixSemanticIsaacBackend
+            backend = PrefixSemanticIsaacBackend(app, prefix_request=PrefixRequest(
+                target_phase=args.from_phase, teacher_offset_decisions=args.teacher_offset_decisions), **backend_options)
+        else:
+            backend = SemanticIsaacBackend(app, **backend_options)
+        core = SemanticEpisodeEnv(backend, **core_options)
         if args.command != "train":
             return _evaluation(core, args, contract=contract)
-        env = SemanticRslAdapter(core, seed=args.seed, device=args.device)
+        if args.from_phase != "P01":
+            from .semantic_prefix import PrefixRslAdapter
+            prefix_stream = (args.run_dir / "prefix_evidence.jsonl").open("x", encoding="utf-8")
+            # Keep the persistent sink open across every reset. Kit's finally
+            # path closes it before native shutdown, including failed roll-ins.
+            args._prefix_evidence_stream = prefix_stream
+            def prefix_evidence(record):
+                prefix_stream.write(json.dumps(jsonable(record), allow_nan=False) + "\n")
+                prefix_stream.flush()
+            env = PrefixRslAdapter(core, seed=args.seed, device=args.device, evidence_sink=prefix_evidence)
+        else:
+            env = SemanticRslAdapter(core, seed=args.seed, device=args.device)
+        env.cfg["semantic_version"] = args.semantic_version
         runner, _ = construct_semantic_runner(env, seed=args.seed, device=args.device)
         previous = None
         if args.checkpoint is not None:
             previous = load_semantic_checkpoint(runner, args.checkpoint, contract=contract, seed=args.seed,
-                                                migration=getattr(args, "_migration_record", None))
+                                                migration=getattr(args, "_migration_record", None),
+                                                warm_start=getattr(args, "_warm_start_record", None))
+            if args.new_mdp_warm_start:
+                from .semantic_migration import continuation_topology
+                from .semantic_training import compare_warm_start_action
+                write_json(args.run_dir / "new_mdp_warm_start.json", args._warm_start_record)
+                comparison = compare_warm_start_action(runner, env,
+                    old_execution_profile=version_paths("v2")[2] / "execution_profile.yaml",
+                    new_execution_profile=config_root / "execution_profile.yaml")
+                comparison_path = args.run_dir / "new_mdp_initial_action_comparison.json"
+                write_json(comparison_path, comparison)
+                previous["new_mdp_initial_action_comparison"] = {
+                    "path": str(comparison_path.resolve()), "sha256": sha256_file(comparison_path)}
+                initial_infos = {**previous, "runtime_contract": contract, "stage": "initial_v3_warm_start",
+                                 "execution_topology": continuation_topology(env.cfg["reset_sampling"], env.cfg.get("prefix_request")),
+                                 "curriculum_epoch": {"reset_sampling": env.cfg["reset_sampling"], "prefix_request": env.cfg.get("prefix_request")},
+                                 "sampling": env.cfg["reset_sampling"],
+                                 "runner_config": semantic_runner_config(seed=args.seed, device=args.device, semantic_version="v3")}
+                save_semantic_checkpoint(runner, output_root / "checkpoints/history/checkpoint_initial_v3_warm_start.pt", initial_infos)
         else:
-            initial = OUTPUT_ROOT / "checkpoints/history/checkpoint_initial_semantic.pt"
+            initial = output_root / "checkpoints/history/checkpoint_initial_semantic.pt"
             save_semantic_checkpoint(runner, initial, {
                 "seed": args.seed, "runtime_contract": contract, "stage": "initial",
                 "execution_topology": topology(1),
@@ -530,26 +631,32 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                 "runner_config": semantic_runner_config(seed=args.seed, device=args.device),
             })
         remaining = STAGE_BUDGETS[args.stage] - int((previous or {}).get("stage_requested_decisions", {}).get(args.stage, 0))
-        return train_semantic(runner, env, run_dir=args.run_dir, output_root=OUTPUT_ROOT,
+        return train_semantic(runner, env, run_dir=args.run_dir, output_root=output_root,
                               stage=args.stage, decisions=remaining if args.decisions is None else args.decisions,
                               contract=contract, seed=args.seed, resume_infos=previous,
                               checkpoint_interval_updates=args.checkpoint_interval_updates)
     finally:
         # main persists the final lifecycle BEFORE closing Kit. Its native
         # immediate-exit path does not return to Python on this Windows stack.
-        pass
+        prefix_stream = getattr(args, "_prefix_evidence_stream", None)
+        if prefix_stream is not None:
+            prefix_stream.close()
+            del args._prefix_evidence_stream
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     validate_request(args)
-    contract = runtime_contract(expected_head=args.expected_head)
+    contract_options = {"expected_head": args.expected_head}
+    if args.semantic_version == "v3":
+        contract_options["semantic_version"] = "v3"
+    contract = runtime_contract(**contract_options)
     _preflight_checkpoint(args, contract)
     from .semantic_migration import source_num_envs, verified_vector_smoke
     args._vector_smoke_record = None
     if args.command == "train" and args.num_envs == 8:
         args._vector_smoke_record = verified_vector_smoke(args.vector_smoke_evidence, contract, PROJECT_ROOT)
-    if args.checkpoint is not None:
+    if args.checkpoint is not None and not args.new_mdp_warm_start:
         from .semantic_migration import checkpoint_metadata
         source_count = source_num_envs(checkpoint_metadata(args.checkpoint))
         factor = (args._migration_record or {}).get("execution_factor")
@@ -570,7 +677,7 @@ def main(argv: list[str] | None = None) -> int:
                       "legacy_perfect_nonzero_gate_required": False}
         else:
             result = dispatch_live(args, contract)
-        if runtime_contract(expected_head=args.expected_head) != contract:
+        if runtime_contract(**contract_options) != contract:
             raise RuntimeError("semantic runtime bytes changed during the run")
         final_status = result.get("lifecycle", "SUCCEEDED")
         lifecycle.update(lifecycle=final_status, result=result, completed_at_utc=datetime.now(timezone.utc).isoformat())
