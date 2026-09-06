@@ -10,6 +10,7 @@ param(
     [ValidateSet('v2','v3')][string]$SemanticVersion = 'v2',
     [ValidateSet('P01','P06','P07','P08','P09','P10','P11','P12','P13')][string]$FromPhase = 'P01',
     [ValidateRange(0,1799)][int]$TeacherOffsetDecisions = 0,
+    [ValidateSet('frozen_fsm','checkpoint_policy')][string]$PrefixSource = 'frozen_fsm',
     [switch]$NewMdpWarmStart,
     [switch]$PolicyDistributionMigration,
     [string]$VectorSmokeEvidence,
@@ -59,6 +60,7 @@ try {
         '--max-decisions',[string]$MaxDecisions,'--mode',$Mode,'--device',$Device,
         '--semantic-version',$SemanticVersion,'--from-phase',$FromPhase,
         '--teacher-offset-decisions',[string]$TeacherOffsetDecisions,
+        '--prefix-source',$PrefixSource,
         '--checkpoint-interval-updates',[string]$CheckpointIntervalUpdates,'--headless')
     if ($NewMdpWarmStart) { $arguments += '--new-mdp-warm-start' }
     if ($PolicyDistributionMigration) { $arguments += '--policy-distribution-migration' }

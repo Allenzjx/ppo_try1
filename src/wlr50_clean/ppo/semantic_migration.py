@@ -122,7 +122,7 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
                                              if old["files"].get(key) != new["files"].get(key)),
             "network": {"observation_dimension": 324, "raw_action_dimension": 12,
                         "actor": "preserve_all_parameters_including_learned_std",
-                        "critic": "preserve_weights_then_online_recalibration_on_new_rewards",
+                        "critic": "preserve_weights_then_online_recalibration_on_current_task_distribution",
                         "normalizers": "identity_RSL_state; identical_fixed_schema_preprocessing"},
             "optimizer": {"kind": "Adam", "state": "reset_all_moments", "initial_learning_rate": 3e-5,
                           "reason": "explicit versioned new-MDP boundary; changed files recorded above"},
@@ -132,7 +132,7 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
             "stage_accounting": ("preserve existing v3 spent budgets and original v3 origin; preserve lifetime counters"
                                  if source_version == "v3" else
                                  "new v3 requested budgets; preserve lifetime global/update counters"),
-            "reset_sampling": "explicit_fixed_from_phase_per_run; teacher_rollin_excluded_from_PPO_credit"}
+            "reset_sampling": "explicit_fixed_from_phase_per_run; reset_only_rollin_excluded_from_PPO_credit"}
 
 
 def v3_warm_start_checkpoint_name(record: Mapping[str, Any]) -> str:
@@ -520,6 +520,12 @@ def continuation_topology(sampling: str, prefix_request: Mapping[str, Any] | Non
     if prefix_request is None:
         if sampling != "P01_full_task_only_initial_version":
             raise ValueError("v3 P01 sampling metadata is malformed")
+    elif prefix_request.get("schema") == "wlr50_clean.checkpoint_policy_prefix_request.v1":
+        from .semantic_checkpoint_prefix import CheckpointPolicyPrefixRequest, sampling_label
+        request = CheckpointPolicyPrefixRequest(**{name: prefix_request[name] for name in (
+            "target_phase", "maximum_prefix_decisions", "teacher_offset_decisions")})
+        if request.as_dict() != dict(prefix_request) or sampling != sampling_label(request):
+            raise ValueError("v3 checkpoint-policy prefix sampling metadata is malformed")
     else:
         from .semantic_prefix import PrefixRequest, sampling_label
         request = PrefixRequest(**{name: prefix_request[name] for name in (

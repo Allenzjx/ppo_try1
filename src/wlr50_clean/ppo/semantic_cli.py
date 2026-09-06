@@ -19,7 +19,7 @@ from typing import Any
 from .semantic_training import (
     STAGE_BUDGETS, SemanticRslAdapter, construct_semantic_runner, jsonable,
     load_semantic_checkpoint, save_semantic_checkpoint, seed_training_rngs,
-    semantic_runner_config, sha256_file, train_semantic, verified_native_effect, write_json,
+    semantic_runner_config, semantic_curriculum_epoch, sha256_file, train_semantic, verified_native_effect, write_json,
 )
 from .semantic_migration import topology, stage_partition
 from .semantic_policy_distribution import (
@@ -61,6 +61,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--semantic-version", choices=("v2", "v3"), default="v2")
     result.add_argument("--from-phase", choices=("P01", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13"), default="P01")
     result.add_argument("--teacher-offset-decisions", type=int, default=0)
+    result.add_argument("--prefix-source", choices=("frozen_fsm", "checkpoint_policy"), default="frozen_fsm")
     result.add_argument("--new-mdp-warm-start", action="store_true")
     result.add_argument("--policy-distribution-migration", action="store_true")
     result.add_argument("--vector-smoke-evidence", type=Path)
@@ -141,6 +142,11 @@ def validate_request(args: argparse.Namespace) -> None:
         raise ValueError("suffix starts and teacher offsets require v3 N1 training; evaluation remains fresh P01")
     if not 0 <= args.teacher_offset_decisions < 1800:
         raise ValueError("teacher offset must be within the 200 second total task budget")
+    if getattr(args, "prefix_source", "frozen_fsm") == "checkpoint_policy" and (
+            args.semantic_version != "v3" or args.num_envs != 1 or args.command != "train"
+            or args.from_phase == "P01" or args.stage != "phase_suffix" or args.checkpoint is None
+            or getattr(args, "policy_distribution_migration", False)):
+        raise ValueError("checkpoint-policy prefix requires v3 N1 suffix training with an existing unchanged-architecture checkpoint; evaluation stays natural P01")
     if getattr(args, "policy_distribution_migration", False) and (
             args.semantic_version != "v3" or args.num_envs != 1 or args.command != "train"
             or args.checkpoint is None or args.new_mdp_warm_start or args.resume_migration is not None):
@@ -298,9 +304,10 @@ def _save_policy_migration_initial(runner: Any, env: Any, args: argparse.Namespa
         "policy_distribution_migration": record,
         "policy_contract": policy_contract(_resolved_policy_version(args)),
         "execution_topology": continuation_topology(env.cfg["reset_sampling"], env.cfg.get("prefix_request")),
-        "curriculum_epoch": {"reset_sampling": env.cfg["reset_sampling"], "prefix_request": env.cfg.get("prefix_request")},
+        "curriculum_epoch": semantic_curriculum_epoch(env.cfg),
         "sampling": env.cfg["reset_sampling"],
         "implemented_reset_sampling": env.cfg["reset_sampling"],
+        "phase_suffix_curriculum_implemented": env.cfg.get("prefix_request") is not None,
         "runner_config": semantic_runner_config(seed=args.seed, device=args.device,
             semantic_version=args.semantic_version, policy_version=_resolved_policy_version(args))}
     save_semantic_checkpoint(runner, initial, initial_infos)
@@ -661,7 +668,8 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
             core_options.update(action_config=config_root / "execution_profile.yaml",
                                 reward_config_path=config_root / "reward_config.yaml",
                                 observation_schema_path=config_root / "observation_schema.json")
-        if args.from_phase != "P01":
+        checkpoint_prefix = getattr(args, "prefix_source", "frozen_fsm") == "checkpoint_policy"
+        if args.from_phase != "P01" and not checkpoint_prefix:
             from .semantic_prefix import PrefixRequest, PrefixSemanticIsaacBackend
             backend = PrefixSemanticIsaacBackend(app, prefix_request=PrefixRequest(
                 target_phase=args.from_phase, teacher_offset_decisions=args.teacher_offset_decisions), **backend_options)
@@ -679,7 +687,13 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
             def prefix_evidence(record):
                 prefix_stream.write(json.dumps(jsonable(record), allow_nan=False) + "\n")
                 prefix_stream.flush()
-            env = PrefixRslAdapter(core, seed=args.seed, device=args.device, evidence_sink=prefix_evidence)
+            if checkpoint_prefix:
+                from .semantic_checkpoint_prefix import CheckpointPolicyPrefixRequest, CheckpointPolicyPrefixRslAdapter
+                env = CheckpointPolicyPrefixRslAdapter(core, seed=args.seed, device=args.device,
+                    evidence_sink=prefix_evidence, request=CheckpointPolicyPrefixRequest(
+                        target_phase=args.from_phase, teacher_offset_decisions=args.teacher_offset_decisions))
+            else:
+                env = PrefixRslAdapter(core, seed=args.seed, device=args.device, evidence_sink=prefix_evidence)
         else:
             env = SemanticRslAdapter(core, seed=args.seed, device=args.device)
         env.cfg["semantic_version"] = args.semantic_version
@@ -691,6 +705,21 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                                                 migration=getattr(args, "_migration_record", None),
                                                 warm_start=getattr(args, "_warm_start_record", None),
                                                 policy_migration=getattr(args, "_policy_migration_record", None))
+            if checkpoint_prefix:
+                from .semantic_checkpoint_prefix_policy import build_frozen_checkpoint_prefix_policy
+                # The loader already verified this exact immutable checkpoint,
+                # actor and preprocessing. The independent actor is reset-only;
+                # it never replaces/mutates PPO's current transition or storage.
+                source = previous["resume_source_checkpoint"]
+                frozen_prefix = build_frozen_checkpoint_prefix_policy(runner.alg.actor, {
+                    "checkpoint_path": source["checkpoint"], "checkpoint_sha256": source["checkpoint_sha256"],
+                    "actor_parameter_sha256": previous["actor_parameter_sha256"],
+                    "source_global_policy_decisions": previous["global_policy_decisions"],
+                    "source_ppo_updates": previous["ppo_updates"],
+                    "policy_contract": policy_contract(_resolved_policy_version(args)),
+                    "source_runtime_content_sha256": previous["runtime_contract"]["runtime_content_sha256"],
+                })
+                env.install_prefix_policy(frozen_prefix, frozen_prefix.provenance)
             if getattr(args, "_policy_migration_record", None) is not None:
                 _save_policy_migration_initial(runner, env, args, contract, output_root, previous)
             if args.new_mdp_warm_start:
@@ -708,9 +737,10 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                     "path": str(comparison_path.resolve()), "sha256": sha256_file(comparison_path)}
                 initial_infos = {**previous, "runtime_contract": contract, "stage": "initial_v3_warm_start",
                                  "execution_topology": continuation_topology(env.cfg["reset_sampling"], env.cfg.get("prefix_request")),
-                                 "curriculum_epoch": {"reset_sampling": env.cfg["reset_sampling"], "prefix_request": env.cfg.get("prefix_request")},
+                                 "curriculum_epoch": semantic_curriculum_epoch(env.cfg),
                                  "sampling": env.cfg["reset_sampling"],
                                  "implemented_reset_sampling": env.cfg["reset_sampling"],
+                                 "phase_suffix_curriculum_implemented": env.cfg.get("prefix_request") is not None,
                                  "policy_contract": policy_contract(_resolved_policy_version(args)),
                                  "runner_config": semantic_runner_config(seed=args.seed, device=args.device,
                                      semantic_version=args.semantic_version, policy_version=_resolved_policy_version(args))}

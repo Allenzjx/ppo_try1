@@ -1,0 +1,165 @@
+"""An independent, checkpoint-frozen deterministic policy for reset-only roll-in.
+
+The caller has already verified and loaded the checkpoint. This module checks
+the loaded actor hash, not the checkpoint file again. It neither owns an
+optimizer nor calls the training actor, including for a comparison forward pass.
+"""
+from __future__ import annotations
+
+import copy
+import hashlib
+import json
+import math
+from numbers import Real
+import re
+from typing import Any, Mapping
+
+from .semantic_policy_distribution import STATE_DEPENDENT_POLICY, policy_contract
+
+
+def _tensor_hash(items: Any) -> str:
+    """Same named-parameter byte convention as semantic_training.parameter_hash."""
+    digest = hashlib.sha256()
+    for name, value in sorted(items):
+        tensor = value.detach().cpu().contiguous()
+        digest.update(name.encode())
+        digest.update(str(tensor.dtype).encode())
+        digest.update(str(tuple(tensor.shape)).encode())
+        digest.update(tensor.numpy().tobytes())
+    return digest.hexdigest()
+
+
+def _source_record(source: Mapping[str, Any]) -> dict[str, Any]:
+    if not isinstance(source, Mapping):
+        raise ValueError("verified source checkpoint must be a JSON mapping")
+    try:
+        record = json.loads(json.dumps(dict(source), allow_nan=False))
+    except (TypeError, ValueError) as error:
+        raise ValueError("verified source checkpoint must be finite JSON") from error
+    if not isinstance(record.get("checkpoint_path"), str) or not record["checkpoint_path"].strip():
+        raise ValueError("source checkpoint_path is required")
+    for key in ("checkpoint_sha256", "actor_parameter_sha256"):
+        if not isinstance(record.get(key), str) or not re.fullmatch(r"[0-9a-f]{64}", record[key]):
+            raise ValueError(f"source {key} must be a lowercase SHA256")
+    for key in ("source_global_policy_decisions", "source_ppo_updates"):
+        if type(record.get(key)) is not int or record[key] < 0:
+            raise ValueError(f"source {key} must be a nonnegative integer")
+    if json.dumps(record.get("policy_contract"), sort_keys=True) != json.dumps(
+        policy_contract(STATE_DEPENDENT_POLICY), sort_keys=True
+    ):
+        raise ValueError("checkpoint prefix requires the verified heteroscedastic 324 policy contract")
+    runtime_hash = record.get("source_runtime_content_sha256")
+    if runtime_hash is not None and (
+        not isinstance(runtime_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", runtime_hash)
+    ):
+        raise ValueError("source_runtime_content_sha256 must be a lowercase SHA256")
+    return record
+
+
+class FrozenCheckpointPrefixPolicy:
+    """Frozen private actor; observations are already semantic-schema normalized.
+
+    Its copied RSL normalizer is still used exactly as in C evaluation. No extra
+    normalization, clipping, tanh, or stochastic distribution update is applied.
+    """
+
+    def __init__(self, actor: Any, source_checkpoint: Mapping[str, Any]) -> None:
+        import torch
+        from rsl_rl.modules.distribution import HeteroscedasticGaussianDistribution
+
+        record = _source_record(source_checkpoint)
+        if not isinstance(actor, torch.nn.Module) or getattr(actor, "is_recurrent", False):
+            raise ValueError("checkpoint prefix requires a nonrecurrent torch actor")
+        distribution = getattr(actor, "distribution", None)
+        if (not isinstance(distribution, HeteroscedasticGaussianDistribution)
+                or distribution.std_type != "log" or distribution.output_dim != 12
+                or getattr(actor, "obs_dim", None) != 324
+                or list(getattr(actor, "obs_groups", ())) != ["policy"]
+                or not isinstance(getattr(actor, "obs_normalizer", None), torch.nn.Module)):
+            raise ValueError("actor does not implement the supported 324-to-12 heteroscedastic RSL interface")
+        parameters = dict(actor.named_parameters())
+        if not parameters or any(value.dtype != torch.float32 for value in parameters.values()):
+            raise ValueError("checkpoint prefix requires float32 actor parameters")
+        device = next(iter(parameters.values())).device
+        source_tensors = {**parameters, **dict(actor.named_buffers())}
+        if device.type not in ("cpu", "cuda") or any(t.device != device for t in source_tensors.values()):
+            raise ValueError("checkpoint prefix actor must have one CPU or CUDA device")
+        source_hash = _tensor_hash(parameters.items())
+        if source_hash != record["actor_parameter_sha256"]:
+            raise ValueError("loaded actor hash differs from the verified source checkpoint")
+
+        # Official RSL caches a Normal whose loc/scale can be nonleaf training
+        # tensors. Exclude only this known ephemeral sampling cache via deepcopy
+        # memo: never clear/mutate it on the source, or reconstruct/reinitialize
+        # the network. Unknown noncopyable state fails explicitly.
+        cached = getattr(distribution, "_distribution", None)
+        if cached is not None and not isinstance(cached, torch.distributions.Normal):
+            raise ValueError("unsupported RSL distribution cache")
+        try:
+            frozen = copy.deepcopy(actor, {id(cached): None} if cached is not None else {})
+        except Exception as error:
+            raise ValueError("actor cannot be independently copied without resetting learned state") from error
+        if {id(module) for module in actor.modules()} & {id(module) for module in frozen.modules()}:
+            raise ValueError("frozen prefix actor shares a source module")
+        copied_tensors = {**dict(frozen.named_parameters()), **dict(frozen.named_buffers())}
+        if copied_tensors.keys() != source_tensors.keys():
+            raise ValueError("frozen prefix copy changed actor parameters or buffers")
+        source_storages = {t.untyped_storage().data_ptr() for t in source_tensors.values() if t.numel()}
+        for name, original in source_tensors.items():
+            copied = copied_tensors[name]
+            if (copied.device != original.device or copied.dtype != original.dtype
+                    or copied.shape != original.shape
+                    or (copied.numel() and copied.untyped_storage().data_ptr() in source_storages)
+                    or not torch.equal(copied, original)):
+                raise ValueError(f"frozen prefix copy is not independent and equal: {name}")
+        if _tensor_hash(frozen.named_parameters()) != source_hash:
+            raise ValueError("frozen prefix parameter bytes changed")
+        buffer_hash = _tensor_hash(actor.named_buffers())
+        if _tensor_hash(frozen.named_buffers()) != buffer_hash:
+            raise ValueError("frozen prefix normalizer/buffer bytes changed")
+        frozen.eval()
+        frozen.requires_grad_(False)
+        self._actor = frozen
+        self._device = device
+        self._provenance = {
+            **record,
+            "prefix_policy_schema": "wlr50_clean.frozen_checkpoint_prefix_policy.v1",
+            "frozen_actor_parameter_sha256": source_hash,
+            "actor_buffer_sha256": buffer_hash,
+            "independent_parameter_and_buffer_storage_verified": True,
+            "distribution_cache_copied": False,
+            "inference": "TensorDict policy+critic; stochastic_output=False; no projection",
+            "frozen_for_entire_training_block": True,
+        }
+
+    @property
+    def provenance(self) -> dict[str, Any]:
+        return copy.deepcopy(self._provenance)
+
+    def __call__(self, observation: tuple[float, ...]) -> tuple[float, ...]:
+        import torch
+        from tensordict import TensorDict
+
+        if not isinstance(observation, (tuple, list)) or len(observation) != 324:
+            raise ValueError("checkpoint prefix observation must have exactly 324 values")
+        if any(isinstance(v, bool) or not isinstance(v, Real) or not math.isfinite(v) for v in observation):
+            raise ValueError("checkpoint prefix observation must contain finite real values")
+        with torch.inference_mode():
+            tensor = torch.tensor([observation], dtype=torch.float32, device=self._device)
+            if not bool(torch.isfinite(tensor).all()):
+                raise ValueError("checkpoint prefix observation is outside finite float32 range")
+            observations = TensorDict({"policy": tensor, "critic": tensor.clone()},
+                                      batch_size=[1], device=self._device)
+            action = self._actor(observations, stochastic_output=False)
+            if not isinstance(action, torch.Tensor) or tuple(action.shape) != (1, 12):
+                raise ValueError("checkpoint prefix actor must return a (1, 12) tensor")
+            result = tuple(float(v) for v in action[0].cpu().tolist())
+        if not all(math.isfinite(v) for v in result):
+            raise ValueError("checkpoint prefix actor returned nonfinite raw latent actions")
+        return result
+
+
+def build_frozen_checkpoint_prefix_policy(
+    actor: Any, source_checkpoint: Mapping[str, Any],
+) -> FrozenCheckpointPrefixPolicy:
+    return FrozenCheckpointPrefixPolicy(actor, source_checkpoint)

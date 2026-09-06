@@ -652,6 +652,20 @@ def _publish_last(checkpoint: Path, sidecar: Path, output_root: Path) -> None:
     }, replace=True)
 
 
+def semantic_curriculum_epoch(config: Mapping[str, Any]) -> dict[str, Any]:
+    """Bind reset behavior separately from the actual on-policy credit stream."""
+    request = jsonable(config.get("prefix_request"))
+    result = {"reset_sampling": jsonable(config.get("reset_sampling", "P01_only")),
+              "prefix_request": request}
+    provenance = config.get("prefix_policy_provenance")
+    if isinstance(request, Mapping) and request.get("source") == "frozen_checkpoint_policy":
+        if not isinstance(provenance, Mapping) or not provenance:
+            raise ValueError("checkpoint-policy curriculum must be installed before training/publication")
+    if provenance is not None:
+        result["prefix_policy_provenance"] = jsonable(provenance)
+    return result
+
+
 def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                    output_root: Path, stage: str, decisions: int,
                    contract: Mapping[str, Any], seed: int, resume_infos: Mapping[str, Any] | None = None,
@@ -664,6 +678,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     previous = dict(resume_infos or {})
     sampling = jsonable(env.cfg.get("reset_sampling", "P01_only"))
     prefix_request = jsonable(env.cfg.get("prefix_request"))
+    curriculum = semantic_curriculum_epoch(env.cfg)
     semantic_version = env.cfg.get("semantic_version", "v2")
     stage_spent = {name: int(previous.get("stage_requested_decisions", {}).get(name, 0)) for name in STAGE_BUDGETS}
     if stage_spent[stage] + decisions > STAGE_BUDGETS[stage]:
@@ -690,8 +705,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
         for iteration in range(iterations):
             with torch.inference_mode():
                 for tick in range(int(runner.cfg["num_steps_per_env"])):
-                    if (jsonable(env.cfg.get("reset_sampling", "P01_only")) != sampling
-                            or jsonable(env.cfg.get("prefix_request")) != prefix_request):
+                    if semantic_curriculum_epoch(env.cfg) != curriculum:
                         raise RuntimeError("curriculum must remain fixed throughout this on-policy epoch")
                     raw = runner.alg.act(obs)
                     sampled_raw = raw.detach().clone()
@@ -704,6 +718,8 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             or not bool(torch.isfinite(old_std).all()) or not bool((old_std > 0).all())):
                         raise RuntimeError("invalid sampled raw policy distribution before physics step")
                     obs, rewards, dones, extras = env.step(raw.to(env.device))
+                    if semantic_curriculum_epoch(env.cfg) != curriculum:
+                        raise RuntimeError("curriculum changed during a physical step/reset of the on-policy epoch")
                     if any(not bool(torch.isfinite(value).all()) for value in (sampled_raw, old_log_prob, old_value, rewards)):
                         raise RuntimeError("non-finite on-policy transition")
                     if bool(extras["time_outs"].any()):
@@ -736,6 +752,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
             snapshot["distribution_params"] = tuple(value.detach().cpu().clone() for value in storage.distribution_params)
             snapshot["schema"] = "wlr50_clean.semantic_on_policy_rollout.v1"
             snapshot["runtime_contract"] = dict(contract)
+            snapshot["curriculum_epoch"] = copy.deepcopy(curriculum)
             if storage.observations["policy"].shape[-1] == 324:
                 snapshot["policy_contract"] = policy_contract(runner._semantic_policy_version)
             torch.save(snapshot, rollout_dir / f"rollout_{base_updates + iteration + 1:06d}.pt")
@@ -761,7 +778,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                          "execution_topology": topology(env.num_envs),
                          "phase_suffix_curriculum_implemented": prefix_request is not None,
                          "semantic_version": semantic_version,
-                         "curriculum_epoch": {"reset_sampling": sampling, "prefix_request": prefix_request,
+                         "curriculum_epoch": {**copy.deepcopy(curriculum),
                                               "changes_allowed_only_between_complete_rollout_updates": True},
                          "implemented_reset_sampling": env.cfg.get("reset_sampling", "P01_only"),
                          "vector_smoke_evidence": env.cfg.get("vector_smoke_evidence"),
@@ -814,7 +831,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     result["runner_config"] = copy.deepcopy(runner._semantic_runner_config)
     if runner.alg.storage.observations["policy"].shape[-1] == 324:
         result["policy_contract"] = policy_contract(runner._semantic_policy_version)
-    result["curriculum_epoch"] = {"reset_sampling": sampling, "prefix_request": prefix_request}
+    result["curriculum_epoch"] = copy.deepcopy(curriculum)
     result["implemented_sampling"] = env.cfg.get("reset_sampling", "P01_only")
     if gpu_probe is not None:
         gpu_probe.sample("after_training_and_verified_checkpoint")

@@ -20,6 +20,8 @@ pytest.importorskip("rsl_rl")
 from test_semantic_policy_training import make
 from wlr50_clean.ppo import semantic_backend, semantic_cli as cli, semantic_env
 from wlr50_clean.ppo import semantic_migration as migration, semantic_prefix, semantic_training
+from wlr50_clean.ppo import semantic_checkpoint_prefix as checkpoint_prefix
+from wlr50_clean.ppo import semantic_checkpoint_prefix_policy as checkpoint_policy
 from wlr50_clean.ppo.semantic_policy_distribution import STATE_DEPENDENT_POLICY, policy_contract
 
 
@@ -31,19 +33,24 @@ def one_cpu_thread():
     torch.set_num_threads(previous)
 
 
-def sampling_for(phase):
+def sampling_for(phase, prefix_source="frozen_fsm"):
     if phase == "P01":
         return "P01_full_task_only_initial_version", None
+    if prefix_source == "checkpoint_policy":
+        request = checkpoint_prefix.CheckpointPolicyPrefixRequest(target_phase=phase)
+        return checkpoint_prefix.sampling_label(request), request.as_dict()
     request = semantic_prefix.PrefixRequest(target_phase=phase)
     return semantic_prefix.sampling_label(request), request.as_dict()
 
 
-@pytest.mark.parametrize("initial_kind", ["new_mdp", "policy_distribution"])
-@pytest.mark.parametrize("source_phase,current_phase,old_field_present", [
-    ("P06", "P01", True), ("P01", "P06", True), ("P06", "P01", False),
-], ids=["P06-to-P01", "P01-to-P06", "legacy-field-absent"])
+@pytest.mark.parametrize("initial_kind,source_phase,current_phase,old_field_present,prefix_source", [
+    (kind, source, current, field, "frozen_fsm")
+    for kind in ("new_mdp", "policy_distribution")
+    for source, current, field in (("P06", "P01", True), ("P01", "P06", True), ("P06", "P01", False))
+] + [pytest.param("new_mdp", "P01", "P06", True, "checkpoint_policy",
+                  id="new-MDP-P01-to-P06-real-frozen-checkpoint-policy")])
 def test_initial_current_sampling_embedded_and_sidecar_without_rewriting_source(
-        tmp_path, monkeypatch, initial_kind, source_phase, current_phase, old_field_present):
+        tmp_path, monkeypatch, initial_kind, source_phase, current_phase, old_field_present, prefix_source):
     semantic_training.seed_training_rngs(1001)
     runner, env, runner_config = make(STATE_DEPENDENT_POLICY)
     # Use nonzero mean AND log-std output weights so preservation is not merely
@@ -51,11 +58,13 @@ def test_initial_current_sampling_embedded_and_sidecar_without_rewriting_source(
     with torch.no_grad():
         runner.alg.actor.mlp[4].weight.add_(0.0125)
     source_sampling, source_prefix = sampling_for(source_phase)
-    current_sampling, current_prefix = sampling_for(current_phase)
+    current_sampling, current_prefix = sampling_for(current_phase, prefix_source)
     source_infos = {
-        "seed": 1001, "semantic_version": "v3", "runtime_contract": {"revision": "source"},
+        "seed": 1001, "semantic_version": "v3", "runtime_contract": {
+            "revision": "source", "runtime_content_sha256": "c"*64},
         "stage": "phase_suffix" if source_phase == "P06" else "full_episode",
         "sampling": source_sampling,
+        "phase_suffix_curriculum_implemented": source_prefix is not None,
         "execution_topology": migration.continuation_topology(source_sampling, source_prefix),
         "curriculum_epoch": {"reset_sampling": source_sampling, "prefix_request": source_prefix},
         "global_policy_decisions": 68224, "ppo_updates": 498, "optimizer_steps": 9960,
@@ -68,7 +77,9 @@ def test_initial_current_sampling_embedded_and_sidecar_without_rewriting_source(
     _, source_sidecar = semantic_training.save_semantic_checkpoint(runner, source, source_infos)
     source_bytes, sidecar_bytes = source.read_bytes(), source_sidecar.read_bytes()
     previous = torch.load(source, weights_only=False)["infos"]
-    previous["resume_source_checkpoint"] = str(source)
+    previous["resume_source_checkpoint"] = ({"checkpoint": str(source),
+        "checkpoint_sha256": semantic_training.sha256_file(source)}
+        if prefix_source == "checkpoint_policy" else str(source))
     previous_before = copy.deepcopy(previous)
     state_before = {
         "actor": semantic_training.parameter_hash(runner.alg.actor),
@@ -81,6 +92,7 @@ def test_initial_current_sampling_embedded_and_sidecar_without_rewriting_source(
     args = cli.parser().parse_args([
         "train", "--run-dir", str(tmp_path / "run"), "--expected-head", "a" * 40,
         "--semantic-version", "v3", "--from-phase", current_phase,
+        "--prefix-source", prefix_source,
         "--stage", "full_episode" if current_phase == "P01" else "phase_suffix",
         "--decisions", "128", "--checkpoint", str(source), "--device", "cpu",
     ])
@@ -99,6 +111,32 @@ def test_initial_current_sampling_embedded_and_sidecar_without_rewriting_source(
     monkeypatch.setattr(semantic_env, "SemanticEpisodeEnv", lambda *a, **kw: NS())
     monkeypatch.setattr(cli, "SemanticRslAdapter", lambda *a, **kw: env)
     monkeypatch.setattr(semantic_prefix, "PrefixRslAdapter", lambda *a, **kw: env)
+    installed = []
+    if prefix_source == "checkpoint_policy":
+        env.cfg["prefix_policy_provenance"] = None
+        def prepared_prefix(core, *, seed, device, evidence_sink, request):
+            assert seed == 1001 and device == "cpu"
+            assert request.as_dict() == current_prefix
+            assert env.core.calls == 0
+            return env  # Only physical bootstrap/roll-in is stubbed.
+        def install_prefix(callback, provenance):
+            assert len(loads) == 1 and not installed
+            # No mock of the production frozen actor builder: use the actual
+            # independent official RSL copy and perform deterministic inference.
+            assert isinstance(callback, checkpoint_policy.FrozenCheckpointPrefixPolicy)
+            assert callback._actor is not runner.alg.actor
+            assert callback.provenance == provenance
+            assert semantic_training.parameter_hash(callback._actor) == state_before["actor"]
+            observation = tuple(env._observation)
+            first = callback(observation)
+            assert len(first) == 12 and first == callback(observation)
+            assert all(torch.isfinite(torch.tensor(first)))
+            env.cfg["prefix_policy_provenance"] = copy.deepcopy(provenance)
+            installed.append((callback, copy.deepcopy(provenance)))
+        env.install_prefix_policy = install_prefix
+        monkeypatch.setattr(checkpoint_prefix, "CheckpointPolicyPrefixRslAdapter", prepared_prefix)
+        monkeypatch.setattr(semantic_prefix, "PrefixSemanticIsaacBackend", lambda *a, **kw:
+                            pytest.fail("checkpoint-policy source must not construct the teacher backend"))
     constructs, loads, trains = [], [], []
     def construct(actual_env, **kwargs):
         constructs.append(kwargs)
@@ -125,10 +163,31 @@ def test_initial_current_sampling_embedded_and_sidecar_without_rewriting_source(
     embedded = torch.load(initial, weights_only=False)["infos"]
     sidecar = json.loads(initial.with_name(initial.stem + "_manifest.json").read_text())
     assert sidecar["save_load_round_trip"] is True
+    expected_epoch = {"reset_sampling": current_sampling, "prefix_request": current_prefix}
+    if prefix_source == "checkpoint_policy":
+        assert len(installed) == 1
+        frozen_provenance = installed[0][1]
+        expected_epoch["prefix_policy_provenance"] = frozen_provenance
+        for key, expected in {
+            "checkpoint_path": str(source), "checkpoint_sha256": semantic_training.sha256_file(source),
+            "actor_parameter_sha256": state_before["actor"],
+            "source_global_policy_decisions": previous_before["global_policy_decisions"],
+            "source_ppo_updates": previous_before["ppo_updates"],
+            "source_runtime_content_sha256": previous_before["runtime_contract"]["runtime_content_sha256"],
+            "policy_contract": policy_contract(STATE_DEPENDENT_POLICY),
+        }.items():
+            assert frozen_provenance[key] == expected
+        assert frozen_provenance["independent_parameter_and_buffer_storage_verified"] is True
+        assert frozen_provenance["frozen_for_entire_training_block"] is True
+        assert current_prefix["source"] == "frozen_checkpoint_policy"
+        assert previous_before["execution_topology"]["phase_suffix_curriculum_implemented"] is False
+        assert "prefix_policy_provenance" not in previous_before["curriculum_epoch"]
     for record in (embedded, sidecar):
         assert record["implemented_reset_sampling"] == record["sampling"] == current_sampling
         assert record["execution_topology"] == migration.continuation_topology(current_sampling, current_prefix)
-        assert record["curriculum_epoch"] == {"reset_sampling": current_sampling, "prefix_request": current_prefix}
+        assert record["curriculum_epoch"] == expected_epoch
+        assert record["phase_suffix_curriculum_implemented"] is (current_prefix is not None)
+        assert record["execution_topology"]["phase_suffix_curriculum_implemented"] is record["phase_suffix_curriculum_implemented"]
         for key in ("global_policy_decisions", "ppo_updates", "optimizer_steps", "stage_requested_decisions",
                     "new_mdp_origin_global_policy_decisions", "resume_source_checkpoint"):
             assert record[key] == previous_before[key]
