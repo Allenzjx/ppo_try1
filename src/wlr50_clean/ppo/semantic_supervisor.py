@@ -34,6 +34,7 @@ GOAL_FEATURE_KEYS = tuple(
 ZERO12 = (0.0,) * 12
 P06_RETIREMENT_MODE = "measured_workspace_interior_peak"
 LIFT_CREDIT_MODE = "measured_air_process_current_top_gap"
+PREPARATION_CREDIT_MODE = "current_workspace_before_predecessor_placement"
 
 
 class SemanticObservationError(ValueError):
@@ -103,6 +104,11 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
         raise ValueError("unrecognized crossing evidence semantics")
     if spec.get("potential_definition") not in (None,"global_physical_progress_v3"):
         raise ValueError("unrecognized global potential semantics")
+    if spec.get("preparation_credit_semantics") not in (None,PREPARATION_CREDIT_MODE):
+        raise ValueError("unrecognized preparation credit semantics")
+    if (spec.get("preparation_credit_semantics") == PREPARATION_CREDIT_MODE
+            and spec.get("potential_definition") != "global_physical_progress_v3"):
+        raise ValueError("preparation credit requires global physical progress potential")
     if spec["final"].get("stop_pose_semantics") not in (None,"physical_stable_pose"):
         raise ValueError("unrecognized final stop pose semantics")
     if spec["final"].get("stop_command_progress") not in (None,"reciprocal_physical_stop_tolerance"):
@@ -551,7 +557,13 @@ class TaskStageSupervisor:
         for leg in LEG_ORDER:
             current=legs[leg]
             if history["placed"][leg]: values.append(1.); continue
-            if not all(history["placed"][p] for p in PLACEMENT_PREDECESSORS[leg]): values.append(0.); continue
+            if not all(history["placed"][p] for p in PLACEMENT_PREDECESSORS[leg]):
+                # Workspace preparation can precede another leg's placement.
+                # Reuse only its existing weight; unload/lift/carry/capture
+                # remain predecessor-gated and no history is awarded here.
+                preparation=(self.predicate(f"workspace_{leg}",evaluation)
+                    if self.spec.get("preparation_credit_semantics") == PREPARATION_CREDIT_MODE else 0.)
+                values.append(.1*preparation); continue
             workspace=self.predicate(f"workspace_{leg}",evaluation)
             unload=self.predicate(f"load_ready_{leg}",evaluation)
             initial=float(current.get("initial_clearance",False))

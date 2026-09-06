@@ -3,8 +3,10 @@ rear_leg_order: RR_FIRST
 physics_hz: 120.0
 decision_hz: 15.0
 episode_maximum_duration_s: 200.0
-revision: continuous_whole_body_v3_actuated_air_current_clearance_credit
+revision: continuous_whole_body_v3_current_workspace_preparation_credit
 potential_definition: global_physical_progress_v3
+# Existing workspace credit only; later lift/carry/capture remain ordered.
+preparation_credit_semantics: current_workspace_before_predecessor_placement
 # Soft progress only; hard initial/qualified/cross/placed semantics are unchanged.
 lift_credit_semantics: measured_air_process_current_top_gap
 history:

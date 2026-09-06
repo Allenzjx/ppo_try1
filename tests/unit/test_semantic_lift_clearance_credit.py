@@ -76,8 +76,8 @@ def test_initial_to_top_height_has_strict_progress_but_soft_never_enables_carry(
         assert not snap['history']['active_lift']['RR']
         assert not snap['history']['front_edge_crossed']['RR']
         assert not snap['history']['placed']['RR'] and not snap['success']
-        # Front legs completed, RL ineligible. RR workspace/unload are each1.
-        expected_phi=.85*(2.+.1+.1+.25*(.25+.75*expected))/4.
+        # RL gets workspace preparation only; its lift/carry remain ineligible.
+        expected_phi=.85*(2.+.1*sup.predicate('workspace_RL',snap)+.1+.1+.25*(.25+.75*expected))/4.
         values.append(sup.physical_potential(snap))
         assert values[-1]==pytest.approx(expected_phi)  # Carry remains exactly0.
     assert all(a<b for a,b in zip(values,values[1:]))
@@ -279,7 +279,7 @@ def test_current_same_state_phase_independence_v2_and_unopted_v3_compatibility(t
     old_values=deepcopy(VALUES);old_values.pop('lift_credit_semantics')
     path=tmp_path/'old.yaml';path.write_text(yaml.safe_dump(old_values,sort_keys=False),encoding='utf-8')
     old=TaskStageSupervisor(path,evaluator=ev)
-    assert old.physical_potential(snap)==pytest.approx(.48078125)
+    assert old.physical_potential(snap)==pytest.approx(.48078125+.85/4*.1*old.predicate('workspace_RL',snap))
     obs,lower=sample(ev,obs,bottom=.010)
     assert old.physical_potential(lower)==old.physical_potential(snap)
     assert 'lift_credit_semantics' not in load_task_spec(DEFAULT_TASK_SPEC_PATH)
