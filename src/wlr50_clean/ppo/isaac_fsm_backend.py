@@ -1972,6 +1972,7 @@ class IsaacFSMBackend:
                 previous_final_drive_servo_deg=audit_previous_final_drive,
                 source_phase_id=self._authoritative_frame.state_id,
                 policy_request=self._actuator_target_audit_request,
+                policy_headroom_mode=getattr(self, "_policy_headroom_mode", None),
             )
 
         # This is the only physics advance in the episode tick.  In particular,

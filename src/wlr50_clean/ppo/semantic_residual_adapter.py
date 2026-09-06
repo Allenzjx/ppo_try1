@@ -25,7 +25,8 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
                             physics_tick: int, tracking_servo_names: Sequence[str],
                             controller_bias_full12: Sequence[float],
                             projected_residual_full12: Sequence[float],
-                            nominal_geometry_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
+                            nominal_geometry_context: Mapping[str, Any] | None = None,
+                            policy_headroom_mode: str | None = None) -> dict[str, Any]:
     """Dispatch independent policy residual without treating it as tracking bias."""
     # Keep the original controller envelope, including for the exact-zero path.
     controller = _full12_drive_feedback_bias(controller_bias_full12)
@@ -35,6 +36,10 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
     combined = tuple(a + b for a, b in zip(controller, residual, strict=True))
     if any(not math.isfinite(value) for value in combined):
         raise RobotAdapterError("combined PPO target offset is non-finite")
+    if policy_headroom_mode is not None:
+        from .semantic_headroom import HEADROOM_MODE, project_semantic_servo_headroom
+        if policy_headroom_mode != HEADROOM_MODE:
+            raise RobotAdapterError("unknown semantic policy headroom mode")
     evidence = {
         "semantic_residual_composition": "independent_post_mapper_residual.v1",
         "bounded_controller_bias_requested_full12": list(controller),
@@ -47,6 +52,15 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
     if not any(residual) and nominal_geometry_context is None:
         ack = adapter.apply_full12(command, physics_tick=physics_tick,
             tracking_servo_names=tracking_servo_names, drive_feedback_bias_full12=controller)
+        if policy_headroom_mode is not None:
+            # Keep exact zero/teacher execution on the original adapter. Its
+            # just-completed native ACK supplies this read-only receipt; no
+            # duplicate mapper, history update or target dispatch is needed.
+            headroom = project_semantic_servo_headroom(
+                native_full12=tuple(ack["native_drive_target_full12"]),
+                controller_bias_full12=controller, projected_residual_full12=residual)
+            evidence.update(policy_headroom_mode=policy_headroom_mode,
+                            policy_headroom_evidence=headroom)
         ack.update(evidence)
         adapter.last_ack = dict(ack)
         return ack
@@ -98,8 +112,18 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
                 zip(native_drive.to_full12(), corrected_native, strict=True)],
             "nominal_geometry_evidence": dict(geometry_evidence),
         })
+    effective_combined = combined
+    if policy_headroom_mode is not None:
+        # Headroom belongs to this unique real mapper/geometry result. The
+        # request remains unchanged for the backend, bridge and prefix receipt.
+        headroom = project_semantic_servo_headroom(
+            native_full12=corrected_native, controller_bias_full12=controller,
+            projected_residual_full12=residual)
+        effective_combined = tuple(headroom["effective_combined_post_mapper_bias_full12"])
+        evidence.update(policy_headroom_mode=policy_headroom_mode,
+                        policy_headroom_evidence=headroom)
     final_servo = []
-    for name, target, bias in zip(SERVO_ORDER, corrected_native[:8], combined[:8], strict=True):
+    for name, target, bias in zip(SERVO_ORDER, corrected_native[:8], effective_combined[:8], strict=True):
         lower, upper = servo_limits_deg(name)
         final_servo.append(bounded_drive_feedback_step(
             previous_deg=adapter._final_drive_servo_deg[name], native_deg=target,
@@ -107,7 +131,7 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
             lower_deg=lower, upper_deg=upper))
     final_wheels = tuple(max(-WHEEL_VELOCITY_LIMIT_RAD_S,
         min(WHEEL_VELOCITY_LIMIT_RAD_S, target + bias))
-        for target, bias in zip(corrected_native[8:], combined[8:], strict=True))
+        for target, bias in zip(corrected_native[8:], effective_combined[8:], strict=True))
     drive = Full12Command(tuple(final_servo), final_wheels)
     physical = build_physical_batch(drive, adapter.standing_pose_deg)
     positions = _clone_tensor(adapter._standing_servo_tensor)
@@ -157,9 +181,11 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
 class SemanticActuationDispatch:
     """Per-call view retaining the existing backend's atomic ACK validation."""
 
-    def __init__(self, adapter: Any, plan: Any, *, nominal_geometry_context: Mapping[str, Any] | None = None):
+    def __init__(self, adapter: Any, plan: Any, *, nominal_geometry_context: Mapping[str, Any] | None = None,
+                 policy_headroom_mode: str | None = None):
         self.adapter, self.plan = adapter, plan
         self.nominal_geometry_context = nominal_geometry_context
+        self.policy_headroom_mode = policy_headroom_mode
 
     def __getattr__(self, name):
         return getattr(self.adapter, name)
@@ -172,4 +198,5 @@ class SemanticActuationDispatch:
             tracking_servo_names=tracking_servo_names,
             controller_bias_full12=self.plan.controller_drive_bias_full12,
             projected_residual_full12=self.plan.projected_residual_full12,
-            nominal_geometry_context=self.nominal_geometry_context)
+            nominal_geometry_context=self.nominal_geometry_context,
+            policy_headroom_mode=self.policy_headroom_mode)

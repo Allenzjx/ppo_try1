@@ -20,6 +20,7 @@ from wlr50_clean.infrastructure.command_batch import (
 )
 from wlr50_clean.reference.motion_contract import load_motion_contract
 from wlr50_clean.reference.similarity import allowed_error
+from .semantic_headroom import HEADROOM_MODE, SERVO_RESERVE_DEG
 
 
 ACTION_SCHEMA = "wlr50_clean.ppo_action_projection.v1"
@@ -145,6 +146,7 @@ class ActionProjectionConfig:
     recording_envelope_initialization_suggestion: bool
     training_enabled: bool
     path: Path
+    policy_headroom_mode: str | None = None
 
     @property
     def physics_ticks_per_decision(self) -> int:
@@ -390,6 +392,15 @@ class ActionProjector:
         policy: ConformancePolicy | None = None,
     ) -> None:
         self.config = config or load_action_projection_config()
+        if self.config.policy_headroom_mode not in (None, HEADROOM_MODE):
+            raise ActionProjectionError("unknown policy servo headroom mode")
+        if self.config.policy_headroom_mode is not None:
+            hard = _absolute_limits()
+            reserved = tuple((lo + SERVO_RESERVE_DEG, hi - SERVO_RESERVE_DEG)
+                             for lo, hi in hard[:8])
+            if (self.config.absolute_limits_full12 != hard
+                    or self.config.safety_limits_full12[:8] != reserved):
+                raise ActionProjectionError("same-tick headroom requires original hard limits and 2-degree reserves")
         self.policy = policy or get_conformance_policy()
         if self.policy.active_fraction != 0.30:
             raise ActionProjectionError(
@@ -571,11 +582,19 @@ class ActionProjector:
                 nominal, self.config.safety_limits_full12, strict=True
             )
         )
+        # In the opt-in independent post-mapper path this is a finite REQUEST
+        # transport, not an actuator target. The unique dispatch projects the
+        # first eight channels against this tick's mapped/geometry-corrected
+        # nominal plus bounded controller bias. Never use last-tick mapper ACK
+        # or widen hard limits to approximate that headroom here. Wheels retain
+        # the existing logical-speed bound; request caps/masks/slew stay above.
         limit_residual = tuple(
-            _clamp(residual_value, lower, upper)
-            for residual_value, (lower, upper) in zip(
+            residual_value
+            if index < 8 and self.config.policy_headroom_mode == HEADROOM_MODE
+            else _clamp(residual_value, lower, upper)
+            for index, (residual_value, (lower, upper)) in enumerate(zip(
                 phase_scale_projected, residual_intervals, strict=True
-            )
+            ))
         )
         limit_action = tuple(
             nominal_value

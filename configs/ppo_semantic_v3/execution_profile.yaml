@@ -1,5 +1,5 @@
 schema: wlr50_clean.semantic_execution_profile.v1
-revision: continuous_whole_body_exploration_v3_preplace_nominal_geometry
+revision: continuous_whole_body_exploration_v3_same_tick_servo_headroom
 physics_hz: 120.0
 decision_hz: 15.0
 episode_timeout_s: 200.0
@@ -44,6 +44,10 @@ residual:
   same_tick_atomic_dispatch: true
   injection: post_mapper
   composition: independent_post_mapper_residual.v1
+  policy_headroom_mode: same_tick_post_mapper_servo_margin_v1
+  # The 2 degree reserve is applied after this tick's mapper/nominal geometry
+  # and bounded controller bias. Previous residual observation remains the
+  # filtered request; actual actuator history remains the final slewed drive.
   phase_handoff: retain_feasible_history_and_slew_to_new_target_no_global_zero
   cap_changes: version_boundary_only_with_physical_response_and_saturation_evidence
   safety_projection_scope: hard_actuator_bounds_and_reactive_stop_not_predictive_collision_avoidance

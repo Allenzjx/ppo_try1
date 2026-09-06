@@ -54,6 +54,7 @@ def build_actuator_target_effect_audit(
     previous_final_drive_servo_deg: Sequence[float],
     source_phase_id: str,
     policy_request: Mapping[str, Any] | None,
+    policy_headroom_mode: str | None = None,
 ) -> dict[str, Any]:
     """Inspect the already completed dispatch, never simulate another write.
 
@@ -91,6 +92,46 @@ def build_actuator_target_effect_audit(
     combined_bias = _finite_values(actuation.combined_post_mapper_bias_full12, 12, "combined bias")
     if _finite_values(raw_ack["drive_feedback_bias_requested_full12"], 12, "ack bias") != combined_bias:
         raise ActuatorTargetEffectError("actual dispatch bias differs from the actuation plan")
+    headroom_keys = ("policy_headroom_mode", "policy_headroom_evidence")
+    actual_bias, zero_policy_bias = combined_bias, controller_bias
+    headroom = None
+    if policy_headroom_mode is None:
+        if any(key in raw_ack for key in headroom_keys):
+            raise ActuatorTargetEffectError("unexpected policy headroom dispatch evidence")
+    else:
+        import json
+        from .semantic_headroom import HEADROOM_MODE, project_semantic_servo_headroom
+        if policy_headroom_mode != HEADROOM_MODE:
+            raise ActuatorTargetEffectError("unknown expected policy headroom mode")
+        if (not all(key in raw_ack for key in headroom_keys)
+                or raw_ack[headroom_keys[0]] != policy_headroom_mode
+                or not isinstance(raw_ack[headroom_keys[1]], Mapping)):
+            raise ActuatorTargetEffectError("missing or inconsistent policy headroom dispatch evidence")
+        requested_residual = _finite_values(actuation.projected_residual_full12, 12, "projected residual")
+        if combined_bias != tuple(c+r for c,r in zip(controller_bias, requested_residual, strict=True)):
+            raise ActuatorTargetEffectError("headroom request composition differs from the actuation plan")
+        for key, expected in (("bounded_controller_bias_requested_full12", controller_bias),
+                              ("independent_policy_residual_requested_full12", requested_residual)):
+            if key not in raw_ack or _finite_values(raw_ack[key], 12, key) != expected:
+                raise ActuatorTargetEffectError("headroom request receipt differs from the actuation plan")
+        # Recompute, do not trust the dispatch's effective residual or margins.
+        # JSON comparison preserves numeric/bool distinctions and accepts the
+        # same list representation after a receipt has been serialized.
+        headroom = project_semantic_servo_headroom(
+            native_full12=corrected_native, controller_bias_full12=controller_bias,
+            projected_residual_full12=requested_residual)
+        try:
+            declared = json.dumps(dict(raw_ack[headroom_keys[1]]), sort_keys=True, allow_nan=False)
+            expected = json.dumps(headroom, sort_keys=True, allow_nan=False)
+        except (TypeError, ValueError) as exc:
+            raise ActuatorTargetEffectError("invalid policy headroom evidence representation") from exc
+        if declared != expected:
+            raise ActuatorTargetEffectError("policy headroom evidence differs from independent reconstruction")
+        actual_bias = tuple(headroom["effective_combined_post_mapper_bias_full12"])
+        zero_headroom = project_semantic_servo_headroom(
+            native_full12=corrected_native, controller_bias_full12=controller_bias,
+            projected_residual_full12=(0.,)*12)
+        zero_policy_bias = tuple(zero_headroom["effective_combined_post_mapper_bias_full12"])
     maximum_delta = float(raw_ack["drive_feedback_final_slew_limit_deg_per_tick"])
     if maximum_delta != float(adapter.servo_target_mapper.maximum_delta_deg):
         raise ActuatorTargetEffectError("actual dispatch slew limit differs from the frozen mapper")
@@ -114,8 +155,8 @@ def build_actuator_target_effect_audit(
         ).clamped()
         return build_physical_batch(command, adapter.standing_pose_deg)
 
-    actual_physical = physical_targets(combined_bias)
-    counterfactual_physical = physical_targets(controller_bias)
+    actual_physical = physical_targets(actual_bias)
+    counterfactual_physical = physical_targets(zero_policy_bias)
     robot = adapter.robot
     servo_ids = list(adapter.joint_map.servo_ids)
     wheel_ids = list(adapter.joint_map.wheel_ids)
@@ -197,10 +238,19 @@ def build_actuator_target_effect_audit(
         "controller_drive_bias_full12": list(controller_bias),
         "combined_post_mapper_bias_full12": list(combined_bias),
     }
+    if headroom is not None:
+        result.update(policy_headroom_mode=policy_headroom_mode,
+                      policy_headroom_evidence=headroom)
     if geometry_enabled:
         # Remove geometry only in this third, zero-current-policy branch.
         # The existing actual-minus-counterfactual fields remain PPO-only.
-        raw_nominal_servo, raw_nominal_wheel = cast_targets(physical_targets(controller_bias, native))
+        raw_zero_bias = controller_bias
+        if headroom is not None:
+            raw_zero = project_semantic_servo_headroom(
+                native_full12=native, controller_bias_full12=controller_bias,
+                projected_residual_full12=(0.,)*12)
+            raw_zero_bias = tuple(raw_zero["effective_combined_post_mapper_bias_full12"])
+        raw_nominal_servo, raw_nominal_wheel = cast_targets(physical_targets(raw_zero_bias, native))
         geometry_changed = torch.cat((nominal_servo != raw_nominal_servo,
                                       nominal_wheel != raw_nominal_wheel), dim=1)
         geometry_channels = [bool(value) for value in geometry_changed.cpu().tolist()[0]]

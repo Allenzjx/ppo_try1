@@ -86,6 +86,8 @@ class SemanticVectorIsaacBackend(VectorizedIsaacFSMBackend):
             raise ValueError("first semantic vector revision supports only N=8")
         self.execution_profile_path = Path(execution_profile).resolve()
         self.execution_profile = load_execution_profile(self.execution_profile_path)
+        if self.execution_profile["residual"].get("policy_headroom_mode") is not None:
+            raise ValueError("same-tick policy servo headroom currently requires the audited N=1 dispatch")
         self._policy_requests = (None,)*8
         self._row_adapters = ()
         # Creates only the one physical scene/contact bank, not legacy controllers.

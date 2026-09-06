@@ -29,6 +29,7 @@ def test_geometry_context_is_not_injected_into_teacher_or_exact_handoff(
     backend = SemanticIsaacBackend.__new__(SemanticIsaacBackend)
     backend._semantic_actuation_plan = object()
     backend._nominal_geometry_mode = MODE if enabled else None
+    backend._policy_headroom_mode = "same_tick_post_mapper_servo_margin_v1"
     backend._nominal_geometry_margin_m = .015
     backend._controller_frame = SimpleNamespace(physics_tick=10, state_id="P09")
     backend._raw_observation = object()
@@ -54,6 +55,7 @@ def test_geometry_context_is_not_injected_into_teacher_or_exact_handoff(
     assert len(writes) == 1
     assert isinstance(writes[0][0], SemanticActuationDispatch)
     assert writes[0][0].adapter is original_adapter
+    assert writes[0][0].policy_headroom_mode == backend._policy_headroom_mode
     assert len(calls) == int(expect_capture)
     assert writes[0][0].nominal_geometry_context is (context if expect_capture else None)
     if expect_capture:

@@ -28,6 +28,7 @@ from .ppo_env_adapter import AuthoritativeFrame
 from .reward_terms import RewardSignals
 from .termination import TerminationSignals
 from .semantic_nominal_geometry import MODE as NOMINAL_GEOMETRY_MODE
+from .semantic_headroom import HEADROOM_MODE, validate_semantic_servo_headroom_config
 
 CONFIG_ROOT = Path(__file__).resolve().parents[3] / "configs" / "ppo_semantic_v2"
 DEFAULT_EXECUTION_PROFILE = CONFIG_ROOT / "execution_profile.yaml"
@@ -44,6 +45,16 @@ def load_execution_profile(path: Path | str = DEFAULT_EXECUTION_PROFILE) -> dict
     if (profile.get("nominal_geometry_advisory") is not None
             and profile["residual"].get("composition") != "independent_post_mapper_residual.v1"):
         raise ValueError("nominal geometry requires independent post-mapper residual composition")
+    headroom = profile["residual"].get("policy_headroom_mode")
+    if headroom not in (None, HEADROOM_MODE):
+        raise ValueError("unknown policy servo headroom mode")
+    if (headroom is not None
+            and profile["residual"].get("composition") != "independent_post_mapper_residual.v1"):
+        raise ValueError("same-tick headroom requires independent post-mapper residual composition")
+    if headroom is not None:
+        base = load_action_projection_config()
+        margins = yaml.safe_load(base.path.read_text(encoding="utf-8"))["joint_safety_margin_deg"]
+        validate_semantic_servo_headroom_config(headroom, margins)
     return profile
 
 
@@ -82,6 +93,7 @@ def build_semantic_projector(path: Path | str = DEFAULT_EXECUTION_PROFILE) -> Ac
         servo_residual_rate_deg_s=float(values["servo_rate_deg_s"]),
         wheel_residual_rate_rad_s2=float(values["wheel_rate_rad_s2"]),
         recording_envelope_initialization_suggestion=False,
+        policy_headroom_mode=values.get("policy_headroom_mode"),
     )
     # The reused projector computes legacy percentage diagnostics but never
     # applies them as a cap. No legacy mask or max-initial-scale gate is used.
@@ -101,6 +113,7 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         if composition not in (None, "independent_post_mapper_residual.v1"):
             raise ValueError("unknown semantic residual composition")
         self._independent_policy_residual = composition is not None
+        self._policy_headroom_mode = self.execution_profile["residual"].get("policy_headroom_mode")
         self.task_spec_path = Path(task_spec_path).resolve()
         self._nominal_geometry_mode = self.execution_profile.get("nominal_geometry_advisory")
         self._nominal_geometry_margin_m = None
@@ -238,7 +251,8 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                         source_frame=source, task_snapshot=controller.task_snapshot,
                         clearance_margin_m=self._nominal_geometry_margin_m,
                         physics_tick=physics_tick)
-            adapter = SemanticActuationDispatch(adapter, plan, nominal_geometry_context=geometry)
+            adapter = SemanticActuationDispatch(adapter, plan, nominal_geometry_context=geometry,
+                policy_headroom_mode=getattr(self, "_policy_headroom_mode", None))
         return super()._atomic_apply(adapter, command, physics_tick=physics_tick,
             tracking_servo_names=tracking_servo_names,
             drive_feedback_bias_full12=drive_feedback_bias_full12)

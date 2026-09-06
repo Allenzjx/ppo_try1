@@ -205,7 +205,8 @@ def test_v3_evidence_rejects_old_version_extra_warmup_or_hidden_reader(mutate):
         video.validate_existing_settle_evidence(source,[json.loads(line) for line in stream.getvalue().splitlines()])
 
 
-def test_v3_post_hold_reuses_independent_residual_above_old_controller_limit(monkeypatch):
+@pytest.mark.parametrize("headroom_mode", [None, "same_tick_post_mapper_servo_margin_v1"])
+def test_v3_post_hold_reuses_independent_residual_above_old_controller_limit(monkeypatch, headroom_mode):
     import torch
     from test_actuator_target_effect import _adapter
     from test_semantic_video import post_backend
@@ -218,6 +219,7 @@ def test_v3_post_hold_reuses_independent_residual_above_old_controller_limit(mon
     expected = adapter.robot._joint_pos_target_sim.clone()
     backend, _ = post_backend(monkeypatch)
     backend._adapter = adapter
+    backend._policy_headroom_mode = headroom_mode
     backend._last_atomic_ack = actuation.annotate_ack(ack)
     backend._atomic_apply = lambda *args,**kwargs:IsaacFSMBackend._atomic_apply(backend,*args,**kwargs)
     result={"success":True,"termination_reason":None}
@@ -228,6 +230,7 @@ def test_v3_post_hold_reuses_independent_residual_above_old_controller_limit(mon
         assert torch.count_nonzero(adapter.robot._joint_vel_target_sim) == 0
         assert row["atomic_ack"]["bounded_controller_bias_requested_full12"] == [.25,-.25]*4+[0.]*4
         assert row["atomic_ack"]["independent_policy_residual_requested_full12"] == [15.,-15.]*4+[0.]*4
+        assert row["atomic_ack"].get("policy_headroom_mode") == headroom_mode
     assert adapter.write_count == 50
     assert adapter.robot.events == (["position.setter","velocity.setter","dispatch"]*48
         + ["position.setter","velocity.setter","dispatch","update"]*2)
