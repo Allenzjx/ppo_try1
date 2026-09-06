@@ -33,6 +33,7 @@ GOAL_FEATURE_KEYS = tuple(
      "body_angular_speed_rad_s", "maximum_wheel_speed_rad_s")
 ZERO12 = (0.0,) * 12
 P06_RETIREMENT_MODE = "measured_workspace_interior_peak"
+LIFT_CREDIT_MODE = "measured_air_process_current_top_gap"
 
 
 class SemanticObservationError(ValueError):
@@ -110,6 +111,14 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
             and _number(spec["final"]["maximum_commanded_wheel_speed_rad_s"], "stop command tolerance") <= 0):
         raise ValueError("command progress requires a positive existing physical stop tolerance")
     _p06_retirement_bounds(spec)
+    if spec.get("lift_credit_semantics") not in (None,LIFT_CREDIT_MODE):
+        raise ValueError("unrecognized lift credit semantics")
+    if spec.get("lift_credit_semantics") == LIFT_CREDIT_MODE:
+        if spec["history"].get("lift_motion_evidence") != "whole_body_actuation":
+            raise ValueError("soft AIR credit requires whole-body physical evidence")
+        for key in ("minimum_initial_clearance_gain_m","minimum_lift_gain_m"):
+            if _number(spec["history"][key],key) <= 0:
+                raise ValueError("lift credit physical scales must be positive")
     required = {"purpose", "valid_start_conditions", "goal_features", "completion_predicates",
                 "progress_potential", "allowed_action_channels", "physical_limits",
                 "stall_diagnostic", "maximum_task_duration", "next_phase", "active_leg"}
@@ -161,6 +170,9 @@ class TaskEvaluator:
         self._top_count = dict.fromkeys(LEG_ORDER, 0)
         self._initial_clearance = dict.fromkeys(LEG_ORDER, False)
         self._obstacle_before_clearance = dict.fromkeys(LEG_ORDER, False)
+        self._soft_air_progress_enabled = self.spec.get("lift_credit_semantics") == LIFT_CREDIT_MODE
+        self._soft_air_actuation_earned = dict.fromkeys(LEG_ORDER,False)
+        self._soft_air_earned_tick = dict.fromkeys(LEG_ORDER,None)
         self._history = {key: dict.fromkeys(LEG_ORDER, False) for key in ("active_lift", "front_edge_crossed", "placed")}
         self._event_ticks = {key: {} for key in self._history}
         self._lift_attempt_events: list[dict[str, Any]] = []
@@ -171,15 +183,56 @@ class TaskEvaluator:
 
     @property
     def snapshot(self) -> dict[str, Any]:
-        return {**self._snapshot, "goal_features": dict(self._snapshot["goal_features"]),
+        result = {**self._snapshot, "goal_features": dict(self._snapshot["goal_features"]),
             "history": {**{k: dict(v) for k, v in self._history.items()},
                         "event_ticks": {k: dict(v) for k, v in self._event_ticks.items()},
                         "active_lift_semantics": "current_uninterrupted_airborne_above_top_qualification_until_crossing_then_completed_history",
-                        "lift_attempt_events": [dict(event) for event in self._lift_attempt_events]}}
+                         "lift_attempt_events": [dict(event) for event in self._lift_attempt_events]}}
+        if self._soft_air_progress_enabled and "current_legs" in result:
+            result["current_legs"]={leg:{**row,
+                "soft_air_actuation_earned":self._soft_air_actuation_earned[leg],
+                "soft_air_earned_tick":self._soft_air_earned_tick[leg],
+                "soft_air_evidence_semantics":"current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"}
+                for leg,row in result["current_legs"].items()}
+        return result
 
     def _fail(self, result: TaskResult, reason: str) -> None:
         if self._failure is None:
             self._failure, self._failure_reason = result.value, reason
+        for leg in LEG_ORDER:
+            self._soft_air_actuation_earned[leg]=False
+            self._soft_air_earned_tick[leg]=None
+
+    def _update_soft_air_process(self, leg: str, *, air: bool, in_task_region: bool, tick: int) -> None:
+        """Acquire from a fresh AIR suffix, retain during hover, revoke on contact.
+
+        Commands/response are measured evidence, not a causal motor-work proof.
+        This state never participates in initial/qualified/cross/placed gates.
+        """
+        if not self._soft_air_progress_enabled: return
+        if not air or self._failure is not None:
+            self._soft_air_actuation_earned[leg]=False; self._soft_air_earned_tick[leg]=None
+            return
+        if self._soft_air_actuation_earned[leg]: return  # No sliding-window expiry.
+        if not in_task_region or not all(self._history["placed"][p] for p in PLACEMENT_PREDECESSORS[leg]): return
+        suffix=[]
+        for sample in reversed(self._samples[leg]):
+            if not sample[4]: break  # Exclude all earlier ground/wall motion.
+            suffix.append(sample)
+        suffix.reverse(); cfg=self.spec["history"]
+        if len(suffix)<max(2,cfg["minimum_air_samples"]): return
+        upward=suffix[-1][1]-min(sample[1] for sample in suffix[:-1])
+        if (upward<cfg["minimum_initial_clearance_gain_m"] or suffix[-1][1]<=suffix[-2][1]): return
+        joint_motion=sum(sum(abs(x-y) for x,y in zip(a[5],b[5])) for a,b in zip(suffix,suffix[1:]))
+        command_motion=sum(sum(abs(x-y) for x,y in zip(a[6],b[6])) for a,b in zip(suffix,suffix[1:]))
+        tracking_error=max(abs(a-b) for a,b in zip(suffix[-1][6],suffix[-1][5]))
+        gravity_motion=_norm(tuple(a-b for a,b in zip(suffix[-1][7],suffix[0][7])))
+        # Reuse existing whole-body evidence scales. Wheel spin alone is not
+        # a joint command demand; constant targets with tracking error are.
+        demand=command_motion>=cfg.get("minimum_command_motion_deg",.1) or tracking_error>=.5
+        response=joint_motion>=cfg["minimum_joint_motion_deg"] or gravity_motion>=cfg.get("minimum_gravity_direction_change",.02)
+        if demand and response:
+            self._soft_air_actuation_earned[leg]=True; self._soft_air_earned_tick[leg]=tick
 
     def observe(self, observation: Any) -> dict[str, Any]:
         tick = _get(observation, "physics_tick")
@@ -314,6 +367,8 @@ class TaskEvaluator:
                     "joint_motion_deg": movement, "airborne_clearance_above_top_m": bottom[2]-top})
             xy_tolerance = geo["xy_measurement_tolerance_m"]
             within_lateral_span = right-xy_tolerance <= center[1] <= left+xy_tolerance
+            self._update_soft_air_process(leg,air=air,tick=tick,in_task_region=(within_lateral_span
+                and hist_cfg["near_front_min_m"]<=distance<=hist_cfg["near_front_max_m"]))
             within_top_xy = within_lateral_span and front-xy_tolerance <= center[0] <= back+xy_tolerance
             top_geometry = within_top_xy and geo["top_gap_min_m"] <= bottom[2]-top <= geo["top_gap_max_m"]
             loaded = bool(top_active and top_geometry and distance >= 0)
@@ -500,12 +555,30 @@ class TaskStageSupervisor:
             workspace=self.predicate(f"workspace_{leg}",evaluation)
             unload=self.predicate(f"load_ready_{leg}",evaluation)
             initial=float(current.get("initial_clearance",False))
-            lift=float(history["active_lift"][leg])
-            carry=(1. if history["front_edge_crossed"][leg] else _clip(1.+current["front_distance_m"]/.25)) if lift else 0.
+            hard_lift=bool(history["active_lift"][leg])
+            lift_credit=float(hard_lift)
+            if self.spec.get("lift_credit_semantics") == LIFT_CREDIT_MODE:
+                lift_credit=self._current_lift_credit(leg,evaluation)
+            carry=(1. if history["front_edge_crossed"][leg] else _clip(1.+current["front_distance_m"]/.25)) if hard_lift else 0.
             capture=_clip(current["consecutive_top_samples"]/self.spec["history"]["minimum_top_samples"]) if history["front_edge_crossed"][leg] else 0.
-            values.append(.1*workspace+.1*unload+.25*(.25*initial+.75*lift)+.35*carry+.2*capture)
+            values.append(.1*workspace+.1*unload+.25*(.25*initial+.75*lift_credit)+.35*carry+.2*capture)
         finish=self.predicate("whole_task_success",evaluation) if all(history["placed"].values()) else 0.
         return min(1.,.85*sum(values)/4.+.15*finish)
+
+    def _current_lift_credit(self, leg: str, evaluation: Mapping[str,Any]) -> float:
+        if evaluation.get("valid") is not True or evaluation.get("termination_reason") is not None: return 0.
+        current=evaluation["current_legs"][leg]; history=evaluation["history"]
+        clearance=_number(current["clearance_m"],f"{leg} current top clearance")
+        scale=self.spec["history"]["minimum_lift_gain_m"]
+        fraction=scale/(scale+max(0.,-clearance))
+        if history["active_lift"][leg]:
+            return 1. if history["front_edge_crossed"][leg] else fraction
+        cfg=self.spec["history"]
+        eligible=(current.get("soft_air_actuation_earned") is True and current["initial_clearance"]
+            and current["air"] and not current["ground_contact"] and not current["obstacle_pair_active"]
+            and current["within_lateral_span"]
+            and cfg["near_front_min_m"]<=current["front_distance_m"]<=cfg["near_front_max_m"])
+        return .99*fraction if eligible else 0.
 
     def observe_and_update(self, observation: Any, *, sim_time_s: float | None = None) -> dict[str, Any]:
         evaluation = self.evaluator.observe(observation)
