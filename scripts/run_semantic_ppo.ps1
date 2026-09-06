@@ -11,6 +11,7 @@ param(
     [ValidateSet('P01','P06','P07','P08','P09','P10','P11','P12','P13')][string]$FromPhase = 'P01',
     [ValidateRange(0,1799)][int]$TeacherOffsetDecisions = 0,
     [switch]$NewMdpWarmStart,
+    [switch]$PolicyDistributionMigration,
     [string]$VectorSmokeEvidence,
     [string]$Checkpoint,
     [string]$ResumeMigration,
@@ -20,6 +21,10 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if ($PolicyDistributionMigration -and ($Command -cne 'train' -or $SemanticVersion -cne 'v3' -or $NumEnvs -ne 1 -or
+        [string]::IsNullOrWhiteSpace($Checkpoint) -or $NewMdpWarmStart -or -not [string]::IsNullOrWhiteSpace($ResumeMigration))) {
+    throw 'PolicyDistributionMigration requires v3 N1 train with a checkpoint, exclusive of NewMdpWarmStart or ResumeMigration'
+}
 $project = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $python = 'C:\Users\kskzz\miniconda3\envs\env_isaaclab\python.exe'
 $busy = @(Get-CimInstance Win32_Process | Where-Object {
@@ -56,6 +61,7 @@ try {
         '--teacher-offset-decisions',[string]$TeacherOffsetDecisions,
         '--checkpoint-interval-updates',[string]$CheckpointIntervalUpdates,'--headless')
     if ($NewMdpWarmStart) { $arguments += '--new-mdp-warm-start' }
+    if ($PolicyDistributionMigration) { $arguments += '--policy-distribution-migration' }
     if ($PSBoundParameters.ContainsKey('Decisions')) { $arguments += @('--decisions',[string]$Decisions) }
     if (-not [string]::IsNullOrWhiteSpace($VectorSmokeEvidence)) {
         $proof = if ([IO.Path]::IsPathRooted($VectorSmokeEvidence)) { $VectorSmokeEvidence } else { Join-Path $project $VectorSmokeEvidence }

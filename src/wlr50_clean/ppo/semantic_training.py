@@ -7,6 +7,7 @@ replaces those samples or their old log probabilities in RSL storage.
 from __future__ import annotations
 
 from contextlib import contextmanager
+import copy
 import hashlib
 import json
 import math
@@ -22,6 +23,9 @@ from .rl_library_wrapper import (
     capture_training_rng_state, construct_runner, initialize_zero_mean_actor,
     load_checkpoint_round_trip, optimizer_learning_rate,
     restore_training_rng_state, seed_training_rngs, sha256_file,
+)
+from .semantic_policy_distribution import (
+    LEGACY_POLICY, STATE_DEPENDENT_POLICY, configure_policy_distribution, policy_contract,
 )
 
 SEMANTIC_TRAINING_SCHEMA = "wlr50_clean.semantic_training.v1"
@@ -94,7 +98,8 @@ def state_hash(value: Any) -> str:
     return digest.hexdigest()
 
 
-def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_version: str = "v2") -> dict[str, Any]:
+def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_version: str = "v2",
+                           policy_version: str = LEGACY_POLICY) -> dict[str, Any]:
     if semantic_version not in ("v2", "v3"):
         raise ValueError("unsupported semantic runtime version")
     # Same installed PPO/network hyperparameters; independent semantic identity.
@@ -113,6 +118,7 @@ def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_versio
     # normalizer state is still included in model checkpoints and verified.
     config["actor"]["obs_normalization"] = False
     config["critic"]["obs_normalization"] = False
+    configure_policy_distribution(config, policy_version)
     return config
 
 
@@ -206,13 +212,31 @@ class SemanticRslAdapter:
                 "reset_sampling": "P01_full_task_only_initial_version"}
 
 
-def construct_semantic_runner(env: Any, *, seed: int, device: str) -> tuple[Any, dict[str, Any]]:
+def construct_semantic_runner(env: Any, *, seed: int, device: str,
+                              policy_version: str = LEGACY_POLICY,
+                              initialize_actor: bool = True) -> tuple[Any, dict[str, Any]]:
     assert_supported_rsl_runtime()
     config = semantic_runner_config(seed=seed, device=device,
-                                    semantic_version=env.cfg.get("semantic_version", "v2"))
+                                    semantic_version=env.cfg.get("semantic_version", "v2"),
+                                    policy_version=policy_version)
     runner = construct_runner(env, config, log_dir=None)
     runner.logger.writer = None  # No hidden upstream automatic checkpoint writes.
-    initialize_zero_mean_actor(runner)
+    runner._semantic_policy_version = policy_version
+    runner._semantic_version = env.cfg.get("semantic_version", "v2")
+    runner._semantic_runner_config = copy.deepcopy(config)
+    if initialize_actor:
+        if policy_version == LEGACY_POLICY:
+            initialize_zero_mean_actor(runner)
+        else:
+            # The official log-std half has its own initialization. Zeroing the
+            # whole head would silently replace sigma=.15 with exp(0)=1.
+            import torch
+            linears = [m for m in runner.alg.actor.mlp.modules() if isinstance(m, torch.nn.Linear)]
+            if not linears or linears[-1].out_features != 24:
+                raise RuntimeError("state-dependent Full12 actor requires the official 24-row head")
+            with torch.no_grad():
+                linears[-1].weight[:12].zero_()
+                linears[-1].bias[:12].zero_()
     return runner, config
 
 
@@ -292,6 +316,8 @@ def save_semantic_checkpoint(runner: Any, checkpoint: Path, infos: Mapping[str, 
     if checkpoint.exists():
         raise FileExistsError(checkpoint)
     metadata = {**dict(infos), "schema": SEMANTIC_CHECKPOINT_SCHEMA,
+                "semantic_version": runner._semantic_version,
+                "runner_config": copy.deepcopy(runner._semantic_runner_config),
                 "optimizer_learning_rate": optimizer_learning_rate(runner),
                 "actor_parameter_sha256": parameter_hash(runner.alg.actor),
                 "critic_parameter_sha256": parameter_hash(runner.alg.critic),
@@ -301,6 +327,10 @@ def save_semantic_checkpoint(runner: Any, checkpoint: Path, infos: Mapping[str, 
                 "training_rng_state": capture_training_rng_state(seed=int(infos["seed"])),
                 "physical_env_state_saved": False,
                 "resume_physics": "legal_reset_not_bitwise_continuation"}
+    if runner.alg.storage.observations["policy"].shape[-1] == 324:
+        metadata["policy_contract"] = policy_contract(runner._semantic_policy_version)
+    elif runner._semantic_policy_version != LEGACY_POLICY:
+        raise RuntimeError("state-dependent semantic checkpoints require 324 observations")
     runner.save(str(checkpoint), infos=metadata)
     loaded = load_checkpoint_round_trip(runner, checkpoint)
     if dict(loaded) != metadata:
@@ -319,13 +349,22 @@ def save_semantic_checkpoint(runner: Any, checkpoint: Path, infos: Mapping[str, 
 
 def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping[str, Any], seed: int,
                              migration: Mapping[str, Any] | None = None,
-                             warm_start: Mapping[str, Any] | None = None) -> dict[str, Any]:
+                             warm_start: Mapping[str, Any] | None = None,
+                             policy_migration: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    if policy_migration is not None:
+        if migration is not None or warm_start is not None:
+            raise ValueError("policy distribution, new-MDP and exact runtime migrations are separate operations")
+        return _load_policy_distribution_migration(runner, checkpoint, contract=contract,
+                                                   seed=seed, record=policy_migration)
     if warm_start is not None:
         if migration is not None:
             raise ValueError("new-MDP warm start and exact resume migration are distinct operations")
         return _load_v3_warm_start(runner, checkpoint, contract=contract, seed=seed, record=warm_start)
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
     metadata = json.loads(sidecar.read_text(encoding="utf-8"))
+    from .semantic_policy_distribution import policy_version_from_metadata
+    if policy_version_from_metadata(metadata) != runner._semantic_policy_version:
+        raise RuntimeError("checkpoint policy distribution differs from the constructed actor")
     expected_contract = dict(contract)
     from .semantic_migration import source_num_envs
     source_count = source_num_envs(metadata)
@@ -352,7 +391,9 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
                 or runner.alg.storage.actions.shape[-1] != 12
                 or runner.alg.storage.step != 0 or runner.alg.transition.actions is not None):
             raise RuntimeError("migration requires fresh 324-observation/12-action storage with no old rollout")
-        if metadata.get("runner_config") != semantic_runner_config(seed=seed, device=str(runner.device)):
+        if metadata.get("runner_config") != semantic_runner_config(seed=seed, device=str(runner.device),
+                semantic_version=metadata.get("semantic_version", "v2"),
+                policy_version=runner._semantic_policy_version):
             raise RuntimeError("migration cannot change PPO hyperparameters or normalization")
     if (metadata.get("schema") != SEMANTIC_CHECKPOINT_SCHEMA
             or metadata.get("checkpoint_path") != str(checkpoint.resolve())
@@ -378,6 +419,96 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
     return infos
 
 
+def _load_policy_distribution_migration(runner: Any, checkpoint: Path, *,
+        contract: Mapping[str, Any], seed: int, record: Mapping[str, Any]) -> dict[str, Any]:
+    """One explicit architecture boundary, not a new physical task/reward MDP."""
+    import torch
+    from .semantic_policy_distribution import (
+        build_policy_distribution_migration, map_gaussian_actor_state,
+    )
+    verified = build_policy_distribution_migration(checkpoint, contract)
+    if verified != dict(record):
+        raise RuntimeError("policy migration binding changed after preflight")
+    storage = runner.alg.storage
+    if (runner._semantic_policy_version != STATE_DEPENDENT_POLICY
+            or runner._semantic_version != "v3"
+            or tuple(storage.actions.shape) != (128, 1, 12)
+            or storage.observations["policy"].shape[-1] != 324
+            or storage.step != 0 or runner.alg.transition.actions is not None):
+        raise RuntimeError("policy migration requires fresh v3 N1 324/12 storage and the target actor")
+    if runner._semantic_runner_config != semantic_runner_config(seed=seed, device=str(runner.device),
+            semantic_version="v3", policy_version=STATE_DEPENDENT_POLICY):
+        raise RuntimeError("policy migration cannot silently change PPO hyperparameters")
+    # Construction reads the existing observation only: no reset, action,
+    # physical snapshot restore or additional simulation step is performed.
+    source, _ = construct_semantic_runner(runner.env, seed=seed, device=str(runner.device),
+                                         policy_version=LEGACY_POLICY, initialize_actor=False)
+    infos = load_semantic_checkpoint(source, checkpoint,
+                                    contract=record["source_runtime_contract"], seed=seed)
+    if (any(_normalizers(source).values()) or source.alg.actor.obs_normalization
+            or source.alg.critic.obs_normalization):
+        raise RuntimeError("policy migration requires the compatible identity normalizers")
+    mapped, mapping_evidence = map_gaussian_actor_state(source.alg.actor.state_dict(),
+                                                       runner.alg.actor.state_dict())
+    runner.alg.actor.load_state_dict(mapped, strict=True)
+    runner.alg.critic.load_state_dict(source.alg.critic.state_dict(), strict=True)
+    if (parameter_hash(runner.alg.critic) != infos["critic_parameter_sha256"]
+            or state_hash(_normalizers(runner)) != infos["normalizer_state_sha256"]):
+        raise RuntimeError("policy migration failed exact critic/normalizer preservation")
+    observations = runner.env.get_observations().to(runner.device)
+    with torch.inference_mode():
+        source_mean = source.alg.actor(observations, stochastic_output=False)
+        target_mean = runner.alg.actor(observations, stochastic_output=False)
+        source.alg.actor.distribution.update(source.alg.actor.mlp(source.alg.actor.get_latent(observations)))
+        runner.alg.actor.distribution.update(runner.alg.actor.mlp(runner.alg.actor.get_latent(observations)))
+        source_std, target_std = source.alg.actor.output_std, runner.alg.actor.output_std
+        source_value, target_value = source.alg.critic(observations), runner.alg.critic(observations)
+        for before, after in ((source_mean, target_mean), (source_std, target_std), (source_value, target_value)):
+            torch.testing.assert_close(before, after, rtol=1e-5, atol=1e-6)
+        kl = runner.alg.actor.get_kl_divergence(source.alg.actor.output_distribution_params,
+                                               runner.alg.actor.output_distribution_params)
+        if not bool(torch.isfinite(kl).all()) or float(kl.abs().max()) > 1e-6:
+            raise RuntimeError("mapped initial policy distribution is not equivalent")
+        comparison = {"scope": "same_current_observation_no_sampling_or_physics_step",
+                      "observation_sha256": state_hash(observations["policy"]),
+                      "mean_max_abs_difference": float((source_mean-target_mean).abs().max()),
+                      "std_max_abs_difference": float((source_std-target_std).abs().max()),
+                      "value_max_abs_difference": float((source_value-target_value).abs().max()),
+                      "kl_max_abs": float(kl.abs().max()),
+                      "bitwise_trajectory_equivalence_claimed": False}
+    if type(source.alg.optimizer) is not torch.optim.Adam or len(source.alg.optimizer.param_groups) != 1:
+        raise RuntimeError("policy migration supports only the verified single-group official Adam")
+    actual_lr = optimizer_learning_rate(source)
+    if actual_lr != record["optimizer"]["initial_learning_rate"]:
+        raise RuntimeError("source effective learning rate differs from policy migration record")
+    adam_options = {key: copy.deepcopy(source.alg.optimizer.param_groups[0][key])
+                    for key in source.alg.optimizer.defaults if key != "lr"}
+    runner.alg.optimizer = torch.optim.Adam(
+        list(runner.alg.actor.parameters()) + list(runner.alg.critic.parameters()),
+        lr=actual_lr, **adam_options)
+    runner.alg.learning_rate = actual_lr
+    runner.current_learning_iteration = int(infos["ppo_updates"])
+    # Constructions consume RNG; comparisons above do not sample. Restore last
+    # so the next action starts at the source RNG boundary, not constructor RNG.
+    restore_training_rng_state(infos["training_rng_state"], expected_seed=seed)
+    evidence = {"mapping": mapping_evidence, "same_observation_comparison": comparison,
+                "source_actor_parameter_sha256": infos["actor_parameter_sha256"],
+                "target_actor_parameter_sha256": parameter_hash(runner.alg.actor),
+                "critic_parameter_sha256": parameter_hash(runner.alg.critic),
+                "normalizer_state_sha256": state_hash(_normalizers(runner)),
+                "optimizer_state": "fresh_Adam_no_old_moments",
+                "optimizer_learning_rate": actual_lr,
+                "optimizer_options": jsonable(adam_options),
+                "rollout_step": storage.step, "physical_steps_added": 0,
+                "policy_decisions_added": 0, "ppo_updates_added": 0, "optimizer_steps_added": 0,
+                "source_rng_restored_after_construction_and_comparison": True}
+    return {**infos, "semantic_version": "v3",
+            "policy_contract": policy_contract(STATE_DEPENDENT_POLICY),
+            "runner_config": copy.deepcopy(runner._semantic_runner_config),
+            "policy_distribution_migration": dict(record),
+            "policy_distribution_migration_evidence": evidence}
+
+
 def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str, Any],
                         seed: int, record: Mapping[str, Any]) -> dict[str, Any]:
     """Reuse learned networks, explicitly discard old optimizer and rollout state."""
@@ -391,7 +522,8 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
             or storage.observations["policy"].shape[-1] != 324
             or storage.step != 0 or runner.alg.transition.actions is not None):
         raise RuntimeError("v3 warm start requires fresh N1 324-observation/12-action rollout storage")
-    expected_config = semantic_runner_config(seed=seed, device=str(runner.device), semantic_version="v3")
+    expected_config = semantic_runner_config(seed=seed, device=str(runner.device), semantic_version="v3",
+                                             policy_version=runner._semantic_policy_version)
     # Official RSL 5.0.1 consumes these factory-only entries during construction.
     for role in ("actor", "critic", "algorithm"):
         if type(getattr(runner.alg, role, runner.alg)).__name__ != expected_config[role].pop("class_name"):
@@ -565,6 +697,12 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                     sampled_raw = raw.detach().clone()
                     old_log_prob = runner.alg.transition.actions_log_prob.detach().clone()
                     old_value = runner.alg.transition.values.detach().clone()
+                    old_mean, old_std = (value.detach().clone()
+                                        for value in runner.alg.transition.distribution_params)
+                    if (old_mean.shape != sampled_raw.shape or old_std.shape != sampled_raw.shape
+                            or not bool(torch.isfinite(old_mean).all())
+                            or not bool(torch.isfinite(old_std).all()) or not bool((old_std > 0).all())):
+                        raise RuntimeError("invalid sampled raw policy distribution before physics step")
                     obs, rewards, dones, extras = env.step(raw.to(env.device))
                     if any(not bool(torch.isfinite(value).all()) for value in (sampled_raw, old_log_prob, old_value, rewards)):
                         raise RuntimeError("non-finite on-policy transition")
@@ -573,6 +711,8 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                     for index, info in enumerate(extras["semantic_decisions"]):
                         row = {"global_policy_decision": base_global + iteration * batch + tick * env.num_envs + index + 1,
                                "raw_policy_action_full12": sampled_raw[index].cpu().tolist(),
+                               "old_distribution_mean_full12": old_mean[index].cpu().tolist(),
+                               "old_distribution_std_full12": old_std[index].cpu().tolist(),
                                "old_log_probability": float(old_log_prob[index]), "old_value": float(old_value[index]),
                                "reward": float(rewards[index]), "terminal": bool(dones[index]),
                                "applied_audit": info}
@@ -583,6 +723,9 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                     runner.alg.process_env_step(obs, rewards, dones, extras)
                     if not torch.equal(runner.alg.storage.actions[tick], sampled_raw):
                         raise RuntimeError("stored PPO action differs from sampled raw latent")
+                    if any(not torch.equal(saved[tick], expected) for saved, expected in
+                           zip(runner.alg.storage.distribution_params, (old_mean, old_std))):
+                        raise RuntimeError("stored PPO distribution differs from sampled mean/std")
                 runner.alg.compute_returns(obs)
             if gpu_probe is not None:
                 gpu_probe.sample("after_complete_rollout")
@@ -593,6 +736,8 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
             snapshot["distribution_params"] = tuple(value.detach().cpu().clone() for value in storage.distribution_params)
             snapshot["schema"] = "wlr50_clean.semantic_on_policy_rollout.v1"
             snapshot["runtime_contract"] = dict(contract)
+            if storage.observations["policy"].shape[-1] == 324:
+                snapshot["policy_contract"] = policy_contract(runner._semantic_policy_version)
             torch.save(snapshot, rollout_dir / f"rollout_{base_updates + iteration + 1:06d}.pt")
             global_step = base_global + (iteration + 1) * batch
             runner.alg.entropy_coef = 0.005 + (0.001 - 0.005) * min(global_step / sum(STAGE_BUDGETS.values()), 1.0)
@@ -623,13 +768,14 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                          "global_policy_decisions": global_step, "ppo_updates": base_updates + iteration + 1,
                          "optimizer_steps": base_optimizer + sum(row["optimizer_steps"] for row in updates),
                          "stage_requested_decisions": spent, "source_run": str(run_dir.resolve()),
-                         "sampling": sampling, "runner_config": semantic_runner_config(seed=seed, device=str(runner.device), semantic_version=semantic_version),
+                         "sampling": sampling, "runner_config": copy.deepcopy(runner._semantic_runner_config),
                          "last_update": update}
                 if semantic_version == "v3":
                     from .semantic_migration import continuation_topology
                     infos["execution_topology"] = continuation_topology(sampling, prefix_request)
                 for key in ("new_mdp_warm_start", "new_mdp_origin_global_policy_decisions", "source_stage_requested_decisions",
-                            "new_mdp_initial_action_comparison"):
+                            "new_mdp_initial_action_comparison", "policy_distribution_migration",
+                            "policy_distribution_migration_evidence"):
                     if key in previous:
                         infos[key] = previous[key]
                 if previous:
@@ -665,6 +811,9 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     result["stop_after_update"] = stop_record
     result["phase_suffix_curriculum_implemented"] = prefix_request is not None
     result["semantic_version"] = semantic_version
+    result["runner_config"] = copy.deepcopy(runner._semantic_runner_config)
+    if runner.alg.storage.observations["policy"].shape[-1] == 324:
+        result["policy_contract"] = policy_contract(runner._semantic_policy_version)
     result["curriculum_epoch"] = {"reset_sampling": sampling, "prefix_request": prefix_request}
     result["implemented_sampling"] = env.cfg.get("reset_sampling", "P01_only")
     if gpu_probe is not None:

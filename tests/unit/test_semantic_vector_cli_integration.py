@@ -226,6 +226,7 @@ def test_real_main_rejects_undeclared_same_head_topology_switch_before_app(tmp_p
         "schema":"wlr50_clean.semantic_checkpoint.v1","checkpoint_path":str(source.resolve()),
         "checkpoint_sha256":migration.file_sha(source),"save_load_round_trip":True,
         "runtime_contract":new,"seed":1001,"execution_topology":topology(1),
+        "runner_config":semantic_cli.semantic_runner_config(seed=1001,device="cuda:0"),
         "stage_requested_decisions":{"smoke":4480}}))
     monkeypatch.setattr(semantic_cli,"PROJECT_ROOT",tmp_path)
     monkeypatch.setattr(semantic_cli,"RUNS_ROOT",tmp_path/"runs/ppo_semantic_v2")

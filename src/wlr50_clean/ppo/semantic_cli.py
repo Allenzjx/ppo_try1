@@ -22,6 +22,11 @@ from .semantic_training import (
     semantic_runner_config, sha256_file, train_semantic, verified_native_effect, write_json,
 )
 from .semantic_migration import topology, stage_partition
+from .semantic_policy_distribution import (
+    LEGACY_POLICY, STATE_DEPENDENT_POLICY, policy_contract,
+    policy_version_from_metadata, build_policy_distribution_migration,
+    policy_migration_checkpoint_name,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 RUNS_ROOT = PROJECT_ROOT / "runs/ppo_semantic_v2"
@@ -57,6 +62,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--from-phase", choices=("P01", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13"), default="P01")
     result.add_argument("--teacher-offset-decisions", type=int, default=0)
     result.add_argument("--new-mdp-warm-start", action="store_true")
+    result.add_argument("--policy-distribution-migration", action="store_true")
     result.add_argument("--vector-smoke-evidence", type=Path)
     result.add_argument("--stage", choices=tuple(STAGE_BUDGETS), default="smoke")
     result.add_argument("--decisions", type=int)
@@ -135,6 +141,10 @@ def validate_request(args: argparse.Namespace) -> None:
         raise ValueError("suffix starts and teacher offsets require v3 N1 training; evaluation remains fresh P01")
     if not 0 <= args.teacher_offset_decisions < 1800:
         raise ValueError("teacher offset must be within the 200 second total task budget")
+    if getattr(args, "policy_distribution_migration", False) and (
+            args.semantic_version != "v3" or args.num_envs != 1 or args.command != "train"
+            or args.checkpoint is None or args.new_mdp_warm_start or args.resume_migration is not None):
+        raise ValueError("policy distribution migration requires v3 N1 train with a checkpoint, exclusive of new-MDP or resume migration")
     if args.command == "train" and args.semantic_version == "v3":
         if args.checkpoint is None:
             raise ValueError("v3 continuation requires existing learned checkpoint weights")
@@ -212,10 +222,34 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
     """Reject stale or unauthorized weights before loading any native library."""
     args._migration_record = None
     args._warm_start_record = None
+    args._policy_migration_record = None
+    args._policy_version = LEGACY_POLICY
     if args.checkpoint is None:
+        if getattr(args, "policy_distribution_migration", False):
+            raise ValueError("policy distribution migration requires a saved checkpoint")
         return
     from .semantic_migration import checkpoint_metadata, validate_migration_plan
     metadata = checkpoint_metadata(args.checkpoint)
+    if (not args.new_mdp_warm_start and args.resume_migration is None
+            and not getattr(args, "policy_distribution_migration", False)
+            and metadata["runtime_contract"] != contract):
+        raise ValueError("checkpoint runtime changed; an explicit reviewed resume migration is required")
+    args._policy_version = policy_version_from_metadata(metadata)
+    if getattr(args, "policy_distribution_migration", False):
+        # Repeat the scope check here: this boundary must remain safe even when
+        # called directly by another entry point before any native launch.
+        if (getattr(args, "semantic_version", "v2") != "v3" or getattr(args, "num_envs", 1) != 1
+                or args.command != "train" or args.new_mdp_warm_start or args.resume_migration is not None):
+            raise ValueError("policy distribution migration requires exclusive v3 N1 training")
+        if metadata["seed"] != args.seed:
+            raise ValueError("policy migration must preserve the recorded training RNG seed")
+        args._policy_migration_record = build_policy_distribution_migration(
+            args.checkpoint, contract, project_root=PROJECT_ROOT)
+        initial = version_paths("v3")[1] / "checkpoints/history" / policy_migration_checkpoint_name(args._policy_migration_record)
+        if initial.exists() or initial.with_name(initial.stem + "_manifest.json").exists():
+            raise ValueError("this policy migration initial checkpoint already exists; resume its published weights")
+        args._policy_version = STATE_DEPENDENT_POLICY
+        return
     if args.new_mdp_warm_start:
         from .semantic_migration import build_v3_warm_start_record, v3_warm_start_checkpoint_name
         args._warm_start_record = build_v3_warm_start_record(args.checkpoint, contract, project_root=PROJECT_ROOT)
@@ -230,10 +264,45 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
             raise ValueError("checkpoint runtime changed; an explicit reviewed resume migration is required")
     else:
         args._migration_record = validate_migration_plan(args.checkpoint, contract, args.resume_migration)
-        if metadata.get("runner_config") != semantic_runner_config(seed=int(metadata["seed"]), device=args.device):
+        if metadata.get("runner_config") != semantic_runner_config(seed=int(metadata["seed"]), device=args.device,
+                semantic_version=metadata.get("semantic_version", "v2"), policy_version=args._policy_version):
             raise ValueError("migration cannot change PPO hyperparameters or normalization")
     if args.command == "train" and metadata["seed"] != args.seed:
         raise ValueError("resume must preserve the checkpoint training RNG seed")
+
+
+def _resolved_policy_version(args: argparse.Namespace) -> str:
+    """Use preflight's verified choice; direct CPU entry calls verify metadata too."""
+    resolved = getattr(args, "_policy_version", None)
+    if resolved is not None:
+        policy_contract(resolved)  # Reject an unsupported internal selection.
+        return resolved
+    if args.checkpoint is None:
+        return LEGACY_POLICY
+    from .semantic_migration import checkpoint_metadata
+    return policy_version_from_metadata(checkpoint_metadata(args.checkpoint))
+
+
+def _save_policy_migration_initial(runner: Any, env: Any, args: argparse.Namespace,
+                                   contract: dict[str, Any], output_root: Path,
+                                   previous: dict[str, Any]) -> None:
+    """Publish a separate immutable conversion boundary without spending samples."""
+    from .semantic_migration import continuation_topology
+    record = args._policy_migration_record
+    initial = output_root / "checkpoints/history" / policy_migration_checkpoint_name(record)
+    if initial.exists() or initial.with_name(initial.stem + "_manifest.json").exists():
+        raise ValueError("policy migration initial checkpoint already exists; refusing to overwrite")
+    write_json(args.run_dir / "policy_distribution_migration.json", record)
+    initial_infos = {**previous, "runtime_contract": contract, "semantic_version": args.semantic_version,
+        "stage": "initial_policy_distribution_migration",
+        "policy_distribution_migration": record,
+        "policy_contract": policy_contract(_resolved_policy_version(args)),
+        "execution_topology": continuation_topology(env.cfg["reset_sampling"], env.cfg.get("prefix_request")),
+        "curriculum_epoch": {"reset_sampling": env.cfg["reset_sampling"], "prefix_request": env.cfg.get("prefix_request")},
+        "sampling": env.cfg["reset_sampling"],
+        "runner_config": semantic_runner_config(seed=args.seed, device=args.device,
+            semantic_version=args.semantic_version, policy_version=_resolved_policy_version(args))}
+    save_semantic_checkpoint(runner, initial, initial_infos)
 
 
 def _evaluation(core: Any, args: argparse.Namespace, *, contract: dict[str, Any]) -> dict[str, Any]:
@@ -266,8 +335,9 @@ def _evaluation_body(core: Any, args: argparse.Namespace, *, contract: dict[str,
             def get_observations(self):
                 tensor = torch.tensor([observation], dtype=torch.float32, device=args.device)
                 return TensorDict({"policy": tensor, "critic": tensor.clone()}, batch_size=[1], device=args.device)
-        runner, _ = construct_semantic_runner(ObservationEnv(), seed=1001, device=args.device)
         metadata = json.loads(args.checkpoint.with_name(args.checkpoint.stem + "_manifest.json").read_text())
+        runner, _ = construct_semantic_runner(ObservationEnv(), seed=int(metadata["seed"]), device=args.device,
+            policy_version=_resolved_policy_version(args), initialize_actor=False)
         load_semantic_checkpoint(runner, args.checkpoint, contract=contract, seed=int(metadata["seed"]),
                                  migration=getattr(args, "_migration_record", None))
         runner.alg.eval_mode()
@@ -328,6 +398,7 @@ def _evaluation_body(core: Any, args: argparse.Namespace, *, contract: dict[str,
               "runtime_contract": contract, "physical_failure_is_not_interface_failure": True,
               "evaluation_seed_interpretation": "deterministic_repetition_without_randomization"}
     result["checkpoint_resume_migration"] = getattr(args, "_migration_record", None)
+    result["policy_contract"] = None if runner is None else policy_contract(_resolved_policy_version(args))
     result["optimizer_updates_during_evaluation"] = 0
     if args.command == "smoke":
         result["interface_smoke"] = {"reset_count": reset_count, "reset_records": reset_records,
@@ -611,12 +682,16 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
         else:
             env = SemanticRslAdapter(core, seed=args.seed, device=args.device)
         env.cfg["semantic_version"] = args.semantic_version
-        runner, _ = construct_semantic_runner(env, seed=args.seed, device=args.device)
+        runner, _ = construct_semantic_runner(env, seed=args.seed, device=args.device,
+            policy_version=_resolved_policy_version(args), initialize_actor=args.checkpoint is None)
         previous = None
         if args.checkpoint is not None:
             previous = load_semantic_checkpoint(runner, args.checkpoint, contract=contract, seed=args.seed,
                                                 migration=getattr(args, "_migration_record", None),
-                                                warm_start=getattr(args, "_warm_start_record", None))
+                                                warm_start=getattr(args, "_warm_start_record", None),
+                                                policy_migration=getattr(args, "_policy_migration_record", None))
+            if getattr(args, "_policy_migration_record", None) is not None:
+                _save_policy_migration_initial(runner, env, args, contract, output_root, previous)
             if args.new_mdp_warm_start:
                 from .semantic_migration import (continuation_topology, v3_warm_start_checkpoint_name,
                                                   warm_start_source_execution_profile)
@@ -634,17 +709,22 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                                  "execution_topology": continuation_topology(env.cfg["reset_sampling"], env.cfg.get("prefix_request")),
                                  "curriculum_epoch": {"reset_sampling": env.cfg["reset_sampling"], "prefix_request": env.cfg.get("prefix_request")},
                                  "sampling": env.cfg["reset_sampling"],
-                                 "runner_config": semantic_runner_config(seed=args.seed, device=args.device, semantic_version="v3")}
+                                 "policy_contract": policy_contract(_resolved_policy_version(args)),
+                                 "runner_config": semantic_runner_config(seed=args.seed, device=args.device,
+                                     semantic_version=args.semantic_version, policy_version=_resolved_policy_version(args))}
                 save_semantic_checkpoint(runner, output_root / "checkpoints/history" /
                     v3_warm_start_checkpoint_name(args._warm_start_record), initial_infos)
         else:
             initial = output_root / "checkpoints/history/checkpoint_initial_semantic.pt"
             save_semantic_checkpoint(runner, initial, {
                 "seed": args.seed, "runtime_contract": contract, "stage": "initial",
+                "semantic_version": args.semantic_version,
+                "policy_contract": policy_contract(_resolved_policy_version(args)),
                 "execution_topology": topology(1),
                 "global_policy_decisions": 0, "ppo_updates": 0, "optimizer_steps": 0,
                 "stage_requested_decisions": {stage: 0 for stage in STAGE_BUDGETS},
-                "runner_config": semantic_runner_config(seed=args.seed, device=args.device),
+                "runner_config": semantic_runner_config(seed=args.seed, device=args.device,
+                    semantic_version=args.semantic_version, policy_version=_resolved_policy_version(args)),
             })
         remaining = STAGE_BUDGETS[args.stage] - int((previous or {}).get("stage_requested_decisions", {}).get(args.stage, 0))
         return train_semantic(runner, env, run_dir=args.run_dir, output_root=output_root,
