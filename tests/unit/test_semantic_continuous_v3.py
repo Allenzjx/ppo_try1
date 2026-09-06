@@ -174,6 +174,54 @@ def test_initial_departure_is_not_rebound_but_post_touchdown_passive_rebound_is(
     assert reward(calculator,b,c)['cost_components']['confirmed_post_touchdown_rebound']==0.
 
 
+@pytest.mark.parametrize('command,passive',[
+    ((0.,)*12,True),
+    ((1.,)+(0.,)*11,False),
+    ((0.,)*8+(.01,)+(0.,)*3,False),
+])
+def test_touchdown_tick_retains_real_whole_body_command_change(command,passive):
+    a,b,c=contact_frame(0,False,-.4),contact_frame(1,True,0.),contact_frame(2,False,.5)
+    calculator=calc()
+    landing=reward(calculator,a,b,actual_drive=command,previous_actual_drive=(0.,)*12)
+    # The target is now held, but the mechanism can still be responding to the
+    # active command dispatched during touchdown. It is not a passive rebound.
+    departure=reward(calculator,b,c,actual_drive=command,previous_actual_drive=command,
+                     previous_previous_actual_drive=(0.,)*12)
+    assert landing['families']['contact_motion_quality']<0.  # Impact remains assessed.
+    assert (departure['cost_components']['confirmed_post_touchdown_rebound']>0.) is passive
+
+
+@pytest.mark.parametrize('stage',['P01','P06','P08','P09','P13'])
+def test_future_unloaded_leg_does_not_discount_current_physical_target(stage):
+    obs=live()
+    leg_state(obs,'RR',air=True)
+    obs['contacts']['front_right_wheel']['ground']['normal_force_n']=14.
+    supervisor=TaskStageSupervisor(CFG/'stage_task_spec.yaml',initial_stage_id=stage)
+    snap=supervisor.observe_and_update(obs)
+    assert snap['physical_evaluator']['current_legs']['FR']['load_fraction']==pytest.approx(.5)
+    assert snap['physical_evaluator']['current_legs']['RR']['load_fraction']==0.
+    assert snap['physical_transfer_fraction']==0.
+    assert snap['termination_reason'] is None
+
+
+@pytest.mark.parametrize('placed,target',[
+    ((),'FR'), (('FR',),'FL'), (('FR','FL'),'RR'),
+    (('FR','FL','RR'),'RL'), (('FR','FL','RR','RL'),None),
+])
+def test_transfer_eligibility_uses_actual_placement_history_not_phase(placed,target):
+    ev=evaluator(); obs=live(); ev.observe(obs)
+    for leg in placed: obs=place(ev,obs,leg)
+    obs=advance(obs)
+    if target is not None: leg_state(obs,target,air=True)
+    # Deliberately retain P01 as label: measured predecessor placement, not a
+    # stage counter or nominal clock, identifies the next eligible target.
+    supervisor=TaskStageSupervisor(CFG/'stage_task_spec.yaml',evaluator=ev,initial_stage_id='P01')
+    snap=supervisor.observe_and_update(obs)
+    assert all(snap['history']['placed'][leg] for leg in placed)
+    assert snap['physical_transfer_fraction']==(1. if target is not None else 0.)
+    assert snap['termination_reason'] is None
+
+
 def test_nominal_and_residual_changes_are_diagnostic_when_applied_is_constant():
     a,b=_built(),_built(_frame(1))
     r=reward(calc(),a,b,nominal=(1.,)*12,residual=(-1.,)*12)

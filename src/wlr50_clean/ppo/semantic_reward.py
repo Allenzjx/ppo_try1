@@ -140,7 +140,10 @@ class SemanticRewardCalculator:
                     self._command_excursion[index]+=command_change
                     if touchdown:
                         self._touchdowns[index]=(self._clock_s,sample.actual_drive)
-                        self._command_excursion[index]=0.
+                        # This command was actually dispatched during the
+                        # landing tick; do not erase active takeoff evidence
+                        # merely because contact was established concurrently.
+                        self._command_excursion[index]=command_change
                     last=self._touchdowns.get(index)
                     passive_recent_landing=(last is not None and self._clock_s-last[0]<=v["rebound_window_s"]
                         and self._command_excursion[index]<=v["rebound_command_motion_deg"])

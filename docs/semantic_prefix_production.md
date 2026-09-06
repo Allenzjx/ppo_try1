@@ -71,6 +71,22 @@ credit. These responses diagnose physical influence; they are not success,
 stability-improvement or automatic training-gate certifications. Compare actual
 starting states before attributing differences to action scale.
 
+For an interface-repair rerun, `--segments new_range --decisions 32` executes
+only that new segment in a fresh run directory. It does not overwrite or repeat
+the previous two responses. The manifest reports measured reset count (including
+any prefix fallback) and does not claim `same_raw_old_new` when old_range is absent.
+Inspect `run_manifest.json.lifecycle` and the final workspace manifest, not only
+the process exit code: Kit's immediate shutdown can mask a Python exception.
+
+The v3 execution profile explicitly enables `independent_post_mapper_residual.v1`.
+The frozen controller correction is still bounded by its original +/-10-degree
+envelope; the separate PPO residual is composed after the single nominal mapper
+advance and before the unchanged final hard limits and 1.25-degree/tick slew.
+ACKs expose both inputs separately. The legacy combined-offset field is retained
+and explicitly labelled for existing native-audit readers. v2 without this
+profile opt-in retains its original execution path, and all frozen A code remains
+unchanged. Exact projected-zero dispatch calls the original adapter directly.
+
 Offline coverage includes shared live supervisor history for P06–P13, early
 P06/P07 before RR lift, exact receipt binding, real backend/reset and native
 float32 RobotAdapter with actual semantic core/RSL, two reset generations, one

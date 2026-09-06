@@ -24,6 +24,7 @@ def parser():
     result.add_argument("--teacher-offset-decisions",type=int,default=0)
     result.add_argument("--decisions",type=int,default=64)
     result.add_argument("--raw-magnitude",type=float,default=.5)
+    result.add_argument("--segments",choices=("all","new_range"),default="all")
     return result
 
 
@@ -51,12 +52,19 @@ def run_segments(app,args,contract,*,backend=None):
             execution_profile=config/"execution_profile.yaml",task_spec_path=config/"stage_task_spec.yaml",
             audit_actuator_target_effect=True)
     stimulus=response_actions(args.raw_magnitude)
+    reset_count_before=int(backend._reset_count)
     results=[]
+    selection=getattr(args,"segments","all")
+    if selection not in ("all","new_range"):
+        raise ValueError("workspace segments must be all or new_range")
     for label,profile,raw in (("nominal_zero",config/"execution_profile.yaml",ZERO12),
                               ("old_range",old_config/"execution_profile.yaml",stimulus),
                               ("new_range",config/"execution_profile.yaml",stimulus)):
+        if selection!="all" and label!=selection:
+            continue
         segment=args.run_dir/label
         segment.mkdir(exist_ok=False)
+        segment_reset_count_before=int(backend._reset_count)
         phase_counts=Counter()
         collect=False
         response_ticks=0
@@ -121,6 +129,7 @@ def run_segments(app,args,contract,*,backend=None):
             "termination_reason":last_info["termination_reason"],"task_outcome_label":last_info["task_outcome_label"],
             "prefix_decisions":credit.prefix_decisions,"prefix_physics_ticks":credit.prefix_ticks,
             "reset_wall_time_s":credit.reset_wall_time_s,"roll_in_wall_time_s":credit.roll_in_wall_time_s,
+            "independent_physical_resets":int(backend._reset_count)-segment_reset_count_before,
             "optimizer_updates":0,"optimizer_steps":0,"optimized_policy_decisions":0,
             "physical_response_is_not_a_success_or_improvement_claim":True}
         record["artifacts"]={name:{"path":str(segment/name),"sha256":sha256_file(segment/name)} for name in (
@@ -128,8 +137,9 @@ def run_segments(app,args,contract,*,backend=None):
         write_json(segment/"segment_manifest.json",record)
         results.append(record)
     return {"schema":"wlr50_clean.semantic_workspace_response.v1","runtime_contract":contract,
-        "segments":results,"same_raw_old_new":True,"same_version_nominal_supervisor_all_segments":True,
-        "independent_physical_resets":3,"optimizer_updates":0,"optimized_policy_decisions":0,
+        "segments":results,"same_raw_old_new":selection=="all","same_version_nominal_supervisor_all_segments":True,
+        "independent_physical_resets":int(backend._reset_count)-reset_count_before,
+        "optimizer_updates":0,"optimized_policy_decisions":0,
         "comparison_requires_inspecting_actual_initial_states":True,"automatic_training_gate":False}
 
 

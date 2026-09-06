@@ -24,6 +24,7 @@ from wlr50_clean.reference.motion_contract import load_motion_contract
 
 DEFAULT_TASK_SPEC_PATH = Path(__file__).resolve().parents[3] / "configs/ppo_semantic_v2/stage_task_spec.yaml"
 LEG_ORDER = ("FL", "FR", "RL", "RR")
+PLACEMENT_PREDECESSORS = {"FR":(), "FL":("FR",), "RR":("FR","FL"), "RL":("FR","FL","RR")}
 PHASE_IDS = tuple(f"P{i:02d}" for i in range(1, 14))
 GOAL_FEATURE_KEYS = tuple(
     f"{leg}_{feature}" for leg in LEG_ORDER
@@ -439,12 +440,11 @@ class TaskStageSupervisor:
         """One phase-label-independent potential over physical progress/history."""
         if not evaluation.get("valid"): return 0.
         history=evaluation["history"]; legs=evaluation["current_legs"]
-        predecessors={"FR":(),"FL":("FR",),"RR":("FR","FL"),"RL":("FR","FL","RR")}
         values=[]
         for leg in LEG_ORDER:
             current=legs[leg]
             if history["placed"][leg]: values.append(1.); continue
-            if not all(history["placed"][p] for p in predecessors[leg]): values.append(0.); continue
+            if not all(history["placed"][p] for p in PLACEMENT_PREDECESSORS[leg]): values.append(0.); continue
             workspace=self.predicate(f"workspace_{leg}",evaluation)
             unload=self.predicate(f"load_ready_{leg}",evaluation)
             initial=float(current.get("initial_clearance",False))
@@ -508,7 +508,12 @@ class TaskStageSupervisor:
             self._snapshot["task_progress_potential"] = self.physical_potential(evaluation)
             # Physical airborne/load-transfer evidence overlaps phase labels.
             # Smooth attitude costs use this continuous coefficient, not a label edge.
-            unfinished=[v for leg,v in evaluation.get("current_legs",{}).items() if not histories["placed"][leg]]
+            # A future unloaded leg must not discount the current task's costs.
+            # Eligibility follows measured placement history, never phase labels
+            # or a prescribed support-leg posture/contact template.
+            unfinished=[v for leg,v in evaluation.get("current_legs",{}).items()
+                if not histories["placed"][leg]
+                and all(histories["placed"][p] for p in PLACEMENT_PREDECESSORS[leg])]
             self._snapshot["physical_transfer_fraction"] = max((
                 _clip(1.-v["load_fraction"]/.35) for v in unfinished),default=0.)
         self._last_observation_tick = _get(observation, "physics_tick")

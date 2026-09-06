@@ -21,6 +21,7 @@ from .isaac_fsm_backend import (
     _validate_sensor_contract, _validate_rate_contract, _validate_controller_clock,
     _live_source_mapper_state, _full12, _member, _enum_value, _fall_and_explosion,
     _guard_asserted, _level_measurement, _sha256_file, _frame_is_terminal,
+    build_residual_actuation_plan,
 )
 from .observation_schema import NonFiniteObservationError, PPOObservationFrame
 from .ppo_env_adapter import AuthoritativeFrame
@@ -90,8 +91,13 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         super().__init__(simulation_app, **kwargs)
         self.execution_profile_path = Path(execution_profile).resolve()
         self.execution_profile = load_execution_profile(execution_profile)
+        composition = self.execution_profile["residual"].get("composition")
+        if composition not in (None, "independent_post_mapper_residual.v1"):
+            raise ValueError("unknown semantic residual composition")
+        self._independent_policy_residual = composition is not None
         self.task_spec_path = Path(task_spec_path).resolve()
         self._semantic_controller_factory = controller_factory
+        self._semantic_actuation_plan = None
         self._level_fixed = tuple(float(x) for x in self.execution_profile["level_reference_orientation_wxyz"])
 
     def reset(self, *, seed: int, options: Mapping[str, Any]) -> AuthoritativeFrame:
@@ -177,6 +183,36 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         except Exception:
             self._poison_episode_state_for_reset(clear_evidence=False)
             raise
+
+    def step_physics(self, applied_action_full12):
+        # Capture the same pure plan as the inherited one-write/one-step path,
+        # before its _atomic_apply seam; never alter the mapper's nominal input.
+        if not self._independent_policy_residual:
+            return super().step_physics(applied_action_full12)
+        self._require_committed_reset_generation("step_physics")
+        source = self._controller_frame
+        if source is None:
+            raise IsaacFSMBackendError("reset must precede semantic step_physics")
+        if self._semantic_actuation_plan is not None:
+            raise IsaacFSMBackendError("nested semantic physics dispatch")
+        self._semantic_actuation_plan = build_residual_actuation_plan(
+            applied_action_full12, frozen_nominal_full12=source.full12,
+            drive_feedback_bias_full12=source.drive_feedback_bias_full12,
+            normal_drive_bias_full12=source.normal_drive_bias_full12)
+        try:
+            return super().step_physics(applied_action_full12)
+        finally:
+            self._semantic_actuation_plan = None
+
+    def _atomic_apply(self, adapter, command, *, physics_tick, tracking_servo_names,
+                      drive_feedback_bias_full12):
+        plan = self._semantic_actuation_plan
+        if plan is not None:
+            from .semantic_residual_adapter import SemanticActuationDispatch
+            adapter = SemanticActuationDispatch(adapter, plan)
+        return super()._atomic_apply(adapter, command, physics_tick=physics_tick,
+            tracking_servo_names=tracking_servo_names,
+            drive_feedback_bias_full12=drive_feedback_bias_full12)
 
     def _termination_signals(self, observation: Any, controller_frame: Any):
         result = _enum_value(_member(_member(controller_frame, "termination"), "result"))

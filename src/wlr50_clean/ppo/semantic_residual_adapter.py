@@ -1,0 +1,136 @@
+"""PPO-only post-mapper composition; the frozen A adapter is not modified.
+
+Controller correction and policy residual have different bounds. Only the
+former is a bounded tracking correction. Both share the original final-drive
+hard limits and slew, after exactly one nominal mapper advance. This module
+never steps physics, resets state, or adds a second articulation write.
+"""
+from __future__ import annotations
+
+import math
+from typing import Any, Sequence
+
+from wlr50_clean.infrastructure.command_batch import (
+    FULL12_ORDER, SERVO_ORDER, WHEEL_VELOCITY_LIMIT_RAD_S, Full12Command,
+    build_physical_batch, servo_limits_deg,
+)
+from wlr50_clean.infrastructure.robot_adapter import (
+    RobotAdapterError, _clone_tensor, _full12_drive_feedback_bias,
+    _joint_matrix, _row_values, bounded_drive_feedback_step,
+)
+from wlr50_clean.infrastructure.servo_target_mapper import ServoTargetMapperError
+
+
+def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
+                            physics_tick: int, tracking_servo_names: Sequence[str],
+                            controller_bias_full12: Sequence[float],
+                            projected_residual_full12: Sequence[float]) -> dict[str, Any]:
+    """Dispatch independent policy residual without treating it as tracking bias."""
+    # Keep the original controller envelope, including for the exact-zero path.
+    controller = _full12_drive_feedback_bias(controller_bias_full12)
+    residual = tuple(float(value) for value in projected_residual_full12)
+    if len(residual) != 12 or any(not math.isfinite(value) for value in residual):
+        raise RobotAdapterError("PPO residual must contain twelve finite values")
+    combined = tuple(a + b for a, b in zip(controller, residual, strict=True))
+    if any(not math.isfinite(value) for value in combined):
+        raise RobotAdapterError("combined PPO target offset is non-finite")
+    evidence = {
+        "semantic_residual_composition": "independent_post_mapper_residual.v1",
+        "bounded_controller_bias_requested_full12": list(controller),
+        "independent_policy_residual_requested_full12": list(residual),
+        "controller_bias_original_envelope_verified": True,
+        # Existing backend and native-audit readers consume this compatibility
+        # field as the TOTAL post-mapper offset, not the controller-only bias.
+        "drive_feedback_bias_requested_semantics": "combined_controller_plus_independent_policy_residual",
+    }
+    if not any(residual):
+        ack = adapter.apply_full12(command, physics_tick=physics_tick,
+            tracking_servo_names=tracking_servo_names, drive_feedback_bias_full12=controller)
+        ack.update(evidence)
+        adapter.last_ack = dict(ack)
+        return ack
+
+    requested = adapter._coerce_command(command)
+    tick = adapter._validate_tick(physics_tick)
+    logical_applied = requested.clamped()
+    measured = _row_values(_joint_matrix(adapter.robot, "joint_pos")[:, list(adapter.joint_map.servo_ids)])
+    try:
+        mapping = adapter.servo_target_mapper.advance(logical_applied.servo_deg, measured,
+            tracking_servo_names=tracking_servo_names)
+    except ServoTargetMapperError as exc:
+        raise RobotAdapterError(f"invalid servo target mapping: {exc}") from exc
+    native = mapping.applied_drive_command_deg
+    final_servo = []
+    for name, target, bias in zip(SERVO_ORDER, native, combined[:8], strict=True):
+        lower, upper = servo_limits_deg(name)
+        final_servo.append(bounded_drive_feedback_step(
+            previous_deg=adapter._final_drive_servo_deg[name], native_deg=target,
+            bias_deg=bias, maximum_delta_deg=adapter.servo_target_mapper.maximum_delta_deg,
+            lower_deg=lower, upper_deg=upper))
+    final_wheels = tuple(max(-WHEEL_VELOCITY_LIMIT_RAD_S,
+        min(WHEEL_VELOCITY_LIMIT_RAD_S, target + bias))
+        for target, bias in zip(logical_applied.wheel_rad_s, combined[8:], strict=True))
+    drive = Full12Command(tuple(final_servo), final_wheels)
+    native_drive = Full12Command(native, logical_applied.wheel_rad_s)
+    physical = build_physical_batch(drive, adapter.standing_pose_deg)
+    positions = _clone_tensor(adapter._standing_servo_tensor)
+    for index, value in enumerate(physical.servo_target_rad):
+        positions[:, index] = float(value)
+    velocities = _clone_tensor(_joint_matrix(adapter.robot, "joint_vel")[:, list(adapter.joint_map.wheel_ids)])
+    for index, value in enumerate(physical.wheel_target_rad_s):
+        velocities[:, index] = float(value)
+    adapter.robot.set_joint_position_target(positions, joint_ids=list(adapter.joint_map.servo_ids))
+    adapter.robot.set_joint_velocity_target(velocities, joint_ids=list(adapter.joint_map.wheel_ids))
+    adapter.robot.write_data_to_sim()
+    # This is the one actual final-drive history, also used by the read-only
+    # same-tick counterfactual. No second zero-trajectory history is introduced.
+    adapter._final_drive_servo_deg.update(zip(SERVO_ORDER, final_servo, strict=True))
+    adapter.write_count += 1
+    adapter._last_physics_tick = tick
+    ack = {
+        "schema": "wlr50_clean.atomic_full12_ack.v1", "physics_tick": tick,
+        "physics_dt_s": adapter.physics_dt_s, "write_count": adapter.write_count,
+        "articulation_writes_this_call": 1, "canonical_order": list(FULL12_ORDER),
+        "requested_full12": list(requested.to_full12()),
+        "applied_full12": list(logical_applied.to_full12()),
+        "drive_target_full12": list(drive.to_full12()),
+        "native_drive_target_full12": list(native_drive.to_full12()),
+        "drive_feedback_bias_requested_full12": list(combined),
+        "drive_feedback_bias_realized_full12": [a-b for a,b in zip(drive.to_full12(),native_drive.to_full12(),strict=True)],
+        "drive_feedback_final_slew_limit_deg_per_tick": adapter.servo_target_mapper.maximum_delta_deg,
+        "command_was_clamped": requested != logical_applied,
+        "servo_applied_drive_command_deg": final_servo,
+        "servo_native_drive_command_deg": list(native),
+        "servo_tracking_compensation_deg": list(mapping.tracking_compensation_deg),
+        "servo_nominal_target_reached": list(mapping.nominal_target_reached),
+        "servo_tracking_active": list(mapping.tracking_active),
+        "tracking_servo_names": list(tracking_servo_names),
+        "servo_tracking_feedback_sample_tick": mapping.feedback_sample_tick,
+        "servo_tracking_feedback_sampled": mapping.feedback_sampled,
+        "servo_joint_ids": list(adapter.joint_map.servo_ids),
+        "wheel_joint_ids": list(adapter.joint_map.wheel_ids),
+        "servo_target_physical_rad": list(physical.servo_target_rad),
+        "wheel_target_physical_rad_s": list(physical.wheel_target_rad_s),
+        "motion_start_skew_s": 0.0, **evidence,
+    }
+    adapter.last_ack = dict(ack)
+    return ack
+
+
+class SemanticActuationDispatch:
+    """Per-call view retaining the existing backend's atomic ACK validation."""
+
+    def __init__(self, adapter: Any, plan: Any):
+        self.adapter, self.plan = adapter, plan
+
+    def __getattr__(self, name):
+        return getattr(self.adapter, name)
+
+    def apply_full12(self, command, *, physics_tick, tracking_servo_names, drive_feedback_bias_full12):
+        if (tuple(command) != self.plan.frozen_nominal_full12 or
+                tuple(drive_feedback_bias_full12) != self.plan.combined_post_mapper_bias_full12):
+            raise RobotAdapterError("semantic dispatch differs from the current actuation plan")
+        return apply_semantic_residual(self.adapter, command, physics_tick=physics_tick,
+            tracking_servo_names=tracking_servo_names,
+            controller_bias_full12=self.plan.controller_drive_bias_full12,
+            projected_residual_full12=self.plan.projected_residual_full12)
