@@ -36,6 +36,7 @@ P06_RETIREMENT_MODE = "measured_workspace_interior_peak"
 LIFT_CREDIT_MODE = "measured_air_process_current_top_gap"
 PREPARATION_CREDIT_MODE = "current_workspace_before_predecessor_placement"
 CAPTURE_RETENTION_MODE = "current_platform_region_after_placement"
+CAPTURE_APPROACH_MODE = "post_cross_current_surface_proximity_plus_real_contact_v1"
 STOP_PROGRESS_MODE = "per_wheel_four_type_threshold_ratio_v1"
 P06_TAIL_MODE = "measured_workspace_retirement_after_finite_source"
 
@@ -101,6 +102,20 @@ def _p06_tail_enabled(spec: Mapping[str, Any]) -> bool:
     return True
 
 
+def _capture_approach_enabled(spec: Mapping[str, Any]) -> bool:
+    mode = spec.get("capture_approach_semantics")
+    if mode is None:
+        return False
+    if mode != CAPTURE_APPROACH_MODE:
+        raise ValueError("unrecognized capture approach semantics")
+    if (spec.get("potential_definition") != "global_physical_progress_v3"
+            or spec.get("capture_retention_semantics") != CAPTURE_RETENTION_MODE):
+        raise ValueError("capture approach requires global progress and measured current platform geometry")
+    if _number(spec["geometry"]["top_gap_max_m"], "capture approach existing gap scale") <= 0.:
+        raise ValueError("capture approach requires a positive existing top gap scale")
+    return True
+
+
 def _verified_p06_rolling_source(contract: Any, expected: tuple[float, ...]) -> tuple[float, ...]:
     """Bind the advisory extension to the frozen wheel-only source, not a pose gate."""
     phase = contract.phase("P06")
@@ -159,6 +174,7 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
         if _number(spec["geometry"]["xy_measurement_tolerance_m"], "capture XY tolerance") < 0:
             raise ValueError("capture retention requires nonnegative existing XY tolerance")
         _number(spec["geometry"]["top_gap_min_m"], "capture existing top gap")
+    _capture_approach_enabled(spec)
     if spec["final"].get("stop_pose_semantics") not in (None,"physical_stable_pose"):
         raise ValueError("unrecognized final stop pose semantics")
     if spec["final"].get("stop_command_progress") not in (None,"reciprocal_physical_stop_tolerance"):
@@ -675,9 +691,35 @@ class TaskStageSupervisor:
                 lift_credit=self._current_lift_credit(leg,evaluation)
             carry=(1. if history["front_edge_crossed"][leg] else _clip(1.+current["front_distance_m"]/.25)) if hard_lift else 0.
             capture=_clip(current["consecutive_top_samples"]/self.spec["history"]["minimum_top_samples"]) if history["front_edge_crossed"][leg] else 0.
+            if self.spec.get("capture_approach_semantics") == CAPTURE_APPROACH_MODE:
+                # Retire preparation's existing .1 share after qualified
+                # crossing: subsequent capture loading is not regression.
+                # This local progress credit does not claim that measured
+                # load_ready was ever 1 or alter current support/history.
+                if hard_lift and history["front_edge_crossed"][leg]:
+                    unload=1.
+                capture=self._current_capture_progress(leg,evaluation,capture)
             values.append(.1*workspace+.1*unload+.25*(.25*initial+.75*lift_credit)+.35*carry+.2*capture)
         finish=self.predicate("whole_task_success",evaluation) if all(history["placed"].values()) else 0.
         return min(1.,.85*sum(values)/4.+.15*finish)
+
+    def _current_capture_progress(self, leg: str, evaluation: Mapping[str,Any], contact_fraction: float) -> float:
+        """Soft first-capture approach; never a touchdown or phase completion."""
+        history=evaluation["history"]
+        if not (history["active_lift"][leg] and history["front_edge_crossed"][leg]):
+            return 0.
+        current=evaluation["current_legs"][leg]
+        outside=_number(current.get("top_xy_outside_distance_m"), f"{leg} capture approach outside distance")
+        if outside < 0.:
+            raise SemanticObservationError("capture approach outside distance must be nonnegative")
+        clearance=_number(current["clearance_m"], f"{leg} capture approach clearance")
+        scale=self.spec["geometry"]["top_gap_max_m"]
+        xy=_clip(1.-outside/.25)  # Reuse the existing carry/retention decay length.
+        proximity=xy*scale/(scale+abs(clearance))
+        # Reallocate the existing .2 capture share, not an extra reward. AIR
+        # geometry earns at most half; the rest still needs real TOP samples.
+        # Placed legs bypass this helper so later legitimate AIR is unchanged.
+        return .5*proximity+.5*contact_fraction
 
     def _current_capture_retention(self, leg: str, evaluation: Mapping[str,Any]) -> float:
         current=evaluation["current_legs"][leg]

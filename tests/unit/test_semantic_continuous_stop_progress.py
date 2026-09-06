@@ -364,6 +364,8 @@ def test_loader_requires_explicit_known_mode_and_compatible_progress(tmp_path, c
         spec.pop("potential_definition")
         spec.pop("preparation_credit_semantics", None)
         spec.pop("capture_retention_semantics", None)
+        # Isolate this older stop-mode dependency error from newer progress modes.
+        spec.pop("capture_approach_semantics", None)
     else:
         spec["final"].pop("stop_pose_semantics")
     with pytest.raises(ValueError, match="continuous stop"):

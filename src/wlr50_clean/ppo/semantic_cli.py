@@ -300,6 +300,7 @@ def _save_policy_migration_initial(runner: Any, env: Any, args: argparse.Namespa
         "execution_topology": continuation_topology(env.cfg["reset_sampling"], env.cfg.get("prefix_request")),
         "curriculum_epoch": {"reset_sampling": env.cfg["reset_sampling"], "prefix_request": env.cfg.get("prefix_request")},
         "sampling": env.cfg["reset_sampling"],
+        "implemented_reset_sampling": env.cfg["reset_sampling"],
         "runner_config": semantic_runner_config(seed=args.seed, device=args.device,
             semantic_version=args.semantic_version, policy_version=_resolved_policy_version(args))}
     save_semantic_checkpoint(runner, initial, initial_infos)
@@ -709,6 +710,7 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                                  "execution_topology": continuation_topology(env.cfg["reset_sampling"], env.cfg.get("prefix_request")),
                                  "curriculum_epoch": {"reset_sampling": env.cfg["reset_sampling"], "prefix_request": env.cfg.get("prefix_request")},
                                  "sampling": env.cfg["reset_sampling"],
+                                 "implemented_reset_sampling": env.cfg["reset_sampling"],
                                  "policy_contract": policy_contract(_resolved_policy_version(args)),
                                  "runner_config": semantic_runner_config(seed=args.seed, device=args.device,
                                      semantic_version=args.semantic_version, policy_version=_resolved_policy_version(args))}

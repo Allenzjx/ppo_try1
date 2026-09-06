@@ -27,6 +27,9 @@ WEIGHT = .85 / 4 * .2
 
 def _spec_path(tmp_path, *, enabled=False, **updates):
     values = load_task_spec(SPEC)
+    # Explicit pre-approach configuration for this older retention-factor
+    # comparison; the new approach mode requires measured retention geometry.
+    values.pop("capture_approach_semantics", None)
     values.pop("capture_retention_semantics", None)
     if enabled:
         values["capture_retention_semantics"] = CAPTURE_RETENTION_MODE
