@@ -87,6 +87,11 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
         raise ValueError("unrecognized global potential semantics")
     if spec["final"].get("stop_pose_semantics") not in (None,"physical_stable_pose"):
         raise ValueError("unrecognized final stop pose semantics")
+    if spec["final"].get("stop_command_progress") not in (None,"reciprocal_physical_stop_tolerance"):
+        raise ValueError("unrecognized final command progress semantics")
+    if (spec["final"].get("stop_command_progress") is not None
+            and _number(spec["final"]["maximum_commanded_wheel_speed_rad_s"], "stop command tolerance") <= 0):
+        raise ValueError("command progress requires a positive existing physical stop tolerance")
     required = {"purpose", "valid_start_conditions", "goal_features", "completion_predicates",
                 "progress_potential", "allowed_action_channels", "physical_limits",
                 "stall_diagnostic", "maximum_task_duration", "next_phase", "active_leg"}
@@ -410,6 +415,13 @@ class TaskStageSupervisor:
                       _clip(1.-features["body_angular_speed_rad_s"]/final["maximum_body_angular_speed_rad_s"])]
             if final.get("stop_pose_semantics") != "physical_stable_pose":
                 stop_terms.append(_clip(1.-evaluation["home_maximum_servo_error_deg"]/final["home_tolerance_deg"]))
+            if final.get("stop_command_progress") == "reciprocal_physical_stop_tolerance":
+                command = _number(evaluation["maximum_commanded_wheel_speed_rad_s"], "maximum wheel command")
+                tolerance = final["maximum_commanded_wheel_speed_rad_s"]
+                # Reuse the physical stop requirement without a dead region
+                # above it. This is one finish term, not another reward family;
+                # measured rates, region/support and stable-time gates are unchanged.
+                stop_terms.append(1. if command <= tolerance else tolerance/command)
             stop=sum(stop_terms)/len(stop_terms)
             settle=_clip(evaluation["final_stable_for_s"]/final["stable_duration_s"])
             return min(.99,.4*history_fraction+.3*forward+.2*stop+.1*settle)
