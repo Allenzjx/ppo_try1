@@ -55,6 +55,8 @@ def build_actuator_target_effect_audit(
     source_phase_id: str,
     policy_request: Mapping[str, Any] | None,
     policy_headroom_mode: str | None = None,
+    tracking_reference_mode: str | None = None,
+    tracking_reference_context: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Inspect the already completed dispatch, never simulate another write.
 
@@ -71,6 +73,39 @@ def build_actuator_target_effect_audit(
         raise ActuatorTargetEffectError("audit requires one completed articulation dispatch")
     previous = _finite_values(previous_final_drive_servo_deg, 8, "previous final drive")
     native = _finite_values(raw_ack["native_drive_target_full12"], 12, "native drive")
+    reference_keys = ("tracking_reference_mode", "tracking_reference_evidence")
+    reference_evidence = None
+    if tracking_reference_mode is None:
+        if tracking_reference_context is not None or any(key in raw_ack for key in reference_keys):
+            raise ActuatorTargetEffectError("unexpected tracking reference dispatch evidence")
+    else:
+        import json
+        from .semantic_tracking_reference import MODE, build_tracking_reference
+        if (tracking_reference_mode != MODE or not isinstance(tracking_reference_context, Mapping)
+                or raw_ack.get(reference_keys[0]) != MODE
+                or not isinstance(raw_ack.get(reference_keys[1]), Mapping)):
+            raise ActuatorTargetEffectError("missing or inconsistent tracking reference evidence")
+        context = dict(tracking_reference_context)
+        source_tracking = context.pop("source_tracking_servo_names", None)
+        if (not isinstance(source_tracking, (list, tuple)) or
+                list(source_tracking) != raw_ack.get("tracking_servo_names")):
+            raise ActuatorTargetEffectError("tracking reference source channels differ from dispatch")
+        try:
+            reference_evidence = build_tracking_reference(
+                context, requested_command_deg=actuation.frozen_nominal_full12[:8],
+                tracking_servo_names=source_tracking)
+            declared = json.dumps(dict(raw_ack[reference_keys[1]]), sort_keys=True, allow_nan=False)
+            expected = json.dumps(reference_evidence, sort_keys=True, allow_nan=False)
+        except (ValueError, TypeError, KeyError) as exc:
+            raise ActuatorTargetEffectError(f"invalid tracking reference evidence: {exc}") from exc
+        if declared != expected:
+            raise ActuatorTargetEffectError("tracking reference differs from independent pre-dispatch reconstruction")
+        if (type(raw_ack.get("physics_tick")) is not int or
+                type(raw_ack.get("servo_tracking_feedback_sample_tick")) is not int or
+                raw_ack.get("physics_tick") != context["dispatch_physics_tick"] or
+                raw_ack.get("servo_tracking_feedback_sample_tick") != context["mapper_feedback_tick"] or
+                adapter.servo_target_mapper.feedback_tick != context["mapper_feedback_tick"] + 1):
+            raise ActuatorTargetEffectError("tracking reference mapper clock is not exactly one advance")
     geometry_keys = ("geometry_adjusted_native_full12", "nominal_geometry_adjustment_full12",
                      "nominal_geometry_evidence")
     geometry_enabled = any(key in raw_ack for key in geometry_keys)
@@ -241,6 +276,10 @@ def build_actuator_target_effect_audit(
     if headroom is not None:
         result.update(policy_headroom_mode=policy_headroom_mode,
                       policy_headroom_evidence=headroom)
+    if reference_evidence is not None:
+        result.update(tracking_reference_mode=tracking_reference_mode,
+                      tracking_reference_evidence=reference_evidence,
+                      tracking_reference_previous_ack_independently_verified=True)
     if geometry_enabled:
         # Remove geometry only in this third, zero-current-policy branch.
         # The existing actual-minus-counterfactual fields remain PPO-only.

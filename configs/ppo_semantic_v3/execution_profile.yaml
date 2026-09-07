@@ -1,5 +1,5 @@
 schema: wlr50_clean.semantic_execution_profile.v1
-revision: continuous_whole_body_exploration_v3_front_wheel_authority
+revision: continuous_whole_body_exploration_v3_previous_request_reference
 physics_hz: 120.0
 decision_hz: 15.0
 episode_timeout_s: 200.0
@@ -47,6 +47,13 @@ residual:
   injection: post_mapper
   composition: independent_post_mapper_residual.v1
   policy_headroom_mode: same_tick_post_mapper_servo_margin_v1
+  tracking_reference_mode: previous_ack_requested_servo_reference_v1
+  # A local computational tracking reference uses the previous ACK's filtered
+  # REQUEST, already observable in the 324-column history. It never changes
+  # real measured q, nominal commands, or the frozen mapper implementation.
+  # The desired correction is bounded relative to the same-real-state original
+  # law and 2-degree reserve; this is NOT a global final-target reserve claim.
+  # Existing correction slew, baseline exceptions, geometry and hard limits remain.
   # The 2 degree reserve is applied after this tick's mapper/nominal geometry
   # and bounded controller bias. Previous residual observation remains the
   # filtered request; actual actuator history remains the final slewed drive.

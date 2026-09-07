@@ -55,6 +55,12 @@ def load_execution_profile(path: Path | str = DEFAULT_EXECUTION_PROFILE) -> dict
         base = load_action_projection_config()
         margins = yaml.safe_load(base.path.read_text(encoding="utf-8"))["joint_safety_margin_deg"]
         validate_semantic_servo_headroom_config(headroom, margins)
+    reference_mode = profile["residual"].get("tracking_reference_mode")
+    if reference_mode is not None:
+        from .semantic_tracking_reference import MODE
+        if (reference_mode != MODE or headroom != HEADROOM_MODE or
+                profile["residual"].get("composition") != "independent_post_mapper_residual.v1"):
+            raise ValueError("requested tracking reference requires independent residual and same-tick headroom")
     return profile
 
 
@@ -114,6 +120,7 @@ class SemanticIsaacBackend(IsaacFSMBackend):
             raise ValueError("unknown semantic residual composition")
         self._independent_policy_residual = composition is not None
         self._policy_headroom_mode = self.execution_profile["residual"].get("policy_headroom_mode")
+        self._tracking_reference_mode = self.execution_profile["residual"].get("tracking_reference_mode")
         self.task_spec_path = Path(task_spec_path).resolve()
         self._nominal_geometry_mode = self.execution_profile.get("nominal_geometry_advisory")
         self._nominal_geometry_margin_m = None
@@ -252,7 +259,9 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                         clearance_margin_m=self._nominal_geometry_margin_m,
                         physics_tick=physics_tick)
             adapter = SemanticActuationDispatch(adapter, plan, nominal_geometry_context=geometry,
-                policy_headroom_mode=getattr(self, "_policy_headroom_mode", None))
+                policy_headroom_mode=getattr(self, "_policy_headroom_mode", None),
+                tracking_reference_mode=getattr(self, "_tracking_reference_mode", None),
+                tracking_reference_bootstrap_tick=SETTLE_TICKS + self._reset_prime_tick_count)
         return super()._atomic_apply(adapter, command, physics_tick=physics_tick,
             tracking_servo_names=tracking_servo_names,
             drive_feedback_bias_full12=drive_feedback_bias_full12)

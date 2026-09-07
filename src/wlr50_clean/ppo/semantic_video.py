@@ -277,7 +277,8 @@ def common_post_success_tick(backend, evaluator, *, episode_ticks, post_index):
         plan = ResidualActuationPlan(hold, tuple(a + b for a, b in zip(hold, residual)),
                                     residual, controller, bias)
         adapter = SemanticActuationDispatch(adapter, plan,
-            policy_headroom_mode=getattr(backend, "_policy_headroom_mode", None))
+            policy_headroom_mode=getattr(backend, "_policy_headroom_mode", None),
+            tracking_reference_mode=getattr(backend, "_tracking_reference_mode", None))
     ack = backend._atomic_apply(adapter, hold, physics_tick=physical_tick,
         tracking_servo_names=tracking, drive_feedback_bias_full12=bias)
     # The next hold must use the same receipt contract, not an unannotated ack.

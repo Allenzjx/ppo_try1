@@ -26,7 +26,9 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
                             controller_bias_full12: Sequence[float],
                             projected_residual_full12: Sequence[float],
                             nominal_geometry_context: Mapping[str, Any] | None = None,
-                            policy_headroom_mode: str | None = None) -> dict[str, Any]:
+                            policy_headroom_mode: str | None = None,
+                            tracking_reference_mode: str | None = None,
+                            tracking_reference_bootstrap_tick: int | None = None) -> dict[str, Any]:
     """Dispatch independent policy residual without treating it as tracking bias."""
     # Keep the original controller envelope, including for the exact-zero path.
     controller = _full12_drive_feedback_bias(controller_bias_full12)
@@ -49,7 +51,30 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
         # field as the TOTAL post-mapper offset, not the controller-only bias.
         "drive_feedback_bias_requested_semantics": "combined_controller_plus_independent_policy_residual",
     }
-    if not any(residual) and nominal_geometry_context is None:
+    tracking_reference = None
+    if tracking_reference_mode is not None:
+        from .semantic_tracking_reference import (
+            MODE, build_tracking_reference, capture_tracking_reference_context,
+        )
+        if tracking_reference_mode != MODE or policy_headroom_mode is None:
+            raise RobotAdapterError("semantic tracking reference requires its known mode and same-tick headroom")
+        try:
+            reference_context = capture_tracking_reference_context(
+                adapter, physics_tick=physics_tick,
+                bootstrap_physics_tick=tracking_reference_bootstrap_tick)
+            tracking_reference = build_tracking_reference(
+                reference_context,
+                requested_command_deg=adapter._coerce_command(command).clamped().servo_deg,
+                tracking_servo_names=tracking_servo_names)
+        except (ValueError, TypeError, KeyError) as exc:
+            raise RobotAdapterError(f"invalid semantic tracking reference: {exc}") from exc
+        evidence.update(tracking_reference_mode=tracking_reference_mode,
+                        tracking_reference_evidence=tracking_reference)
+    # A zero CURRENT action need not have zero reference history. Ordinary
+    # phase changes and a policy withdrawal never reset that shared history.
+    reference_history_nonzero = (tracking_reference is not None and
+        any(tracking_reference["previous_requested_full12"][:8]))
+    if not any(residual) and nominal_geometry_context is None and not reference_history_nonzero:
         ack = adapter.apply_full12(command, physics_tick=physics_tick,
             tracking_servo_names=tracking_servo_names, drive_feedback_bias_full12=controller)
         if policy_headroom_mode is not None:
@@ -80,7 +105,9 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
             raise RobotAdapterError("nominal geometry context must identify one ordered rear hip/knee pair")
         geometry_indices = frozenset(context_indices)
     logical_applied = requested.clamped()
-    measured = _row_values(_joint_matrix(adapter.robot, "joint_pos")[:, list(adapter.joint_map.servo_ids)])
+    measured = (_row_values(_joint_matrix(adapter.robot, "joint_pos")[:, list(adapter.joint_map.servo_ids)])
+                if tracking_reference is None else
+                tuple(tracking_reference["mapper_computational_reference_rad"]))
     try:
         mapping = adapter.servo_target_mapper.advance(logical_applied.servo_deg, measured,
             tracking_servo_names=tracking_servo_names)
@@ -182,10 +209,14 @@ class SemanticActuationDispatch:
     """Per-call view retaining the existing backend's atomic ACK validation."""
 
     def __init__(self, adapter: Any, plan: Any, *, nominal_geometry_context: Mapping[str, Any] | None = None,
-                 policy_headroom_mode: str | None = None):
+                 policy_headroom_mode: str | None = None,
+                 tracking_reference_mode: str | None = None,
+                 tracking_reference_bootstrap_tick: int | None = None):
         self.adapter, self.plan = adapter, plan
         self.nominal_geometry_context = nominal_geometry_context
         self.policy_headroom_mode = policy_headroom_mode
+        self.tracking_reference_mode = tracking_reference_mode
+        self.tracking_reference_bootstrap_tick = tracking_reference_bootstrap_tick
 
     def __getattr__(self, name):
         return getattr(self.adapter, name)
@@ -199,4 +230,6 @@ class SemanticActuationDispatch:
             controller_bias_full12=self.plan.controller_drive_bias_full12,
             projected_residual_full12=self.plan.projected_residual_full12,
             nominal_geometry_context=self.nominal_geometry_context,
-            policy_headroom_mode=self.policy_headroom_mode)
+            policy_headroom_mode=self.policy_headroom_mode,
+            tracking_reference_mode=self.tracking_reference_mode,
+            tracking_reference_bootstrap_tick=self.tracking_reference_bootstrap_tick)

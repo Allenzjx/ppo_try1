@@ -1934,6 +1934,16 @@ class IsaacFSMBackend:
                 self._adapter,
                 source_control_physics_tick=int(getattr(source_frame, "physics_tick")),
             )["final_drive_servo_deg"]
+            audit_tracking_reference_context = None
+            if getattr(self, "_tracking_reference_mode", None) is not None:
+                from .semantic_tracking_reference import capture_tracking_reference_context
+                # Independent pre-dispatch receipt. Do not reconstruct history
+                # from the ACK produced by the dispatch being audited.
+                audit_tracking_reference_context = capture_tracking_reference_context(
+                    self._adapter, physics_tick=physical_tick,
+                    bootstrap_physics_tick=SETTLE_TICKS + self._reset_prime_tick_count)
+                audit_tracking_reference_context["source_tracking_servo_names"] = list(
+                    getattr(source_frame, "tracking_servo_names", ()))
         raw_ack = self._atomic_apply(
             self._adapter,
             actuation.frozen_nominal_full12,
@@ -1973,6 +1983,8 @@ class IsaacFSMBackend:
                 source_phase_id=self._authoritative_frame.state_id,
                 policy_request=self._actuator_target_audit_request,
                 policy_headroom_mode=getattr(self, "_policy_headroom_mode", None),
+                tracking_reference_mode=getattr(self, "_tracking_reference_mode", None),
+                tracking_reference_context=audit_tracking_reference_context,
             )
 
         # This is the only physics advance in the episode tick.  In particular,
