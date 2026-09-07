@@ -14,7 +14,9 @@ from numbers import Real
 import re
 from typing import Any, Mapping
 
-from .semantic_policy_distribution import STATE_DEPENDENT_POLICY, policy_contract
+from .semantic_policy_distribution import (
+    HISTORY_POLICY, supported_heteroscedastic_contract_version,
+)
 
 
 def _tensor_hash(items: Any) -> str:
@@ -44,10 +46,10 @@ def _source_record(source: Mapping[str, Any]) -> dict[str, Any]:
     for key in ("source_global_policy_decisions", "source_ppo_updates"):
         if type(record.get(key)) is not int or record[key] < 0:
             raise ValueError(f"source {key} must be a nonnegative integer")
-    if json.dumps(record.get("policy_contract"), sort_keys=True) != json.dumps(
-        policy_contract(STATE_DEPENDENT_POLICY), sort_keys=True
-    ):
-        raise ValueError("checkpoint prefix requires the verified heteroscedastic 324 policy contract")
+    try:
+        supported_heteroscedastic_contract_version(record.get("policy_contract"))
+    except ValueError as error:
+        raise ValueError("checkpoint prefix requires the verified heteroscedastic 324 policy contract") from error
     runtime_hash = record.get("source_runtime_content_sha256")
     if runtime_hash is not None and (
         not isinstance(runtime_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", runtime_hash)
@@ -65,18 +67,36 @@ class FrozenCheckpointPrefixPolicy:
 
     def __init__(self, actor: Any, source_checkpoint: Mapping[str, Any]) -> None:
         import torch
+        from rsl_rl.models import MLPModel
         from rsl_rl.modules.distribution import HeteroscedasticGaussianDistribution
+        from .semantic_history_actor import SemanticHistoryMLPModel
 
         record = _source_record(source_checkpoint)
+        version = supported_heteroscedastic_contract_version(record["policy_contract"])
+        expected_class = SemanticHistoryMLPModel if version == HISTORY_POLICY else MLPModel
         if not isinstance(actor, torch.nn.Module) or getattr(actor, "is_recurrent", False):
             raise ValueError("checkpoint prefix requires a nonrecurrent torch actor")
+        # Both kernels deliberately have identical learned tensor layouts.
+        # A parameter hash therefore cannot distinguish their inference laws.
+        # Reject subclasses and per-instance kernel replacements, rather than
+        # relabeling a legacy mean as a history-conditioned mean (or vice versa).
+        if (type(actor) is not expected_class
+                or getattr(actor.forward, "__func__", None) is not expected_class.forward
+                or getattr(actor.get_latent, "__func__", None) is not expected_class.get_latent):
+            raise ValueError("checkpoint prefix actor kernel/class disagrees with its policy contract")
         distribution = getattr(actor, "distribution", None)
-        if (not isinstance(distribution, HeteroscedasticGaussianDistribution)
+        if (type(distribution) is not HeteroscedasticGaussianDistribution
+                or getattr(distribution.deterministic_output, "__func__", None)
+                is not HeteroscedasticGaussianDistribution.deterministic_output
                 or distribution.std_type != "log" or distribution.output_dim != 12
                 or getattr(actor, "obs_dim", None) != 324
                 or list(getattr(actor, "obs_groups", ())) != ["policy"]
                 or not isinstance(getattr(actor, "obs_normalizer", None), torch.nn.Module)):
             raise ValueError("actor does not implement the supported 324-to-12 heteroscedastic RSL interface")
+        if version == HISTORY_POLICY and (
+                actor.obs_normalization is not False
+                or type(actor.obs_normalizer) is not torch.nn.Identity):
+            raise ValueError("history prefix requires the identity-normalized stored raw-history kernel")
         parameters = dict(actor.named_parameters())
         if not parameters or any(value.dtype != torch.float32 for value in parameters.values()):
             raise ValueError("checkpoint prefix requires float32 actor parameters")

@@ -17,7 +17,7 @@ from typing import Any, Mapping
 from .semantic_backend import SemanticIsaacBackend
 from .semantic_env import WRITE_COUNTERS
 from .semantic_observation import vector
-from .semantic_policy_distribution import STATE_DEPENDENT_POLICY, policy_contract
+from .semantic_policy_distribution import supported_heteroscedastic_contract_version
 from .semantic_prefix import PREFIX_TARGETS, PrefixCreditCore, PrefixRslAdapter
 from .semantic_training import SemanticRslAdapter, jsonable, verified_native_effect
 
@@ -84,8 +84,10 @@ def _provenance(value):
     for key in ("source_global_policy_decisions", "source_ppo_updates"):
         if type(result.get(key)) is not int or result[key] < 0:
             raise ValueError(f"source {key} must be a nonnegative integer")
-    if json.dumps(result.get("policy_contract"), sort_keys=True) != json.dumps(policy_contract(STATE_DEPENDENT_POLICY), sort_keys=True):
-        raise ValueError("checkpoint prefix requires the exact heteroscedastic 324/12 policy contract")
+    try:
+        supported_heteroscedastic_contract_version(result.get("policy_contract"))
+    except ValueError as error:
+        raise ValueError("checkpoint prefix requires the exact heteroscedastic 324/12 policy contract") from error
     if "source_runtime_content_sha256" in result and (
             not isinstance(result["source_runtime_content_sha256"], str)
             or not re.fullmatch("[0-9a-f]{64}", result["source_runtime_content_sha256"])):

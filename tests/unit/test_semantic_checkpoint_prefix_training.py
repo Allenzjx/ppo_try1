@@ -12,33 +12,43 @@ pytest.importorskip("rsl_rl")
 from test_semantic_checkpoint_prefix import Core, Request, adapter, provenance
 from wlr50_clean.ppo import semantic_training as training
 from wlr50_clean.ppo.semantic_checkpoint_prefix_policy import build_frozen_checkpoint_prefix_policy
-from wlr50_clean.ppo.semantic_policy_distribution import STATE_DEPENDENT_POLICY
+from wlr50_clean.ppo.semantic_policy_distribution import (
+    HISTORY_POLICY, STATE_DEPENDENT_POLICY, policy_contract,
+)
 
 
 @pytest.fixture(autouse=True)
-def one_cpu_thread():
+def one_cpu_thread(monkeypatch):
     previous = torch.get_num_threads()
     torch.set_num_threads(1)
+    # This algorithm-only fixture verifies CPU RNG/optimizer behavior, not CUDA.
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
     yield
     torch.set_num_threads(previous)
 
 
-def make():
+def make(policy_version=STATE_DEPENDENT_POLICY):
     training.seed_training_rngs(1001)
     # One excluded roll-in decision, then one credited terminal per reset.
     core = Core([[('P06', 8, None), ('P09', 3, 'BODY_COLLISION')]])
+    # Core.step returns a synthetic unit reward and does not implement PBRS.
+    # Explicitly absent calculator selects the supported runner-only check;
+    # do not disguise the old object() identity stand-in as a real calculator.
+    core.reward_calculator = None
     env, core, evidence = adapter(core, Request('P06'))
     runner, _ = training.construct_semantic_runner(env, seed=1001, device="cpu",
-                                                  policy_version=STATE_DEPENDENT_POLICY)
+                                                  policy_version=policy_version)
     source = provenance()
     source["actor_parameter_sha256"] = training.parameter_hash(runner.alg.actor)
+    source["policy_contract"] = policy_contract(policy_version)
     frozen = build_frozen_checkpoint_prefix_policy(runner.alg.actor, source)
     env.install_prefix_policy(frozen, frozen.provenance)
     return runner, env, core, evidence, frozen
 
 
-def test_terminal_reset_provenance_mutation_aborts_before_storage_optimizer_or_save(tmp_path, monkeypatch):
-    runner, env, core, evidence, _ = make()
+@pytest.mark.parametrize("policy_version", [STATE_DEPENDENT_POLICY, HISTORY_POLICY])
+def test_terminal_reset_provenance_mutation_aborts_before_storage_optimizer_or_save(tmp_path, monkeypatch, policy_version):
+    runner, env, core, evidence, _ = make(policy_version)
     assert core.resets == 1 and env.core.prefix_decisions == 1
     original_reset = core.reset
 
@@ -91,8 +101,9 @@ def test_terminal_reset_provenance_mutation_aborts_before_storage_optimizer_or_s
     assert sum(row["kind"] == "policy_credit_start" for row in evidence) == 2
 
 
-def test_real_frozen_prefix_actions_never_enter_official_storage_across_terminal_resets(tmp_path):
-    runner, env, core, evidence, frozen = make()
+@pytest.mark.parametrize("policy_version", [STATE_DEPENDENT_POLICY, HISTORY_POLICY])
+def test_real_frozen_prefix_actions_never_enter_official_storage_across_terminal_resets(tmp_path, policy_version):
+    runner, env, core, evidence, frozen = make(policy_version)
     frozen_hash = training.parameter_hash(frozen._actor)
     result = training.train_semantic(runner, env, run_dir=tmp_path / "run", output_root=tmp_path / "output",
                                     stage="phase_suffix", decisions=128, contract={"cpu": "fixture"}, seed=1001)
@@ -113,6 +124,15 @@ def test_real_frozen_prefix_actions_never_enter_official_storage_across_terminal
     rollout = torch.load(tmp_path / "run/rollouts/rollout_000001.pt", weights_only=False)
     assert tuple(rollout["actions"].shape) == (128, 1, 12)
     assert torch.equal(rollout["actions"][:, 0], torch.tensor(credited_actions))
+    assert rollout["policy_contract"] == policy_contract(policy_version)
+    # Every reset's excluded zero-history roll-in ends at Core's observation1.
+    # The actual stored conditional mean must use that credited observation,
+    # not the prefix's observation0 or a private previous-episode action cache.
+    assert torch.equal(rollout["observations"]["policy"][:, :, 195:207],
+                       torch.ones(128, 1, 12))
+    expected_mean = .9 if policy_version == HISTORY_POLICY else 0.
+    assert torch.equal(rollout["distribution_params"][0],
+                       torch.full((128, 1, 12), expected_mean))
     assert torch.all(rollout["dones"].bool())
     assert torch.equal(rollout["rewards"], torch.ones_like(rollout["rewards"]))
     # Official terminal GAE performs fl(fl(r - V) + V), not a direct copy
@@ -138,5 +158,6 @@ def test_real_frozen_prefix_actions_never_enter_official_storage_across_terminal
     assert all(row["policy_credit"] is False for row in evidence)
     checkpoint = json.loads(Path(result["checkpoints"][-1]["manifest"]).read_text())
     assert checkpoint["global_policy_decisions"] == 128
+    assert checkpoint["policy_contract"] == policy_contract(policy_version)
     assert checkpoint["curriculum_epoch"]["prefix_policy_provenance"] == frozen.provenance
     assert checkpoint["save_load_round_trip"] is True

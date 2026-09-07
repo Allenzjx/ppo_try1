@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 import random
+from types import MethodType
 
 import pytest
 
@@ -32,40 +33,25 @@ class FixedNormalizer(torch.nn.Module):
         self.register_buffer("offset", torch.full((324,), 0.125))
         self.register_buffer("scale", torch.full((324,), 1.25))
         self.register_buffer("count", torch.tensor(17))
+        self.calls = 0
 
     def forward(self, values):
+        self.calls += 1
         return (values - self.offset) / self.scale
 
 
-class TinyActor(torch.nn.Module):
-    """Small protocol fixture; real distribution, not a claim of trained policy."""
-    is_recurrent = False
+def actual_actor():
+    """Official kernel, with explicit stateful-normalizer preservation fixture."""
+    cfg = copy.deepcopy(semantic_runner_config(seed=1001, device="cpu", semantic_version="v3",
+                                               policy_version=STATE_DEPENDENT_POLICY)["actor"])
+    cfg.pop("class_name")
+    actor = MLPModel(batch(), {"actor": ["policy"]}, "actor", 12, **cfg)
+    actor.obs_normalizer = FixedNormalizer()
+    return actor
 
-    def __init__(self):
-        super().__init__()
-        self.obs_dim, self.obs_groups = 324, ["policy"]
-        self.obs_normalizer = FixedNormalizer()
-        self.distribution = HeteroscedasticGaussianDistribution(12, std_type="log")
-        self.mlp = torch.nn.Linear(324, 24)
-        self.calls = 0
-        self.output_kind = "normal"
 
-    def forward(self, observations, *, stochastic_output=False):
-        assert isinstance(observations, TensorDict)
-        assert torch.equal(observations["policy"], observations["critic"])
-        self.calls += 1
-        output = self.mlp(self.obs_normalizer(observations["policy"])).reshape(-1, 2, 12)
-        if stochastic_output:
-            self.distribution.update(output)
-            return self.distribution.sample()
-        result = self.distribution.deterministic_output(output)
-        if self.output_kind == "nan":
-            return result * float("nan")
-        if self.output_kind == "shape":
-            return result[:, :11]
-        if self.output_kind == "list":
-            return result.tolist()
-        return result
+def final_linear(actor):
+    return [module for module in actor.mlp.modules() if isinstance(module, torch.nn.Linear)][-1]
 
 
 def record(actor):
@@ -102,21 +88,21 @@ def assert_rng_equal(before):
     assert before[2][2:] == after[2][2:]
 
 
-def test_small_actor_copy_preserves_buffers_modes_rng_and_raw_mean_without_source_calls():
-    actor = TinyActor()
+def test_actual_actor_copy_preserves_buffers_modes_rng_and_raw_mean_without_source_calls():
+    actor = actual_actor()
     with torch.no_grad():
-        actor.mlp.bias[:12].fill_(2.0)  # Returned latent must not be tanh-clipped.
+        final_linear(actor).bias[:12].fill_(2.0)  # Returned latent must not be tanh-clipped.
     expected = tuple(actor(batch(), stochastic_output=False)[0].detach().tolist())
     actor.obs_normalizer.eval()  # Source mixed training modes must also survive.
     modes = [m.training for m in actor.modules()]
     original_state = {k: v.clone() for k, v in actor.state_dict().items()}
-    original_calls = actor.calls
+    original_calls = actor.obs_normalizer.calls
     before = rng_state()
     policy = build_frozen_checkpoint_prefix_policy(actor, record(actor))
     assert policy(observation()) == expected
     assert policy(observation()) == expected
     assert any(abs(v) > 1 for v in expected)
-    assert actor.calls == original_calls
+    assert actor.obs_normalizer.calls == original_calls
     assert [m.training for m in actor.modules()] == modes
     assert all(torch.equal(v, actor.state_dict()[k]) for k, v in original_state.items())
     assert all(p.requires_grad for p in actor.parameters())
@@ -126,7 +112,7 @@ def test_small_actor_copy_preserves_buffers_modes_rng_and_raw_mean_without_sourc
 
 
 def test_prefix_stays_fixed_when_main_optimizer_updates_and_normalizer_changes():
-    actor = TinyActor()
+    actor = actual_actor()
     optimizer = torch.optim.Adam(actor.parameters(), lr=0.01)
     policy = build_frozen_checkpoint_prefix_policy(actor, record(actor))
     old_output = policy(observation())
@@ -179,7 +165,7 @@ def test_actual_official_heteroscedastic_nonleaf_cache_and_learned_std_are_prese
 
 
 def test_provenance_is_json_and_detached_from_both_input_and_returned_dict():
-    actor = TinyActor()
+    actor = actual_actor()
     source = record(actor)
     policy = build_frozen_checkpoint_prefix_policy(actor, source)
     source["policy_contract"]["raw_action_dimension"] = 99
@@ -195,7 +181,7 @@ def test_provenance_is_json_and_detached_from_both_input_and_returned_dict():
 @pytest.mark.parametrize("key", ["checkpoint_path", "checkpoint_sha256", "actor_parameter_sha256",
                                 "source_global_policy_decisions", "source_ppo_updates", "policy_contract"])
 def test_required_provenance_missing_is_rejected(key):
-    actor = TinyActor()
+    actor = actual_actor()
     source = record(actor)
     del source[key]
     with pytest.raises(ValueError):
@@ -209,7 +195,7 @@ def test_required_provenance_missing_is_rejected(key):
     ("source_runtime_content_sha256", "invalid"), ("extra", float("nan")),
 ])
 def test_invalid_or_mismatched_source_provenance_is_rejected(key, value):
-    actor = TinyActor()
+    actor = actual_actor()
     source = record(actor)
     source[key] = value
     with pytest.raises(ValueError):
@@ -219,7 +205,7 @@ def test_invalid_or_mismatched_source_provenance_is_rejected(key, value):
 @pytest.mark.parametrize("field,value", [("observation_dimension", 332), ("raw_action_dimension", 13),
                                        ("state_dependent_std", 1), ("version", "gaussian_scalar_v1")])
 def test_wrong_policy_contract_is_rejected(field, value):
-    actor = TinyActor()
+    actor = actual_actor()
     source = record(actor)
     source["policy_contract"][field] = value
     with pytest.raises(ValueError, match="contract"):
@@ -230,25 +216,34 @@ def test_wrong_policy_contract_is_rejected(field, value):
                                     (float("nan"),) * 324, (float("inf"),) * 324,
                                     (True,) * 324, ("0",) * 324, (1e100,) * 324])
 def test_invalid_observation_is_rejected_without_source_or_prefix_forward(invalid):
-    actor = TinyActor()
+    actor = actual_actor()
     policy = build_frozen_checkpoint_prefix_policy(actor, record(actor))
     with pytest.raises((ValueError, RuntimeError)):
         policy(invalid)
-    assert actor.calls == 0 and policy._actor.calls == 0
+    assert actor.obs_normalizer.calls == 0 and policy._actor.obs_normalizer.calls == 0
 
 
 @pytest.mark.parametrize("kind", ["nan", "shape", "list"])
 def test_nonfinite_or_malformed_action_is_rejected(kind):
-    actor = TinyActor()
-    actor.output_kind = kind
+    actor = actual_actor()
     policy = build_frozen_checkpoint_prefix_policy(actor, record(actor))
+    # Exercise the output guard independently after a valid real-kernel copy;
+    # a forged source kernel is rejected at construction in separate tests.
+    def malformed(self, observations, *, stochastic_output=False):
+        result = MLPModel.forward(self, observations, stochastic_output=stochastic_output)
+        if kind == "nan":
+            return result * float("nan")
+        if kind == "shape":
+            return result[:, :11]
+        return result.tolist()
+    policy._actor.forward = MethodType(malformed, policy._actor)
     with pytest.raises(ValueError):
         policy(observation())
 
 
 def test_unknown_nonleaf_state_fails_without_mutating_source():
-    actor = TinyActor()
-    actor.unrecognized_cached_tensor = actor.mlp.weight * 2
+    actor = actual_actor()
+    actor.unrecognized_cached_tensor = final_linear(actor).weight * 2
     before = parameter_hash(actor)
     with pytest.raises(ValueError, match="without resetting"):
         build_frozen_checkpoint_prefix_policy(actor, record(actor))
@@ -256,11 +251,9 @@ def test_unknown_nonleaf_state_fails_without_mutating_source():
     assert actor.unrecognized_cached_tensor.grad_fn is not None
 
 
-def test_deepcopy_returning_source_is_rejected_before_freezing_source():
-    class BadCopy(TinyActor):
-        def __deepcopy__(self, memo):
-            return self
-    actor = BadCopy()
+def test_deepcopy_returning_source_is_rejected_before_freezing_source(monkeypatch):
+    actor = actual_actor()
+    monkeypatch.setattr(MLPModel, "__deepcopy__", lambda self, memo: self, raising=False)
     with pytest.raises(ValueError, match="shares a source module"):
         build_frozen_checkpoint_prefix_policy(actor, record(actor))
     assert actor.training and all(p.requires_grad for p in actor.parameters())
@@ -268,7 +261,7 @@ def test_deepcopy_returning_source_is_rejected_before_freezing_source():
 
 @pytest.mark.parametrize("mutation", ["recurrent", "wrong_dimension", "double", "cache"])
 def test_unsupported_actor_interface_fails_closed(mutation):
-    actor = TinyActor()
+    actor = actual_actor()
     if mutation == "recurrent":
         actor.is_recurrent = True
     elif mutation == "wrong_dimension":

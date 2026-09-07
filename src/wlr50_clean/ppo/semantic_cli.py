@@ -23,7 +23,7 @@ from .semantic_training import (
 )
 from .semantic_migration import topology, stage_partition
 from .semantic_policy_distribution import (
-    LEGACY_POLICY, STATE_DEPENDENT_POLICY, policy_contract,
+    LEGACY_POLICY, STATE_DEPENDENT_POLICY, HISTORY_POLICY, policy_contract,
     policy_version_from_metadata, build_policy_distribution_migration,
     policy_migration_checkpoint_name,
 )
@@ -63,6 +63,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--teacher-offset-decisions", type=int, default=0)
     result.add_argument("--prefix-source", choices=("frozen_fsm", "checkpoint_policy"), default="frozen_fsm")
     result.add_argument("--new-mdp-warm-start", action="store_true")
+    result.add_argument("--target-policy-version", choices=(HISTORY_POLICY,))
     result.add_argument("--policy-distribution-migration", action="store_true")
     result.add_argument("--vector-smoke-evidence", type=Path)
     result.add_argument("--stage", choices=tuple(STAGE_BUDGETS), default="smoke")
@@ -131,6 +132,7 @@ def _resolved_checkpoint(path: Path, *, output_root: Path | None = None) -> Path
 
 
 def validate_request(args: argparse.Namespace) -> None:
+    _validate_target_policy_request(args)
     runs_root, output_root, _ = version_paths(args.semantic_version)
     directory = args.run_dir.resolve()
     if not directory.is_relative_to(runs_root.resolve()) or directory == runs_root.resolve():
@@ -224,8 +226,19 @@ def validate_request(args: argparse.Namespace) -> None:
     args.run_dir = directory
 
 
+def _validate_target_policy_request(args: argparse.Namespace) -> None:
+    target = getattr(args, "target_policy_version", None)
+    if target is not None and (
+            target != HISTORY_POLICY or args.semantic_version != "v3" or args.num_envs != 1
+            or args.command != "train" or args.checkpoint is None or not args.new_mdp_warm_start
+            or args.resume_migration is not None or getattr(args, "policy_distribution_migration", False)
+            or getattr(args, "prefix_source", "frozen_fsm") == "checkpoint_policy"):
+        raise ValueError("target policy kernel requires exclusive v3 N1 new-MDP training; no checkpoint-policy prefix at this boundary")
+
+
 def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) -> None:
     """Reject stale or unauthorized weights before loading any native library."""
+    _validate_target_policy_request(args)
     args._migration_record = None
     args._warm_start_record = None
     args._policy_migration_record = None
@@ -258,7 +271,12 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
         return
     if args.new_mdp_warm_start:
         from .semantic_migration import build_v3_warm_start_record, v3_warm_start_checkpoint_name
-        args._warm_start_record = build_v3_warm_start_record(args.checkpoint, contract, project_root=PROJECT_ROOT)
+        options = {}
+        if getattr(args, "target_policy_version", None) is not None:
+            options["target_policy_version"] = args.target_policy_version
+        args._warm_start_record = build_v3_warm_start_record(args.checkpoint, contract, project_root=PROJECT_ROOT, **options)
+        if options:
+            args._policy_version = args._warm_start_record["policy_kernel_transition"]["target_policy_version"]
         if metadata["seed"] != args.seed:
             raise ValueError("warm start must preserve the recorded training RNG seed")
         initial = version_paths("v3")[1] / "checkpoints/history" / v3_warm_start_checkpoint_name(args._warm_start_record)
@@ -731,10 +749,21 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                     old_execution_profile=warm_start_source_execution_profile(
                         args._warm_start_record, args.run_dir, project_root=PROJECT_ROOT),
                     new_execution_profile=config_root / "execution_profile.yaml")
+                if args._warm_start_record.get("policy_kernel_transition") is not None:
+                    comparison["policy_kernel_context"] = (
+                        "both physical-profile projections use the target actor; this is not an old/new-policy comparison; "
+                        "see new_mdp_initial_policy_kernel_comparison.json")
                 comparison_path = args.run_dir / "new_mdp_initial_action_comparison.json"
                 write_json(comparison_path, comparison)
                 previous["new_mdp_initial_action_comparison"] = {
                     "path": str(comparison_path.resolve()), "sha256": sha256_file(comparison_path)}
+                if args._warm_start_record.get("policy_kernel_transition") is not None:
+                    from .semantic_training import compare_warm_start_policy_kernel
+                    kernel_comparison = compare_warm_start_policy_kernel(runner, env, record=args._warm_start_record)
+                    kernel_path = args.run_dir / "new_mdp_initial_policy_kernel_comparison.json"
+                    write_json(kernel_path, kernel_comparison)
+                    previous["new_mdp_initial_policy_kernel_comparison"] = {
+                        "path": str(kernel_path.resolve()), "sha256": sha256_file(kernel_path)}
                 initial_infos = {**previous, "runtime_contract": contract, "stage": "initial_v3_warm_start",
                                  "execution_topology": continuation_topology(env.cfg["reset_sampling"], env.cfg.get("prefix_request")),
                                  "curriculum_epoch": semantic_curriculum_epoch(env.cfg),

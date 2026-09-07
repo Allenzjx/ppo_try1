@@ -21,6 +21,8 @@ from .semantic_migration import (
 
 LEGACY_POLICY = "gaussian_scalar_v1"
 STATE_DEPENDENT_POLICY = "heteroscedastic_log_v1"
+HISTORY_POLICY = "history_conditioned_heteroscedastic_log_v1"
+HISTORY_ACTOR_CLASS = "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel"
 POLICY_SCHEMA = "wlr50_clean.semantic_policy_distribution.v1"
 MIGRATION_SCHEMA = "wlr50_clean.semantic_policy_distribution_migration.v1"
 MODULE_PATH = "src/wlr50_clean/ppo/semantic_policy_distribution.py"
@@ -39,10 +41,10 @@ NORMALIZATION = "fixed_versioned_observation_schema; identity_RSL_normalizer"
 
 
 def policy_contract(version: str) -> dict[str, Any]:
-    if version not in (LEGACY_POLICY, STATE_DEPENDENT_POLICY):
+    if version not in (LEGACY_POLICY, STATE_DEPENDENT_POLICY, HISTORY_POLICY):
         raise ValueError("unsupported semantic policy distribution version")
-    dependent = version == STATE_DEPENDENT_POLICY
-    return {
+    dependent = version != LEGACY_POLICY
+    contract = {
         "schema": POLICY_SCHEMA, "version": version,
         "distribution_class": ("HeteroscedasticGaussianDistribution" if dependent else "GaussianDistribution"),
         "std_type": "log" if dependent else "scalar",
@@ -51,16 +53,30 @@ def policy_contract(version: str) -> dict[str, Any]:
         "state_dependent_std": dependent, "normalization": NORMALIZATION,
         "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
     }
+    if version == HISTORY_POLICY:
+        contract.update({
+            "actor_class": HISTORY_ACTOR_CLASS,
+            "history_feature": "previous_raw_full12",
+            "history_slice": [195, 207], "history_clip": 20.0, "rho": 0.9,
+            "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+            "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+            "history_state": "stored_observation_only; no_actor_mutable_history",
+            "deterministic_output": "conditional_mean",
+            "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+        })
+    return contract
 
 
 def configure_policy_distribution(config: dict[str, Any], version: str) -> None:
-    """Change exactly the distribution class and parameterization in place."""
+    """Preserve the old two-field configuration; explicitly select the new actor."""
     contract = policy_contract(version)
     distribution = config["actor"]["distribution_cfg"]
     if not isinstance(distribution, dict) or "init_std" not in distribution:
         raise ValueError("semantic actor configuration requires init_std")
     distribution["class_name"] = contract["distribution_class"]
     distribution["std_type"] = contract["std_type"]
+    if version == HISTORY_POLICY:
+        config["actor"]["class_name"] = HISTORY_ACTOR_CLASS
 
 
 def _integer(value: Any, label: str, *, minimum: int = 0) -> int:
@@ -75,6 +91,15 @@ def _same_json(left: Any, right: Any) -> bool:
         return json.dumps(left, sort_keys=True, allow_nan=False) == json.dumps(right, sort_keys=True, allow_nan=False)
     except (TypeError, ValueError):
         return False
+
+
+def supported_heteroscedastic_contract_version(contract: Mapping[str, Any]) -> str:
+    """Accept only a complete, exact supported heteroscedastic policy contract."""
+    if isinstance(contract, Mapping):
+        for version in (STATE_DEPENDENT_POLICY, HISTORY_POLICY):
+            if _same_json(dict(contract), policy_contract(version)):
+                return version
+    raise ValueError("unsupported or incomplete heteroscedastic policy contract")
 
 
 def policy_version_from_metadata(metadata: Mapping[str, Any]) -> str:
@@ -93,13 +118,16 @@ def policy_version_from_metadata(metadata: Mapping[str, Any]) -> str:
         raise ValueError("unsupported checkpoint semantic version")
     try:
         distribution = config["actor"]["distribution_cfg"]
-        pair = (distribution["class_name"], distribution["std_type"])
+        pair = (config["actor"]["class_name"], distribution["class_name"], distribution["std_type"])
         version = {
-            ("GaussianDistribution", "scalar"): LEGACY_POLICY,
-            ("HeteroscedasticGaussianDistribution", "log"): STATE_DEPENDENT_POLICY,
+            ("MLPModel", "GaussianDistribution", "scalar"): LEGACY_POLICY,
+            ("MLPModel", "HeteroscedasticGaussianDistribution", "log"): STATE_DEPENDENT_POLICY,
+            (HISTORY_ACTOR_CLASS, "HeteroscedasticGaussianDistribution", "log"): HISTORY_POLICY,
         }[pair]
     except (KeyError, TypeError) as error:
         raise ValueError("checkpoint has an unsupported policy distribution") from error
+    if version == HISTORY_POLICY and semantic_version != "v3":
+        raise ValueError("history-conditioned policy requires semantic v3")
     declared = metadata.get("policy_contract")
     if declared is None:
         if "policy_contract" in metadata or version != LEGACY_POLICY:

@@ -59,10 +59,13 @@ def checkpoint_metadata(checkpoint: Path) -> dict[str, Any]:
 
 
 def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, Any], *,
-                                project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
+                                project_root: Path = PROJECT_ROOT,
+                                target_policy_version: str | None = None) -> dict[str, Any]:
     """Explicit new-MDP boundary; never a relaxation of v2 exact-resume rules."""
     metadata = checkpoint_metadata(checkpoint)
-    from .semantic_policy_distribution import policy_version_from_metadata
+    from .semantic_policy_distribution import (
+        HISTORY_POLICY, STATE_DEPENDENT_POLICY, policy_contract, policy_version_from_metadata,
+    )
     from .semantic_return_profile import (
         LEGACY_RETURN_PROFILE, RETURN_PROFILE, reward_return_profile, runner_return_profile,
     )
@@ -70,7 +73,7 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
     import yaml
     # Do not reinterpret source actor metadata using the target factory's new
     # discount. Validate its complete, explicitly recognized historical config.
-    policy_version_from_metadata(metadata)
+    source_policy_version = policy_version_from_metadata(metadata)
     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
     source_version = metadata.get("semantic_version", "v2")
     if source_version not in ("v2", "v3") or new.get("semantic_version") != "v3":
@@ -133,9 +136,48 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
     # Verify the comparison's historical source before AppLauncher/reset; defer
     # only immutable materialization, not source availability, to publication.
     _version_bytes(project_root, old, config_records["execution_profile.yaml"]["source_path"], prefer_worktree=True)
+    kernel_transition = None
+    if target_policy_version is not None:
+        if (source_version != "v3" or source_policy_version != STATE_DEPENDENT_POLICY
+                or target_policy_version != HISTORY_POLICY or source_num_envs(metadata) != 1):
+            raise ValueError("history-kernel migration requires the existing v3 N1 heteroscedastic source")
+        # One factor only: do not hide an action/reward/physics change in a
+        # distribution migration. General new-MDP continuation remains separate.
+        if any(row["source_sha256"] != row["target_sha256"] for row in config_records.values()):
+            raise ValueError("history-kernel migration cannot change any physical/reward/observation configuration")
+        variable = {"files", "source_git_commit", "runtime_content_sha256"}
+        if {k: v for k, v in old.items() if k not in variable} != {k: v for k, v in new.items() if k not in variable}:
+            raise ValueError("history-kernel migration cannot change runtime or physical metadata")
+        module = "src/wlr50_clean/ppo/semantic_history_actor.py"
+        allowed = {module, "src/wlr50_clean/ppo/semantic_policy_distribution.py",
+                   "src/wlr50_clean/ppo/semantic_training.py", "src/wlr50_clean/ppo/semantic_migration.py",
+                   "src/wlr50_clean/ppo/semantic_cli.py", "scripts/run_semantic_ppo.ps1",
+                   "src/wlr50_clean/ppo/semantic_checkpoint_prefix.py",
+                   "src/wlr50_clean/ppo/semantic_checkpoint_prefix_policy.py"}
+        delta = {p for p in old["files"].keys() | new["files"].keys()
+                 if old["files"].get(p) != new["files"].get(p)}
+        if (not delta <= allowed or module not in new["files"]
+                or old["files"].keys() - new["files"].keys()
+                or new["files"].keys() - old["files"].keys() - {module}):
+            raise ValueError("history-kernel migration changed a non-whitelisted runtime file")
+        for relative in delta:
+            if relative in old["files"]:
+                _version_bytes(project_root, old, relative, prefer_worktree=True)
+            if file_sha(project_root / relative) != new["files"][relative]:
+                raise ValueError("history-kernel target implementation bytes differ from runtime inventory")
+        kernel_transition = {
+            "schema": "wlr50_clean.semantic_history_kernel_transition.v1",
+            "source_policy_version": source_policy_version, "target_policy_version": target_policy_version,
+            "source_policy_contract": policy_contract(source_policy_version),
+            "target_policy_contract": policy_contract(target_policy_version),
+            "physical_mdp_changed": False, "reward_changed": False,
+            "conditional_policy_changed": True, "fixed_mean_control_changed": True,
+            "parameter_layout_changed": False, "learned_parameters_preserved": True,
+            "old_rollout_inherited": False, "checkpoint_policy_prefix_during_migration": False,
+        }
     checkpoint = checkpoint.resolve(strict=True)
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
-    return {"schema": "wlr50_clean.semantic_v3_new_mdp_warm_start.v1", "exact_mdp_resume": False,
+    result = {"schema": "wlr50_clean.semantic_v3_new_mdp_warm_start.v1", "exact_mdp_resume": False,
             "source_checkpoint": str(checkpoint), "source_checkpoint_sha256": file_sha(checkpoint),
             "source_manifest_sha256": file_sha(sidecar),
             "source_semantic_version": source_version, "source_global_policy_decisions": source_global,
@@ -161,14 +203,21 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
                                  if source_version == "v3" else
                                  "new v3 requested budgets; preserve lifetime global/update counters"),
             "reset_sampling": "explicit_fixed_from_phase_per_run; reset_only_rollin_excluded_from_PPO_credit"}
+    if kernel_transition is not None:
+        result["policy_kernel_transition"] = kernel_transition
+        result["action_output_semantics"] = "same learned tensors; changed history-conditioned Gaussian and fixed mean; unchanged physical projection"
+        result["optimizer"]["reason"] = "explicit conditional-policy boundary; source moments verified then reset, learned weights preserved"
+    return result
 
 
 def v3_warm_start_checkpoint_name(record: Mapping[str, Any]) -> str:
     """Immutable revision-bound initial publication, separate from every prior boundary."""
     target = _contract(record["target_runtime_contract"])
+    kernel = record.get("policy_kernel_transition")
+    suffix = "" if kernel is None else "_p" + digest(kernel["target_policy_contract"])[:12]
     return (f"checkpoint_initial_v3_from_{int(record['source_global_policy_decisions']):09d}"
             f"_s{record['source_checkpoint_sha256'][:12]}"
-            f"_g{target['source_git_commit'][:12]}_{target['runtime_content_sha256']}.pt")
+            f"_g{target['source_git_commit'][:12]}_{target['runtime_content_sha256']}{suffix}.pt")
 
 
 def warm_start_source_execution_profile(record: Mapping[str, Any], output_directory: Path, *,

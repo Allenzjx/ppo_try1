@@ -12,6 +12,7 @@ param(
     [ValidateRange(0,1799)][int]$TeacherOffsetDecisions = 0,
     [ValidateSet('frozen_fsm','checkpoint_policy')][string]$PrefixSource = 'frozen_fsm',
     [switch]$NewMdpWarmStart,
+    [ValidateSet('history_conditioned_heteroscedastic_log_v1')][string]$TargetPolicyVersion,
     [switch]$PolicyDistributionMigration,
     [string]$VectorSmokeEvidence,
     [string]$Checkpoint,
@@ -22,6 +23,12 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if (-not [string]::IsNullOrWhiteSpace($TargetPolicyVersion) -and (
+        -not $NewMdpWarmStart -or $Command -cne 'train' -or $SemanticVersion -cne 'v3' -or $NumEnvs -ne 1 -or
+        [string]::IsNullOrWhiteSpace($Checkpoint) -or $PolicyDistributionMigration -or
+        -not [string]::IsNullOrWhiteSpace($ResumeMigration) -or $PrefixSource -ceq 'checkpoint_policy')) {
+    throw 'TargetPolicyVersion requires exclusive v3 N1 new-MDP training without a checkpoint-policy prefix'
+}
 if ($PolicyDistributionMigration -and ($Command -cne 'train' -or $SemanticVersion -cne 'v3' -or $NumEnvs -ne 1 -or
         [string]::IsNullOrWhiteSpace($Checkpoint) -or $NewMdpWarmStart -or -not [string]::IsNullOrWhiteSpace($ResumeMigration))) {
     throw 'PolicyDistributionMigration requires v3 N1 train with a checkpoint, exclusive of NewMdpWarmStart or ResumeMigration'
@@ -63,6 +70,7 @@ try {
         '--prefix-source',$PrefixSource,
         '--checkpoint-interval-updates',[string]$CheckpointIntervalUpdates,'--headless')
     if ($NewMdpWarmStart) { $arguments += '--new-mdp-warm-start' }
+    if (-not [string]::IsNullOrWhiteSpace($TargetPolicyVersion)) { $arguments += @('--target-policy-version',$TargetPolicyVersion) }
     if ($PolicyDistributionMigration) { $arguments += '--policy-distribution-migration' }
     if ($PSBoundParameters.ContainsKey('Decisions')) { $arguments += @('--decisions',[string]$Decisions) }
     if (-not [string]::IsNullOrWhiteSpace($VectorSmokeEvidence)) {

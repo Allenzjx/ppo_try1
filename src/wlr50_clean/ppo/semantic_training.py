@@ -107,6 +107,9 @@ def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_versio
                            return_profile: str | None = None) -> dict[str, Any]:
     if semantic_version not in ("v2", "v3"):
         raise ValueError("unsupported semantic runtime version")
+    from .semantic_policy_distribution import HISTORY_POLICY
+    if policy_version == HISTORY_POLICY and semantic_version != "v3":
+        raise ValueError("history-conditioned policy requires the v3 semantic runtime")
     if return_profile is None:
         from .semantic_reward import load_semantic_reward_config
         path = Path(__file__).resolve().parents[3] / "configs" / f"ppo_semantic_{semantic_version}" / "reward_config.yaml"
@@ -559,9 +562,17 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
     """Reuse learned networks, explicitly discard old optimizer and rollout state."""
     import torch
     from .semantic_migration import build_v3_warm_start_record
-    verified = build_v3_warm_start_record(checkpoint, contract)
+    kernel = record.get("policy_kernel_transition")
+    options = {} if kernel is None else {"target_policy_version": kernel.get("target_policy_version")}
+    verified = build_v3_warm_start_record(checkpoint, contract, **options)
     if verified != dict(record):
         raise RuntimeError("new-MDP checkpoint/configuration binding changed after preflight")
+    from .semantic_policy_distribution import policy_version_from_metadata
+    from .semantic_migration import checkpoint_metadata
+    source_version = policy_version_from_metadata(checkpoint_metadata(checkpoint))
+    target_version = source_version if kernel is None else kernel["target_policy_version"]
+    if runner._semantic_policy_version != target_version:
+        raise RuntimeError("warm-start target policy kernel differs from its explicit migration")
     storage = runner.alg.storage
     if (tuple(storage.actions.shape) != (128, 1, 12)
             or storage.observations["policy"].shape[-1] != 324
@@ -570,8 +581,9 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
     expected_config = semantic_runner_config(seed=seed, device=str(runner.device), semantic_version="v3",
                                              policy_version=runner._semantic_policy_version)
     # Official RSL 5.0.1 consumes these factory-only entries during construction.
+    from rsl_rl.utils import resolve_callable
     for role in ("actor", "critic", "algorithm"):
-        if type(getattr(runner.alg, role, runner.alg)).__name__ != expected_config[role].pop("class_name"):
+        if type(getattr(runner.alg, role, runner.alg)) is not resolve_callable(expected_config[role].pop("class_name")):
             raise RuntimeError("v3 runner factory produced an unexpected official model/algorithm")
     expected_config["actor"]["distribution_cfg"].pop("class_name")
     expected_config["algorithm"].pop("share_cnn_encoders")
@@ -599,6 +611,8 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
     assert_semantic_return_consistency(runner, runner.env)
     restore_training_rng_state(infos["training_rng_state"], expected_seed=seed)
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
+    if "policy_version" in infos:
+        infos["policy_version"] = runner._semantic_policy_version
     return {**infos, "semantic_version": "v3", "new_mdp_warm_start": dict(record),
             "source_stage_requested_decisions": dict(infos.get("stage_requested_decisions", {})),
             "stage_requested_decisions": dict(verified["target_stage_requested_decisions"]),
@@ -606,6 +620,55 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
             "resume_source_checkpoint": {"checkpoint": str(checkpoint.resolve()),
                 "checkpoint_sha256": sha256_file(checkpoint), "manifest": str(sidecar.resolve()),
                 "manifest_sha256": sha256_file(sidecar)}}
+
+
+def compare_warm_start_policy_kernel(runner: Any, env: Any, *, record: Mapping[str, Any]) -> dict[str, Any]:
+    """Same verified learned tensors/observation, not a physical rollout.
+
+    This direct deterministic tensor calculation does not sample, mutate either
+    distribution cache, or claim the target conditional mean matches the source.
+    """
+    import torch
+    from .semantic_policy_distribution import HISTORY_POLICY, STATE_DEPENDENT_POLICY, policy_contract
+    from .semantic_history_actor import SemanticHistoryMLPModel
+    kernel = record.get("policy_kernel_transition", {})
+    if (kernel.get("source_policy_version") != STATE_DEPENDENT_POLICY
+            or kernel.get("target_policy_version") != HISTORY_POLICY
+            or kernel.get("target_policy_contract") != policy_contract(HISTORY_POLICY)
+            or type(runner.alg.actor) is not SemanticHistoryMLPModel):
+        raise ValueError("same-state kernel comparison requires the explicit verified history migration")
+    actor = runner.alg.actor
+    cached = actor.distribution._distribution
+    rng = capture_training_rng_state(seed=int(record.get("source_seed", env.seed)))
+    observations = env.get_observations().to(runner.device)
+    with torch.inference_mode():
+        latent = actor.get_latent(observations)
+        head = actor.mlp(latent)
+        mu, sigma = head[..., 0, :], head[..., 1, :].exp()
+        history = latent[..., 195:207].clamp(-20., 20.)
+        target = actor(observations, stochastic_output=False)
+        expected = .1 * mu + .9 * history
+        if not torch.equal(target, expected):
+            raise RuntimeError("actual history actor differs from its specified conditional mean")
+        value = runner.alg.critic(observations)
+        kl = ((mu-target).square()/(2.*sigma.square())).sum(-1)
+    if (actor.distribution._distribution is not cached
+            or capture_training_rng_state(seed=int(record.get("source_seed", env.seed))) != rng):
+        raise RuntimeError("deterministic kernel comparison mutated sampling cache or RNG")
+    if any(not bool(torch.isfinite(x).all()) for x in (mu, sigma, target, value, kl)) or not bool((sigma > 0).all()):
+        raise RuntimeError("nonfinite initial policy-kernel comparison")
+    return {"schema": "wlr50_clean.semantic_same_state_policy_kernel_comparison.v1",
+            "source_policy_contract": kernel["source_policy_contract"],
+            "target_policy_contract": kernel["target_policy_contract"],
+            "observation_sha256": state_hash(observations["policy"]),
+            "observation_dimension": 324, "source_mean_full12": mu.cpu().tolist(),
+            "previous_raw_history_full12": history.cpu().tolist(),
+            "target_conditional_mean_full12": target.cpu().tolist(),
+            "shared_conditional_std_full12": sigma.cpu().tolist(),
+            "shared_critic_value": value.cpu().tolist(),
+            "source_to_target_conditional_kl": kl.cpu().tolist(),
+            "learned_weights_changed": False, "rng_or_sampling_cache_changed": False,
+            "scope": "same-observation conditional policy comparison; no native dispatch, trajectory or performance claim"}
 
 
 def compare_warm_start_action(runner: Any, env: Any, *, old_execution_profile: Path,
@@ -842,7 +905,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                     infos["execution_topology"] = continuation_topology(sampling, prefix_request)
                 for key in ("new_mdp_warm_start", "new_mdp_origin_global_policy_decisions", "source_stage_requested_decisions",
                             "new_mdp_initial_action_comparison", "policy_distribution_migration",
-                            "policy_distribution_migration_evidence"):
+                            "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison"):
                     if key in previous:
                         infos[key] = previous[key]
                 if previous:
