@@ -15,6 +15,20 @@ ROOT = Path(__file__).resolve().parents[2]
 SPEC = ROOT / "configs/ppo_semantic_v3/stage_task_spec.yaml"
 
 
+@pytest.fixture(autouse=True)
+def legacy_workspace_formula(tmp_path, monkeypatch):
+    """Keep these historical preparation-weight tests on their original formula.
+
+    The independent workspace-potential integration tests cover the production
+    v3 opt-in. No hard predicate or event assertion below is changed.
+    """
+    values = load_task_spec(SPEC)
+    values["workspace_potential_semantics"] = None
+    path = tmp_path / "legacy_workspace_preparation.yaml"
+    path.write_text(yaml.safe_dump(values, sort_keys=False), encoding="utf-8")
+    monkeypatch.setitem(globals(), "SPEC", path)
+
+
 def old_spec_path(tmp_path):
     values = load_task_spec(SPEC)
     values.pop("preparation_credit_semantics")
@@ -23,7 +37,8 @@ def old_spec_path(tmp_path):
     return path
 
 
-def front_pair_prepared(path=SPEC):
+def front_pair_prepared(path=None):
+    path = SPEC if path is None else path
     evaluator = TaskEvaluator(path)
     obs = observation()
     for joint in obs["joints"].values():

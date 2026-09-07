@@ -3,10 +3,14 @@ rear_leg_order: RR_FIRST
 physics_hz: 120.0
 decision_hz: 15.0
 episode_maximum_duration_s: 200.0
-revision: continuous_whole_body_v3_post_cross_capture_approach
+revision: continuous_whole_body_v3_dense_workspace_potential
 potential_definition: global_physical_progress_v3
 # Existing workspace credit only; later lift/carry/capture remain ordered.
 preparation_credit_semantics: current_workspace_before_predecessor_placement
+# Soft potential only: retain the existing .1 workspace share and .25 m scale,
+# but retain distance sensitivity beyond the old clipped preparation range.
+# Public entry/completion predicates, nominal scheduling and Q/C/P do not use it.
+workspace_potential_semantics: workspace_interval_reciprocal_potential_v1
 # Reuse capture credit for current region, without forcing contact or a pose.
 capture_retention_semantics: current_platform_region_after_placement
 # Reuse half the existing first-capture share for post-cross surface approach;

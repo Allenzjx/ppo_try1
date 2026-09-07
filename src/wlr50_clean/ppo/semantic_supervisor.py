@@ -21,6 +21,9 @@ from wlr50_clean.infrastructure.command_batch import (
     FULL12_ORDER, SERVO_ORDER, WHEEL_ORDER, Full12Command, servo_limits_deg,
 )
 from wlr50_clean.reference.motion_contract import load_motion_contract
+from .semantic_workspace_potential import (
+    MODE as WORKSPACE_POTENTIAL_MODE, interval_distance_progress,
+)
 
 DEFAULT_TASK_SPEC_PATH = Path(__file__).resolve().parents[3] / "configs/ppo_semantic_v2/stage_task_spec.yaml"
 LEG_ORDER = ("FL", "FR", "RL", "RR")
@@ -116,6 +119,21 @@ def _capture_approach_enabled(spec: Mapping[str, Any]) -> bool:
     return True
 
 
+def _workspace_potential_enabled(spec: Mapping[str, Any]) -> bool:
+    mode = spec.get("workspace_potential_semantics")
+    if mode is None:
+        return False
+    if mode != WORKSPACE_POTENTIAL_MODE:
+        raise ValueError("unrecognized workspace potential semantics")
+    if spec.get("potential_definition") != "global_physical_progress_v3":
+        raise ValueError("workspace potential requires global physical progress")
+    lower = _number(spec["geometry"]["workspace_min_m"], "workspace potential lower")
+    upper = _number(spec["geometry"]["workspace_max_m"], "workspace potential upper")
+    if not lower < upper:
+        raise ValueError("workspace potential requires an ordered existing interval")
+    return True
+
+
 def _verified_p06_rolling_source(contract: Any, expected: tuple[float, ...]) -> tuple[float, ...]:
     """Bind the advisory extension to the frozen wheel-only source, not a pose gate."""
     phase = contract.phase("P06")
@@ -175,6 +193,7 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
             raise ValueError("capture retention requires nonnegative existing XY tolerance")
         _number(spec["geometry"]["top_gap_min_m"], "capture existing top gap")
     _capture_approach_enabled(spec)
+    _workspace_potential_enabled(spec)
     if spec["final"].get("stop_pose_semantics") not in (None,"physical_stable_pose"):
         raise ValueError("unrecognized final stop pose semantics")
     if spec["final"].get("stop_command_progress") not in (None,"reciprocal_physical_stop_tolerance"):
@@ -679,10 +698,10 @@ class TaskStageSupervisor:
                 # Workspace preparation can precede another leg's placement.
                 # Reuse only its existing weight; unload/lift/carry/capture
                 # remain predecessor-gated and no history is awarded here.
-                preparation=(self.predicate(f"workspace_{leg}",evaluation)
+                preparation=(self._workspace_potential_progress(leg,evaluation)
                     if self.spec.get("preparation_credit_semantics") == PREPARATION_CREDIT_MODE else 0.)
                 values.append(.1*preparation); continue
-            workspace=self.predicate(f"workspace_{leg}",evaluation)
+            workspace=self._workspace_potential_progress(leg,evaluation)
             unload=self.predicate(f"load_ready_{leg}",evaluation)
             initial=float(current.get("initial_clearance",False))
             hard_lift=bool(history["active_lift"][leg])
@@ -702,6 +721,22 @@ class TaskStageSupervisor:
             values.append(.1*workspace+.1*unload+.25*(.25*initial+.75*lift_credit)+.35*carry+.2*capture)
         finish=self.predicate("whole_task_success",evaluation) if all(history["placed"].values()) else 0.
         return min(1.,.85*sum(values)/4.+.15*finish)
+
+    def _workspace_potential_progress(self, leg: str, evaluation: Mapping[str, Any]) -> float:
+        """Soft preparation credit only; never an entry/completion predicate.
+
+        The reciprocal can round to 1 just outside a floating-point boundary.
+        Public predicate/phase progress and nominal supervision deliberately
+        retain their original physical interval rule and never call this path.
+        """
+        if self.spec.get("workspace_potential_semantics") is None:
+            return self.predicate(f"workspace_{leg}", evaluation)
+        if not _workspace_potential_enabled(self.spec):
+            raise ValueError("workspace potential mode unavailable")
+        current, geometry = evaluation["current_legs"][leg], self.spec["geometry"]
+        return interval_distance_progress(
+            current["front_distance_m"], geometry["workspace_min_m"], geometry["workspace_max_m"],
+            current["within_lateral_span"])
 
     def _current_capture_progress(self, leg: str, evaluation: Mapping[str,Any], contact_fraction: float) -> float:
         """Soft first-capture approach; never a touchdown or phase completion."""
