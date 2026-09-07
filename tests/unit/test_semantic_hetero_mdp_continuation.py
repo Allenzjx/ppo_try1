@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -33,6 +34,21 @@ def one_cpu_thread():
 def test_learned_hetero_new_mdp_initial_roundtrip_and_fresh_update(tmp_path, monkeypatch):
     seed_training_rngs(1001)
     _, old_contract = contracts(tmp_path)
+
+    def git(*args):
+        return subprocess.run(["git", "-C", str(tmp_path), *args], check=True,
+                              capture_output=True, text=True).stdout.strip()
+
+    # Preserve real source bytes so the migration can recover the hash-bound
+    # reward configuration after the working-tree target has changed.
+    git("init")
+    git("config", "--local", "user.name", "Semantic CPU fixture")
+    git("config", "--local", "user.email", "semantic-cpu@example.invalid")
+    git("config", "--local", "core.autocrlf", "false")
+    git("config", "--local", "commit.gpgsign", "false")
+    git("add", "--", "configs")
+    git("commit", "-m", "Preserve source semantic configuration")
+    old_contract["source_git_commit"] = git("rev-parse", "HEAD")
     source, source_env, _ = make(STATE_DEPENDENT_POLICY)
     before_head = source.alg.actor.state_dict()["mlp.4.weight"][12:].clone()
     source_result = train_semantic(source, source_env,
@@ -57,12 +73,14 @@ def test_learned_hetero_new_mdp_initial_roundtrip_and_fresh_update(tmp_path, mon
     actor_hash, critic_hash = parameter_hash(source.alg.actor), parameter_hash(source.alg.critic)
 
     new_contract = copy.deepcopy(old_contract)
-    new_contract["source_git_commit"] = "3" * 40
     # A real temporary config-byte change, not a mock validator. This checks
     # migration plumbing, not the physics or reward effectiveness of that change.
     relative = "configs/ppo_semantic_v3/reward_config.yaml"
     reward_file = tmp_path / relative
     reward_file.write_text(reward_file.read_text().replace("potential_weight: 5.0", "potential_weight: 5.1"))
+    git("add", "--", relative)
+    git("commit", "-m", "Version target semantic reward configuration")
+    new_contract["source_git_commit"] = git("rev-parse", "HEAD")
     new_contract["files"][relative] = migration.file_sha(reward_file)
     new_contract["runtime_content_sha256"] = migration.digest(new_contract["files"])
     record = migration.build_v3_warm_start_record(checkpoint, new_contract, project_root=tmp_path)

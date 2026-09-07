@@ -62,6 +62,15 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
                                 project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Explicit new-MDP boundary; never a relaxation of v2 exact-resume rules."""
     metadata = checkpoint_metadata(checkpoint)
+    from .semantic_policy_distribution import policy_version_from_metadata
+    from .semantic_return_profile import (
+        LEGACY_RETURN_PROFILE, RETURN_PROFILE, reward_return_profile, runner_return_profile,
+    )
+    from .semantic_reward import load_semantic_reward_config
+    import yaml
+    # Do not reinterpret source actor metadata using the target factory's new
+    # discount. Validate its complete, explicitly recognized historical config.
+    policy_version_from_metadata(metadata)
     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
     source_version = metadata.get("semantic_version", "v2")
     if source_version not in ("v2", "v3") or new.get("semantic_version") != "v3":
@@ -92,6 +101,24 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
             raise ValueError(f"new-MDP target config bytes changed: {name}")
         config_records[name] = {"source_path": source, "source_sha256": old["files"][source],
                                 "target_path": target, "target_sha256": new["files"][target]}
+    reward_record = config_records["reward_config.yaml"]
+    source_reward = yaml.safe_load(_version_bytes(
+        project_root, old, reward_record["source_path"], prefer_worktree=True))
+    source_return = reward_return_profile(source_reward, semantic_version=source_version)
+    if source_return != runner_return_profile(metadata["runner_config"], semantic_version=source_version):
+        raise ValueError("source runner discount/profile differs from its hash-bound historical reward config")
+    target_reward = load_semantic_reward_config(project_root / reward_record["target_path"])
+    target_return = reward_return_profile(target_reward.values, semantic_version="v3")
+    if source_return != target_return and (source_return["version"], target_return["version"]) != (
+            LEGACY_RETURN_PROFILE, RETURN_PROFILE):
+        raise ValueError("unsupported new-MDP return-profile transition")
+    return_transition = {
+        "source": source_return, "target": target_return,
+        "reward_configuration": dict(reward_record),
+        "reward_discount_changed": source_return["gamma"] != target_return["gamma"],
+        "gae_estimator_changed": source_return["lambda"] != target_return["lambda"],
+        "rollout_storage_inherited": False,
+    }
     # Identity learned normalizers do not imply identical fixed observation
     # preprocessing. Require the complete old/new group ordering and scales to
     # match; an incompatible encoder needs a separate reviewed transformation.
@@ -118,6 +145,7 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
             "new_mdp_origin_global_policy_decisions": origin,
             "source_runtime_contract": old, "target_runtime_contract": new,
             "configuration_transition": config_records,
+            "return_horizon_transition": return_transition,
             "runtime_changed_files": sorted(key for key in set(old["files"]) | set(new["files"])
                                              if old["files"].get(key) != new["files"].get(key)),
             "network": {"observation_dimension": 324, "raw_action_dimension": 12,

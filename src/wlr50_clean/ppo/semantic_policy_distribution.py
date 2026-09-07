@@ -80,6 +80,7 @@ def _same_json(left: Any, right: Any) -> bool:
 def policy_version_from_metadata(metadata: Mapping[str, Any]) -> str:
     """Validate the complete pinned runner config, including legacy metadata."""
     from .semantic_training import semantic_runner_config
+    from .semantic_return_profile import runner_return_profile
 
     if not isinstance(metadata, Mapping):
         raise ValueError("policy metadata must be a mapping")
@@ -110,8 +111,10 @@ def policy_version_from_metadata(metadata: Mapping[str, Any]) -> str:
     device = config.get("device")
     if device not in ("cpu", "cuda:0"):
         raise ValueError("checkpoint runner_config has an unsupported device")
+    horizon = runner_return_profile(config, semantic_version=semantic_version)
     expected = semantic_runner_config(seed=seed, device=device,
-                                     semantic_version=semantic_version, policy_version=version)
+                                     semantic_version=semantic_version, policy_version=version,
+                                     return_profile=horizon["version"])
     if not _same_json(config, expected):
         raise ValueError("checkpoint complete runner_config differs from the pinned semantic policy configuration")
     return version

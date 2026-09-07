@@ -46,6 +46,8 @@ def load_semantic_reward_config(path: Path | str = DEFAULT_REWARD_CONFIG) -> Sem
         raise ValueError("semantic task timing must be 120/15 Hz and 200 seconds")
     if not 0 < finite(v["gamma"],"gamma") < 1 or v["potential_terminal_value"] != 0:
         raise ValueError("potential requires gamma in (0,1) and zero terminal value")
+    from .semantic_return_profile import reward_return_profile
+    reward_return_profile(v)
     if v["time_limit_semantics"] != "finite_horizon_task_termination_no_bootstrap":
         raise ValueError("task deadline is terminal, not a rollout cutoff")
     for key in ("reference_imitation_reward", "phase_label_transition_bonus", "nonzero_residual_bonus"):

@@ -27,6 +27,10 @@ from .rl_library_wrapper import (
 from .semantic_policy_distribution import (
     LEGACY_POLICY, STATE_DEPENDENT_POLICY, configure_policy_distribution, policy_contract,
 )
+from .semantic_return_profile import (
+    RETURN_PROFILE, RUNNER_PROFILE_KEY, profile_parameters,
+    reward_return_profile, runner_return_profile,
+)
 
 SEMANTIC_TRAINING_SCHEMA = "wlr50_clean.semantic_training.v1"
 SEMANTIC_CHECKPOINT_SCHEMA = "wlr50_clean.semantic_checkpoint.v1"
@@ -99,15 +103,24 @@ def state_hash(value: Any) -> str:
 
 
 def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_version: str = "v2",
-                           policy_version: str = LEGACY_POLICY) -> dict[str, Any]:
+                           policy_version: str = LEGACY_POLICY,
+                           return_profile: str | None = None) -> dict[str, Any]:
     if semantic_version not in ("v2", "v3"):
         raise ValueError("unsupported semantic runtime version")
-    # Same installed PPO/network hyperparameters; independent semantic identity.
+    if return_profile is None:
+        from .semantic_reward import load_semantic_reward_config
+        path = Path(__file__).resolve().parents[3] / "configs" / f"ppo_semantic_{semantic_version}" / "reward_config.yaml"
+        horizon = reward_return_profile(load_semantic_reward_config(path).values,
+                                        semantic_version=semantic_version)
+    else:
+        # Explicit historical reconstruction for full source metadata validation;
+        # the production runner constructor always resolves the current config.
+        horizon = profile_parameters(return_profile, semantic_version=semantic_version)
     profile = SimpleNamespace(
         activation="elu", entropy_start=0.005, actor_hidden_dims=(256, 256),
         critic_hidden_dims=(256, 256), initial_action_std=0.15,
         rollout_length=ROLLOUT_LENGTH, update_epochs=5, num_minibatches=4,
-        clip_ratio=0.20, gamma=0.995, lam=0.95, value_loss_coefficient=1.0,
+        clip_ratio=0.20, gamma=horizon["gamma"], lam=horizon["lambda"], value_loss_coefficient=1.0,
         learning_rate=0.00003 if semantic_version == "v3" else 0.0003,
         max_grad_norm=1.0, schedule="adaptive", target_kl=0.01,
     )
@@ -119,7 +132,32 @@ def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_versio
     config["actor"]["obs_normalization"] = False
     config["critic"]["obs_normalization"] = False
     configure_policy_distribution(config, policy_version)
+    if horizon["version"] == RETURN_PROFILE:
+        config[RUNNER_PROFILE_KEY] = RETURN_PROFILE
     return config
+
+
+def assert_semantic_return_consistency(runner: Any, env: Any) -> dict[str, Any]:
+    """Fail before credit/update if live PPO and the actual PBRS source disagree.
+
+    Small algorithm-only CPU cores do not implement a physical reward calculator;
+    they receive runner-only validation, never a claimed PBRS equality proof.
+    """
+    horizon = runner_return_profile(runner._semantic_runner_config,
+                                     semantic_version=runner._semantic_version)
+    live = runner_return_profile(runner.cfg, semantic_version=runner._semantic_version)
+    if (live != horizon or isinstance(runner.alg.gamma, bool) or isinstance(runner.alg.lam, bool)
+            or runner.alg.gamma != horizon["gamma"] or runner.alg.lam != horizon["lambda"]):
+        raise RuntimeError("actual PPO gamma/lambda differs from the pinned return configuration")
+    calculator = getattr(getattr(env, "core", None), "reward_calculator", None)
+    if calculator is not None:
+        reward_horizon = reward_return_profile(calculator.config.values,
+                                               semantic_version=runner._semantic_version)
+        if reward_horizon != horizon or calculator.config.gamma != runner.alg.gamma:
+            raise RuntimeError("PPO and actual semantic PBRS return profiles must agree")
+    elif hasattr(env, "gamma") and env.gamma != runner.alg.gamma:
+        raise RuntimeError("vector reward and PPO gamma must agree")
+    return horizon
 
 
 def verified_native_effect(info: Mapping[str, Any], raw: tuple[float, ...]) -> int:
@@ -224,6 +262,7 @@ def construct_semantic_runner(env: Any, *, seed: int, device: str,
     runner._semantic_policy_version = policy_version
     runner._semantic_version = env.cfg.get("semantic_version", "v2")
     runner._semantic_runner_config = copy.deepcopy(config)
+    assert_semantic_return_consistency(runner, env)
     if initialize_actor:
         if policy_version == LEGACY_POLICY:
             initialize_zero_mean_actor(runner)
@@ -312,6 +351,7 @@ def _normalizers(runner: Any) -> dict[str, Any]:
 
 def save_semantic_checkpoint(runner: Any, checkpoint: Path, infos: Mapping[str, Any]) -> tuple[Path, Path]:
     """Publish immutable official state, then prove a real load restores it."""
+    assert_semantic_return_consistency(runner, runner.env)
     checkpoint.parent.mkdir(parents=True, exist_ok=True)
     if checkpoint.exists():
         raise FileExistsError(checkpoint)
@@ -365,6 +405,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
     from .semantic_policy_distribution import policy_version_from_metadata
     if policy_version_from_metadata(metadata) != runner._semantic_policy_version:
         raise RuntimeError("checkpoint policy distribution differs from the constructed actor")
+    source_return = runner_return_profile(metadata["runner_config"],
+                                         semantic_version=metadata.get("semantic_version", "v2"))
+    if source_return != assert_semantic_return_consistency(runner, runner.env):
+        raise RuntimeError("return-profile changes require explicit new-MDP warm start")
     expected_contract = dict(contract)
     from .semantic_migration import source_num_envs
     source_count = source_num_envs(metadata)
@@ -411,6 +455,7 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         if infos.get(key) != actual:
             raise RuntimeError(f"semantic resume failed actual {key} verification")
     restore_training_rng_state(infos["training_rng_state"], expected_seed=seed)
+    assert_semantic_return_consistency(runner, runner.env)
     if migration is not None:
         infos = {**infos, "resume_migration": dict(migration)}
     infos = {**infos, "resume_source_checkpoint": {
@@ -532,6 +577,7 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
     expected_config["algorithm"].pop("share_cnn_encoders")
     if runner.cfg != expected_config:
         raise RuntimeError("v3 runner must use the explicit continuation configuration")
+    assert_semantic_return_consistency(runner, runner.env)
     infos = dict(load_checkpoint_round_trip(runner, checkpoint))
     from .semantic_migration import checkpoint_metadata
     metadata = checkpoint_metadata(checkpoint)
@@ -550,6 +596,7 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
     runner.alg.optimizer = torch.optim.Adam(
         list(runner.alg.actor.parameters()) + list(runner.alg.critic.parameters()), lr=3e-5)
     runner.alg.learning_rate = 3e-5
+    assert_semantic_return_consistency(runner, runner.env)
     restore_training_rng_state(infos["training_rng_state"], expected_seed=seed)
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
     return {**infos, "semantic_version": "v3", "new_mdp_warm_start": dict(record),
@@ -676,6 +723,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     if checkpoint_interval_updates < 1:
         raise ValueError("checkpoint cadence must be positive")
     previous = dict(resume_infos or {})
+    assert_semantic_return_consistency(runner, env)
     sampling = jsonable(env.cfg.get("reset_sampling", "P01_only"))
     prefix_request = jsonable(env.cfg.get("prefix_request"))
     curriculum = semantic_curriculum_epoch(env.cfg)
@@ -707,6 +755,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                 for tick in range(int(runner.cfg["num_steps_per_env"])):
                     if semantic_curriculum_epoch(env.cfg) != curriculum:
                         raise RuntimeError("curriculum must remain fixed throughout this on-policy epoch")
+                    assert_semantic_return_consistency(runner, env)
                     raw = runner.alg.act(obs)
                     sampled_raw = raw.detach().clone()
                     old_log_prob = runner.alg.transition.actions_log_prob.detach().clone()
@@ -720,6 +769,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                     obs, rewards, dones, extras = env.step(raw.to(env.device))
                     if semantic_curriculum_epoch(env.cfg) != curriculum:
                         raise RuntimeError("curriculum changed during a physical step/reset of the on-policy epoch")
+                    assert_semantic_return_consistency(runner, env)
                     if any(not bool(torch.isfinite(value).all()) for value in (sampled_raw, old_log_prob, old_value, rewards)):
                         raise RuntimeError("non-finite on-policy transition")
                     if bool(extras["time_outs"].any()):

@@ -79,9 +79,26 @@ def _q(value, tolerance):
     return tolerance / (tolerance + abs(value))
 
 
-def _reward(a, b, *, terminal=None, success=False):
+@pytest.fixture(params=[pytest.param(.995, id="legacy_v3_gamma_0995"),
+                       pytest.param(.9985, id="current_v3_gamma_09985")])
+def matched_reward_config(request, tmp_path):
+    config = load_semantic_reward_config(CONFIG / "reward_config.yaml")
+    if request.param == .995:
+        # Keep the original v3 quality costs and PBRS weight while explicitly
+        # restoring its legacy, unmarked return profile (not the v2 costs).
+        values = deepcopy(dict(config.values))
+        values.pop("return_profile")
+        values["gamma"] = .995
+        config = load_semantic_reward_config(_path(tmp_path, values, "legacy_v3_reward.yaml"))
+    assert config.gamma == request.param
+    assert config.values["potential_weight"] == 5.
+    return config
+
+
+def _reward(a, b, *, terminal=None, success=False, config=None):
     before, after = _built(_frame(phi=a)), _built(_frame(1, phi=b))
-    calculator = SemanticRewardCalculator(load_semantic_reward_config(CONFIG / "reward_config.yaml"))
+    calculator = SemanticRewardCalculator(
+        config if config is not None else load_semantic_reward_config(CONFIG / "reward_config.yaml"))
     return calculator.evaluate(before, after, [_sample(before, after)],
                                termination_reason=terminal, task_success=success)
 
@@ -220,18 +237,20 @@ def test_phase_label_independence_finish_history_activation_and_preserved_coeffi
     assert sup.physical_potential(almost) == pytest.approx(.9985)
 
 
-def test_real_reward_uses_only_existing_single_pbrs_term_and_can_be_negative_while_improving():
+def test_real_reward_uses_only_existing_single_pbrs_term_and_can_be_negative_while_improving(matched_reward_config):
     ev, obs = _placed_entry()
     a = _case(ev, obs, commands=(.08,)*4)[2]
     b = _case(ev, obs, commands=(.079,)*4)[2]
     assert b > a
-    baseline, improving = _reward(a, a), _reward(a, b)
+    gamma = matched_reward_config.gamma
+    baseline = _reward(a, a, config=matched_reward_config)
+    improving = _reward(a, b, config=matched_reward_config)
     assert tuple(improving["families"]) == FAMILIES and len(FAMILIES) == 5
-    assert improving["potential_shaping"] == pytest.approx(5*(.995*b-a))
+    assert improving["potential_shaping"] == pytest.approx(5*(gamma*b-a))
     assert improving["potential_shaping"] < 0.
     assert improving["total"] < 0.
     assert improving["terminal_event"] == 0.
-    assert improving["total"]-baseline["total"] == pytest.approx(5*.995*(b-a))
+    assert improving["total"]-baseline["total"] == pytest.approx(5*gamma*(b-a))
     for family in FAMILIES[1:]:
         assert improving["families"][family] == baseline["families"][family]
 
@@ -248,14 +267,20 @@ def test_real_terminal_reward_absorbs_phi_and_never_bootstraps(reason, success):
     assert result["terminal_event"] == (40. if success else -40.)
 
 
-def test_hovering_is_not_a_bonus_and_terminal_discounted_shaping_telescopes():
+def test_hovering_is_not_a_bonus_and_terminal_discounted_shaping_telescopes(matched_reward_config):
     ev, obs = _placed_entry()
     phis = [_case(ev, obs, commands=(c,)*4)[2] for c in (.16, .08, .02)]
-    assert _reward(phis[0], phis[0])["potential_shaping"] == pytest.approx(-5*.005*phis[0])
-    terms = [_reward(phis[0], phis[1])["potential_shaping"],
-             _reward(phis[1], phis[2])["potential_shaping"],
-             _reward(phis[2], 1., terminal="SUCCESS", success=True)["potential_shaping"]]
-    assert sum(.995**i*term for i, term in enumerate(terms)) == pytest.approx(-5*phis[0])
+    gamma = matched_reward_config.gamma
+    hover = _reward(phis[0], phis[0], config=matched_reward_config)["potential_shaping"]
+    assert hover == pytest.approx(5*(gamma-1.)*phis[0])
+    assert hover < 0.
+    if gamma == .995:
+        assert hover == pytest.approx(-5*.005*phis[0])
+    terms = [_reward(phis[0], phis[1], config=matched_reward_config)["potential_shaping"],
+             _reward(phis[1], phis[2], config=matched_reward_config)["potential_shaping"],
+             _reward(phis[2], 1., terminal="SUCCESS", success=True,
+                     config=matched_reward_config)["potential_shaping"]]
+    assert sum(gamma**i*term for i, term in enumerate(terms)) == pytest.approx(-5*phis[0])
 
 
 @pytest.mark.parametrize("failure", ["speed", "command", "linear", "angular", "region", "support", "collision", "fall", "joint_limit"])
@@ -366,6 +391,7 @@ def test_loader_requires_explicit_known_mode_and_compatible_progress(tmp_path, c
         spec.pop("capture_retention_semantics", None)
         # Isolate this older stop-mode dependency error from newer progress modes.
         spec.pop("capture_approach_semantics", None)
+        spec.pop("workspace_potential_semantics", None)
     else:
         spec["final"].pop("stop_pose_semantics")
     with pytest.raises(ValueError, match="continuous stop"):
