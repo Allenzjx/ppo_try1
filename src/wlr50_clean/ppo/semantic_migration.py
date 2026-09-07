@@ -34,6 +34,58 @@ VIDEO_FILES = frozenset({
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 
+def experiment_namespace(semantic_version: str, experiment_id: str | None = None) -> str:
+    """Artifact routing only; the experiment keeps the versioned v3 configs."""
+    if semantic_version not in ("v2", "v3"):
+        raise ValueError("unsupported semantic runtime version")
+    if experiment_id is None:
+        return f"ppo_semantic_{semantic_version}"
+    if experiment_id != "transfer_roles_v1" or semantic_version != "v3":
+        raise ValueError("transfer_roles_v1 experiment requires semantic version v3")
+    return "ppo_transfer_roles_v1"
+
+
+def _transfer_observation_scale_transition(before: Mapping[str, Any], after: Mapping[str, Any],
+                                           binding: Mapping[str, Any]) -> dict[str, Any]:
+    """The sole reviewed encoder change; all other preprocessing stays exact."""
+    normalized_before = json.loads(json.dumps(before, allow_nan=False))
+    groups = ("previous_residual_full12", "previous_previous_residual_full12")
+    columns, source_scales, target_scales = [], [], []
+    offset = 0
+    for old_group, new_group in zip(normalized_before.get("feature_groups", ()), after.get("feature_groups", ())):
+        if old_group.get("name") in groups:
+            if (old_group.get("size") != 12 or new_group.get("name") != old_group["name"]
+                    or new_group.get("size") != 12
+                    or not isinstance(old_group.get("scale"), list) or len(old_group["scale"]) != 12
+                    or not isinstance(new_group.get("scale"), list) or len(new_group["scale"]) != 12):
+                raise ValueError("transfer-role observation scale group layout differs")
+            previous, target = old_group["scale"][3], new_group["scale"][3]
+            if type(previous) not in (int, float) or previous not in (4, 6) or type(target) not in (int, float) or target != 6:
+                raise ValueError("transfer-role observation scales allow only 4-to-6 or already-6")
+            columns.append(offset + 3)
+            source_scales.append(previous)
+            target_scales.append(target)
+            old_group["scale"][3] = target
+        offset += old_group.get("size", 0)
+    if columns != [210, 222] or source_scales not in ([4, 4], [6, 6]):
+        raise ValueError("transfer-role observation scale columns must be exactly 210 and 222")
+    for key in ("feature_groups", "clip", "maximum_task_duration_s", "fixed_chassis_to_body_wxyz",
+                "level_reference", "normalization"):
+        if normalized_before.get(key) != after.get(key):
+            raise ValueError(f"warm-start actor observation preprocessing changed outside reviewed scales: {key}")
+    return {
+        "schema": "wlr50_clean.transfer_roles_observation_scale_transition.v1",
+        "experiment_id": "transfer_roles_v1", "observation_dimension": 324,
+        "columns": columns, "feature_groups": list(groups), "channel_index": 3,
+        "source_scales": source_scales, "target_scales": target_scales,
+        "factors": [target / source for source, target in zip(source_scales, target_scales)],
+        "changed": source_scales != target_scales,
+        "source_schema_sha256": binding["source_sha256"], "target_schema_sha256": binding["target_sha256"],
+        "first_layer_compensation": "multiply_actor_and_critic_input_columns_by_target_over_source",
+        "equivalence_scope": "unclipped source inputs only; previously clipped history can expose new information",
+    }
+
+
 def digest(value: Any) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
 
@@ -80,6 +132,11 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
         raise ValueError("new-MDP warm start requires a v2 or v3 source checkpoint and a v3 target")
     if old.get("semantic_version", "v2") != source_version:
         raise ValueError("new-MDP source semantic version differs from its runtime contract")
+    source_experiment, target_experiment = old.get("experiment_id"), new.get("experiment_id")
+    source_namespace = experiment_namespace(source_version, source_experiment)
+    target_namespace = experiment_namespace("v3", target_experiment)
+    if target_experiment == "transfer_roles_v1" and source_version != "v3":
+        raise ValueError("transfer_roles_v1 warm start requires an existing v3 checkpoint")
     source_global = int(metadata.get("global_policy_decisions", 0))
     source_spent = dict(metadata.get("stage_requested_decisions", {}))
     origin = source_global
@@ -123,14 +180,19 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
         "rollout_storage_inherited": False,
     }
     # Identity learned normalizers do not imply identical fixed observation
-    # preprocessing. Require the complete old/new group ordering and scales to
-    # match; an incompatible encoder needs a separate reviewed transformation.
+    # preprocessing. Only the explicit transfer-role experiment has a reviewed
+    # two-column scale compensation; historical/default paths remain exact.
     before = json.loads(_version_text(project_root, old, config_records["observation_schema.json"]["source_path"], prefer_worktree=True))
     after = json.loads((project_root / "configs/ppo_semantic_v3/observation_schema.json").read_text(encoding="utf-8"))
-    for key in ("feature_groups", "clip", "maximum_task_duration_s", "fixed_chassis_to_body_wxyz",
-                "level_reference", "normalization"):
-        if before.get(key) != after.get(key):
-            raise ValueError(f"warm-start actor observation preprocessing changed: {key}")
+    observation_transition = None
+    if target_experiment == "transfer_roles_v1":
+        observation_transition = _transfer_observation_scale_transition(
+            before, after, config_records["observation_schema.json"])
+    else:
+        for key in ("feature_groups", "clip", "maximum_task_duration_s", "fixed_chassis_to_body_wxyz",
+                    "level_reference", "normalization"):
+            if before.get(key) != after.get(key):
+                raise ValueError(f"warm-start actor observation preprocessing changed: {key}")
     if sum(group["size"] for group in before.get("feature_groups", ())) != 324:
         raise ValueError("warm start requires the existing 324-observation network")
     # Verify the comparison's historical source before AppLauncher/reset; defer
@@ -207,6 +269,22 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
         result["policy_kernel_transition"] = kernel_transition
         result["action_output_semantics"] = "same learned tensors; changed history-conditioned Gaussian and fixed mean; unchanged physical projection"
         result["optimizer"]["reason"] = "explicit conditional-policy boundary; source moments verified then reset, learned weights preserved"
+    if source_experiment is not None or target_experiment is not None:
+        result["experiment_transition"] = {
+            "source_experiment_id": source_experiment, "target_experiment_id": target_experiment,
+            "source_artifact_namespace": source_namespace, "target_artifact_namespace": target_namespace,
+            "target_configuration_namespace": "ppo_semantic_v3", "v3_budgets_reset": False,
+        }
+    if observation_transition is not None:
+        result["observation_scale_transition"] = observation_transition
+        result["network"].update({
+            "actor": "preserve_source_then_compensate_only_reviewed_first_layer_input_columns",
+            "critic": "preserve_source_then_compensate_only_reviewed_first_layer_input_columns",
+            "normalizers": "identity_RSL_state_preserved; explicit_two_column_fixed_scale_transition",
+        })
+        result["action_output_semantics"] = (
+            "hash-bound source/target physical profiles; compensated input scaling preserves unclipped-domain "
+            "network functions, not previously clipped history or subsequent physical trajectories")
     return result
 
 

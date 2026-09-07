@@ -21,7 +21,7 @@ from .semantic_training import (
     load_semantic_checkpoint, save_semantic_checkpoint, seed_training_rngs,
     semantic_runner_config, semantic_curriculum_epoch, sha256_file, train_semantic, verified_native_effect, write_json,
 )
-from .semantic_migration import topology, stage_partition
+from .semantic_migration import experiment_namespace, topology, stage_partition
 from .semantic_policy_distribution import (
     LEGACY_POLICY, STATE_DEPENDENT_POLICY, HISTORY_POLICY, policy_contract,
     policy_version_from_metadata, build_policy_distribution_migration,
@@ -35,12 +35,18 @@ LOCKED_DISTRIBUTIONS = {"torch": "2.7.0+cu128", "rsl-rl-lib": "5.0.1",
                         "isaacsim": "5.1.0.0", "isaaclab": "0.54.3", "tensordict": "0.12.2"}
 
 
-def version_paths(version: str) -> tuple[Path, Path, Path]:
+def version_paths(version: str, *, experiment_id: str | None = None) -> tuple[Path, Path, Path]:
+    namespace = experiment_namespace(version, experiment_id)
     if version == "v2":
         return RUNS_ROOT, OUTPUT_ROOT, PROJECT_ROOT / "configs/ppo_semantic_v2"
-    if version != "v3":
-        raise ValueError("unsupported semantic runtime version")
-    return tuple(PROJECT_ROOT / category / "ppo_semantic_v3" for category in ("runs", "outputs", "configs"))
+    return (PROJECT_ROOT / "runs" / namespace, PROJECT_ROOT / "outputs" / namespace,
+            PROJECT_ROOT / "configs/ppo_semantic_v3")
+
+
+def _request_paths(args: argparse.Namespace) -> tuple[Path, Path, Path]:
+    experiment_id = getattr(args, "experiment_id", None)
+    return (version_paths(args.semantic_version) if experiment_id is None else
+            version_paths(args.semantic_version, experiment_id=experiment_id))
 
 
 def local_versions() -> dict[str, Any]:
@@ -59,7 +65,8 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--seed", type=int, default=1001)
     result.add_argument("--num-envs", type=int, choices=(1, 8), default=1)
     result.add_argument("--semantic-version", choices=("v2", "v3"), default="v2")
-    result.add_argument("--from-phase", choices=("P01", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13"), default="P01")
+    result.add_argument("--experiment-id", choices=("transfer_roles_v1",))
+    result.add_argument("--from-phase", choices=("P01", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13"), default="P01")
     result.add_argument("--teacher-offset-decisions", type=int, default=0)
     result.add_argument("--prefix-source", choices=("frozen_fsm", "checkpoint_policy"), default="frozen_fsm")
     result.add_argument("--new-mdp-warm-start", action="store_true")
@@ -78,7 +85,9 @@ def parser() -> argparse.ArgumentParser:
     return result
 
 
-def runtime_contract(*, expected_head: str, semantic_version: str = "v2") -> dict[str, Any]:
+def runtime_contract(*, expected_head: str, semantic_version: str = "v2",
+                     experiment_id: str | None = None) -> dict[str, Any]:
+    experiment_namespace(semantic_version, experiment_id)
     def git(*args: str) -> str:
         return subprocess.run(["git", "-C", str(PROJECT_ROOT), *args], check=True,
                               capture_output=True, text=True).stdout.strip()
@@ -111,6 +120,8 @@ def runtime_contract(*, expected_head: str, semantic_version: str = "v2") -> dic
         contract.update(semantic_version="v3", selected_configuration={
             path.name: {"path": str(path.relative_to(PROJECT_ROOT)).replace("\\", "/"),
                         "sha256": sha256_file(path)} for path in sorted(config_root.iterdir()) if path.is_file()})
+    if experiment_id is not None:
+        contract["experiment_id"] = experiment_id
     return contract
 
 
@@ -133,7 +144,7 @@ def _resolved_checkpoint(path: Path, *, output_root: Path | None = None) -> Path
 
 def validate_request(args: argparse.Namespace) -> None:
     _validate_target_policy_request(args)
-    runs_root, output_root, _ = version_paths(args.semantic_version)
+    runs_root, output_root, _ = _request_paths(args)
     directory = args.run_dir.resolve()
     if not directory.is_relative_to(runs_root.resolve()) or directory == runs_root.resolve():
         raise ValueError(f"semantic run directory must be strictly inside {runs_root}")
@@ -188,7 +199,11 @@ def validate_request(args: argparse.Namespace) -> None:
     if args.checkpoint is not None:
         source_root = output_root
         if args.new_mdp_warm_start:
-            if args.checkpoint.resolve(strict=True).is_relative_to((OUTPUT_ROOT / "checkpoints").resolve()):
+            if getattr(args, "experiment_id", None) is not None:
+                prior_v3_root = version_paths("v3")[1]
+                if args.checkpoint.resolve(strict=True).is_relative_to((prior_v3_root / "checkpoints").resolve()):
+                    source_root = prior_v3_root
+            elif args.checkpoint.resolve(strict=True).is_relative_to((OUTPUT_ROOT / "checkpoints").resolve()):
                 source_root = OUTPUT_ROOT
         args.checkpoint = _resolved_checkpoint(args.checkpoint, output_root=source_root)
         if args.command == "train":
@@ -264,7 +279,7 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
             raise ValueError("policy migration must preserve the recorded training RNG seed")
         args._policy_migration_record = build_policy_distribution_migration(
             args.checkpoint, contract, project_root=PROJECT_ROOT)
-        initial = version_paths("v3")[1] / "checkpoints/history" / policy_migration_checkpoint_name(args._policy_migration_record)
+        initial = _request_paths(args)[1] / "checkpoints/history" / policy_migration_checkpoint_name(args._policy_migration_record)
         if initial.exists() or initial.with_name(initial.stem + "_manifest.json").exists():
             raise ValueError("this policy migration initial checkpoint already exists; resume its published weights")
         args._policy_version = STATE_DEPENDENT_POLICY
@@ -279,7 +294,7 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
             args._policy_version = args._warm_start_record["policy_kernel_transition"]["target_policy_version"]
         if metadata["seed"] != args.seed:
             raise ValueError("warm start must preserve the recorded training RNG seed")
-        initial = version_paths("v3")[1] / "checkpoints/history" / v3_warm_start_checkpoint_name(args._warm_start_record)
+        initial = _request_paths(args)[1] / "checkpoints/history" / v3_warm_start_checkpoint_name(args._warm_start_record)
         if initial.exists() or initial.with_name(initial.stem + "_manifest.json").exists():
             raise ValueError("this source/target new-MDP initial checkpoint already exists; resume its published weights")
         return
@@ -677,7 +692,7 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
         from .semantic_backend import SemanticIsaacBackend
         from .semantic_env import SemanticEpisodeEnv
         seed_training_rngs(args.seed)
-        _, output_root, config_root = version_paths(args.semantic_version)
+        _, output_root, config_root = _request_paths(args)
         backend_options = {"audit_actuator_target_effect": True}
         core_options = {"collect_trace": False}
         if args.semantic_version == "v3":
@@ -807,6 +822,8 @@ def main(argv: list[str] | None = None) -> int:
     contract_options = {"expected_head": args.expected_head}
     if args.semantic_version == "v3":
         contract_options["semantic_version"] = "v3"
+    if args.experiment_id is not None:
+        contract_options["experiment_id"] = args.experiment_id
     contract = runtime_contract(**contract_options)
     _preflight_checkpoint(args, contract)
     from .semantic_migration import source_num_envs, verified_vector_smoke

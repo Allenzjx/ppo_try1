@@ -32,6 +32,9 @@ WEIGHT = .85 / 4 * .2
 
 def _spec(enabled=True):
     spec = load_task_spec(SPEC)
+    # Isolate the earlier capture-factor revision from the later replacement
+    # of its old low-load preparation term (covered by transfer-role tests).
+    spec.pop('transfer_roles', None)
     if enabled:
         spec[MODE_KEY] = CAPTURE_APPROACH_MODE
     else:
@@ -312,14 +315,15 @@ def test_real_reward_single_pbrs_term_hover_and_closed_surface_cycle_cannot_farm
     a, b, c = phis
     assert b > a and c == a
     static, approach = _reward(a, a), _reward(a, b)
-    assert static["potential_shaping"] == pytest.approx(5*(.995*a-a))
+    gamma = load_semantic_reward_config(ROOT/'configs/ppo_semantic_v3/reward_config.yaml').gamma
+    assert static["potential_shaping"] == pytest.approx(5*(gamma*a-a))
     assert static["potential_shaping"] < 0.
-    assert approach["potential_shaping"] == pytest.approx(5*(.995*b-a))
-    assert approach["total"]-static["total"] == pytest.approx(5*.995*(b-a))
+    assert approach["potential_shaping"] == pytest.approx(5*(gamma*b-a))
+    assert approach["total"]-static["total"] == pytest.approx(5*gamma*(b-a))
     assert tuple(approach["families"]) == FAMILIES
     for family in FAMILIES[1:]:
         assert approach["families"][family] == static["families"][family]
-    assert approach["potential_shaping"]+.995*_reward(b, c)["potential_shaping"] <= 0.
+    assert approach["potential_shaping"]+gamma*_reward(b, c)["potential_shaping"] <= 0.
     failure = _reward(b, b, terminal="BODY_COLLISION")
     assert failure["potential_after"] == 0.
     assert failure["potential_shaping"] == pytest.approx(-5*b)

@@ -17,6 +17,7 @@ from .semantic_observation import CONFIG_ROOT, SemanticObservationFrame, finite,
 FAMILIES = ("task_progress", "body_stability", "contact_motion_quality",
             "control_smoothness", "control_regularization")
 DEFAULT_REWARD_CONFIG = CONFIG_ROOT / "reward_config.yaml"
+ROLE_TRANSFER_VERSION = "diagonal_transfer_roles_v1"
 
 
 @dataclass(frozen=True)
@@ -115,16 +116,30 @@ class SemanticRewardCalculator:
             dt = finite(sample.dt_s,"reward dt")
             if not 0 < dt <= 1/120+1e-9:
                 raise ValueError("reward samples must be actual 120 Hz ticks")
+            role_motion_weighting = sample.current.task.get("transfer_roles_version") == ROLE_TRANSFER_VERSION
+            if role_motion_weighting:
+                role_fraction = finite(sample.current.task.get("physical_transfer_fraction"), "role transfer fraction")
+                if not 0. <= role_fraction <= 1.:
+                    raise ValueError("role transfer fraction must be in [0,1]")
             total_dt += dt
             self._clock_s += dt
             metrics = sample.current.metrics
             transfer = sample.current.task["substage"] == "TRANSFER"
             transfer_fraction = (max(0.,min(1.,float(sample.current.task.get("physical_transfer_fraction",float(transfer)))))
                                  if v.get("physical_transfer_weighting") else float(transfer))
+            if role_motion_weighting:
+                transfer_fraction = role_fraction
             attitude = _square_cost(metrics["rpy"][:2], (v["attitude_scale_rad"],)*2)
             rates = _square_cost(metrics["euler_roll_pitch_rate"], (v["euler_rate_scale_rad_s"],)*2)
             acceleration = _square_cost(metrics["body_angular_acceleration"], (v["angular_acceleration_scale_rad_s2"],)*3)
-            attitude *= 1.-(1.-v["transfer_attitude_weight"])*transfer_fraction
+            motion_weight = 1.-(1.-v["transfer_attitude_weight"])*transfer_fraction
+            attitude *= motion_weight
+            if role_motion_weighting:
+                # The versioned measured role window, not AIR/load or a phase
+                # label, permits necessary transfer dynamics. Capture/settle
+                # restores all three costs continuously as activity returns to 0.
+                rates *= motion_weight
+                acceleration *= motion_weight
             body = (attitude+rates+acceleration)/3
             contact_terms = []
             for index,(before,after) in enumerate(zip(sample.previous.metrics["wheels"],metrics["wheels"],strict=True)):

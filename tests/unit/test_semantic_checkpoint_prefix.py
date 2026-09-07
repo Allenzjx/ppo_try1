@@ -304,7 +304,7 @@ def test_existing_tick_observer_receives_prefix_and_credited_ticks():
     assert env.core.prefix_ticks==env.core.credited_ticks==8
 
 
-@pytest.mark.parametrize('kwargs', [dict(target_phase='P05'),dict(target_phase='P14'),
+@pytest.mark.parametrize('kwargs', [dict(target_phase='P02'),dict(target_phase='P14'),
     dict(teacher_offset_decisions=True),dict(teacher_offset_decisions=-1),
     dict(maximum_prefix_decisions=0),dict(maximum_prefix_decisions=True),
     dict(maximum_prefix_decisions=3001),dict(maximum_prefix_decisions=2,teacher_offset_decisions=2)])

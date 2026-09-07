@@ -57,7 +57,7 @@ def profiles(tmp_path_factory):
     current = yaml.safe_load(PROFILE.read_text(encoding="utf-8"))
     original = copy.deepcopy(current)
     for phase in PHASES:
-        expected = [.3] * 4 if phase < "P06" else [1.2, 1.2, .6, .6]
+        expected = [.6] * 4 if phase < "P06" else [1.2, 1.2, .6, .6]
         assert current["residual"]["phase_caps_full12"][phase][8:] == expected
         if phase >= "P06":
             original["residual"]["phase_caps_full12"][phase][8:10] = [.6, .6]

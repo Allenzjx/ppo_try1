@@ -24,7 +24,7 @@ from .semantic_supervisor import SemanticControllerAdapter, TaskStageSupervisor
 from .semantic_training import SemanticRslAdapter, jsonable, verified_native_effect
 
 SAMPLING = "natural_P01_A_teacher_prefix_then_semantic_suffix_N1.v2"
-PREFIX_TARGETS = tuple(f"P{index:02}" for index in range(6, 14))
+PREFIX_TARGETS = tuple(f"P{index:02}" for index in range(3, 14))
 
 
 def sampling_label(request):
@@ -49,7 +49,7 @@ class PrefixRequest:
 
     def __post_init__(self):
         if self.target_phase not in PREFIX_TARGETS:
-            raise ValueError("prefix target must include a supported P06-P13 preparation/suffix stage")
+            raise ValueError("prefix target must include a supported P03-P13 preparation/suffix stage")
         for value in (self.maximum_prefix_decisions,self.maximum_takeover_decisions):
             if type(value) is not int or not 1 <= value <= 3000:
                 raise ValueError("prefix limits must be bounded positive decision counts")

@@ -33,7 +33,7 @@ class CheckpointPolicyPrefixRequest:
 
     def __post_init__(self):
         if self.target_phase not in PREFIX_TARGETS:
-            raise ValueError("checkpoint prefix target must be P06-P13")
+            raise ValueError("checkpoint prefix target must be P03-P13")
         if type(self.maximum_prefix_decisions) is not int or not 1 <= self.maximum_prefix_decisions <= 3000:
             raise ValueError("maximum prefix decisions must be an integer in [1,3000]")
         if (type(self.teacher_offset_decisions) is not int

@@ -1,9 +1,12 @@
 schema: wlr50_clean.semantic_reward.v2
-revision: continuous_contact_applied_only_v3
+revision: role_transfer_body_motion_applied_only_v1
 return_profile: v3_gamma_09985_lambda_099_v1
 contact_loss_semantics: recent_touchdown_without_active_command_change
 smoothness_components: applied_only
 physical_transfer_weighting: true
+# Only diagonal_transfer_roles_v1 tasks extend the existing attitude blend to
+# Euler rates and angular acceleration. Reuse transfer_attitude_weight; no new
+# family, coefficient, phase-label switch, or AIR/contact penalty is introduced.
 rebound_window_s: 0.25
 rebound_command_motion_deg: 0.1
 gamma: 0.9985

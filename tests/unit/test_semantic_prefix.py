@@ -133,7 +133,7 @@ def test_controller_rejects_new_observation_without_dispatch():
     with pytest.raises(ValueError,match="dispatch receipt"):c.step(observation(1),sim_time_s=1/120)
 
 
-@pytest.mark.parametrize("target",["P01","P05","SUCCESS"])
+@pytest.mark.parametrize("target",["P01","P02","SUCCESS"])
 def test_initial_target_scope_is_explicit(target):
     with pytest.raises(ValueError):PrefixRequest(target)
 

@@ -3,7 +3,21 @@ rear_leg_order: RR_FIRST
 physics_hz: 120.0
 decision_hz: 15.0
 episode_maximum_duration_s: 200.0
-revision: continuous_whole_body_v3_dense_workspace_potential
+revision: diagonal_transfer_roles_v1
+transfer_roles:
+  mode: diagonal_transfer_roles_v1
+  window_s: 0.5
+  minimum_evidence_s: 0.06666666666666667
+  motion_scale_m: 0.001
+  velocity_scale_m_s: 0.005
+  load_change_scale: 0.02
+  # Preferences and measured workspace proxies; not fixed support templates,
+  # joint targets, static balance certificates, or action-enabling conditions.
+  mapping:
+    FR: {diagonal_receiving_side: RL, preferred_bridge_contacts: [FL, RR]}
+    FL: {diagonal_receiving_side: RR, preferred_bridge_contacts: [FR, RL]}
+    RR: {diagonal_receiving_side: FL, preferred_bridge_contacts: [FR, RL]}
+    RL: {diagonal_receiving_side: FR, preferred_bridge_contacts: [FL, RR]}
 potential_definition: global_physical_progress_v3
 # Existing workspace credit only; later lift/carry/capture remain ordered.
 preparation_credit_semantics: current_workspace_before_predecessor_placement
@@ -33,6 +47,8 @@ history:
   near_front_min_m: -0.40
   near_front_max_m: 0.15
 geometry:
+  # Legacy key spelling retained for existing nominal retirement. These bounds
+  # describe edge proximity ONLY; receiver workspace is separately measured.
   workspace_min_m: -0.22
   workspace_max_m: 0.06
   approach_min_m: -0.005
@@ -67,6 +83,7 @@ final:
   maximum_body_angular_speed_rad_s: 0.30
   stable_duration_s: 0.5
 nominal:
+  p05_pending_capture: current_FL_capture_wheel_continuation_v1
   continuous_channel_inheritance: true
   # Retire only P06's rolling contribution inside the existing workspace margin.
   p06_rolling_retirement: measured_workspace_interior_peak
@@ -93,8 +110,8 @@ stages:
     <<: *stage_defaults
     purpose: Prepare FR support and load transfer
     valid_start_conditions: [physical_valid]
-    goal_features: [load_ready_FR]
-    completion_predicates: [load_ready_FR]
+    goal_features: [transfer_ready_FR]
+    completion_predicates: [transfer_ready_FR]
     active_leg: FR
     maximum_task_duration: 30.0
     next_phase: P02
@@ -118,16 +135,16 @@ stages:
     next_phase: P04
   P04:
     <<: *stage_defaults
-    purpose: Create FL workspace and usable support
+    purpose: Reconfigure current FR support toward RR side for first FL swing
     valid_start_conditions: [physical_valid, placed_FR]
-    goal_features: [workspace_FL, support_FL]
-    completion_predicates: [workspace_FL, support_FL]
+    goal_features: [edge_proximity_FL, role_prepared_FL]
+    completion_predicates: [edge_proximity_FL, role_prepared_FL]
     active_leg: FL
     maximum_task_duration: 20.0
     next_phase: P05
   P05:
     <<: *stage_defaults
-    purpose: Actively lift cross and place FL
+    purpose: First FL swing and continuous pending capture including wheel cooperation
     valid_start_conditions: [physical_valid, placed_FR]
     goal_features: [placed_FL]
     completion_predicates: [placed_FL]
@@ -136,7 +153,7 @@ stages:
     next_phase: P06
   P06:
     <<: *stage_defaults
-    purpose: Advance front pair to rear-leg operating region
+    purpose: Rear approach overlapping FL receiving space and bridge shaping
     valid_start_conditions: [physical_valid, placed_FR, placed_FL]
     goal_features: [rear_approach]
     completion_predicates: [rear_approach]
@@ -145,10 +162,10 @@ stages:
     next_phase: P07
   P07:
     <<: *stage_defaults
-    purpose: Establish a feasible rear-task geometry
+    purpose: Create FL receiving space and measured RR preparation with live bridges
     valid_start_conditions: [physical_valid, placed_FR, placed_FL]
-    goal_features: [workspace_RR, workspace_RL, support_RR]
-    completion_predicates: [workspace_RR, workspace_RL, support_RR]
+    goal_features: [edge_proximity_RR, edge_proximity_RL, role_prepared_RR]
+    completion_predicates: [edge_proximity_RR, edge_proximity_RL, role_prepared_RR]
     active_leg: RR
     maximum_task_duration: 15.0
     next_phase: P08
@@ -156,8 +173,8 @@ stages:
     <<: *stage_defaults
     purpose: Transfer load to permit RR lift
     valid_start_conditions: [physical_valid, placed_FR, placed_FL]
-    goal_features: [workspace_RR, load_ready_RR]
-    completion_predicates: [workspace_RR, load_ready_RR]
+    goal_features: [edge_proximity_RR, transfer_ready_RR]
+    completion_predicates: [edge_proximity_RR, transfer_ready_RR]
     active_leg: RR
     maximum_task_duration: 20.0
     next_phase: P09
@@ -172,10 +189,10 @@ stages:
     next_phase: P10
   P10:
     <<: *stage_defaults
-    purpose: Create RL workspace after actual RR placement
+    purpose: Check current RR support and open FR receiving space for RL
     valid_start_conditions: [physical_valid, placed_FR, placed_FL, placed_RR]
-    goal_features: [workspace_RL, support_RL]
-    completion_predicates: [workspace_RL, support_RL]
+    goal_features: [edge_proximity_RL, role_prepared_RL]
+    completion_predicates: [edge_proximity_RL, role_prepared_RL]
     active_leg: RL
     maximum_task_duration: 20.0
     next_phase: P11
@@ -183,8 +200,8 @@ stages:
     <<: *stage_defaults
     purpose: Transfer load to permit RL lift
     valid_start_conditions: [physical_valid, placed_FR, placed_FL, placed_RR]
-    goal_features: [workspace_RL, load_ready_RL]
-    completion_predicates: [workspace_RL, load_ready_RL]
+    goal_features: [edge_proximity_RL, transfer_ready_RL]
+    completion_predicates: [edge_proximity_RL, transfer_ready_RL]
     active_leg: RL
     maximum_task_duration: 20.0
     next_phase: P12

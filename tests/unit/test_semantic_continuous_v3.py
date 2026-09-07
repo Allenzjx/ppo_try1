@@ -21,6 +21,8 @@ CFG=ROOT/'configs/ppo_semantic_v3'
 def live(tick=0):
     obs=observation(tick)
     for joint in obs['joints'].values(): joint['command_deg']=0.
+    obs['center_of_mass']={'valid':True,'position_w_m':[.3,0.,.10],
+        'velocity_w_m_s':[0.,0.,0.], 'total_mass_kg':3., 'source':'synthetic measured full-body sum'}
     return obs
 
 
@@ -233,7 +235,10 @@ def test_transfer_eligibility_uses_actual_placement_history_not_phase(placed,tar
     supervisor=TaskStageSupervisor(CFG/'stage_task_spec.yaml',evaluator=ev,initial_stage_id='P01')
     snap=supervisor.observe_and_update(obs)
     assert all(snap['history']['placed'][leg] for leg in placed)
-    assert snap['physical_transfer_fraction']==(1. if target is not None else 0.)
+    # The roles revision preserves predecessor eligibility but replaces the
+    # old unconditional low-load coefficient with continued physical response.
+    expected = snap['transfer_roles'][target]['motion_fraction'] if target is not None else 0.
+    assert snap['physical_transfer_fraction']==expected
     assert snap['termination_reason'] is None
 
 

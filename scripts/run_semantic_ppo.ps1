@@ -8,7 +8,8 @@ param(
     [int]$Seed = 1001,
     [ValidateSet(1,8)][int]$NumEnvs = 1,
     [ValidateSet('v2','v3')][string]$SemanticVersion = 'v2',
-    [ValidateSet('P01','P06','P07','P08','P09','P10','P11','P12','P13')][string]$FromPhase = 'P01',
+    [ValidateSet('transfer_roles_v1')][string]$ExperimentId,
+    [ValidateSet('P01','P03','P04','P05','P06','P07','P08','P09','P10','P11','P12','P13')][string]$FromPhase = 'P01',
     [ValidateRange(0,1799)][int]$TeacherOffsetDecisions = 0,
     [ValidateSet('frozen_fsm','checkpoint_policy')][string]$PrefixSource = 'frozen_fsm',
     [switch]$NewMdpWarmStart,
@@ -23,6 +24,9 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if (-not [string]::IsNullOrWhiteSpace($ExperimentId) -and $SemanticVersion -cne 'v3') {
+    throw 'ExperimentId transfer_roles_v1 requires SemanticVersion v3'
+}
 if (-not [string]::IsNullOrWhiteSpace($TargetPolicyVersion) -and (
         -not $NewMdpWarmStart -or $Command -cne 'train' -or $SemanticVersion -cne 'v3' -or $NumEnvs -ne 1 -or
         [string]::IsNullOrWhiteSpace($Checkpoint) -or $PolicyDistributionMigration -or
@@ -49,8 +53,9 @@ $kind = switch ($Command) { 'train' { 'train' }; 'smoke' { 'interface_smoke' }; 
 } }
 $runId = [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfffffffZ') + '_g' + $ExpectedHead.Substring(0,12) + '_' + [Guid]::NewGuid().ToString('N')
 if ($SemanticVersion -eq 'v3' -and $kind -eq 'interface_smoke') { $kind = 'interface_checks' }
-$runDir = Join-Path $project ("runs\ppo_semantic_$SemanticVersion\$kind\$runId")
-$logDir = Join-Path $project ("runs\ppo_semantic_$SemanticVersion\$kind\${runId}_launcher")
+$artifactNamespace = if ([string]::IsNullOrWhiteSpace($ExperimentId)) { "ppo_semantic_$SemanticVersion" } else { "ppo_$ExperimentId" }
+$runDir = Join-Path $project ("runs\$artifactNamespace\$kind\$runId")
+$logDir = Join-Path $project ("runs\$artifactNamespace\$kind\${runId}_launcher")
 [void](New-Item -ItemType Directory -Path $logDir)
 $lockPath = Join-Path $project 'runs\ppo_semantic_v2\.single_process.lock'
 [void][IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($lockPath))
@@ -70,6 +75,7 @@ try {
         '--prefix-source',$PrefixSource,
         '--checkpoint-interval-updates',[string]$CheckpointIntervalUpdates,'--headless')
     if ($NewMdpWarmStart) { $arguments += '--new-mdp-warm-start' }
+    if (-not [string]::IsNullOrWhiteSpace($ExperimentId)) { $arguments += @('--experiment-id',$ExperimentId) }
     if (-not [string]::IsNullOrWhiteSpace($TargetPolicyVersion)) { $arguments += @('--target-policy-version',$TargetPolicyVersion) }
     if ($PolicyDistributionMigration) { $arguments += '--policy-distribution-migration' }
     if ($PSBoundParameters.ContainsKey('Decisions')) { $arguments += @('--decisions',[string]$Decisions) }

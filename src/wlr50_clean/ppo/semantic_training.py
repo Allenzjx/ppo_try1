@@ -557,6 +557,67 @@ def _load_policy_distribution_migration(runner: Any, checkpoint: Path, *,
             "policy_distribution_migration_evidence": evidence}
 
 
+def _compensate_observation_input_scales(runner: Any, transition: Mapping[str, Any],
+                                        source_infos: Mapping[str, Any]) -> dict[str, Any]:
+    """Compensate only reviewed fixed encoder columns after verified source load.
+
+    For un-clipped source history, x_new=x_old/source_to_target_scale. Multiplying
+    the two input-weight columns restores the old preactivation, up to floating
+    point roundoff. Previously clipped history exposes new information; neither
+    identical output over that expanded domain nor identical weights is claimed.
+    """
+    import torch
+    source_scales = transition.get("source_scales")
+    changed = source_scales == [4, 4]
+    factors = [1.5, 1.5] if changed else [1.0, 1.0]
+    if (transition.get("schema") != "wlr50_clean.transfer_roles_observation_scale_transition.v1"
+            or transition.get("experiment_id") != "transfer_roles_v1"
+            or transition.get("observation_dimension") != 324
+            or transition.get("columns") != [210, 222]
+            or transition.get("feature_groups") != ["previous_residual_full12", "previous_previous_residual_full12"]
+            or transition.get("channel_index") != 3
+            or source_scales not in ([4, 4], [6, 6])
+            or transition.get("target_scales") != [6, 6]
+            or transition.get("factors") != factors or transition.get("changed") is not changed
+            or transition.get("first_layer_compensation") != "multiply_actor_and_critic_input_columns_by_target_over_source"):
+        raise RuntimeError("unrecognized observation input-scale compensation")
+    normalizer_hash = state_hash(_normalizers(runner))
+    replacements = []
+    for role in ("actor", "critic"):
+        model = getattr(runner.alg, role)
+        if (model.obs_normalization or any(_normalizers(runner).values())
+                or normalizer_hash != source_infos["normalizer_state_sha256"]
+                or parameter_hash(model) != source_infos[f"{role}_parameter_sha256"]):
+            raise RuntimeError("input-scale compensation requires verified source weights and identity normalizers")
+        first = next(((name, layer) for name, layer in model.mlp.named_modules()
+                      if isinstance(layer, torch.nn.Linear)), None)
+        if first is None or first[0] != "0" or first[1].in_features != 324:
+            raise RuntimeError("input-scale compensation requires the existing first 324-input Linear")
+        weight = first[1].weight.detach().clone()
+        for column, factor in zip(transition["columns"], factors):
+            weight[:, column] *= factor
+        if not bool(torch.isfinite(weight).all()):
+            raise RuntimeError("input-scale compensation produced nonfinite weights")
+        replacements.append((first[1], weight))
+    # Validate both models before changing either. There are no new parameters,
+    # buffers, normalizer updates, observations, cache calls or random samples.
+    if changed:
+        with torch.no_grad():
+            for layer, weight in replacements:
+                layer.weight.copy_(weight)
+    return {"schema": "wlr50_clean.observation_scale_compensation_evidence.v1",
+            "transition": copy.deepcopy(dict(transition)),
+            "source_actor_parameter_sha256": source_infos["actor_parameter_sha256"],
+            "source_critic_parameter_sha256": source_infos["critic_parameter_sha256"],
+            "compensated_actor_parameter_sha256": parameter_hash(runner.alg.actor),
+            "compensated_critic_parameter_sha256": parameter_hash(runner.alg.critic),
+            "normalizer_state_sha256": normalizer_hash,
+            "first_layer_parameter": "mlp.0.weight", "compensation_applied": changed,
+            "all_other_parameters_and_buffers_preserved": True,
+            "previous_raw_history_195_207_and_policy_kernel_unchanged": True,
+            "equivalence_scope": "same physical features with both source histories unclipped (abs <= 80); floating-point tolerance, not bitwise outputs; no expanded-domain or changed-task-feature equivalence claim"}
+
+
 def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str, Any],
                         seed: int, record: Mapping[str, Any]) -> dict[str, Any]:
     """Reuse learned networks, explicitly discard old optimizer and rollout state."""
@@ -603,6 +664,12 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
             raise RuntimeError(f"v3 warm start failed source {key} verification")
     if any(_normalizers(runner).values()):
         raise RuntimeError("v3 continuation requires verified identity RSL normalizers")
+    scale_transition = verified.get("observation_scale_transition")
+    if scale_transition is not None:
+        scale_evidence = _compensate_observation_input_scales(runner, scale_transition, infos)
+        infos = {**infos, "observation_scale_compensation_evidence": scale_evidence,
+                 "actor_parameter_sha256": scale_evidence["compensated_actor_parameter_sha256"],
+                 "critic_parameter_sha256": scale_evidence["compensated_critic_parameter_sha256"]}
     # The temporary official restore above proves the saved state before this
     # deliberate new-MDP reset. No old Adam moment is used by any optimizer step.
     runner.alg.optimizer = torch.optim.Adam(
@@ -905,7 +972,8 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                     infos["execution_topology"] = continuation_topology(sampling, prefix_request)
                 for key in ("new_mdp_warm_start", "new_mdp_origin_global_policy_decisions", "source_stage_requested_decisions",
                             "new_mdp_initial_action_comparison", "policy_distribution_migration",
-                            "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison"):
+                            "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison",
+                            "observation_scale_compensation_evidence"):
                     if key in previous:
                         infos[key] = previous[key]
                 if previous:

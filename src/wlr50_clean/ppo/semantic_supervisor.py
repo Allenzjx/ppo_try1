@@ -24,6 +24,7 @@ from wlr50_clean.reference.motion_contract import load_motion_contract
 from .semantic_workspace_potential import (
     MODE as WORKSPACE_POTENTIAL_MODE, interval_distance_progress,
 )
+from .semantic_transfer_roles import MODE as TRANSFER_ROLES_MODE, TransferRoleTracker, validate_config as validate_transfer_roles
 
 DEFAULT_TASK_SPEC_PATH = Path(__file__).resolve().parents[3] / "configs/ppo_semantic_v2/stage_task_spec.yaml"
 LEG_ORDER = ("FL", "FR", "RL", "RR")
@@ -194,6 +195,7 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
         _number(spec["geometry"]["top_gap_min_m"], "capture existing top gap")
     _capture_approach_enabled(spec)
     _workspace_potential_enabled(spec)
+    validate_transfer_roles(spec)
     if spec["final"].get("stop_pose_semantics") not in (None,"physical_stable_pose"):
         raise ValueError("unrecognized final stop pose semantics")
     if spec["final"].get("stop_command_progress") not in (None,"reciprocal_physical_stop_tolerance"):
@@ -225,7 +227,7 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
                 "progress_potential", "allowed_action_channels", "physical_limits",
                 "stall_diagnostic", "maximum_task_duration", "next_phase", "active_leg"}
     predicates = {"physical_valid", "whole_task_success", "rear_approach"} | {
-        f"{kind}_{leg}" for kind in ("placed", "lifted", "clear", "approach", "workspace", "support", "load_ready")
+        f"{kind}_{leg}" for kind in ("placed", "lifted", "clear", "approach", "workspace", "edge_proximity", "role_prepared", "transfer_ready", "support", "load_ready")
         for leg in LEG_ORDER
     }
     for index, phase in enumerate(PHASE_IDS):
@@ -282,6 +284,7 @@ class TaskEvaluator:
             "reason": "no live observation", "goal_features": dict.fromkeys(GOAL_FEATURE_KEYS, 0.0)}
         self._failure: str | None = None
         self._failure_reason = ""
+        self._transfer_tracker = TransferRoleTracker(self.spec) if self.spec.get("transfer_roles") else None
 
     @property
     def snapshot(self) -> dict[str, Any]:
@@ -567,6 +570,8 @@ class TaskEvaluator:
             self._snapshot.update(measured_wheel_velocity_rad_s=tuple(speeds),
                 applied_wheel_command_rad_s=tuple(commands),
                 stop_progress_wheel_order=tuple(WHEEL_ORDER))
+        if self._transfer_tracker is not None:
+            self._snapshot["transfer_roles"] = self._transfer_tracker.observe(observation, self.snapshot)
         self._last_tick, self._last_time = tick, now
         return self.snapshot
 
@@ -636,10 +641,21 @@ class TaskStageSupervisor:
             settle=_clip(evaluation["final_stable_for_s"]/final["stable_duration_s"])
             return min(.99,.4*history_fraction+.3*forward+.2*stop+.1*settle)
         if name == "rear_approach":
-            return min(self.predicate("workspace_RL", evaluation), self.predicate("workspace_RR", evaluation))
+            return min(self.predicate("edge_proximity_RL", evaluation), self.predicate("edge_proximity_RR", evaluation))
         kind, leg = name.rsplit("_", 1)
         history = evaluation["history"]
         current = evaluation["current_legs"][leg]; geo = self.spec["geometry"]
+        if kind in ("role_prepared", "transfer_ready"):
+            # A genuinely qualified downstream motion is already an entrance,
+            # not a reason to land/recreate a preparation pose. Current support
+            # remains independently measured; historical placement is not force.
+            if (evaluation["termination_reason"] is None and
+                    (history["placed"][leg] or (history["active_lift"][leg] and current["air"]))):
+                return 1.
+            row = evaluation.get("transfer_roles", {}).get(leg, {})
+            flag = "preparation_ready" if kind == "role_prepared" else "transfer_ready"
+            progress = "preparation_progress" if kind == "role_prepared" else "transfer_progress"
+            return 1. if row.get(flag) is True else min(.99, float(row.get(progress, 0.)))
         if kind == "lifted":
             if history["active_lift"][leg]: return 1.
             cfg = self.spec["history"]
@@ -666,8 +682,9 @@ class TaskStageSupervisor:
             if not support_available: return 0.
             limit = self.spec["support"]["unloaded_leg_maximum_load_fraction"]
             return _clip((1.-current["load_fraction"])/(1.-limit))
-        if kind in ("approach", "workspace"):
+        if kind in ("approach", "workspace", "edge_proximity"):
             if not current["within_lateral_span"]: return 0.
+            if kind == "edge_proximity": kind = "workspace"  # Legacy config keys are explicitly geometry-only.
             lower, upper = geo[f"{kind}_min_m"], geo[f"{kind}_max_m"]
             x = current["front_distance_m"]
             return 1. if lower <= x <= upper else _clip(1.-min(abs(x-lower),abs(x-upper))/.25)
@@ -702,9 +719,12 @@ class TaskStageSupervisor:
                     if self.spec.get("preparation_credit_semantics") == PREPARATION_CREDIT_MODE else 0.)
                 values.append(.1*preparation); continue
             workspace=self._workspace_potential_progress(leg,evaluation)
-            unload=self.predicate(f"load_ready_{leg}",evaluation)
+            unload=(evaluation.get("transfer_roles", {}).get(leg, {}).get("transfer_progress", 0.)
+                    if self.spec.get("transfer_roles") else self.predicate(f"load_ready_{leg}",evaluation))
             initial=float(current.get("initial_clearance",False))
             hard_lift=bool(history["active_lift"][leg])
+            if self.spec.get("transfer_roles") and hard_lift and history["front_edge_crossed"][leg]:
+                unload = 1.  # Retire transfer credit independently of capture shaping variant.
             lift_credit=float(hard_lift)
             if self.spec.get("lift_credit_semantics") == LIFT_CREDIT_MODE:
                 lift_credit=self._current_lift_credit(leg,evaluation)
@@ -734,9 +754,14 @@ class TaskStageSupervisor:
         if not _workspace_potential_enabled(self.spec):
             raise ValueError("workspace potential mode unavailable")
         current, geometry = evaluation["current_legs"][leg], self.spec["geometry"]
-        return interval_distance_progress(
+        edge = interval_distance_progress(
             current["front_distance_m"], geometry["workspace_min_m"], geometry["workspace_max_m"],
             current["within_lateral_span"])
+        if self.spec.get("transfer_roles"):
+            # Replace part of the existing .1 preparation budget, not a new reward.
+            role = evaluation.get("transfer_roles", {}).get(leg, {})
+            return .5*edge+.5*float(role.get("workspace_progress", 0.))
+        return edge
 
     def _current_capture_progress(self, leg: str, evaluation: Mapping[str,Any], contact_fraction: float) -> float:
         """Soft first-capture approach; never a touchdown or phase completion."""
@@ -794,17 +819,26 @@ class TaskStageSupervisor:
         entry = self.entry_report(self.stage_id, evaluation)
         goal_values = {name: self.predicate(name,evaluation) if evaluation["valid"] else 0. for name in stage["completion_predicates"]}
         progress = sum(goal_values.values())/len(goal_values)
+        takeover = False
+        if (self.spec.get("transfer_roles") and evaluation["valid"]
+                and self.stage_id in ("P01", "P04", "P06", "P07", "P08", "P10", "P11")):
+            leg = stage["active_leg"]; current = evaluation["current_legs"][leg]
+            history = evaluation["history"]
+            takeover = bool(history["active_lift"][leg] and not current["ground_contact"]
+                            and current["within_lateral_span"] and (current["air"] or current["top_contact"]))
         if evaluation["termination_reason"] is not None:
             self.termination_reason = evaluation["termination_reason"]
         # Each physical observation can credit at most one unique task. No loops,
         # label-only success, reference clock or endpoint participates here.
-        if self.termination_reason is None and entry["valid"] and all(v >= 1. for v in goal_values.values()) and _get(observation,"physics_tick") % 8 == 0:
+        if self.termination_reason is None and entry["valid"] and (takeover or all(v >= 1. for v in goal_values.values())) and _get(observation,"physics_tick") % 8 == 0:
             previous = self.stage_id
             if previous not in self.completed_stage_ids:
                 self.completed_stage_ids.append(previous)
             next_stage = stage["next_phase"]
             self.transition_evidence.append({"from_stage": previous, "to_stage": next_stage, "sim_time_s": now,
-                "physics_tick": _get(observation,"physics_tick"), "reason": "current physical goal set satisfied",
+                "physics_tick": _get(observation,"physics_tick"), "reason": (
+                    "qualified downstream motion already active; continuous takeover" if takeover else "current physical goal set satisfied"),
+                "continuous_takeover": takeover,
                 "entry": entry, "completion_values": goal_values, "history": evaluation["history"]})
             if next_stage == "SUCCESS": self.termination_reason = "SUCCESS"
             else:
@@ -844,6 +878,15 @@ class TaskStageSupervisor:
                 and all(histories["placed"][p] for p in PLACEMENT_PREDECESSORS[leg])]
             self._snapshot["physical_transfer_fraction"] = max((
                 _clip(1.-v["load_fraction"]/.35) for v in unfinished),default=0.)
+        if self.spec.get("transfer_roles"):
+            roles = evaluation.get("transfer_roles", {})
+            active = roles.get(stage["active_leg"], {})
+            self._snapshot.update(transfer_roles_version=TRANSFER_ROLES_MODE, transfer_roles=roles,
+                                  transfer_role_context=active, pending_capture=bool(active.get("pending_capture")))
+            eligible = [leg for leg in LEG_ORDER if not histories["placed"][leg]
+                        and all(histories["placed"][p] for p in PLACEMENT_PREDECESSORS[leg])]
+            self._snapshot["physical_transfer_fraction"] = max((roles.get(leg, {}).get("motion_fraction", 0.)
+                                                                for leg in eligible), default=0.)
         self._last_observation_tick = _get(observation, "physics_tick")
         return dict(self._snapshot)
 
@@ -1060,6 +1103,20 @@ class NominalMotionProvider:
         # separately retains its audited peak of measured workspace retirement.
         if stage_id=="P02" and isinstance(stage,Mapping) and self._approach_assist_required(stage):
             proposed=proposed[:8]+self._approach_wheel_prior
+        if (stage_id == "P05" and isinstance(stage, Mapping)
+                and self.spec["nominal"].get("p05_pending_capture") == "current_FL_capture_wheel_continuation_v1"):
+            ev = stage.get("physical_evaluator", {})
+            current = ev.get("current_legs", {}).get("FL", {})
+            role = stage.get("transfer_roles", {}).get("FL", {})
+            # Same P06-class wheel suggestion before placement; no phase skip,
+            # fake contact, servo reset, or residual suppression. Existing servo
+            # layers continue. End on capture/unsafe/out-of-approach geometry.
+            if (role.get("pending_capture") and stage.get("termination_reason") is None
+                    and ev.get("valid") is True and ev.get("termination_reason") is None
+                    and len([leg for leg in role.get("observed_support_contacts", ()) if leg != "FL"]) >= 2
+                    and current.get("clearance_m", -1.) >= self.spec["geometry"]["top_gap_min_m"]
+                    and current.get("front_distance_m", 1.) < self.spec["geometry"]["approach_max_m"]):
+                proposed = proposed[:8]+self._approach_wheel_prior
         if stage_id=="P13" and self.endpoint_issued:
             proposed=tuple(self.spec["final"]["home_servo_pose_deg"])+(0.,)*4
         if not handoff:
