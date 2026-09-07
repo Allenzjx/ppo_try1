@@ -1,0 +1,300 @@
+"""UNRUN e99 v3 candidate: device arithmetic, one packed CPU result snapshot.
+
+Report-only and unwired. All float32 expected-target casts, finite/equality
+checks, effect comparisons and subtraction remain on the selected target
+device. Only their completed results and 0/1 flags cross to CPU together.
+The failed CPU-arithmetic e99 candidate and its receipt are preserved.
+This revision has not been executed or approved for production.
+"""
+from __future__ import annotations
+
+from typing import Any, Mapping, Sequence
+
+from wlr50_clean.infrastructure.command_batch import (
+    FULL12_ORDER, SERVO_ORDER, Full12Command, build_physical_batch, servo_limits_deg,
+)
+from wlr50_clean.infrastructure.robot_adapter import bounded_drive_feedback_step
+from wlr50_clean.ppo.actuator_target_effect import (
+    ACTUATOR_TARGET_EFFECT_SCHEMA, ActuatorTargetEffectError,
+    _finite_values, actuator_target_audit_request,
+)
+
+def build_actuator_target_effect_audit(
+    *,
+    adapter: Any,
+    actuation: Any,
+    raw_ack: Mapping[str, Any],
+    previous_final_drive_servo_deg: Sequence[float],
+    source_phase_id: str,
+    policy_request: Mapping[str, Any] | None,
+    policy_headroom_mode: str | None = None,
+) -> dict[str, Any]:
+    """Inspect the already completed dispatch, never simulate another write.
+
+    The counterfactual removes only this tick's PPO residual from the same
+    measured state and t-1 final drive.  It is not an independent FSM rollout.
+    This function is intentionally called only by explicitly enabled audits.
+    """
+
+    import torch
+
+    if source_phase_id not in {f"P{index:02d}" for index in range(1, 14)}:
+        raise ActuatorTargetEffectError("source phase must be P01-P13")
+    if raw_ack.get("articulation_writes_this_call") != 1:
+        raise ActuatorTargetEffectError("audit requires one completed articulation dispatch")
+    previous = _finite_values(previous_final_drive_servo_deg, 8, "previous final drive")
+    native = _finite_values(raw_ack["native_drive_target_full12"], 12, "native drive")
+    geometry_keys = ("geometry_adjusted_native_full12", "nominal_geometry_adjustment_full12",
+                     "nominal_geometry_evidence")
+    geometry_enabled = any(key in raw_ack for key in geometry_keys)
+    corrected_native = native
+    if geometry_enabled:
+        if not all(key in raw_ack for key in geometry_keys):
+            raise ActuatorTargetEffectError("incomplete nominal geometry dispatch evidence")
+        corrected_native = _finite_values(raw_ack[geometry_keys[0]], 12, "geometry adjusted native")
+        adjustment = _finite_values(raw_ack[geometry_keys[1]], 12, "nominal geometry adjustment")
+        if adjustment != tuple(after-before for before, after in zip(native, corrected_native, strict=True)):
+            raise ActuatorTargetEffectError("nominal geometry adjustment differs from native targets")
+        changed_geometry = {i for i, (before, after) in enumerate(zip(native, corrected_native, strict=True))
+                            if before != after}
+        if not (changed_geometry <= {4, 5} or changed_geometry <= {6, 7}):
+            raise ActuatorTargetEffectError("nominal geometry changed channels outside one rear pair")
+        if not isinstance(raw_ack[geometry_keys[2]], Mapping):
+            raise ActuatorTargetEffectError("invalid nominal geometry evidence")
+    controller_bias = _finite_values(actuation.controller_drive_bias_full12, 12, "controller bias")
+    combined_bias = _finite_values(actuation.combined_post_mapper_bias_full12, 12, "combined bias")
+    if _finite_values(raw_ack["drive_feedback_bias_requested_full12"], 12, "ack bias") != combined_bias:
+        raise ActuatorTargetEffectError("actual dispatch bias differs from the actuation plan")
+    headroom_keys = ("policy_headroom_mode", "policy_headroom_evidence")
+    actual_bias, zero_policy_bias = combined_bias, controller_bias
+    headroom = None
+    if policy_headroom_mode is None:
+        if any(key in raw_ack for key in headroom_keys):
+            raise ActuatorTargetEffectError("unexpected policy headroom dispatch evidence")
+    else:
+        import json
+        from wlr50_clean.ppo.semantic_headroom import HEADROOM_MODE, project_semantic_servo_headroom
+        if policy_headroom_mode != HEADROOM_MODE:
+            raise ActuatorTargetEffectError("unknown expected policy headroom mode")
+        if (not all(key in raw_ack for key in headroom_keys)
+                or raw_ack[headroom_keys[0]] != policy_headroom_mode
+                or not isinstance(raw_ack[headroom_keys[1]], Mapping)):
+            raise ActuatorTargetEffectError("missing or inconsistent policy headroom dispatch evidence")
+        requested_residual = _finite_values(actuation.projected_residual_full12, 12, "projected residual")
+        if combined_bias != tuple(c+r for c,r in zip(controller_bias, requested_residual, strict=True)):
+            raise ActuatorTargetEffectError("headroom request composition differs from the actuation plan")
+        for key, expected in (("bounded_controller_bias_requested_full12", controller_bias),
+                              ("independent_policy_residual_requested_full12", requested_residual)):
+            if key not in raw_ack or _finite_values(raw_ack[key], 12, key) != expected:
+                raise ActuatorTargetEffectError("headroom request receipt differs from the actuation plan")
+        # Recompute, do not trust the dispatch's effective residual or margins.
+        # JSON comparison preserves numeric/bool distinctions and accepts the
+        # same list representation after a receipt has been serialized.
+        headroom = project_semantic_servo_headroom(
+            native_full12=corrected_native, controller_bias_full12=controller_bias,
+            projected_residual_full12=requested_residual)
+        try:
+            declared = json.dumps(dict(raw_ack[headroom_keys[1]]), sort_keys=True, allow_nan=False)
+            expected = json.dumps(headroom, sort_keys=True, allow_nan=False)
+        except (TypeError, ValueError) as exc:
+            raise ActuatorTargetEffectError("invalid policy headroom evidence representation") from exc
+        if declared != expected:
+            raise ActuatorTargetEffectError("policy headroom evidence differs from independent reconstruction")
+        actual_bias = tuple(headroom["effective_combined_post_mapper_bias_full12"])
+        zero_headroom = project_semantic_servo_headroom(
+            native_full12=corrected_native, controller_bias_full12=controller_bias,
+            projected_residual_full12=(0.,)*12)
+        zero_policy_bias = tuple(zero_headroom["effective_combined_post_mapper_bias_full12"])
+    maximum_delta = float(raw_ack["drive_feedback_final_slew_limit_deg_per_tick"])
+    if maximum_delta != float(adapter.servo_target_mapper.maximum_delta_deg):
+        raise ActuatorTargetEffectError("actual dispatch slew limit differs from the frozen mapper")
+
+    def physical_targets(bias: Sequence[float], native_targets: Sequence[float] = corrected_native) -> Any:
+        servo = []
+        for index, name in enumerate(SERVO_ORDER):
+            lower, upper = servo_limits_deg(name)
+            servo.append(bounded_drive_feedback_step(
+                previous_deg=previous[index],
+                native_deg=native_targets[index],
+                bias_deg=bias[index],
+                maximum_delta_deg=maximum_delta,
+                lower_deg=lower,
+                upper_deg=upper,
+            ))
+        # Full12Command owns hard wheel limits; build_physical_batch owns all
+        # standing offsets, joint signs, and degree-to-radian conversion.
+        command = Full12Command(
+            tuple(servo), tuple(native_targets[index] + bias[index] for index in range(8, 12))
+        ).clamped()
+        return build_physical_batch(command, adapter.standing_pose_deg)
+
+    actual_physical = physical_targets(actual_bias)
+    counterfactual_physical = physical_targets(zero_policy_bias)
+    robot = adapter.robot
+    servo_ids = list(adapter.joint_map.servo_ids)
+    wheel_ids = list(adapter.joint_map.wheel_ids)
+    if len(servo_ids) != 8 or len(wheel_ids) != 4 or len(set(servo_ids + wheel_ids)) != 12:
+        raise ActuatorTargetEffectError("audit requires twelve distinct canonical joint IDs")
+
+    def read_targets(owner: Any, attribute: str, ids: list[int]) -> Any:
+        tensor = getattr(owner, attribute, None)
+        if not isinstance(tensor, torch.Tensor) or tensor.ndim != 2 or tensor.shape[0] != 1:
+            raise ActuatorTargetEffectError(f"missing single-articulation target tensor: {attribute}")
+        if tensor.dtype != torch.float32:
+            raise ActuatorTargetEffectError(f"target tensor is not float32: {attribute}")
+        return tensor[:, ids].detach().clone()
+
+    selected_targets = (
+        read_targets(robot.data, "joint_pos_target", servo_ids),
+        read_targets(robot.data, "joint_vel_target", wheel_ids),
+        read_targets(robot, "_joint_pos_target_sim", servo_ids),
+        read_targets(robot, "_joint_vel_target_sim", wheel_ids),
+    )
+    if any(value.device != selected_targets[0].device for value in selected_targets[1:]):
+        raise ActuatorTargetEffectError("audit target snapshots must share one device")
+    staged_servo, staged_wheel, dispatched_servo, dispatched_wheel = selected_targets
+
+    # Keep the reference's float32 arithmetic on its original device. In
+    # particular, neither expected casts nor subtraction/equality may move to
+    # CPU: host FTZ can erase a subnormal which the CUDA comparison rejects.
+    # These are tensor reductions, NOT torch.equal/.item()/Python bool, so
+    # reading each condition does not introduce a device-to-host sync.
+    finite_flags = torch.stack([torch.isfinite(value).all() for value in selected_targets])
+    setter_flags = torch.stack(((staged_servo == dispatched_servo).all(),
+                                (staged_wheel == dispatched_wheel).all()))
+
+    def cast_targets(physical: Any) -> tuple[Any, Any]:
+        return (
+            dispatched_servo.new_tensor([physical.servo_target_rad]),
+            dispatched_wheel.new_tensor([physical.wheel_target_rad_s]),
+        )
+
+    expected_servo, expected_wheel = cast_targets(actual_physical)
+    mapping_flags = torch.stack(((expected_servo == dispatched_servo).all(),
+                                 (expected_wheel == dispatched_wheel).all()))
+    nominal_servo, nominal_wheel = cast_targets(counterfactual_physical)
+    changed = torch.cat((dispatched_servo != nominal_servo,
+                         dispatched_wheel != nominal_wheel), dim=1)
+    delta_servo = dispatched_servo - nominal_servo
+    delta_wheel = dispatched_wheel - nominal_wheel
+
+    # No target/device cache: every member describes this already-completed
+    # dispatch. Converting bool flags to float32 on-device is exact (0 or 1).
+    parts = [
+        torch.cat((dispatched_servo, dispatched_wheel), dim=1),
+        torch.cat((nominal_servo, nominal_wheel), dim=1),
+        torch.cat((delta_servo, delta_wheel), dim=1),
+        finite_flags.reshape(1, 4).to(dtype=torch.float32),
+        torch.cat((setter_flags, mapping_flags)).reshape(1, 4).to(dtype=torch.float32),
+        changed.to(dtype=torch.float32),
+    ]
+    widths = [12, 12, 12, 4, 4, 12]
+    if geometry_enabled:
+        # Third branch removes only geometry, still with zero current policy.
+        # Reuse exactly the original independent headroom and frozen mapping.
+        raw_zero_bias = controller_bias
+        if headroom is not None:
+            raw_zero = project_semantic_servo_headroom(
+                native_full12=native, controller_bias_full12=controller_bias,
+                projected_residual_full12=(0.,)*12)
+            raw_zero_bias = tuple(raw_zero["effective_combined_post_mapper_bias_full12"])
+        raw_nominal_servo, raw_nominal_wheel = cast_targets(physical_targets(raw_zero_bias, native))
+        geometry_changed = torch.cat((nominal_servo != raw_nominal_servo,
+                                      nominal_wheel != raw_nominal_wheel), dim=1)
+        geometry_delta_servo = nominal_servo - raw_nominal_servo
+        geometry_delta_wheel = nominal_wheel - raw_nominal_wheel
+        parts.extend((
+            torch.cat((raw_nominal_servo, raw_nominal_wheel), dim=1),
+            torch.cat((geometry_delta_servo, geometry_delta_wheel), dim=1),
+            geometry_changed.to(dtype=torch.float32),
+        ))
+        widths.extend((12, 12, 12))
+
+    # The sole blocking device-to-host snapshot. NaN/Inf may be computed on
+    # read-only tensors before this point, but cannot produce a verified result:
+    # original finite -> setter -> mapping rejection priority is checked below.
+    # CPU is used only for finished flag interpretation / list serialization;
+    # it does not cast expected values, subtract targets, or compare targets.
+    snapshot = torch.cat(parts, dim=1).cpu()
+    cpu_parts = snapshot.split(widths, dim=1)
+    finite_values = cpu_parts[3].tolist()[0]
+    attributes = ("joint_pos_target", "joint_vel_target",
+                  "_joint_pos_target_sim", "_joint_vel_target_sim")
+    for flag, attribute in zip(finite_values, attributes, strict=True):
+        if not bool(flag):
+            raise ActuatorTargetEffectError(f"non-finite actual target tensor: {attribute}")
+    equality_values = cpu_parts[4].tolist()[0]
+    if not all(bool(value) for value in equality_values[:2]):
+        raise ActuatorTargetEffectError("setter targets differ from completed PhysX dispatch buffers")
+    if not all(bool(value) for value in equality_values[2:]):
+        raise ActuatorTargetEffectError("frozen mapping reconstruction differs from actual dispatch")
+
+    # Slice only: no CPU arithmetic is applied to the returned float32 values.
+    dispatched_servo, dispatched_wheel = cpu_parts[0].split((8, 4), dim=1)
+    nominal_servo, nominal_wheel = cpu_parts[1].split((8, 4), dim=1)
+    delta_servo, delta_wheel = cpu_parts[2].split((8, 4), dim=1)
+    changed_channels = [bool(value) for value in cpu_parts[5].tolist()[0]]
+    if geometry_enabled:
+        raw_nominal_servo, raw_nominal_wheel = cpu_parts[6].split((8, 4), dim=1)
+        geometry_delta_servo, geometry_delta_wheel = cpu_parts[7].split((8, 4), dim=1)
+        geometry_channels = [bool(value) for value in cpu_parts[8].tolist()[0]]
+
+    def record(servo: Any, wheel: Any) -> dict[str, list[float]]:
+        return {
+            "servo_position_rad": servo.tolist()[0],
+            "wheel_velocity_rad_s": wheel.tolist()[0],
+        }
+
+    request = {
+        "policy_request_phase": None,
+        "raw_policy_action_full12": None,
+        "phase_mask_full12": None,
+    }
+    if policy_request is not None:
+        request = actuator_target_audit_request(
+            policy_request["policy_request_phase"],
+            policy_request["raw_policy_action_full12"],
+            policy_request["phase_mask_full12"],
+        )
+    result = {
+        "schema": ACTUATOR_TARGET_EFFECT_SCHEMA,
+        "verified": True,
+        "source_phase_id": source_phase_id,
+        **request,
+        "physics_tick": int(raw_ack["physics_tick"]),
+        "canonical_order": list(FULL12_ORDER),
+        "projected_residual_full12": list(_finite_values(actuation.projected_residual_full12, 12, "projected residual")),
+        "changed_channels_full12": changed_channels,
+        "changed_target_channel_count": sum(changed_channels),
+        "actual_native_targets": record(dispatched_servo, dispatched_wheel),
+        "counterfactual_native_targets": record(nominal_servo, nominal_wheel),
+        "native_target_delta": record(delta_servo, delta_wheel),
+        "target_dtype": str(dispatched_servo.dtype),
+        "servo_target_dtype": str(dispatched_servo.dtype),
+        "wheel_target_dtype": str(dispatched_wheel.dtype),
+        "setter_dispatch_targets_equal": True,
+        "actual_mapping_matches_dispatch": True,
+        "same_tick_counterfactual": True,
+        "counterfactual_scope": "same_pre_tick_state_without_current_ppo_residual",
+        "actual_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim",
+        "previous_final_drive_servo_deg": list(previous),
+        "native_drive_target_full12": list(native),
+        "controller_drive_bias_full12": list(controller_bias),
+        "combined_post_mapper_bias_full12": list(combined_bias),
+    }
+    if headroom is not None:
+        result.update(policy_headroom_mode=policy_headroom_mode,
+                      policy_headroom_evidence=headroom)
+    if geometry_enabled:
+        result.update({
+            "geometry_adjusted_native_full12": list(corrected_native),
+            "nominal_geometry_adjustment_full12": list(adjustment),
+            "nominal_geometry_evidence": dict(raw_ack["nominal_geometry_evidence"]),
+            "raw_nominal_native_targets": record(raw_nominal_servo, raw_nominal_wheel),
+            "geometry_nominal_native_targets": record(nominal_servo, nominal_wheel),
+            "nominal_geometry_native_target_delta": record(geometry_delta_servo, geometry_delta_wheel),
+            "nominal_geometry_changed_channels_full12": geometry_channels,
+            "nominal_geometry_changed_target_channel_count": sum(geometry_channels),
+            "nominal_geometry_counterfactual_scope": "same_pre_tick_state_zero_current_ppo_without_nominal_geometry",
+        })
+    return result

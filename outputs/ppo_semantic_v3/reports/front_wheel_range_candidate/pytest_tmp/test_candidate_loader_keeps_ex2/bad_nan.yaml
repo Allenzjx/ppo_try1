@@ -1,0 +1,267 @@
+schema: wlr50_clean.semantic_execution_profile.v1
+revision: continuous_whole_body_exploration_v3_preplace_nominal_geometry
+physics_hz: 120.0
+decision_hz: 15.0
+episode_timeout_s: 200.0
+timeout_semantics: finite_horizon_task_termination_no_bootstrap_remaining_time_observed
+modes:
+  legacy_fsm_eval: frozen_controller_and_mapper
+  semantic_prior_eval: task_supervisor_plus_nominal_zero_residual
+  semantic_residual_train: task_supervisor_plus_nominal_plus_sampled_residual
+  semantic_residual_eval: task_supervisor_plus_nominal_plus_deterministic_residual
+mapper_version: unchanged_frozen_servo_target_mapper
+nominal_geometry_advisory: preplace_world_down_nominal_advisory_v1
+level_reference_orientation_wxyz:
+- 1.0
+- 0.0
+- 0.0
+- 0.0
+level_definition: fixed_chassis_axes_relative_to_world_gravity_not_episode_initial_tilt
+residual:
+  action_dimension: 12
+  bounded_transform: tanh
+  latent_distribution: gaussian_raw_action_log_probability
+  initial_servo_cap_deg: 4.0
+  phase_caps_full12:
+    P01:
+    - 18
+    - 24
+    - 18
+    - 24
+    - 12
+    - 18
+    - 12
+    - 18
+    - 0.3
+    - 0.3
+    - 0.3
+    - 0.3
+    P02:
+    - 18
+    - 24
+    - 18
+    - 24
+    - 12
+    - 18
+    - 12
+    - 18
+    - 0.3
+    - 0.3
+    - 0.3
+    - 0.3
+    P03:
+    - 18
+    - 24
+    - 18
+    - 24
+    - 12
+    - 18
+    - 12
+    - 18
+    - 0.3
+    - 0.3
+    - 0.3
+    - 0.3
+    P04:
+    - 18
+    - 24
+    - 18
+    - 24
+    - 12
+    - 18
+    - 12
+    - 18
+    - 0.3
+    - 0.3
+    - 0.3
+    - 0.3
+    P05:
+    - 18
+    - 24
+    - 18
+    - 24
+    - 12
+    - 18
+    - 12
+    - 18
+    - 0.3
+    - 0.3
+    - 0.3
+    - 0.3
+    P06:
+    - 24
+    - 36
+    - 24
+    - 36
+    - 24
+    - 36
+    - 24
+    - 36
+    - .nan
+    - 1.2
+    - 0.6
+    - 0.6
+    P07:
+    - 24
+    - 36
+    - 24
+    - 36
+    - 24
+    - 36
+    - 24
+    - 36
+    - 1.2
+    - 1.2
+    - 0.6
+    - 0.6
+    P08:
+    - 24
+    - 36
+    - 24
+    - 36
+    - 24
+    - 36
+    - 24
+    - 36
+    - 1.2
+    - 1.2
+    - 0.6
+    - 0.6
+    P09:
+    - 24
+    - 36
+    - 24
+    - 36
+    - 24
+    - 36
+    - 24
+    - 36
+    - 1.2
+    - 1.2
+    - 0.6
+    - 0.6
+    P10:
+    - 24
+    - 36
+    - 24
+    - 36
+    - 24
+    - 36
+    - 24
+    - 36
+    - 1.2
+    - 1.2
+    - 0.6
+    - 0.6
+    P11:
+    - 24
+    - 36
+    - 24
+    - 36
+    - 24
+    - 36
+    - 24
+    - 36
+    - 1.2
+    - 1.2
+    - 0.6
+    - 0.6
+    P12:
+    - 24
+    - 36
+    - 24
+    - 36
+    - 24
+    - 36
+    - 24
+    - 36
+    - 1.2
+    - 1.2
+    - 0.6
+    - 0.6
+    P13:
+    - 24
+    - 36
+    - 24
+    - 36
+    - 24
+    - 36
+    - 24
+    - 36
+    - 1.2
+    - 1.2
+    - 0.6
+    - 0.6
+  initial_wheel_cap_rad_s: 0.12
+  servo_rate_deg_s: 60.0
+  wheel_rate_rad_s2: 1.8
+  allowed_channels: all_12_in_every_phase
+  closed_channels: {}
+  channel_rationale: all_joints_for_support_and_swing_coordination_all_wheels_for_rolling_transfer_and_capture_including_FR_in_P08_P11
+  recording_percentage_hard_limit: false
+  same_tick_atomic_dispatch: true
+  injection: post_mapper
+  composition: independent_post_mapper_residual.v1
+  phase_handoff: retain_feasible_history_and_slew_to_new_target_no_global_zero
+  cap_changes: version_boundary_only_with_physical_response_and_saturation_evidence
+  safety_projection_scope: hard_actuator_bounds_and_reactive_stop_not_predictive_collision_avoidance
+reset:
+  initial_mode: natural_P01_locked_scene_settle
+  acceptance: current_sensor_validity_and_physical_safety_not_historical_state_equality
+  curriculum_fallback: natural_no_credit_rollin_from_P01
+  state_writes_after_episode_start: prohibited
+training_budgets:
+  smoke: 10000
+  phase_suffix: 100000
+  full_episode: 100000
+sampling_target:
+  full_P01: 0.3
+  predecessor_P06_P07_suffix: 0.4
+  second_rear_P10_P11_suffix: 0.2
+  front_and_final: 0.1
+  priority_phases:
+  - P02
+  - P03
+  - P08
+  - P12
+  - P13
+  priority_windows:
+  - P07_P10
+  - P09_P11
+  - P11_P13
+  initial_single_env_update_may_use_full_P01_only: true
+seeds:
+  train:
+  - 1001
+  - 1002
+  - 1003
+  - 1004
+  - 1005
+  - 1006
+  - 1007
+  - 1008
+  validation:
+  - 2001
+  - 2002
+  - 2003
+  - 2004
+  - 2005
+  locked_test:
+  - 3001
+  - 3002
+  - 3003
+  - 3004
+  - 3005
+  video: 4001
+evaluation:
+  randomization: false
+  seed_interpretation: deterministic_repetition_not_random_robustness
+  quality_goal_relative_improvement: 0.05
+  quality_goal_is_task_failure: false
+  comparisons:
+  - A_to_C
+  - B_to_C
+  initial_actor_mean: zero
+  hidden_dims:
+  - 256
+  - 256

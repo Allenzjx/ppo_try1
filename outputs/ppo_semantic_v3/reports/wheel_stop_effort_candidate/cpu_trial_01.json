@@ -1,0 +1,177 @@
+{
+  "candidate_only": true,
+  "production_wiring": false,
+  "simulated_robot": false,
+  "tests": {
+    "run": 12,
+    "failures": 0,
+    "errors": 1,
+    "passed": false
+  },
+  "existing_config_values": {
+    "gamma": 0.995,
+    "decision_hz": 15.0,
+    "potential_weight": 5.0,
+    "success_reward": 40.0,
+    "failure_cost": 40.0,
+    "time_cost_per_s": 0.02,
+    "family_weights": {
+      "task_progress": 1.0,
+      "body_stability": 0.4,
+      "contact_motion_quality": 0.2,
+      "control_smoothness": 0.1,
+      "control_regularization": 0.0
+    }
+  },
+  "unchanged_failure_avoidance_bound": 14.599999999999993,
+  "constant_command_cases": {
+    "0.0": {
+      "all_four_placed_history": true,
+      "old_applied_derivative_cost": 0.0,
+      "actual_wheel_effort_cost": 0.0,
+      "candidate_control_smoothness_cost": 0.0,
+      "old_control_smoothness_reward": -0.0,
+      "candidate_control_smoothness_reward": -0.0,
+      "reward_delta": -0.0,
+      "dt_s": 0.008333333333333333,
+      "wheel_order": [
+        "FL",
+        "FR",
+        "RL",
+        "RR"
+      ]
+    },
+    "0.02": {
+      "all_four_placed_history": true,
+      "old_applied_derivative_cost": 0.0,
+      "actual_wheel_effort_cost": 0.009549296585513721,
+      "candidate_control_smoothness_cost": 0.004774648292756861,
+      "old_control_smoothness_reward": -0.0,
+      "candidate_control_smoothness_reward": -3.978873577297384e-06,
+      "reward_delta": -3.978873577297384e-06,
+      "dt_s": 0.008333333333333333,
+      "wheel_order": [
+        "FL",
+        "FR",
+        "RL",
+        "RR"
+      ]
+    },
+    "0.1": {
+      "all_four_placed_history": true,
+      "old_applied_derivative_cost": 0.0,
+      "actual_wheel_effort_cost": 0.04774648292756861,
+      "candidate_control_smoothness_cost": 0.023873241463784306,
+      "old_control_smoothness_reward": -0.0,
+      "candidate_control_smoothness_reward": -1.9894367886486922e-05,
+      "reward_delta": -1.9894367886486922e-05,
+      "dt_s": 0.008333333333333333,
+      "wheel_order": [
+        "FL",
+        "FR",
+        "RL",
+        "RR"
+      ]
+    },
+    "0.4": {
+      "all_four_placed_history": true,
+      "old_applied_derivative_cost": 0.0,
+      "actual_wheel_effort_cost": 0.19098593171027445,
+      "candidate_control_smoothness_cost": 0.09549296585513722,
+      "old_control_smoothness_reward": -0.0,
+      "candidate_control_smoothness_reward": -7.957747154594769e-05,
+      "reward_delta": -7.957747154594769e-05,
+      "dt_s": 0.008333333333333333,
+      "wheel_order": [
+        "FL",
+        "FR",
+        "RL",
+        "RR"
+      ]
+    },
+    "2.0943951023931953": {
+      "all_four_placed_history": true,
+      "old_applied_derivative_cost": 0.0,
+      "actual_wheel_effort_cost": 1.0,
+      "candidate_control_smoothness_cost": 0.5,
+      "old_control_smoothness_reward": -0.0,
+      "candidate_control_smoothness_reward": -0.0004166666666666667,
+      "reward_delta": -0.0004166666666666667,
+      "dt_s": 0.008333333333333333,
+      "wheel_order": [
+        "FL",
+        "FR",
+        "RL",
+        "RR"
+      ]
+    }
+  },
+  "assumed_event_ledgers": {
+    "assumed_reasonable_completion": {
+      "assumptions_only": true,
+      "duration_s": 80.0,
+      "decisions": 1200,
+      "assumed_terminal_event": 40.0,
+      "command_segments": [
+        [
+          60.0,
+          70.0,
+          0.2
+        ]
+      ],
+      "undiscounted_time_cost": 1.6,
+      "undiscounted_added_wheel_cost": 0.04774648292756861,
+      "undiscounted_non_PBRS_ledger": 38.35225351707243,
+      "discounted_added_wheel_cost": 0.00036958578404498277,
+      "discounted_ledger_phi0_zero": -0.16822529378677156
+    },
+    "assumed_ultraslow_completion": {
+      "assumptions_only": true,
+      "duration_s": 180.0,
+      "decisions": 2700,
+      "assumed_terminal_event": 40.0,
+      "command_segments": [
+        [
+          60.0,
+          160.0,
+          0.02
+        ]
+      ],
+      "undiscounted_time_cost": 3.6,
+      "undiscounted_added_wheel_cost": 0.047746482927568605,
+      "undiscounted_non_PBRS_ledger": 36.35225351707243,
+      "discounted_added_wheel_cost": 6.989031618645421e-05,
+      "discounted_ledger_phi0_zero": -0.26668292470637595
+    },
+    "assumed_idle_deadline": {
+      "assumptions_only": true,
+      "duration_s": 200.0,
+      "decisions": 3000,
+      "assumed_terminal_event": -40.0,
+      "command_segments": [],
+      "undiscounted_time_cost": 4.0,
+      "undiscounted_added_wheel_cost": 0.0,
+      "undiscounted_non_PBRS_ledger": -44.0,
+      "discounted_added_wheel_cost": 0.0,
+      "discounted_ledger_phi0_zero": -0.2666784315799519
+    },
+    "assumed_early_failure": {
+      "assumptions_only": true,
+      "duration_s": 20.0,
+      "decisions": 300,
+      "assumed_terminal_event": -40.0,
+      "command_segments": [],
+      "undiscounted_time_cost": 0.4,
+      "undiscounted_added_wheel_cost": 0.0,
+      "undiscounted_non_PBRS_ledger": -40.4,
+      "discounted_added_wheel_cost": 0.0,
+      "discounted_ledger_phi0_zero": -9.143758589553231
+    }
+  },
+  "source_sha256": {
+    "src\\wlr50_clean\\ppo\\semantic_reward.py": "a77901cd5da8d49358e933ca34aef1c2698138a6b78a7df9c36e1c94976dbf3c",
+    "configs\\ppo_semantic_v3\\reward_config.yaml": "da574107eb0c0ba02ef02ff77cd00c7e9cfa4ef3208abae96435fafd1bc38bcb",
+    "outputs\\ppo_semantic_v3\\reports\\wheel_stop_effort_candidate\\validate_wheel_stop_effort_candidate.py": "c9f6d92e56bd54ae29f109fc51e61cc5e29f6c42ab751e19cafab7ce09800e69",
+    "outputs\\ppo_semantic_v3\\reports\\wheel_stop_effort_candidate\\wheel_stop_effort_candidate.py": "a84d1b37c7c335621a963c75dcf4208160651b3f35ad1d562e57de5c2ca12d50"
+  }
+}

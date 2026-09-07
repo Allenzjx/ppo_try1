@@ -1,0 +1,99 @@
+{
+  "schema": "SYNTHETIC_QA.comparison.v1",
+  "real_robot_video": false,
+  "task_success_evidence": false,
+  "scope": "exact renderer AST and selected rejection predicates; not full provenance/CLI acceptance",
+  "source_script_sha256": "b9f4d7cf264d85763a8611fffce2cecfecf1a01272d3e053e22729f42e385c36",
+  "checks": {
+    "frame_count": 12,
+    "fps": 15,
+    "duration_s": 0.8,
+    "raster": [
+      2560,
+      720
+    ],
+    "audio_tracks": 0,
+    "source_counts": [
+      6,
+      12
+    ],
+    "a_final_frame_held_at_output_indices": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "source_content_sampled_mae_a": [
+      0.21950911463815098,
+      0.2425377847008799,
+      0.22961310150296804,
+      0.2941523176019871,
+      0.3274954742558835,
+      0.2169831179219467,
+      0.21652001852397593,
+      0.21614111901654529,
+      0.21563591967330442,
+      0.21555171978276427,
+      0.21601481918073506,
+      0.21593061929019491
+    ],
+    "source_content_sampled_mae_c": [
+      0.2388750894623837,
+      0.2478002778596388,
+      0.25512566833663114,
+      0.3078768997600303,
+      0.33120026943964975,
+      0.2878373258114764,
+      0.33629436281732833,
+      0.29339451858712584,
+      0.3184018860775481,
+      0.3262745758430514,
+      0.2994569107060161,
+      0.33612596303624803
+    ],
+    "no_crop_scale_interpolation_or_rate_filter": true,
+    "neutral_label_filter_present": true,
+    "rejected_inputs": [
+      "unmanaged synthetic source",
+      "bool endpoint",
+      "negative endpoint",
+      "existing destination refused by -n; byte hash unchanged"
+    ]
+  },
+  "exact_script_filter": "[0:v]setsar=1,tpad=stop_mode=clone:stop=6,drawtext=text='FSM A - INCOMPLETE':x=28:y=26:fontcolor=white:fontsize=26,drawtext=text='SOURCE ENDED - last recorded frame held':x=28:y=64:fontcolor=white:fontsize=22:enable='gte(n,6)'[side0];[1:v]setsar=1,drawtext=text='PPO C - SYNTHETIC QA ONLY':x=28:y=26:fontcolor=white:fontsize=26[side1];[side0][side1]hstack=inputs=2[out]",
+  "unmodified_script_command": [
+    "C:\\Users\\kskzz\\miniconda3\\envs\\env_isaaclab\\Lib\\site-packages\\imageio_ffmpeg\\binaries\\ffmpeg-win-x86_64-v7.1.exe",
+    "-hide_banner",
+    "-nostdin",
+    "-v",
+    "error",
+    "-n",
+    "-i",
+    "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_semantic_v3\\reports\\comparison_offline_qa\\SYNTHETIC_QA_A_6frames.mp4",
+    "-i",
+    "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_semantic_v3\\reports\\comparison_offline_qa\\SYNTHETIC_QA_C_12frames.mp4",
+    "-filter_complex",
+    "[0:v]setsar=1,tpad=stop_mode=clone:stop=6,drawtext=text='FSM A - INCOMPLETE':x=28:y=26:fontcolor=white:fontsize=26,drawtext=text='SOURCE ENDED - last recorded frame held':x=28:y=64:fontcolor=white:fontsize=22:enable='gte(n,6)'[side0];[1:v]setsar=1,drawtext=text='PPO C - SYNTHETIC QA ONLY':x=28:y=26:fontcolor=white:fontsize=26[side1];[side0][side1]hstack=inputs=2[out]",
+    "-map",
+    "[out]",
+    "-an",
+    "-sn",
+    "-dn",
+    "-c:v",
+    "libx264",
+    "-pix_fmt",
+    "yuv420p",
+    "-crf",
+    "18",
+    "-fps_mode",
+    "passthrough",
+    "-movflags",
+    "+faststart",
+    "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_semantic_v3\\reports\\comparison_offline_qa\\SYNTHETIC_QA_comparison_NOT_ROBOT.mp4"
+  ],
+  "status": "LIMITED_SYNTHETIC_RENDER_QA_PASSED",
+  "elapsed_s": 2.8439999998081475,
+  "directory_bytes": 1151646
+}
