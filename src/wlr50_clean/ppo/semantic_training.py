@@ -104,7 +104,8 @@ def state_hash(value: Any) -> str:
 
 def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_version: str = "v2",
                            policy_version: str = LEGACY_POLICY,
-                           return_profile: str | None = None) -> dict[str, Any]:
+                           return_profile: str | None = None,
+                           observation_layout: str | None = None) -> dict[str, Any]:
     if semantic_version not in ("v2", "v3"):
         raise ValueError("unsupported semantic runtime version")
     from .semantic_policy_distribution import HISTORY_POLICY
@@ -134,7 +135,12 @@ def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_versio
     # normalizer state is still included in model checkpoints and verified.
     config["actor"]["obs_normalization"] = False
     config["critic"]["obs_normalization"] = False
-    configure_policy_distribution(config, policy_version)
+    if observation_layout is None:
+        configure_policy_distribution(config, policy_version)
+    else:
+        if semantic_version != "v3":
+            raise ValueError("appended transfer observations require v3")
+        configure_policy_distribution(config, policy_version, observation_layout=observation_layout)
     if horizon["version"] == RETURN_PROFILE:
         config[RUNNER_PROFILE_KEY] = RETURN_PROFILE
     return config
@@ -255,14 +261,16 @@ class SemanticRslAdapter:
 
 def construct_semantic_runner(env: Any, *, seed: int, device: str,
                               policy_version: str = LEGACY_POLICY,
-                              initialize_actor: bool = True) -> tuple[Any, dict[str, Any]]:
+                              initialize_actor: bool = True,
+                              observation_layout: str | None = None) -> tuple[Any, dict[str, Any]]:
     assert_supported_rsl_runtime()
     config = semantic_runner_config(seed=seed, device=device,
                                     semantic_version=env.cfg.get("semantic_version", "v2"),
-                                    policy_version=policy_version)
+                                    policy_version=policy_version, observation_layout=observation_layout)
     runner = construct_runner(env, config, log_dir=None)
     runner.logger.writer = None  # No hidden upstream automatic checkpoint writes.
     runner._semantic_policy_version = policy_version
+    runner._semantic_observation_layout = observation_layout
     runner._semantic_version = env.cfg.get("semantic_version", "v2")
     runner._semantic_runner_config = copy.deepcopy(config)
     assert_semantic_return_consistency(runner, env)
@@ -352,6 +360,15 @@ def _normalizers(runner: Any) -> dict[str, Any]:
     return {role: getattr(runner.alg, role).obs_normalizer.state_dict() for role in ("actor", "critic")}
 
 
+def _runner_policy_contract(runner: Any) -> dict[str, Any]:
+    """Bind the explicit layout, not merely an arbitrary observed tensor width."""
+    result = policy_contract(runner._semantic_policy_version,
+        observation_layout=getattr(runner, "_semantic_observation_layout", None))
+    if runner.alg.storage.observations["policy"].shape[-1] != result["observation_dimension"]:
+        raise RuntimeError("runner observation width differs from its explicit policy layout")
+    return result
+
+
 def save_semantic_checkpoint(runner: Any, checkpoint: Path, infos: Mapping[str, Any]) -> tuple[Path, Path]:
     """Publish immutable official state, then prove a real load restores it."""
     assert_semantic_return_consistency(runner, runner.env)
@@ -370,10 +387,10 @@ def save_semantic_checkpoint(runner: Any, checkpoint: Path, infos: Mapping[str, 
                 "training_rng_state": capture_training_rng_state(seed=int(infos["seed"])),
                 "physical_env_state_saved": False,
                 "resume_physics": "legal_reset_not_bitwise_continuation"}
-    if runner.alg.storage.observations["policy"].shape[-1] == 324:
-        metadata["policy_contract"] = policy_contract(runner._semantic_policy_version)
+    if runner.alg.storage.observations["policy"].shape[-1] in (324, 372):
+        metadata["policy_contract"] = _runner_policy_contract(runner)
     elif runner._semantic_policy_version != LEGACY_POLICY:
-        raise RuntimeError("state-dependent semantic checkpoints require 324 observations")
+        raise RuntimeError("state-dependent checkpoint has an unsupported observation layout")
     runner.save(str(checkpoint), infos=metadata)
     loaded = load_checkpoint_round_trip(runner, checkpoint)
     if dict(loaded) != metadata:
@@ -408,6 +425,9 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
     from .semantic_policy_distribution import policy_version_from_metadata
     if policy_version_from_metadata(metadata) != runner._semantic_policy_version:
         raise RuntimeError("checkpoint policy distribution differs from the constructed actor")
+    if runner.alg.storage.observations["policy"].shape[-1] in (324, 372):
+        if metadata.get("policy_contract") != _runner_policy_contract(runner):
+            raise RuntimeError("checkpoint observation layout differs; explicit append migration is required")
     source_return = runner_return_profile(metadata["runner_config"],
                                          semantic_version=metadata.get("semantic_version", "v2"))
     if source_return != assert_semantic_return_consistency(runner, runner.env):
@@ -618,6 +638,131 @@ def _compensate_observation_input_scales(runner: Any, transition: Mapping[str, A
             "equivalence_scope": "same physical features with both source histories unclipped (abs <= 80); floating-point tolerance, not bitwise outputs; no expanded-domain or changed-task-feature equivalence claim"}
 
 
+def _load_observation_append_source(runner: Any, checkpoint: Path, *, seed: int,
+                                    record: Mapping[str, Any]) -> dict[str, Any]:
+    """Verify the old official runner, then append zero input columns only.
+
+    The temporary source sees an immutable prefix of the current observation.
+    It cannot reset or step physics, and no source rollout is inherited.
+    """
+    import torch
+    from tensordict import TensorDict
+    from .semantic_policy_distribution import HISTORY_POLICY
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    transition = record["observation_append_transition"]
+    if (transition.get("schema") != "wlr50_clean.transfer_roles_observation_append_transition.v1"
+            or transition.get("source_observation_dimension") != 324
+            or transition.get("target_observation_dimension") != 372
+            or transition.get("source_observation_layout") is not None
+            or transition.get("target_observation_layout") != ROLE_OBSERVATION_LAYOUT
+            or transition.get("first_layer_parameter") != "mlp.0.weight"
+            or transition.get("appended_columns") != [324, 372]
+            or runner._semantic_policy_version != HISTORY_POLICY
+            or getattr(runner, "_semantic_observation_layout", None) != ROLE_OBSERVATION_LAYOUT
+            or tuple(runner.alg.storage.actions.shape) != (128, 1, 12)
+            or runner.alg.storage.step != 0 or runner.alg.transition.actions is not None):
+        raise RuntimeError("unrecognized or nonempty transfer-role input append")
+    observations = runner.env.get_observations().to(runner.device)
+    tensor = observations["policy"].detach().clone()
+    if tuple(tensor.shape) != (1, 372) or not bool(torch.isfinite(tensor).all()):
+        raise RuntimeError("role append requires one finite current372 observation")
+    source_tensor = tensor[:, :324].clone()
+
+    class SourceObservationOnly:
+        num_envs, num_actions = 1, 12
+        cfg = {"semantic_version": "v3", "observation_dimension": 324,
+               "migration_observation_only": True}
+
+        def get_observations(self):
+            return TensorDict({"policy": source_tensor.clone(), "critic": source_tensor.clone()},
+                              batch_size=[1], device=runner.device)
+
+        def reset(self, *args, **kwargs):
+            raise RuntimeError("observation append source must never reset physics")
+
+        def step(self, *args, **kwargs):
+            raise RuntimeError("observation append source must never step physics")
+
+    source, _ = construct_semantic_runner(SourceObservationOnly(), seed=seed,
+        device=str(runner.device), policy_version=HISTORY_POLICY, initialize_actor=False)
+    infos = load_semantic_checkpoint(source, checkpoint,
+        contract=record["source_runtime_contract"], seed=seed)
+    if (transition.get("source_policy_contract") != _runner_policy_contract(source)
+            or transition.get("target_policy_contract") != _runner_policy_contract(runner)
+            or any(_normalizers(source).values()) or any(_normalizers(runner).values())
+            or state_hash(_normalizers(runner)) != infos["normalizer_state_sha256"]
+            or type(source.alg.optimizer) is not torch.optim.Adam):
+        raise RuntimeError("role append source policy/identity normalizer/Adam differs")
+    mapped_states = {}
+    for role in ("actor", "critic"):
+        old = getattr(source.alg, role).state_dict()
+        target = getattr(runner.alg, role).state_dict()
+        if old.keys() != target.keys():
+            raise RuntimeError("role append cannot add model parameters except first-layer columns")
+        mapped = {}
+        for name, value in old.items():
+            candidate = target[name]
+            if value.dtype != candidate.dtype or not bool(torch.isfinite(value).all()):
+                raise RuntimeError("role append source parameter dtype or finiteness differs")
+            if name == "mlp.0.weight":
+                if tuple(value.shape) != (256, 324) or tuple(candidate.shape) != (256, 372):
+                    raise RuntimeError("role append requires the existing256-wide first Linear")
+                mapped[name] = torch.zeros_like(candidate)
+                mapped[name][:, :324].copy_(value)
+            else:
+                if value.shape != candidate.shape:
+                    raise RuntimeError("role append changed a non-input model parameter")
+                mapped[name] = value.detach().clone()
+        if "mlp.0.weight" not in mapped:
+            raise RuntimeError("role append has no reviewed first-layer parameter")
+        mapped_states[role] = mapped
+    # Validate both complete models before mutating either target.
+    for role, state in mapped_states.items():
+        getattr(runner.alg, role).load_state_dict(state, strict=True)
+        actual = getattr(runner.alg, role).state_dict()
+        if any(not torch.equal(actual[name], value) for name, value in state.items()):
+            raise RuntimeError("role append changed a copied tensor")
+    source_obs = source.env.get_observations()
+    target_obs = TensorDict({"policy": tensor, "critic": tensor.clone()}, batch_size=[1], device=runner.device)
+    with torch.inference_mode():
+        source_mean = source.alg.actor(source_obs, stochastic_output=False)
+        target_mean = runner.alg.actor(target_obs, stochastic_output=False)
+        source_head = source.alg.actor.mlp(source.alg.actor.get_latent(source_obs))
+        target_head = runner.alg.actor.mlp(runner.alg.actor.get_latent(target_obs))
+        source_std, target_std = source_head[..., 1, :].exp(), target_head[..., 1, :].exp()
+        source_value, target_value = source.alg.critic(source_obs), runner.alg.critic(target_obs)
+        for before, after in ((source_mean, target_mean), (source_std, target_std), (source_value, target_value)):
+            if not bool(torch.isfinite(before).all() & torch.isfinite(after).all()):
+                raise RuntimeError("nonfinite initial input-append comparison")
+            torch.testing.assert_close(before, after, rtol=1e-5, atol=1e-6)
+        if not bool((source_std > 0).all() & (target_std > 0).all()):
+            raise RuntimeError("role append produced invalid conditional standard deviation")
+    runner.current_learning_iteration = int(infos["ppo_updates"])
+    evidence = {"schema": "wlr50_clean.observation_append_evidence.v1",
+        "transition": copy.deepcopy(dict(transition)),
+        "source_actor_parameter_sha256": infos["actor_parameter_sha256"],
+        "source_critic_parameter_sha256": infos["critic_parameter_sha256"],
+        "appended_actor_parameter_sha256": parameter_hash(runner.alg.actor),
+        "appended_critic_parameter_sha256": parameter_hash(runner.alg.critic),
+        "source_optimizer_state_sha256_verified": infos["optimizer_state_sha256"],
+        "normalizer_state_sha256": infos["normalizer_state_sha256"],
+        "original324_columns_and_all_other_tensors_preserved": True,
+        "appended48_columns_zero_initialized": True,
+        "history_columns_195_207_and_rho_unchanged": True,
+        "mean_max_abs_difference": float((source_mean-target_mean).abs().max()),
+        "std_max_abs_difference": float((source_std-target_std).abs().max()),
+        "value_max_abs_difference": float((source_value-target_value).abs().max()),
+        "physical_steps_added": 0, "policy_decisions_added": 0, "ppo_updates_added": 0,
+        "optimizer_steps_added": 0, "old_rollout_inherited": False,
+        "optimizer_handling": "source_Adam_verified_then_fresh_Adam_3e-5_due_input_shape_change",
+        "equivalence_scope": "same original324 features; floating-point tolerance, not bitwise trajectory equivalence or complete sliding-window Markov reconstruction"}
+    return {**infos, "observation_append_evidence": evidence,
+        "actor_parameter_sha256": evidence["appended_actor_parameter_sha256"],
+        "critic_parameter_sha256": evidence["appended_critic_parameter_sha256"],
+        "policy_contract": _runner_policy_contract(runner),
+        "runner_config": copy.deepcopy(runner._semantic_runner_config)}
+
+
 def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str, Any],
                         seed: int, record: Mapping[str, Any]) -> dict[str, Any]:
     """Reuse learned networks, explicitly discard old optimizer and rollout state."""
@@ -635,12 +780,15 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
     if runner._semantic_policy_version != target_version:
         raise RuntimeError("warm-start target policy kernel differs from its explicit migration")
     storage = runner.alg.storage
+    append_transition = record.get("observation_append_transition")
+    target_dimension = 324 if append_transition is None else 372
     if (tuple(storage.actions.shape) != (128, 1, 12)
-            or storage.observations["policy"].shape[-1] != 324
+            or storage.observations["policy"].shape[-1] != target_dimension
             or storage.step != 0 or runner.alg.transition.actions is not None):
-        raise RuntimeError("v3 warm start requires fresh N1 324-observation/12-action rollout storage")
+        raise RuntimeError("v3 warm start requires fresh N1 explicit-layout/12-action rollout storage")
     expected_config = semantic_runner_config(seed=seed, device=str(runner.device), semantic_version="v3",
-                                             policy_version=runner._semantic_policy_version)
+        policy_version=runner._semantic_policy_version,
+        observation_layout=getattr(runner, "_semantic_observation_layout", None))
     # Official RSL 5.0.1 consumes these factory-only entries during construction.
     from rsl_rl.utils import resolve_callable
     for role in ("actor", "critic", "algorithm"):
@@ -651,15 +799,22 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
     if runner.cfg != expected_config:
         raise RuntimeError("v3 runner must use the explicit continuation configuration")
     assert_semantic_return_consistency(runner, runner.env)
-    infos = dict(load_checkpoint_round_trip(runner, checkpoint))
+    if append_transition is not None:
+        if kernel is not None or record.get("observation_scale_transition") is not None:
+            raise RuntimeError("input append cannot combine policy-kernel or scale compensation")
+        infos = _load_observation_append_source(runner, checkpoint, seed=seed, record=record)
+    else:
+        infos = dict(load_checkpoint_round_trip(runner, checkpoint))
     from .semantic_migration import checkpoint_metadata
     metadata = checkpoint_metadata(checkpoint)
-    if infos.get("seed") != seed or any(metadata.get(key) != value for key, value in infos.items()):
+    if infos.get("seed") != seed or (append_transition is None and any(metadata.get(key) != value for key, value in infos.items())):
         raise RuntimeError("v3 warm start source embedded metadata/seed differs from verified sidecar")
     for key, actual in (("actor_parameter_sha256", parameter_hash(runner.alg.actor)),
                         ("critic_parameter_sha256", parameter_hash(runner.alg.critic)),
                         ("optimizer_state_sha256", state_hash(runner.alg.optimizer.state_dict())),
                         ("normalizer_state_sha256", state_hash(_normalizers(runner)))):
+        if append_transition is not None and key == "optimizer_state_sha256":
+            continue  # Verified on the temporary source, never loaded into new-shaped target.
         if infos.get(key) != actual:
             raise RuntimeError(f"v3 warm start failed source {key} verification")
     if any(_normalizers(runner).values()):
@@ -933,8 +1088,8 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
             snapshot["schema"] = "wlr50_clean.semantic_on_policy_rollout.v1"
             snapshot["runtime_contract"] = dict(contract)
             snapshot["curriculum_epoch"] = copy.deepcopy(curriculum)
-            if storage.observations["policy"].shape[-1] == 324:
-                snapshot["policy_contract"] = policy_contract(runner._semantic_policy_version)
+            if storage.observations["policy"].shape[-1] in (324, 372):
+                snapshot["policy_contract"] = _runner_policy_contract(runner)
             torch.save(snapshot, rollout_dir / f"rollout_{base_updates + iteration + 1:06d}.pt")
             global_step = base_global + (iteration + 1) * batch
             runner.alg.entropy_coef = 0.005 + (0.001 - 0.005) * min(global_step / sum(STAGE_BUDGETS.values()), 1.0)
@@ -955,7 +1110,8 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                 spent[stage] += min((iteration + 1) * batch, decisions)
                 from .semantic_migration import topology
                 infos = {"runtime_contract": dict(contract), "seed": seed, "stage": stage,
-                         "execution_topology": topology(env.num_envs),
+                         "execution_topology": topology(env.num_envs,
+                             observation_layout=getattr(runner, "_semantic_observation_layout", None)),
                          "phase_suffix_curriculum_implemented": prefix_request is not None,
                          "semantic_version": semantic_version,
                          "curriculum_epoch": {**copy.deepcopy(curriculum),
@@ -969,11 +1125,12 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                          "last_update": update}
                 if semantic_version == "v3":
                     from .semantic_migration import continuation_topology
-                    infos["execution_topology"] = continuation_topology(sampling, prefix_request)
+                    infos["execution_topology"] = continuation_topology(sampling, prefix_request,
+                        observation_layout=getattr(runner, "_semantic_observation_layout", None))
                 for key in ("new_mdp_warm_start", "new_mdp_origin_global_policy_decisions", "source_stage_requested_decisions",
                             "new_mdp_initial_action_comparison", "policy_distribution_migration",
                             "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison",
-                            "observation_scale_compensation_evidence"):
+                            "observation_scale_compensation_evidence", "observation_append_evidence"):
                     if key in previous:
                         infos[key] = previous[key]
                 if previous:
@@ -1010,8 +1167,8 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     result["phase_suffix_curriculum_implemented"] = prefix_request is not None
     result["semantic_version"] = semantic_version
     result["runner_config"] = copy.deepcopy(runner._semantic_runner_config)
-    if runner.alg.storage.observations["policy"].shape[-1] == 324:
-        result["policy_contract"] = policy_contract(runner._semantic_policy_version)
+    if runner.alg.storage.observations["policy"].shape[-1] in (324, 372):
+        result["policy_contract"] = _runner_policy_contract(runner)
     result["curriculum_epoch"] = copy.deepcopy(curriculum)
     result["implemented_sampling"] = env.cfg.get("reset_sampling", "P01_only")
     if gpu_probe is not None:

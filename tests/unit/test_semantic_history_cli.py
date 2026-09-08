@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from wlr50_clean.ppo import semantic_cli as cli
-from wlr50_clean.ppo.semantic_policy_distribution import HISTORY_POLICY, STATE_DEPENDENT_POLICY
+from wlr50_clean.ppo.semantic_policy_distribution import HISTORY_POLICY, STATE_DEPENDENT_POLICY, policy_contract
 from wlr50_clean.ppo.semantic_training import semantic_runner_config
 
 
@@ -59,20 +59,27 @@ def test_history_factory_rejects_v2_before_constructing_a_model():
 
 def test_preflight_sets_only_the_verified_explicit_target(monkeypatch, tmp_path):
     from wlr50_clean.ppo import semantic_migration as migration
-    source = {"runtime_contract": {"old": True}, "seed": 1001}
+    source = {"runtime_contract": {"old": True}, "seed": 1001, "semantic_version": "v3",
+              "policy_contract": policy_contract(STATE_DEPENDENT_POLICY),
+              "runner_config": semantic_runner_config(seed=1001, device="cpu", semantic_version="v3",
+                                                       policy_version=STATE_DEPENDENT_POLICY)}
     record = {"policy_kernel_transition": {"target_policy_version": HISTORY_POLICY}}
     seen = []
     monkeypatch.setattr(migration, "checkpoint_metadata", lambda checkpoint: source)
-    monkeypatch.setattr(cli, "policy_version_from_metadata", lambda metadata: STATE_DEPENDENT_POLICY)
     def build(checkpoint, contract, **kwargs):
         seen.append(kwargs)
         return record
     monkeypatch.setattr(migration, "build_v3_warm_start_record", build)
     monkeypatch.setattr(migration, "v3_warm_start_checkpoint_name", lambda bound: "not-created.pt")
+    # This is the historical 324 kernel transition, not the separate append48
+    # migration. Supply a complete validated old target schema to preflight.
+    legacy_schema = Path(cli.__file__).resolve().parents[3] / "configs/ppo_semantic_v2/observation_schema.json"
+    (tmp_path / "observation_schema.json").write_bytes(legacy_schema.read_bytes())
     monkeypatch.setattr(cli, "version_paths", lambda version: (tmp_path, tmp_path, tmp_path))
     args = request(seed=1001)
     cli._preflight_checkpoint(args, {"target": True})
     assert args._policy_version == HISTORY_POLICY and args._warm_start_record == record
+    assert args._observation_layout is None
     assert seen == [{"project_root": cli.PROJECT_ROOT, "target_policy_version": HISTORY_POLICY}]
 
 

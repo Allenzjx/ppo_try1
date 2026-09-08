@@ -10,6 +10,10 @@ from typing import Any, Mapping, Sequence
 from wlr50_clean.infrastructure.command_batch import SERVO_ORDER, WHEEL_ORDER
 from wlr50_clean.infrastructure.servo_target_mapper import SERVO_TRACKING_FEEDBACK_INTERVAL_TICKS
 from .observation_schema_v2 import _quat_rotate_inverse
+from .semantic_transfer_roles import (
+    LEGS as ROLE_LEGS, ROLE_OBSERVATION_LAYOUT, ROLE_OBSERVATION_GROUP,
+    ROLE_OBSERVATION_BASE_DIM, ROLE_OBSERVATION_DIM, ROLE_OBSERVATION_FIELDS,
+)
 
 CONFIG_ROOT = Path(__file__).resolve().parents[3] / "configs" / "ppo_semantic_v2"
 DEFAULT_OBSERVATION_SCHEMA = CONFIG_ROOT / "observation_schema.json"
@@ -110,6 +114,7 @@ class SemanticObservationSchema:
     maximum_task_duration_s: float
     clip: float
     path: Path
+    transfer_role_features_version: str | None = None
 
     @property
     def dimension(self) -> int:
@@ -138,11 +143,90 @@ def load_semantic_observation_schema(path: Path | str = DEFAULT_OBSERVATION_SCHE
     groups = tuple(data["feature_groups"])
     if not groups or len({x["name"] for x in groups}) != len(groups) or any(type(x["size"]) is not int or x["size"] <= 0 for x in groups):
         raise SemanticObservationError("invalid feature sizes/names")
+    role_layout = data.get("transfer_role_features_version")
+    if role_layout is None:
+        if any(row["name"] == ROLE_OBSERVATION_GROUP for row in groups):
+            raise SemanticObservationError("role observation group requires its explicit layout marker")
+    elif role_layout != ROLE_OBSERVATION_LAYOUT:
+        raise SemanticObservationError("unknown transfer role observation layout")
+    else:
+        expected = {"name": ROLE_OBSERVATION_GROUP, "size": len(ROLE_LEGS)*len(ROLE_OBSERVATION_FIELDS), "scale": 1.0}
+        if (groups[-1] != expected or type(groups[-1].get("scale")) not in (int, float)
+                or sum(row["size"] for row in groups[:-1]) != ROLE_OBSERVATION_BASE_DIM
+                or sum(row["size"] for row in groups) != ROLE_OBSERVATION_DIM):
+            raise SemanticObservationError("role observation layout must append exactly 48 scale-one features after 324")
     duration, clip = finite(data["maximum_task_duration_s"], "timeout"), finite(data["clip"], "clip")
     if duration != 200.0 or clip <= 0.0:
         raise SemanticObservationError("semantic observation needs 200 second task horizon and positive clipping")
     return SemanticObservationSchema(groups, _quaternion(data["fixed_chassis_to_body_wxyz"]),
-                                     duration, clip, selected)
+                                     duration, clip, selected, role_layout)
+
+
+def transfer_role_observation_features(task: Mapping[str, Any]) -> tuple[float, ...]:
+    """Expose current role consumers and window maturity, not the full deque.
+
+    Missing optional rows and explicitly invalid rows have a validity bit of
+    zero and unavailable zero fillers. A declared-valid malformed row is an
+    observation error, not a valid zero transfer or support measurement.
+    """
+    roles = task.get("transfer_roles")
+    if roles is None:
+        roles = {}
+    if not isinstance(roles, Mapping) or not set(roles) <= set(ROLE_LEGS):
+        raise SemanticObservationError("invalid transfer role mapping")
+
+    def number(value: Any, label: str) -> float:
+        if type(value) not in (int, float):
+            raise SemanticObservationError(f"{label} must be a number, not a boolean/string")
+        return finite(value, label)
+
+    def unit(value: Any, label: str, lower: float = 0.0) -> float:
+        result = number(value, label)
+        if not lower <= result <= 1.0:
+            raise SemanticObservationError(f"{label} outside [{lower},1]")
+        return result
+
+    result = []
+    for leg in ROLE_LEGS:
+        role = roles.get(leg)
+        if role is None:
+            result.extend((0.0,)*len(ROLE_OBSERVATION_FIELDS))
+            continue
+        if not isinstance(role, Mapping) or type(role.get("valid")) is not bool:
+            raise SemanticObservationError(f"{leg} role validity must be boolean")
+        if not role["valid"]:
+            result.extend((0.0,)*len(ROLE_OBSERVATION_FIELDS))
+            continue
+        values = [1.0]
+        for key in ROLE_OBSERVATION_FIELDS[1:5]:
+            values.append(unit(field(role, key), f"{leg}.{key}"))
+        for key in ROLE_OBSERVATION_FIELDS[5:7]:
+            value = field(role, key)
+            if type(value) is not bool:
+                raise SemanticObservationError(f"{leg}.{key} must be boolean")
+            values.append(float(value))
+        context = field(role, "transfer_direction_context")
+        if not isinstance(context, Mapping):
+            raise SemanticObservationError(f"{leg} transfer direction context must be a mapping")
+        direction = field(context, "fixed_direction_world")
+        if not isinstance(direction, (list, tuple)) or len(direction) != 3:
+            raise SemanticObservationError(f"{leg} transfer direction must have three components")
+        direction = tuple(unit(x, f"{leg}.fixed_direction_world", -1.0) for x in direction)
+        if direction[2] != 0.0:
+            raise SemanticObservationError(f"{leg} transfer direction must be planar")
+        values.extend(direction[:2])
+        values.append(unit(field(context, "short_support_continuity_fraction"), f"{leg}.short_support_continuity_fraction"))
+        minimum = number(field(context, "minimum_evidence_s"), f"{leg}.minimum_evidence_s")
+        if minimum <= 0.0:
+            raise SemanticObservationError(f"{leg} minimum evidence time must be positive")
+        for key in ("continued_response_duration_s", "window_s"):
+            elapsed = number(field(context, key), f"{leg}.{key}")
+            if elapsed < 0.0:
+                raise SemanticObservationError(f"{leg}.{key} must be nonnegative")
+            # Compare first: very long finite durations need not overflow a ratio.
+            values.append(1.0 if elapsed >= minimum else elapsed/minimum)
+        result.extend(values)
+    return tuple(result)
 
 
 @dataclass(frozen=True)
@@ -266,6 +350,8 @@ class SemanticObservationBuilder:
         for key in ("requested_servo_deg", "tracking_compensation_deg", "applied_drive_command_deg", "final_drive_servo_deg", "nominal_target_reached", "tracking_active", "retiring_stale_bias"):
             groups["mapper_"+key] = vector(field(mapper,key),8,key)
         groups["mapper_feedback_phase"] = (float(int(field(mapper,"feedback_tick")) % SERVO_TRACKING_FEEDBACK_INTERVAL_TICKS),)
+        if self.schema.transfer_role_features_version == ROLE_OBSERVATION_LAYOUT:
+            groups[ROLE_OBSERVATION_GROUP] = transfer_role_observation_features(task)
         self.schema.encode(groups)
         mass = finite(field(com,"total_mass_kg"),"robot mass")
         if mass <= 0.0 or field(com,"valid") is not True:

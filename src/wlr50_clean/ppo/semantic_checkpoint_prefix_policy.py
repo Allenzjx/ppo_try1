@@ -49,7 +49,7 @@ def _source_record(source: Mapping[str, Any]) -> dict[str, Any]:
     try:
         supported_heteroscedastic_contract_version(record.get("policy_contract"))
     except ValueError as error:
-        raise ValueError("checkpoint prefix requires the verified heteroscedastic 324 policy contract") from error
+        raise ValueError("checkpoint prefix requires the exact supported heteroscedastic policy contract") from error
     runtime_hash = record.get("source_runtime_content_sha256")
     if runtime_hash is not None and (
         not isinstance(runtime_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", runtime_hash)
@@ -73,10 +73,12 @@ class FrozenCheckpointPrefixPolicy:
 
         record = _source_record(source_checkpoint)
         version = supported_heteroscedastic_contract_version(record["policy_contract"])
+        dimension = record["policy_contract"]["observation_dimension"]
+        layout = record["policy_contract"].get("observation_layout")
         expected_class = SemanticHistoryMLPModel if version == HISTORY_POLICY else MLPModel
         if not isinstance(actor, torch.nn.Module) or getattr(actor, "is_recurrent", False):
             raise ValueError("checkpoint prefix requires a nonrecurrent torch actor")
-        # Both kernels deliberately have identical learned tensor layouts.
+        # At the same input layout both kernels have identical learned tensors.
         # A parameter hash therefore cannot distinguish their inference laws.
         # Reject subclasses and per-instance kernel replacements, rather than
         # relabeling a legacy mean as a history-conditioned mean (or vice versa).
@@ -89,10 +91,11 @@ class FrozenCheckpointPrefixPolicy:
                 or getattr(distribution.deterministic_output, "__func__", None)
                 is not HeteroscedasticGaussianDistribution.deterministic_output
                 or distribution.std_type != "log" or distribution.output_dim != 12
-                or getattr(actor, "obs_dim", None) != 324
+                or getattr(actor, "obs_dim", None) != dimension
+                or getattr(actor, "observation_layout", None) != layout
                 or list(getattr(actor, "obs_groups", ())) != ["policy"]
                 or not isinstance(getattr(actor, "obs_normalizer", None), torch.nn.Module)):
-            raise ValueError("actor does not implement the supported 324-to-12 heteroscedastic RSL interface")
+            raise ValueError("actor does not implement its declared observation layout and Full12 heteroscedastic RSL interface")
         if version == HISTORY_POLICY and (
                 actor.obs_normalization is not False
                 or type(actor.obs_normalizer) is not torch.nn.Identity):
@@ -141,6 +144,7 @@ class FrozenCheckpointPrefixPolicy:
         frozen.requires_grad_(False)
         self._actor = frozen
         self._device = device
+        self._observation_dimension = dimension
         self._provenance = {
             **record,
             "prefix_policy_schema": "wlr50_clean.frozen_checkpoint_prefix_policy.v1",
@@ -160,8 +164,8 @@ class FrozenCheckpointPrefixPolicy:
         import torch
         from tensordict import TensorDict
 
-        if not isinstance(observation, (tuple, list)) or len(observation) != 324:
-            raise ValueError("checkpoint prefix observation must have exactly 324 values")
+        if not isinstance(observation, (tuple, list)) or len(observation) != self._observation_dimension:
+            raise ValueError(f"checkpoint prefix observation must have exactly {self._observation_dimension} values")
         if any(isinstance(v, bool) or not isinstance(v, Real) or not math.isfinite(v) for v in observation):
             raise ValueError("checkpoint prefix observation must contain finite real values")
         with torch.inference_mode():

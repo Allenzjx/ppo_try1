@@ -15,6 +15,9 @@ from rsl_rl.models import MLPModel
 from rsl_rl.modules import HiddenState
 from rsl_rl.modules.distribution import HeteroscedasticGaussianDistribution
 from rsl_rl.utils import unpad_trajectories
+from .semantic_transfer_roles import (
+    ROLE_OBSERVATION_LAYOUT, ROLE_OBSERVATION_BASE_DIM, ROLE_OBSERVATION_DIM,
+)
 
 HISTORY_RHO = 0.9
 HISTORY_START = 195
@@ -69,19 +72,28 @@ class SemanticHistoryMLPModel(MLPModel):
         output_dim: int, hidden_dims: tuple[int, ...] | list[int] = (256, 256),
         activation: str = "elu", obs_normalization: bool = False,
         distribution_cfg: dict | None = None,
+        observation_layout: str | None = None,
     ) -> None:
+        if observation_layout is not None and (
+                type(observation_layout) is not str or observation_layout != ROLE_OBSERVATION_LAYOUT):
+            raise ValueError("history actor observation layout is unsupported")
+        dimension = ROLE_OBSERVATION_BASE_DIM if observation_layout is None else ROLE_OBSERVATION_DIM
         if (obs_normalization is not False or obs_set != "actor" or output_dim != 12
                 or obs_groups.get(obs_set) != ["policy"]
                 or "policy" not in obs or obs["policy"].ndim != 2
-                or obs["policy"].shape[-1] != 324
+                or obs["policy"].shape[-1] != dimension
                 or not isinstance(distribution_cfg, dict)
                 or distribution_cfg.get("class_name") != "HeteroscedasticGaussianDistribution"
                 or distribution_cfg.get("std_type") != "log"):
-            raise ValueError("history actor requires identity-normalized policy324 and log-Gaussian Full12")
+            raise ValueError("history actor requires its explicit identity-normalized policy layout and log-Gaussian Full12")
         super().__init__(obs, obs_groups, obs_set, output_dim, hidden_dims,
                          activation, obs_normalization, distribution_cfg)
         if type(self.distribution) is not HeteroscedasticGaussianDistribution:
             raise ValueError("history actor requires the official heteroscedastic distribution")
+        # Preserve the legacy actor's attribute layout as well as its state_dict.
+        # This immutable configuration label is not action history or a buffer.
+        if observation_layout is not None:
+            self.observation_layout = observation_layout
 
     def forward(
         self, obs: TensorDict, masks: torch.Tensor | None = None,
@@ -90,8 +102,11 @@ class SemanticHistoryMLPModel(MLPModel):
         # Match the official nonrecurrent padded-minibatch path exactly.
         obs = unpad_trajectories(obs, masks) if masks is not None and not self.is_recurrent else obs
         latent = self.get_latent(obs, masks, hidden_state)
-        if latent.shape[-1] != 324:
-            raise ValueError("history actor observation must have exactly 324 columns")
+        expected_dimension = (ROLE_OBSERVATION_BASE_DIM if getattr(self, "observation_layout", None) is None
+                              else ROLE_OBSERVATION_DIM)
+        if (getattr(self, "observation_layout", None) not in (None, ROLE_OBSERVATION_LAYOUT)
+                or self.obs_dim != expected_dimension or latent.shape[-1] != expected_dimension):
+            raise ValueError("history actor observation differs from its explicit layout")
         head = history_conditioned_head(
             self.mlp(latent), latent[..., HISTORY_START:HISTORY_STOP], HISTORY_RHO)
         if stochastic_output:

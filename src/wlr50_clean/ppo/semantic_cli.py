@@ -25,7 +25,7 @@ from .semantic_migration import experiment_namespace, topology, stage_partition
 from .semantic_policy_distribution import (
     LEGACY_POLICY, STATE_DEPENDENT_POLICY, HISTORY_POLICY, policy_contract,
     policy_version_from_metadata, build_policy_distribution_migration,
-    policy_migration_checkpoint_name,
+    policy_migration_checkpoint_name, policy_observation_layout_from_metadata,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -258,10 +258,14 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
     args._warm_start_record = None
     args._policy_migration_record = None
     args._policy_version = LEGACY_POLICY
+    args._observation_layout = None
     if args.checkpoint is None:
         if getattr(args, "policy_distribution_migration", False):
             raise ValueError("policy distribution migration requires a saved checkpoint")
         return
+    from .semantic_observation import load_semantic_observation_schema
+    target_schema = load_semantic_observation_schema(_request_paths(args)[2] / "observation_schema.json")
+    args._observation_layout = getattr(target_schema, "transfer_role_features_version", None)
     from .semantic_migration import checkpoint_metadata, validate_migration_plan
     metadata = checkpoint_metadata(args.checkpoint)
     if (not args.new_mdp_warm_start and args.resume_migration is None
@@ -269,6 +273,9 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
             and metadata["runtime_contract"] != contract):
         raise ValueError("checkpoint runtime changed; an explicit reviewed resume migration is required")
     args._policy_version = policy_version_from_metadata(metadata)
+    source_layout = policy_observation_layout_from_metadata(metadata)
+    if not args.new_mdp_warm_start and source_layout != args._observation_layout:
+        raise ValueError("checkpoint observation layout differs; explicit new-MDP append migration is required")
     if getattr(args, "policy_distribution_migration", False):
         # Repeat the scope check here: this boundary must remain safe even when
         # called directly by another entry point before any native launch.
@@ -290,6 +297,9 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
         if getattr(args, "target_policy_version", None) is not None:
             options["target_policy_version"] = args.target_policy_version
         args._warm_start_record = build_v3_warm_start_record(args.checkpoint, contract, project_root=PROJECT_ROOT, **options)
+        append = args._warm_start_record.get("observation_append_transition")
+        if append is not None and append["target_observation_layout"] != args._observation_layout:
+            raise ValueError("append migration target layout differs from the current observation schema")
         if options:
             args._policy_version = args._warm_start_record["policy_kernel_transition"]["target_policy_version"]
         if metadata["seed"] != args.seed:
@@ -322,6 +332,28 @@ def _resolved_policy_version(args: argparse.Namespace) -> str:
     return policy_version_from_metadata(checkpoint_metadata(args.checkpoint))
 
 
+def _resolved_observation_layout(args: argparse.Namespace) -> str | None:
+    if hasattr(args, "_observation_layout"):
+        return args._observation_layout
+    append = (getattr(args, "_warm_start_record", None) or {}).get("observation_append_transition")
+    if append is not None:
+        return append["target_observation_layout"]
+    if args.checkpoint is None:
+        return None
+    from .semantic_migration import checkpoint_metadata
+    return policy_observation_layout_from_metadata(checkpoint_metadata(args.checkpoint))
+
+
+def _resolved_policy_contract(args: argparse.Namespace) -> dict[str, Any]:
+    return policy_contract(_resolved_policy_version(args),
+                           observation_layout=_resolved_observation_layout(args))
+
+
+def _observation_layout_options(args: argparse.Namespace) -> dict[str, str]:
+    layout = _resolved_observation_layout(args)
+    return {} if layout is None else {"observation_layout": layout}
+
+
 def _save_policy_migration_initial(runner: Any, env: Any, args: argparse.Namespace,
                                    contract: dict[str, Any], output_root: Path,
                                    previous: dict[str, Any]) -> None:
@@ -335,14 +367,16 @@ def _save_policy_migration_initial(runner: Any, env: Any, args: argparse.Namespa
     initial_infos = {**previous, "runtime_contract": contract, "semantic_version": args.semantic_version,
         "stage": "initial_policy_distribution_migration",
         "policy_distribution_migration": record,
-        "policy_contract": policy_contract(_resolved_policy_version(args)),
-        "execution_topology": continuation_topology(env.cfg["reset_sampling"], env.cfg.get("prefix_request")),
+        "policy_contract": _resolved_policy_contract(args),
+        "execution_topology": continuation_topology(env.cfg["reset_sampling"], env.cfg.get("prefix_request"),
+            observation_layout=_resolved_observation_layout(args)),
         "curriculum_epoch": semantic_curriculum_epoch(env.cfg),
         "sampling": env.cfg["reset_sampling"],
         "implemented_reset_sampling": env.cfg["reset_sampling"],
         "phase_suffix_curriculum_implemented": env.cfg.get("prefix_request") is not None,
         "runner_config": semantic_runner_config(seed=args.seed, device=args.device,
-            semantic_version=args.semantic_version, policy_version=_resolved_policy_version(args))}
+            semantic_version=args.semantic_version, policy_version=_resolved_policy_version(args),
+            observation_layout=_resolved_observation_layout(args))}
     save_semantic_checkpoint(runner, initial, initial_infos)
 
 
@@ -378,7 +412,8 @@ def _evaluation_body(core: Any, args: argparse.Namespace, *, contract: dict[str,
                 return TensorDict({"policy": tensor, "critic": tensor.clone()}, batch_size=[1], device=args.device)
         metadata = json.loads(args.checkpoint.with_name(args.checkpoint.stem + "_manifest.json").read_text())
         runner, _ = construct_semantic_runner(ObservationEnv(), seed=int(metadata["seed"]), device=args.device,
-            policy_version=_resolved_policy_version(args), initialize_actor=False)
+            policy_version=_resolved_policy_version(args), initialize_actor=False,
+            **_observation_layout_options(args))
         load_semantic_checkpoint(runner, args.checkpoint, contract=contract, seed=int(metadata["seed"]),
                                  migration=getattr(args, "_migration_record", None))
         runner.alg.eval_mode()
@@ -439,7 +474,7 @@ def _evaluation_body(core: Any, args: argparse.Namespace, *, contract: dict[str,
               "runtime_contract": contract, "physical_failure_is_not_interface_failure": True,
               "evaluation_seed_interpretation": "deterministic_repetition_without_randomization"}
     result["checkpoint_resume_migration"] = getattr(args, "_migration_record", None)
-    result["policy_contract"] = None if runner is None else policy_contract(_resolved_policy_version(args))
+    result["policy_contract"] = None if runner is None else _resolved_policy_contract(args)
     result["optimizer_updates_during_evaluation"] = 0
     if args.command == "smoke":
         result["interface_smoke"] = {"reset_count": reset_count, "reset_records": reset_records,
@@ -731,7 +766,8 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
             env = SemanticRslAdapter(core, seed=args.seed, device=args.device)
         env.cfg["semantic_version"] = args.semantic_version
         runner, _ = construct_semantic_runner(env, seed=args.seed, device=args.device,
-            policy_version=_resolved_policy_version(args), initialize_actor=args.checkpoint is None)
+            policy_version=_resolved_policy_version(args), initialize_actor=args.checkpoint is None,
+            **_observation_layout_options(args))
         previous = None
         if args.checkpoint is not None:
             previous = load_semantic_checkpoint(runner, args.checkpoint, contract=contract, seed=args.seed,
@@ -749,7 +785,7 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                     "actor_parameter_sha256": previous["actor_parameter_sha256"],
                     "source_global_policy_decisions": previous["global_policy_decisions"],
                     "source_ppo_updates": previous["ppo_updates"],
-                    "policy_contract": policy_contract(_resolved_policy_version(args)),
+                    "policy_contract": _resolved_policy_contract(args),
                     "source_runtime_content_sha256": previous["runtime_contract"]["runtime_content_sha256"],
                 })
                 env.install_prefix_policy(frozen_prefix, frozen_prefix.provenance)
@@ -780,14 +816,16 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                     previous["new_mdp_initial_policy_kernel_comparison"] = {
                         "path": str(kernel_path.resolve()), "sha256": sha256_file(kernel_path)}
                 initial_infos = {**previous, "runtime_contract": contract, "stage": "initial_v3_warm_start",
-                                 "execution_topology": continuation_topology(env.cfg["reset_sampling"], env.cfg.get("prefix_request")),
+                                 "execution_topology": continuation_topology(env.cfg["reset_sampling"], env.cfg.get("prefix_request"),
+                                     observation_layout=_resolved_observation_layout(args)),
                                  "curriculum_epoch": semantic_curriculum_epoch(env.cfg),
                                  "sampling": env.cfg["reset_sampling"],
                                  "implemented_reset_sampling": env.cfg["reset_sampling"],
                                  "phase_suffix_curriculum_implemented": env.cfg.get("prefix_request") is not None,
-                                 "policy_contract": policy_contract(_resolved_policy_version(args)),
+                                 "policy_contract": _resolved_policy_contract(args),
                                  "runner_config": semantic_runner_config(seed=args.seed, device=args.device,
-                                     semantic_version=args.semantic_version, policy_version=_resolved_policy_version(args))}
+                                     semantic_version=args.semantic_version, policy_version=_resolved_policy_version(args),
+                                     observation_layout=_resolved_observation_layout(args))}
                 save_semantic_checkpoint(runner, output_root / "checkpoints/history" /
                     v3_warm_start_checkpoint_name(args._warm_start_record), initial_infos)
         else:
@@ -795,12 +833,13 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
             save_semantic_checkpoint(runner, initial, {
                 "seed": args.seed, "runtime_contract": contract, "stage": "initial",
                 "semantic_version": args.semantic_version,
-                "policy_contract": policy_contract(_resolved_policy_version(args)),
-                "execution_topology": topology(1),
+                "policy_contract": _resolved_policy_contract(args),
+                "execution_topology": topology(1, observation_layout=_resolved_observation_layout(args)),
                 "global_policy_decisions": 0, "ppo_updates": 0, "optimizer_steps": 0,
                 "stage_requested_decisions": {stage: 0 for stage in STAGE_BUDGETS},
                 "runner_config": semantic_runner_config(seed=args.seed, device=args.device,
-                    semantic_version=args.semantic_version, policy_version=_resolved_policy_version(args)),
+                    semantic_version=args.semantic_version, policy_version=_resolved_policy_version(args),
+                    observation_layout=_resolved_observation_layout(args)),
             })
         remaining = STAGE_BUDGETS[args.stage] - int((previous or {}).get("stage_requested_decisions", {}).get(args.stage, 0))
         return train_semantic(runner, env, run_dir=args.run_dir, output_root=output_root,

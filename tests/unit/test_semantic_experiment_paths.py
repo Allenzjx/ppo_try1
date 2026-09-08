@@ -21,9 +21,15 @@ GROUPS = ("previous_residual_full12", "previous_previous_residual_full12")
 
 def schema_with_scale(scale):
     schema = json.loads((ROOT / "configs/ppo_semantic_v3/observation_schema.json").read_text())
+    # This suite covers the original324 scale boundary, not the separately
+    # reviewed role append. Keep its old encoder explicit as production grows.
+    schema.pop("transfer_role_features_version", None)
+    schema["feature_groups"] = [group for group in schema["feature_groups"]
+                                if group["name"] != "transfer_role_context_full48"]
     for group in schema["feature_groups"]:
         if group["name"] in GROUPS:
             group["scale"][3] = scale
+    assert sum(group["size"] for group in schema["feature_groups"]) == 324
     return schema
 
 
@@ -63,6 +69,11 @@ def arguments(tmp_path, checkpoint=None, *, warm=False, phase="P01", experiment=
 
 @pytest.fixture
 def routed(tmp_path, monkeypatch):
+    # CLI preflight now reads the actual target schema before resolving the
+    # actor. A routed old324 checkpoint needs a real matching old324 fixture.
+    observation = tmp_path / "configs/ppo_semantic_v3/observation_schema.json"
+    observation.parent.mkdir(parents=True)
+    observation.write_text(json.dumps(schema_with_scale(6)), encoding="utf-8")
     monkeypatch.setattr(cli, "PROJECT_ROOT", tmp_path)
     monkeypatch.setattr(cli, "OUTPUT_ROOT", tmp_path / "outputs/ppo_semantic_v2")
     monkeypatch.setattr(cli, "RUNS_ROOT", tmp_path / "runs/ppo_semantic_v2")

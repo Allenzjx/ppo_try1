@@ -14,23 +14,35 @@ from wlr50_clean.ppo import semantic_cli as cli
 from wlr50_clean.ppo import semantic_migration as migration
 from wlr50_clean.ppo import semantic_video_cli as video_cli
 from wlr50_clean.ppo.semantic_policy_distribution import (
-    LEGACY_POLICY, STATE_DEPENDENT_POLICY, policy_contract,
+    LEGACY_POLICY, STATE_DEPENDENT_POLICY, HISTORY_POLICY, policy_contract,
 )
+from wlr50_clean.ppo.semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+
+REAL_ROOT = Path(__file__).resolve().parents[2]
 
 
-def metadata(version=LEGACY_POLICY, *, contract=None, explicit=True):
+def write_legacy_layout(config_dir):
+    """Keep these old distribution tests on a complete explicit 324 schema."""
+    config_dir.mkdir(parents=True, exist_ok=True)
+    (config_dir / "observation_schema.json").write_bytes(
+        (REAL_ROOT / "configs/ppo_semantic_v2/observation_schema.json").read_bytes())
+
+
+def metadata(version=LEGACY_POLICY, *, contract=None, explicit=True, observation_layout=None):
+    layout_options = {} if observation_layout is None else {"observation_layout": observation_layout}
     result = {"seed": 1001, "semantic_version": "v3", "runtime_contract": contract or {"version": 1},
         "runner_config": cli.semantic_runner_config(seed=1001, device="cpu", semantic_version="v3",
-                                                     policy_version=version),
+                                                     policy_version=version, **layout_options),
         "stage_requested_decisions": {"smoke": 0, "phase_suffix": 15360, "full_episode": 12800}}
     if explicit:
-        result["policy_contract"] = policy_contract(version)
+        result["policy_contract"] = policy_contract(version, **layout_options)
     return result
 
 
 @pytest.fixture
 def context(tmp_path, monkeypatch):
     monkeypatch.setattr(cli, "PROJECT_ROOT", tmp_path)
+    write_legacy_layout(tmp_path / "configs/ppo_semantic_v3")
     checkpoint = tmp_path / "outputs/ppo_semantic_v3/checkpoints/history/source.pt"
     checkpoint.parent.mkdir(parents=True)
     checkpoint.write_bytes(b"CLI plumbing checkpoint, tensor integrity tested by loader suite")
@@ -108,6 +120,7 @@ def test_checkpoint_type_auto_selected_without_conversion_flag(context, version,
     checkpoint.with_name("source_manifest.json").write_text(json.dumps(metadata(version, explicit=explicit)))
     cli._preflight_checkpoint(args, {"version": 1})
     assert args._policy_version == version and args._policy_migration_record is None
+    assert args._observation_layout is None
     del args._policy_version
     assert cli._resolved_policy_version(args) == version
 
@@ -128,16 +141,44 @@ def test_missing_new_namespace_flag_defaults_to_no_conversion(context):
     assert args._policy_version == LEGACY_POLICY and args._policy_migration_record is None
 
 
-def test_actual_38272_legacy_checkpoint_metadata_auto_selects_old_distribution():
+def test_actual_38272_legacy_checkpoint_metadata_auto_selects_old_distribution(tmp_path, monkeypatch):
     source = Path(cli.__file__).resolve().parents[3] / "outputs/ppo_semantic_v3/checkpoints/history/checkpoint_step_000038272.pt"
     if not source.is_file():
         pytest.skip("immutable local 38272 checkpoint not present")
     value = migration.checkpoint_metadata(source)
+    # Exercise actual old metadata with an explicitly old layout. This is not
+    # permission to evaluate its 324 weights against today's 372 encoder.
+    write_legacy_layout(tmp_path)
+    monkeypatch.setattr(cli, "version_paths", lambda version: (tmp_path, tmp_path, tmp_path))
     args = cli.parser().parse_args(["eval", "--run-dir", "unused_cpu_preflight", "--expected-head", "a" * 40,
         "--semantic-version", "v3", "--checkpoint", str(source), "--mode", "semantic_residual_eval", "--seed", "2001"])
     cli._preflight_checkpoint(args, value["runtime_contract"])
     assert args._policy_version == LEGACY_POLICY and args._policy_migration_record is None
+    assert args._observation_layout is None
     assert value["global_policy_decisions"] == 38272
+
+
+@pytest.mark.parametrize("source_layout", [None, ROLE_OBSERVATION_LAYOUT])
+def test_role372_preflight_requires_matching_complete_layout_metadata(context, source_layout):
+    args, checkpoint = context
+    target = cli.PROJECT_ROOT / "configs/ppo_semantic_v3/observation_schema.json"
+    target.write_bytes((REAL_ROOT / "configs/ppo_semantic_v3/observation_schema.json").read_bytes())
+    source = metadata(HISTORY_POLICY, observation_layout=source_layout)
+    checkpoint.with_name("source_manifest.json").write_text(json.dumps(source), encoding="utf-8")
+    if source_layout is None:
+        with pytest.raises(ValueError, match="observation layout differs"):
+            cli._preflight_checkpoint(args, {"version": 1})
+        return
+    cli._preflight_checkpoint(args, {"version": 1})
+    assert args._observation_layout == ROLE_OBSERVATION_LAYOUT
+    assert args._policy_version == HISTORY_POLICY
+    assert cli._resolved_policy_contract(args) == policy_contract(HISTORY_POLICY, observation_layout=source_layout)
+    assert cli._resolved_policy_contract(args)["observation_dimension"] == 372
+    # Complete runner validation remains active, not just a matching dimension.
+    source["runner_config"]["actor"]["obs_normalization"] = True
+    checkpoint.with_name("source_manifest.json").write_text(json.dumps(source), encoding="utf-8")
+    with pytest.raises(ValueError):
+        cli._preflight_checkpoint(args, {"version": 1})
 
 
 @pytest.mark.parametrize("mode", ["legacy_fsm_eval", "semantic_prior_eval"])
@@ -240,6 +281,7 @@ def test_train_migration_wiring_saves_immutable_initial_with_unchanged_ledger(co
     args, checkpoint = context
     args.policy_distribution_migration = True
     args._policy_version = STATE_DEPENDENT_POLICY
+    args._observation_layout = None  # Direct dispatch starts after legacy preflight resolution.
     args._policy_migration_record = {"source_policy_version": LEGACY_POLICY, "target_policy_version": STATE_DEPENDENT_POLICY}
     args._migration_record = args._warm_start_record = None
     args.run_dir.mkdir(parents=True)

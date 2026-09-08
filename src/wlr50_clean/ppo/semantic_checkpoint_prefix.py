@@ -20,6 +20,9 @@ from .semantic_observation import vector
 from .semantic_policy_distribution import supported_heteroscedastic_contract_version
 from .semantic_prefix import PREFIX_TARGETS, PrefixCreditCore, PrefixRslAdapter
 from .semantic_training import SemanticRslAdapter, jsonable, verified_native_effect
+from .semantic_transfer_roles import (
+    ROLE_OBSERVATION_LAYOUT, ROLE_OBSERVATION_BASE_DIM, ROLE_OBSERVATION_DIM,
+)
 
 SAMPLING = "natural_P01_frozen_checkpoint_policy_prefix_then_semantic_suffix_N1.v1"
 RESULT_SCOPE = "checkpoint_policy_initialized_suffix"
@@ -87,12 +90,23 @@ def _provenance(value):
     try:
         supported_heteroscedastic_contract_version(result.get("policy_contract"))
     except ValueError as error:
-        raise ValueError("checkpoint prefix requires the exact heteroscedastic 324/12 policy contract") from error
+        raise ValueError("checkpoint prefix requires the exact heteroscedastic Full12 policy contract and supported layout") from error
     if "source_runtime_content_sha256" in result and (
             not isinstance(result["source_runtime_content_sha256"], str)
             or not re.fullmatch("[0-9a-f]{64}", result["source_runtime_content_sha256"])):
         raise ValueError("invalid source runtime content hash")
     return result
+
+
+def _core_observation_layout(core):
+    dimension = core.observation_dimension
+    layout = getattr(getattr(core, "observation_schema", None), "transfer_role_features_version", None)
+    if (type(dimension) is not int
+            or not ((dimension == ROLE_OBSERVATION_BASE_DIM and layout is None)
+                    or (dimension == ROLE_OBSERVATION_DIM and type(layout) is str
+                        and layout == ROLE_OBSERVATION_LAYOUT))):
+        raise ValueError("checkpoint prefix requires the explicit supported observation layout")
+    return dimension, layout
 
 
 class _CheckpointPolicyCreditCore(PrefixCreditCore):
@@ -102,8 +116,7 @@ class _CheckpointPolicyCreditCore(PrefixCreditCore):
         # configure_prefix/controller factory is called by this module.
         if type(core.backend) is not SemanticIsaacBackend or not callable(evidence_sink):
             raise ValueError("checkpoint prefix requires the ordinary SemanticIsaacBackend and evidence sink")
-        if core.observation_dimension != 324:
-            raise ValueError("checkpoint prefix requires the unchanged 324 observation schema")
+        self._observation_dimension, self._observation_layout = _core_observation_layout(core)
         self.core, self.request, self.sink = core, request, evidence_sink
         self._initializing = self._credit_open = False
         self.prefix_decisions = self.prefix_ticks = 0
@@ -126,7 +139,9 @@ class _CheckpointPolicyCreditCore(PrefixCreditCore):
                 or self.frame.physics_tick != 0 or self.frame.sim_time_s != 0.
                 or self.core.decision_count != 0 or self.core.done):
             raise RuntimeError("checkpoint prefix reset must be a fresh nonterminal P01 at t0")
-        vector(observation, 324, "bootstrap observation")
+        if _core_observation_layout(self.core) != (self._observation_dimension, self._observation_layout):
+            raise RuntimeError("checkpoint prefix observation layout changed after construction")
+        vector(observation, self._observation_dimension, "bootstrap observation")
         return observation
 
     def _bootstrap_signature(self):
@@ -156,6 +171,10 @@ class _CheckpointPolicyCreditCore(PrefixCreditCore):
         if not callable(policy_callable):
             raise ValueError("frozen deterministic prefix callable required")
         binding = _provenance(provenance)
+        contract = binding["policy_contract"]
+        if ((contract["observation_dimension"], contract.get("observation_layout"))
+                != (self._observation_dimension, self._observation_layout)):
+            raise ValueError("checkpoint prefix policy contract differs from the live observation layout")
         if self._bootstrap is None or self.frame is not self._bootstrap[0] or self._bootstrap_signature()[1:] != self._bootstrap[1:]:
             raise RuntimeError("prefix policy must be installed on the untouched original bootstrap t0")
         if hasattr(policy_callable, "provenance") and _provenance(policy_callable.provenance) != binding:

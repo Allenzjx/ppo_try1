@@ -15,6 +15,17 @@ from wlr50_clean.infrastructure.command_batch import SERVO_ORDER, WHEEL_ORDER, s
 MODE = "diagonal_transfer_roles_v1"
 LEGS = ("FL", "FR", "RL", "RR")
 DIAGONAL = {"FR": "RL", "FL": "RR", "RR": "FL", "RL": "FR"}
+ROLE_OBSERVATION_LAYOUT = "diagonal_transfer_state_v1"
+ROLE_OBSERVATION_GROUP = "transfer_role_context_full48"
+ROLE_OBSERVATION_BASE_DIM = 324
+ROLE_OBSERVATION_DIM = 372
+ROLE_OBSERVATION_FIELDS = (
+    "valid", "workspace_progress", "preparation_progress", "transfer_progress",
+    "motion_fraction", "preparation_ready", "transfer_ready",
+    "fixed_direction_world_x", "fixed_direction_world_y",
+    "short_support_continuity_fraction", "continued_response_fraction",
+    "window_evidence_fraction",
+)
 
 
 def get(value, key, default=None):
@@ -194,6 +205,7 @@ class TransferRoleTracker:
                     "reopening_measured_response": reopening_evidence,
                     "exact_cartesian_feasibility": None},
                 "transfer_direction_context": {"reference_tick": first["tick"], "window_s": duration,
+                    "minimum_evidence_s": self.cfg["minimum_evidence_s"],
                     "fixed_direction_world": direction, "com_world_displacement_m": delta_c,
                     "receiver_world_displacement_m": delta_receiver,
                     "com_toward_receiver_m": com_toward, "com_velocity_toward_receiver_m_s": velocity_toward,

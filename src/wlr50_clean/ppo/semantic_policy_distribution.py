@@ -18,6 +18,10 @@ from .semantic_migration import (
     PROJECT_ROOT, _version_bytes, checkpoint_metadata, digest, file_sha,
     source_num_envs,
 )
+from .semantic_transfer_roles import (
+    LEGS, ROLE_OBSERVATION_LAYOUT, ROLE_OBSERVATION_GROUP,
+    ROLE_OBSERVATION_BASE_DIM, ROLE_OBSERVATION_DIM, ROLE_OBSERVATION_FIELDS,
+)
 
 LEGACY_POLICY = "gaussian_scalar_v1"
 STATE_DEPENDENT_POLICY = "heteroscedastic_log_v1"
@@ -40,9 +44,13 @@ CONFIG_NAMES = frozenset({
 NORMALIZATION = "fixed_versioned_observation_schema; identity_RSL_normalizer"
 
 
-def policy_contract(version: str) -> dict[str, Any]:
+def policy_contract(version: str, *, observation_layout: str | None = None) -> dict[str, Any]:
     if version not in (LEGACY_POLICY, STATE_DEPENDENT_POLICY, HISTORY_POLICY):
         raise ValueError("unsupported semantic policy distribution version")
+    if observation_layout is not None and (
+            type(observation_layout) is not str or observation_layout != ROLE_OBSERVATION_LAYOUT
+            or version != HISTORY_POLICY):
+        raise ValueError("appended role observation layout requires the exact history policy")
     dependent = version != LEGACY_POLICY
     contract = {
         "schema": POLICY_SCHEMA, "version": version,
@@ -64,12 +72,25 @@ def policy_contract(version: str) -> dict[str, Any]:
             "deterministic_output": "conditional_mean",
             "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
         })
+    if observation_layout is not None:
+        contract.update({
+            "observation_dimension": ROLE_OBSERVATION_DIM,
+            "observation_layout": ROLE_OBSERVATION_LAYOUT,
+            "base_observation_dimension": ROLE_OBSERVATION_BASE_DIM,
+            "role_observation_group": ROLE_OBSERVATION_GROUP,
+            "role_observation_slice": [ROLE_OBSERVATION_BASE_DIM, ROLE_OBSERVATION_DIM],
+            "role_observation_leg_order": list(LEGS),
+            "role_observation_fields": list(ROLE_OBSERVATION_FIELDS),
+        })
     return contract
 
 
-def configure_policy_distribution(config: dict[str, Any], version: str) -> None:
+def configure_policy_distribution(config: dict[str, Any], version: str, *,
+                                  observation_layout: str | None = None) -> None:
     """Preserve the old two-field configuration; explicitly select the new actor."""
-    contract = policy_contract(version)
+    contract = policy_contract(version, observation_layout=observation_layout)
+    if "observation_layout" in config["actor"]:
+        raise ValueError("actor observation layout must be selected exactly once")
     distribution = config["actor"]["distribution_cfg"]
     if not isinstance(distribution, dict) or "init_std" not in distribution:
         raise ValueError("semantic actor configuration requires init_std")
@@ -77,6 +98,8 @@ def configure_policy_distribution(config: dict[str, Any], version: str) -> None:
     distribution["std_type"] = contract["std_type"]
     if version == HISTORY_POLICY:
         config["actor"]["class_name"] = HISTORY_ACTOR_CLASS
+    if observation_layout is not None:
+        config["actor"]["observation_layout"] = observation_layout
 
 
 def _integer(value: Any, label: str, *, minimum: int = 0) -> int:
@@ -97,8 +120,10 @@ def supported_heteroscedastic_contract_version(contract: Mapping[str, Any]) -> s
     """Accept only a complete, exact supported heteroscedastic policy contract."""
     if isinstance(contract, Mapping):
         for version in (STATE_DEPENDENT_POLICY, HISTORY_POLICY):
-            if _same_json(dict(contract), policy_contract(version)):
-                return version
+            layouts = (None, ROLE_OBSERVATION_LAYOUT) if version == HISTORY_POLICY else (None,)
+            for layout in layouts:
+                if _same_json(dict(contract), policy_contract(version, observation_layout=layout)):
+                    return version
     raise ValueError("unsupported or incomplete heteroscedastic policy contract")
 
 
@@ -132,20 +157,32 @@ def policy_version_from_metadata(metadata: Mapping[str, Any]) -> str:
     if declared is None:
         if "policy_contract" in metadata or version != LEGACY_POLICY:
             raise ValueError("heteroscedastic checkpoint requires an explicit policy_contract")
-    elif not _same_json(declared, policy_contract(version)):
-        raise ValueError("checkpoint policy_contract disagrees with its distribution")
+    observation_layout = None
+    if declared is not None:
+        if not isinstance(declared, Mapping):
+            raise ValueError("checkpoint policy_contract must be a complete mapping")
+        observation_layout = declared.get("observation_layout")
+        if not _same_json(declared, policy_contract(version, observation_layout=observation_layout)):
+            raise ValueError("checkpoint policy_contract disagrees with its distribution or observation layout")
     if "policy_version" in metadata and metadata["policy_version"] != version:
         raise ValueError("checkpoint policy_version disagrees with its distribution")
     device = config.get("device")
     if device not in ("cpu", "cuda:0"):
         raise ValueError("checkpoint runner_config has an unsupported device")
     horizon = runner_return_profile(config, semantic_version=semantic_version)
+    layout_options = {} if observation_layout is None else {"observation_layout": observation_layout}
     expected = semantic_runner_config(seed=seed, device=device,
                                      semantic_version=semantic_version, policy_version=version,
-                                     return_profile=horizon["version"])
+                                     return_profile=horizon["version"], **layout_options)
     if not _same_json(config, expected):
         raise ValueError("checkpoint complete runner_config differs from the pinned semantic policy configuration")
     return version
+
+
+def policy_observation_layout_from_metadata(metadata: Mapping[str, Any]) -> str | None:
+    """Resolve only after validating the complete policy and pinned runner config."""
+    policy_version_from_metadata(metadata)
+    return (metadata.get("policy_contract") or {}).get("observation_layout")
 
 
 def _sha(value: Any, label: str, *, length: int = 64) -> str:

@@ -245,9 +245,16 @@ def test_history_is_stateless_reset_zero_and_phase_change_does_not_clear_input_h
     assert torch.equal(new(changed_phase), expected)
 
 
-def test_real_schema_provides_existing_clipped_raw_slice_not_residual_history():
+def test_real_schema_provides_existing_clipped_raw_slice_not_residual_history(tmp_path):
     root = Path(__file__).resolve().parents[2]
-    schema = load_semantic_observation_schema(root / "configs/ppo_semantic_v3/observation_schema.json")
+    # Keep the original 324 ABI assertions explicit after the current opt-in
+    # schema appends role state; no original feature or scale is changed here.
+    data = json.loads((root / "configs/ppo_semantic_v3/observation_schema.json").read_text())
+    data.pop("transfer_role_features_version", None)
+    data["feature_groups"] = [row for row in data["feature_groups"] if row["name"] != "transfer_role_context_full48"]
+    legacy_path = tmp_path / "legacy_observation_schema.json"
+    legacy_path.write_text(json.dumps(data), encoding="utf-8")
+    schema = load_semantic_observation_schema(legacy_path)
     offset = 0
     located = []
     for row in schema.groups:

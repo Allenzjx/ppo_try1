@@ -90,6 +90,7 @@ def test_dispatch_loads_actor_then_installs_prefix_without_teacher_backend(tmp_p
     args.run_dir = tmp_path / "run"
     args.run_dir.mkdir()
     args._policy_version = STATE_DEPENDENT_POLICY
+    args._observation_layout = None  # This direct dispatch fixture represents verified old 324 preflight.
     args._migration_record = args._warm_start_record = args._policy_migration_record = None
     events = []
     monkeypatch.setitem(sys.modules, "isaaclab.app", NS(AppLauncher=lambda **kw: NS(app=NS(update=lambda: None))))

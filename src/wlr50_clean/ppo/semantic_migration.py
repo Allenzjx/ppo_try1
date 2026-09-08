@@ -32,6 +32,13 @@ VIDEO_FILES = frozenset({
     "scripts/run_semantic_video.ps1",
 })
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
+ROLE_APPEND_RUNTIME_FILES = frozenset({
+    "configs/ppo_semantic_v3/observation_schema.json",
+    *(f"src/wlr50_clean/ppo/{name}.py" for name in (
+        "semantic_transfer_roles", "semantic_observation", "semantic_policy_distribution",
+        "semantic_history_actor", "semantic_checkpoint_prefix_policy", "semantic_checkpoint_prefix",
+        "semantic_migration", "semantic_training", "semantic_cli")),
+})
 
 
 def experiment_namespace(semantic_version: str, experiment_id: str | None = None) -> str:
@@ -88,6 +95,108 @@ def _transfer_observation_scale_transition(before: Mapping[str, Any], after: Map
 
 def digest(value: Any) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+
+
+def _transfer_observation_append_transition(before: Mapping[str, Any], after: Mapping[str, Any],
+                                            binding: Mapping[str, Any], *, metadata: Mapping[str, Any],
+                                            old: Mapping[str, Any], new: Mapping[str, Any],
+                                            config_records: Mapping[str, Any], project_root: Path,
+                                            target_policy_version: str | None) -> dict[str, Any]:
+    """Only the reviewed HISTORY324 -> HISTORY372 observation boundary.
+
+    This validates the immutable mapping recipe, not any tensor or simulator
+    state. The loader must verify the source first, then zero-pad exactly the
+    two first-layer weights and prove all remaining learned state is retained.
+    """
+    from .semantic_policy_distribution import (
+        HISTORY_POLICY, policy_contract, policy_observation_layout_from_metadata,
+        policy_version_from_metadata,
+    )
+    from .semantic_transfer_roles import (
+        LEGS, ROLE_OBSERVATION_LAYOUT, ROLE_OBSERVATION_GROUP, ROLE_OBSERVATION_FIELDS,
+        ROLE_OBSERVATION_BASE_DIM, ROLE_OBSERVATION_DIM,
+    )
+    if (old.get("semantic_version") != "v3" or new.get("semantic_version") != "v3"
+            or old.get("experiment_id") != "transfer_roles_v1"
+            or new.get("experiment_id") != "transfer_roles_v1"
+            or policy_version_from_metadata(metadata) != HISTORY_POLICY
+            or policy_observation_layout_from_metadata(metadata) is not None
+            or source_num_envs(metadata) != 1 or target_policy_version is not None):
+        raise ValueError("role observation append requires transfer_roles_v1 N1 HISTORY324 without a simultaneous kernel transition")
+    marker = "transfer_role_features_version"
+    if marker in before or after.get(marker) != ROLE_OBSERVATION_LAYOUT:
+        raise ValueError("role observation append requires the exact new layout marker and an unmarked source")
+    source_groups, target_groups = before.get("feature_groups"), after.get("feature_groups")
+    if (not isinstance(source_groups, list) or not isinstance(target_groups, list)
+            or any(not isinstance(g, dict) or type(g.get("size")) is not int or g["size"] <= 0
+                   for g in source_groups + target_groups)
+            or sum(g["size"] for g in source_groups) != ROLE_OBSERVATION_BASE_DIM
+            or sum(g["size"] for g in target_groups) != ROLE_OBSERVATION_DIM
+            or len(target_groups) != len(source_groups) + 1
+            or digest(target_groups[:-1]) != digest(source_groups)
+            or digest(target_groups[-1]) != digest({"name": ROLE_OBSERVATION_GROUP,
+                "size": ROLE_OBSERVATION_DIM - ROLE_OBSERVATION_BASE_DIM, "scale": 1.0})
+            or any(g.get("name") == ROLE_OBSERVATION_GROUP for g in source_groups)):
+        raise ValueError("role observation append must preserve all source324 groups and append only the exact48 group")
+    # Revision is descriptive. Every other top-level preprocessing/deployability
+    # field is preserved, including unknown future fields (fail closed).
+    source_fixed = {k: v for k, v in before.items() if k != "revision"}
+    target_fixed = {k: v for k, v in after.items() if k not in ("revision", marker)}
+    target_fixed["feature_groups"] = target_groups[:-1]
+    if digest(source_fixed) != digest(target_fixed):
+        raise ValueError("role observation append cannot change existing observation preprocessing")
+    for name, row in config_records.items():
+        if name != "observation_schema.json" and row["source_sha256"] != row["target_sha256"]:
+            raise ValueError(f"role observation append cannot change task/action/reward/quality configuration: {name}")
+    # Actual v3 contracts bind the selected config twice: inventory and named
+    # path/SHA records. Validate both copies before normalizing ONLY the one
+    # reviewed observation SHA; do not exempt the entire selection mapping.
+    old_selected, new_selected = old.get("selected_configuration"), new.get("selected_configuration")
+    for selected, contract, side in ((old_selected, old, "source"), (new_selected, new, "target")):
+        if not isinstance(selected, Mapping) or set(selected) != set(config_records):
+            raise ValueError("role observation append selected_configuration must contain exactly the six bound configurations")
+        for name, row in config_records.items():
+            expected = {"path": row[f"{side}_path"], "sha256": row[f"{side}_sha256"]}
+            if (digest(selected[name]) != digest(expected)
+                    or contract["files"].get(expected["path"]) != expected["sha256"]):
+                raise ValueError(f"role observation append selected_configuration {side} binding differs: {name}")
+    variable = {"files", "source_git_commit", "runtime_content_sha256"}
+    target_fixed_metadata = {k: v for k, v in new.items() if k not in variable}
+    target_fixed_metadata["selected_configuration"] = dict(new_selected)
+    target_fixed_metadata["selected_configuration"]["observation_schema.json"] = old_selected["observation_schema.json"]
+    if digest({k: v for k, v in old.items() if k not in variable}) != digest(target_fixed_metadata):
+        raise ValueError("role observation append cannot change physical/runtime metadata")
+    if set(old["files"]) != set(new["files"]):
+        raise ValueError("role observation append cannot add or remove runtime files")
+    delta = {p for p in old["files"] if old["files"][p] != new["files"][p]}
+    if not delta <= ROLE_APPEND_RUNTIME_FILES:
+        raise ValueError("role observation append changed a non-whitelisted runtime file")
+    for relative in delta:
+        _version_bytes(project_root, dict(old), relative, prefer_worktree=True)
+        if file_sha(project_root / relative) != new["files"][relative]:
+            raise ValueError("role observation append target bytes differ from runtime inventory")
+    return {
+        "schema": "wlr50_clean.transfer_roles_observation_append_transition.v1",
+        "experiment_id": "transfer_roles_v1", "changed": True,
+        "source_observation_dimension": ROLE_OBSERVATION_BASE_DIM,
+        "target_observation_dimension": ROLE_OBSERVATION_DIM,
+        "source_observation_layout": None, "target_observation_layout": ROLE_OBSERVATION_LAYOUT,
+        "source_schema_sha256": binding["source_sha256"], "target_schema_sha256": binding["target_sha256"],
+        "source_policy_contract": policy_contract(HISTORY_POLICY),
+        "target_policy_contract": policy_contract(HISTORY_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT),
+        "feature_group": ROLE_OBSERVATION_GROUP, "leg_order": list(LEGS),
+        "fields_per_leg": list(ROLE_OBSERVATION_FIELDS),
+        "first_layer_parameter": "mlp.0.weight",
+        "appended_columns": [ROLE_OBSERVATION_BASE_DIM, ROLE_OBSERVATION_DIM],
+        "first_layer_mapping": "append_zero_actor_and_critic_first_layer",
+        "existing_columns_preserved": True, "all_other_parameters_and_buffers_preserved": True,
+        "learned_std_preserved": True, "normalizers": "identity_RSL_state_preserved",
+        "optimizer": {"kind": "Adam", "state": "reset_all_moments", "initial_learning_rate": 3e-5},
+        "training_rng_preserved": True, "lifetime_counters_and_spent_budgets_preserved": True,
+        "old_rollout_inherited": False, "physical_state_inherited": False,
+        "kernel_changed": False, "reward_changed": False, "physical_dynamics_changed": False,
+        "equivalence_scope": "initial zero-appended-column function only; dimension-dependent GEMM rounding may differ; not physical trajectory equivalence",
+    }
 
 
 def file_sha(path: Path) -> str:
@@ -185,7 +294,13 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
     before = json.loads(_version_text(project_root, old, config_records["observation_schema.json"]["source_path"], prefer_worktree=True))
     after = json.loads((project_root / "configs/ppo_semantic_v3/observation_schema.json").read_text(encoding="utf-8"))
     observation_transition = None
-    if target_experiment == "transfer_roles_v1":
+    observation_append_transition = None
+    if "transfer_role_features_version" in after:
+        observation_append_transition = _transfer_observation_append_transition(
+            before, after, config_records["observation_schema.json"], metadata=metadata,
+            old=old, new=new, config_records=config_records, project_root=project_root,
+            target_policy_version=target_policy_version)
+    elif target_experiment == "transfer_roles_v1":
         observation_transition = _transfer_observation_scale_transition(
             before, after, config_records["observation_schema.json"])
     else:
@@ -285,6 +400,17 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
         result["action_output_semantics"] = (
             "hash-bound source/target physical profiles; compensated input scaling preserves unclipped-domain "
             "network functions, not previously clipped history or subsequent physical trajectories")
+    if observation_append_transition is not None:
+        result["observation_append_transition"] = observation_append_transition
+        result["network"].update({
+            "source_observation_dimension": observation_append_transition["source_observation_dimension"],
+            "observation_dimension": observation_append_transition["target_observation_dimension"],
+            "actor": "preserve_source_parameters_then_append_zero_first_layer_columns_including_std_path",
+            "critic": "preserve_source_parameters_then_append_zero_first_layer_columns",
+            "normalizers": "identity_RSL_state_preserved; existing_fixed_preprocessing_unchanged",
+        })
+        result["optimizer"]["reason"] = "explicit role-observation boundary; verify source Adam then reset moments"
+        result["action_output_semantics"] = observation_append_transition["equivalence_scope"]
     return result
 
 
@@ -641,29 +767,45 @@ VECTOR_FILES = frozenset({
     "src/wlr50_clean/ppo/semantic_vector_training.py",
 })
 
-def topology(num_envs: int) -> dict[str, Any]:
+def topology(num_envs: int, *, observation_layout: str | None = None) -> dict[str, Any]:
     if type(num_envs) is not int or num_envs not in (1, 8):
         raise ValueError("only single or eight-row semantic execution is reviewed")
-    return {"schema": "wlr50_clean.semantic_execution_topology.v1",
+    result = {"schema": "wlr50_clean.semantic_execution_topology.v1",
             "num_envs": num_envs, "observation_dimension": 324, "action_dimension": 12,
             "rollout_decisions_per_env": 128, "reset_sampling": "P01_only",
             "phase_suffix_curriculum_implemented": False,
             "peer_reset": "none" if num_envs == 1 else "synchronous_done_with_gamma_V_actual_final_obs",
             "task_timeout_bootstrap": False, "physical_state_saved": False}
+    if observation_layout is not None:
+        from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT, ROLE_OBSERVATION_DIM
+        if type(observation_layout) is not str or observation_layout != ROLE_OBSERVATION_LAYOUT or num_envs != 1:
+            raise ValueError("role observation topology requires the explicit supported N1 layout")
+        result.update(observation_layout=observation_layout, observation_dimension=ROLE_OBSERVATION_DIM)
+    return result
 
 def source_num_envs(metadata: Mapping[str, Any]) -> int:
+    # This public validator does not call source_num_envs; topology validation
+    # cannot infer372 from a dimension alone or trust an incomplete contract.
+    observation_layout = None
+    actor_config = (metadata.get("runner_config") or {}).get("actor", {})
+    if "policy_contract" in metadata or "observation_layout" in actor_config:
+        from .semantic_policy_distribution import policy_observation_layout_from_metadata
+        observation_layout = policy_observation_layout_from_metadata(metadata)
     declared = metadata.get("execution_topology")
     if declared is not None:
         count = declared.get("num_envs")
-        expected = topology(count)
+        expected = topology(count, observation_layout=observation_layout)
         if metadata.get("semantic_version") == "v3":
             if count != 1:
                 raise ValueError("v3 continuation topology must be N1")
             expected = continuation_topology(metadata.get("sampling"),
-                                             metadata.get("curriculum_epoch", {}).get("prefix_request"))
+                                             metadata.get("curriculum_epoch", {}).get("prefix_request"),
+                                             observation_layout=observation_layout)
         if declared != expected:
             raise ValueError("checkpoint execution topology is malformed")
         return count
+    if observation_layout is not None:
+        raise ValueError("role observation checkpoint lacks explicit execution topology")
     # Legacy semantic checkpoints existed only before vector code was added.
     # Never infer one row for a checkpoint whose runtime already had vector code.
     if any(path in metadata["runtime_contract"].get("files", {}) for path in VECTOR_FILES):
@@ -671,7 +813,8 @@ def source_num_envs(metadata: Mapping[str, Any]) -> int:
     return 1
 
 
-def continuation_topology(sampling: str, prefix_request: Mapping[str, Any] | None) -> dict[str, Any]:
+def continuation_topology(sampling: str, prefix_request: Mapping[str, Any] | None, *,
+                          observation_layout: str | None = None) -> dict[str, Any]:
     if prefix_request is None:
         if sampling != "P01_full_task_only_initial_version":
             raise ValueError("v3 P01 sampling metadata is malformed")
@@ -687,7 +830,7 @@ def continuation_topology(sampling: str, prefix_request: Mapping[str, Any] | Non
             "target_phase", "maximum_prefix_decisions", "maximum_takeover_decisions", "teacher_offset_decisions")})
         if request.as_dict() != dict(prefix_request) or sampling != sampling_label(request):
             raise ValueError("v3 fixed suffix sampling metadata is malformed")
-    return {**topology(1), "schema": "wlr50_clean.semantic_execution_topology.v2",
+    return {**topology(1, observation_layout=observation_layout), "schema": "wlr50_clean.semantic_execution_topology.v2",
             "reset_sampling": sampling, "phase_suffix_curriculum_implemented": prefix_request is not None}
 
 def stage_partition(remaining_requested: int) -> dict[str, int]:

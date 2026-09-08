@@ -55,6 +55,13 @@ def contracts(tmp_path):
             destination = tmp_path / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_bytes((cli.PROJECT_ROOT / relative).read_bytes())
+            if version == "v3" and name == "observation_schema.json":
+                # This fixture intentionally exercises the historical324 boundary.
+                schema = json.loads(destination.read_text())
+                schema.pop("transfer_role_features_version", None)
+                schema["feature_groups"] = [group for group in schema["feature_groups"]
+                    if group["name"] != "transfer_role_context_full48"]
+                destination.write_text(json.dumps(schema), encoding="utf-8")
             files[relative] = migration.file_sha(destination)
     invariant = {"frozen_A_files": {"frozen": "f" * 64}, "physics_hz": 120.0,
                  "decision_hz": 15.0, "task_timeout_s": 200.0, "timeout_bootstrap": False,
@@ -68,6 +75,13 @@ def contracts(tmp_path):
 
 def test_real_rsl_v2_networks_to_v3_fresh_adam_rollout_and_exact_resume(tmp_path, monkeypatch):
     old, new = contracts(tmp_path)
+    # This is the historical v2->v3 weights/budget boundary: neither the later
+    # FR-knee4->6 preprocessing change nor the role48 append belongs to it.
+    observation = "configs/ppo_semantic_v3/observation_schema.json"
+    (tmp_path / observation).write_bytes(
+        (tmp_path / "configs/ppo_semantic_v2/observation_schema.json").read_bytes())
+    new["files"][observation] = migration.file_sha(tmp_path / observation)
+    new["runtime_content_sha256"] = migration.digest(new["files"])
     source_runner, source_env = runner()
     trained = train_semantic(source_runner, source_env, run_dir=tmp_path / "source_run",
         output_root=tmp_path / "source_outputs", stage="smoke", decisions=128, contract=old, seed=1001)
@@ -283,13 +297,58 @@ def test_real_local_v3_11648_checkpoint_official_load_retains_networks_and_spent
         pytest.skip("local immutable live 11648 checkpoint is not present")
     metadata = migration.checkpoint_metadata(source)
     target_contract = copy.deepcopy(metadata["runtime_contract"])
-    # CPU test inventory only: runtime_contract() intentionally forbids uncommitted
-    # worktrees. Bind today's actual bytes without claiming a live frozen revision.
+    source_project = cli.PROJECT_ROOT
+    target_project = tmp_path / "historical324_target"
+    # CPU target inventory only, never a live frozen revision. Today's runtime
+    # and task bytes may change, but this old actual324 checkpoint must retain
+    # its exact hash-bound encoder, including the original residual scales.
     for relative in target_contract["files"]:
-        target_contract["files"][relative] = migration.file_sha(cli.PROJECT_ROOT / relative)
+        destination = target_project / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes((source_project / relative).read_bytes())
+    observation = "configs/ppo_semantic_v3/observation_schema.json"
+    historical_schema = migration._version_bytes(source_project, metadata["runtime_contract"],
+                                                 observation, prefer_worktree=True)
+    (target_project / observation).write_bytes(historical_schema)
+    schema = json.loads(historical_schema)
+    assert sum(group["size"] for group in schema["feature_groups"]) == 324
+    assert "transfer_role_features_version" not in schema
+    for relative in target_contract["files"]:
+        target_contract["files"][relative] = migration.file_sha(target_project / relative)
     target_contract["runtime_content_sha256"] = migration.digest(target_contract["files"])
+    # The actual source's historical git objects belong to the real project;
+    # the synthetic target bytes belong to the isolated fixture. Both still
+    # pass the unchanged production SHA validators, not a fabricated record.
+    source_bytes = migration._version_bytes
+    def resolve_version_bytes(project_root, contract, relative, **kwargs):
+        owner = source_project if contract == metadata["runtime_contract"] else project_root
+        return source_bytes(owner, contract, relative, **kwargs)
+    monkeypatch.setattr(migration, "_version_bytes", resolve_version_bytes)
+    real_builder = migration.build_v3_warm_start_record
+    def build_historical_target(checkpoint, contract, **kwargs):
+        return real_builder(checkpoint, contract, **{**kwargs, "project_root": target_project})
+    monkeypatch.setattr(migration, "build_v3_warm_start_record", build_historical_target)
     record = migration.build_v3_warm_start_record(source, target_contract)
+    assert "observation_append_transition" not in record and "observation_scale_transition" not in record
     actual, env = runner("v3")
+    # This single historical CUDA-source test proves CPU weights/budgets, NOT
+    # CUDA RNG recovery. The production device-count guard remains exercised;
+    # restore only a copied CPU portion after checking the full incoming state.
+    original_rng_restore = training.restore_training_rng_state
+    source_rng = copy.deepcopy(metadata["training_rng_state"])
+    assert source_rng["torch_cuda_device_count"] > 0
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    with pytest.raises(ValueError, match="CUDA RNG device count differs"):
+        original_rng_restore(source_rng, expected_seed=1001)
+    cpu_rng_restores = []
+    def restore_historical_cpu_rng(state, *, expected_seed):
+        assert state == source_rng and expected_seed == 1001
+        cpu_state = copy.deepcopy(state)
+        cpu_state["torch_cuda"] = []
+        cpu_state["torch_cuda_device_count"] = 0
+        original_rng_restore(cpu_state, expected_seed=expected_seed)
+        cpu_rng_restores.append(True)
+    monkeypatch.setattr(training, "restore_training_rng_state", restore_historical_cpu_rng)
     source_loads = []
     official_load = training.load_checkpoint_round_trip
     def observe_actual_load(runner, path):
@@ -298,6 +357,7 @@ def test_real_local_v3_11648_checkpoint_official_load_retains_networks_and_spent
     monkeypatch.setattr(training, "load_checkpoint_round_trip", observe_actual_load)
     previous = load_semantic_checkpoint(actual, source, contract=target_contract, seed=1001, warm_start=record)
     assert source_loads == [source.resolve()]
+    assert cpu_rng_restores == [True] and previous["training_rng_state"] == source_rng
     assert (previous["global_policy_decisions"], previous["ppo_updates"], previous["optimizer_steps"]) == (11648, 56, 1120)
     assert previous["stage_requested_decisions"] == {"smoke": 0, "phase_suffix": 1536, "full_episode": 0}
     assert previous["new_mdp_origin_global_policy_decisions"] == 10112
@@ -321,13 +381,13 @@ def test_real_local_v3_11648_checkpoint_official_load_retains_networks_and_spent
     old_profile = migration.warm_start_source_execution_profile(record, tmp_path / "run")
     assert migration.file_sha(old_profile) == record["configuration_transition"]["execution_profile.yaml"]["source_sha256"]
     comparison = compare_warm_start_action(actual, env, old_execution_profile=old_profile,
-        new_execution_profile=cli.version_paths("v3")[2] / "execution_profile.yaml")
+        new_execution_profile=target_project / "configs/ppo_semantic_v3/execution_profile.yaml")
     if comparison["old"]["sha256"] == comparison["new"]["sha256"]:
         assert not any(comparison["new_minus_old"]["scaled_residual_full12"])
     # Real preflight branch refuses the exact already-published boundary before
     # live dispatch, while the earlier differently named initial is harmless.
     output_root = tmp_path / "isolated_v3_outputs"
-    config_root = cli.version_paths("v3")[2]
+    config_root = target_project / "configs/ppo_semantic_v3"
     monkeypatch.setattr(cli, "version_paths", lambda version: (tmp_path / "runs", output_root, config_root))
     args = cli.parser().parse_args(["train", "--run-dir", str(tmp_path / "runs/epoch"),
         "--expected-head", target_contract["source_git_commit"], "--semantic-version", "v3",
