@@ -3,7 +3,7 @@ rear_leg_order: RR_FIRST
 physics_hz: 120.0
 decision_hz: 15.0
 episode_maximum_duration_s: 200.0
-revision: diagonal_transfer_roles_v1
+revision: diagonal_transfer_roles_v2_fl_advisory_counterauthority
 transfer_roles:
   mode: diagonal_transfer_roles_v1
   window_s: 0.5
@@ -95,6 +95,17 @@ nominal:
   ownership: advisory_only_no_reference_entry_or_completion_veto
   handoff: persistent_nominal_slew_toward_advisory_targets_without_anchor_reset
   servo_handoff_rate_deg_s: 150.0
+  # Advisory-only FL hip timing: let the unchanged 60 deg/s residual oppose
+  # receiver-opening suggestions. Other servos and all physical limits stay unchanged.
+  phase_servo_rate_overrides_deg_s:
+    P06: {front_left_hip: 60.0}
+    P07: {front_left_hip: 60.0}
+    P08: {front_left_hip: 60.0}
+    P09: {front_left_hip: 60.0}
+    P10: {front_left_hip: 60.0}
+    P11: {front_left_hip: 60.0}
+    P12: {front_left_hip: 60.0}
+    P13: {front_left_hip: 60.0}
   wheel_handoff_rate_rad_s2: 3.0
   approach_wheel_prior_rad_s: [0.3, 0.3, 0.3, 0.3]
   approach_wheel_prior_source: P01

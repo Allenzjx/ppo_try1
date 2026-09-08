@@ -341,7 +341,9 @@ def test_real_projected_negative_residual_can_cancel_tail_with_one_frozen_dispat
     from wlr50_clean.ppo.semantic_backend import build_semantic_projector
     p, tick = deepcopy(before_endpoint)
     nominal = p.evaluate(*_measured(tick))
-    raw = ZERO[:8]+(-math.atanh(.5),)*4
+    # P06 front/rear wheel caps are 1.2/.6; request the same -.3 rad/s
+    # cancellation on every wheel without assuming identical action scales.
+    raw = ZERO[:8]+(-math.atanh(.25),)*2+(-math.atanh(.5),)*2
     projector = build_semantic_projector(CFG / "execution_profile.yaml")
     previous_residual = ZERO
     for _ in range(200):

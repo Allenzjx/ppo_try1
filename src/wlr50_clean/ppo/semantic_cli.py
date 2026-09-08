@@ -300,6 +300,11 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
         append = args._warm_start_record.get("observation_append_transition")
         if append is not None and append["target_observation_layout"] != args._observation_layout:
             raise ValueError("append migration target layout differs from the current observation schema")
+        same_layout = args._warm_start_record.get("observation_same_layout_transition")
+        if same_layout is not None and (
+                same_layout["source_observation_layout"] != source_layout
+                or same_layout["target_observation_layout"] != args._observation_layout):
+            raise ValueError("same372 authority migration layout differs from verified source/target schemas")
         if options:
             args._policy_version = args._warm_start_record["policy_kernel_transition"]["target_policy_version"]
         if metadata["seed"] != args.seed:
@@ -800,6 +805,10 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                     old_execution_profile=warm_start_source_execution_profile(
                         args._warm_start_record, args.run_dir, project_root=PROJECT_ROOT),
                     new_execution_profile=config_root / "execution_profile.yaml")
+                if args._warm_start_record.get("observation_same_layout_transition") is not None:
+                    comparison["authority_boundary_scope"] = (
+                        "one current nominal/observation and zero-history projectors; the changed cap "
+                        "can change projected actions; this does not compare source/target nominal timing")
                 if args._warm_start_record.get("policy_kernel_transition") is not None:
                     comparison["policy_kernel_context"] = (
                         "both physical-profile projections use the target actor; this is not an old/new-policy comparison; "

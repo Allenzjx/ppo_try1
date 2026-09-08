@@ -767,21 +767,37 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
                         seed: int, record: Mapping[str, Any]) -> dict[str, Any]:
     """Reuse learned networks, explicitly discard old optimizer and rollout state."""
     import torch
-    from .semantic_migration import build_v3_warm_start_record
+    from .semantic_migration import (
+        build_v3_warm_start_record, checkpoint_metadata, SAME372_AUTHORITY_SCHEMA,
+    )
     kernel = record.get("policy_kernel_transition")
     options = {} if kernel is None else {"target_policy_version": kernel.get("target_policy_version")}
     verified = build_v3_warm_start_record(checkpoint, contract, **options)
     if verified != dict(record):
         raise RuntimeError("new-MDP checkpoint/configuration binding changed after preflight")
     from .semantic_policy_distribution import policy_version_from_metadata
-    from .semantic_migration import checkpoint_metadata
-    source_version = policy_version_from_metadata(checkpoint_metadata(checkpoint))
+    metadata = checkpoint_metadata(checkpoint)
+    source_version = policy_version_from_metadata(metadata)
     target_version = source_version if kernel is None else kernel["target_policy_version"]
     if runner._semantic_policy_version != target_version:
         raise RuntimeError("warm-start target policy kernel differs from its explicit migration")
     storage = runner.alg.storage
     append_transition = record.get("observation_append_transition")
-    target_dimension = 324 if append_transition is None else 372
+    same_layout = record.get("observation_same_layout_transition")
+    if same_layout is not None:
+        from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+        if (same_layout.get("schema") != SAME372_AUTHORITY_SCHEMA
+                or same_layout.get("source_observation_dimension") != 372
+                or same_layout.get("target_observation_dimension") != 372
+                or same_layout.get("source_observation_layout") != ROLE_OBSERVATION_LAYOUT
+                or same_layout.get("target_observation_layout") != ROLE_OBSERVATION_LAYOUT
+                or same_layout.get("parameter_mapping") != "identity_all_parameters_and_buffers"
+                or getattr(runner, "_semantic_observation_layout", None) != ROLE_OBSERVATION_LAYOUT
+                or append_transition is not None or kernel is not None
+                or record.get("observation_scale_transition") is not None
+                or metadata["runner_config"] != runner._semantic_runner_config):
+            raise RuntimeError("same372 authority must preserve the exact source runner, layout and parameter mapping")
+    target_dimension = 372 if append_transition is not None or same_layout is not None else 324
     if (tuple(storage.actions.shape) != (128, 1, 12)
             or storage.observations["policy"].shape[-1] != target_dimension
             or storage.step != 0 or runner.alg.transition.actions is not None):
@@ -805,8 +821,6 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
         infos = _load_observation_append_source(runner, checkpoint, seed=seed, record=record)
     else:
         infos = dict(load_checkpoint_round_trip(runner, checkpoint))
-    from .semantic_migration import checkpoint_metadata
-    metadata = checkpoint_metadata(checkpoint)
     if infos.get("seed") != seed or (append_transition is None and any(metadata.get(key) != value for key, value in infos.items())):
         raise RuntimeError("v3 warm start source embedded metadata/seed differs from verified sidecar")
     for key, actual in (("actor_parameter_sha256", parameter_hash(runner.alg.actor)),

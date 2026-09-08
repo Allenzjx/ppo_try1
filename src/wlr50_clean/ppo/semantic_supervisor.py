@@ -905,6 +905,29 @@ class NominalMotionProvider:
     P02 may reuse P01's rolling suggestion from current measured task goals;
     this does not replay P01 or make source duration an entry/finish condition.
     """
+    @staticmethod
+    def _validated_servo_rate_overrides(spec: Mapping[str, Any]) -> dict[str, tuple[float, ...]]:
+        """Optional advisory-only slew; never a physical limit or task gate."""
+        nominal = spec["nominal"]
+        overrides = nominal.get("phase_servo_rate_overrides_deg_s", {})
+        if not isinstance(overrides, Mapping):
+            raise ValueError("nominal servo rate overrides require a phase mapping")
+        result = {}
+        for phase, channels in overrides.items():
+            if phase not in PHASE_IDS or not isinstance(channels, Mapping):
+                raise ValueError("nominal servo rate override has an unknown phase or invalid channels")
+            default = _number(nominal["servo_handoff_rate_deg_s"], "default nominal servo rate")
+            rates = [default] * len(SERVO_ORDER)
+            for name, value in channels.items():
+                if name not in SERVO_ORDER or isinstance(value, bool) or not isinstance(value, (int, float)):
+                    raise ValueError("nominal servo rate override requires a servo name and numeric rate")
+                rate = _number(value, "nominal servo rate override")
+                if not 0. < rate <= default:
+                    raise ValueError("nominal servo rate override must be positive and no faster than the default")
+                rates[SERVO_ORDER.index(name)] = rate
+            result[phase] = tuple(rates)
+        return result
+
     def __init__(self, contract: Any, *, spec: Mapping[str, Any] | None = None):
         self.contract=contract; self.spec=dict(spec) if spec is not None else load_task_spec()
         self.physics_hz=float(contract.physics_hz)
@@ -913,6 +936,7 @@ class NominalMotionProvider:
         self.state_id: str | None=None; self.elapsed_s=0.; self.endpoint_issued=False
         self.tracking_servo_names: tuple[str,...]=()
         nominal=self.spec["nominal"]
+        self._servo_rate_overrides = self._validated_servo_rate_overrides(self.spec)
         self._approach_wheel_prior=_vector(nominal["approach_wheel_prior_rad_s"],4,"approach wheel prior rad/s")
         source_wheels={tuple(waypoint.full12[8:]) for waypoint in contract.phase("P01").waypoints
                        if any(value != 0. for value in waypoint.full12[8:])}
@@ -1120,7 +1144,9 @@ class NominalMotionProvider:
         if stage_id=="P13" and self.endpoint_issued:
             proposed=tuple(self.spec["final"]["home_servo_pose_deg"])+(0.,)*4
         if not handoff:
-            rates=(self.spec["nominal"]["servo_handoff_rate_deg_s"],)*8+(self.spec["nominal"]["wheel_handoff_rate_rad_s2"],)*4
+            servo_rates = self._servo_rate_overrides.get(stage_id,
+                (self.spec["nominal"]["servo_handoff_rate_deg_s"],) * 8)
+            rates = servo_rates + (self.spec["nominal"]["wheel_handoff_rate_rad_s2"],) * 4
             self.nominal_full12=Full12Command.from_full12(tuple(old+max(-rate/self.physics_hz,min(rate/self.physics_hz,target-old)) for old,target,rate in zip(self.nominal_full12,proposed,rates))).clamped().to_full12()
             self.tracking_servo_names=proposed_tracking
         return self.nominal_full12

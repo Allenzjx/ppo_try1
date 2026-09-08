@@ -1,5 +1,5 @@
 schema: wlr50_clean.semantic_execution_profile.v1
-revision: continuous_transfer_roles_v1_residual_authority
+revision: continuous_transfer_roles_v2_fl_advisory_counterauthority
 physics_hz: 120.0
 decision_hz: 15.0
 episode_timeout_s: 200.0
@@ -25,20 +25,23 @@ residual:
   # FR knee 112 covers a -40 degree candidate from nominal 45.9 plus up to
   # 10 mapper and 10 controller correction; it is not a required support pose.
   # Actual wheel hard bounds and the 1.8 rad/s2 residual slew remain unchanged.
+  # Late FL hip 32 permits finite-latent cancellation of the observed 26.4 deg
+  # P07 advisory increment, with margin. This is not a required joint pose,
+  # a larger noise parameter, or a guarantee of physical stability.
   phase_caps_full12:
     P01: [18, 24, 18, 24, 12, 18, 12, 18, 0.6, 0.6, 0.6, 0.6]
     P02: [18, 24, 18, 24, 12, 18, 12, 18, 0.6, 0.6, 0.6, 0.6]
     P03: [18, 24, 18, 24, 12, 18, 12, 18, 0.6, 0.6, 0.6, 0.6]
     P04: [18, 24, 18, 24, 12, 18, 12, 18, 0.6, 0.6, 0.6, 0.6]
     P05: [18, 24, 18, 24, 12, 18, 12, 18, 0.6, 0.6, 0.6, 0.6]
-    P06: [24, 36, 24, 112, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
-    P07: [24, 36, 24, 112, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
-    P08: [24, 36, 24, 112, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
-    P09: [24, 36, 24, 112, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
-    P10: [24, 36, 24, 112, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
-    P11: [24, 36, 24, 112, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
-    P12: [24, 36, 24, 112, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
-    P13: [24, 36, 24, 112, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
+    P06: [32, 36, 24, 112, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
+    P07: [32, 36, 24, 112, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
+    P08: [32, 36, 24, 112, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
+    P09: [32, 36, 24, 112, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
+    P10: [32, 36, 24, 112, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
+    P11: [32, 36, 24, 112, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
+    P12: [32, 36, 24, 112, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
+    P13: [32, 36, 24, 112, 24, 36, 24, 36, 1.2, 1.2, 0.6, 0.6]
   initial_wheel_cap_rad_s: 0.12
   servo_rate_deg_s: 60.0
   wheel_rate_rad_s2: 1.8

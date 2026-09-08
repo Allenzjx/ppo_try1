@@ -108,7 +108,7 @@ def test_only_selected_caps_expand_and_all_twelve_remain_open():
     assert tuple(rows) == PHASES
     for phase in PHASES:
         expected = ([18,24,18,24,12,18,12,18,.6,.6,.6,.6] if phase < "P06"
-                    else [24,36,24,112,24,36,24,36,1.2,1.2,.6,.6])
+                    else [32,36,24,112,24,36,24,36,1.2,1.2,.6,.6])
         assert rows[phase] == expected
     assert all(all(b >= a for a,b in zip(rows[p], rows[q])) for p,q in zip(PHASES, PHASES[1:]))
     assert cfg["physics_hz"] == 120 and cfg["decision_hz"] == 15
@@ -208,13 +208,14 @@ def test_large_fr_request_crosses_phase_without_reset_and_slews_on_withdrawal():
 
 def test_both_fr_requested_history_columns_remain_observable_without_changing_raw_slice():
     schema = load_semantic_observation_schema(SCHEMA)
-    assert schema.dimension == 324 and schema.clip == 20.
+    assert schema.dimension == 372 and schema.clip == 20.
     groups = {row["name"]: (0.,) * row["size"] for row in schema.groups}
     offsets, cursor = {}, 0
     for row in schema.groups:
         offsets[row["name"]] = cursor
         cursor += row["size"]
     assert offsets["previous_raw_full12"] == 195
+    assert offsets["transfer_role_context_full48"] == 324
     for name, expected in [("previous_residual_full12", 210), ("previous_previous_residual_full12", 222)]:
         row = next(row for row in schema.groups if row["name"] == name)
         assert row["scale"] == [4,4,4,6,4,4,4,4,.12,.12,.12,.12]

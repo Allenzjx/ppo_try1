@@ -290,5 +290,5 @@ def test_controller_diagnostics_are_copied_current_suggestions_not_history_or_ac
     before=SemanticObservationBuilder(schema).build(shell,history)
     shell.info['semantic_task']={**real,'nominal_provider_diagnostics':controller.nominal_provider.nominal_suggestion_diagnostics}
     after=SemanticObservationBuilder(schema).build(shell,history)
-    assert schema.dimension==324
+    assert schema.dimension==372
     assert schema.encode(before.groups)==schema.encode(after.groups)
