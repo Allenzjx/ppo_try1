@@ -415,6 +415,10 @@ class TaskEvaluator:
         if _get(observation, "all_finite") is not True:
             self._fail(TaskResult.SAFETY_ABORT, "nonfinite authoritative observation")
             self._snapshot.update(valid=False, success=False, termination_reason=self._failure, reason=self._failure_reason)
+            if self._all_stage:
+                self._snapshot.update(evaluator_version="all_stage_v1", termination_source=self._termination_source,
+                    run_validity="NUMERICAL_SAFETY_ABORT", physical_evidence_status="NONFINITE",
+                    task_completed_controlled=False, traversal_task_complete=False)
             self._last_tick, self._last_time = tick, now
             return self.snapshot
         base = _get(observation, "base")
@@ -457,6 +461,8 @@ class TaskEvaluator:
         for index, leg in enumerate(LEG_ORDER):
             wheel = wheels.get(WHEEL_ORDER[index]); body_name = _get(wheel, "body_name")
             if _get(wheel, "geometry_verified") is not True:
+                if self._all_stage:
+                    return self._unverified_sensor(f"unverified {leg} wheel geometry", tick, now)
                 raise SemanticObservationError(f"unverified {leg} wheel geometry")
             center = _vector(_get(wheel, "center_w_m"), 3, f"{leg} center")
             bottom = _vector(_get(wheel, "bottom_w_m"), 3, f"{leg} bottom")
@@ -465,6 +471,8 @@ class TaskEvaluator:
             contact = contacts.get(body_name); ground = _get(contact, "ground"); obstacle_pair = _get(contact, "obstacle")
             for pair in (ground, obstacle_pair):
                 if _get(pair, "pair_verified") is not True or not isinstance(_get(pair, "active"), bool):
+                    if self._all_stage:
+                        return self._unverified_sensor(f"{leg} requires verified exact ground and obstacle contact pairs", tick, now)
                     raise SemanticObservationError(f"{leg} requires verified exact ground and obstacle contact pairs")
                 _number(_get(pair, "normal_force_n"), f"{leg} pair normal force")
             ground_active, top_active = _get(ground, "active"), _get(obstacle_pair, "active")

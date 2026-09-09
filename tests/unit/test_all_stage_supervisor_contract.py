@@ -78,3 +78,19 @@ def test_already_captured_current_top_does_not_require_second_clearance_hop():
     assert sup.predicate("clear_FR",ev)==1.
     current["ground_contact"]=True
     assert sup.predicate("clear_FR",ev)==0.
+
+@pytest.mark.parametrize("fault,source,result", [
+    ("nonfinite","NUMERICAL","SAFETY_ABORT"),
+    ("wheel_geometry","UNVERIFIED_SENSOR","INFRASTRUCTURE_ERROR"),
+    ("pair_missing","UNVERIFIED_SENSOR","INFRASTRUCTURE_ERROR"),
+])
+def test_new_invalid_sensor_paths_have_explicit_non_success_sources(fault,source,result):
+    from test_semantic_all_stage_physical_acceptance import new_spec,new_observation
+    ev=TaskEvaluator(spec=new_spec())
+    obs=new_observation()
+    if fault=="nonfinite": obs["all_finite"]=False
+    elif fault=="wheel_geometry": obs["wheels"]["front_left_ankle"]["geometry_verified"]=False
+    else: obs["contacts"]["front_left_wheel"]["ground"]["pair_verified"]=False
+    snap=ev.observe(obs)
+    assert snap["termination_source"]==source and snap["termination_reason"]==result
+    assert snap["valid"] is False and snap["success"] is False

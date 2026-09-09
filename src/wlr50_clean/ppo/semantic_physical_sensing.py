@@ -3,7 +3,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, fields
 import math
+from time import perf_counter
 from typing import Any, Mapping
+
+import numpy as np
 
 from wlr50_clean.sensing.contact_classifier import (
     BASE_BODY, GROUND_PAIR, OBSTACLE_PAIR, WHEEL_BODIES, ContactContractError,
@@ -12,7 +15,7 @@ from wlr50_clean.sensing.contact_classifier import (
 from wlr50_clean.sensing.geometry import (
     Aabb, ColliderGeometryCache, GeometrySnapshot, WheelGeometry,
     WHEEL_JOINT_TO_BODY, aabb_intersection_depth, obstacle_aabb,
-    _optional_quat, _optional_vec3, _world_bounds_from_body_local_points,
+    _optional_quat, _optional_vec3,
 )
 from wlr50_clean.sensing.observation import Observation
 from wlr50_clean.sensing.sensor_reader import (
@@ -24,9 +27,63 @@ from wlr50_clean.sensing.sensor_reader import (
 class SemanticPhysicalObservation(Observation):
     body_bounds_w_m: Mapping[str, Any] = field(default_factory=dict)
     geometry_pose_aware: bool = True
+    geometry_point_counts: Mapping[str, int | None] = field(default_factory=dict)
+    geometry_sample_wall_s: float | None = None
 
 
 _OBSERVATION_FIELDS = tuple(item.name for item in fields(Observation))
+
+
+def _body_local_point_array(points):
+    """Own a validated float64 asset copy; never alias a provider's storage."""
+    try:
+        array = np.array(points, dtype=np.float64, order="F", copy=True)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if array.ndim != 2 or array.shape[1] != 3 or not len(array) or not np.isfinite(array).all():
+        return None
+    array.flags.writeable = False
+    return array
+
+
+def _world_bounds_from_body_local_array(points, *, position_w_m, orientation_wxyz):
+    """Original quaternion arithmetic, vectorized over immutable asset points.
+
+    `points` is the nonempty finite (N,3) float64 array from the validator above.
+    No matrix product/BLAS, world-pose cache, radius approximation or stale AABB
+    is used. Every call transforms every point at the supplied current pose.
+    """
+    position = _optional_vec3(position_w_m)
+    quaternion = _optional_quat(orientation_wxyz)
+    if position is None or quaternion is None or points is None:
+        return None
+    w, x, y, z = quaternion
+    vx, vy, vz = points[:, 0], points[:, 1], points[:, 2]
+    with np.errstate(over="ignore", invalid="ignore"):
+        tx = 2.0 * (y * vz - z * vy)
+        ty = 2.0 * (z * vx - x * vz)
+        tz = 2.0 * (x * vy - y * vx)
+        world = (
+            position[0] + (vx + w * tx + (y * tz - z * ty)),
+            position[1] + (vy + w * ty + (z * tx - x * tz)),
+            position[2] + (vz + w * tz + (x * ty - y * tx)),
+        )
+    minima, maxima = [], []
+    for coordinate in world:
+        low, high = float(coordinate.min()), float(coordinate.max())
+        # Reductions propagate NaN; extrema also detect any infinity/|x|>=1000.
+        # This retains the frozen helper's per-world-point validity boundary.
+        if not (math.isfinite(low) and math.isfinite(high) and low > -1000. and high < 1000.):
+            return None
+        if low == 0. or high == 0.:
+            # Python min/max retain the first equal zero's sign. NumPy's tie
+            # reduction need not, so preserve even this harmless exact detail.
+            first_zero = float(coordinate[np.argmax(coordinate == 0.)])
+            if low == 0.: low = first_zero
+            if high == 0.: high = first_zero
+        minima.append(low)
+        maxima.append(high)
+    return Aabb(tuple(minima), tuple(maxima))
 
 
 class SemanticColliderGeometry:
@@ -37,10 +94,29 @@ class SemanticColliderGeometry:
         self.provider = legacy_geometry.bounds_provider
         self.obstacle = legacy_geometry.obstacle
         self.last_snapshot = None
+        self._point_arrays = {}
+        self.last_point_counts = {}
+        self.last_sample_wall_s = None
+
+    def _points_for_body(self, body, points):
+        cached = self._point_arrays.get(body)
+        if cached is not None and cached[0] is points:
+            return cached[1]
+        array = _body_local_point_array(points)
+        # The USD provider exposes immutable tuples of tuple vertices. Cache
+        # only those assets; mutable test/providers are revalidated each read.
+        immutable = type(points) is tuple and all(type(point) is tuple for point in points)
+        if immutable:
+            self._point_arrays[body] = (points, array)
+        else:
+            self._point_arrays.pop(body, None)
+        return array
 
     def sample(self, body_positions_w_m, body_orientations_wxyz=None):
+        started = perf_counter()
         orientations = body_orientations_wxyz or {}
         bounds_by_body, paths_by_body, quality = {}, {}, []
+        point_counts = dict.fromkeys((BASE_BODY, *WHEEL_BODIES))
         for body in (BASE_BODY, *WHEEL_BODIES):
             position = _optional_vec3(body_positions_w_m.get(body))
             orientation = _optional_quat(orientations.get(body))
@@ -51,12 +127,20 @@ class SemanticColliderGeometry:
             if points is not None:
                 # The frozen provider already stores immutable collider-local
                 # points. Avoid its USD traversal on the live hot path.
-                bounds = _world_bounds_from_body_local_points(points,
+                array = self._points_for_body(body, points)
+                point_counts[body] = len(array) if array is not None else None
+                bounds = _world_bounds_from_body_local_array(array,
                     position_w_m=position, orientation_wxyz=orientation)
                 paths = self.provider._collider_paths[body]
             else:
                 bounds, paths = self.provider.collision_bounds(body,
                     body_position_w_m=position, body_orientation_wxyz=orientation)
+                # First lazy USD asset discovery may populate the provider.
+                # Capture its count now; subsequent ticks use the vector path.
+                discovered = getattr(self.provider, "_body_local_points", {}).get(body)
+                if discovered is not None:
+                    array = self._points_for_body(body, discovered)
+                    point_counts[body] = len(array) if array is not None else None
             if bounds is None or not all(math.isfinite(v) for v in (*bounds.minimum_m, *bounds.maximum_m)):
                 quality.append(f"unverified current-pose collider bounds for {body}")
                 continue
@@ -78,6 +162,8 @@ class SemanticColliderGeometry:
             base_obstacle_penetration_m=aabb_intersection_depth(bounds_by_body.get(BASE_BODY), obstacle_aabb(self.obstacle)),
             quality=tuple(quality))
         self.last_snapshot = result
+        self.last_point_counts = point_counts
+        self.last_sample_wall_s = perf_counter() - started
         return result
 
 
@@ -103,7 +189,9 @@ class SemanticSensorReader(SensorReader):
         raw = super().read(*args, **kwargs)
         geometry = self.geometry_backend.last_snapshot
         return SemanticPhysicalObservation(**{name: getattr(raw, name) for name in _OBSERVATION_FIELDS},
-            body_bounds_w_m=geometry.body_bounds_w_m, geometry_pose_aware=True)
+            body_bounds_w_m=geometry.body_bounds_w_m, geometry_pose_aware=True,
+            geometry_point_counts=dict(self.geometry_backend.last_point_counts),
+            geometry_sample_wall_s=self.geometry_backend.last_sample_wall_s)
 
 
 def physical_contact_surface(pair, *, kind: str, obstacle, tolerance_m: float,

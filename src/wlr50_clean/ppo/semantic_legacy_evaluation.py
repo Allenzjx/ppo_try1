@@ -43,7 +43,7 @@ def measured_observation(raw: Any) -> dict[str, Any]:
               "all_finite", "base", "imu", "obstacle", "joints", "wheels",
               "contacts", "bodies", "center_of_mass", "support", "body_collision",
               "actual_full12", "commanded_full12", "data_quality",
-              "body_bounds_w_m", "geometry_pose_aware")
+              "body_bounds_w_m", "geometry_pose_aware", "geometry_point_counts", "geometry_sample_wall_s")
     return {name: physical_json(_member(raw, name)) for name in fields}
 
 
