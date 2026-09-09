@@ -768,7 +768,7 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
     """Reuse learned networks, explicitly discard old optimizer and rollout state."""
     import torch
     from .semantic_migration import (
-        build_v3_warm_start_record, checkpoint_metadata, SAME372_AUTHORITY_SCHEMA,
+        build_v3_warm_start_record, checkpoint_metadata, SAME372_AUTHORITY_SCHEMA, ALL_STAGE_SCHEMA,
     )
     kernel = record.get("policy_kernel_transition")
     options = {} if kernel is None else {"target_policy_version": kernel.get("target_policy_version")}
@@ -786,7 +786,7 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
     same_layout = record.get("observation_same_layout_transition")
     if same_layout is not None:
         from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
-        if (same_layout.get("schema") != SAME372_AUTHORITY_SCHEMA
+        if (same_layout.get("schema") not in (SAME372_AUTHORITY_SCHEMA, ALL_STAGE_SCHEMA)
                 or same_layout.get("source_observation_dimension") != 372
                 or same_layout.get("target_observation_dimension") != 372
                 or same_layout.get("source_observation_layout") != ROLE_OBSERVATION_LAYOUT

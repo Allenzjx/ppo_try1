@@ -42,7 +42,8 @@ def measured_observation(raw: Any) -> dict[str, Any]:
     fields = ("schema", "physics_tick", "simulation_time_s", "physics_dt_s",
               "all_finite", "base", "imu", "obstacle", "joints", "wheels",
               "contacts", "bodies", "center_of_mass", "support", "body_collision",
-              "actual_full12", "commanded_full12", "data_quality")
+              "actual_full12", "commanded_full12", "data_quality",
+              "body_bounds_w_m", "geometry_pose_aware")
     return {name: physical_json(_member(raw, name)) for name in fields}
 
 
@@ -143,9 +144,20 @@ class PhysicalEvaluationRecorder:
 
 def _evaluation_legacy(app, args, contract, *, task_spec_path: Path | str | None = None,
                        quality_score_path: Path | str | None = None):
-    from .isaac_fsm_backend import IsaacFSMBackend
+    from .isaac_fsm_backend import IsaacFSMBackend, _load_live_dependencies
     from .residual_direct_env import ResidualEpisodeEnv
-    backend = IsaacFSMBackend(app, audit_actuator_target_effect=True)
+    dependencies = None
+    if task_spec_path is not None:
+        from .semantic_supervisor import load_task_spec
+        if load_task_spec(task_spec_path).get("physical_acceptance_version") == "all_stage_v1":
+            from dataclasses import replace
+            from .semantic_physical_sensing import SemanticSensorReader
+            dependencies = replace(_load_live_dependencies(),
+                reader_from_scene=lambda scene, adapter, backends: SemanticSensorReader.from_live_scene(
+                    scene, adapter, backends=backends))
+    # Original controller/mapper/reset unchanged. Only the explicitly versioned
+    # measurement adapter is common with B/C; reset differences remain reported.
+    backend = IsaacFSMBackend(app, audit_actuator_target_effect=True, **({"dependencies": dependencies} if dependencies is not None else {}))
     core = ResidualEpisodeEnv(backend, collect_trace=False)
     core.reset(seed=args.seed)
     recorder = PhysicalEvaluationRecorder(args.run_dir, task_spec_path=task_spec_path,

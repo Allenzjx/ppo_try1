@@ -40,6 +40,7 @@ ROLE_APPEND_RUNTIME_FILES = frozenset({
         "semantic_migration", "semantic_training", "semantic_cli")),
 })
 SAME372_AUTHORITY_SCHEMA = "wlr50_clean.transfer_roles_same_layout_authority_transition.v1"
+ALL_STAGE_SCHEMA = "wlr50_clean.all_stage_same372_acceptance_transition.v1"
 SAME372_AUTHORITY_RUNTIME_FILES = frozenset({
     "configs/ppo_semantic_v3/stage_task_spec.yaml",
     "configs/ppo_semantic_v3/execution_profile.yaml",
@@ -55,9 +56,78 @@ def experiment_namespace(semantic_version: str, experiment_id: str | None = None
         raise ValueError("unsupported semantic runtime version")
     if experiment_id is None:
         return f"ppo_semantic_{semantic_version}"
-    if experiment_id != "transfer_roles_v1" or semantic_version != "v3":
-        raise ValueError("transfer_roles_v1 experiment requires semantic version v3")
-    return "ppo_transfer_roles_v1"
+    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1") or semantic_version != "v3":
+        raise ValueError("isolated semantic experiment requires semantic version v3")
+    return f"ppo_{experiment_id}"
+
+
+def _all_stage_same372_transition(before, after, binding, *, metadata, old, new,
+                                  config_records, project_root, target_policy_version):
+    """Explicit acceptance/measurement boundary; never a generic resume waiver."""
+    import yaml
+    from .semantic_policy_distribution import (HISTORY_POLICY, policy_contract,
+        policy_observation_layout_from_metadata, policy_version_from_metadata)
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    if (old.get("experiment_id") != "transfer_roles_v1"
+            or new.get("experiment_id") != "all_stage_acceptance_v1"
+            or old.get("semantic_version") != "v3" or new.get("semantic_version") != "v3"
+            or policy_version_from_metadata(metadata) != HISTORY_POLICY
+            or policy_observation_layout_from_metadata(metadata) != ROLE_OBSERVATION_LAYOUT
+            or source_num_envs(metadata) != 1 or target_policy_version is not None):
+        raise ValueError("all-stage boundary requires existing N1 HISTORY372 transfer-role policy")
+    if (before != after or binding["source_sha256"] != binding["target_sha256"]
+            or sum(row["size"] for row in after["feature_groups"]) != 372):
+        raise ValueError("all-stage boundary must preserve all372 schema bytes and fixed preprocessing")
+    variable = {"files", "source_git_commit", "runtime_content_sha256", "selected_configuration", "experiment_id"}
+    if ({k:v for k,v in old.items() if k not in variable}
+            != {k:v for k,v in new.items() if k not in variable}):
+        raise ValueError("all-stage boundary cannot change other runtime/physical metadata")
+    for name in ("action_schema.json", "quality_score.yaml", "reward_config.yaml"):
+        if config_records[name]["source_sha256"] != config_records[name]["target_sha256"]:
+            raise ValueError(f"all-stage boundary cannot silently change {name}")
+    for side, contract in (("source", old), ("target", new)):
+        selected = contract.get("selected_configuration", {})
+        if set(selected) != set(config_records):
+            raise ValueError("all-stage requires exactly six selected configuration bindings")
+        for name, row in config_records.items():
+            namespace = "ppo_semantic_v3" if side == "source" else "ppo_all_stage_acceptance_v1"
+            if row[f"{side}_path"] != f"configs/{namespace}/{name}":
+                raise ValueError("all-stage configuration must use its exact isolated namespace")
+            expected = {"path": row[f"{side}_path"], "sha256": row[f"{side}_sha256"]}
+            if selected[name] != expected or contract["files"].get(expected["path"]) != expected["sha256"]:
+                raise ValueError("all-stage configuration binding differs")
+    target_spec = yaml.safe_load((project_root / config_records["stage_task_spec.yaml"]["target_path"]).read_text(encoding="utf-8"))
+    if target_spec.get("physical_acceptance_version") != "all_stage_v1" or target_spec.get("rear_leg_order") != "RR_FIRST":
+        raise ValueError("all-stage requires explicit physical acceptance version and RR_FIRST")
+    # Assets, scene, actuation physics, frozen FSM and all unrelated source bytes
+    # remain exact. The explicit set permits measurement fixes, not dynamics edits.
+    allowed = {SUPERVISOR, "scripts/run_semantic_ppo.ps1",
+        *(f"src/wlr50_clean/ppo/{name}.py" for name in (
+            "semantic_cli", "semantic_migration", "semantic_training", "semantic_backend",
+            "semantic_transfer_roles", "semantic_legacy_evaluation", "semantic_physical_sensing")),
+        *(row["target_path"] for row in config_records.values())}
+    delta = {p for p in old["files"].keys() | new["files"].keys() if old["files"].get(p) != new["files"].get(p)}
+    if not delta <= allowed or old["files"].keys() - new["files"].keys():
+        raise ValueError(f"all-stage changed non-reviewed runtime files: {sorted(delta - allowed)}")
+    for relative in delta:
+        if relative in old["files"]:
+            _version_bytes(project_root, old, relative, prefer_worktree=True)
+        if file_sha(project_root / relative) != new["files"][relative]:
+            raise ValueError("all-stage target runtime bytes differ from inventory")
+    contract = policy_contract(HISTORY_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    return {"schema": ALL_STAGE_SCHEMA,
+        "source_observation_dimension": 372, "target_observation_dimension": 372,
+        "source_observation_layout": ROLE_OBSERVATION_LAYOUT, "target_observation_layout": ROLE_OBSERVATION_LAYOUT,
+        "source_schema_sha256": binding["source_sha256"], "target_schema_sha256": binding["target_sha256"],
+        "source_policy_contract": contract, "target_policy_contract": dict(contract),
+        "parameter_mapping": "identity_all_parameters_and_buffers", "observation_bytes_unchanged": True,
+        "observation_semantics_changed": ["continued_response_fraction counts actual transfer maturity"],
+        "kernel_changed": False, "reward_changed": True, "physical_actuators_changed": False,
+        "effective_action_mapping_changed": True, "measurement_and_task_acceptance_changed": True,
+        "normalizers": "identity_RSL_state_preserved", "old_rollout_inherited": False,
+        "training_rng_preserved": True, "lifetime_counters_and_spent_budgets_preserved": True,
+        "optimizer": {"kind": "Adam", "state": "reset_all_moments", "initial_learning_rate": 3e-5},
+        "equivalence_scope": "identical372-input learned function only; changed sensing/task/PBRS/nominal/residual mapping, not trajectory equivalence"}
 
 
 def _transfer_observation_scale_transition(before: Mapping[str, Any], after: Mapping[str, Any],
@@ -406,7 +476,8 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
                     "observation_schema.json", "action_schema.json", "quality_score.yaml")
     config_records = {}
     for name in config_names:
-        source, target = f"configs/ppo_semantic_{source_version}/{name}", f"configs/ppo_semantic_v3/{name}"
+        source = old.get("selected_configuration", {}).get(name, {}).get("path", f"configs/ppo_semantic_{source_version}/{name}")
+        target = new.get("selected_configuration", {}).get(name, {}).get("path", f"configs/ppo_semantic_v3/{name}")
         if source not in old["files"] or target not in new["files"]:
             raise ValueError(f"new-MDP requires both versioned configuration records: {name}")
         if file_sha(project_root / target) != new["files"][target]:
@@ -435,11 +506,16 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
     # preprocessing. Only the explicit transfer-role experiment has a reviewed
     # two-column scale compensation; historical/default paths remain exact.
     before = json.loads(_version_text(project_root, old, config_records["observation_schema.json"]["source_path"], prefer_worktree=True))
-    after = json.loads((project_root / "configs/ppo_semantic_v3/observation_schema.json").read_text(encoding="utf-8"))
+    after = json.loads((project_root / config_records["observation_schema.json"]["target_path"]).read_text(encoding="utf-8"))
     observation_transition = None
     observation_append_transition = None
     observation_same_layout_transition = None
-    if "transfer_role_features_version" in before and "transfer_role_features_version" in after:
+    if target_experiment == "all_stage_acceptance_v1":
+        observation_same_layout_transition = _all_stage_same372_transition(
+            before, after, config_records["observation_schema.json"], metadata=metadata,
+            old=old, new=new, config_records=config_records, project_root=project_root,
+            target_policy_version=target_policy_version)
+    elif "transfer_role_features_version" in before and "transfer_role_features_version" in after:
         observation_same_layout_transition = _transfer_same372_authority_transition(
             before, after, config_records["observation_schema.json"], metadata=metadata,
             old=old, new=new, config_records=config_records, project_root=project_root,
@@ -538,7 +614,7 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
         result["experiment_transition"] = {
             "source_experiment_id": source_experiment, "target_experiment_id": target_experiment,
             "source_artifact_namespace": source_namespace, "target_artifact_namespace": target_namespace,
-            "target_configuration_namespace": "ppo_semantic_v3", "v3_budgets_reset": False,
+            "target_configuration_namespace": (target_namespace if target_experiment == "all_stage_acceptance_v1" else "ppo_semantic_v3"), "v3_budgets_reset": False,
         }
     if observation_transition is not None:
         result["observation_scale_transition"] = observation_transition
@@ -567,7 +643,7 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
             actor="preserve_all_parameters_and_buffers_including_learned_std",
             critic="preserve_all_parameters_and_buffers",
             normalizers="identity_RSL_state_preserved; identical_complete372_schema_bytes")
-        result["optimizer"]["reason"] = "explicit FL-hip authority boundary; verify source Adam then reset moments"
+        result["optimizer"]["reason"] = "explicit same372 semantic/authority boundary; verify source Adam then reset moments"
         result["action_output_semantics"] = observation_same_layout_transition["equivalence_scope"]
     return result
 

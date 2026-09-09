@@ -13,6 +13,7 @@ import math
 from wlr50_clean.infrastructure.command_batch import SERVO_ORDER, WHEEL_ORDER, servo_limits_deg
 
 MODE = "diagonal_transfer_roles_v1"
+ALL_STAGE_ACCEPTANCE_VERSION = "all_stage_v1"
 LEGS = ("FL", "FR", "RL", "RR")
 DIAGONAL = {"FR": "RL", "FL": "RR", "RR": "FL", "RL": "FR"}
 ROLE_OBSERVATION_LAYOUT = "diagonal_transfer_state_v1"
@@ -70,6 +71,8 @@ def validate_config(spec):
     cfg = spec.get("transfer_roles")
     if cfg is None:
         return
+    if spec.get("physical_acceptance_version") not in (None, ALL_STAGE_ACCEPTANCE_VERSION):
+        raise ValueError("unsupported physical acceptance version for transfer roles")
     if cfg.get("mode") != MODE or set(cfg.get("mapping", {})) != set(LEGS):
         raise ValueError("invalid diagonal transfer role config")
     for leg, row in cfg["mapping"].items():
@@ -91,6 +94,9 @@ class TransferRoleTracker:
         self.cfg = spec["transfer_roles"]
         self.samples = deque()
         self.response_since = dict.fromkeys(LEGS, None)
+        self.transfer_response_since = dict.fromkeys(LEGS, None)
+        self._separate_transfer_response = (
+            spec.get("physical_acceptance_version") == ALL_STAGE_ACCEPTANCE_VERSION)
 
     def observe(self, raw, evaluation):
         current, hist = evaluation["current_legs"], evaluation["history"]
@@ -101,13 +107,18 @@ class TransferRoleTracker:
         centers = {leg: vec(get(wheels[WHEEL_ORDER[i]], "center_w_m")) for i, leg in enumerate(LEGS)}
         valid = (get(com, "valid") is True and c is not None and v is not None
                  and b is not None and q is not None and all(x is not None for x in centers.values()))
+        invalid_load = self._separate_transfer_response and any(
+            current[leg].get("load_fraction_valid") is False for leg in LEGS)
+        valid = valid and not invalid_load
         if not valid:
             # Detailed diagnostics unavailable is NOT invented zero CoM/support.
             self.samples.clear()
             self.response_since = dict.fromkeys(LEGS, None)
+            self.transfer_response_since = dict.fromkeys(LEGS, None)
             return {leg: {"valid": False, "preparation_progress": 0., "transfer_progress": 0.,
                 "preparation_ready": False, "transfer_ready": False, "motion_fraction": 0.,
-                "reason": "missing verified mass-weighted CoM or wheel/body geometry"} for leg in LEGS}
+                "reason": ("normalized bearing load is unavailable" if invalid_load else
+                    "missing verified mass-weighted CoM or wheel/body geometry")} for leg in LEGS}
         now = evaluation["simulation_time_s"]
         supports = tuple(leg for leg in LEGS if current[leg]["support"]
                          and (current[leg]["ground_contact"] or current[leg]["top_contact"]))
@@ -173,10 +184,22 @@ class TransferRoleTracker:
             elif self.response_since[leg] is None:
                 self.response_since[leg] = now
             response_duration = 0. if self.response_since[leg] is None else now-self.response_since[leg]
-            # A mature global window is not a mature newly dropped-load event.
-            # Require short continued measured response, never a stationary hold.
+            preparation_duration = response_duration
+            preparation_continuation = continuation*clip(preparation_duration/self.cfg["minimum_evidence_s"])
+            if self._separate_transfer_response:
+                # Receiver-space preparation is useful, but its elapsed time
+                # cannot mature a newly observed load/directional/lift response.
+                # These clocks belong to physical evidence, never phase labels.
+                transfer_response = bool(actuated and measured_transfer > 0. and continuation > 0.)
+                if not transfer_response:
+                    self.transfer_response_since[leg] = None
+                elif self.transfer_response_since[leg] is None:
+                    self.transfer_response_since[leg] = now
+                response_duration = (0. if self.transfer_response_since[leg] is None
+                                     else now-self.transfer_response_since[leg])
+            # Legacy mode retains the original shared preparation/transfer age.
             continuation *= clip(response_duration/self.cfg["minimum_evidence_s"])
-            preparation = continuation*max(directional, redistribution, space_response,
+            preparation = preparation_continuation*max(directional, redistribution, space_response,
                                             float(initial))
             unload = clip((1.-current[leg]["load_fraction"])/(1.-self.spec["support"]["unloaded_leg_maximum_load_fraction"]))
             progress = continuation*measured_transfer*unload
@@ -187,7 +210,7 @@ class TransferRoleTracker:
                        if crossed else 0.)
             # Do not reward every receiver dropout as intentional reopening.
             reopening_evidence = bool(hist["placed"][receiver] and r["air"] and actuated
-                                      and continuation > .5 and max(directional, space_response) > 0.)
+                                      and preparation_continuation > .5 and max(directional, space_response) > 0.)
             degraded = [x for x in LEGS if hist["placed"][x] and x not in supports
                         and not (x == receiver and reopening_evidence)]
             result[leg] = {"valid": True, "target_swing_leg": leg,
@@ -231,4 +254,8 @@ class TransferRoleTracker:
                     if not hist["placed"][leg] else 0.,
                 "crossing_and_placement_evidence": {key: hist[key][leg] for key in
                     ("active_lift", "front_edge_crossed", "placed")}}
+            if self._separate_transfer_response:
+                result[leg]["transfer_direction_context"].update(
+                    preparation_response_duration_s=preparation_duration,
+                    response_maturity_semantics="separate_preparation_and_transfer")
         return result

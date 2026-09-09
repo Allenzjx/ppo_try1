@@ -40,7 +40,7 @@ def version_paths(version: str, *, experiment_id: str | None = None) -> tuple[Pa
     if version == "v2":
         return RUNS_ROOT, OUTPUT_ROOT, PROJECT_ROOT / "configs/ppo_semantic_v2"
     return (PROJECT_ROOT / "runs" / namespace, PROJECT_ROOT / "outputs" / namespace,
-            PROJECT_ROOT / "configs/ppo_semantic_v3")
+            PROJECT_ROOT / "configs" / (namespace if experiment_id == "all_stage_acceptance_v1" else "ppo_semantic_v3"))
 
 
 def _request_paths(args: argparse.Namespace) -> tuple[Path, Path, Path]:
@@ -65,7 +65,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--seed", type=int, default=1001)
     result.add_argument("--num-envs", type=int, choices=(1, 8), default=1)
     result.add_argument("--semantic-version", choices=("v2", "v3"), default="v2")
-    result.add_argument("--experiment-id", choices=("transfer_roles_v1",))
+    result.add_argument("--experiment-id", choices=("transfer_roles_v1", "all_stage_acceptance_v1"))
     result.add_argument("--from-phase", choices=("P01", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13"), default="P01")
     result.add_argument("--teacher-offset-decisions", type=int, default=0)
     result.add_argument("--prefix-source", choices=("frozen_fsm", "checkpoint_policy"), default="frozen_fsm")
@@ -116,7 +116,7 @@ def runtime_contract(*, expected_head: str, semantic_version: str = "v2",
             "timeout_bootstrap": False, "training_budgets": dict(STAGE_BUDGETS),
             "local_runtime_versions": local_versions()}
     if semantic_version == "v3":
-        config_root = version_paths(semantic_version)[2]
+        config_root = version_paths(semantic_version, experiment_id=experiment_id)[2]
         contract.update(semantic_version="v3", selected_configuration={
             path.name: {"path": str(path.relative_to(PROJECT_ROOT)).replace("\\", "/"),
                         "sha256": sha256_file(path)} for path in sorted(config_root.iterdir()) if path.is_file()})
@@ -199,7 +199,9 @@ def validate_request(args: argparse.Namespace) -> None:
     if args.checkpoint is not None:
         source_root = output_root
         if args.new_mdp_warm_start:
-            if getattr(args, "experiment_id", None) is not None:
+            if getattr(args, "experiment_id", None) == "all_stage_acceptance_v1":
+                source_root = version_paths("v3", experiment_id="transfer_roles_v1")[1]
+            elif getattr(args, "experiment_id", None) is not None:
                 prior_v3_root = version_paths("v3")[1]
                 if args.checkpoint.resolve(strict=True).is_relative_to((prior_v3_root / "checkpoints").resolve()):
                     source_root = prior_v3_root
@@ -390,7 +392,7 @@ def _evaluation(core: Any, args: argparse.Namespace, *, contract: dict[str, Any]
         from .semantic_legacy_evaluation import PhysicalEvaluationRecorder
         kwargs = {}
         if args.semantic_version == "v3":
-            config_root = version_paths("v3")[2]
+            config_root = _request_paths(args)[2]
             kwargs = {"task_spec_path": config_root / "stage_task_spec.yaml",
                       "quality_score_path": config_root / "quality_score.yaml"}
         scope = closing(PhysicalEvaluationRecorder(args.run_dir, **kwargs))
@@ -723,7 +725,7 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
             from .semantic_legacy_evaluation import _evaluation_legacy
             kwargs = {}
             if args.semantic_version == "v3":
-                config_root = version_paths("v3")[2]
+                config_root = _request_paths(args)[2]
                 kwargs = {"task_spec_path": config_root / "stage_task_spec.yaml",
                           "quality_score_path": config_root / "quality_score.yaml"}
             return _evaluation_legacy(app, args, contract, **kwargs)

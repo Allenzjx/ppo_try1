@@ -8,7 +8,7 @@ param(
     [int]$Seed = 1001,
     [ValidateSet(1,8)][int]$NumEnvs = 1,
     [ValidateSet('v2','v3')][string]$SemanticVersion = 'v2',
-    [ValidateSet('transfer_roles_v1')][string]$ExperimentId,
+    [ValidateSet('transfer_roles_v1','all_stage_acceptance_v1')][string]$ExperimentId,
     [ValidateSet('P01','P03','P04','P05','P06','P07','P08','P09','P10','P11','P12','P13')][string]$FromPhase = 'P01',
     [ValidateRange(0,1799)][int]$TeacherOffsetDecisions = 0,
     [ValidateSet('frozen_fsm','checkpoint_policy')][string]$PrefixSource = 'frozen_fsm',
@@ -53,6 +53,9 @@ $kind = switch ($Command) { 'train' { 'train' }; 'smoke' { 'interface_smoke' }; 
 } }
 $runId = [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfffffffZ') + '_g' + $ExpectedHead.Substring(0,12) + '_' + [Guid]::NewGuid().ToString('N')
 if ($SemanticVersion -eq 'v3' -and $kind -eq 'interface_smoke') { $kind = 'interface_checks' }
+if ($ExperimentId -eq 'all_stage_acceptance_v1') {
+    if ($kind -in @('interface_checks','prior_B','baseline_A')) { $kind = 'diagnostics' }
+}
 $artifactNamespace = if ([string]::IsNullOrWhiteSpace($ExperimentId)) { "ppo_semantic_$SemanticVersion" } else { "ppo_$ExperimentId" }
 $runDir = Join-Path $project ("runs\$artifactNamespace\$kind\$runId")
 $logDir = Join-Path $project ("runs\$artifactNamespace\$kind\${runId}_launcher")

@@ -122,6 +122,7 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         self._policy_headroom_mode = self.execution_profile["residual"].get("policy_headroom_mode")
         self._tracking_reference_mode = self.execution_profile["residual"].get("tracking_reference_mode")
         self.task_spec_path = Path(task_spec_path).resolve()
+        self._physical_acceptance_version = yaml.safe_load(self.task_spec_path.read_text(encoding="utf-8")).get("physical_acceptance_version")
         self._nominal_geometry_mode = self.execution_profile.get("nominal_geometry_advisory")
         self._nominal_geometry_margin_m = None
         if self._nominal_geometry_mode is not None:
@@ -172,6 +173,10 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                 adapter.update_readback()
             adapter.verify_authoritative_servo_limits_adopted()
             reader = dependencies.reader_from_scene(scene, adapter, backends)
+            if self._physical_acceptance_version == "all_stage_v1":
+                from .semantic_physical_sensing import SemanticSensorReader
+                reader = SemanticSensorReader.from_live_scene(scene, adapter, backends=backends,
+                    physical_acceptance_version="all_stage_v1")
             observation = reader.read(physics_tick=0, simulation_time_s=0.0, commanded_full12=ack["drive_target_full12"])
             _validate_sensor_contract(observation, dependencies.expected_contact_bodies, require_finite=True)
             if self._semantic_controller_factory is None:
@@ -268,6 +273,8 @@ class SemanticIsaacBackend(IsaacFSMBackend):
 
     def _termination_signals(self, observation: Any, controller_frame: Any):
         result = _enum_value(_member(_member(controller_frame, "termination"), "result"))
+        task = getattr(self._controller, "task_snapshot", {})
+        source = task.get("termination_source") if isinstance(task, Mapping) else None
         fall, explosion, physics = _fall_and_explosion(observation)
         self._body_collision_seen |= bool(_member(_member(observation, "body_collision"), "detected", False)) or result == "TASK_FAILURE_BODY_COLLISION"
         self._wheel_only_seen |= result == "TASK_FAILURE_WHEEL_ONLY_CLIMB"
@@ -291,13 +298,15 @@ class SemanticIsaacBackend(IsaacFSMBackend):
             ("NAN_INF", signals.nan_inf), ("PHYSICS_EXPLOSION", signals.physics_explosion),
             ("BODY_COLLISION", signals.body_collision), ("WHEEL_ONLY_CLIMB", signals.wheel_only_climb),
             ("FALL", signals.fall), ("HARD_JOINT_LIMIT", signals.hard_joint_limit),
-            ("SUCCESS", signals.success), ("TASK_DEADLINE_OR_STALL", signals.timeout),
+            ("SUCCESS", signals.success), (source or "TASK_DEADLINE_OR_STALL", signals.timeout),
         ) if active]
         return signals, {
             "schema": "wlr50_clean.semantic_termination.v1", "controller_result": result,
             "controller_reason": _member(_member(controller_frame, "termination"), "reason"),
             "primary_source": reasons[0] if reasons else None, "active_sources": reasons,
             "physics_guard_values": physics, "timeout_is_task_terminal": True,
+            "termination_source": source,
+            "finite_mdp_terminal": bool(result), "external_truncation": False,
             "legacy_wheel_only_guard_diagnostic": _guard_asserted(observation, "wheel_only_climb_detected"),
         }
 
