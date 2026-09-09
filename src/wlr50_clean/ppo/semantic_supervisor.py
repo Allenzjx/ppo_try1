@@ -740,6 +740,8 @@ class TaskEvaluator:
         tolerance = geo["xy_measurement_tolerance_m"]
         body_through = bool(low[0] >= front-tolerance and high[0] <= back+tolerance
             and low[1] >= right-tolerance and high[1] <= left+tolerance)
+        outside_x = max(front-tolerance-low[0], 0., high[0]-back-tolerance)
+        outside_y = max(right-tolerance-low[1], 0., high[1]-left-tolerance)
         # Keep the platform target, not a request to drive off its far edge.
         # Current AIR above it is not disqualified by a thin recovery z band.
         region = body_through and all(v["within_top_xy"] and v["clearance_m"] >= geo["top_gap_min_m"]
@@ -775,7 +777,8 @@ class TaskEvaluator:
             traversal_task_complete=controlled_now and self._failure is None,
             task_completed_controlled=controlled_now and self._failure is None,
             body_traversal_geometry=dict(valid=True, minimum_w_m=low, maximum_w_m=high,
-                                         whole_body_in_platform_region=body_through),
+                whole_body_in_platform_region=body_through,
+                outside_platform_distance_m=math.hypot(outside_x, outside_y)),
             final_region_valid=region, final_controlled=measured_controlled,
             final_support_available=support,
             strict_recovery_quality=dict(passed=bool(old_controlled and self._snapshot["final_stable_for_s"] >= final["stable_duration_s"]),
@@ -783,6 +786,7 @@ class TaskEvaluator:
                 commanded_wheels_within_tolerance=max(map(abs, commands)) <= final["maximum_commanded_wheel_speed_rad_s"],
                 home_error_deg=self._snapshot["home_maximum_servo_error_deg"]),
             post_completion_observation_s=observed,
+            post_completion_observation_started=self._completion_observation_since is not None,
             post_completion_elapsed_s=min(observed, final["post_completion_observation_s"]),
             post_completion_observation_complete=post_complete,
             post_completion_loss_observed=self._post_completion_loss,
@@ -822,13 +826,15 @@ class TaskStageSupervisor:
             if evaluation["success"]: return 1.
             final=self.spec["final"]; features=evaluation["goal_features"]
             if self.spec.get("physical_acceptance_version") == "all_stage_v1":
-                # One physical finish share, not a second event bonus or a
-                # near-zero commanded-wheel/home template. Post observation
-                # is part of this same episode, with its finite timer visible.
-                traversed = float(evaluation.get("traversal_event_observed", False))
-                controlled = float(evaluation.get("task_completed_controlled", False))
+                # Existing phase_progress slot carries a reversible finite
+                # acceptance state, separately from the dense physical Phi.
+                # Disjoint bands expose the timer start (including elapsed=0)
+                # and irreversible region-loss latch without changing372.
                 observed = _clip(float(evaluation.get("post_completion_elapsed_s", 0.)) / final["post_completion_observation_s"])
-                return min(.99, .65*traversed + .25*controlled + .10*observed)
+                if evaluation.get("post_completion_observation_started", False):
+                    return (.80+.19*observed if evaluation.get("post_completion_loss_observed", False)
+                            else .50+.25*observed)
+                return .25 if evaluation.get("traversal_event_observed", False) else 0.
             history_fraction=sum(evaluation["history"]["placed"].values())/4.
             forward=min(_clip(features["body_forward_m"]/final["minimum_body_forward_m"]),
                         min(_clip(features[f"{leg}_front_distance_m"]/final["minimum_rear_wheel_forward_m"]) for leg in LEG_ORDER))
@@ -982,8 +988,48 @@ class TaskStageSupervisor:
                     unload=1.
                 capture=self._current_capture_progress(leg,evaluation,capture)
             values.append(.1*workspace+.1*unload+.25*(.25*initial+.75*lift_credit)+.35*carry+.2*capture)
-        finish=self.predicate("whole_task_success",evaluation) if all(history["placed"].values()) else 0.
+        finish = ((self._current_finish_progress(evaluation)
+                   if self.spec.get("physical_acceptance_version") == "all_stage_v1"
+                   else self.predicate("whole_task_success", evaluation))
+                  if all(history["placed"].values()) else 0.)
         return min(1.,.85*sum(values)/4.+.15*finish)
+
+    def _current_finish_progress(self, evaluation: Mapping[str, Any]) -> float:
+        """Single existing finish share: current geometry, actual rates, post time.
+
+        This is not an acceptance predicate. Neither historical traversal nor
+        matching command/home targets can substitute for present measurements.
+        """
+        if evaluation.get("physical_evidence_status") != "VERIFIED":
+            return 0.
+        geometry = evaluation["body_traversal_geometry"]
+        outside = _number(geometry["outside_platform_distance_m"], "body platform outside distance")
+        if not geometry["valid"] or outside < 0.:
+            raise SemanticObservationError("finish progress requires valid current body rectangle")
+        body = .25/(.25+outside)  # Existing carry/retention distance scale.
+        final = self.spec["final"]; features = evaluation["goal_features"]
+        if tuple(evaluation.get("stop_progress_wheel_order", ())) != WHEEL_ORDER:
+            raise SemanticObservationError("finish progress requires measured wheel order")
+        speeds = _vector(evaluation.get("measured_wheel_velocity_rad_s"), 4, "finish measured wheels")
+
+        def ratio(value, key):
+            magnitude = abs(_number(value, "finish measured rate"))
+            threshold = _number(final[key], "finish rate threshold")
+            if threshold <= 0.:
+                raise SemanticObservationError("finish rate threshold must be positive")
+            return 1. if magnitude <= threshold else threshold/magnitude
+
+        speed = (sum(ratio(v, "maximum_wheel_speed_rad_s") for v in speeds)/4.
+                 + ratio(features["body_linear_speed_m_s"], "maximum_body_linear_speed_m_s")
+                 + ratio(features["body_angular_speed_rad_s"], "maximum_body_angular_speed_rad_s"))/3.
+        support = _clip(sum(v["support"] and v["top_surface_contact"]
+                            for v in evaluation["current_legs"].values())
+                        / self.spec["support"]["minimum_other_supports"])
+        controlled = body*speed*support
+        observed = _clip(evaluation["post_completion_elapsed_s"]/final["post_completion_observation_s"])
+        if evaluation["post_completion_loss_observed"]:
+            observed = 0.
+        return .65*body + .25*controlled + .10*controlled*observed
 
     def _workspace_potential_progress(self, leg: str, evaluation: Mapping[str, Any]) -> float:
         """Soft preparation credit only; never an entry/completion predicate.
@@ -1095,6 +1141,7 @@ class TaskStageSupervisor:
         age = now-self.stage_started_s; episode_age = now-self.episode_started_s
         local_limit = float(stage["maximum_task_duration"])
         allowance = 0.
+        post_window_allowance = 0.
         if self.spec.get("physical_acceptance_version") == "all_stage_v1":
             policy = self.spec["local_timeout_policy"]
             # Stateless, bounded recovery allowance from current physical goal
@@ -1102,11 +1149,18 @@ class TaskStageSupervisor:
             # All operands (phase, progress, elapsed) already occur in372.
             allowance = min(float(policy["maximum_extension_s"]),
                 local_limit * float(policy["fraction_of_original_limit"])) * _clip(progress)**2
+            if self.stage_id == "P13" and evaluation.get("post_completion_observation_started", False):
+                # Preserve the already-started fixed observation, never renew
+                # it. Both age and remaining post time are observable. The
+                # global200s deadline is still authoritative.
+                remaining_post = max(0., self.spec["final"]["post_completion_observation_s"]
+                                     - evaluation["post_completion_elapsed_s"])
+                post_window_allowance = max(0., age+remaining_post-local_limit-allowance)
         if self.termination_reason is None:
             if episode_age >= self.spec["episode_maximum_duration_s"]:
                 self.termination_reason = TaskResult.INCOMPLETE_CONTROLLER_BLOCKED.value
                 self.termination_source = "GLOBAL_FINITE_TASK_DEADLINE"
-            elif age >= local_limit + allowance:
+            elif age >= local_limit + allowance + post_window_allowance:
                 self.termination_reason = TaskResult.INCOMPLETE_CONTROLLER_BLOCKED.value
                 self.termination_source = "LOCAL_BOUNDED_RECOVERY_EXHAUSTED" if allowance else "LOCAL_TASK_DEADLINE"
         self._progress_samples.append((now,progress))
@@ -1124,13 +1178,17 @@ class TaskStageSupervisor:
             "termination_reason":self.termination_reason,"entry_valid":entry["valid"],"entry_reasons":entry["reasons"],
             "termination_source":self.termination_source,
             "local_timeout": {"nominal_limit_s":local_limit, "current_progress_allowance_s":allowance,
-                "effective_limit_s":local_limit+allowance, "nominal_limit_exceeded":age>=local_limit,
+                "fixed_post_window_allowance_s":post_window_allowance,
+                "effective_limit_s":local_limit+allowance+post_window_allowance, "nominal_limit_exceeded":age>=local_limit,
                 "classification":"finite_task_terminal_not_external_truncation",
                 "timer_inputs_observable_in_existing372":True},
             "completion_values":goal_values,"stage_age_s":age,"stage_elapsed_s":age,
             "remaining_task_time_s":max(0.,self.spec["episode_maximum_duration_s"]-episode_age),
             "substage":"CAPTURE" if progress >= .8 else ("TRANSFER" if self.stage_id in ("P01","P04","P08","P10","P11") else "EXECUTION"),
             "stall_diagnostic":stalled,"transition_evidence":list(self.transition_evidence),"physical_evaluator":evaluation}
+        if (self.spec.get("physical_acceptance_version") == "all_stage_v1" and self.stage_id == "P13"
+                and evaluation.get("post_completion_observation_started", False)):
+            self._snapshot["substage"] = "CAPTURE"
         if self.spec.get("potential_definition") == "global_physical_progress_v3":
             self._snapshot["task_progress_potential"] = self.physical_potential(evaluation)
             # Physical airborne/load-transfer evidence overlaps phase labels.

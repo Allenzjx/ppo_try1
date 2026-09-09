@@ -5,6 +5,12 @@ decision_hz: 15.0
 episode_maximum_duration_s: 200.0
 revision: all_stage_acceptance_v1
 physical_acceptance_version: all_stage_v1
+# P13 phase_progress acceptance bands: 0 no event; .25 event/no timer;
+# .50+.25*t healthy post; .80+.19*t latched region loss; 1 true success.
+# t is the full clipped1s timer; physical Phi uses a separate current-body /
+# measured-rate finish share, with no commanded-stop or home target.
+# An already-started fixed post window may finish past a local deadline,
+# but never past the global200s task deadline or a safety termination.
 local_timeout_policy:
   mode: bounded_current_progress_allowance_v1
   maximum_extension_s: 10.0
