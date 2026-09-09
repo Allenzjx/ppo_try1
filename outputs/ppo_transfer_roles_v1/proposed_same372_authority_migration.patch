@@ -1,0 +1,390 @@
+*** Begin Patch
+*** Update File: src/wlr50_clean/ppo/semantic_migration.py
+@@
+ ROLE_APPEND_RUNTIME_FILES = frozenset({
+@@
+ })
++SAME372_AUTHORITY_SCHEMA = "wlr50_clean.transfer_roles_same_layout_authority_transition.v1"
++SAME372_AUTHORITY_RUNTIME_FILES = frozenset({
++    "configs/ppo_semantic_v3/stage_task_spec.yaml",
++    "configs/ppo_semantic_v3/execution_profile.yaml",
++    SUPERVISOR,
++    *(f"src/wlr50_clean/ppo/{name}.py" for name in (
++        "semantic_migration", "semantic_training", "semantic_cli")),
++})
+@@
+-def file_sha(path: Path) -> str:
++def _nominal_provider_byte_regions(raw: bytes) -> tuple[bytes, bytes, bytes]:
++    """Exclude exactly the one top-level class, retaining outside bytes."""
++    import ast
++    try:
++        tree = ast.parse(raw.decode("utf-8"))
++    except (SyntaxError, UnicodeDecodeError) as exc:
++        raise ValueError("same372 nominal-provider source is not valid UTF-8 Python") from exc
++    matches = [node for node in tree.body
++               if isinstance(node, ast.ClassDef) and node.name == "NominalMotionProvider"]
++    if len(matches) != 1 or matches[0].decorator_list:
++        raise ValueError("same372 requires exactly one undecorated NominalMotionProvider class")
++    node = matches[0]
++    lines = raw.splitlines(keepends=True)
++    return (b"".join(lines[:node.lineno-1]), b"".join(lines[node.lineno-1:node.end_lineno]),
++            b"".join(lines[node.end_lineno:]))
++
++
++def _transfer_same372_authority_transition(before, after, binding, *, metadata, old, new,
++                                           config_records, project_root, target_policy_version):
++    """Only the reviewed FL-hip advisory/cap change; no generic372 waiver."""
++    import yaml
++    from .semantic_observation import load_semantic_observation_schema
++    from .semantic_policy_distribution import (
++        HISTORY_POLICY, policy_contract, policy_observation_layout_from_metadata,
++        policy_version_from_metadata,
++    )
++    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT, ROLE_OBSERVATION_DIM
++    if (old.get("semantic_version") != "v3" or new.get("semantic_version") != "v3"
++            or old.get("experiment_id") != "transfer_roles_v1"
++            or new.get("experiment_id") != "transfer_roles_v1"
++            or policy_version_from_metadata(metadata) != HISTORY_POLICY
++            or policy_observation_layout_from_metadata(metadata) != ROLE_OBSERVATION_LAYOUT
++            or source_num_envs(metadata) != 1 or target_policy_version is not None):
++        raise ValueError("same372 authority requires transfer_roles_v1 N1 HISTORY372 with no kernel transition")
++    schema = load_semantic_observation_schema(project_root / binding["target_path"])
++    if (schema.dimension != ROLE_OBSERVATION_DIM
++            or schema.transfer_role_features_version != ROLE_OBSERVATION_LAYOUT
++            or before.get("transfer_role_features_version") != ROLE_OBSERVATION_LAYOUT
++            or digest(before) != digest(after) or binding["source_sha256"] != binding["target_sha256"]):
++        raise ValueError("same372 authority must preserve the complete observation schema bytes and layout")
++    changed_configs = {"stage_task_spec.yaml", "execution_profile.yaml"}
++    for name, row in config_records.items():
++        if name not in changed_configs and row["source_sha256"] != row["target_sha256"]:
++            raise ValueError(f"same372 authority cannot change observation/reward/action/quality bytes: {name}")
++    source_cfg, target_cfg = {}, {}
++    for name in changed_configs:
++        row = config_records[name]
++        source_cfg[name] = yaml.safe_load(_version_bytes(project_root, old, row["source_path"], prefer_worktree=True))
++        target_cfg[name] = yaml.safe_load((project_root / row["target_path"]).read_bytes())
++        if not isinstance(source_cfg[name], dict) or not isinstance(target_cfg[name], dict):
++            raise ValueError("same372 authority requires mapping configuration roots")
++    phases = tuple(f"P{i:02}" for i in range(6, 14))
++    overrides = {phase: {"front_left_hip": 60.0} for phase in phases}
++    spec = json.loads(json.dumps(source_cfg["stage_task_spec.yaml"], allow_nan=False))
++    nominal = spec.get("nominal", {})
++    if (spec.get("revision") != "diagonal_transfer_roles_v1"
++            or type(nominal.get("servo_handoff_rate_deg_s")) not in (int, float)
++            or nominal["servo_handoff_rate_deg_s"] != 150.0
++            or "phase_servo_rate_overrides_deg_s" in nominal):
++        raise ValueError("same372 authority source nominal revision/rates are not the reviewed baseline")
++    spec["revision"] = "diagonal_transfer_roles_v2_fl_advisory_counterauthority"
++    nominal["phase_servo_rate_overrides_deg_s"] = overrides
++    if digest(spec) != digest(target_cfg["stage_task_spec.yaml"]):
++        raise ValueError("same372 authority permits only the exact P06-P13 FL-hip60 override and stage revision")
++    profile = json.loads(json.dumps(source_cfg["execution_profile.yaml"], allow_nan=False))
++    residual = profile.get("residual", {})
++    if (profile.get("revision") != "continuous_transfer_roles_v1_residual_authority"
++            or type(residual.get("servo_rate_deg_s")) not in (int, float)
++            or residual["servo_rate_deg_s"] != 60.0):
++        raise ValueError("same372 authority source residual slew/revision differs")
++    for phase in phases:
++        caps = residual.get("phase_caps_full12", {}).get(phase)
++        if (not isinstance(caps, list) or len(caps) != 12
++                or type(caps[0]) not in (int, float) or caps[0] != 24):
++            raise ValueError("same372 authority requires original FL-hip24 caps in P06-P13")
++        caps[0] = 32
++    profile["revision"] = "continuous_transfer_roles_v2_fl_advisory_counterauthority"
++    if digest(profile) != digest(target_cfg["execution_profile.yaml"]):
++        raise ValueError("same372 authority permits only FL-hip24-to32 P06-P13 caps and execution revision")
++    old_selected, new_selected = old.get("selected_configuration"), new.get("selected_configuration")
++    for selected, contract, side in ((old_selected, old, "source"), (new_selected, new, "target")):
++        if not isinstance(selected, Mapping) or set(selected) != set(config_records):
++            raise ValueError("same372 selected_configuration requires exactly the six bound configs")
++        for name, row in config_records.items():
++            expected = {"path": row[f"{side}_path"], "sha256": row[f"{side}_sha256"]}
++            if digest(selected[name]) != digest(expected) or contract["files"].get(expected["path"]) != expected["sha256"]:
++                raise ValueError(f"same372 selected_configuration binding differs: {side}/{name}")
++    variable = {"files", "source_git_commit", "runtime_content_sha256"}
++    old_fixed = {k: v for k, v in old.items() if k not in variable}
++    new_fixed = {k: v for k, v in new.items() if k not in variable}
++    new_fixed["selected_configuration"] = dict(new_selected)
++    for name in changed_configs:
++        new_fixed["selected_configuration"][name] = old_selected[name]
++    if digest(old_fixed) != digest(new_fixed):
++        raise ValueError("same372 authority cannot change physical or other runtime metadata")
++    if set(old["files"]) != set(new["files"]):
++        raise ValueError("same372 authority cannot add/remove runtime files")
++    delta = {path for path in old["files"] if old["files"][path] != new["files"][path]}
++    if not delta <= SAME372_AUTHORITY_RUNTIME_FILES or SUPERVISOR not in delta:
++        raise ValueError("same372 authority requires only its reviewed runtime files and changed nominal provider")
++    for relative in delta:
++        _version_bytes(project_root, old, relative, prefer_worktree=True)
++        if file_sha(project_root / relative) != new["files"][relative]:
++            raise ValueError("same372 authority target runtime bytes differ")
++    provider_before = _version_bytes(project_root, old, SUPERVISOR, prefer_worktree=True)
++    provider_after = (project_root / SUPERVISOR).read_bytes()
++    left, source_class, right = _nominal_provider_byte_regions(provider_before)
++    target_left, target_class, target_right = _nominal_provider_byte_regions(provider_after)
++    if left != target_left or right != target_right or source_class == target_class:
++        raise ValueError("same372 authority may change only the NominalMotionProvider class bytes")
++    contract = policy_contract(HISTORY_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
++    return {
++        "schema": SAME372_AUTHORITY_SCHEMA,
++        "source_observation_dimension": ROLE_OBSERVATION_DIM, "target_observation_dimension": ROLE_OBSERVATION_DIM,
++        "source_observation_layout": ROLE_OBSERVATION_LAYOUT, "target_observation_layout": ROLE_OBSERVATION_LAYOUT,
++        "source_schema_sha256": binding["source_sha256"], "target_schema_sha256": binding["target_sha256"],
++        "source_policy_contract": contract, "target_policy_contract": dict(contract),
++        "parameter_mapping": "identity_all_parameters_and_buffers",
++        "observation_bytes_unchanged": True, "kernel_changed": False, "reward_changed": False,
++        "physical_actuators_changed": False, "effective_action_mapping_changed": True,
++        "authority_changes": {"nominal.phase_servo_rate_overrides_deg_s": overrides,
++            "FL_hip_phase_caps": {"phases": list(phases), "channel": 0, "source": 24, "target": 32}},
++        "nominal_provider": {"file": SUPERVISOR,
++            "source_class_sha256": hashlib.sha256(source_class).hexdigest(),
++            "target_class_sha256": hashlib.sha256(target_class).hexdigest(),
++            "outside_class_sha256": hashlib.sha256(left + b"\0" + right).hexdigest(),
++            "outside_class_bytes_identical": True},
++        "normalizers": "identity_RSL_state_preserved",
++        "optimizer": {"kind": "Adam", "state": "reset_all_moments", "initial_learning_rate": 3e-5},
++        "training_rng_preserved": True, "lifetime_counters_and_spent_budgets_preserved": True,
++        "old_rollout_inherited": False, "physical_state_inherited": False,
++        "equivalence_scope": "same-input learned policy/value function only; not projected-action, nominal timing or trajectory equivalence",
++    }
++
++
++def file_sha(path: Path) -> str:
+@@
+     observation_transition = None
+     observation_append_transition = None
+-    if "transfer_role_features_version" in after:
++    observation_same_layout_transition = None
++    if "transfer_role_features_version" in before and "transfer_role_features_version" in after:
++        observation_same_layout_transition = _transfer_same372_authority_transition(
++            before, after, config_records["observation_schema.json"], metadata=metadata,
++            old=old, new=new, config_records=config_records, project_root=project_root,
++            target_policy_version=target_policy_version)
++    elif "transfer_role_features_version" in after:
+@@
+-    if sum(group["size"] for group in before.get("feature_groups", ())) != 324:
+-        raise ValueError("warm start requires the existing 324-observation network")
++    source_dimension = 324 if observation_same_layout_transition is None else 372
++    if sum(group["size"] for group in before.get("feature_groups", ())) != source_dimension:
++        raise ValueError("warm start source dimension differs from its explicit reviewed transition")
+@@
+     if observation_append_transition is not None:
+@@
+         result["action_output_semantics"] = observation_append_transition["equivalence_scope"]
++    if observation_same_layout_transition is not None:
++        result["observation_same_layout_transition"] = observation_same_layout_transition
++        result["network"].update(source_observation_dimension=372, observation_dimension=372,
++            actor="preserve_all_parameters_and_buffers_including_learned_std",
++            critic="preserve_all_parameters_and_buffers",
++            normalizers="identity_RSL_state_preserved; identical_complete372_schema_bytes")
++        result["optimizer"]["reason"] = "explicit FL-hip authority boundary; verify source Adam then reset moments"
++        result["action_output_semantics"] = observation_same_layout_transition["equivalence_scope"]
+     return result
+*** Update File: src/wlr50_clean/ppo/semantic_training.py
+@@
+-    from .semantic_migration import build_v3_warm_start_record
++    from .semantic_migration import build_v3_warm_start_record, SAME372_AUTHORITY_SCHEMA
+@@
+     storage = runner.alg.storage
+     append_transition = record.get("observation_append_transition")
+-    target_dimension = 324 if append_transition is None else 372
++    same_layout = record.get("observation_same_layout_transition")
++    if same_layout is not None:
++        from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
++        if (same_layout.get("schema") != SAME372_AUTHORITY_SCHEMA
++                or same_layout.get("source_observation_dimension") != 372
++                or same_layout.get("target_observation_dimension") != 372
++                or same_layout.get("source_observation_layout") != ROLE_OBSERVATION_LAYOUT
++                or same_layout.get("target_observation_layout") != ROLE_OBSERVATION_LAYOUT
++                or same_layout.get("parameter_mapping") != "identity_all_parameters_and_buffers"
++                or getattr(runner, "_semantic_observation_layout", None) != ROLE_OBSERVATION_LAYOUT
++                or append_transition is not None or kernel is not None
++                or record.get("observation_scale_transition") is not None
++                or checkpoint_metadata(checkpoint)["runner_config"] != runner._semantic_runner_config):
++            raise RuntimeError("same372 authority must preserve the exact source runner, layout and parameter mapping")
++    target_dimension = 372 if append_transition is not None or same_layout is not None else 324
+*** Update File: src/wlr50_clean/ppo/semantic_cli.py
+@@
+         append = args._warm_start_record.get("observation_append_transition")
+         if append is not None and append["target_observation_layout"] != args._observation_layout:
+             raise ValueError("append migration target layout differs from the current observation schema")
++        same_layout = args._warm_start_record.get("observation_same_layout_transition")
++        if same_layout is not None and (
++                same_layout["source_observation_layout"] != source_layout
++                or same_layout["target_observation_layout"] != args._observation_layout):
++            raise ValueError("same372 authority migration layout differs from verified source/target schemas")
+@@
+                 comparison = compare_warm_start_action(runner, env,
+                     old_execution_profile=warm_start_source_execution_profile(
+                         args._warm_start_record, args.run_dir, project_root=PROJECT_ROOT),
+                     new_execution_profile=config_root / "execution_profile.yaml")
++                if args._warm_start_record.get("observation_same_layout_transition") is not None:
++                    comparison["authority_boundary_scope"] = (
++                        "one current nominal/observation and zero-history projectors; the changed cap "
++                        "can change projected actions; this does not compare source/target nominal timing")
+*** Add File: tests/unit/test_semantic_same372_authority_migration.py
++"""Record-only same372 boundary tests; opaque PT is not a tensor/RNG proof."""
++from __future__ import annotations
++
++import copy
++import json
++import shutil
++from types import SimpleNamespace
++
++import pytest
++import yaml
++
++from wlr50_clean.ppo import semantic_migration as m
++from wlr50_clean.ppo.semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
++from test_semantic_role_observation_migration import (
++    NAMES, OBS, PROTECTED, bind, commit, git, source_metadata, write_json,
++)
++
++SPEC = "configs/ppo_semantic_v3/stage_task_spec.yaml"
++PROFILE = "configs/ppo_semantic_v3/execution_profile.yaml"
++PHASES = tuple(f"P{i:02}" for i in range(6, 14))
++OVERRIDES = {phase: {"front_left_hip": 60.0} for phase in PHASES}
++
++
++def write_yaml(path, value):
++    path.write_text(yaml.safe_dump(value, sort_keys=False), encoding="utf-8")
++
++
++@pytest.fixture(scope="module")
++def prototype(tmp_path_factory):
++    root = tmp_path_factory.mktemp("same372_authority_git")
++    paths = sorted(m.SAME372_AUTHORITY_RUNTIME_FILES | {OBS, PROTECTED} |
++                   {f"configs/ppo_semantic_v3/{name}" for name in NAMES})
++    for relative in paths:
++        destination = root / relative
++        destination.parent.mkdir(parents=True, exist_ok=True)
++        destination.write_bytes((m.PROJECT_ROOT / relative).read_bytes())
++    # Explicit historical source, even when tests run after target configs land.
++    spec = yaml.safe_load((root / SPEC).read_bytes())
++    spec["revision"] = "diagonal_transfer_roles_v1"
++    spec["nominal"].pop("phase_servo_rate_overrides_deg_s", None)
++    profile = yaml.safe_load((root / PROFILE).read_bytes())
++    profile["revision"] = "continuous_transfer_roles_v1_residual_authority"
++    for phase in PHASES:
++        profile["residual"]["phase_caps_full12"][phase][0] = 24
++    write_yaml(root / SPEC, spec)
++    write_yaml(root / PROFILE, profile)
++    # Tiny syntactically real class boundary tests the byte guard only.
++    (root / m.SUPERVISOR).write_bytes(
++        b"LOCKED = 1\n\nclass NominalMotionProvider:\n    rate = 150\n\nclass TaskEvaluator:\n    pass\n")
++    git(root, "init")
++    git(root, "config", "user.name", "Same372 record test")
++    git(root, "config", "user.email", "same372@example.invalid")
++    old = {"source_git_commit": commit(root, "real same372 source bytes"),
++        "files": dict.fromkeys(paths), "semantic_version": "v3", "experiment_id": "transfer_roles_v1",
++        "frozen_A_files": {"frozen": "a"*64}, "physics_hz": 120., "decision_hz": 15.,
++        "task_timeout_s": 200., "timeout_bootstrap": False, "rsl_rl_version": "5.0.1",
++        "local_runtime_versions": {"fixture": "record_only"}}
++    bind(root, old)
++    spec["revision"] = "diagonal_transfer_roles_v2_fl_advisory_counterauthority"
++    spec["nominal"]["phase_servo_rate_overrides_deg_s"] = copy.deepcopy(OVERRIDES)
++    profile["revision"] = "continuous_transfer_roles_v2_fl_advisory_counterauthority"
++    for phase in PHASES:
++        profile["residual"]["phase_caps_full12"][phase][0] = 32
++    write_yaml(root / SPEC, spec)
++    write_yaml(root / PROFILE, profile)
++    provider = root / m.SUPERVISOR
++    provider.write_bytes(provider.read_bytes().replace(b"rate = 150", b"rate = 60"))
++    new = copy.deepcopy(old)
++    new["source_git_commit"] = commit(root, "real same372 target bytes")
++    bind(root, new)
++    checkpoint = root / "record_only.pt"
++    checkpoint.write_bytes(b"opaque record validation fixture, not torch")
++    return SimpleNamespace(root=root, old=old, new=new)
++
++
++@pytest.fixture
++def f(prototype, tmp_path):
++    root = tmp_path / "case"
++    shutil.copytree(prototype.root, root)
++    cp = root / "record_only.pt"
++    metadata = source_metadata(cp, prototype.old, layout=ROLE_OBSERVATION_LAYOUT)
++    sidecar = cp.with_name("record_only_manifest.json")
++    write_json(sidecar, metadata)
++    return SimpleNamespace(root=root, checkpoint=cp, sidecar=sidecar, metadata=metadata,
++                           old=copy.deepcopy(prototype.old), new=copy.deepcopy(prototype.new))
++
++
++def record(f, **kwargs):
++    return m.build_v3_warm_start_record(f.checkpoint, f.new, project_root=f.root, **kwargs)
++
++
++def test_same372_is_identity_recipe_not_a_second_append_or_scale_migration(f):
++    frozen = (f.checkpoint.read_bytes(), f.sidecar.read_bytes())
++    r = record(f)
++    t = r["observation_same_layout_transition"]
++    assert t["schema"] == m.SAME372_AUTHORITY_SCHEMA
++    assert t["source_observation_dimension"] == t["target_observation_dimension"] == 372
++    assert t["source_observation_layout"] == t["target_observation_layout"] == ROLE_OBSERVATION_LAYOUT
++    assert t["source_policy_contract"] == t["target_policy_contract"] == f.metadata["policy_contract"]
++    assert t["source_schema_sha256"] == t["target_schema_sha256"]
++    assert t["parameter_mapping"] == "identity_all_parameters_and_buffers"
++    assert t["nominal_provider"]["outside_class_bytes_identical"] is True
++    assert t["authority_changes"]["nominal.phase_servo_rate_overrides_deg_s"] == OVERRIDES
++    assert r["network"]["observation_dimension"] == 372
++    assert r["optimizer"]["initial_learning_rate"] == 3e-5
++    assert r["source_stage_requested_decisions"] == r["target_stage_requested_decisions"] == f.metadata["stage_requested_decisions"]
++    assert r["source_global_policy_decisions"] == f.metadata["global_policy_decisions"]
++    assert r["new_mdp_origin_global_policy_decisions"] == f.metadata["new_mdp_origin_global_policy_decisions"]
++    assert r["old_rollout_buffer_inherited"] is False and r["physical_state_inherited"] is False
++    assert not {"observation_append_transition", "observation_scale_transition", "policy_kernel_transition"} & r.keys()
++    assert record(f) == r and frozen == (f.checkpoint.read_bytes(), f.sidecar.read_bytes())
++
++
++@pytest.mark.parametrize("case", [
++    "global150", "one_override_missing", "wrong_phase", "other_servo", "rate_bool", "rate61", "task",
++    "FLcap33", "earlyFLcap", "other_cap", "residual_rate", "wheel_rate", "headroom", "revision",
++])
++def test_only_exact_two_config_changes_are_allowed(f, case):
++    path = f.root / (SPEC if case in {"global150", "one_override_missing", "wrong_phase", "other_servo", "rate_bool", "rate61", "task"} else PROFILE)
++    value = yaml.safe_load(path.read_bytes())
++    if case == "global150": value["nominal"]["servo_handoff_rate_deg_s"] = 60.
++    elif case == "one_override_missing": del value["nominal"]["phase_servo_rate_overrides_deg_s"]["P13"]
++    elif case == "wrong_phase": value["nominal"]["phase_servo_rate_overrides_deg_s"]["P05"] = {"front_left_hip": 60.}
++    elif case == "other_servo": value["nominal"]["phase_servo_rate_overrides_deg_s"]["P07"]["rear_right_hip"] = 60.
++    elif case == "rate_bool": value["nominal"]["phase_servo_rate_overrides_deg_s"]["P07"]["front_left_hip"] = True
++    elif case == "rate61": value["nominal"]["phase_servo_rate_overrides_deg_s"]["P07"]["front_left_hip"] = 61.
++    elif case == "task": value["geometry"]["workspace_min_m"] = -.3
++    elif case == "FLcap33": value["residual"]["phase_caps_full12"]["P07"][0] = 33
++    elif case == "earlyFLcap": value["residual"]["phase_caps_full12"]["P05"][0] = 32
++    elif case == "other_cap": value["residual"]["phase_caps_full12"]["P07"][1] += 1
++    elif case == "residual_rate": value["residual"]["servo_rate_deg_s"] = 70.
++    elif case == "wheel_rate": value["residual"]["wheel_rate_rad_s2"] = 2.
++    elif case == "headroom": value["residual"]["policy_headroom_mode"] = None
++    else: value["revision"] = "unreviewed"
++    write_yaml(path, value)
++    bind(f.root, f.new)
++    with pytest.raises(ValueError, match="same372"): record(f)
++
++
++@pytest.mark.parametrize("name", ["observation_schema.json", "reward_config.yaml", "action_schema.json", "quality_score.yaml"])
++def test_other_four_configuration_bytes_are_unchanged_even_comments(f, name):
++    path = f.root / f"configs/ppo_semantic_v3/{name}"
++    path.write_bytes(path.read_bytes() + b"\n")
++    bind(f.root, f.new)
++    with pytest.raises(ValueError, match="same372"): record(f)
++
++
++@pytest.mark.parametrize("case", ["outside_before", "outside_after", "no_provider_change", "unrelated_file", "metadata", "selection_hash", "selection_path", "selection_extra", "kernel"])
++def test_provider_and_runtime_scope_is_not_a_blanket_waiver(f, case):
++    path = f.root / m.SUPERVISOR
++    if case == "outside_before": path.write_bytes(path.read_bytes().replace(b"LOCKED = 1", b"LOCKED = 2"))
++    elif case == "outside_after": path.write_bytes(path.read_bytes().replace(b"class TaskEvaluator:\n    pass", b"class TaskEvaluator:\n    changed = True"))
++    elif case == "no_provider_change": path.write_bytes(m._version_bytes(f.root, f.old, m.SUPERVISOR))
++    elif case == "unrelated_file":
++        path = f.root / PROTECTED
++        path.write_bytes(path.read_bytes() + b"\n# unreviewed\n")
++    bind(f.root, f.new)
++    if case == "metadata": f.new["extra"] = True
++    elif case == "selection_hash": f.new["selected_configuration"]["stage_task_spec.yaml"]["sha256"] = "0"*64
++    elif case == "selection_path": f.new["selected_configuration"]["stage_task_spec.yaml"]["path"] = PROFILE
++    elif case == "selection_extra": f.new["selected_configuration"]["extra"] = {}
++    with pytest.raises(ValueError):
++        record(f, **({"target_policy_version": f.metadata["policy_contract"]["version"]} if case == "kernel" else {}))
+*** End Patch
+

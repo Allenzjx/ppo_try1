@@ -1,0 +1,73 @@
+diff --git a/src/wlr50_clean/ppo/semantic_video_cli.py b/src/wlr50_clean/ppo/semantic_video_cli.py
+--- a/src/wlr50_clean/ppo/semantic_video_cli.py
++++ b/src/wlr50_clean/ppo/semantic_video_cli.py
+@@ -97,7 +97,9 @@
+     args=parser().parse_args(argv)
+     role=validate_video_args(args)
+-    contract_options = {"expected_head": args.expected_head,
+-                        "semantic_version": args.semantic_version}
+-    contract=runtime_contract(**contract_options)
++    contract_options = {"expected_head": args.expected_head,
++                        "semantic_version": args.semantic_version}
++    if args.experiment_id is not None:
++        contract_options["experiment_id"] = args.experiment_id
++    contract=runtime_contract(**contract_options)
+     _preflight_checkpoint(args,contract)  # Strict contract before any native launch.
+     args.run_dir.mkdir(parents=True,exist_ok=False)
+diff --git a/src/wlr50_clean/ppo/semantic_video.py b/src/wlr50_clean/ppo/semantic_video.py
+--- a/src/wlr50_clean/ppo/semantic_video.py
++++ b/src/wlr50_clean/ppo/semantic_video.py
+@@ -574,6 +574,9 @@
+     from .semantic_cli import runtime_contract
+     configs = validate_video_configuration(source)
+-    require(runtime_contract(expected_head=source["runtime_contract"]["source_git_commit"],
+-                             semantic_version=source.get("semantic_version", "v2"))
+-            == source["runtime_contract"], "validator runtime/task spec differs from capture")
++    contract_options = {"expected_head": source["runtime_contract"]["source_git_commit"],
++                        "semantic_version": source.get("semantic_version", "v2")}
++    if source["runtime_contract"].get("experiment_id") is not None:
++        contract_options["experiment_id"] = source["runtime_contract"]["experiment_id"]
++    require(runtime_contract(**contract_options) == source["runtime_contract"],
++            "validator runtime/task spec differs from capture")
+     if source["role"] == "C":
+diff --git a/scripts/run_semantic_video.ps1 b/scripts/run_semantic_video.ps1
+--- a/scripts/run_semantic_video.ps1
++++ b/scripts/run_semantic_video.ps1
+@@ -2,5 +2,6 @@
+ param(
+     [ValidateSet('eval')][string]$Command = 'eval',
+-    [ValidateSet('v2','v3')][string]$SemanticVersion = 'v2',
++    [ValidateSet('v2','v3')][string]$SemanticVersion = 'v2',
++    [ValidateSet('transfer_roles_v1')][string]$ExperimentId,
+     [Parameter(Mandatory = $true)][ValidatePattern('^[0-9a-f]{40}$')][string]$ExpectedHead,
+     [ValidateSet('smoke','phase_suffix','full_episode')][string]$Stage = 'smoke',
+@@ -15,5 +16,8 @@
+ )
+ Set-StrictMode -Version Latest
+-$ErrorActionPreference = 'Stop'
++$ErrorActionPreference = 'Stop'
++if (-not [string]::IsNullOrWhiteSpace($ExperimentId) -and $SemanticVersion -cne 'v3') {
++    throw 'ExperimentId transfer_roles_v1 requires SemanticVersion v3'
++}
+ $project = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
+ $python = 'C:\Users\kskzz\miniconda3\envs\env_isaaclab\python.exe'
+@@ -32,5 +36,9 @@
+ $runId = [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfffffffZ') + '_g' + $ExpectedHead.Substring(0,12) + '_' + [Guid]::NewGuid().ToString('N')
+ $runDir = Join-Path $project ("runs\ppo_semantic_$SemanticVersion\video_eval\$kind\$runId")
+-$logDir = Join-Path $project ("runs\ppo_semantic_$SemanticVersion\video_eval\$kind\${runId}_launcher")
++$logDir = Join-Path $project ("runs\ppo_semantic_$SemanticVersion\video_eval\$kind\${runId}_launcher")
++if (-not [string]::IsNullOrWhiteSpace($ExperimentId)) {
++    $runDir = Join-Path $project ("runs\ppo_$ExperimentId\video_eval\$kind\$runId")
++    $logDir = Join-Path $project ("runs\ppo_$ExperimentId\video_eval\$kind\${runId}_launcher")
++}
+ [void](New-Item -ItemType Directory -Path $logDir)
+ $lockPath = Join-Path $project 'runs\ppo_semantic_v2\.single_process.lock'
+@@ -48,5 +56,6 @@
+         '--max-decisions',[string]$MaxDecisions,'--mode',$Mode,'--device',$Device,
+         '--checkpoint-interval-updates',[string]$CheckpointIntervalUpdates,'--no-headless')
+-    if ($PSBoundParameters.ContainsKey('Decisions')) { $arguments += @('--decisions',[string]$Decisions) }
++    if (-not [string]::IsNullOrWhiteSpace($ExperimentId)) { $arguments += @('--experiment-id',$ExperimentId) }
++    if ($PSBoundParameters.ContainsKey('Decisions')) { $arguments += @('--decisions',[string]$Decisions) }
+     if (-not [string]::IsNullOrWhiteSpace($Checkpoint)) {
+         $checkpointPath = if ([IO.Path]::IsPathRooted($Checkpoint)) { $Checkpoint } else { Join-Path $project $Checkpoint }
+

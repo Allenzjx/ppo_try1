@@ -1,0 +1,37 @@
+{
+  "source": "runs/ppo_transfer_roles_v1/train/20260907T2331246866298Z_g2f27c6f5065a_f199aae4d2484f9580706f12cf6290b2/training_manifest.json:telemetry.core.prefix_attempts",
+  "scope": "Final manifest read after the one-pass policy/prefix JSONL summary; no rescan and no live run3 access.",
+  "requested_course": "P04 checkpoint_policy offset0",
+  "accepted_attempts": 0,
+  "failed_attempts": 4,
+  "actual_fresh_P01_fallbacks": 4,
+  "each_of_four_attempts": {
+    "prefix_decisions": 227,
+    "prefix_physics_ticks": 1816,
+    "accepted": false,
+    "target_first_observed_decision": null,
+    "miss": {
+      "actual_phase": "P02",
+      "physics_tick": 1816,
+      "reason": "physical_prefix_terminal",
+      "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+      "physical_task_success_during_initialization": false
+    }
+  },
+  "prefix_excluded_decisions": 908,
+  "prefix_excluded_physics_ticks": 7264,
+  "physical_core_including_prefix": {
+    "decisions": 1932,
+    "physics_ticks": 15448,
+    "episodes": 8,
+    "terminations": {"FALL": 2, "INCOMPLETE_CONTROLLER_BLOCKED": 5}
+  },
+  "policy_only": {
+    "decisions": 1024,
+    "physics_ticks": 8184,
+    "completed_episodes": 3,
+    "task_success_count": 0,
+    "terminations": {"FALL": 2, "INCOMPLETE_CONTROLLER_BLOCKED": 1},
+    "nonterminal_tail": {"decisions": 152, "physics_ticks": 1216, "phase": "P02"}
+  }
+}

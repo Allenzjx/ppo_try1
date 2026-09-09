@@ -1,0 +1,371 @@
+{
+  "schema": "wlr50_clean.bounded_B1_task_failure_diagnosis.v1",
+  "run": "runs/ppo_transfer_roles_v1/prior_B/20260908T0800275970113Z_gd7479d9fc41c_e857a8e4844d4ea984ff8f4e385d3d19",
+  "runtime_commit": "d7479d9fc41cacd98740a10fb47c2fee64fd74b7",
+  "outcome": {
+    "mode": "semantic_prior_eval",
+    "checkpoint": null,
+    "seed": 2001,
+    "from_phase": "P01",
+    "policy_decisions": 758,
+    "physics_ticks": 6057,
+    "duration_s": 50.475,
+    "task_success": false,
+    "controller_task_success": false,
+    "termination_reason": "WHEEL_ONLY_CLIMB",
+    "physical_termination_reason": "TASK_FAILURE_WHEEL_ONLY_CLIMB",
+    "physical_valid": true,
+    "window_ended_before_task_terminal": false,
+    "optimizer_updates": 0
+  },
+  "phase_decisions": {
+    "P01": 2,
+    "P02": 189,
+    "P03": 4,
+    "P04": 1,
+    "P05": 146,
+    "P06": 323,
+    "P07": 1,
+    "P08": 1,
+    "P09": 91,
+    "P10": 0,
+    "P11": 0,
+    "P12": 0,
+    "P13": 0
+  },
+  "scope": {
+    "raw_window": {
+      "start_tick": 5320,
+      "end_tick": 6057,
+      "rows": 738,
+      "all_selected_geometry_and_ground_obstacle_pairs_verified": true,
+      "all_finite": true
+    },
+    "raw_window_state_counts": [
+      {
+        "state": "AIR",
+        "n": 118
+      },
+      {
+        "state": "GROUND",
+        "n": 185
+      },
+      {
+        "state": "OBSTACLE",
+        "n": 435
+      }
+    ],
+    "full_run_native_reaudit": false,
+    "terminal_native_audit": {
+      "physics_ticks": 1,
+      "verified_tick_count": 1,
+      "all_ticks_verified": true,
+      "actual_native_effect_tick_count": 0,
+      "own_phase_request_effect_tick_count": 0,
+      "no_in_episode_state_writes_verified": true
+    },
+    "reads": "Final evaluation manifest, terminal raw/audit rows and one parsed P07-P09 raw window; small transition source. No Python/Torch/simulation/hash or production edits. One over-large transition-ledger display was truncated; conclusions use explicit selected fields, not the truncated display."
+  },
+  "rr_history": {
+    "initial_event": {
+      "physics_tick": 5993,
+      "simulation_time_s": 49.94166666666666,
+      "event": "whole_body_initial_clearance",
+      "upward_excursion_m": 0.0038239285349845886,
+      "own_joint_motion_deg": 1.682517210516031,
+      "whole_body_joint_motion_deg": 19.49924023052453,
+      "command_motion_deg": 67.4950947840818,
+      "gravity_direction_change": 0.014075740232089419
+    },
+    "qualified_ever": false,
+    "qualification_revocation_events": [],
+    "crossed": false,
+    "placed": false,
+    "ground_samples_after_initial_in_window": 0
+  },
+  "decisive_window": {
+    "air_samples": 118,
+    "air_above_top_samples": 0,
+    "late_uninterrupted_air": {
+      "first_tick": 5992,
+      "last_tick": 6018,
+      "count": 27
+    },
+    "air_max_gap": {
+      "tick": 6016,
+      "time": 50.13333333333333,
+      "state": "AIR",
+      "front": -0.006339427401307773,
+      "gap": -0.0008855226976928199,
+      "groundforce": 0,
+      "obstacleforce": 0,
+      "point": [
+        0.5254291296005249,
+        -0.33276471495628357,
+        0.05240137130022049
+      ],
+      "verified": true,
+      "finite": true
+    },
+    "first_center_cross": {
+      "tick": 6057,
+      "time": 50.475,
+      "state": "OBSTACLE",
+      "front": 0.00026363475155477545,
+      "gap": -0.0008672762258109534,
+      "groundforce": 0,
+      "obstacleforce": 13.758424604437517,
+      "point": [
+        0.5308008193969727,
+        -0.3366703987121582,
+        0.052903588861227036
+      ],
+      "verified": true,
+      "finite": true
+    },
+    "selected_ticks": [
+      {
+        "tick": 5320,
+        "time": 44.333333333333336,
+        "state": "GROUND",
+        "front": -0.20751860397029276,
+        "gap": -0.050093001459365794,
+        "groundforce": 4.750310897827191,
+        "obstacleforce": 0,
+        "point": null,
+        "verified": true,
+        "finite": true
+      },
+      {
+        "tick": 5328,
+        "time": 44.4,
+        "state": "GROUND",
+        "front": -0.20670240776706095,
+        "gap": -0.05012391764355273,
+        "groundforce": 1.815832376480119,
+        "obstacleforce": 0,
+        "point": null,
+        "verified": true,
+        "finite": true
+      },
+      {
+        "tick": 5336,
+        "time": 44.46666666666667,
+        "state": "GROUND",
+        "front": -0.20527916805911417,
+        "gap": -0.05022149044705004,
+        "groundforce": 4.008444786071814,
+        "obstacleforce": 0,
+        "point": null,
+        "verified": true,
+        "finite": true
+      },
+      {
+        "tick": 5596,
+        "time": 46.63333333333333,
+        "state": "OBSTACLE",
+        "front": -0.049304154087785435,
+        "gap": -0.050579170469766566,
+        "groundforce": 0,
+        "obstacleforce": 3.5232150297519196,
+        "point": [
+          0.5198694467544556,
+          -0.3377062678337097,
+          0.04191034287214279
+        ],
+        "verified": true,
+        "finite": true
+      },
+      {
+        "tick": 5992,
+        "time": 49.93333333333333,
+        "state": "AIR",
+        "front": -0.018024381567720127,
+        "gap": -0.005388817523246714,
+        "groundforce": 0,
+        "obstacleforce": 0,
+        "point": [
+          0.5235258936882019,
+          -0.3371574580669403,
+          0.05231665074825287
+        ],
+        "verified": true,
+        "finite": true
+      },
+      {
+        "tick": 5993,
+        "time": 49.94166666666666,
+        "state": "AIR",
+        "front": -0.01761763947177286,
+        "gap": -0.005235648487335154,
+        "groundforce": 0,
+        "obstacleforce": 0,
+        "point": [
+          0.5238543748855591,
+          -0.33709752559661865,
+          0.05238736420869827
+        ],
+        "verified": true,
+        "finite": true
+      },
+      {
+        "tick": 6016,
+        "time": 50.13333333333333,
+        "state": "AIR",
+        "front": -0.006339427401307773,
+        "gap": -0.0008855226976928199,
+        "groundforce": 0,
+        "obstacleforce": 0,
+        "point": [
+          0.5254291296005249,
+          -0.33276471495628357,
+          0.05240137130022049
+        ],
+        "verified": true,
+        "finite": true
+      },
+      {
+        "tick": 6019,
+        "time": 50.15833333333333,
+        "state": "OBSTACLE",
+        "front": -0.00546002047229166,
+        "gap": -0.0013646322829780066,
+        "groundforce": 0,
+        "obstacleforce": 14.917989513302743,
+        "point": [
+          0.5268942713737488,
+          -0.33428955078125,
+          0.05232648923993111
+        ],
+        "verified": true,
+        "finite": true
+      },
+      {
+        "tick": 6056,
+        "time": 50.46666666666667,
+        "state": "OBSTACLE",
+        "front": -0.0001626576678788183,
+        "gap": -0.0009676355464515174,
+        "groundforce": 0,
+        "obstacleforce": 14.348102350633583,
+        "point": [
+          0.5306627750396729,
+          -0.33678263425827026,
+          0.05289597809314728
+        ],
+        "verified": true,
+        "finite": true
+      },
+      {
+        "tick": 6057,
+        "time": 50.475,
+        "state": "OBSTACLE",
+        "front": 0.00026363475155477545,
+        "gap": -0.0008672762258109534,
+        "groundforce": 0,
+        "obstacleforce": 13.758424604437517,
+        "point": [
+          0.5308008193969727,
+          -0.3366703987121582,
+          0.052903588861227036
+        ],
+        "verified": true,
+        "finite": true
+      }
+    ]
+  },
+  "terminal": {
+    "RR": {
+      "front_distance_m": 0.00026363475155477545,
+      "clearance_m": -0.0008672762258109534,
+      "air": false,
+      "ground_contact": false,
+      "obstacle_pair_active": true,
+      "top_geometry": true,
+      "top_contact": true,
+      "support": true,
+      "load_fraction": 0.5039900828087811,
+      "consecutive_top_samples": 1,
+      "initial_clearance": true,
+      "whole_body_actuation_evidence": true,
+      "recent_joint_motion_deg": 12.735284285347461,
+      "recent_whole_body_joint_motion_deg": 91.96351417769621,
+      "recent_clearance_gain_m": 0.002945050597190857,
+      "obstacle_normal_force_n": 13.758424604437517,
+      "obstacle_force_w_n": [
+        -2.445164918899536,
+        1.3563913106918335,
+        13.471288681030273
+      ],
+      "contact_point_w_m": [
+        0.5308008193969727,
+        -0.3366703987121582,
+        0.052903588861227036
+      ]
+    },
+    "FL": {
+      "air": false,
+      "top_contact": true,
+      "support": true,
+      "load_fraction": 0.49600991719121884,
+      "front_distance_m": 0.41478616339993124,
+      "clearance_m": 0.001337168188736429
+    },
+    "body_collision_detected": false,
+    "raw_policy_action_full12": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "projected_residual_full12": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "rule_check": {
+    "source": "src/wlr50_clean/ppo/semantic_supervisor.py:397-513, TaskEvaluator observation update",
+    "whole_body_motion_recognized": true,
+    "qualification_requires": {
+      "minimum_air_samples": 2,
+      "minimum_lift_gain_m": 0.008,
+      "measured_bottom_at_or_above_top": true,
+      "near_front_interval_m": [
+        -0.4,
+        0.15
+      ],
+      "whole_body_initial_clearance_and_motion": true
+    },
+    "first_cross_current_geometry_valid": true,
+    "first_cross_prior_qualification_valid": false,
+    "decisive_missing_condition": "RR never had a measured AIR sample with bottom >= obstacle top in the inspected rear-phase window; full event history contains no RR qualification.",
+    "ground_revocation_caused_failure": false,
+    "own_rr_motion_gate_caused_failure": false,
+    "top_count_meaning": "Exact obstacle pair + top geometry + center front_distance >= 0; one loaded sample at first center crossing is not a statement that earlier obstacle contact was absent.",
+    "result": "Existing wheel-only criterion is correctly hit by these measured events. No demonstrated ignored whole-body lift, false contact classification or execution mismatch requiring a rule change."
+  },
+  "limitations": [
+    "The wheel-only task label is not proof of a unique wheel-motor causal mechanism.",
+    "Contact-point values can exist while active=false and are not independent face labels; contact classification uses verified active flags and live wheel geometry.",
+    "The closest AIR gap is below zero by about0.886mm; this review does not establish a sensor-error bound or justify changing the hard criterion.",
+    "This is zero-PPO B under the current nominal, not frozen historical A and not evidence of superiority or a new optimizer gate."
+  ]
+}

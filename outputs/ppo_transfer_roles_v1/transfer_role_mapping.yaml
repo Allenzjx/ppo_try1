@@ -1,0 +1,24 @@
+schema: wlr50_clean.transfer_role_report.v1
+production_source: configs/ppo_semantic_v3/stage_task_spec.yaml
+mode: diagonal_transfer_roles_v1
+mapping:
+  FR: {target_swing_leg: FR, diagonal_receiving_side: RL, preferred_bridge_contacts: [FL, RR]}
+  FL: {target_swing_leg: FL, diagonal_receiving_side: RR, preferred_bridge_contacts: [FR, RL]}
+  RR: {target_swing_leg: RR, diagonal_receiving_side: FL, preferred_bridge_contacts: [FR, RL]}
+  RL: {target_swing_leg: RL, diagonal_receiving_side: FR, preferred_bridge_contacts: [FL, RR]}
+measured_per_tick_fields:
+  - observed_support_contacts
+  - receiver_workspace_state
+  - transfer_direction_context
+  - pending_capture
+  - transfer_progress
+  - crossing_and_placement_evidence
+preference_is_required_contact_template: false
+receiver_air_requires_failure: false
+historical_placed_implies_current_support: false
+workspace_validity: measured_geometry_and_joint_margin_proxy_not_FK_feasibility
+exact_angular_momentum_available: false
+ground_reaction_impulse_measured: false
+short_evidence_s: 0.06666666666666667
+diagnostic_motion_window_s: 0.5
+phase_transition_resets_physics_or_action_history: false

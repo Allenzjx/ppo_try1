@@ -1,0 +1,3017 @@
+{
+  "schema": "rear_handoff_authority_diagnosis.v1",
+  "scope": "Two finalized N1 episodes only; each narrow extraction has 16 final P06 source decisions, P07/P08 one each, P09 32 including terminal. No live run or PT read.",
+  "source_head": "2f27c6f5065a",
+  "read_receipt": "First extraction output truncated before analysis; parent permitted one re-extraction of identical windows with in-script reduction.",
+  "channel_order": [
+    "RL_hip",
+    "RL_knee",
+    "RR_hip",
+    "RR_knee"
+  ],
+  "assumptions": {
+    "rear_caps_deg": [
+      24,
+      36,
+      24,
+      36
+    ],
+    "requested_slew_deg_per_tick": 0.5,
+    "final_slew_deg_per_tick": 1.25,
+    "servo_reserve_deg": 2,
+    "canonical_mapping": "rear canonical q = -(degrees(physical q)-standing degrees); q is actual pre-final-dispatch snapshot, not computational proxy",
+    "same_state_scope": "Reachability uses the unique ACTUAL mapper/geometry/controller baseline and previous ACK history; not a counterfactual trajectory or alternate contact solution.",
+    "interval_scope": "Static ranges ignore residual slew but include actual same-tick headroom and hard bounds. One-tick intervals additionally intersect prior REQUEST plus/minus0.5 and final-drive plus/minus1.25. They do not model future mapper feedback, base motion or contacts.",
+    "finite_latent": "Intervals use closed cap extrema as a generous outer bound. Outside remains impossible with finite tanh latent; inside does not establish controllability or physics.",
+    "timing": "Joint q/previous ACK are pre-dispatch of the last physical tick; current contact and task history are post-physics decision-end samples. Native control tick differs from episode tick by reset/prime offset.",
+    "unavailable": "Quaternion/RPY and individual body collision contact/force are not in these decision audit rows; body angular velocity/speed are available, but cannot reconstruct precise attitude or FALL cause.",
+    "static_interval_limit": "Static_keep_intervals are the unslewed candidate target envelope for the actual same-tick baseline. They test ability to sustain/express an inherited target; a previous final target can temporarily remain outside this envelope because final slew retains history. Do not interpret static exclusion as a discontinuous final target jump."
+  },
+  "windows": [
+    {
+      "block": "block1",
+      "run": "20260907T2323203253351Z_g2f27c6f5065a_7f76ca91e2494cfbab5b9ee2f8f6e58d",
+      "audit_path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_transfer_roles_v1\\train\\20260907T2323203253351Z_g2f27c6f5065a_7f76ca91e2494cfbab5b9ee2f8f6e58d\\residual_and_projection_audit.jsonl",
+      "global_window": [
+        123862,
+        123911
+      ],
+      "rows": 50,
+      "all_selected_native_verified": true,
+      "anchor_last_P06": {
+        "g": 123877,
+        "phase": "P06",
+        "end_phase": "P07",
+        "tick": 3672,
+        "time": 30.599999999999998,
+        "native_tick": 3851,
+        "terminal": false,
+        "reason": null,
+        "nominal": [
+          6.9,
+          0,
+          0,
+          0
+        ],
+        "raw": [
+          -0.6326478719711304,
+          -0.35494759678840637,
+          0.05994145944714546,
+          -0.1282161921262741
+        ],
+        "request": [
+          -13.436946883042545,
+          -11.493514216305153,
+          1.436874552310772,
+          -4.590654586606316
+        ],
+        "effective": [
+          -13.436946883042545,
+          -11.493514216305153,
+          1.436874552310772,
+          -4.590654586606316
+        ],
+        "mapper": [
+          6.9,
+          0,
+          0,
+          0
+        ],
+        "controller": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "baseline": [
+          6.9,
+          0,
+          0,
+          0
+        ],
+        "drive": [
+          -6.536946883042544,
+          -11.493514216305153,
+          1.436874552310772,
+          -4.590654586606316
+        ],
+        "measured_q_pre_dispatch": [
+          -8.604195737264682,
+          -17.47821632344236,
+          -0.19408512133056172,
+          -4.214601978095821
+        ],
+        "previous_drive": [
+          -6.536946883042544,
+          -10.993514216305153,
+          1.436874552310772,
+          -4.590654586606316
+        ],
+        "static_keep_intervals": [
+          [
+            -17.1,
+            30.9
+          ],
+          [
+            -36,
+            36
+          ],
+          [
+            -24,
+            24
+          ],
+          [
+            -36,
+            36
+          ]
+        ],
+        "legs": {
+          "FL": {
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "support": false,
+            "load_fraction": 0,
+            "front_distance_m": 0.22840398890804892,
+            "clearance_m": 0.010676694484398355
+          },
+          "FR": {
+            "air": false,
+            "ground_contact": false,
+            "top_contact": true,
+            "support": true,
+            "load_fraction": 0.4295229878395992,
+            "front_distance_m": 0.30532026631664877,
+            "clearance_m": -0.0011325562982383713
+          },
+          "RL": {
+            "air": false,
+            "ground_contact": true,
+            "top_contact": false,
+            "support": true,
+            "load_fraction": 0.5704770121604007,
+            "front_distance_m": -0.24591365115809793,
+            "clearance_m": -0.04933083602862348
+          },
+          "RR": {
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "support": false,
+            "load_fraction": 0,
+            "front_distance_m": -0.25828700916934366,
+            "clearance_m": 0.0020998802440109765
+          }
+        },
+        "QCP": {
+          "active_lift": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": true
+          },
+          "front_edge_crossed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "placed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          }
+        },
+        "body_metrics": {
+          "body_linear_speed_m_s": 0.18778471925037402,
+          "body_angular_speed_rad_s": 0.2468492796928115,
+          "maximum_wheel_speed_rad_s": 0.8148738741874695,
+          "body_forward_m": -0.005851205755952549
+        },
+        "body_angular_velocity_w": [
+          -0.08846192061901093,
+          0.000527460128068924,
+          -0.23045341670513153
+        ]
+      },
+      "P09_headroom_changed_request_rows": 0,
+      "P09_geometry_changed_rear_rows": 1,
+      "feasible_keep_tests": {
+        "RL_hip": {
+          "inherited_drive": {
+            "reference": -6.536946883042544,
+            "outside_static_range_rows": 32,
+            "first": {
+              "g": 123880,
+              "tick": 3696,
+              "interval": [
+                -5.5,
+                42.5
+              ],
+              "required_residual": -25.036946883042546,
+              "deficit_deg": 1.0369468830425443
+            },
+            "maximum_deficit_deg": 17.486946883042542
+          },
+          "inherited_measured_q": {
+            "reference": -8.604195737264682,
+            "outside_static_range_rows": 32,
+            "first": {
+              "g": 123880,
+              "tick": 3696,
+              "interval": [
+                -5.5,
+                42.5
+              ],
+              "required_residual": -27.104195737264682,
+              "deficit_deg": 3.104195737264682
+            },
+            "maximum_deficit_deg": 19.554195737264678
+          },
+          "previous_drive_static_hold": {
+            "nonterminal_impossible_rows": 0,
+            "first": null
+          },
+          "previous_drive_one_tick_hold": {
+            "nonterminal_impossible_rows": 0,
+            "first": null
+          }
+        },
+        "RL_knee": {
+          "inherited_drive": {
+            "reference": -11.493514216305153,
+            "outside_static_range_rows": 0,
+            "first": null,
+            "maximum_deficit_deg": 0
+          },
+          "inherited_measured_q": {
+            "reference": -17.47821632344236,
+            "outside_static_range_rows": 0,
+            "first": null,
+            "maximum_deficit_deg": 0
+          },
+          "previous_drive_static_hold": {
+            "nonterminal_impossible_rows": 0,
+            "first": null
+          },
+          "previous_drive_one_tick_hold": {
+            "nonterminal_impossible_rows": 0,
+            "first": null
+          }
+        },
+        "RR_hip": {
+          "inherited_drive": {
+            "reference": 1.436874552310772,
+            "outside_static_range_rows": 17,
+            "first": {
+              "g": 123884,
+              "tick": 3728,
+              "interval": [
+                9.399999999999999,
+                57.4
+              ],
+              "required_residual": -31.963125447689226,
+              "deficit_deg": 7.963125447689227
+            },
+            "maximum_deficit_deg": 31.41312544768923
+          },
+          "inherited_measured_q": {
+            "reference": -0.19408512133056172,
+            "outside_static_range_rows": 17,
+            "first": {
+              "g": 123884,
+              "tick": 3728,
+              "interval": [
+                9.399999999999999,
+                57.4
+              ],
+              "required_residual": -33.59408512133056,
+              "deficit_deg": 9.59408512133056
+            },
+            "maximum_deficit_deg": 33.04408512133056
+          },
+          "previous_drive_static_hold": {
+            "nonterminal_impossible_rows": 0,
+            "first": null
+          },
+          "previous_drive_one_tick_hold": {
+            "nonterminal_impossible_rows": 7,
+            "first": {
+              "g": 123881,
+              "tick": 3704,
+              "previous_drive": 8.480635840805421,
+              "interval": [
+                9.630635840805422,
+                9.730635840805421
+              ],
+              "required_residual": -0.5193641591945788,
+              "deficit_deg": 1.1500000000000004
+            }
+          }
+        },
+        "RR_knee": {
+          "inherited_drive": {
+            "reference": -4.590654586606316,
+            "outside_static_range_rows": 0,
+            "first": null,
+            "maximum_deficit_deg": 0
+          },
+          "inherited_measured_q": {
+            "reference": -4.214601978095821,
+            "outside_static_range_rows": 0,
+            "first": null,
+            "maximum_deficit_deg": 0
+          },
+          "previous_drive_static_hold": {
+            "nonterminal_impossible_rows": 0,
+            "first": null
+          },
+          "previous_drive_one_tick_hold": {
+            "nonterminal_impossible_rows": 2,
+            "first": {
+              "g": 123895,
+              "tick": 3816,
+              "previous_drive": -39.39561312685649,
+              "interval": [
+                -40.64561312685649,
+                -40.14561312685649
+              ],
+              "required_residual": -4.295613126856487,
+              "deficit_deg": 0.75
+            }
+          }
+        }
+      },
+      "observed_contact_history_changes": {
+        "FL": {
+          "first_support_false": {
+            "g": 123868,
+            "tick": 3600
+          },
+          "first_P09_ground": null,
+          "first_P09_Q_false": null
+        },
+        "FR": {
+          "first_support_false": null,
+          "first_P09_ground": null,
+          "first_P09_Q_false": null
+        },
+        "RR": {
+          "first_support_false": {
+            "g": 123871,
+            "tick": 3624
+          },
+          "first_P09_ground": {
+            "g": 123881,
+            "tick": 3704,
+            "clearance_m": -0.051247122470861384
+          },
+          "first_P09_Q_false": {
+            "g": 123881,
+            "tick": 3704
+          }
+        },
+        "RL": {
+          "first_support_false": null,
+          "first_P09_ground": {
+            "g": 123880,
+            "tick": 3696,
+            "clearance_m": -0.0480936186917304
+          },
+          "first_P09_Q_false": {
+            "g": 123880,
+            "tick": 3696
+          }
+        }
+      },
+      "P09_max_body_angular_speed": {
+        "value": 1.124175844299955,
+        "tick": 3943
+      },
+      "snapshots": [
+        {
+          "g": 123877,
+          "phase": "P06",
+          "end_phase": "P07",
+          "tick": 3672,
+          "time": 30.599999999999998,
+          "native_tick": 3851,
+          "terminal": false,
+          "reason": null,
+          "nominal": [
+            6.9,
+            0,
+            0,
+            0
+          ],
+          "raw": [
+            -0.6326478719711304,
+            -0.35494759678840637,
+            0.05994145944714546,
+            -0.1282161921262741
+          ],
+          "request": [
+            -13.436946883042545,
+            -11.493514216305153,
+            1.436874552310772,
+            -4.590654586606316
+          ],
+          "effective": [
+            -13.436946883042545,
+            -11.493514216305153,
+            1.436874552310772,
+            -4.590654586606316
+          ],
+          "mapper": [
+            6.9,
+            0,
+            0,
+            0
+          ],
+          "controller": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "baseline": [
+            6.9,
+            0,
+            0,
+            0
+          ],
+          "drive": [
+            -6.536946883042544,
+            -11.493514216305153,
+            1.436874552310772,
+            -4.590654586606316
+          ],
+          "measured_q_pre_dispatch": [
+            -8.604195737264682,
+            -17.47821632344236,
+            -0.19408512133056172,
+            -4.214601978095821
+          ],
+          "previous_drive": [
+            -6.536946883042544,
+            -10.993514216305153,
+            1.436874552310772,
+            -4.590654586606316
+          ],
+          "static_keep_intervals": [
+            [
+              -17.1,
+              30.9
+            ],
+            [
+              -36,
+              36
+            ],
+            [
+              -24,
+              24
+            ],
+            [
+              -36,
+              36
+            ]
+          ],
+          "legs": {
+            "FL": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": 0.22840398890804892,
+              "clearance_m": 0.010676694484398355
+            },
+            "FR": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.4295229878395992,
+              "front_distance_m": 0.30532026631664877,
+              "clearance_m": -0.0011325562982383713
+            },
+            "RL": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.5704770121604007,
+              "front_distance_m": -0.24591365115809793,
+              "clearance_m": -0.04933083602862348
+            },
+            "RR": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": -0.25828700916934366,
+              "clearance_m": 0.0020998802440109765
+            }
+          },
+          "QCP": {
+            "active_lift": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": true
+            },
+            "front_edge_crossed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "placed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            }
+          },
+          "body_metrics": {
+            "body_linear_speed_m_s": 0.18778471925037402,
+            "body_angular_speed_rad_s": 0.2468492796928115,
+            "maximum_wheel_speed_rad_s": 0.8148738741874695,
+            "body_forward_m": -0.005851205755952549
+          },
+          "body_angular_velocity_w": [
+            -0.08846192061901093,
+            0.000527460128068924,
+            -0.23045341670513153
+          ]
+        },
+        {
+          "g": 123878,
+          "phase": "P07",
+          "end_phase": "P08",
+          "tick": 3680,
+          "time": 30.666666666666668,
+          "native_tick": 3859,
+          "terminal": false,
+          "reason": null,
+          "nominal": [
+            6.9,
+            0,
+            0,
+            0
+          ],
+          "raw": [
+            -0.4941743016242981,
+            -0.21444302797317505,
+            -0.11478753387928009,
+            -0.0986829325556755
+          ],
+          "request": [
+            -10.98055762552475,
+            -7.993514216305153,
+            -2.0631254476892282,
+            -3.541098243743084
+          ],
+          "effective": [
+            -10.98055762552475,
+            -7.993514216305153,
+            -2.0631254476892282,
+            -3.541098243743084
+          ],
+          "mapper": [
+            9.4,
+            0,
+            0,
+            0
+          ],
+          "controller": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "baseline": [
+            9.4,
+            0,
+            0,
+            0
+          ],
+          "drive": [
+            -1.580557625524749,
+            -7.993514216305153,
+            -2.0631254476892282,
+            -3.541098243743084
+          ],
+          "measured_q_pre_dispatch": [
+            -6.565309991708654,
+            -22.109465363757234,
+            -0.2598724295289601,
+            -3.961577620292699
+          ],
+          "previous_drive": [
+            -1.580557625524749,
+            -8.493514216305153,
+            -1.5631254476892282,
+            -3.541098243743084
+          ],
+          "static_keep_intervals": [
+            [
+              -14.6,
+              33.4
+            ],
+            [
+              -36,
+              36
+            ],
+            [
+              -24,
+              24
+            ],
+            [
+              -36,
+              36
+            ]
+          ],
+          "legs": {
+            "FL": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": 0.22820645911526327,
+              "clearance_m": 0.002924581440136423
+            },
+            "FR": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.4306144244393927,
+              "front_distance_m": 0.3066321645481551,
+              "clearance_m": -0.0014638314633193955
+            },
+            "RL": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.5693855755606073,
+              "front_distance_m": -0.24868347900081034,
+              "clearance_m": -0.04876704314427366
+            },
+            "RR": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": -0.2688961889045274,
+              "clearance_m": -0.006194664870029398
+            }
+          },
+          "QCP": {
+            "active_lift": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": true
+            },
+            "front_edge_crossed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "placed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            }
+          },
+          "body_metrics": {
+            "body_linear_speed_m_s": 0.1828859279073207,
+            "body_angular_speed_rad_s": 0.2511362813845319,
+            "maximum_wheel_speed_rad_s": 0.7959706783294678,
+            "body_forward_m": -0.014392789770845127
+          },
+          "body_angular_velocity_w": [
+            -0.15919901430606842,
+            -0.1632401943206787,
+            -0.10525086522102356
+          ]
+        },
+        {
+          "g": 123879,
+          "phase": "P08",
+          "end_phase": "P09",
+          "tick": 3688,
+          "time": 30.733333333333334,
+          "native_tick": 3867,
+          "terminal": false,
+          "reason": null,
+          "nominal": [
+            14.3,
+            0,
+            0,
+            0
+          ],
+          "raw": [
+            -0.588921308517456,
+            -0.2413371503353119,
+            -0.0545346699655056,
+            -0.13997305929660797
+          ],
+          "request": [
+            -12.698864585566175,
+            -8.523300438843203,
+            -1.3075361187847314,
+            -5.00637701844079
+          ],
+          "effective": [
+            -12.698864585566175,
+            -8.523300438843203,
+            -1.3075361187847314,
+            -5.00637701844079
+          ],
+          "mapper": [
+            14.3,
+            0,
+            0,
+            0
+          ],
+          "controller": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "baseline": [
+            14.3,
+            0,
+            0,
+            0
+          ],
+          "drive": [
+            1.6011354144338252,
+            -8.523300438843203,
+            -1.3075361187847314,
+            -5.00637701844079
+          ],
+          "measured_q_pre_dispatch": [
+            -4.1214610496020985,
+            -27.030401509792565,
+            -1.0031375837231815,
+            -4.200664550207588
+          ],
+          "previous_drive": [
+            1.6011354144338252,
+            -8.523300438843203,
+            -1.3075361187847314,
+            -5.00637701844079
+          ],
+          "static_keep_intervals": [
+            [
+              -9.7,
+              38.3
+            ],
+            [
+              -36,
+              36
+            ],
+            [
+              -24,
+              24
+            ],
+            [
+              -36,
+              36
+            ]
+          ],
+          "legs": {
+            "FL": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": 0.22934383494686728,
+              "clearance_m": 0.009624471338436594
+            },
+            "FR": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.42164487018291075,
+              "front_distance_m": 0.30667955024075155,
+              "clearance_m": -0.000919745364648436
+            },
+            "RL": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.5783551298170894,
+              "front_distance_m": -0.2516955401198899,
+              "clearance_m": -0.048291755706834694
+            },
+            "RR": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": -0.27552269058394785,
+              "clearance_m": -0.017142689560180613
+            }
+          },
+          "QCP": {
+            "active_lift": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": true
+            },
+            "front_edge_crossed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "placed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            }
+          },
+          "body_metrics": {
+            "body_linear_speed_m_s": 0.1808766565728705,
+            "body_angular_speed_rad_s": 0.2579376846799152,
+            "maximum_wheel_speed_rad_s": 0.8043658137321472,
+            "body_forward_m": -0.022836890389207554
+          },
+          "body_angular_velocity_w": [
+            -0.03367110714316368,
+            -0.2238522171974182,
+            -0.1236458271741867
+          ]
+        },
+        {
+          "g": 123880,
+          "phase": "P09",
+          "end_phase": "P09",
+          "tick": 3696,
+          "time": 30.8,
+          "native_tick": 3875,
+          "terminal": false,
+          "reason": null,
+          "nominal": [
+            18.5,
+            0,
+            1.6,
+            0
+          ],
+          "raw": [
+            -0.8462888598442078,
+            -0.20767448842525482,
+            -0.09904612600803375,
+            -0.16911713778972626
+          ],
+          "request": [
+            -16.198864585566177,
+            -7.370623221090369,
+            -2.369364159194579,
+            -6.030831146652067
+          ],
+          "effective": [
+            -16.198864585566177,
+            -7.370623221090369,
+            -2.369364159194579,
+            -6.030831146652067
+          ],
+          "mapper": [
+            18.5,
+            0,
+            2.85,
+            0
+          ],
+          "controller": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "baseline": [
+            18.5,
+            0,
+            2.85,
+            0
+          ],
+          "drive": [
+            2.3011354144338227,
+            -7.370623221090369,
+            0.4806358408054212,
+            -6.030831146652067
+          ],
+          "measured_q_pre_dispatch": [
+            -0.9922343206313801,
+            -32.1346001689958,
+            -0.8009403987938263,
+            -4.905790228231255
+          ],
+          "previous_drive": [
+            2.8011354144338245,
+            -7.370623221090369,
+            0.4806358408054212,
+            -6.030831146652067
+          ],
+          "static_keep_intervals": [
+            [
+              -5.5,
+              42.5
+            ],
+            [
+              -36,
+              36
+            ],
+            [
+              -21.15,
+              26.85
+            ],
+            [
+              -36,
+              36
+            ]
+          ],
+          "legs": {
+            "FL": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": 0.2252551351292098,
+              "clearance_m": 0.02847014871423005
+            },
+            "FR": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.4154733213015218,
+              "front_distance_m": 0.3068657551510299,
+              "clearance_m": -0.0005723322419944749
+            },
+            "RL": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.5845266786984782,
+              "front_distance_m": -0.2550569440619981,
+              "clearance_m": -0.0480936186917304
+            },
+            "RR": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": -0.2826893891589677,
+              "clearance_m": -0.03174491855931849
+            }
+          },
+          "QCP": {
+            "active_lift": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": true
+            },
+            "front_edge_crossed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "placed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            }
+          },
+          "body_metrics": {
+            "body_linear_speed_m_s": 0.15618134097984945,
+            "body_angular_speed_rad_s": 0.5233744111203761,
+            "maximum_wheel_speed_rad_s": 0.8259738087654114,
+            "body_forward_m": -0.030846294333223057
+          },
+          "body_angular_velocity_w": [
+            0.3236123025417328,
+            -0.4113325774669647,
+            -0.001167293288744986
+          ]
+        },
+        {
+          "g": 123884,
+          "phase": "P09",
+          "end_phase": "P09",
+          "tick": 3728,
+          "time": 31.066666666666666,
+          "native_tick": 3907,
+          "terminal": false,
+          "reason": null,
+          "nominal": [
+            27,
+            0,
+            33.4,
+            0
+          ],
+          "raw": [
+            -0.9184897541999817,
+            -0.2804107367992401,
+            0.09441818296909332,
+            -0.08177617192268372
+          ],
+          "request": [
+            -17.40437219667861,
+            -9.838266631725526,
+            2.2593265682562063,
+            -2.937397312752946
+          ],
+          "effective": [
+            -17.40437219667861,
+            -9.838266631725526,
+            2.2593265682562063,
+            -2.937397312752946
+          ],
+          "mapper": [
+            28.25,
+            0,
+            33.4,
+            0
+          ],
+          "controller": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "baseline": [
+            28.25,
+            0,
+            33.4,
+            0
+          ],
+          "drive": [
+            10.845627803321388,
+            -9.838266631725526,
+            35.659326568256205,
+            -2.937397312752946
+          ],
+          "measured_q_pre_dispatch": [
+            7.119996831240102,
+            -39.2634769265078,
+            22.79354964352669,
+            -5.037943289613601
+          ],
+          "previous_drive": [
+            10.845627803321388,
+            -9.838266631725526,
+            34.8093265682562,
+            -2.937397312752946
+          ],
+          "static_keep_intervals": [
+            [
+              4.25,
+              52.25
+            ],
+            [
+              -36,
+              36
+            ],
+            [
+              9.399999999999999,
+              57.4
+            ],
+            [
+              -36,
+              36
+            ]
+          ],
+          "legs": {
+            "FL": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": 0.2255254421932662,
+              "clearance_m": 0.14822198954407928
+            },
+            "FR": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.34171265494374436,
+              "front_distance_m": 0.31303179604839926,
+              "clearance_m": -0.00018089363859329077
+            },
+            "RL": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.5524607478934066,
+              "front_distance_m": -0.2595425512092149,
+              "clearance_m": -0.04987433725671758
+            },
+            "RR": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.10582659716284905,
+              "front_distance_m": -0.3413073684470689,
+              "clearance_m": -0.05032491940689654
+            }
+          },
+          "QCP": {
+            "active_lift": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "front_edge_crossed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "placed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            }
+          },
+          "body_metrics": {
+            "body_linear_speed_m_s": 0.11814243403994358,
+            "body_angular_speed_rad_s": 0.8843950806973585,
+            "maximum_wheel_speed_rad_s": 0.7750623822212219,
+            "body_forward_m": -0.03419011490512247
+          },
+          "body_angular_velocity_w": [
+            0.7092301845550537,
+            -0.5219407677650452,
+            0.08200633525848389
+          ]
+        },
+        {
+          "g": 123911,
+          "phase": "P09",
+          "end_phase": "P09",
+          "tick": 3943,
+          "time": 32.858333333333334,
+          "native_tick": 4122,
+          "terminal": true,
+          "reason": "FALL",
+          "nominal": [
+            31.199999999999996,
+            0,
+            -6.9,
+            -37.8
+          ],
+          "raw": [
+            -1.3016128540039062,
+            0.1287752389907837,
+            0.6987356543540955,
+            0.18496814370155334
+          ],
+          "request": [
+            -20.69130683652711,
+            8.7766801561112,
+            13.520453564872485,
+            6.583937985609239
+          ],
+          "effective": [
+            -20.69130683652711,
+            8.7766801561112,
+            13.520453564872485,
+            6.583937985609239
+          ],
+          "mapper": [
+            21.199999999999996,
+            0,
+            -8.15,
+            -39.05
+          ],
+          "controller": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "baseline": [
+            21.199999999999996,
+            0,
+            -8.15,
+            -39.05
+          ],
+          "drive": [
+            0.5086931634728842,
+            8.7766801561112,
+            13.120453564872484,
+            -22.018779087565143
+          ],
+          "measured_q_pre_dispatch": [
+            27.02622458231084,
+            11.53242648746547,
+            5.920382652842355,
+            -29.572740939297276
+          ],
+          "previous_drive": [
+            0.5086931634728842,
+            9.2766801561112,
+            14.370453564872484,
+            -20.768779087565143
+          ],
+          "static_keep_intervals": [
+            [
+              -2.8000000000000043,
+              45.199999999999996
+            ],
+            [
+              -36,
+              36
+            ],
+            [
+              -32.15,
+              15.85
+            ],
+            [
+              -58,
+              -3.049999999999997
+            ]
+          ],
+          "legs": {
+            "FL": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.22830249326849614,
+              "front_distance_m": 0.520747247765776,
+              "clearance_m": 0.0014355903584217927
+            },
+            "FR": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.2481546618495715,
+              "front_distance_m": 0.44500774485897665,
+              "clearance_m": -0.0007358128814521775
+            },
+            "RL": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.1635953049199571,
+              "front_distance_m": -0.18565040486026163,
+              "clearance_m": -0.04826693409757604
+            },
+            "RR": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.35994753996197537,
+              "front_distance_m": -0.062341507841829014,
+              "clearance_m": -0.051419130299812266
+            }
+          },
+          "QCP": {
+            "active_lift": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "front_edge_crossed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "placed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            }
+          },
+          "body_metrics": {
+            "body_linear_speed_m_s": 0.3508174424693878,
+            "body_angular_speed_rad_s": 1.124175844299955,
+            "maximum_wheel_speed_rad_s": 0.44977617263793945,
+            "body_forward_m": 0.19705582005810385
+          },
+          "body_angular_velocity_w": [
+            -0.9491461515426636,
+            -0.5910694003105164,
+            0.1163179948925972
+          ]
+        }
+      ]
+    },
+    {
+      "block": "block3",
+      "run": "20260907T2346092851638Z_g2f27c6f5065a_3ba4a92452b14e74ad1f3d5c8a03075d",
+      "audit_path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_transfer_roles_v1\\train\\20260907T2346092851638Z_g2f27c6f5065a_3ba4a92452b14e74ad1f3d5c8a03075d\\residual_and_projection_audit.jsonl",
+      "global_window": [
+        125550,
+        125599
+      ],
+      "rows": 50,
+      "all_selected_native_verified": true,
+      "anchor_last_P06": {
+        "g": 125565,
+        "phase": "P06",
+        "end_phase": "P07",
+        "tick": 4888,
+        "time": 40.733333333333334,
+        "native_tick": 5067,
+        "terminal": false,
+        "reason": null,
+        "nominal": [
+          6.9,
+          0,
+          0,
+          0
+        ],
+        "raw": [
+          -1.7403534650802612,
+          0.3050682544708252,
+          1.6231306791305542,
+          -0.7059882879257202
+        ],
+        "request": [
+          -22.566422867604818,
+          10.653979751050308,
+          16.762408677043894,
+          -21.893581033950902
+        ],
+        "effective": [
+          -22.566422867604818,
+          10.653979751050308,
+          16.762408677043894,
+          -21.893581033950902
+        ],
+        "mapper": [
+          5.65,
+          0.6421599783343184,
+          -1.3499030061922759,
+          0.9543498893273243
+        ],
+        "controller": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "baseline": [
+          5.65,
+          0.6421599783343184,
+          -1.3499030061922759,
+          0.9543498893273243
+        ],
+        "drive": [
+          -16.916422867604815,
+          11.296139729384626,
+          15.412505670851617,
+          -20.939231144623577
+        ],
+        "measured_q_pre_dispatch": [
+          1.3775898850242236,
+          9.561029841098335,
+          8.980821372743112,
+          -21.873493867217732
+        ],
+        "previous_drive": [
+          -16.916422867604815,
+          11.296139729384626,
+          14.912505670851617,
+          -20.939231144623577
+        ],
+        "static_keep_intervals": [
+          [
+            -18.35,
+            29.65
+          ],
+          [
+            -35.35784002166568,
+            36.64215997833432
+          ],
+          [
+            -25.349903006192275,
+            22.650096993807725
+          ],
+          [
+            -35.045650110672675,
+            36.954349889327325
+          ]
+        ],
+        "legs": {
+          "FL": {
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "support": false,
+            "load_fraction": 0,
+            "front_distance_m": 0.39943945748638754,
+            "clearance_m": 0.048061986835644235
+          },
+          "FR": {
+            "air": false,
+            "ground_contact": false,
+            "top_contact": true,
+            "support": true,
+            "load_fraction": 0.5270280051659785,
+            "front_distance_m": 0.3285065327389205,
+            "clearance_m": -0.0014333362369361863
+          },
+          "RL": {
+            "air": false,
+            "ground_contact": true,
+            "top_contact": false,
+            "support": true,
+            "load_fraction": 0.4729719948340216,
+            "front_distance_m": -0.24512532012629862,
+            "clearance_m": -0.04973958605604162
+          },
+          "RR": {
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "support": false,
+            "load_fraction": 0,
+            "front_distance_m": -0.20003869788813944,
+            "clearance_m": 0.019455344642871908
+          }
+        },
+        "QCP": {
+          "active_lift": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": true
+          },
+          "front_edge_crossed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "placed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          }
+        },
+        "body_metrics": {
+          "body_linear_speed_m_s": 0.15576498460089264,
+          "body_angular_speed_rad_s": 1.1036184654092707,
+          "maximum_wheel_speed_rad_s": 0.8547252416610718,
+          "body_forward_m": 0.08176130397152548
+        },
+        "body_angular_velocity_w": [
+          -0.639926016330719,
+          0.892959475517273,
+          -0.10531754791736603
+        ]
+      },
+      "P09_headroom_changed_request_rows": 0,
+      "P09_geometry_changed_rear_rows": 0,
+      "feasible_keep_tests": {
+        "RL_hip": {
+          "inherited_drive": {
+            "reference": -16.916422867604815,
+            "outside_static_range_rows": 32,
+            "first": {
+              "g": 125568,
+              "tick": 4912,
+              "interval": [
+                -5.5,
+                42.5
+              ],
+              "required_residual": -35.416422867604815,
+              "deficit_deg": 11.416422867604815
+            },
+            "maximum_deficit_deg": 27.86642286760481
+          },
+          "inherited_measured_q": {
+            "reference": 1.3775898850242236,
+            "outside_static_range_rows": 29,
+            "first": {
+              "g": 125571,
+              "tick": 4936,
+              "interval": [
+                2.1499999999999986,
+                50.15
+              ],
+              "required_residual": -24.772410114975774,
+              "deficit_deg": 0.7724101149757749
+            },
+            "maximum_deficit_deg": 9.572410114975773
+          },
+          "previous_drive_static_hold": {
+            "nonterminal_impossible_rows": 0,
+            "first": null
+          },
+          "previous_drive_one_tick_hold": {
+            "nonterminal_impossible_rows": 0,
+            "first": null
+          }
+        },
+        "RL_knee": {
+          "inherited_drive": {
+            "reference": 11.296139729384626,
+            "outside_static_range_rows": 0,
+            "first": null,
+            "maximum_deficit_deg": 0
+          },
+          "inherited_measured_q": {
+            "reference": 9.561029841098335,
+            "outside_static_range_rows": 0,
+            "first": null,
+            "maximum_deficit_deg": 0
+          },
+          "previous_drive_static_hold": {
+            "nonterminal_impossible_rows": 0,
+            "first": null
+          },
+          "previous_drive_one_tick_hold": {
+            "nonterminal_impossible_rows": 0,
+            "first": null
+          }
+        },
+        "RR_hip": {
+          "inherited_drive": {
+            "reference": 15.412505670851617,
+            "outside_static_range_rows": 14,
+            "first": {
+              "g": 125573,
+              "tick": 4952,
+              "interval": [
+                19.4,
+                67.4
+              ],
+              "required_residual": -27.987494329148383,
+              "deficit_deg": 3.9874943291483813
+            },
+            "maximum_deficit_deg": 17.437494329148386
+          },
+          "inherited_measured_q": {
+            "reference": 8.980821372743112,
+            "outside_static_range_rows": 16,
+            "first": {
+              "g": 125572,
+              "tick": 4944,
+              "interval": [
+                9.399999999999999,
+                57.4
+              ],
+              "required_residual": -24.419178627256887,
+              "deficit_deg": 0.4191786272568869
+            },
+            "maximum_deficit_deg": 23.86917862725689
+          },
+          "previous_drive_static_hold": {
+            "nonterminal_impossible_rows": 0,
+            "first": null
+          },
+          "previous_drive_one_tick_hold": {
+            "nonterminal_impossible_rows": 5,
+            "first": {
+              "g": 125571,
+              "tick": 4936,
+              "previous_drive": 41.69869842274446,
+              "interval": [
+                41.949016730095366,
+                42.94869842274446
+              ],
+              "required_residual": 17.898698422744456,
+              "deficit_deg": 0.2503183073509092
+            }
+          }
+        },
+        "RR_knee": {
+          "inherited_drive": {
+            "reference": -20.939231144623577,
+            "outside_static_range_rows": 0,
+            "first": null,
+            "maximum_deficit_deg": 0
+          },
+          "inherited_measured_q": {
+            "reference": -21.873493867217732,
+            "outside_static_range_rows": 0,
+            "first": null,
+            "maximum_deficit_deg": 0
+          },
+          "previous_drive_static_hold": {
+            "nonterminal_impossible_rows": 0,
+            "first": null
+          },
+          "previous_drive_one_tick_hold": {
+            "nonterminal_impossible_rows": 1,
+            "first": {
+              "g": 125583,
+              "tick": 5032,
+              "previous_drive": -21.43949677413588,
+              "interval": [
+                -22.68949677413588,
+                -22.465605697634487
+              ],
+              "required_residual": 13.660503225864122,
+              "deficit_deg": 1.026108923498608
+            }
+          }
+        }
+      },
+      "observed_contact_history_changes": {
+        "FL": {
+          "first_support_false": {
+            "g": 125557,
+            "tick": 4824
+          },
+          "first_P09_ground": null,
+          "first_P09_Q_false": null
+        },
+        "FR": {
+          "first_support_false": {
+            "g": 125575,
+            "tick": 4968
+          },
+          "first_P09_ground": null,
+          "first_P09_Q_false": null
+        },
+        "RR": {
+          "first_support_false": {
+            "g": 125557,
+            "tick": 4824
+          },
+          "first_P09_ground": {
+            "g": 125595,
+            "tick": 5128,
+            "clearance_m": -0.049937794689660975
+          },
+          "first_P09_Q_false": {
+            "g": 125595,
+            "tick": 5128
+          }
+        },
+        "RL": {
+          "first_support_false": {
+            "g": 125597,
+            "tick": 5144
+          },
+          "first_P09_ground": {
+            "g": 125568,
+            "tick": 4912,
+            "clearance_m": -0.04785763272719373
+          },
+          "first_P09_Q_false": {
+            "g": 125568,
+            "tick": 4912
+          }
+        }
+      },
+      "P09_max_body_angular_speed": {
+        "value": 1.7725058779006166,
+        "tick": 4912
+      },
+      "snapshots": [
+        {
+          "g": 125565,
+          "phase": "P06",
+          "end_phase": "P07",
+          "tick": 4888,
+          "time": 40.733333333333334,
+          "native_tick": 5067,
+          "terminal": false,
+          "reason": null,
+          "nominal": [
+            6.9,
+            0,
+            0,
+            0
+          ],
+          "raw": [
+            -1.7403534650802612,
+            0.3050682544708252,
+            1.6231306791305542,
+            -0.7059882879257202
+          ],
+          "request": [
+            -22.566422867604818,
+            10.653979751050308,
+            16.762408677043894,
+            -21.893581033950902
+          ],
+          "effective": [
+            -22.566422867604818,
+            10.653979751050308,
+            16.762408677043894,
+            -21.893581033950902
+          ],
+          "mapper": [
+            5.65,
+            0.6421599783343184,
+            -1.3499030061922759,
+            0.9543498893273243
+          ],
+          "controller": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "baseline": [
+            5.65,
+            0.6421599783343184,
+            -1.3499030061922759,
+            0.9543498893273243
+          ],
+          "drive": [
+            -16.916422867604815,
+            11.296139729384626,
+            15.412505670851617,
+            -20.939231144623577
+          ],
+          "measured_q_pre_dispatch": [
+            1.3775898850242236,
+            9.561029841098335,
+            8.980821372743112,
+            -21.873493867217732
+          ],
+          "previous_drive": [
+            -16.916422867604815,
+            11.296139729384626,
+            14.912505670851617,
+            -20.939231144623577
+          ],
+          "static_keep_intervals": [
+            [
+              -18.35,
+              29.65
+            ],
+            [
+              -35.35784002166568,
+              36.64215997833432
+            ],
+            [
+              -25.349903006192275,
+              22.650096993807725
+            ],
+            [
+              -35.045650110672675,
+              36.954349889327325
+            ]
+          ],
+          "legs": {
+            "FL": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": 0.39943945748638754,
+              "clearance_m": 0.048061986835644235
+            },
+            "FR": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.5270280051659785,
+              "front_distance_m": 0.3285065327389205,
+              "clearance_m": -0.0014333362369361863
+            },
+            "RL": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.4729719948340216,
+              "front_distance_m": -0.24512532012629862,
+              "clearance_m": -0.04973958605604162
+            },
+            "RR": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": -0.20003869788813944,
+              "clearance_m": 0.019455344642871908
+            }
+          },
+          "QCP": {
+            "active_lift": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": true
+            },
+            "front_edge_crossed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "placed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            }
+          },
+          "body_metrics": {
+            "body_linear_speed_m_s": 0.15576498460089264,
+            "body_angular_speed_rad_s": 1.1036184654092707,
+            "maximum_wheel_speed_rad_s": 0.8547252416610718,
+            "body_forward_m": 0.08176130397152548
+          },
+          "body_angular_velocity_w": [
+            -0.639926016330719,
+            0.892959475517273,
+            -0.10531754791736603
+          ]
+        },
+        {
+          "g": 125566,
+          "phase": "P07",
+          "end_phase": "P08",
+          "tick": 4896,
+          "time": 40.8,
+          "native_tick": 5075,
+          "terminal": false,
+          "reason": null,
+          "nominal": [
+            6.9,
+            0,
+            0,
+            0
+          ],
+          "raw": [
+            -1.721861481666565,
+            0.48680412769317627,
+            1.6051031351089478,
+            -0.5234609842300415
+          ],
+          "request": [
+            -22.51408289412277,
+            14.153979751050306,
+            20.262408677043894,
+            -18.393581033950902
+          ],
+          "effective": [
+            -22.51408289412277,
+            14.153979751050306,
+            20.262408677043894,
+            -18.393581033950902
+          ],
+          "mapper": [
+            5.65,
+            0.6421599783343184,
+            -1.3499030061922759,
+            0.9543498893273243
+          ],
+          "controller": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "baseline": [
+            5.65,
+            0.6421599783343184,
+            -1.3499030061922759,
+            0.9543498893273243
+          ],
+          "drive": [
+            -16.864082894122767,
+            14.796139729384624,
+            18.91250567085162,
+            -17.439231144623577
+          ],
+          "measured_q_pre_dispatch": [
+            -4.969757311026165,
+            11.290228833270463,
+            12.636926866576204,
+            -20.616204597632834
+          ],
+          "previous_drive": [
+            -16.864082894122767,
+            14.296139729384624,
+            18.41250567085162,
+            -17.939231144623577
+          ],
+          "static_keep_intervals": [
+            [
+              -18.35,
+              29.65
+            ],
+            [
+              -35.35784002166568,
+              36.64215997833432
+            ],
+            [
+              -25.349903006192275,
+              22.650096993807725
+            ],
+            [
+              -35.045650110672675,
+              36.954349889327325
+            ]
+          ],
+          "legs": {
+            "FL": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": 0.4047280584080184,
+              "clearance_m": 0.03306839373891114
+            },
+            "FR": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.49721060722445487,
+              "front_distance_m": 0.3285039101345504,
+              "clearance_m": -0.0018518204479042039
+            },
+            "RL": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.502789392775545,
+              "front_distance_m": -0.24459829585719461,
+              "clearance_m": -0.049021510273980995
+            },
+            "RR": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": -0.22012573139834757,
+              "clearance_m": 0.06032651778625875
+            }
+          },
+          "QCP": {
+            "active_lift": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": true
+            },
+            "front_edge_crossed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "placed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            }
+          },
+          "body_metrics": {
+            "body_linear_speed_m_s": 0.14733437423219875,
+            "body_angular_speed_rad_s": 1.3915485832332946,
+            "maximum_wheel_speed_rad_s": 0.8537958860397339,
+            "body_forward_m": 0.07260871274304037
+          },
+          "body_angular_velocity_w": [
+            -0.8163590431213379,
+            1.1169641017913818,
+            -0.1495211273431778
+          ]
+        },
+        {
+          "g": 125567,
+          "phase": "P08",
+          "end_phase": "P09",
+          "tick": 4904,
+          "time": 40.86666666666667,
+          "native_tick": 5083,
+          "terminal": false,
+          "reason": null,
+          "nominal": [
+            14.3,
+            0,
+            0,
+            0
+          ],
+          "raw": [
+            -1.8013898134231567,
+            0.4607488512992859,
+            1.2033178806304932,
+            -0.3926358222961426
+          ],
+          "request": [
+            -22.726794010322287,
+            15.504996572530091,
+            20.03193196234477,
+            -14.893581033950902
+          ],
+          "effective": [
+            -22.726794010322287,
+            15.504996572530091,
+            20.03193196234477,
+            -14.893581033950902
+          ],
+          "mapper": [
+            14.3,
+            0.6421599783343184,
+            -1.3499030061922759,
+            0.9543498893273243
+          ],
+          "controller": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "baseline": [
+            14.3,
+            0.6421599783343184,
+            -1.3499030061922759,
+            0.9543498893273243
+          ],
+          "drive": [
+            -8.426794010322286,
+            16.14715655086441,
+            18.682028956152497,
+            -13.939231144623577
+          ],
+          "measured_q_pre_dispatch": [
+            -8.955076215306578,
+            12.820770919659125,
+            15.47175248536039,
+            -18.291481411727293
+          ],
+          "previous_drive": [
+            -9.576794010322287,
+            16.14715655086441,
+            18.682028956152497,
+            -14.439231144623577
+          ],
+          "static_keep_intervals": [
+            [
+              -9.7,
+              38.3
+            ],
+            [
+              -35.35784002166568,
+              36.64215997833432
+            ],
+            [
+              -25.349903006192275,
+              22.650096993807725
+            ],
+            [
+              -35.045650110672675,
+              36.954349889327325
+            ]
+          ],
+          "legs": {
+            "FL": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": 0.41773420913052206,
+              "clearance_m": 0.023986545773193826
+            },
+            "FR": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.3721432222529025,
+              "front_distance_m": 0.33118158919644003,
+              "clearance_m": -0.0022423351793113694
+            },
+            "RL": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.6278567777470976,
+              "front_distance_m": -0.24333127992320414,
+              "clearance_m": -0.048321811348962684
+            },
+            "RR": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": -0.23092904346156473,
+              "clearance_m": 0.09853787836002735
+            }
+          },
+          "QCP": {
+            "active_lift": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": true
+            },
+            "front_edge_crossed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "placed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            }
+          },
+          "body_metrics": {
+            "body_linear_speed_m_s": 0.15833914634944815,
+            "body_angular_speed_rad_s": 1.335426005012797,
+            "maximum_wheel_speed_rad_s": 0.8460503220558167,
+            "body_forward_m": 0.07049960238766317
+          },
+          "body_angular_velocity_w": [
+            -1.045566439628601,
+            0.8139442205429077,
+            -0.16627760231494904
+          ]
+        },
+        {
+          "g": 125568,
+          "phase": "P09",
+          "end_phase": "P09",
+          "tick": 4912,
+          "time": 40.93333333333333,
+          "native_tick": 5091,
+          "terminal": false,
+          "reason": null,
+          "nominal": [
+            18.5,
+            0,
+            1.6,
+            0
+          ],
+          "raw": [
+            -1.7729755640029907,
+            0.3708159625530243,
+            1.0126951932907104,
+            -0.49056506156921387
+          ],
+          "request": [
+            -22.654431252704818,
+            12.769387934530085,
+            18.404987388506164,
+            -16.367932793608794
+          ],
+          "effective": [
+            -22.654431252704818,
+            12.769387934530085,
+            18.404987388506164,
+            -16.367932793608794
+          ],
+          "mapper": [
+            18.5,
+            0.6421599783343184,
+            2.85,
+            0.9543498893273243
+          ],
+          "controller": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "baseline": [
+            18.5,
+            0.6421599783343184,
+            2.85,
+            0.9543498893273243
+          ],
+          "drive": [
+            -4.154431252704818,
+            13.411547912864403,
+            21.254987388506166,
+            -15.41358290428147
+          ],
+          "measured_q_pre_dispatch": [
+            -7.591929258870237,
+            12.569647061992558,
+            17.624822772139755,
+            -16.63069871692389
+          ],
+          "previous_drive": [
+            -4.154431252704818,
+            13.411547912864403,
+            21.254987388506166,
+            -15.41358290428147
+          ],
+          "static_keep_intervals": [
+            [
+              -5.5,
+              42.5
+            ],
+            [
+              -35.35784002166568,
+              36.64215997833432
+            ],
+            [
+              -21.15,
+              26.85
+            ],
+            [
+              -35.045650110672675,
+              36.954349889327325
+            ]
+          ],
+          "legs": {
+            "FL": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": 0.43755978686642294,
+              "clearance_m": 0.007590075405285349
+            },
+            "FR": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.46280838941597124,
+              "front_distance_m": 0.34292108161282187,
+              "clearance_m": -0.0031309286742034897
+            },
+            "RL": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.5371916105840288,
+              "front_distance_m": -0.24043225901294107,
+              "clearance_m": -0.04785763272719373
+            },
+            "RR": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": -0.22642188923526163,
+              "clearance_m": 0.1301310222999993
+            }
+          },
+          "QCP": {
+            "active_lift": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": true
+            },
+            "front_edge_crossed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "placed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            }
+          },
+          "body_metrics": {
+            "body_linear_speed_m_s": 0.2748727054299985,
+            "body_angular_speed_rad_s": 1.7725058779006166,
+            "maximum_wheel_speed_rad_s": 0.841376781463623,
+            "body_forward_m": 0.07794416291546469
+          },
+          "body_angular_velocity_w": [
+            -1.4973489046096802,
+            0.9386817812919617,
+            -0.13638129830360413
+          ]
+        },
+        {
+          "g": 125571,
+          "phase": "P09",
+          "end_phase": "P09",
+          "tick": 4936,
+          "time": 41.13333333333333,
+          "native_tick": 5115,
+          "terminal": false,
+          "reason": null,
+          "nominal": [
+            24.9,
+            0,
+            23.8,
+            0
+          ],
+          "raw": [
+            -1.2870769500732422,
+            0.6411983966827393,
+            1.037861943244934,
+            -0.35441240668296814
+          ],
+          "request": [
+            -20.600617479170072,
+            17.608277311345468,
+            18.649016730095365,
+            -14.7301481234534
+          ],
+          "effective": [
+            -20.600617479170072,
+            17.608277311345468,
+            18.649016730095365,
+            -14.7301481234534
+          ],
+          "mapper": [
+            26.15,
+            0.6421599783343184,
+            23.8,
+            0.9543498893273243
+          ],
+          "controller": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "baseline": [
+            26.15,
+            0.6421599783343184,
+            23.8,
+            0.9543498893273243
+          ],
+          "drive": [
+            5.549382520829926,
+            18.250437289679788,
+            42.449016730095366,
+            -13.775798234126075
+          ],
+          "measured_q_pre_dispatch": [
+            0.7040238964733931,
+            12.12036404857829,
+            31.01513543238295,
+            -16.165229862723983
+          ],
+          "previous_drive": [
+            5.549382520829926,
+            17.750437289679788,
+            41.69869842274446,
+            -14.275798234126075
+          ],
+          "static_keep_intervals": [
+            [
+              2.1499999999999986,
+              50.15
+            ],
+            [
+              -35.35784002166568,
+              36.64215997833432
+            ],
+            [
+              -0.1999999999999993,
+              47.8
+            ],
+            [
+              -35.045650110672675,
+              36.954349889327325
+            ]
+          ],
+          "legs": {
+            "FL": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.1427015634187167,
+              "front_distance_m": 0.47660142524075155,
+              "clearance_m": 0.0033645009714817903
+            },
+            "FR": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.3245576746451402,
+              "front_distance_m": 0.38421911341976767,
+              "clearance_m": -0.0051691691069427476
+            },
+            "RL": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.5327407619361431,
+              "front_distance_m": -0.23583307521510477,
+              "clearance_m": -0.04698009216861715
+            },
+            "RR": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": -0.21473914044070597,
+              "clearance_m": 0.18220974620747
+            }
+          },
+          "QCP": {
+            "active_lift": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": true
+            },
+            "front_edge_crossed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "placed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            }
+          },
+          "body_metrics": {
+            "body_linear_speed_m_s": 0.266974628977009,
+            "body_angular_speed_rad_s": 0.48734499261478087,
+            "maximum_wheel_speed_rad_s": 0.7990246415138245,
+            "body_forward_m": 0.10054833037685995
+          },
+          "body_angular_velocity_w": [
+            -0.4762835204601288,
+            0.10297129303216934,
+            -0.007487508002668619
+          ]
+        },
+        {
+          "g": 125572,
+          "phase": "P09",
+          "end_phase": "P09",
+          "tick": 4944,
+          "time": 41.2,
+          "native_tick": 5123,
+          "terminal": false,
+          "reason": null,
+          "nominal": [
+            27,
+            0,
+            33.4,
+            0
+          ],
+          "raw": [
+            -1.4481873512268066,
+            0.7549206018447876,
+            0.846440315246582,
+            -0.4687666893005371
+          ],
+          "request": [
+            -21.488012845714888,
+            21.608277311345468,
+            16.540925533280706,
+            -15.73928224021506
+          ],
+          "effective": [
+            -21.488012845714888,
+            21.608277311345468,
+            16.540925533280706,
+            -15.73928224021506
+          ],
+          "mapper": [
+            28.25,
+            0.6421599783343184,
+            33.4,
+            0.9543498893273243
+          ],
+          "controller": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "baseline": [
+            28.25,
+            0.6421599783343184,
+            33.4,
+            0.9543498893273243
+          ],
+          "drive": [
+            6.761987154285112,
+            22.250437289679788,
+            49.940925533280705,
+            -14.784932350887736
+          ],
+          "measured_q_pre_dispatch": [
+            3.1894398224039127,
+            15.227439300131893,
+            38.041900861803256,
+            -15.44199991453155
+          ],
+          "previous_drive": [
+            6.761987154285112,
+            21.750437289679788,
+            49.0909255332807,
+            -14.784932350887736
+          ],
+          "static_keep_intervals": [
+            [
+              4.25,
+              52.25
+            ],
+            [
+              -35.35784002166568,
+              36.64215997833432
+            ],
+            [
+              9.399999999999999,
+              57.4
+            ],
+            [
+              -35.045650110672675,
+              36.954349889327325
+            ]
+          ],
+          "legs": {
+            "FL": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.12590417731810613,
+              "front_distance_m": 0.4962653551800216,
+              "clearance_m": 0.0030351704079365632
+            },
+            "FR": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.3443196271419133,
+              "front_distance_m": 0.3919857774479354,
+              "clearance_m": -0.005423256257039641
+            },
+            "RL": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.5297761955399805,
+              "front_distance_m": -0.2326649989383256,
+              "clearance_m": -0.046735526860523124
+            },
+            "RR": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": -0.20337038891482706,
+              "clearance_m": 0.19687952217029958
+            }
+          },
+          "QCP": {
+            "active_lift": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": true
+            },
+            "front_edge_crossed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "placed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            }
+          },
+          "body_metrics": {
+            "body_linear_speed_m_s": 0.2893909744898345,
+            "body_angular_speed_rad_s": 0.21813307040154362,
+            "maximum_wheel_speed_rad_s": 0.7830949425697327,
+            "body_forward_m": 0.11678266866039877
+          },
+          "body_angular_velocity_w": [
+            -0.1844559758901596,
+            -0.09455341100692749,
+            0.06795352697372437
+          ]
+        },
+        {
+          "g": 125573,
+          "phase": "P09",
+          "end_phase": "P09",
+          "tick": 4952,
+          "time": 41.266666666666666,
+          "native_tick": 5131,
+          "terminal": false,
+          "reason": null,
+          "nominal": [
+            31.199999999999996,
+            0,
+            43.4,
+            0
+          ],
+          "raw": [
+            -1.2389824390411377,
+            0.579651951789856,
+            0.8309890627861023,
+            -0.3530658185482025
+          ],
+          "request": [
+            -20.28396318323366,
+            18.80684693906315,
+            16.344161481300794,
+            -12.207299779600437
+          ],
+          "effective": [
+            -20.28396318323366,
+            18.80684693906315,
+            16.344161481300794,
+            -12.207299779600437
+          ],
+          "mapper": [
+            32.449999999999996,
+            0.6421599783343184,
+            43.4,
+            0.9543498893273243
+          ],
+          "controller": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "baseline": [
+            32.449999999999996,
+            0.6421599783343184,
+            43.4,
+            0.9543498893273243
+          ],
+          "drive": [
+            12.166036816766336,
+            19.44900691739747,
+            59.74416148130079,
+            -11.252949890273111
+          ],
+          "measured_q_pre_dispatch": [
+            6.75975088318565,
+            17.22024602822608,
+            45.9597839967622,
+            -14.234798129677646
+          ],
+          "previous_drive": [
+            12.166036816766336,
+            19.44900691739747,
+            58.49416148130079,
+            -11.284932350887736
+          ],
+          "static_keep_intervals": [
+            [
+              8.449999999999996,
+              56.449999999999996
+            ],
+            [
+              -35.35784002166568,
+              36.64215997833432
+            ],
+            [
+              19.4,
+              67.4
+            ],
+            [
+              -35.045650110672675,
+              36.954349889327325
+            ]
+          ],
+          "legs": {
+            "FL": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.1655975607810226,
+              "front_distance_m": 0.5110916529400313,
+              "clearance_m": 0.0027833035308575532
+            },
+            "FR": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.36059939847241873,
+              "front_distance_m": 0.39817345483135824,
+              "clearance_m": -0.005652786293489073
+            },
+            "RL": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.47380304074655866,
+              "front_distance_m": -0.22980162160563822,
+              "clearance_m": -0.04669823297934522
+            },
+            "RR": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": -0.19647955553698893,
+              "clearance_m": 0.20782829936909109
+            }
+          },
+          "QCP": {
+            "active_lift": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": true
+            },
+            "front_edge_crossed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "placed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            }
+          },
+          "body_metrics": {
+            "body_linear_speed_m_s": 0.1662886796692981,
+            "body_angular_speed_rad_s": 0.261340849493937,
+            "maximum_wheel_speed_rad_s": 0.7984843254089355,
+            "body_forward_m": 0.13069236619305258
+          },
+          "body_angular_velocity_w": [
+            0.012442979030311108,
+            -0.24557290971279144,
+            0.08853337168693542
+          ]
+        },
+        {
+          "g": 125599,
+          "phase": "P09",
+          "end_phase": "P09",
+          "tick": 5153,
+          "time": 42.94166666666666,
+          "native_tick": 5332,
+          "terminal": true,
+          "reason": "FALL",
+          "nominal": [
+            31.199999999999996,
+            0,
+            -6.9,
+            -37.8
+          ],
+          "raw": [
+            -0.8446469902992249,
+            1.0043129920959473,
+            0.43755650520324707,
+            0.4889148473739624
+          ],
+          "request": [
+            -20.261096679449974,
+            27.482384177110102,
+            10.928612281447842,
+            20.01967604168458
+          ],
+          "effective": [
+            -20.261096679449974,
+            27.482384177110102,
+            10.928612281447842,
+            20.01967604168458
+          ],
+          "mapper": [
+            31.763567212833017,
+            0.6421599783343184,
+            -8.15,
+            -39.05
+          ],
+          "controller": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "baseline": [
+            31.763567212833017,
+            0.6421599783343184,
+            -8.15,
+            -39.05
+          ],
+          "drive": [
+            11.502470533383043,
+            28.124544155444422,
+            2.778612281447842,
+            -19.030323958315417
+          ],
+          "measured_q_pre_dispatch": [
+            10.552755139213778,
+            23.44997448528279,
+            4.63911515040248,
+            -22.314572115891526
+          ],
+          "previous_drive": [
+            12.252470533383043,
+            27.727042735728354,
+            3.278612281447842,
+            -18.530323958315417
+          ],
+          "static_keep_intervals": [
+            [
+              7.763567212833017,
+              55.76356721283302
+            ],
+            [
+              -35.35784002166568,
+              36.64215997833432
+            ],
+            [
+              -32.15,
+              15.85
+            ],
+            [
+              -58,
+              -3.049999999999997
+            ]
+          ],
+          "legs": {
+            "FL": {
+              "air": false,
+              "ground_contact": false,
+              "top_contact": true,
+              "support": true,
+              "load_fraction": 0.3369665565238734,
+              "front_distance_m": 0.5271616612179244,
+              "clearance_m": 0.0009299418050503633
+            },
+            "FR": {
+              "air": true,
+              "ground_contact": false,
+              "top_contact": false,
+              "support": false,
+              "load_fraction": 0,
+              "front_distance_m": 0.5368080769283736,
+              "clearance_m": 0.019086687764662172
+            },
+            "RL": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.22230406256461635,
+              "front_distance_m": -0.23783418195414896,
+              "clearance_m": -0.049157263577747246
+            },
+            "RR": {
+              "air": false,
+              "ground_contact": true,
+              "top_contact": false,
+              "support": true,
+              "load_fraction": 0.44072938091151026,
+              "front_distance_m": -0.15832626478839273,
+              "clearance_m": -0.05068392935824961
+            }
+          },
+          "QCP": {
+            "active_lift": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "front_edge_crossed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "placed": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            }
+          },
+          "body_metrics": {
+            "body_linear_speed_m_s": 0.04100486133514961,
+            "body_angular_speed_rad_s": 0.3775888847775952,
+            "maximum_wheel_speed_rad_s": 0.9523358941078186,
+            "body_forward_m": 0.1369944248897994
+          },
+          "body_angular_velocity_w": [
+            -0.36419016122817993,
+            -0.09966709464788437,
+            -0.002315732417628169
+          ]
+        }
+      ]
+    }
+  ],
+  "classification": "READ_ONLY_OBSERVED_AUTHORITY_LIMITATION_NOT_VERIFIED_FALL_CAUSE",
+  "training_gate": {
+    "new_gate_recommended": false,
+    "verified_execution_defect_requiring_stop": false,
+    "production_changed": false,
+    "live_run_read": false
+  },
+  "source_notes": [
+    {
+      "path": "configs/recording_motion_contract.json",
+      "observed": "P08 continuously changes RL hip 6.9→31.2. P09 source first raises RR hip 0→55.6, then changes knee 0→−37.8 at source +0.667..1.0s, then hip 55.6→−6.9 at +1.133..1.867s. This is command sequencing, not a kinematic assertion about world-z."
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_supervisor.py",
+      "function": "_continuous_advisory",
+      "observed": "Continuous layers keep their clocks; later ownership covers touched channels. Observed one-decision P07/P08 transitions leave finite channel changes active during P09; they do not imply phase-reset state replacement."
+    },
+    {
+      "path": "configs/ppo_semantic_v3/execution_profile.yaml",
+      "observed": "Rear hip/knee caps remain ±24/±36 deg through P06–P13; requested servo slew remains 60 deg/s (0.5/tick), final servo slew 150 deg/s (1.25/tick), original hard bounds and 2 deg reserve unchanged."
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_tracking_reference.py",
+      "observed": "measured_q in this report is reconstructed from actual_measured_physical_rad with rear standing/sign mapping, never from the computational tracking proxy."
+    }
+  ],
+  "conclusions": [
+    "No native target verification failure was found in either selected 50-row window. All 32 P09 rows in each run preserve requested rear residual through headroom; actual request-to-effective clipping count is zero.",
+    "The proposed positive inherited RR knee vs negative P09 knee exclusion is not observed: both inherited RR knee final targets and actual measured knees remain in the static P09 envelopes throughout both windows.",
+    "A narrower hip authority limitation is observed. The early-AIR inherited RR hip final target is outside the static envelope in 17/32 and 14/32 P09 rows; the inherited RL support-hip target is outside in 32/32 rows. These are baseline motion plus unchanged caps, not a cap reduction or forced zero reset.",
+    "The immediately previous actual final target stays inside the static cap envelope on all nonterminal sampled P09 ticks. Adding the true previous requested residual slew and final-target slew makes exact one-tick holding impossible on some sampled RR ticks (hip 7/5; knee 2/1). This is a same-prestate local feasibility result, not an alternate trajectory.",
+    "Sampling direction also matters: block3 at t4952 actually requests +16.344 deg RR hip while sustaining the inherited target would need -27.987 deg. Not every observed motion is forced by the missing range.",
+    "Temporal evidence does not establish FALL causality: block1 RR ground return/Q revocation precedes RR static hip exclusion; block3 already has large angular motion before P09 and peaks at first P09 before static exclusion. Neither run provides a controlled alternative or complete body attitude/contact-force reconstruction in these bounded decision rows."
+  ],
+  "event_receipt_from_existing_completed_summaries": [
+    {
+      "block": "block1",
+      "source": "outputs/ppo_transfer_roles_v1/block1_summary/training_block_summary.json",
+      "episode_index": 1,
+      "RR_qualified_tick": 3665,
+      "RR_revoked_tick": 3704,
+      "FALL_tick": 3943
+    },
+    {
+      "block": "block3",
+      "source": "outputs/ppo_transfer_roles_v1/block3_summary/training_block_summary.json",
+      "episode_index": 1,
+      "RR_qualified_tick": 4884,
+      "RR_revoked_tick": 5122,
+      "FALL_tick": 5153
+    }
+  ]
+}
+

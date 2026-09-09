@@ -1,0 +1,600 @@
+{
+  "schema": "wlr50_clean.transfer_roles_evaluation_diagnosis.v1",
+  "status": "FINAL_COMPLETED_TASK_INCOMPLETE",
+  "run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_transfer_roles_v1/validation/20260908T0348320962319Z_gdb991aa68103_ef640fd945134f319e9affad5e47f0fe",
+  "runtime_commit": "db991aa68103642c179e130fe4cce6ee892c89ab",
+  "source_checkpoint_step": 133248,
+  "evaluation": {
+    "from_phase": "P01",
+    "natural_episode": true,
+    "prefix_used": false,
+    "seed": 2001,
+    "deterministic_policy": true,
+    "observation_dimension": 372,
+    "observation_layout": "diagonal_transfer_state_v1",
+    "policy_decisions": 685,
+    "observed_physics_ticks": 5480,
+    "duration_s": 45.666666666666664,
+    "optimizer_updates": 0,
+    "task_success": false,
+    "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "window_ended_before_task_terminal": false,
+    "time_outs": false,
+    "reward_total": -43.225679701618986
+  },
+  "physical": {
+    "valid": true,
+    "reason": "",
+    "termination_reason": null,
+    "classification": "Legal task incompletion at the P05 deadline, not a recorded hard safety failure or interface fault",
+    "terminal_raw_all_finite": true,
+    "terminal_raw_body_collision": {
+      "detected": false,
+      "real_pair_active": false,
+      "persistent": false,
+      "geometry_penetration_m": 0,
+      "reason": "no exact base_link/obstacle contact"
+    },
+    "final_region_valid": false,
+    "final_controlled": false,
+    "final_support_available": false,
+    "final_stable_for_s": 0
+  },
+  "first_unfinished": {
+    "phase": "P05",
+    "substage": "CAPTURE",
+    "stage_age_s": 30,
+    "entry_valid": true,
+    "entry_reasons": [],
+    "completion_values": {
+      "placed_FL": 0.85
+    },
+    "pending_capture": true,
+    "hard_requirement": "After qualified crossing, at least two consecutive loaded samples: active obstacle contact AND measured top geometry AND front_distance>=0. Placement history then becomes true.",
+    "current_satisfied": {
+      "active_lift_history": true,
+      "front_edge_crossed_history": true,
+      "within_top_xy": true,
+      "within_lateral_span": true,
+      "front_distance_nonnegative": true,
+      "top_geometry": true
+    },
+    "current_missing": {
+      "active_obstacle_pair": true,
+      "current_TOP_contact": true,
+      "two_consecutive_TOP_samples": true
+    },
+    "recorded_values": {
+      "consecutive_top_samples": 0,
+      "required_top_samples": 2,
+      "obstacle_pair_active": false,
+      "load_fraction": 0,
+      "support": false,
+      "consecutive_air_samples": 3546
+    },
+    "score_decomposition": {
+      "qualified": 0.35,
+      "crossed": 0.35,
+      "top_geometry": 0.15,
+      "consecutive_TOP_fraction": 0,
+      "total": 0.85
+    },
+    "contradiction_found": false,
+    "explanation": "Top geometry is a tolerance region, not contact. Measured +14.055mm clearance lies inside the existing [-15,+25]mm top-geometry band while verified force is zero. CAPTURE/pending_capture labels designate intended work, not its completion. No additional fixed posture/support gate is needed to explain this failure."
+  },
+  "history_event_ticks": {
+    "FR": {
+      "qualified": 55,
+      "crossed": 1753,
+      "placed": 1784
+    },
+    "FL": {
+      "qualified": 1971,
+      "crossed": 2102,
+      "placed": null
+    },
+    "RL": {
+      "qualified": null,
+      "crossed": null,
+      "placed": null
+    },
+    "RR": {
+      "qualified": null,
+      "crossed": null,
+      "placed": null
+    }
+  },
+  "terminal_legs": [
+    {
+      "leg": "FL",
+      "AIR": true,
+      "GROUND": false,
+      "TOP": false,
+      "load": 0,
+      "support": false,
+      "front_m": 0.1160663996441329,
+      "gap_m": 0.014055145354912271,
+      "top_geometry": true
+    },
+    {
+      "leg": "FR",
+      "AIR": false,
+      "GROUND": false,
+      "TOP": true,
+      "load": 0.43057505273102636,
+      "support": true,
+      "front_m": 0.1808549795849288,
+      "gap_m": -0.00002296368168029639,
+      "top_geometry": true
+    },
+    {
+      "leg": "RL",
+      "AIR": false,
+      "GROUND": true,
+      "TOP": false,
+      "load": 0.49788501147805103,
+      "support": true,
+      "front_m": -0.5196834961799865,
+      "gap_m": -0.04998699376063337,
+      "top_geometry": false
+    },
+    {
+      "leg": "RR",
+      "AIR": false,
+      "GROUND": true,
+      "TOP": false,
+      "load": 0.07153993579092265,
+      "support": true,
+      "front_m": -0.501934152414087,
+      "gap_m": -0.050200829987054774,
+      "top_geometry": false
+    }
+  ],
+  "terminal_FL_raw": {
+    "physics_tick": 5480,
+    "simulation_time_s": 45.666666666666664,
+    "physics_dt_s": 0.008333333333333333,
+    "body_name": "front_left_wheel",
+    "contact_class": "AIR",
+    "ground": {
+      "pair_verified": true,
+      "active": false,
+      "normal_force_n": 0,
+      "force_w_n": [
+        0,
+        0,
+        0
+      ],
+      "consecutive_active_ticks": 0,
+      "contact_point_w_m": null
+    },
+    "obstacle": {
+      "pair_verified": true,
+      "active": false,
+      "normal_force_n": 0,
+      "force_w_n": [
+        0,
+        0,
+        0
+      ],
+      "consecutive_active_ticks": 0,
+      "contact_point_w_m": null
+    },
+    "geometry_verified": true,
+    "center_w_m": [
+      0.6373785734176636,
+      0.10395225882530212,
+      0.11405541747808456
+    ],
+    "bottom_w_m": [
+      0.6373785734176636,
+      0.10395225882530212,
+      0.06405514535491227
+    ],
+    "actual_hip_knee_deg": [
+      24.106208268505117,
+      7.799105641699371
+    ],
+    "drive_hip_knee_deg": [
+      23.665140202292193,
+      7.810949713802961
+    ],
+    "nominal_hip_knee_deg": [
+      22.8,
+      -13.4
+    ],
+    "projected_residual_hip_knee_deg": [
+      1.4094715132924556,
+      19.96094971380296
+    ],
+    "note": "No contact point is synthesized from a missing point. Actual measured joints, nominal, residual and final drive are distinct fields."
+  },
+  "terminal_wheels": {
+    "order": [
+      "FL",
+      "FR",
+      "RL",
+      "RR"
+    ],
+    "units": "rad/s",
+    "nominal": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "projected_residual": [
+      -0.20937144808182714,
+      -0.031020776133714737,
+      -0.045476928540515105,
+      0.32797663920935094
+    ],
+    "final_canonical_drive": [
+      -0.20937144808182714,
+      -0.031020776133714737,
+      -0.045476928540515105,
+      0.32797663920935094
+    ],
+    "measured_canonical_velocity": [
+      -0.2100556492805481,
+      -0.12750184535980225,
+      0.07085196673870087,
+      0.6030193567276001
+    ]
+  },
+  "terminal_motion": {
+    "support_count": 3,
+    "body_linear_speed_m_s": 0.030045252120276686,
+    "body_angular_speed_rad_s": 0.1161617123163451,
+    "maximum_measured_wheel_speed_rad_s": 0.6030193567276001,
+    "note": "FR/RL/RR provide current contact support; only FR is currently TOP and historically placed. This is not whole-task final support."
+  },
+  "phase_order": [
+    "P01",
+    "P02",
+    "P03",
+    "P04",
+    "P05",
+    "P06",
+    "P07",
+    "P08",
+    "P09",
+    "P10",
+    "P11",
+    "P12",
+    "P13"
+  ],
+  "decisions_by_phase": [
+    2,
+    216,
+    5,
+    12,
+    450,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "phase_transitions": [
+    {
+      "tick": 16,
+      "from": "P01",
+      "to": "P02",
+      "completion": {
+        "transfer_ready_FR": 1
+      },
+      "entry_valid": true
+    },
+    {
+      "tick": 1744,
+      "from": "P02",
+      "to": "P03",
+      "completion": {
+        "lifted_FR": 1,
+        "clear_FR": 1,
+        "approach_FR": 1
+      },
+      "entry_valid": true
+    },
+    {
+      "tick": 1784,
+      "from": "P03",
+      "to": "P04",
+      "completion": {
+        "placed_FR": 1
+      },
+      "entry_valid": true
+    },
+    {
+      "tick": 1880,
+      "from": "P04",
+      "to": "P05",
+      "completion": {
+        "edge_proximity_FL": 1,
+        "role_prepared_FL": 1
+      },
+      "entry_valid": true
+    }
+  ],
+  "clock_scope": {
+    "sum_manifest_phase_decisions": 685,
+    "sum_manifest_phase_ticks": 5480,
+    "terminal_raw_tick": 5480,
+    "terminal_raw_time_matches_tick_over_120": true,
+    "nonterminal_stage_handoffs": 4,
+    "no_P05_to_P06_transition": true,
+    "full_raw_contiguity_rescan": false
+  },
+  "final_decision_native_scope": {
+    "physics_ticks": 8,
+    "verified_tick_count": 8,
+    "actual_native_effect_tick_count": 8,
+    "own_phase_request_effect_tick_count": 8,
+    "verified": true,
+    "root_pose_writes": 0,
+    "root_velocity_writes": 0,
+    "force_or_impulse_writes": 0,
+    "gravity_writes": 0,
+    "terminal_observation_finite_fallback": false,
+    "terminal_bootstrap_allowed": false,
+    "full_native_trajectory_independent_recheck": null
+  },
+  "quality": {
+    "source": "evaluation_manifest.json.quality_metrics",
+    "global": {
+      "physics_ticks": 5480,
+      "duration_s": 45.666666666666664,
+      "roll_rms_rad": 0.13045833774905144,
+      "pitch_rms_rad": 0.09669147110022304,
+      "angular_acceleration_rms_rad_s2": 5.238935864323063,
+      "applied_servo_rate_rms_deg_s": 37.98203582402534,
+      "applied_wheel_rate_rms_rad_s2": 0.32988967471647584,
+      "residual_servo_rms_deg": 7.365956599625951,
+      "residual_wheel_rms_rad_s": 0.1912008548265684
+    },
+    "phases": {
+      "P01": {
+        "ticks": 16,
+        "duration_s": 0.1333333333333333,
+        "roll_rms_rad": 0.002787820000112222,
+        "pitch_rms_rad": 0.013756473269869523,
+        "angular_acceleration_rms_rad_s2": 2.3968597930817337,
+        "quality_score": 0.40532978556422594
+      },
+      "P02": {
+        "ticks": 1728,
+        "duration_s": 14.399999999999999,
+        "roll_rms_rad": 0.22666833398229702,
+        "pitch_rms_rad": 0.16789399086735451,
+        "angular_acceleration_rms_rad_s2": 6.117166564599167,
+        "quality_score": 0.4677370364834121
+      },
+      "P03": {
+        "ticks": 40,
+        "duration_s": 0.3333333333333339,
+        "roll_rms_rad": 0.16546121689317977,
+        "pitch_rms_rad": 0.10717635671343172,
+        "angular_acceleration_rms_rad_s2": 12.530878441492959,
+        "quality_score": 1.331524452452506
+      },
+      "P04": {
+        "ticks": 96,
+        "duration_s": 0.7999999999999989,
+        "roll_rms_rad": 0.030999211420223015,
+        "pitch_rms_rad": 0.0068390278472632,
+        "angular_acceleration_rms_rad_s2": 3.5162921921467882,
+        "quality_score": 0.6151566571857854
+      },
+      "P05": {
+        "ticks": 3600,
+        "duration_s": 30,
+        "roll_rms_rad": 0.03026095983781209,
+        "pitch_rms_rad": 0.023905530982656804,
+        "angular_acceleration_rms_rad_s2": 4.660276672409476,
+        "quality_score": 0.5067501815523717
+      },
+      "P06": null,
+      "P07": null,
+      "P08": null,
+      "P09": null,
+      "P10": null,
+      "P11": null,
+      "P12": null,
+      "P13": null
+    },
+    "windows": {
+      "P01": {
+        "CAPTURE": {
+          "ticks": 8,
+          "duration_s": 0.06666666666666667
+        },
+        "EXECUTION": null,
+        "LEGACY_UNSEGMENTED": null,
+        "TRANSFER": {
+          "ticks": 8,
+          "duration_s": 0.06666666666666667
+        }
+      },
+      "P02": {
+        "CAPTURE": {
+          "ticks": 1393,
+          "duration_s": 11.608333333333334
+        },
+        "EXECUTION": {
+          "ticks": 335,
+          "duration_s": 2.7916666666666665
+        },
+        "LEGACY_UNSEGMENTED": null,
+        "TRANSFER": null
+      },
+      "P03": {
+        "CAPTURE": {
+          "ticks": 10,
+          "duration_s": 0.08333333333333393
+        },
+        "EXECUTION": {
+          "ticks": 30,
+          "duration_s": 0.25
+        },
+        "LEGACY_UNSEGMENTED": null,
+        "TRANSFER": null
+      },
+      "P04": {
+        "CAPTURE": {
+          "ticks": 7,
+          "duration_s": 0.058333333333331794
+        },
+        "EXECUTION": null,
+        "LEGACY_UNSEGMENTED": null,
+        "TRANSFER": {
+          "ticks": 89,
+          "duration_s": 0.7416666666666671
+        }
+      },
+      "P05": {
+        "CAPTURE": {
+          "ticks": 2434,
+          "duration_s": 20.28333333333333
+        },
+        "EXECUTION": {
+          "ticks": 1166,
+          "duration_s": 9.716666666666667
+        },
+        "LEGACY_UNSEGMENTED": null,
+        "TRANSFER": null
+      },
+      "P06": {
+        "CAPTURE": null,
+        "EXECUTION": null,
+        "LEGACY_UNSEGMENTED": null,
+        "TRANSFER": null
+      },
+      "P07": {
+        "CAPTURE": null,
+        "EXECUTION": null,
+        "LEGACY_UNSEGMENTED": null,
+        "TRANSFER": null
+      },
+      "P08": {
+        "CAPTURE": null,
+        "EXECUTION": null,
+        "LEGACY_UNSEGMENTED": null,
+        "TRANSFER": null
+      },
+      "P09": {
+        "CAPTURE": null,
+        "EXECUTION": null,
+        "LEGACY_UNSEGMENTED": null,
+        "TRANSFER": null
+      },
+      "P10": {
+        "CAPTURE": null,
+        "EXECUTION": null,
+        "LEGACY_UNSEGMENTED": null,
+        "TRANSFER": null
+      },
+      "P11": {
+        "CAPTURE": null,
+        "EXECUTION": null,
+        "LEGACY_UNSEGMENTED": null,
+        "TRANSFER": null
+      },
+      "P12": {
+        "CAPTURE": null,
+        "EXECUTION": null,
+        "LEGACY_UNSEGMENTED": null,
+        "TRANSFER": null
+      },
+      "P13": {
+        "CAPTURE": null,
+        "EXECUTION": null,
+        "LEGACY_UNSEGMENTED": null,
+        "TRANSFER": null
+      }
+    },
+    "P05_CAPTURE_quality": {
+      "sampled": true,
+      "physics_ticks": 2434,
+      "duration_s": 20.28333333333333,
+      "roll_rms_rad": 0.008105576521585188,
+      "pitch_rms_rad": 0.009844878239352418,
+      "angular_acceleration_rms_rad_s2": 4.629492066192428
+    },
+    "all_phases_sampled": false,
+    "fixed_quality_score": null,
+    "quality_is_not_success": true,
+    "P05_FL_contact_aggregate": {
+      "source": "quality_metrics.phases.P05.motion_contact_diagnostics",
+      "obstacle_normal_force_n": {
+        "available": true,
+        "first": 0,
+        "integral": 0,
+        "last": 0,
+        "mean": 0,
+        "missing_or_inapplicable_ticks": 0,
+        "p95_abs": 0,
+        "peak_abs": 0,
+        "rms": 0,
+        "valid_duration_s": 29.999999999999996,
+        "valid_ticks": 3600
+      },
+      "touchdown_event_count": {
+        "available": true,
+        "first": 0,
+        "integral": 0,
+        "last": 0,
+        "mean": 0,
+        "missing_or_inapplicable_ticks": 0,
+        "p95_abs": 0,
+        "peak_abs": 0,
+        "rms": 0,
+        "sum": 0,
+        "valid_duration_s": 29.999999999999996,
+        "valid_ticks": 3600
+      },
+      "touchdown_descent_speed_m_s": {
+        "available": false,
+        "first": null,
+        "integral": null,
+        "last": null,
+        "mean": null,
+        "missing_or_inapplicable_ticks": 3600,
+        "p95_abs": null,
+        "peak_abs": null,
+        "rms": null,
+        "valid_duration_s": 0,
+        "valid_ticks": 0
+      }
+    },
+    "absence": "P06-P13 and unsampled window qualities remain null. P05 CAPTURE samples are classifier-labelled activity, not achieved placement; unavailable touchdown-speed values are not zero-impact success."
+  },
+  "comparison": {
+    "formal_C_full_successes": 0,
+    "formal_C_attempts": 3,
+    "C2_checkpoint": 130304,
+    "C2_terminal_placed_FL": 0.7,
+    "C2_terminal_FL_clearance_m": 0.043824498923466196,
+    "C2_terminal_FL_top_geometry": false,
+    "C2_terminal_FL_TOP_samples": 0,
+    "C3_terminal_placed_FL": 0.85,
+    "difference_explanation": "Only the +0.15 current top-geometry component changes at these endpoints; both have Q/C history and zero consecutive TOP samples. This endpoint difference is not a stability or causal training improvement.",
+    "A_pairing": "unpaired historical incomplete reference; different seed/reset/runtime/evaluator conditions",
+    "paired_improvement": null,
+    "stability_superiority_claim": null
+  },
+  "source_predicates": {
+    "TaskEvaluator": "src/wlr50_clean/ppo/semantic_supervisor.py:478; loaded/contact count and placement at479/511-513",
+    "partial_placement": "src/wlr50_clean/ppo/semantic_supervisor.py:671-677",
+    "configuration": "configs/ppo_semantic_v3/stage_task_spec.yaml:46,57-58,148-150"
+  },
+  "scope": [
+    "Finalized evaluation manifest, only final physical-observation row and final residual-audit row, small stage-transition ledger, relevant existing source/configuration.",
+    "No full raw/native scan, new simulation, A replay, tensor/hash work, production/config/test edits.",
+    "The final raw and stored aggregate contact evidence agree with legitimate missing FL capture; no predicate contradiction is observed.",
+    "No unique failure cause is identified. All three natural-P01 attempts remain unsuccessful."
+  ]
+}

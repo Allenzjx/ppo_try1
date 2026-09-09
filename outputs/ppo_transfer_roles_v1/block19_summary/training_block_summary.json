@@ -1,0 +1,1849 @@
+{
+  "schema": "ppo_transfer_roles_v1.completed_blocks.v1",
+  "runs": [
+    {
+      "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_transfer_roles_v1\\train\\20260908T0949366611564Z_gd7479d9fc41c_293f507e17f14ceeb01699fbd574de9f",
+      "lifecycle": "SUCCEEDED",
+      "source_global": 138240,
+      "end_global": 138496,
+      "actual_decisions": 256,
+      "planned_decisions": 256,
+      "unconsumed_decisions": 0,
+      "rounding_overrun": 0,
+      "updates": 2,
+      "optimizer_steps": 40,
+      "changed_actor_updates": 2,
+      "finite_gradient_updates": 2,
+      "actor_chain_matches": true,
+      "wall_time_s": 149.58574810018763,
+      "totals": {
+        "physics_ticks": 2048,
+        "native_effect_ticks": 2048,
+        "own_phase_effect_ticks": 2043,
+        "native_audit_anomaly_rows": 0,
+        "state_write_anomaly_rows": 0,
+        "optimized_decisions": 256,
+        "prefix_storage_violation_rows": 0,
+        "nonterminal_handoffs": 5,
+        "handoff_bootstrap_contract_anomaly_rows": 0
+      },
+      "prefix_excluded": {},
+      "prefix_phase_samples": {},
+      "prefix_attempt_results": [],
+      "credit_starts": [],
+      "completed_episode_count": 1,
+      "episodes": [
+        {
+          "episode_index": 0,
+          "first_global": 138241,
+          "decisions": 201,
+          "physics_ticks": 1608,
+          "credit_start_tick": 0,
+          "scope": "full_task",
+          "curriculum_start": {},
+          "phase_samples": {
+            "P01": 2,
+            "P02": 160,
+            "P03": 8,
+            "P04": 1,
+            "P05": 30
+          },
+          "events": [
+            {
+              "leg": "RL",
+              "kind": "I",
+              "physics_tick": 11,
+              "first_observed_global": 138242,
+              "credit": "policy"
+            },
+            {
+              "leg": "FR",
+              "kind": "I",
+              "physics_tick": 33,
+              "first_observed_global": 138245,
+              "credit": "policy"
+            },
+            {
+              "leg": "FR",
+              "kind": "Q",
+              "physics_tick": 61,
+              "first_observed_global": 138248,
+              "credit": "policy"
+            },
+            {
+              "leg": "FR",
+              "kind": "C",
+              "physics_tick": 1292,
+              "first_observed_global": 138402,
+              "credit": "policy"
+            },
+            {
+              "leg": "RL",
+              "kind": "I",
+              "physics_tick": 1332,
+              "first_observed_global": 138407,
+              "credit": "policy"
+            },
+            {
+              "leg": "FR",
+              "kind": "P",
+              "physics_tick": 1360,
+              "first_observed_global": 138410,
+              "credit": "policy"
+            },
+            {
+              "leg": "FL",
+              "kind": "I",
+              "physics_tick": 1472,
+              "first_observed_global": 138424,
+              "credit": "policy"
+            },
+            {
+              "leg": "FL",
+              "kind": "I",
+              "physics_tick": 1528,
+              "first_observed_global": 138431,
+              "credit": "policy"
+            },
+            {
+              "leg": "FL",
+              "kind": "Q",
+              "physics_tick": 1552,
+              "first_observed_global": 138434,
+              "credit": "policy"
+            }
+          ],
+          "fl_reopening_observations": [],
+          "fl_reopening_known_rows": 201,
+          "fl_reopening_unavailable_rows": 0,
+          "handoffs": [
+            {
+              "from_stage": "P01",
+              "to_stage": "P02",
+              "physics_tick": 16,
+              "observed_global": 138242,
+              "decision_terminal": false
+            },
+            {
+              "from_stage": "P02",
+              "to_stage": "P03",
+              "physics_tick": 1296,
+              "observed_global": 138402,
+              "decision_terminal": false
+            },
+            {
+              "from_stage": "P03",
+              "to_stage": "P04",
+              "physics_tick": 1360,
+              "observed_global": 138410,
+              "decision_terminal": false
+            },
+            {
+              "from_stage": "P04",
+              "to_stage": "P05",
+              "physics_tick": 1368,
+              "observed_global": 138411,
+              "decision_terminal": false
+            }
+          ],
+          "fr_reopening_observations": [
+            {
+              "kind": "sampled_AIR_after_history_placed",
+              "global": 138412,
+              "observation_tick": 1376,
+              "current_FR": {
+                "front_distance_m": 0.08845848185848837,
+                "clearance_m": 0.0013565187664207473,
+                "top_geometry": true,
+                "top_contact": false,
+                "air": true,
+                "crossing_geometry_pending": false,
+                "recent_joint_motion_deg": 29.564069560578687,
+                "recent_clearance_gain_m": 0.0003259703516960144,
+                "recent_whole_body_joint_motion_deg": 96.59702151600646,
+                "whole_body_actuation_evidence": true,
+                "initial_clearance": true,
+                "ground_contact": false,
+                "obstacle_pair_active": false,
+                "consecutive_air_samples": 5,
+                "consecutive_top_samples": 0,
+                "within_top_xy": true,
+                "within_lateral_span": true,
+                "support": false,
+                "top_xy_outside_distance_m": 0.0,
+                "load_fraction": 0.0,
+                "soft_air_actuation_earned": false,
+                "soft_air_earned_tick": null,
+                "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+              }
+            },
+            {
+              "kind": "role_measured_reopening_response",
+              "global": 138412,
+              "observation_tick": 1376,
+              "current_FR": {
+                "front_distance_m": 0.08845848185848837,
+                "clearance_m": 0.0013565187664207473,
+                "top_geometry": true,
+                "top_contact": false,
+                "air": true,
+                "crossing_geometry_pending": false,
+                "recent_joint_motion_deg": 29.564069560578687,
+                "recent_clearance_gain_m": 0.0003259703516960144,
+                "recent_whole_body_joint_motion_deg": 96.59702151600646,
+                "whole_body_actuation_evidence": true,
+                "initial_clearance": true,
+                "ground_contact": false,
+                "obstacle_pair_active": false,
+                "consecutive_air_samples": 5,
+                "consecutive_top_samples": 0,
+                "within_top_xy": true,
+                "within_lateral_span": true,
+                "support": false,
+                "top_xy_outside_distance_m": 0.0,
+                "load_fraction": 0.0,
+                "soft_air_actuation_earned": false,
+                "soft_air_earned_tick": null,
+                "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+              }
+            },
+            {
+              "kind": "sampled_AIR_after_history_placed",
+              "global": 138419,
+              "observation_tick": 1432,
+              "current_FR": {
+                "front_distance_m": 0.10763901812862997,
+                "clearance_m": 0.0003336136551078811,
+                "top_geometry": true,
+                "top_contact": false,
+                "air": true,
+                "crossing_geometry_pending": false,
+                "recent_joint_motion_deg": 28.69587439678143,
+                "recent_clearance_gain_m": 0.0013606622815132141,
+                "recent_whole_body_joint_motion_deg": 91.27244731016086,
+                "whole_body_actuation_evidence": true,
+                "initial_clearance": true,
+                "ground_contact": false,
+                "obstacle_pair_active": false,
+                "consecutive_air_samples": 3,
+                "consecutive_top_samples": 0,
+                "within_top_xy": true,
+                "within_lateral_span": true,
+                "support": false,
+                "top_xy_outside_distance_m": 0.0,
+                "load_fraction": 0.0,
+                "soft_air_actuation_earned": false,
+                "soft_air_earned_tick": null,
+                "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+              }
+            }
+          ],
+          "fr_reopening_known_rows": 201,
+          "last_global": 138441,
+          "last_tick": 1608,
+          "last_active_stage": "P05",
+          "history_at_end": {
+            "active_lift": {
+              "FL": true,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "front_edge_crossed": {
+              "FL": false,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "placed": {
+              "FL": false,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            }
+          },
+          "current_legs_at_end": {
+            "FR": {
+              "front_distance_m": 0.08081025225948935,
+              "clearance_m": -0.00015256653116378638,
+              "top_geometry": true,
+              "top_contact": true,
+              "air": false,
+              "crossing_geometry_pending": false,
+              "recent_joint_motion_deg": 73.37538524391692,
+              "recent_clearance_gain_m": 0.0006549730896949768,
+              "recent_whole_body_joint_motion_deg": 121.319620432943,
+              "whole_body_actuation_evidence": true,
+              "initial_clearance": true,
+              "ground_contact": false,
+              "obstacle_pair_active": true,
+              "consecutive_air_samples": 0,
+              "consecutive_top_samples": 143,
+              "within_top_xy": true,
+              "within_lateral_span": true,
+              "support": true,
+              "top_xy_outside_distance_m": 0.0,
+              "load_fraction": 0.4391020943659061,
+              "soft_air_actuation_earned": false,
+              "soft_air_earned_tick": null,
+              "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+            },
+            "FL": {
+              "front_distance_m": -0.05549826877284403,
+              "clearance_m": -0.02385194840843917,
+              "top_geometry": false,
+              "top_contact": false,
+              "air": true,
+              "crossing_geometry_pending": false,
+              "recent_joint_motion_deg": 21.719004353021727,
+              "recent_clearance_gain_m": 0.07690666615962982,
+              "recent_whole_body_joint_motion_deg": 121.319620432943,
+              "whole_body_actuation_evidence": true,
+              "initial_clearance": true,
+              "ground_contact": false,
+              "obstacle_pair_active": false,
+              "consecutive_air_samples": 88,
+              "consecutive_top_samples": 0,
+              "within_top_xy": false,
+              "within_lateral_span": true,
+              "support": false,
+              "top_xy_outside_distance_m": 0.050498268772844024,
+              "load_fraction": 0.0,
+              "soft_air_actuation_earned": false,
+              "soft_air_earned_tick": null,
+              "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+            },
+            "RR": {
+              "front_distance_m": -0.6388139541642701,
+              "clearance_m": -0.05012498680186839,
+              "top_geometry": false,
+              "top_contact": false,
+              "air": false,
+              "crossing_geometry_pending": false,
+              "recent_joint_motion_deg": 0,
+              "recent_clearance_gain_m": 0.0,
+              "recent_whole_body_joint_motion_deg": 0,
+              "whole_body_actuation_evidence": false,
+              "initial_clearance": false,
+              "ground_contact": true,
+              "obstacle_pair_active": false,
+              "consecutive_air_samples": 0,
+              "consecutive_top_samples": 0,
+              "within_top_xy": false,
+              "within_lateral_span": true,
+              "support": true,
+              "top_xy_outside_distance_m": 0.6338139541642701,
+              "load_fraction": 0.04523312751015851,
+              "soft_air_actuation_earned": false,
+              "soft_air_earned_tick": null,
+              "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+            },
+            "RL": {
+              "front_distance_m": -0.6837034489409959,
+              "clearance_m": -0.050568895281124016,
+              "top_geometry": false,
+              "top_contact": false,
+              "air": false,
+              "crossing_geometry_pending": false,
+              "recent_joint_motion_deg": 0,
+              "recent_clearance_gain_m": 0.0,
+              "recent_whole_body_joint_motion_deg": 0,
+              "whole_body_actuation_evidence": false,
+              "initial_clearance": false,
+              "ground_contact": true,
+              "obstacle_pair_active": false,
+              "consecutive_air_samples": 0,
+              "consecutive_top_samples": 0,
+              "within_top_xy": false,
+              "within_lateral_span": true,
+              "support": true,
+              "top_xy_outside_distance_m": 0.6787034489409959,
+              "load_fraction": 0.5156647781239355,
+              "soft_air_actuation_earned": false,
+              "soft_air_earned_tick": null,
+              "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+            }
+          },
+          "snapshot_task_success": false,
+          "snapshot_full_task_success": false,
+          "final_conditions_at_end": {
+            "final_region_valid": false,
+            "final_controlled": false,
+            "final_support_available": false,
+            "final_stable_for_s": 0.0,
+            "maximum_commanded_wheel_speed_rad_s": 0.834432426620243,
+            "measured_wheel_velocity_rad_s": [
+              0.1448192149400711,
+              0.12511686980724335,
+              0.03200750797986984,
+              0.7609835267066956
+            ],
+            "applied_wheel_command_rad_s": [
+              0.14481056761675057,
+              -0.08078235616289892,
+              0.10772899127961352,
+              0.834432426620243
+            ]
+          },
+          "body_motion_at_end": {
+            "body_linear_speed_m_s": 0.1451034021587406,
+            "body_angular_speed_rad_s": 0.6650640339901422,
+            "maximum_wheel_speed_rad_s": 0.7609835267066956
+          },
+          "first_unfinished_stage": "P05",
+          "incomplete_logged_goals": {
+            "placed_FL": 0.6028780296475229
+          },
+          "physical_valid": true,
+          "termination_reason": "FALL",
+          "terminal": true,
+          "task_success": false,
+          "full_task_success": false,
+          "task_outcome_label": "FALL",
+          "reported_duration_s": 13.4,
+          "event_counts_by_leg_and_credit": {
+            "RL:I:policy": 2,
+            "FR:I:policy": 1,
+            "FR:Q:policy": 1,
+            "FR:C:policy": 1,
+            "FR:P:policy": 1,
+            "FL:I:policy": 2,
+            "FL:Q:policy": 1
+          },
+          "fl_first_placement": null,
+          "fl_first_policy_placement": null
+        },
+        {
+          "episode_index": 1,
+          "first_global": 138442,
+          "decisions": 55,
+          "physics_ticks": 440,
+          "credit_start_tick": 0,
+          "scope": "full_task",
+          "curriculum_start": {},
+          "phase_samples": {
+            "P01": 2,
+            "P02": 53
+          },
+          "events": [
+            {
+              "leg": "RL",
+              "kind": "I",
+              "physics_tick": 7,
+              "first_observed_global": 138442,
+              "credit": "policy"
+            },
+            {
+              "leg": "FR",
+              "kind": "I",
+              "physics_tick": 10,
+              "first_observed_global": 138443,
+              "credit": "policy"
+            },
+            {
+              "leg": "FR",
+              "kind": "Q",
+              "physics_tick": 54,
+              "first_observed_global": 138448,
+              "credit": "policy"
+            }
+          ],
+          "fl_reopening_observations": [],
+          "fl_reopening_known_rows": 55,
+          "fl_reopening_unavailable_rows": 0,
+          "handoffs": [
+            {
+              "from_stage": "P01",
+              "to_stage": "P02",
+              "physics_tick": 16,
+              "observed_global": 138443,
+              "decision_terminal": false
+            }
+          ],
+          "fr_reopening_observations": [],
+          "fr_reopening_known_rows": 55,
+          "last_global": 138496,
+          "last_tick": 440,
+          "last_active_stage": "P02",
+          "history_at_end": {
+            "active_lift": {
+              "FL": false,
+              "FR": true,
+              "RL": false,
+              "RR": false
+            },
+            "front_edge_crossed": {
+              "FL": false,
+              "FR": false,
+              "RL": false,
+              "RR": false
+            },
+            "placed": {
+              "FL": false,
+              "FR": false,
+              "RL": false,
+              "RR": false
+            }
+          },
+          "current_legs_at_end": {
+            "FR": {
+              "front_distance_m": -0.1226517822043931,
+              "clearance_m": 0.07563024660064545,
+              "top_geometry": false,
+              "top_contact": false,
+              "air": true,
+              "crossing_geometry_pending": false,
+              "recent_joint_motion_deg": 22.16323430711065,
+              "recent_clearance_gain_m": 0.04668712615966797,
+              "recent_whole_body_joint_motion_deg": 58.83693635377139,
+              "whole_body_actuation_evidence": true,
+              "initial_clearance": true,
+              "ground_contact": false,
+              "obstacle_pair_active": false,
+              "consecutive_air_samples": 439,
+              "consecutive_top_samples": 0,
+              "within_top_xy": false,
+              "within_lateral_span": true,
+              "support": false,
+              "top_xy_outside_distance_m": 0.1176517822043931,
+              "load_fraction": 0.0,
+              "soft_air_actuation_earned": true,
+              "soft_air_earned_tick": 11,
+              "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+            },
+            "FL": {
+              "front_distance_m": -0.2008097137706315,
+              "clearance_m": -0.04783685001547576,
+              "top_geometry": false,
+              "top_contact": false,
+              "air": false,
+              "crossing_geometry_pending": false,
+              "recent_joint_motion_deg": 0,
+              "recent_clearance_gain_m": 0.0,
+              "recent_whole_body_joint_motion_deg": 0,
+              "whole_body_actuation_evidence": false,
+              "initial_clearance": false,
+              "ground_contact": true,
+              "obstacle_pair_active": false,
+              "consecutive_air_samples": 0,
+              "consecutive_top_samples": 0,
+              "within_top_xy": false,
+              "within_lateral_span": true,
+              "support": true,
+              "top_xy_outside_distance_m": 0.1958097137706315,
+              "load_fraction": 0.3973108260886281,
+              "soft_air_actuation_earned": false,
+              "soft_air_earned_tick": null,
+              "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+            },
+            "RR": {
+              "front_distance_m": -0.7676594968335664,
+              "clearance_m": -0.05201091501546473,
+              "top_geometry": false,
+              "top_contact": false,
+              "air": false,
+              "crossing_geometry_pending": false,
+              "recent_joint_motion_deg": 0,
+              "recent_clearance_gain_m": 0.0,
+              "recent_whole_body_joint_motion_deg": 0,
+              "whole_body_actuation_evidence": false,
+              "initial_clearance": false,
+              "ground_contact": true,
+              "obstacle_pair_active": false,
+              "consecutive_air_samples": 0,
+              "consecutive_top_samples": 0,
+              "within_top_xy": false,
+              "within_lateral_span": true,
+              "support": true,
+              "top_xy_outside_distance_m": 0.7626594968335664,
+              "load_fraction": 0.40019309142901377,
+              "soft_air_actuation_earned": false,
+              "soft_air_earned_tick": null,
+              "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+            },
+            "RL": {
+              "front_distance_m": -0.8893569077746903,
+              "clearance_m": -0.04801016101317396,
+              "top_geometry": false,
+              "top_contact": false,
+              "air": false,
+              "crossing_geometry_pending": false,
+              "recent_joint_motion_deg": 0,
+              "recent_clearance_gain_m": 0.0,
+              "recent_whole_body_joint_motion_deg": 0,
+              "whole_body_actuation_evidence": false,
+              "initial_clearance": false,
+              "ground_contact": true,
+              "obstacle_pair_active": false,
+              "consecutive_air_samples": 0,
+              "consecutive_top_samples": 0,
+              "within_top_xy": false,
+              "within_lateral_span": true,
+              "support": true,
+              "top_xy_outside_distance_m": 0.8843569077746903,
+              "load_fraction": 0.20249608248235815,
+              "soft_air_actuation_earned": false,
+              "soft_air_earned_tick": null,
+              "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+            }
+          },
+          "snapshot_task_success": false,
+          "snapshot_full_task_success": false,
+          "final_conditions_at_end": {
+            "final_region_valid": false,
+            "final_controlled": false,
+            "final_support_available": false,
+            "final_stable_for_s": 0.0,
+            "maximum_commanded_wheel_speed_rad_s": 0.8165427790194888,
+            "measured_wheel_velocity_rad_s": [
+              0.26849204301834106,
+              0.26231110095977783,
+              1.230560064315796,
+              0.7948331236839294
+            ],
+            "applied_wheel_command_rad_s": [
+              0.1915148331685199,
+              0.26387720342016985,
+              0.07754014993308395,
+              0.8165427790194888
+            ]
+          },
+          "body_motion_at_end": {
+            "body_linear_speed_m_s": 0.05224051155371906,
+            "body_angular_speed_rad_s": 0.4055585229283423,
+            "maximum_wheel_speed_rad_s": 1.230560064315796
+          },
+          "first_unfinished_stage": "P02",
+          "incomplete_logged_goals": {
+            "approach_FR": 0.5293928711824276
+          },
+          "physical_valid": true,
+          "termination_reason": null,
+          "terminal": false,
+          "event_counts_by_leg_and_credit": {
+            "RL:I:policy": 1,
+            "FR:I:policy": 1,
+            "FR:Q:policy": 1
+          },
+          "fl_first_placement": null,
+          "fl_first_policy_placement": null
+        }
+      ],
+      "completed_episode_rows_outside_boundary": 0,
+      "checkpoints": [
+        {
+          "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_transfer_roles_v1\\checkpoints\\history\\checkpoint_step_000138368.pt",
+          "global_policy_decisions": 138368,
+          "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_transfer_roles_v1\\checkpoints\\history\\checkpoint_step_000138368_manifest.json"
+        },
+        {
+          "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_transfer_roles_v1\\checkpoints\\history\\checkpoint_step_000138496.pt",
+          "global_policy_decisions": 138496,
+          "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_transfer_roles_v1\\checkpoints\\history\\checkpoint_step_000138496_manifest.json"
+        }
+      ],
+      "sampling": "P01_full_task_only_initial_version",
+      "authority_by_source_phase": {
+        "P01": {
+          "raw_latent": {
+            "3": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": 0.025912977755069733,
+              "maximum": 0.180460587143898,
+              "negative": 0,
+              "positive": 4,
+              "zero": 0
+            },
+            "8": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": -0.54952472448349,
+              "maximum": 0.20583504438400269,
+              "negative": 2,
+              "positive": 2,
+              "zero": 0
+            },
+            "9": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": -0.29362985491752625,
+              "maximum": 0.11736423522233963,
+              "negative": 2,
+              "positive": 2,
+              "zero": 0
+            },
+            "10": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": -0.11342105269432068,
+              "maximum": 0.2693979740142822,
+              "negative": 1,
+              "positive": 3,
+              "zero": 0
+            },
+            "11": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": -0.23950806260108948,
+              "maximum": 0.6224057078361511,
+              "negative": 2,
+              "positive": 2,
+              "zero": 0
+            }
+          },
+          "filtered_requested": {
+            "3": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": 0.6217723026285916,
+              "maximum": 4.0,
+              "negative": 0,
+              "positive": 4,
+              "zero": 0
+            },
+            "8": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": -0.2400000000000001,
+              "maximum": 0.12178592053970294,
+              "negative": 2,
+              "positive": 2,
+              "zero": 0
+            },
+            "9": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": -0.17128337900387844,
+              "maximum": 0.07009698915434769,
+              "negative": 2,
+              "positive": 2,
+              "zero": 0
+            },
+            "10": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": -0.06776230816442025,
+              "maximum": 0.15783873616070782,
+              "negative": 1,
+              "positive": 3,
+              "zero": 0
+            },
+            "11": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": -0.14101862419631625,
+              "maximum": 0.2400000000000001,
+              "negative": 2,
+              "positive": 2,
+              "zero": 0
+            }
+          },
+          "headroom_effective": {
+            "3": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": 0.6217723026285916,
+              "maximum": 4.0,
+              "negative": 0,
+              "positive": 4,
+              "zero": 0
+            },
+            "8": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": -0.2400000000000001,
+              "maximum": 0.12178592053970294,
+              "negative": 2,
+              "positive": 2,
+              "zero": 0
+            },
+            "9": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": -0.17128337900387844,
+              "maximum": 0.07009698915434769,
+              "negative": 2,
+              "positive": 2,
+              "zero": 0
+            },
+            "10": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": -0.06776230816442025,
+              "maximum": 0.15783873616070782,
+              "negative": 1,
+              "positive": 3,
+              "zero": 0
+            },
+            "11": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": -0.14101862419631625,
+              "maximum": 0.2400000000000001,
+              "negative": 2,
+              "positive": 2,
+              "zero": 0
+            }
+          },
+          "nominal_canonical": {
+            "3": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": 0.0,
+              "maximum": 0.0,
+              "negative": 0,
+              "positive": 0,
+              "zero": 4
+            },
+            "8": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": 0.0,
+              "maximum": 0.0,
+              "negative": 0,
+              "positive": 0,
+              "zero": 4
+            },
+            "9": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": 0.0,
+              "maximum": 0.0,
+              "negative": 0,
+              "positive": 0,
+              "zero": 4
+            },
+            "10": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": 0.0,
+              "maximum": 0.0,
+              "negative": 0,
+              "positive": 0,
+              "zero": 4
+            },
+            "11": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": 0.0,
+              "maximum": 0.0,
+              "negative": 0,
+              "positive": 0,
+              "zero": 4
+            }
+          },
+          "final_drive_canonical": {
+            "3": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": 0.6217723026285916,
+              "maximum": 4.0,
+              "negative": 0,
+              "positive": 4,
+              "zero": 0
+            },
+            "8": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": -0.2400000000000001,
+              "maximum": 0.12178592053970294,
+              "negative": 2,
+              "positive": 2,
+              "zero": 0
+            },
+            "9": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": -0.17128337900387844,
+              "maximum": 0.07009698915434769,
+              "negative": 2,
+              "positive": 2,
+              "zero": 0
+            },
+            "10": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": -0.06776230816442025,
+              "maximum": 0.15783873616070782,
+              "negative": 1,
+              "positive": 3,
+              "zero": 0
+            },
+            "11": {
+              "count": 4,
+              "unavailable": 0,
+              "minimum": -0.14101862419631625,
+              "maximum": 0.2400000000000001,
+              "negative": 2,
+              "positive": 2,
+              "zero": 0
+            }
+          }
+        },
+        "P02": {
+          "raw_latent": {
+            "3": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -1.6156830787658691,
+              "maximum": 0.9137709736824036,
+              "negative": 120,
+              "positive": 93,
+              "zero": 0
+            },
+            "8": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -4.994278907775879,
+              "maximum": 1.239474892616272,
+              "negative": 143,
+              "positive": 70,
+              "zero": 0
+            },
+            "9": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -1.4705369472503662,
+              "maximum": 0.7492033839225769,
+              "negative": 168,
+              "positive": 45,
+              "zero": 0
+            },
+            "10": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -1.3564430475234985,
+              "maximum": 0.24895551800727844,
+              "negative": 195,
+              "positive": 18,
+              "zero": 0
+            },
+            "11": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -2.0927677154541016,
+              "maximum": 1.538347840309143,
+              "negative": 20,
+              "positive": 193,
+              "zero": 0
+            }
+          },
+          "filtered_requested": {
+            "3": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -22.175890972125636,
+              "maximum": 17.350494832700093,
+              "negative": 116,
+              "positive": 97,
+              "zero": 0
+            },
+            "8": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -0.5999131886443902,
+              "maximum": 0.4313059948041463,
+              "negative": 145,
+              "positive": 68,
+              "zero": 0
+            },
+            "9": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -0.5387487377042245,
+              "maximum": 0.3808040772345905,
+              "negative": 173,
+              "positive": 40,
+              "zero": 0
+            },
+            "10": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -0.5253393052623818,
+              "maximum": 0.1463619497697295,
+              "negative": 196,
+              "positive": 17,
+              "zero": 0
+            },
+            "11": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -0.5791160966673307,
+              "maximum": 0.5471053964645056,
+              "negative": 21,
+              "positive": 192,
+              "zero": 0
+            }
+          },
+          "headroom_effective": {
+            "3": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -22.175890972125636,
+              "maximum": 17.350494832700093,
+              "negative": 116,
+              "positive": 97,
+              "zero": 0
+            },
+            "8": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -0.5999131886443902,
+              "maximum": 0.4313059948041463,
+              "negative": 145,
+              "positive": 68,
+              "zero": 0
+            },
+            "9": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -0.5387487377042245,
+              "maximum": 0.3808040772345905,
+              "negative": 173,
+              "positive": 40,
+              "zero": 0
+            },
+            "10": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -0.5253393052623818,
+              "maximum": 0.1463619497697295,
+              "negative": 196,
+              "positive": 17,
+              "zero": 0
+            },
+            "11": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -0.5791160966673307,
+              "maximum": 0.5471053964645056,
+              "negative": 21,
+              "positive": 192,
+              "zero": 0
+            }
+          },
+          "nominal_canonical": {
+            "3": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": 7.8,
+              "maximum": 45.9,
+              "negative": 0,
+              "positive": 213,
+              "zero": 0
+            },
+            "8": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": 0.0,
+              "maximum": 0.3,
+              "negative": 0,
+              "positive": 207,
+              "zero": 6
+            },
+            "9": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": 0.0,
+              "maximum": 0.3,
+              "negative": 0,
+              "positive": 207,
+              "zero": 6
+            },
+            "10": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": 0.0,
+              "maximum": 0.3,
+              "negative": 0,
+              "positive": 207,
+              "zero": 6
+            },
+            "11": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": 0.0,
+              "maximum": 0.3,
+              "negative": 0,
+              "positive": 207,
+              "zero": 6
+            }
+          },
+          "final_drive_canonical": {
+            "3": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": 9.371772302628592,
+              "maximum": 66.39586669781653,
+              "negative": 0,
+              "positive": 213,
+              "zero": 0
+            },
+            "8": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -0.29991318864439026,
+              "maximum": 0.7313059948041463,
+              "negative": 59,
+              "positive": 154,
+              "zero": 0
+            },
+            "9": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -0.3468179138584827,
+              "maximum": 0.6808040772345905,
+              "negative": 39,
+              "positive": 174,
+              "zero": 0
+            },
+            "10": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -0.22533930526238183,
+              "maximum": 0.4463619497697295,
+              "negative": 80,
+              "positive": 133,
+              "zero": 0
+            },
+            "11": {
+              "count": 213,
+              "unavailable": 0,
+              "minimum": -0.27911609666733067,
+              "maximum": 0.8471053964645057,
+              "negative": 10,
+              "positive": 203,
+              "zero": 0
+            }
+          }
+        },
+        "P03": {
+          "raw_latent": {
+            "3": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": -0.38070762157440186,
+              "maximum": 0.5853943228721619,
+              "negative": 4,
+              "positive": 4,
+              "zero": 0
+            },
+            "8": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": -1.472643256187439,
+              "maximum": -0.6991924047470093,
+              "negative": 8,
+              "positive": 0,
+              "zero": 0
+            },
+            "9": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": -0.7222438454627991,
+              "maximum": 0.17247465252876282,
+              "negative": 6,
+              "positive": 2,
+              "zero": 0
+            },
+            "10": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": -0.4891811013221741,
+              "maximum": 0.16314105689525604,
+              "negative": 4,
+              "positive": 4,
+              "zero": 0
+            },
+            "11": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": 0.4916899800300598,
+              "maximum": 0.8832145929336548,
+              "negative": 0,
+              "positive": 8,
+              "zero": 0
+            }
+          },
+          "filtered_requested": {
+            "3": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": -7.281921257628007,
+              "maximum": 5.858447277810406,
+              "negative": 4,
+              "positive": 4,
+              "zero": 0
+            },
+            "8": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": -0.540048290972299,
+              "maximum": -0.3623129485370731,
+              "negative": 8,
+              "positive": 0,
+              "zero": 0
+            },
+            "9": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": -0.37097836112884863,
+              "maximum": 0.10247071812776193,
+              "negative": 6,
+              "positive": 2,
+              "zero": 0
+            },
+            "10": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": -0.21860920802739925,
+              "maximum": 0.09702538060294208,
+              "negative": 5,
+              "positive": 3,
+              "zero": 0
+            },
+            "11": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": 0.2733340310947124,
+              "maximum": 0.4248156518188609,
+              "negative": 0,
+              "positive": 8,
+              "zero": 0
+            }
+          },
+          "headroom_effective": {
+            "3": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": -7.281921257628007,
+              "maximum": 5.858447277810406,
+              "negative": 4,
+              "positive": 4,
+              "zero": 0
+            },
+            "8": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": -0.540048290972299,
+              "maximum": -0.3623129485370731,
+              "negative": 8,
+              "positive": 0,
+              "zero": 0
+            },
+            "9": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": -0.37097836112884863,
+              "maximum": 0.10247071812776193,
+              "negative": 6,
+              "positive": 2,
+              "zero": 0
+            },
+            "10": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": -0.21860920802739925,
+              "maximum": 0.09702538060294208,
+              "negative": 5,
+              "positive": 3,
+              "zero": 0
+            },
+            "11": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": 0.2733340310947124,
+              "maximum": 0.4248156518188609,
+              "negative": 0,
+              "positive": 8,
+              "zero": 0
+            }
+          },
+          "nominal_canonical": {
+            "3": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": 45.9,
+              "maximum": 45.9,
+              "negative": 0,
+              "positive": 8,
+              "zero": 0
+            },
+            "8": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": -0.79,
+              "maximum": 0.125,
+              "negative": 7,
+              "positive": 1,
+              "zero": 0
+            },
+            "9": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": 0.3,
+              "maximum": 0.3,
+              "negative": 0,
+              "positive": 8,
+              "zero": 0
+            },
+            "10": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": 0.47500000000000014,
+              "maximum": 0.61,
+              "negative": 0,
+              "positive": 8,
+              "zero": 0
+            },
+            "11": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": 0.3,
+              "maximum": 0.3,
+              "negative": 0,
+              "positive": 8,
+              "zero": 0
+            }
+          },
+          "final_drive_canonical": {
+            "3": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": 36.64024617300616,
+              "maximum": 59.780614708444574,
+              "negative": 0,
+              "positive": 8,
+              "zero": 0
+            },
+            "8": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": -1.2584033337027,
+              "maximum": -0.3593213131564805,
+              "negative": 8,
+              "positive": 0,
+              "zero": 0
+            },
+            "9": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": -0.07097836112884864,
+              "maximum": 0.4024707181277619,
+              "negative": 3,
+              "positive": 5,
+              "zero": 0
+            },
+            "10": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": 0.3543025923448714,
+              "maximum": 0.7070253806029421,
+              "negative": 0,
+              "positive": 8,
+              "zero": 0
+            },
+            "11": {
+              "count": 8,
+              "unavailable": 0,
+              "minimum": 0.5733340310947124,
+              "maximum": 0.7248156518188609,
+              "negative": 0,
+              "positive": 8,
+              "zero": 0
+            }
+          }
+        },
+        "P04": {
+          "raw_latent": {
+            "3": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": -0.15764978528022766,
+              "maximum": -0.15764978528022766,
+              "negative": 1,
+              "positive": 0,
+              "zero": 0
+            },
+            "8": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": -0.5178365707397461,
+              "maximum": -0.5178365707397461,
+              "negative": 1,
+              "positive": 0,
+              "zero": 0
+            },
+            "9": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": -0.12472665309906006,
+              "maximum": -0.12472665309906006,
+              "negative": 1,
+              "positive": 0,
+              "zero": 0
+            },
+            "10": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": -0.6751995086669922,
+              "maximum": -0.6751995086669922,
+              "negative": 1,
+              "positive": 0,
+              "zero": 0
+            },
+            "11": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": 0.38823020458221436,
+              "maximum": 0.38823020458221436,
+              "negative": 0,
+              "positive": 1,
+              "zero": 0
+            }
+          },
+          "filtered_requested": {
+            "3": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": -3.7819212576280066,
+              "maximum": -3.7819212576280066,
+              "negative": 1,
+              "positive": 0,
+              "zero": 0
+            },
+            "8": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": -0.2856171280954918,
+              "maximum": -0.2856171280954918,
+              "negative": 1,
+              "positive": 0,
+              "zero": 0
+            },
+            "9": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": -0.002529281872238165,
+              "maximum": -0.002529281872238165,
+              "negative": 1,
+              "positive": 0,
+              "zero": 0
+            },
+            "10": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": -0.32360920802739934,
+              "maximum": -0.32360920802739934,
+              "negative": 1,
+              "positive": 0,
+              "zero": 0
+            },
+            "11": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": 0.2219001001960988,
+              "maximum": 0.2219001001960988,
+              "negative": 0,
+              "positive": 1,
+              "zero": 0
+            }
+          },
+          "headroom_effective": {
+            "3": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": -3.7819212576280066,
+              "maximum": -3.7819212576280066,
+              "negative": 1,
+              "positive": 0,
+              "zero": 0
+            },
+            "8": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": -0.2856171280954918,
+              "maximum": -0.2856171280954918,
+              "negative": 1,
+              "positive": 0,
+              "zero": 0
+            },
+            "9": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": -0.002529281872238165,
+              "maximum": -0.002529281872238165,
+              "negative": 1,
+              "positive": 0,
+              "zero": 0
+            },
+            "10": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": -0.32360920802739934,
+              "maximum": -0.32360920802739934,
+              "negative": 1,
+              "positive": 0,
+              "zero": 0
+            },
+            "11": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": 0.2219001001960988,
+              "maximum": 0.2219001001960988,
+              "negative": 0,
+              "positive": 1,
+              "zero": 0
+            }
+          },
+          "nominal_canonical": {
+            "3": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": 45.9,
+              "maximum": 45.9,
+              "negative": 0,
+              "positive": 1,
+              "zero": 0
+            },
+            "8": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": -0.6149999999999999,
+              "maximum": -0.6149999999999999,
+              "negative": 1,
+              "positive": 0,
+              "zero": 0
+            },
+            "9": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": 0.3,
+              "maximum": 0.3,
+              "negative": 0,
+              "positive": 1,
+              "zero": 0
+            },
+            "10": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": 0.43499999999999983,
+              "maximum": 0.43499999999999983,
+              "negative": 0,
+              "positive": 1,
+              "zero": 0
+            },
+            "11": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": 0.3,
+              "maximum": 0.3,
+              "negative": 0,
+              "positive": 1,
+              "zero": 0
+            }
+          },
+          "final_drive_canonical": {
+            "3": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": 37.64024617300616,
+              "maximum": 37.64024617300616,
+              "negative": 0,
+              "positive": 1,
+              "zero": 0
+            },
+            "8": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": -0.9006171280954917,
+              "maximum": -0.9006171280954917,
+              "negative": 1,
+              "positive": 0,
+              "zero": 0
+            },
+            "9": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": 0.2974707181277618,
+              "maximum": 0.2974707181277618,
+              "negative": 0,
+              "positive": 1,
+              "zero": 0
+            },
+            "10": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": 0.11139079197260049,
+              "maximum": 0.11139079197260049,
+              "negative": 0,
+              "positive": 1,
+              "zero": 0
+            },
+            "11": {
+              "count": 1,
+              "unavailable": 0,
+              "minimum": 0.5219001001960988,
+              "maximum": 0.5219001001960988,
+              "negative": 0,
+              "positive": 1,
+              "zero": 0
+            }
+          }
+        },
+        "P05": {
+          "raw_latent": {
+            "3": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -0.5585957765579224,
+              "maximum": 1.1379108428955078,
+              "negative": 9,
+              "positive": 21,
+              "zero": 0
+            },
+            "8": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -1.128544807434082,
+              "maximum": 0.4493822157382965,
+              "negative": 26,
+              "positive": 4,
+              "zero": 0
+            },
+            "9": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -1.3095588684082031,
+              "maximum": 0.11388221383094788,
+              "negative": 29,
+              "positive": 1,
+              "zero": 0
+            },
+            "10": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -0.6040659546852112,
+              "maximum": -0.07462900131940842,
+              "negative": 30,
+              "positive": 0,
+              "zero": 0
+            },
+            "11": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -0.1056751012802124,
+              "maximum": 1.4469201564788818,
+              "negative": 2,
+              "positive": 28,
+              "zero": 0
+            }
+          },
+          "filtered_requested": {
+            "3": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -10.251264970881131,
+              "maximum": 19.52902595066262,
+              "negative": 5,
+              "positive": 25,
+              "zero": 0
+            },
+            "8": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -0.471811328898054,
+              "maximum": 0.14771095501612286,
+              "negative": 27,
+              "positive": 3,
+              "zero": 0
+            },
+            "9": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -0.5184982509793433,
+              "maximum": -0.0018232079353435182,
+              "negative": 30,
+              "positive": 0,
+              "zero": 0
+            },
+            "10": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -0.32099730792862263,
+              "maximum": -0.04469445650657922,
+              "negative": 30,
+              "positive": 0,
+              "zero": 0
+            },
+            "11": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -0.06317009072835761,
+              "maximum": 0.5370493203277849,
+              "negative": 2,
+              "positive": 28,
+              "zero": 0
+            }
+          },
+          "headroom_effective": {
+            "3": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -10.251264970881131,
+              "maximum": 19.52902595066262,
+              "negative": 5,
+              "positive": 25,
+              "zero": 0
+            },
+            "8": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -0.471811328898054,
+              "maximum": 0.14771095501612286,
+              "negative": 27,
+              "positive": 3,
+              "zero": 0
+            },
+            "9": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -0.5184982509793433,
+              "maximum": -0.0018232079353435182,
+              "negative": 30,
+              "positive": 0,
+              "zero": 0
+            },
+            "10": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -0.32099730792862263,
+              "maximum": -0.04469445650657922,
+              "negative": 30,
+              "positive": 0,
+              "zero": 0
+            },
+            "11": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -0.06317009072835761,
+              "maximum": 0.5370493203277849,
+              "negative": 2,
+              "positive": 28,
+              "zero": 0
+            }
+          },
+          "nominal_canonical": {
+            "3": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": 45.9,
+              "maximum": 45.9,
+              "negative": 0,
+              "positive": 30,
+              "zero": 0
+            },
+            "8": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -0.4399999999999997,
+              "maximum": 0.3,
+              "negative": 3,
+              "positive": 27,
+              "zero": 0
+            },
+            "9": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": 0.3,
+              "maximum": 0.3,
+              "negative": 0,
+              "positive": 30,
+              "zero": 0
+            },
+            "10": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": 0.3,
+              "maximum": 0.3,
+              "negative": 0,
+              "positive": 30,
+              "zero": 0
+            },
+            "11": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": 0.3,
+              "maximum": 0.3,
+              "negative": 0,
+              "positive": 30,
+              "zero": 0
+            }
+          },
+          "final_drive_canonical": {
+            "3": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": 27.867040888752328,
+              "maximum": 70.95119338129679,
+              "negative": 0,
+              "positive": 30,
+              "zero": 0
+            },
+            "8": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -0.6599463079663832,
+              "maximum": 0.44771095501612285,
+              "negative": 14,
+              "positive": 16,
+              "zero": 0
+            },
+            "9": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -0.21849825097934333,
+              "maximum": 0.29817679206465647,
+              "negative": 19,
+              "positive": 11,
+              "zero": 0
+            },
+            "10": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": -0.020997307928622644,
+              "maximum": 0.2553055434934208,
+              "negative": 2,
+              "positive": 28,
+              "zero": 0
+            },
+            "11": {
+              "count": 30,
+              "unavailable": 0,
+              "minimum": 0.23682990927164238,
+              "maximum": 0.8370493203277849,
+              "negative": 0,
+              "positive": 30,
+              "zero": 0
+            }
+          }
+        },
+        "P06": {},
+        "P07": {},
+        "P08": {},
+        "P09": {},
+        "P10": {},
+        "P11": {},
+        "P12": {},
+        "P13": {}
+      },
+      "authority_scope": "Decision-source phase; raw is sampled latent, remaining vectors are decision-end snapshots, not every 120Hz tick. Filtered request is before headroom. FR knee index3 is canonical degrees relative to standing; wheel indices8:12 are canonical logical rad/s, NOT signed float32 native readback or measured q/velocity. Missing and unvisited ranges are unavailable, not zero. No success inference."
+    }
+  ],
+  "limits": [
+    "No PT/torch/physics loaded; stored flags, not fresh physical revalidation.",
+    "Reopening AIR/role flags are decision-end observations, not every 120 Hz raw state.",
+    "Historical placement is not current support; event ticks retain prefix-vs-policy attribution."
+  ]
+}

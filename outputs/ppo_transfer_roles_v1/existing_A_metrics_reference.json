@@ -1,0 +1,477 @@
+{
+  "schema": "wlr50_clean.existing_A_metrics_reference.v1",
+  "status": "historical_incomplete_A_unpaired_reference_only",
+  "source_manifest": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_semantic_v2/video_eval/baseline_A/20260905T0902190128552Z_g00b94fbb276a_e0ddaa746bc84bddb8e4f80506e09fac/source/semantic_video_source_manifest.json",
+  "source_manifest_kind": "semantic_video_source_manifest; no separate evaluation_manifest.json was present in the listed source artifacts",
+  "read_scope": "Existing run/source JSON manifests only. No raw trajectory, CSV data, video decode/replay, hash recomputation, policy loading or simulation.",
+  "source_git_commit": "00b94fbb276a5bb62f54ec40be648acc2715b99c",
+  "source_conditions": {
+    "seed": 4001,
+    "semantic_version": "v2",
+    "from_phase": "P01",
+    "num_envs": 1,
+    "physics_hz": 120,
+    "existing_settle_ticks": 180,
+    "additional_pre_action_ticks": 64,
+    "initialization_provenance": "180 settle and64 extra pre-action ticks previously confirmed in the existing A video manifest audit; not rederived from raw here",
+    "controller_phase": "P10",
+    "controller_lifecycle": "WAIT_ENTRY",
+    "controller_result": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "controller_reason": "Frozen historical RR knee position/rebound entry incompatibility; not a recorded physical failure."
+  },
+  "comparison": {
+    "status": "unpaired",
+    "current_C_conditions": "natural P01,180 settle+0 extra ticks,seed2001",
+    "matched_initialization": false,
+    "matched_seed": false,
+    "matched_current_evaluator": false,
+    "full_task_success": false,
+    "paired_improvement": null,
+    "reason": "Historical v2 A and current transfer-role C do not provide matched seed, initialization, evaluator or full-task coverage. Global incomplete-window metrics cannot establish superiority."
+  },
+  "task_metrics": {
+    "physical_episode.task_success": false,
+    "physical_episode.observed_physics_ticks": 7844,
+    "physical_episode.physical_task_duration_s": 65.36666666666666,
+    "optimizer_updates": 0,
+    "physical_episode.physical_task_evaluation": {
+      "valid": true,
+      "success": false,
+      "termination_reason": null,
+      "final_controlled": false,
+      "final_region_valid": false,
+      "final_support_available": true,
+      "final_stable_for_s": 0,
+      "maximum_commanded_wheel_speed_rad_s": 0
+    },
+    "physical_episode.physical_task_evaluation.history.event_ticks": {
+      "active_lift": {
+        "FL": 2461,
+        "FR": 1624,
+        "RR": 6939
+      },
+      "front_edge_crossed": {
+        "FL": 3094,
+        "FR": 1665,
+        "RR": 7105
+      },
+      "placed": {
+        "FL": 3582,
+        "FR": 1696,
+        "RR": 7579
+      }
+    },
+    "physical_episode.physical_task_evaluation.history.placed": {
+      "FL": true,
+      "FR": true,
+      "RL": false,
+      "RR": true
+    },
+    "physical_episode.physical_task_evaluation.goal_features": {
+      "FL_clearance_m": 0.00011980257644000902,
+      "FL_front_distance_m": 0.4287673865063155,
+      "FL_load_fraction": 0.4812531353811337,
+      "FR_clearance_m": 0.043688295087996376,
+      "FR_front_distance_m": 0.5966569815380538,
+      "FR_load_fraction": 0,
+      "RL_clearance_m": -0.049326283554306474,
+      "RL_front_distance_m": -0.0949490930335557,
+      "RL_load_fraction": 0.01828546926686724,
+      "RR_clearance_m": -0.0017357195916685858,
+      "RR_front_distance_m": 0.0780383382542098,
+      "RR_load_fraction": 0.500461395351999,
+      "body_angular_speed_rad_s": 0.052947175947067396,
+      "body_forward_m": 0.28432375533413534,
+      "body_linear_speed_m_s": 0.0104550014039719,
+      "maximum_wheel_speed_rad_s": 0.3461090922355652,
+      "support_count": 3
+    }
+  },
+  "task_units": {
+    "observed_physics_ticks": "120Hz tick count",
+    "physical_task_duration_s": "s",
+    "optimizer_updates": "update count",
+    "event_ticks": "episode physics tick",
+    "final_stable_for_s": "s",
+    "maximum_commanded_wheel_speed_rad_s": "rad/s",
+    "goal_features": "*_m: m; *_m_s: m/s; *_rad_s: rad/s; *_load_fraction: unitless load fraction; support_count: count",
+    "booleans": "status only, not a continuous quality score"
+  },
+  "legacy_evaluator_field_cautions": {
+    "physical_episode.physical_task_evaluation.maximum_commanded_wheel_speed_rad_s": "Raw recorded value0 is preserved. Availability and meaning of this legacy evaluator field were not independently validated. It is not a native applied wheel-speed measurement and must not be interpreted as zero wheel actuation in this known rolling FSM trajectory, used for action statistics, or used to establish wheel-only safety clearance.",
+    "physical_episode.physical_task_evaluation.valid": "Raw recorded true is preserved as the historical evaluator status only. It is not a fresh current shared-evaluator pass, task success, or independently revalidated safety clearance."
+  },
+  "quality_window": {
+    "schema": "wlr50_clean.semantic_quality_metrics.v1",
+    "diagnostic_schema": "wlr50_clean.semantic_motion_contact_metrics.v1",
+    "comparison_window": "actual_physics_ticks_excluding_video_padding",
+    "all_phases_sampled": false,
+    "fixed_quality_score": null,
+    "score_is_not_success": true,
+    "score_config": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\configs\\ppo_semantic_v2\\quality_score.yaml",
+    "nonfinite_terminal_ticks_skipped": 0
+  },
+  "global_json_prefix": "physical_episode.quality_metrics.global.",
+  "global_scalar_metrics": {
+    "angular_acceleration_p95_rad_s2": 8.334698776672594,
+    "angular_acceleration_peak_rad_s2": 136.8567866189386,
+    "angular_acceleration_rms_rad_s2": 4.316558420321217,
+    "applied_servo_acceleration_p95_deg_s2": 6363.961030674225,
+    "applied_servo_acceleration_peak_deg_s2": 18000.00000000205,
+    "applied_servo_acceleration_rms_deg_s2": 2842.1164731078175,
+    "applied_servo_rate_p95_deg_s": 53.03300858899407,
+    "applied_servo_rate_peak_deg_s": 150.00000000000853,
+    "applied_servo_rate_rms_deg_s": 20.421388672445584,
+    "applied_wheel_acceleration_p95_rad_s3": 0,
+    "applied_wheel_acceleration_peak_rad_s3": 7704.000000000877,
+    "applied_wheel_acceleration_rms_rad_s3": 334.6105608222553,
+    "applied_wheel_rate_p95_rad_s2": 0,
+    "applied_wheel_rate_peak_rad_s2": 64.20000000000366,
+    "applied_wheel_rate_rms_rad_s2": 1.9717116384504823,
+    "body_x_omega_p95_rad_s": 0.09640930803005376,
+    "body_x_omega_peak_rad_s": 1.023555357193458,
+    "body_x_omega_rms_rad_s": 0.08516171943660845,
+    "body_y_omega_p95_rad_s": 0.06989709189562213,
+    "body_y_omega_peak_rad_s": 0.8164572205615629,
+    "body_y_omega_rms_rad_s": 0.0631720554727563,
+    "duration_s": 65.36666666666666,
+    "nominal_servo_rate_p95_deg_s": 0,
+    "nominal_servo_rate_peak_deg_s": 2752.95078052639,
+    "nominal_servo_rate_rms_deg_s": 46.20793358240724,
+    "nominal_wheel_rate_p95_rad_s2": 0,
+    "nominal_wheel_rate_peak_rad_s2": 64.2000000000584,
+    "nominal_wheel_rate_rms_rad_s2": 1.9717116384506788,
+    "physics_ticks": 7844,
+    "pitch_p95_rad": 0.1904445624986534,
+    "pitch_peak_rad": 0.1920374965362042,
+    "pitch_rate_p95_rad_s": 0.06817936920172182,
+    "pitch_rate_peak_rad_s": 0.8442082018443117,
+    "pitch_rate_rms_rad_s": 0.06222826624893107,
+    "pitch_rms_rad": 0.09891376621197825,
+    "residual_servo_p95_deg": 0,
+    "residual_servo_peak_deg": 0,
+    "residual_servo_rms_deg": 0,
+    "residual_wheel_p95_rad_s": 0,
+    "residual_wheel_peak_rad_s": 0,
+    "residual_wheel_rms_rad_s": 0,
+    "roll_p95_rad": 0.2683945956459793,
+    "roll_peak_rad": 0.27734269881341816,
+    "roll_rate_p95_rad_s": 0.07105472879928836,
+    "roll_rate_peak_rad_s": 1.0073150320704929,
+    "roll_rate_rms_rad_s": 0.08277841710757182,
+    "roll_rms_rad": 0.139237661684586,
+    "sampled": true
+  },
+  "global_scalar_units": {
+    "*_rad": "rad",
+    "*_rad_s": "rad/s",
+    "*_rad_s2": "rad/s^2",
+    "*_rad_s3": "rad/s^3",
+    "*_deg": "deg",
+    "*_deg_s": "deg/s",
+    "*_deg_s2": "deg/s^2",
+    "duration_s": "s",
+    "physics_ticks": "count",
+    "sampled": "boolean",
+    "description": "roll/pitch rates are Euler derivatives; body_x/y_omega are body angular-velocity components. Applied wheel rate/acceleration differentiate a rad/s command, hence rad/s^2 and rad/s^3. Nominal, residual and applied fields are distinct."
+  },
+  "selected_contact_and_motion_json_prefix": "physical_episode.quality_metrics.global.motion_contact_diagnostics.",
+  "selected_contact_and_motion_metrics": {
+    "all_body_exact_active_pair_count": {
+      "unit": "contact-pair count",
+      "available": true,
+      "mean": 3.36511983681795,
+      "rms": 3.4110687631720564,
+      "p95_abs": 4,
+      "peak_abs": 4,
+      "valid_ticks": 7844,
+      "missing_or_inapplicable_ticks": 0
+    },
+    "all_body_exact_normal_force_n": {
+      "unit": "N",
+      "available": true,
+      "mean": 28.922305048659673,
+      "rms": 28.9809361123307,
+      "p95_abs": 29.4269827265108,
+      "peak_abs": 57.143776416778834,
+      "valid_ticks": 7844,
+      "missing_or_inapplicable_ticks": 0
+    },
+    "body_linear_speed_m_s": {
+      "unit": "m/s",
+      "available": true,
+      "mean": 0.024491109685567395,
+      "rms": 0.033507408693463234,
+      "p95_abs": 0.0434214792898934,
+      "peak_abs": 0.2575589804060466,
+      "valid_ticks": 7844,
+      "missing_or_inapplicable_ticks": 0
+    },
+    "com_linear_momentum_magnitude_kg_m_s": {
+      "unit": "kg*m/s",
+      "available": true,
+      "mean": 0.06466575144877922,
+      "rms": 0.08991937102350102,
+      "p95_abs": 0.1442268632926536,
+      "peak_abs": 0.8090460008390288,
+      "valid_ticks": 7844,
+      "missing_or_inapplicable_ticks": 0
+    },
+    "com_speed_m_s": {
+      "unit": "m/s",
+      "available": true,
+      "mean": 0.022063757410654958,
+      "rms": 0.030680215482420708,
+      "p95_abs": 0.04920976641413301,
+      "peak_abs": 0.2760440309846563,
+      "valid_ticks": 7844,
+      "missing_or_inapplicable_ticks": 0
+    },
+    "FL_contact_normal_force_n": {
+      "unit": "N",
+      "available": true,
+      "mean": 6.964446744402528,
+      "rms": 8.778926682174959,
+      "p95_abs": 14.469482564926277,
+      "peak_abs": 24.4810180664063,
+      "valid_ticks": 7844,
+      "missing_or_inapplicable_ticks": 0
+    },
+    "FL_touchdown_descent_speed_m_s": {
+      "unit": "m/s",
+      "available": true,
+      "mean": 0.11441400096136214,
+      "rms": 0.17610199177673777,
+      "p95_abs": 0.2761624813079834,
+      "peak_abs": 0.30256009101867676,
+      "valid_ticks": 3,
+      "missing_or_inapplicable_ticks": 7841
+    },
+    "FR_contact_normal_force_n": {
+      "unit": "N",
+      "available": true,
+      "mean": 6.446975959138038,
+      "rms": 8.070177752169851,
+      "p95_abs": 12.680315011643696,
+      "peak_abs": 34.51998138427741,
+      "valid_ticks": 7844,
+      "missing_or_inapplicable_ticks": 0
+    },
+    "RL_contact_normal_force_n": {
+      "unit": "N",
+      "available": true,
+      "mean": 8.122492880189053,
+      "rms": 9.571318011927087,
+      "p95_abs": 14.557994413375985,
+      "peak_abs": 45.35992813110393,
+      "valid_ticks": 7844,
+      "missing_or_inapplicable_ticks": 0
+    },
+    "RR_contact_normal_force_n": {
+      "unit": "N",
+      "available": true,
+      "mean": 7.388389464930048,
+      "rms": 8.692839737832449,
+      "p95_abs": 13.76797575950635,
+      "peak_abs": 26.46215820312515,
+      "valid_ticks": 7844,
+      "missing_or_inapplicable_ticks": 0
+    },
+    "RR_touchdown_descent_speed_m_s": {
+      "unit": "m/s",
+      "available": true,
+      "mean": 0.026083532546181006,
+      "rms": 0.05429671793675517,
+      "p95_abs": 0.10224857833236456,
+      "peak_abs": 0.1321728676557541,
+      "valid_ticks": 6,
+      "missing_or_inapplicable_ticks": 7838
+    },
+    "wheel_contact_count": {
+      "unit": "wheel count",
+      "available": true,
+      "mean": 3.355685874553799,
+      "rms": 3.4013750706499684,
+      "p95_abs": 4,
+      "peak_abs": 4,
+      "valid_ticks": 7844,
+      "missing_or_inapplicable_ticks": 0
+    }
+  },
+  "event_count_json_path": "physical_episode.quality_metrics.global.motion_contact_diagnostics.<key>.sum",
+  "event_counts_unit": "events, not the dt-integrated value stored under integral",
+  "event_counts": {
+    "FL_touchdown_event_count": 3,
+    "FL_contact_loss_event_count": 3,
+    "FL_post_touchdown_rebound_event_count": 0,
+    "FR_touchdown_event_count": 7,
+    "FR_contact_loss_event_count": 8,
+    "FR_post_touchdown_rebound_event_count": 1,
+    "RL_touchdown_event_count": 25,
+    "RL_contact_loss_event_count": 25,
+    "RL_post_touchdown_rebound_event_count": 9,
+    "RR_touchdown_event_count": 6,
+    "RR_contact_loss_event_count": 6,
+    "RR_post_touchdown_rebound_event_count": 0
+  },
+  "phase_window_json_path": "physical_episode.quality_metrics.phases.<phase>",
+  "phase_windows": [
+    {
+      "phase": "P01",
+      "sampled": true,
+      "physics_ticks": 1600,
+      "duration_s": 13.333333333333334
+    },
+    {
+      "phase": "P02",
+      "sampled": true,
+      "physics_ticks": 64,
+      "duration_s": 0.5333333333333332
+    },
+    {
+      "phase": "P03",
+      "sampled": true,
+      "physics_ticks": 152,
+      "duration_s": 1.2666666666666657
+    },
+    {
+      "phase": "P04",
+      "sampled": true,
+      "physics_ticks": 584,
+      "duration_s": 4.866666666666667
+    },
+    {
+      "phase": "P05",
+      "sampled": true,
+      "physics_ticks": 1176,
+      "duration_s": 9.8
+    },
+    {
+      "phase": "P06",
+      "sampled": true,
+      "physics_ticks": 3072,
+      "duration_s": 25.599999999999998
+    },
+    {
+      "phase": "P07",
+      "sampled": true,
+      "physics_ticks": 208,
+      "duration_s": 1.7333333333333343
+    },
+    {
+      "phase": "P08",
+      "sampled": true,
+      "physics_ticks": 56,
+      "duration_s": 0.46666666666666856
+    },
+    {
+      "phase": "P09",
+      "sampled": true,
+      "physics_ticks": 872,
+      "duration_s": 7.266666666666659
+    },
+    {
+      "phase": "P10",
+      "sampled": true,
+      "physics_ticks": 60,
+      "duration_s": 0.5
+    },
+    {
+      "phase": "P11",
+      "sampled": false,
+      "physics_ticks": 0,
+      "duration_s": 0
+    },
+    {
+      "phase": "P12",
+      "sampled": false,
+      "physics_ticks": 0,
+      "duration_s": 0
+    },
+    {
+      "phase": "P13",
+      "sampled": false,
+      "physics_ticks": 0,
+      "duration_s": 0
+    }
+  ],
+  "additional_available_field_patterns": {
+    "json_prefix": "physical_episode.quality_metrics.global.motion_contact_diagnostics.",
+    "leg_names": [
+      "FL",
+      "FR",
+      "RL",
+      "RR"
+    ],
+    "keys": [
+      "<leg>_contact_force_world_{x,y,z}_n",
+      "<leg>_ground_normal_force_n",
+      "<leg>_obstacle_normal_force_n",
+      "<leg>_touchdown_normal_force_n",
+      "<leg>_contact_rolling_slip_estimate_{abs,signed}_m_s",
+      "<leg>_wheel_vertical_velocity_m_s",
+      "body_linear_velocity_{world,chassis}_{x,y,z}_m_s",
+      "body_linear_velocity_change_world_{x,y,z}_m_s",
+      "com_velocity_world_{x,y,z}_m_s",
+      "com_velocity_change_world_{x,y,z}_m_s",
+      "com_linear_momentum_world_{x,y,z}_kg_m_s",
+      "com_linear_momentum_change_world_{x,y,z}_kg_m_s"
+    ],
+    "statistics": [
+      "available",
+      "first",
+      "last",
+      "mean",
+      "rms",
+      "p95_abs",
+      "peak_abs",
+      "integral",
+      "valid_duration_s",
+      "valid_ticks",
+      "missing_or_inapplicable_ticks"
+    ],
+    "units": "Names retain N, m/s or kg*m/s; integral multiplies the stated unit by seconds; *_change_*.sum is signed net measured change, not an event count."
+  },
+  "missing_or_inapplicable_metrics": [
+    {
+      "json_key": "physical_episode.quality_metrics.global.motion_contact_diagnostics.FL_post_touchdown_rebound_upward_speed_m_s",
+      "unit": "m/s",
+      "value": null,
+      "valid_ticks": 0,
+      "missing_or_inapplicable_ticks": 7844
+    },
+    {
+      "json_key": "physical_episode.quality_metrics.global.motion_contact_diagnostics.RR_post_touchdown_rebound_upward_speed_m_s",
+      "unit": "m/s",
+      "value": null,
+      "valid_ticks": 0,
+      "missing_or_inapplicable_ticks": 7844
+    }
+  ],
+  "other_missing_or_unmatched": {
+    "physical_episode.quality_metrics.fixed_quality_score": "null; all_phases_sampled=false, no complete-task quality score",
+    "physical_episode.quality_metrics.phases.P11/P12/P13": "sampled=false,0 ticks: absent phases, not perfect zero-motion performance",
+    "physical_episode.quality_metrics.transfer_capture_split": "All populated entries are LEGACY_UNSEGMENTED. TRANSFER/EXECUTION/CAPTURE slots are unsampled; no new-role split or receiver-specific stability comparison exists.",
+    "whole_robot_angular_momentum": "No matching key in saved quality_metrics.global.motion_contact_diagnostics; angular velocity is not angular momentum.",
+    "joint_torque_work_energy": "No matching saved quality metric; no energy or active-force causality claim.",
+    "ground_truth_contact_slip_or_resolved_impact_velocity": "Unavailable as such; only explicitly qualified slip and wheel-body touchdown proxies are present.",
+    "paired_current_C_stability_or_success_metric": "Not supplied by this historical A run; no paired superiority score."
+  },
+  "interpretation_notes": {
+    "absence": "Unavailable fields are null with valid/missing tick counts; verified zero contact/event/force is a real zero. No absent phase or missing sensor is scored as perfect.",
+    "aggregation": "Means, RMS and integrals use actual physics dt; all ticks are 120 Hz. Sum of *_event_count gives events, sum of *_change_* gives the signed measured change across observed intervals.",
+    "contact": "Exact verified ground/obstacle pairs. Events compare consecutive samples once, not overlapping history windows. Ground-to-obstacle transfer alone is not a new wheel touchdown.",
+    "force_impulse": "Integral of *_force_n is N*s; it includes support and intentional propulsion, not only impact, and is not a universal badness cost. Signed world-force components retain direction.",
+    "motion": "Measured base-link velocity; whole-robot linear momentum is measured CoM velocity times measured total mass, not base-link velocity times mass.",
+    "rebound": "Upward wheel-body speed at contact loss within 0.25 s of a measured touchdown; a diagnostic proxy that can also represent intentional lift.",
+    "slip": "Estimate: nominal wheel radius times angular speed minus wheel-body forward velocity in chassis coordinates. Not ground-truth tangential contact slip; orientation, tyre deformation and wall contact can invalidate the rolling approximation. Reported only for verified contacting wheels.",
+    "touchdown": "Pre-contact downward wheel-body velocity at a measured AIR-to-contact edge; not a resolved contact-point impact velocity."
+  },
+  "additional_cautions": [
+    "all_body_exact_normal_force_n aggregates exact contact pairs including wheel support; it is not a chassis-collision impulse metric.",
+    "Historical placement does not imply current support: endpoint FR load0 although FR placed=true; endpoint FL/RR loads are recorded separately.",
+    "Zero FL/RR rebound-event counts do not make their unavailable rebound-speed statistic a measured zero.",
+    "Video padding is excluded from the metric duration, but the extra64 physical pre-action ticks already affected initial conditions.",
+    "Existing A remains incomplete. This metrics inventory is not a new evaluation, success claim, optimizer gate or proposed threshold."
+  ]
+}
