@@ -97,6 +97,7 @@ class TransferRoleTracker:
         self.transfer_response_since = dict.fromkeys(LEGS, None)
         self._separate_transfer_response = (
             spec.get("physical_acceptance_version") == ALL_STAGE_ACCEPTANCE_VERSION)
+        self._independent_validity = spec.get("p09_lift_semantics") == "functional_lift_edge_v2"
 
     def observe(self, raw, evaluation):
         current, hist = evaluation["current_legs"], evaluation["history"]
@@ -109,7 +110,7 @@ class TransferRoleTracker:
                  and b is not None and q is not None and all(x is not None for x in centers.values()))
         invalid_load = self._separate_transfer_response and any(
             current[leg].get("load_fraction_valid") is False for leg in LEGS)
-        valid = valid and not invalid_load
+        valid = valid and (not invalid_load or self._independent_validity)
         if not valid:
             # Detailed diagnostics unavailable is NOT invented zero CoM/support.
             self.samples.clear()
@@ -123,7 +124,8 @@ class TransferRoleTracker:
         supports = tuple(leg for leg in LEGS if current[leg]["support"]
                          and (current[leg]["ground_contact"] or current[leg]["top_contact"]))
         row = dict(t=now, tick=evaluation["physics_tick"], c=c, v=v, b=b, q=q, centers=centers,
-                   loads={leg: current[leg]["load_fraction"] for leg in LEGS}, supports=supports,
+                   loads={leg: (None if self._independent_validity and current[leg].get("load_fraction_valid") is False
+                                else current[leg]["load_fraction"]) for leg in LEGS}, supports=supports,
                    joint_positions=tuple(float(get(joints[n], "position_deg")) for n in SERVO_ORDER),
                    joint_commands=tuple(float(get(joints[n], "command_deg", get(joints[n], "position_deg"))) for n in SERVO_ORDER),
                    wheel_commands=tuple(float(get(wheels[n], "command_rad_s")) for n in WHEEL_ORDER),
@@ -153,7 +155,8 @@ class TransferRoleTracker:
             direction = tuple(x/length for x in direction) if length > 1e-9 else (0., 0., 0.)
             delta_c, delta_receiver = sub(c, first["c"]), sub(centers[receiver], first["centers"][receiver])
             com_toward, velocity_toward = dot(delta_c, direction), dot(v, direction)
-            load_drop = first["loads"][leg]-row["loads"][leg]
+            load_drop = (first["loads"][leg]-row["loads"][leg]
+                         if first["loads"][leg] is not None and row["loads"][leg] is not None else None)
             support_fraction = sum(sum(x != leg for x in s["supports"]) >= 2 for s in self.samples)/len(self.samples)
             short_samples = [s for s in self.samples if now-s["t"] <= self.cfg["minimum_evidence_s"]+1e-10]
             short_support_fraction = sum(sum(x != leg for x in s["supports"]) >= 2 for s in short_samples)/len(short_samples)
@@ -171,9 +174,11 @@ class TransferRoleTracker:
             margin_proxy = min(clip(min(x.values())/10.) for x in margins.values())
             directional = max(clip(com_toward/self.cfg["motion_scale_m"]),
                               time_credit*clip(velocity_toward/self.cfg["velocity_scale_m_s"]))
-            redistribution = clip(load_drop/self.cfg["load_change_scale"])
+            redistribution = clip(load_drop/self.cfg["load_change_scale"]) if load_drop is not None else 0.
             space_response = clip(contraction/self.cfg["motion_scale_m"])
             initial = bool(current[leg].get("initial_clearance") and current[leg]["air"])
+            if self._independent_validity and leg == "RR":
+                initial = bool(current[leg].get("current_lift_valid"))
             actuated = bool(actuated_response or current[leg].get("whole_body_actuation_evidence"))
             # Preference-direction evidence is one route; measured redistribution
             # or actual whole-body clearance can establish an alternative route.
@@ -201,10 +206,12 @@ class TransferRoleTracker:
             continuation *= clip(response_duration/self.cfg["minimum_evidence_s"])
             preparation = preparation_continuation*max(directional, redistribution, space_response,
                                             float(initial))
-            unload = clip((1.-current[leg]["load_fraction"])/(1.-self.spec["support"]["unloaded_leg_maximum_load_fraction"]))
+            measured_load = row["loads"][leg]
+            unload = (clip((1.-measured_load)/(1.-self.spec["support"]["unloaded_leg_maximum_load_fraction"]))
+                      if measured_load is not None else float(initial))
             progress = continuation*measured_transfer*unload
             ready = bool(actuated and continuation >= 1.-1e-9 and measured_transfer >= 1.
-                         and (current[leg]["load_fraction"] <= self.spec["support"]["unloaded_leg_maximum_load_fraction"] or initial))
+                         and ((measured_load is not None and measured_load <= self.spec["support"]["unloaded_leg_maximum_load_fraction"]) or initial))
             crossed = hist["front_edge_crossed"][leg]
             capture = (clip(current[leg]["consecutive_top_samples"]/self.spec["history"]["minimum_top_samples"])
                        if crossed else 0.)
@@ -258,4 +265,11 @@ class TransferRoleTracker:
                 result[leg]["transfer_direction_context"].update(
                     preparation_response_duration_s=preparation_duration,
                     response_maturity_semantics="separate_preparation_and_transfer")
+            if self._independent_validity:
+                result[leg].update(
+                    validity_semantics="verified_CoM_geometry_motion_with_independent_load_validity",
+                    normalized_load_valid=measured_load is not None,
+                    load_change_valid=load_drop is not None,
+                    load_inference_status="VERIFIED" if measured_load is not None else "UNAVAILABLE_NOT_ZERO_UNLOADED",
+                    independent_geometry_history_preserved=True)
         return result

@@ -168,8 +168,17 @@ class ResetOnlyPrefixController:
                     self.mode="READY"
                 elif tick-self._handoff_tick > self.request.maximum_takeover_decisions*8:
                     raise PrefixUnavailable("bounded takeover did not retire teacher bias",tick=tick,task=self.task_snapshot,observation=observation,receipt=self._receipt)
-            frame=replace(frame,normal_drive_bias_full12=self._bias,
-                drive_feedback_details={**frame.drive_feedback_details,"reset_only_teacher_takeover":self.mode!="READY"})
+            source_derived = self.supervisor.spec.get("reference_nominal_semantics") == "successful_fsm_derived_v2"
+            # The receipt bias is a reset-only, uncredited takeover transient.
+            # Once READY, do not erase the nominal provider's genuine source
+            # post-mapper correction (P10). While taking over, use only the old
+            # taper, never add it to a new correction and count the bias twice.
+            nominal_bias = (frame.normal_drive_bias_full12
+                            if source_derived and self.mode == "READY" else self._bias)
+            frame=replace(frame,normal_drive_bias_full12=nominal_bias,
+                drive_feedback_details={**frame.drive_feedback_details,
+                    "reset_only_teacher_takeover":self.mode!="READY",
+                    "teacher_takeover_replaces_source_bias":source_derived and self.mode!="READY"})
         else:
             task=self.supervisor.observe_and_update(observation,sim_time_s=now)
             if task["stage_id"] == self.request.target_phase and self._target_enter_tick is None:

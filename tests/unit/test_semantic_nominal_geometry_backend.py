@@ -27,6 +27,7 @@ ZERO = (0.,) * 12
 def test_geometry_context_is_not_injected_into_teacher_or_exact_handoff(
         monkeypatch, prefix_mode, handoff, enabled, expect_capture):
     backend = SemanticIsaacBackend.__new__(SemanticIsaacBackend)
+    backend._reset_prime_tick_count = 0
     backend._semantic_actuation_plan = object()
     backend._nominal_geometry_mode = MODE if enabled else None
     backend._policy_headroom_mode = "same_tick_post_mapper_servo_margin_v1"

@@ -18,6 +18,7 @@ from wlr50_clean.sensing.geometry import WHEEL_JOINT_TO_BODY
 from .semantic_nominal_projection import project_nominal_downward
 
 MODE = "preplace_world_down_nominal_advisory_v1"
+FUNCTIONAL_RR_MODE = "functional_rr_preplace_nominal_advisory_v2"
 CONTEXT_SCHEMA = "wlr50_clean.semantic_nominal_geometry_context.v1"
 EVIDENCE_SCHEMA = "wlr50_clean.semantic_nominal_geometry.v1"
 ACTIVE = {"P09": ("RR", (6, 7), 3), "P12": ("RL", (4, 5), 2)}
@@ -53,7 +54,8 @@ def _physical_deg_to_rad(adapter, index, value):
 
 
 def capture_nominal_geometry_context(*, adapter, observation, source_frame,
-                                     task_snapshot, clearance_margin_m, physics_tick):
+                                     task_snapshot, clearance_margin_m, physics_tick,
+                                     mode=MODE, minimum_lift_gain_m=None, workspace_min_m=None):
     """Read a same-state wheel-link Jacobian without a write, step or reset.
 
     PhysX dense Jacobians are at each link COM in world axes:
@@ -63,6 +65,8 @@ def capture_nominal_geometry_context(*, adapter, observation, source_frame,
     changing the evaluator's collider geometry definition.
     """
     phase = str(_member(source_frame, "state_id"))
+    if mode not in (MODE, FUNCTIONAL_RR_MODE):
+        raise NominalGeometryError("unknown nominal geometry mode")
     if phase not in ACTIVE:
         return None
     ev = task_snapshot.get("physical_evaluator", {})
@@ -96,6 +100,28 @@ def capture_nominal_geometry_context(*, adapter, observation, source_frame,
     clearance, margin = _finite((current["clearance_m"], clearance_margin_m), 2, "clearance")
     if margin <= 0.:
         raise NominalGeometryError("positive existing clearance margin required")
+    floor_semantics = "existing_above_top_margin"
+    if mode == FUNCTIONAL_RR_MODE and leg == "RR":
+        # This is a nominal descent advisory, never an action/lift entry gate.
+        # Far from the front, preserve the established ground-relative lift;
+        # below the top, do not force a timed nominal descent before carry.
+        # The residual remains independently available in all twelve channels.
+        lift_scale, workspace = _finite((minimum_lift_gain_m, workspace_min_m), 2, "RR physical scales")
+        if lift_scale <= 0.:
+            raise NominalGeometryError("positive existing lift scale required")
+        gain = current.get("ground_relative_lift_m")
+        distance = _finite((current.get("front_distance_m"),), 1, "RR front distance")[0]
+        if gain is None:
+            # Missing ground reference cannot be invented. Do not claim a
+            # clearance guarantee or suppress safe probing from absent data.
+            return None
+        gain = _finite((gain,), 1, "RR ground-relative lift")[0]
+        if distance < workspace:
+            margin = clearance - gain + min(max(gain, 0.), lift_scale)
+            floor_semantics = "measured_ground_reference_existing_lift_scale"
+        else:
+            margin = min(clearance, 0.)
+            floor_semantics = "current_below_top_or_surface_floor_before_cross"
 
     import torch
     robot = adapter.robot
@@ -176,12 +202,13 @@ def capture_nominal_geometry_context(*, adapter, observation, source_frame,
     jx = tuple(j_link_linear[0, list(columns)].detach().cpu().tolist())
     jz = tuple(j_link_linear[2, list(columns)].detach().cpu().tolist())
     return {
-        "schema": CONTEXT_SCHEMA, "mode": MODE, "source_phase_id": phase,
+        "schema": CONTEXT_SCHEMA, "mode": mode, "source_phase_id": phase,
         "source_control_tick": tick, "dispatch_physics_tick": physics_tick,
         "source_sim_time_s": now, "active_leg": leg,
         "canonical_servo_indices": indices, "physical_q_rad": q,
         "jacobian_x_m_per_rad": jx, "jacobian_z_m_per_rad": jz,
         "clearance_m": clearance, "clearance_margin_m": margin,
+        "clearance_floor_semantics": floor_semantics,
         "place_xy": False, "ground_contact": False,
         "body_name": body_name, "body_index": body_index, "jacobian_body_row": body_row,
         "physical_joint_ids": tuple(servo_ids[i] for i in indices),
@@ -199,7 +226,7 @@ def correct_nominal_geometry(*, adapter, native_full12, controller_bias_full12, 
     """Return adjusted native nominal and evidence; never consume current r."""
     native = _finite(native_full12, 12, "raw native nominal")
     bias = _finite(controller_bias_full12, 12, "bounded controller bias")
-    if not isinstance(context, Mapping) or context.get("schema") != CONTEXT_SCHEMA or context.get("mode") != MODE:
+    if not isinstance(context, Mapping) or context.get("schema") != CONTEXT_SCHEMA or context.get("mode") not in (MODE, FUNCTIONAL_RR_MODE):
         raise NominalGeometryError("versioned nominal geometry context required")
     phase = context.get("source_phase_id")
     if phase not in ACTIVE or tuple(context.get("canonical_servo_indices", ())) != ACTIVE[phase][1]:
@@ -225,7 +252,7 @@ def correct_nominal_geometry(*, adapter, native_full12, controller_bias_full12, 
         old_targets.append(_physical_deg_to_rad(adapter, index, target))
         lower_targets.append(bounds[0]); upper_targets.append(bounds[1])
     clearance, margin = _finite((context["clearance_m"], context["clearance_margin_m"]), 2, "clearance")
-    if margin <= 0.:
+    if margin <= 0. and not (context["mode"] == FUNCTIONAL_RR_MODE and phase == "P09"):
         raise NominalGeometryError("invalid existing margin")
     result = project_nominal_downward(
         nominal_delta_rad=tuple(t-p for t,p in zip(old_targets,q)),
@@ -255,7 +282,7 @@ def correct_nominal_geometry(*, adapter, native_full12, controller_bias_full12, 
                 maximum_delta_deg=maximum_delta, lower_deg=lo, upper_deg=hi)
             _close((value,), (reconstructed,), 1e-9, "adjusted zero-policy final nominal")
     evidence = {
-        "schema": EVIDENCE_SCHEMA, "mode": MODE, "status": status,
+        "schema": EVIDENCE_SCHEMA, "mode": context["mode"], "status": status,
         "context": dict(context), "projection": dict(result.proof),
         "old_zero_policy_physical_target_rad": old_targets,
         "desired_zero_policy_canonical_target_deg": desired,

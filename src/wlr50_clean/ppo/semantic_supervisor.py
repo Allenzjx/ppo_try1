@@ -43,6 +43,7 @@ CAPTURE_RETENTION_MODE = "current_platform_region_after_placement"
 CAPTURE_APPROACH_MODE = "post_cross_current_surface_proximity_plus_real_contact_v1"
 STOP_PROGRESS_MODE = "per_wheel_four_type_threshold_ratio_v1"
 P06_TAIL_MODE = "measured_workspace_retirement_after_finite_source"
+P09_LIFT_MODE = "functional_lift_edge_v2"
 
 
 class SemanticObservationError(ValueError):
@@ -77,6 +78,18 @@ def _norm(values: Sequence[float]) -> float:
 
 def _clip(value: float) -> float:
     return max(0.0, min(1.0, value))
+
+
+def _current_rr_placement_usable(evaluation: Mapping[str, Any]) -> bool:
+    """Real placement plus current region; never a historical support claim."""
+    current = evaluation["current_legs"]["RR"]
+    history = evaluation["history"]
+    return bool(evaluation["valid"] and evaluation["termination_reason"] is None
+        and history["placed"]["RR"] and history["front_edge_crossed"]["RR"]
+        and current.get("lift_established") and not current["ground_contact"]
+        and current["within_top_xy"]
+        and (current["top_contact"] or (current.get("current_lift_valid")
+            and current["air"] and current["clearance_m"] >= 0.)))
 
 
 def _p06_retirement_bounds(spec: Mapping[str,Any]) -> tuple[float,float] | None:
@@ -198,6 +211,10 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
     validate_transfer_roles(spec)
     if spec.get("physical_acceptance_version") not in (None, "all_stage_v1"):
         raise ValueError("unknown physical acceptance version")
+    if spec.get("p09_lift_semantics") not in (None, P09_LIFT_MODE):
+        raise ValueError("unknown P09 functional lift semantics")
+    if spec.get("p09_lift_semantics") == P09_LIFT_MODE and spec.get("physical_acceptance_version") != "all_stage_v1":
+        raise ValueError("functional P09 lift requires verified all-stage physical sensing")
     if spec.get("physical_acceptance_version") == "all_stage_v1":
         timeout = spec.get("local_timeout_policy", {})
         if (timeout.get("mode") != "bounded_current_progress_allowance_v1"
@@ -280,6 +297,13 @@ class TaskEvaluator:
         if version not in (None, "all_stage_v1"):
             raise ValueError("unsupported physical acceptance version")
         self._all_stage = version == "all_stage_v1"
+        self._functional_rr = self.spec.get("p09_lift_semantics") == P09_LIFT_MODE
+        self._rr_ground_bottom: float | None = None
+        self._rr_non_ground_count = 0
+        self._rr_edge_count = 0
+        self._rr_established = False
+        self._rr_geometry_samples: deque = deque()
+        self._rr_support_samples: deque = deque(maxlen=self.spec["history"]["minimum_air_samples"])
         self._termination_source: str | None = None
         self._traversal_event_time: float | None = None
         self._completion_observation_since: float | None = None
@@ -318,7 +342,8 @@ class TaskEvaluator:
         result = {**self._snapshot, "goal_features": dict(self._snapshot["goal_features"]),
             "history": {**{k: dict(v) for k, v in self._history.items()},
                         "event_ticks": {k: dict(v) for k, v in self._event_ticks.items()},
-                        "active_lift_semantics": ("current_active_attempt_air_or_verified_early_top_until_crossing_then_history"
+                        "active_lift_semantics": ("RR_same_attempt_establishment_with_separate_current_validity_and_contact_mode"
+                            if self._functional_rr else "current_active_attempt_air_or_verified_early_top_until_crossing_then_history"
                             if self._all_stage else "current_uninterrupted_airborne_above_top_qualification_until_crossing_then_completed_history"),
                          "lift_attempt_events": [dict(event) for event in self._lift_attempt_events]}}
         if self._soft_air_progress_enabled and "current_legs" in result:
@@ -492,12 +517,12 @@ class TaskEvaluator:
             air = not ground_active and not top_active
             self._air_count[leg] = self._air_count[leg] + 1 if air else 0
             samples = self._samples[leg]
-            if ground_active and not self._history["front_edge_crossed"][leg]:
+            if ground_active and (not self._history["front_edge_crossed"][leg] or (self._functional_rr and leg == "RR")):
                 if self._all_stage:
                     self._attempt_active[leg] = False
                     self._attempt_joint_demand[leg] = False
                     self._wall_ascent[leg].clear()
-                if self._history["active_lift"][leg]:
+                if self._history["active_lift"][leg] and not self._history["front_edge_crossed"][leg]:
                     self._history["active_lift"][leg] = False
                     self._lift_attempt_events.append({"leg": leg, "event": "qualification_revoked_ground_before_cross",
                         "physics_tick": tick, "simulation_time_s": now})
@@ -508,7 +533,7 @@ class TaskEvaluator:
             if whole_body:
                 joint_targets = tuple(_number(_get(joints[name], "command_deg"), f"{name} command") for name in SERVO_ORDER)
                 wheel_targets = tuple(_number(_get(wheels[name], "command_rad_s"), f"{name} command") for name in WHEEL_ORDER)
-                if ground_active and not self._history["front_edge_crossed"][leg]:
+                if ground_active and (not self._history["front_edge_crossed"][leg] or (self._functional_rr and leg == "RR")):
                     self._initial_clearance[leg] = False
                     self._obstacle_before_clearance[leg] = bool(top_active)
                 elif top_active and not self._initial_clearance[leg]:
@@ -569,6 +594,13 @@ class TaskEvaluator:
                 initial_now = bool(not ground_active and self._failure is None and active_response
                     and gain >= hist_cfg.get("minimum_initial_clearance_gain_m", .003)
                     and (self._air_count[leg] >= hist_cfg["minimum_air_samples"] or top_surface))
+                functional = None
+                if self._functional_rr and leg == "RR":
+                    functional = self._observe_functional_rr(now=now, tick=tick, bottom=bottom,
+                        center=center, ground=ground_active, obstacle_contact=top_active,
+                        top_surface=top_surface, surface=surfaces[1]["surface"],
+                        active_response=active_response, current_other_legs=current)
+                    initial_now = functional["initial_now"]
                 if initial_now:
                     self._attempt_active[leg] = True
                     if not self._initial_clearance[leg]:
@@ -581,6 +613,8 @@ class TaskEvaluator:
                     and gain >= hist_cfg["minimum_lift_gain_m"]
                     and hist_cfg["near_front_min_m"] <= distance <= hist_cfg["near_front_max_m"]
                     and (self._air_count[leg] >= hist_cfg["minimum_air_samples"] or top_surface))
+                if functional is not None:
+                    lift = functional["lift_established_now"]
                 if surfaces[1]["surface"] == "FRONT_WALL" and not ground_active:
                     self._wall_ascent[leg].append((tick, bottom[2], max(map(abs, wheel_targets))))
                 elif not top_surface:
@@ -671,6 +705,12 @@ class TaskEvaluator:
                     active_attempt=self._attempt_active[leg],
                     crossing_evidence_status=("VERIFIED" if self._history["front_edge_crossed"][leg]
                         else "UNVERIFIED" if crossing_geometry_pending else "PENDING"))
+                if self._functional_rr and leg == "RR":
+                    current[leg].update(functional)
+                    current[leg].update(lift_established=self._rr_established,
+                        initial_lift_observed=bool(self._initial_clearance[leg]),
+                        front_edge_crossed=self._history["front_edge_crossed"][leg],
+                        placed_on_top=self._history["placed"][leg])
             if self.spec.get("capture_retention_semantics") == CAPTURE_RETENTION_MODE:
                 # Distance to the SAME measured, tolerance-expanded rectangle.
                 # This extra current diagnostic never changes contact/history,
@@ -732,6 +772,73 @@ class TaskEvaluator:
             self._snapshot["transfer_roles"] = self._transfer_tracker.observe(observation, self.snapshot)
         self._last_tick, self._last_time = tick, now
         return self.snapshot
+
+    def _observe_functional_rr(self, *, now, tick, bottom, center, ground,
+                               obstacle_contact, top_surface, surface,
+                               active_response, current_other_legs):
+        """Measured RR attempt, not a hover timer or a static balance certificate.
+
+        Reuse the existing two physics-sample noise rejection, 3/8 mm lift
+        scales, whole-body actuation test and short physical history. The body
+        must remain in the unchanged live safety envelope, with two verified
+        OTHER ground/TOP supports; no named support set, flat posture or zero
+        velocity is required. This is corroborating control evidence, not a
+        proof that every future action is feasible. Exploration can continue
+        while response evidence is incomplete, without claiming establishment.
+        """
+        cfg = self.spec["history"]
+        if ground:
+            if self._rr_established:
+                self._lift_attempt_events.append(dict(leg="RR", event="current_lift_revoked_ground",
+                    physics_tick=tick, simulation_time_s=now,
+                    completed_crossing_history_retained=self._history["front_edge_crossed"]["RR"]))
+            self._rr_ground_bottom = bottom[2]
+            self._rr_non_ground_count = 0
+            self._rr_established = False
+            self._rr_geometry_samples.clear()
+        else:
+            self._rr_non_ground_count += 1
+        edge = bool(obstacle_contact and not ground and not top_surface)
+        self._rr_edge_count = self._rr_edge_count+1 if edge else 0
+        self._rr_geometry_samples.append((now, tuple(center)))
+        while len(self._rr_geometry_samples) > 1 and now-self._rr_geometry_samples[0][0] > cfg["window_s"]:
+            self._rr_geometry_samples.popleft()
+        displacement = max((_norm(tuple(a-b for a,b in zip(center, point)))
+                            for _, point in self._rr_geometry_samples), default=0.)
+        supports = tuple(leg for leg, row in current_other_legs.items()
+            if row["support"] and (row["ground_contact"] or row["top_contact"]))
+        supported = len(supports) >= self.spec["support"]["minimum_other_supports"]
+        self._rr_support_samples.append(supported)
+        body_evidence = bool(self._failure is None and supported
+            and len(self._rr_support_samples) >= cfg["minimum_air_samples"] and all(self._rr_support_samples))
+        current_gain = (None if self._rr_ground_bottom is None else bottom[2]-self._rr_ground_bottom)
+        repeated_non_ground = self._rr_non_ground_count >= cfg["minimum_air_samples"]
+        initial = bool(self._failure is None and not ground and repeated_non_ground and active_response
+            and current_gain is not None and current_gain >= cfg["minimum_initial_clearance_gain_m"])
+        established_now = bool(initial and body_evidence and current_gain >= cfg["minimum_lift_gain_m"])
+        self._rr_established |= established_now
+        # An edge-hung wheel with no measured response cannot acquire or keep
+        # a CURRENT swing-availability claim merely because time passes. Keep
+        # the earlier event, and allow bounded probing instead of parking.
+        edge_response = bool(active_response and displacement >= cfg["minimum_initial_clearance_gain_m"])
+        geometry_valid = current_gain is not None and current_gain >= cfg["minimum_initial_clearance_gain_m"]
+        valid = bool(self._rr_established and not ground and body_evidence and geometry_valid
+            and (not edge or edge_response))
+        contact_mode = ("GROUND_AND_OBSTACLE" if ground and obstacle_contact else "GROUND" if ground
+                        else "AIR" if not obstacle_contact else "TOP" if top_surface else surface)
+        return dict(initial_now=initial, lift_established_now=established_now,
+            current_lift_valid=valid, contact_mode=contact_mode,
+            motion_continuation_allowed=self._failure is None,
+            motion_continuation_reason=("physical_safety_abort" if self._failure is not None
+                else "current_functional_lift" if valid else "bounded_adjustment_to_acquire_measured_response"),
+            ground_relative_lift_m=current_gain, recent_wheel_displacement_m=displacement,
+            edge_adjustment_response_observed=edge_response if edge else None,
+            body_control_evidence=body_evidence,
+            body_control_evidence_semantics="unchanged_live_safety_and_short_verified_other_supports_not_static_stability_proof",
+            observed_other_support_contacts=supports,
+            air_duration_s=self._air_count["RR"]/self.spec["physics_hz"],
+            edge_contact_duration_s=self._rr_edge_count/self.spec["physics_hz"],
+            durations_are_diagnostic_only=True)
 
     def _all_stage_finish(self, *, now, current, body_bounds, front, back, left, right,
                           base_linear, base_angular, speeds, commands, old_controlled):
@@ -882,7 +989,10 @@ class TaskStageSupervisor:
             # A genuinely qualified downstream motion is already an entrance,
             # not a reason to land/recreate a preparation pose. Current support
             # remains independently measured; historical placement is not force.
-            if (evaluation["termination_reason"] is None and
+            if self.spec.get("p09_lift_semantics") == P09_LIFT_MODE and leg == "RR":
+                if current.get("current_lift_valid") or _current_rr_placement_usable(evaluation):
+                    return 1.
+            elif (evaluation["termination_reason"] is None and
                     (history["placed"][leg] or (history["active_lift"][leg] and current["air"]))):
                 return 1.
             row = evaluation.get("transfer_roles", {}).get(leg, {})
@@ -890,7 +1000,10 @@ class TaskStageSupervisor:
             progress = "preparation_progress" if kind == "role_prepared" else "transfer_progress"
             return 1. if row.get(flag) is True else min(.99, float(row.get(progress, 0.)))
         if kind == "lifted":
-            if history["active_lift"][leg]: return 1.
+            functional_rr = self.spec.get("p09_lift_semantics") == P09_LIFT_MODE and leg == "RR"
+            if functional_rr:
+                if current.get("current_lift_valid") or _current_rr_placement_usable(evaluation): return 1.
+            elif history["active_lift"][leg]: return 1.
             cfg = self.spec["history"]
             # Dense measurements provide a gradient of task progress, but only
             # the joint+clearance+AIR chronology can produce completion (=1).
@@ -902,7 +1015,10 @@ class TaskStageSupervisor:
                 + _clip(current["recent_joint_motion_deg"]/cfg["minimum_joint_motion_deg"])
                 + _clip(current["consecutive_air_samples"]/cfg["minimum_air_samples"]) ) / 3.
         if kind == "placed":
-            if history["placed"][leg]: return 1.
+            if history["placed"][leg]:
+                if not (self.spec.get("p09_lift_semantics") == P09_LIFT_MODE and leg == "RR"):
+                    return 1.
+                if _current_rr_placement_usable(evaluation): return 1.
             lift = self.predicate(f"lifted_{leg}", evaluation)
             crossing = 1. if history["front_edge_crossed"][leg] else _clip(1.+current["front_distance_m"]/.20)
             captured = (.5 * float(current["top_geometry"])
@@ -913,6 +1029,8 @@ class TaskStageSupervisor:
         if kind == "support": return float(support_available)
         if kind == "load_ready":
             if not support_available: return 0.
+            if self.spec.get("p09_lift_semantics") == P09_LIFT_MODE and current.get("load_fraction_valid") is False:
+                return 0.  # Missing denominator is not measured unloading.
             limit = self.spec["support"]["unloaded_leg_maximum_load_fraction"]
             return _clip((1.-current["load_fraction"])/(1.-limit))
         if kind in ("approach", "workspace", "edge_proximity"):
@@ -1088,6 +1206,10 @@ class TaskStageSupervisor:
         clearance=_number(current["clearance_m"],f"{leg} current top clearance")
         scale=self.spec["history"]["minimum_lift_gain_m"]
         fraction=scale/(scale+max(0.,-clearance))
+        if self.spec.get("p09_lift_semantics") == P09_LIFT_MODE and leg == "RR":
+            if current.get("current_lift_valid"):
+                return 1. if history["front_edge_crossed"][leg] else fraction
+            return 0.
         if history["active_lift"][leg]:
             return 1. if history["front_edge_crossed"][leg] else fraction
         cfg=self.spec["history"]
@@ -1115,6 +1237,8 @@ class TaskStageSupervisor:
             history = evaluation["history"]
             takeover = bool(history["active_lift"][leg] and not current["ground_contact"]
                             and current["within_lateral_span"] and (current["air"] or current["top_contact"]))
+            if self.spec.get("p09_lift_semantics") == P09_LIFT_MODE and leg == "RR":
+                takeover = bool(current.get("current_lift_valid") and current["within_lateral_span"])
         if evaluation["termination_reason"] is not None:
             self.termination_reason = evaluation["termination_reason"]
             self.termination_source = evaluation.get("termination_source", "PHYSICAL_EVALUATOR")
@@ -1210,6 +1334,15 @@ class TaskStageSupervisor:
                         and all(histories["placed"][p] for p in PLACEMENT_PREDECESSORS[leg])]
             self._snapshot["physical_transfer_fraction"] = max((roles.get(leg, {}).get("motion_fraction", 0.)
                                                                 for leg in eligible), default=0.)
+        if self.spec.get("p09_lift_semantics") == P09_LIFT_MODE and evaluation["valid"]:
+            rr = evaluation["current_legs"]["RR"]
+            # Reuse the existing RR qualification bit for CURRENT validity.
+            # Complete Q/C/P event history remains independently in history.
+            # No extra hidden action-deciding timer or actor dimension is added.
+            self._snapshot["active_lift_history"] = {
+                **histories["active_lift"], "RR": bool(rr.get("current_lift_valid"))}
+            self._snapshot["p09_lift_semantics"] = P09_LIFT_MODE
+            self._snapshot["rr_placed_currently_usable"] = _current_rr_placement_usable(evaluation)
         self._last_observation_tick = _get(observation, "physics_tick")
         return dict(self._snapshot)
 
@@ -1251,7 +1384,8 @@ class NominalMotionProvider:
             result[phase] = tuple(rates)
         return result
 
-    def __init__(self, contract: Any, *, spec: Mapping[str, Any] | None = None):
+    def __init__(self, contract: Any, *, spec: Mapping[str, Any] | None = None,
+                 fsm_spec: Any = None):
         self.contract=contract; self.spec=dict(spec) if spec is not None else load_task_spec()
         self.physics_hz=float(contract.physics_hz)
         self.servo_rate_limit_deg_s=float(contract.servo_rate_limit_deg_s)
@@ -1259,6 +1393,22 @@ class NominalMotionProvider:
         self.state_id: str | None=None; self.elapsed_s=0.; self.endpoint_issued=False
         self.tracking_servo_names: tuple[str,...]=()
         nominal=self.spec["nominal"]
+        reference_mode = self.spec.get("reference_nominal_semantics")
+        if reference_mode not in (None, "successful_fsm_derived_v2"):
+            raise ValueError("unknown successful-FSM nominal semantics")
+        self._reference_nominal = reference_mode is not None
+        self._reference_fsm_spec = None
+        self.normal_drive_bias_full12 = ZERO12
+        if self._reference_nominal:
+            # Read the same immutable source specification used by the frozen
+            # controller. Its correction fractions describe nominal tuning,
+            # never residual bounds, phase gates or task acceptance.
+            self._reference_fsm_spec = (fsm_spec if fsm_spec is not None else
+                load_fsm_spec(Path(__file__).resolve().parents[3]/"configs/fsm_states.yaml"))
+            if (tuple(state.state_id for state in self._reference_fsm_spec.states) != PHASE_IDS
+                    or self._reference_fsm_spec.rear_leg_order != self.spec["rear_leg_order"]
+                    or self._reference_fsm_spec.motion_hz != self.physics_hz):
+                raise ValueError("successful-FSM nominal source specification differs")
         self._servo_rate_overrides = self._validated_servo_rate_overrides(self.spec)
         self._all_stage_acceptance = self.spec.get("physical_acceptance_version") == "all_stage_v1"
         if self._all_stage_acceptance and nominal.get("continuous_channel_inheritance") is not True:
@@ -1298,8 +1448,21 @@ class NominalMotionProvider:
     def nominal_suggestion_diagnostics(self) -> dict[str,Any]:
         result = ({"p06_rolling_retirement":dict(self._retirement_diagnostic)}
                   if self._retirement_bounds is not None else {})
+        if self._reference_nominal:
+            result["successful_fsm_nominal"] = {
+                "mode":"successful_fsm_derived_v2",
+                "source_state_spec_path":str(self._reference_fsm_spec.path.resolve()),
+                "request_semantics":"held_source_owner_requests_single_mature_mapper",
+                "tracking_semantics":"current_and_unfinished_owners_not_stale_handoff_tracking",
+                "normal_drive_bias_full12":self.normal_drive_bias_full12,
+                "dormant_reference_rebound_trigger_enabled":False,
+                "source_entry_and_completion_gates_enabled":False,
+                "residual_dependent_controller_selection":False,
+            }
         if self._p06_tail_source is not None:
             result["p06_wheel_tail"] = dict(self._tail_diagnostic)
+        if hasattr(self, "_rr_carry_diagnostic"):
+            result["rr_carry_continuation"] = dict(self._rr_carry_diagnostic)
         if self._all_stage_acceptance:
             result["capture_owner_hold"] = {
                 "schema": "wlr50_clean.nominal_capture_owner_hold.v1",
@@ -1311,6 +1474,32 @@ class NominalMotionProvider:
                     for layer in self._continuous_layers if "capture_suppressed_at_creation" in layer),
             }
         return result
+
+    def _start_source_motion(self, motion: MotionExecutor, phase: Any) -> None:
+        """Reuse successful source action tuning without importing its gates."""
+        if not self._reference_nominal:
+            motion.start_phase(phase)
+            return
+        from wlr50_clean.fsm.motion_executor import FeedbackCorrection
+        state = self._reference_fsm_spec.state(phase.state_id)
+        correction = FeedbackCorrection(state.normal_correction_fractions
+            if state.normal_correction_domain == "logical_command" else ZERO12)
+        motion.start_phase(phase, correction, time_scale=state.normal_time_scale)
+
+    def _source_normal_bias(self, motion: MotionExecutor, sample: Any) -> tuple[float, ...]:
+        """Same source formula, including its endpoint tick but not held tail.
+
+        This is a finite nominal actuator suggestion. Unlike the legacy
+        controller it cannot require a historical entry angle or rebound rate.
+        """
+        if not self._reference_nominal:
+            return ZERO12
+        state = self._reference_fsm_spec.state(sample.state_id)
+        if (state.normal_correction_domain != "post_mapper_drive"
+                or sample.elapsed_s > motion.effective_active_duration_s + 1e-12):
+            return ZERO12
+        return tuple(.5*delta*fraction for delta,fraction in zip(
+            motion.phase.delta_full12,state.normal_correction_fractions,strict=True))
 
     def _capture_hold_measurement(self, task: Mapping[str, Any], observation: Any) -> dict[str, Any] | None:
         """Validate live placement history before source clocks or owner mutation."""
@@ -1386,18 +1575,19 @@ class NominalMotionProvider:
 
     @classmethod
     def from_handoff(cls, contract: Any, *, spec: Mapping[str,Any], stage_id: str,
-                     nominal_full12: Sequence[float], tracking_servo_names: Sequence[str]):
+                     nominal_full12: Sequence[float], tracking_servo_names: Sequence[str],
+                     fsm_spec: Any = None):
         command=_vector(tuple(nominal_full12),12,"executed handoff nominal")
         if Full12Command.from_full12(command).clamped().to_full12()!=command:
             raise SemanticObservationError("handoff nominal is outside actuator limits")
         names=tuple(tracking_servo_names)
         if len(names)!=len(set(names)) or any(name not in SERVO_ORDER for name in names):
             raise SemanticObservationError("invalid executed handoff tracking")
-        result=cls(contract,spec=spec)
+        result=cls(contract,spec=spec,fsm_spec=fsm_spec)
         result.nominal_full12=command; result.tracking_servo_names=names; result.state_id=stage_id
         result._source_motion=MotionExecutor(physics_hz=result.physics_hz,
             servo_rate_limit_deg_s=result.servo_rate_limit_deg_s,initial_full12=command)
-        result._source_motion.start_phase(contract.phase(stage_id))
+        result._start_source_motion(result._source_motion,contract.phase(stage_id))
         return result
 
     def _continuous_advisory(self, task: Mapping[str,Any], retirement: Mapping[str,Any] | None=None,
@@ -1430,7 +1620,7 @@ class NominalMotionProvider:
             phase=self.contract.phase(stage_id)
             motion=MotionExecutor(physics_hz=self.physics_hz,servo_rate_limit_deg_s=self.servo_rate_limit_deg_s,
                                   initial_full12=self.nominal_full12)
-            motion.start_phase(phase)
+            self._start_source_motion(motion,phase)
             self._continuous_layers.append({"stage":stage_id,"motion":motion,"last":tuple(phase.start_full12),
                 "touched":set(),"sample":None,"ticks":0})
             if capture is not None and capture["new_swing_hold"] is not None:
@@ -1443,7 +1633,13 @@ class NominalMotionProvider:
                 record["held_nominal_servo_deg"] = tuple(self.nominal_full12[i] for i in indices)
                 self._continuous_layers[-1]["capture_retired_servo_indices"] = set(indices)
                 self._continuous_layers[-1]["capture_suppressed_at_creation"] = record
-        proposed=list(self.nominal_full12); tracking=set(self.tracking_servo_names)
+        proposed=list(self.nominal_full12)
+        # Rebuild declared tracking owners in the source-derived mode. An
+        # ended source segment must not acquire another feedback sample merely
+        # because the semantic phase changed. Unfinished older layers below
+        # still retain their owned targets and live tracking on the same tick.
+        tracking=set() if self._reference_nominal else set(self.tracking_servo_names)
+        normal_bias=list(ZERO12)
         ev=task.get("physical_evaluator",{}); legs=ev.get("current_legs",{}); history=ev.get("history",{})
         if self._p06_tail_source is not None:
             self._tail_diagnostic.update(layer_present=False, source_endpoint_issued=False,
@@ -1458,6 +1654,7 @@ class NominalMotionProvider:
             sample=layer["motion"].tick(); layer["ticks"]+=1
             layer["touched"].update(i for i,(a,b) in enumerate(zip(sample.full12,layer["last"])) if abs(a-b)>1e-9)
             layer["last"]=sample.full12; layer["sample"]=sample
+            source_bias=self._source_normal_bias(layer["motion"],sample)
             gain=1.
             if layer["stage"]=="P06" and retirement is not None:
                 peak=layer.get("rolling_retirement_peak",0.)
@@ -1495,14 +1692,42 @@ class NominalMotionProvider:
                 # zero endpoint); only this local owner's contribution changes.
                 source_value = self._p06_tail_source[i-8] if replace_tail and i>=8 else sample.full12[i]
                 proposed[i]=source_value*(gain if i>=8 else 1.)
+                if self._reference_nominal:
+                    normal_bias[i]=source_bias[i]
                 if i<8:
-                    if SERVO_ORDER[i] in sample.tracking_servo_names: tracking.add(SERVO_ORDER[i])
+                    source_tracking_eligible = (not self._reference_nominal or
+                        layer["stage"] == stage_id or not sample.endpoint_issued)
+                    if source_tracking_eligible and SERVO_ORDER[i] in sample.tracking_servo_names: tracking.add(SERVO_ORDER[i])
                     else: tracking.discard(SERVO_ORDER[i])
             if layer["stage"]==stage_id:
                 self.elapsed_s=sample.elapsed_s; self.endpoint_issued=sample.endpoint_issued
+        if self._reference_nominal:
+            self.normal_drive_bias_full12=tuple(normal_bias)
         if stage_id in ("P09","P12"):
             leg="RR" if stage_id=="P09" else "RL"; current=legs.get(leg,{})
-            if (task.get("termination_reason") is None and ev.get("termination_reason") is None
+            functional_rr = (stage_id == "P09"
+                and self.spec.get("p09_lift_semantics") == "functional_lift_edge_v2")
+            if functional_rr:
+                # Source hip/knee/whole-body owners continue without a Q/height
+                # dispatch gate. This extra P01-derived rolling suggestion is
+                # only for verified AIR away from the wall, or surface-height
+                # AIR near it; EDGE is never a reason to add blind wheel push.
+                distance = current.get("front_distance_m", 1.)
+                rolling = bool(ev.get("valid") is True and task.get("termination_reason") is None
+                    and ev.get("termination_reason") is None and current.get("current_lift_valid")
+                    and current.get("motion_continuation_allowed") and current.get("air")
+                    and not current.get("ground_contact") and current.get("within_lateral_span")
+                    and distance < self.spec["geometry"]["approach_min_m"]
+                    and (distance < self.spec["geometry"]["workspace_min_m"]
+                         or current.get("clearance_m", -1.) >= 0.))
+                if rolling:
+                    proposed[8:] = self._approach_wheel_prior
+                self._rr_carry_diagnostic = dict(
+                    source_joint_owners_continued=True, added_rolling_suggestion=rolling,
+                    reason="current_AIR_safe_approach" if rolling else
+                        "no_extra_wall_push_source_and_residual_adjustment_continue",
+                    fixed_lift_timer_gate=False, above_top_15mm_action_gate=False)
+            elif (task.get("termination_reason") is None and ev.get("termination_reason") is None
                     and history.get("active_lift",{}).get(leg,False)
                     and current.get("clearance_m",-1.)>=self.spec["geometry"]["airborne_clearance_above_top_m"]
                     and current.get("front_distance_m",1.)<self.spec["geometry"]["approach_min_m"]):
@@ -1533,12 +1758,13 @@ class NominalMotionProvider:
         handoff=self.state_id is not None and self.state_id!=stage_id
         if self.state_id!=stage_id:
             self.state_id=stage_id
-            self._source_motion.start_phase(phase)
+            self._start_source_motion(self._source_motion,phase)
         source=self._source_motion.tick()
         self.elapsed_s=source.elapsed_s
         proposed=source.full12
         self.endpoint_issued=source.endpoint_issued
         proposed_tracking=source.tracking_servo_names
+        self.normal_drive_bias_full12=self._source_normal_bias(self._source_motion,source)
         if isinstance(stage,Mapping) and self.spec["nominal"].get("continuous_channel_inheritance") is True:
             proposed,proposed_tracking=self._continuous_advisory(stage,retirement,capture)
         # The string-only test seam remains the unmodified finite advisory.
@@ -1563,7 +1789,15 @@ class NominalMotionProvider:
                 proposed = proposed[:8]+self._approach_wheel_prior
         if stage_id=="P13" and self.endpoint_issued:
             proposed=tuple(self.spec["final"]["home_servo_pose_deg"])+(0.,)*4
-        if not handoff:
+        if self._reference_nominal:
+            # Logical source requests hold between authored events. The one
+            # mature mapper below owns physical servo slew and load feedback;
+            # changing a logical target every tick would repeatedly reset it.
+            # Only touched source channels were replaced above: this is not a
+            # phase.start pose restore or a reset of residual/mapper history.
+            self.nominal_full12=Full12Command.from_full12(proposed).clamped().to_full12()
+            self.tracking_servo_names=proposed_tracking
+        elif not handoff:
             servo_rates = self._servo_rate_overrides.get(stage_id,
                 (self.spec["nominal"]["servo_handoff_rate_deg_s"],) * 8)
             rates = servo_rates + (self.spec["nominal"]["wheel_handoff_rate_rad_s2"],) * 4
@@ -1579,7 +1813,7 @@ class SemanticControllerAdapter:
         self.spec=spec; self.contract=contract
         self.supervisor=TaskStageSupervisor(task_spec_path) if supervisor is None else supervisor
         self.evaluator=self.supervisor.evaluator
-        self.nominal_provider=NominalMotionProvider(contract,spec=self.supervisor.spec) if nominal_provider is None else nominal_provider
+        self.nominal_provider=NominalMotionProvider(contract,spec=self.supervisor.spec,fsm_spec=spec) if nominal_provider is None else nominal_provider
         self.motion=self.nominal_provider
         self.physics_tick=0; self.lifecycle=Lifecycle.EXECUTE_MOTION
         self.history:list[ControllerEvent]=[]; self.termination:TaskTermination|None=None
@@ -1602,7 +1836,7 @@ class SemanticControllerAdapter:
                 or task.get("stage_id")!=supervisor.stage_id):
             raise SemanticObservationError("handoff must be a valid live natural-prefix decision tick")
         provider=NominalMotionProvider.from_handoff(contract,spec=supervisor.spec,stage_id=supervisor.stage_id,
-            nominal_full12=nominal_full12,tracking_servo_names=tracking_servo_names)
+            nominal_full12=nominal_full12,tracking_servo_names=tracking_servo_names,fsm_spec=spec)
         result=cls(spec,contract,supervisor=supervisor,nominal_provider=provider)
         result.physics_tick=physics_tick+1; result._last_time=sim_time_s
         task=result.task_snapshot
@@ -1641,8 +1875,13 @@ class SemanticControllerAdapter:
             self.termination=TaskTermination(TaskResult(task["termination_reason"]),task["stage_id"],self.lifecycle.value,now,
                 "physical task success" if task["success"] else (task["physical_evaluator"].get("reason") or "semantic task duration exhausted"),task)
             command=command[:8]+(0.,)*4
+        source_bias=(self.nominal_provider.normal_drive_bias_full12 if self.termination is None else ZERO12)
+        feedback_details={"mode":"semantic_no_reference_feedback","semantic_task":task}
+        if self.nominal_provider._reference_nominal:
+            feedback_details.update(mode="successful_fsm_derived_nominal",source_normal_drive_bias_full12=source_bias)
         frame=ControllerFrame(self.physics_tick,now,task["stage_id"],self.lifecycle,command,self.physics_tick%8==0,True,False,
-            self.nominal_provider.tracking_servo_names,ZERO12,ZERO12,{"mode":"semantic_no_reference_feedback","semantic_task":task},
+            self.nominal_provider.tracking_servo_names,ZERO12,source_bias,
+            feedback_details,
             self.nominal_provider.endpoint_issued,self.termination,None,tuple(events))
         self._last_time=now; self.physics_tick+=1
         return frame

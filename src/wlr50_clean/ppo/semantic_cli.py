@@ -40,7 +40,7 @@ def version_paths(version: str, *, experiment_id: str | None = None) -> tuple[Pa
     if version == "v2":
         return RUNS_ROOT, OUTPUT_ROOT, PROJECT_ROOT / "configs/ppo_semantic_v2"
     return (PROJECT_ROOT / "runs" / namespace, PROJECT_ROOT / "outputs" / namespace,
-            PROJECT_ROOT / "configs" / (namespace if experiment_id == "all_stage_acceptance_v1" else "ppo_semantic_v3"))
+            PROJECT_ROOT / "configs" / (namespace if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2") else "ppo_semantic_v3"))
 
 
 def _request_paths(args: argparse.Namespace) -> tuple[Path, Path, Path]:
@@ -65,7 +65,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--seed", type=int, default=1001)
     result.add_argument("--num-envs", type=int, choices=(1, 8), default=1)
     result.add_argument("--semantic-version", choices=("v2", "v3"), default="v2")
-    result.add_argument("--experiment-id", choices=("transfer_roles_v1", "all_stage_acceptance_v1"))
+    result.add_argument("--experiment-id", choices=("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2"))
     result.add_argument("--from-phase", choices=("P01", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13"), default="P01")
     result.add_argument("--teacher-offset-decisions", type=int, default=0)
     result.add_argument("--prefix-source", choices=("frozen_fsm", "checkpoint_policy"), default="frozen_fsm")
@@ -199,7 +199,9 @@ def validate_request(args: argparse.Namespace) -> None:
     if args.checkpoint is not None:
         source_root = output_root
         if args.new_mdp_warm_start:
-            if getattr(args, "experiment_id", None) == "all_stage_acceptance_v1":
+            if getattr(args, "experiment_id", None) == "fsm_reference_p09_stable_v2":
+                source_root = version_paths("v3", experiment_id="all_stage_acceptance_v1")[1]
+            elif getattr(args, "experiment_id", None) == "all_stage_acceptance_v1":
                 source_root = version_paths("v3", experiment_id="transfer_roles_v1")[1]
             elif getattr(args, "experiment_id", None) is not None:
                 prior_v3_root = version_paths("v3")[1]
@@ -811,6 +813,10 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                     comparison["authority_boundary_scope"] = (
                         "one current nominal/observation and zero-history projectors; the changed cap "
                         "can change projected actions; this does not compare source/target nominal timing")
+                    if getattr(args, "experiment_id", None) == "fsm_reference_p09_stable_v2":
+                        comparison["authority_boundary_scope"] = (
+                            "one current target nominal/observation and zero-history projectors; action ranges "
+                            "are unchanged, but this does not compare source/target nominal or observation semantics")
                 if args._warm_start_record.get("policy_kernel_transition") is not None:
                     comparison["policy_kernel_context"] = (
                         "both physical-profile projections use the target actor; this is not an old/new-policy comparison; "

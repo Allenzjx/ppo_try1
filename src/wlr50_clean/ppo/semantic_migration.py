@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import subprocess
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -41,6 +42,7 @@ ROLE_APPEND_RUNTIME_FILES = frozenset({
 })
 SAME372_AUTHORITY_SCHEMA = "wlr50_clean.transfer_roles_same_layout_authority_transition.v1"
 ALL_STAGE_SCHEMA = "wlr50_clean.all_stage_same372_acceptance_transition.v1"
+FSM_REFERENCE_P09_SCHEMA = "wlr50_clean.fsm_reference_p09_functional_same372_transition.v2"
 SAME372_AUTHORITY_RUNTIME_FILES = frozenset({
     "configs/ppo_semantic_v3/stage_task_spec.yaml",
     "configs/ppo_semantic_v3/execution_profile.yaml",
@@ -56,9 +58,98 @@ def experiment_namespace(semantic_version: str, experiment_id: str | None = None
         raise ValueError("unsupported semantic runtime version")
     if experiment_id is None:
         return f"ppo_semantic_{semantic_version}"
-    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1") or semantic_version != "v3":
+    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2") or semantic_version != "v3":
         raise ValueError("isolated semantic experiment requires semantic version v3")
     return f"ppo_{experiment_id}"
+
+
+def _fsm_reference_p09_same372_transition(before, after, binding, *, metadata, old, new,
+                                         config_records, project_root, target_policy_version):
+    """One explicit functional-lift/reference boundary, not a generic372 waiver."""
+    import yaml
+    from .semantic_policy_distribution import (HISTORY_POLICY, policy_contract,
+        policy_observation_layout_from_metadata, policy_version_from_metadata)
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    if (old.get("experiment_id") != "all_stage_acceptance_v1"
+            or new.get("experiment_id") != "fsm_reference_p09_stable_v2"
+            or old.get("semantic_version") != "v3" or new.get("semantic_version") != "v3"
+            or policy_version_from_metadata(metadata) != HISTORY_POLICY
+            or policy_observation_layout_from_metadata(metadata) != ROLE_OBSERVATION_LAYOUT
+            or source_num_envs(metadata) != 1 or target_policy_version is not None):
+        raise ValueError("FSM/P09 boundary requires existing all-stage N1 HISTORY372 without a kernel change")
+    if (before != after or binding["source_sha256"] != binding["target_sha256"]
+            or sum(row["size"] for row in after["feature_groups"]) != 372):
+        raise ValueError("FSM/P09 boundary must preserve all372 schema bytes and fixed preprocessing")
+    variable = {"files", "source_git_commit", "runtime_content_sha256", "selected_configuration", "experiment_id"}
+    if ({k:v for k,v in old.items() if k not in variable}
+            != {k:v for k,v in new.items() if k not in variable}):
+        raise ValueError("FSM/P09 boundary cannot change other runtime/physical metadata")
+    for name in ("action_schema.json", "quality_score.yaml", "reward_config.yaml", "observation_schema.json"):
+        if config_records[name]["source_sha256"] != config_records[name]["target_sha256"]:
+            raise ValueError(f"FSM/P09 boundary cannot change configuration bytes: {name}")
+    for side, contract in (("source", old), ("target", new)):
+        selected = contract.get("selected_configuration", {})
+        if set(selected) != set(config_records):
+            raise ValueError("FSM/P09 requires exactly six selected configuration bindings")
+        namespace = "ppo_all_stage_acceptance_v1" if side == "source" else "ppo_fsm_reference_p09_stable_v2"
+        for name, row in config_records.items():
+            expected = {"path": f"configs/{namespace}/{name}", "sha256": row[f"{side}_sha256"]}
+            if (row[f"{side}_path"] != expected["path"] or selected[name] != expected
+                    or contract["files"].get(expected["path"]) != expected["sha256"]):
+                raise ValueError("FSM/P09 configuration namespace/hash binding differs")
+    configs = {}
+    for name in ("stage_task_spec.yaml", "execution_profile.yaml"):
+        row = config_records[name]
+        source = yaml.safe_load(_version_bytes(project_root, old, row["source_path"], prefer_worktree=True))
+        target = yaml.safe_load((project_root / row["target_path"]).read_text(encoding="utf-8"))
+        if not isinstance(source, dict) or not isinstance(target, dict):
+            raise ValueError("FSM/P09 configuration root must be a mapping")
+        configs[name] = (source, target)
+    source_spec, target_spec = configs["stage_task_spec.yaml"]
+    expected_spec = {**source_spec, "revision": "fsm_reference_p09_stable_v2",
+                     "p09_lift_semantics": "functional_lift_edge_v2",
+                     "reference_nominal_semantics": "successful_fsm_derived_v2"}
+    if (target_spec != expected_spec or source_spec.get("physical_acceptance_version") != "all_stage_v1"
+            or source_spec.get("rear_leg_order") != "RR_FIRST"
+            or "p09_lift_semantics" in source_spec or "reference_nominal_semantics" in source_spec):
+        raise ValueError("FSM/P09 task config permits only its revision and two explicit functional-lift/nominal opt-ins")
+    source_profile, target_profile = configs["execution_profile.yaml"]
+    expected_profile = {**source_profile,
+        "revision": "fsm_reference_p09_stable_v2_shared_source_derived_nominal",
+        "nominal_geometry_advisory": "functional_rr_preplace_nominal_advisory_v2"}
+    if target_profile != expected_profile:
+        raise ValueError("FSM/P09 execution profile permits only the reviewed nominal geometry advisory")
+    allowed = {SUPERVISOR, "scripts/run_semantic_ppo.ps1",
+        *(f"src/wlr50_clean/ppo/{name}.py" for name in (
+            "semantic_cli", "semantic_migration", "semantic_training", "semantic_backend",
+            "semantic_transfer_roles", "semantic_nominal_geometry", "semantic_prefix")),
+        *(row["target_path"] for row in config_records.values())}
+    delta = {p for p in old["files"].keys() | new["files"].keys() if old["files"].get(p) != new["files"].get(p)}
+    if not delta <= allowed or old["files"].keys() - new["files"].keys():
+        raise ValueError(f"FSM/P09 changed non-reviewed runtime files: {sorted(delta - allowed)}")
+    for relative in delta:
+        if relative in old["files"]:
+            _version_bytes(project_root, old, relative, prefer_worktree=True)
+        if file_sha(project_root / relative) != new["files"][relative]:
+            raise ValueError("FSM/P09 target runtime bytes differ from inventory")
+    source_lr = metadata.get("optimizer_learning_rate")
+    if type(source_lr) not in (int, float) or not math.isfinite(source_lr) or source_lr <= 0:
+        raise ValueError("FSM/P09 requires the recorded finite positive source effective Adam learning rate")
+    contract = policy_contract(HISTORY_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    return {"schema": FSM_REFERENCE_P09_SCHEMA,
+        "source_observation_dimension": 372, "target_observation_dimension": 372,
+        "source_observation_layout": ROLE_OBSERVATION_LAYOUT, "target_observation_layout": ROLE_OBSERVATION_LAYOUT,
+        "source_schema_sha256": binding["source_sha256"], "target_schema_sha256": binding["target_sha256"],
+        "source_policy_contract": contract, "target_policy_contract": dict(contract),
+        "parameter_mapping": "identity_all_parameters_and_buffers", "observation_bytes_unchanged": True,
+        "observation_semantics_changed": ["RR active_lift_history slot represents current valid lift evidence, not permanent historical qualification"],
+        "kernel_changed": False, "reward_changed": True, "physical_actuators_changed": False,
+        "action_ranges_changed": False, "nominal_and_task_acceptance_changed": True,
+        "normalizers": "identity_RSL_state_preserved", "old_rollout_inherited": False,
+        "training_rng_preserved": True, "lifetime_counters_and_spent_budgets_preserved": True,
+        "optimizer": {"kind": "Adam", "state": "reset_all_moments",
+            "initial_learning_rate": source_lr, "learning_rate_policy": "preserve_verified_source_effective_learning_rate"},
+        "equivalence_scope": "identical372-input learned function only; changed functional-lift observation/task and successful-FSM-derived nominal, not trajectory equivalence"}
 
 
 def _all_stage_same372_transition(before, after, binding, *, metadata, old, new,
@@ -512,7 +603,12 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
     observation_transition = None
     observation_append_transition = None
     observation_same_layout_transition = None
-    if target_experiment == "all_stage_acceptance_v1":
+    if target_experiment == "fsm_reference_p09_stable_v2":
+        observation_same_layout_transition = _fsm_reference_p09_same372_transition(
+            before, after, config_records["observation_schema.json"], metadata=metadata,
+            old=old, new=new, config_records=config_records, project_root=project_root,
+            target_policy_version=target_policy_version)
+    elif target_experiment == "all_stage_acceptance_v1":
         observation_same_layout_transition = _all_stage_same372_transition(
             before, after, config_records["observation_schema.json"], metadata=metadata,
             old=old, new=new, config_records=config_records, project_root=project_root,
@@ -616,7 +712,7 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
         result["experiment_transition"] = {
             "source_experiment_id": source_experiment, "target_experiment_id": target_experiment,
             "source_artifact_namespace": source_namespace, "target_artifact_namespace": target_namespace,
-            "target_configuration_namespace": (target_namespace if target_experiment == "all_stage_acceptance_v1" else "ppo_semantic_v3"), "v3_budgets_reset": False,
+            "target_configuration_namespace": (target_namespace if target_experiment in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2") else "ppo_semantic_v3"), "v3_budgets_reset": False,
         }
     if observation_transition is not None:
         result["observation_scale_transition"] = observation_transition
@@ -646,6 +742,8 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
             critic="preserve_all_parameters_and_buffers",
             normalizers="identity_RSL_state_preserved; identical_complete372_schema_bytes")
         result["optimizer"]["reason"] = "explicit same372 semantic/authority boundary; verify source Adam then reset moments"
+        if observation_same_layout_transition["schema"] == FSM_REFERENCE_P09_SCHEMA:
+            result["optimizer"].update(observation_same_layout_transition["optimizer"])
         result["action_output_semantics"] = observation_same_layout_transition["equivalence_scope"]
     return result
 

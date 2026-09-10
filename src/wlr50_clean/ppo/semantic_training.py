@@ -198,6 +198,7 @@ class SemanticRslAdapter:
                     "reset_sampling": "P01_full_task_only_initial_version"}
         self.episode_length_buf = torch.zeros(1, dtype=torch.long, device=device)
         self.completed_episodes: list[dict[str, Any]] = []
+        self._terminal_evidence_writer = None
         self.total_decisions = 0
         self._observation = tuple(core.reset(seed=seed))
         self.observation_dimension = len(self._observation)
@@ -234,6 +235,7 @@ class SemanticRslAdapter:
         extras: dict[str, Any] = {"semantic_decisions": [info], "episode_summaries": [],
                                   "time_outs": torch.zeros(1, dtype=torch.bool, device=self.device)}
         done = bool(step.terminated)
+        reward_tensor = torch.tensor([reward], device=self.device)
         if done:
             summary = {"episode_index": len(self.completed_episodes), "seed": self.seed,
                        "policy_decisions": int(self.episode_length_buf.item()),
@@ -246,9 +248,15 @@ class SemanticRslAdapter:
             self.completed_episodes.append(summary)
             extras["episode_summaries"] = [summary]
             extras["terminal_observation"] = terminal_observation
+            # A teacher-prefix reset may take minutes or fail. The collector's
+            # sampled-action evidence must be durable before starting that reset,
+            # without moving the RSL storage/return boundary or changing its obs.
+            if self._terminal_evidence_writer is not None:
+                self._terminal_evidence_writer(summary, terminal_observation, reward_tensor)
+                extras["terminal_evidence_persisted_before_reset"] = True
             self._observation = tuple(self.core.reset(seed=self.seed))
             self.episode_length_buf.zero_()
-        return (self.get_observations(), torch.tensor([reward], device=self.device),
+        return (self.get_observations(), reward_tensor,
                 torch.tensor([done], dtype=torch.bool, device=self.device), extras)
 
     def telemetry_summary(self) -> dict[str, Any]:
@@ -769,6 +777,7 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
     import torch
     from .semantic_migration import (
         build_v3_warm_start_record, checkpoint_metadata, SAME372_AUTHORITY_SCHEMA, ALL_STAGE_SCHEMA,
+        FSM_REFERENCE_P09_SCHEMA,
     )
     kernel = record.get("policy_kernel_transition")
     options = {} if kernel is None else {"target_policy_version": kernel.get("target_policy_version")}
@@ -786,7 +795,7 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
     same_layout = record.get("observation_same_layout_transition")
     if same_layout is not None:
         from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
-        if (same_layout.get("schema") not in (SAME372_AUTHORITY_SCHEMA, ALL_STAGE_SCHEMA)
+        if (same_layout.get("schema") not in (SAME372_AUTHORITY_SCHEMA, ALL_STAGE_SCHEMA, FSM_REFERENCE_P09_SCHEMA)
                 or same_layout.get("source_observation_dimension") != 372
                 or same_layout.get("target_observation_dimension") != 372
                 or same_layout.get("source_observation_layout") != ROLE_OBSERVATION_LAYOUT
@@ -841,9 +850,21 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
                  "critic_parameter_sha256": scale_evidence["compensated_critic_parameter_sha256"]}
     # The temporary official restore above proves the saved state before this
     # deliberate new-MDP reset. No old Adam moment is used by any optimizer step.
+    learning_rate, adam_options = 3e-5, {}
+    if same_layout is not None and same_layout.get("schema") == FSM_REFERENCE_P09_SCHEMA:
+        if type(runner.alg.optimizer) is not torch.optim.Adam or len(runner.alg.optimizer.param_groups) != 1:
+            raise RuntimeError("FSM/P09 migration requires the verified single-group official Adam")
+        learning_rate = optimizer_learning_rate(runner)
+        if (learning_rate != metadata.get("optimizer_learning_rate")
+                or learning_rate != record["optimizer"]["initial_learning_rate"]
+                or record["optimizer"].get("learning_rate_policy") != "preserve_verified_source_effective_learning_rate"):
+            raise RuntimeError("FSM/P09 source effective Adam learning rate differs from its migration record")
+        adam_options = {key: copy.deepcopy(runner.alg.optimizer.param_groups[0][key])
+                        for key in runner.alg.optimizer.defaults if key != "lr"}
     runner.alg.optimizer = torch.optim.Adam(
-        list(runner.alg.actor.parameters()) + list(runner.alg.critic.parameters()), lr=3e-5)
-    runner.alg.learning_rate = 3e-5
+        list(runner.alg.actor.parameters()) + list(runner.alg.critic.parameters()),
+        lr=learning_rate, **adam_options)
+    runner.alg.learning_rate = learning_rate
     assert_semantic_return_consistency(runner, runner.env)
     restore_training_rng_state(infos["training_rng_state"], expected_seed=seed)
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
@@ -1012,6 +1033,33 @@ def semantic_curriculum_epoch(config: Mapping[str, Any]) -> dict[str, Any]:
     return result
 
 
+@contextmanager
+def _terminal_evidence_before_reset(env: Any, writer: Any):
+    """Install a collector-owned sink only for this single-environment step."""
+    if not isinstance(env, SemanticRslAdapter):
+        yield
+        return
+    if env._terminal_evidence_writer is not None:
+        raise RuntimeError("terminal evidence writer is already installed")
+    env._terminal_evidence_writer = writer
+    try:
+        yield
+    finally:
+        env._terminal_evidence_writer = None
+
+
+def _semantic_decision_audit_row(*, global_decision: int, index: int,
+                                 sampled_raw: Any, old_mean: Any, old_std: Any,
+                                 old_log_prob: Any, old_value: Any,
+                                 reward: Any, terminal: bool, info: Any) -> dict[str, Any]:
+    return {"global_policy_decision": global_decision,
+            "raw_policy_action_full12": sampled_raw[index].cpu().tolist(),
+            "old_distribution_mean_full12": old_mean[index].cpu().tolist(),
+            "old_distribution_std_full12": old_std[index].cpu().tolist(),
+            "old_log_probability": float(old_log_prob[index]), "old_value": float(old_value[index]),
+            "reward": float(reward), "terminal": terminal, "applied_audit": info}
+
+
 def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                    output_root: Path, stage: str, decisions: int,
                    contract: Mapping[str, Any], seed: int, resume_infos: Mapping[str, Any] | None = None,
@@ -1065,7 +1113,35 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             or not bool(torch.isfinite(old_mean).all())
                             or not bool(torch.isfinite(old_std).all()) or not bool((old_std > 0).all())):
                         raise RuntimeError("invalid sampled raw policy distribution before physics step")
-                    obs, rewards, dones, extras = env.step(raw.to(env.device))
+                    terminal_persisted = False
+
+                    def persist_terminal(summary: Any, final_observation: Any, terminal_reward: Any) -> None:
+                        nonlocal terminal_persisted
+                        if terminal_persisted:
+                            raise RuntimeError("duplicate terminal evidence callback for one policy decision")
+                        if any(not bool(torch.isfinite(value).all())
+                               for value in (sampled_raw, old_log_prob, old_value, terminal_reward)):
+                            raise RuntimeError("non-finite on-policy terminal transition")
+                        row = _semantic_decision_audit_row(
+                            global_decision=base_global + iteration * batch + tick + 1, index=0,
+                            sampled_raw=sampled_raw, old_mean=old_mean, old_std=old_std,
+                            old_log_prob=old_log_prob, old_value=old_value,
+                            reward=terminal_reward[0], terminal=True, info=summary["terminal_info"])
+                        row["terminal_observation"] = {
+                            key: jsonable(value) for key, value in final_observation.items()}
+                        # Serialize both before either write; fsync both before
+                        # allowing the potentially long or failing next prefix.
+                        audit_line = json.dumps(row, allow_nan=False) + "\n"
+                        episode_line = json.dumps(summary, allow_nan=False) + "\n"
+                        audit_stream.write(audit_line)
+                        episode_stream.write(episode_line)
+                        for stream in (audit_stream, episode_stream):
+                            stream.flush()
+                            os.fsync(stream.fileno())
+                        terminal_persisted = True
+
+                    with _terminal_evidence_before_reset(env, persist_terminal):
+                        obs, rewards, dones, extras = env.step(raw.to(env.device))
                     if semantic_curriculum_epoch(env.cfg) != curriculum:
                         raise RuntimeError("curriculum changed during a physical step/reset of the on-policy epoch")
                     assert_semantic_return_consistency(runner, env)
@@ -1074,16 +1150,17 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                     if bool(extras["time_outs"].any()):
                         raise RuntimeError("task finite-horizon termination must not bootstrap")
                     for index, info in enumerate(extras["semantic_decisions"]):
-                        row = {"global_policy_decision": base_global + iteration * batch + tick * env.num_envs + index + 1,
-                               "raw_policy_action_full12": sampled_raw[index].cpu().tolist(),
-                               "old_distribution_mean_full12": old_mean[index].cpu().tolist(),
-                               "old_distribution_std_full12": old_std[index].cpu().tolist(),
-                               "old_log_probability": float(old_log_prob[index]), "old_value": float(old_value[index]),
-                               "reward": float(rewards[index]), "terminal": bool(dones[index]),
-                               "applied_audit": info}
+                        if terminal_persisted:
+                            continue
+                        row = _semantic_decision_audit_row(
+                            global_decision=base_global + iteration * batch + tick * env.num_envs + index + 1,
+                            index=index, sampled_raw=sampled_raw, old_mean=old_mean, old_std=old_std,
+                            old_log_prob=old_log_prob, old_value=old_value,
+                            reward=rewards[index], terminal=bool(dones[index]), info=info)
                         audit_stream.write(json.dumps(row, allow_nan=False) + "\n")
                     for episode in extras["episode_summaries"]:
-                        episode_stream.write(json.dumps(episode, allow_nan=False) + "\n")
+                        if not terminal_persisted:
+                            episode_stream.write(json.dumps(episode, allow_nan=False) + "\n")
                     obs, rewards, dones = obs.to(runner.device), rewards.to(runner.device), dones.to(runner.device)
                     runner.alg.process_env_step(obs, rewards, dones, extras)
                     if not torch.equal(runner.alg.storage.actions[tick], sampled_raw):

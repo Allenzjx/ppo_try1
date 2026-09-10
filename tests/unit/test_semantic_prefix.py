@@ -269,7 +269,7 @@ def test_semantic_task_snapshot_forwards_live_diagnostics_without_alias_clock_or
     controller=backend.prefix_controller
     inner=controller._semantic
     assert controller.mode=="READY" and inner is not None and not done.item()
-    assert encoded["policy"].shape==(1,324)
+    assert encoded["policy"].shape==(1,372)  # v3 includes the existing 48 transfer-role features.
     expected=inner.task_snapshot
     diagnostics=expected["nominal_provider_diagnostics"]
     assert "p06_rolling_retirement" in diagnostics and "p06_wheel_tail" in diagnostics
@@ -302,7 +302,7 @@ def test_semantic_task_snapshot_forwards_live_diagnostics_without_alias_clock_or
     schema=core.observation_schema
     with_diagnostics=SemanticObservationBuilder(schema).build(core.frame,history)
     without_diagnostics=SemanticObservationBuilder(schema).build(frame_without,history)
-    assert schema.dimension==324
+    assert schema.dimension==372
     assert schema.encode(with_diagnostics.groups)==schema.encode(without_diagnostics.groups)
     assert read_state()==state and controller.supervisor.snapshot==before
 
