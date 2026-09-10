@@ -1,0 +1,394 @@
+{
+  "schema": "ppo_all_stage_acceptance_v1.completed_rear_windows.v1",
+  "created_at_utc": "2026-09-09T04:22:50.547732+00:00",
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_all_stage_acceptance_v1\\train\\20260909T0327591294869Z_ga8b148463115_1996f4a3ba204ea7b30a7bf6b1038046",
+  "lifecycle": "STOPPED_AT_VERIFIED_UPDATE_BOUNDARY",
+  "runtime": {
+    "experiment_id": "all_stage_acceptance_v1",
+    "source_git_commit": "a8b1484631156bad6e6ef0c96bd79a2fbf12e308",
+    "runtime_content_sha256": "6603144ae32ce7e81772763260cd619d20597e96acedfed70f77abeb7e47b3e3"
+  },
+  "source_global": 139520,
+  "end_global": 139904,
+  "actual_policy_decisions": 384,
+  "ppo_updates_this_run": 3,
+  "optimizer_steps_this_run": 60,
+  "audit": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_all_stage_acceptance_v1\\train\\20260909T0327591294869Z_ga8b148463115_1996f4a3ba204ea7b30a7bf6b1038046\\residual_and_projection_audit.jsonl",
+    "bytes": 28036545,
+    "full_stream_passes": 1,
+    "rows": 384,
+    "analysis_wall_s": 0.38581079989671707,
+    "hashes_computed": false,
+    "other_large_streams_read": [],
+    "file_metadata_unchanged_during_pass": true
+  },
+  "window_bounds": {
+    "radius_decisions": 3,
+    "events_per_leg_kind": 2,
+    "maximum_windows_per_episode": 41,
+    "maximum_rows_per_window": 7
+  },
+  "phase_counts": {
+    "P01": 0,
+    "P02": 0,
+    "P03": 0,
+    "P04": 0,
+    "P05": 0,
+    "P06": 363,
+    "P07": 2,
+    "P08": 2,
+    "P09": 17,
+    "P10": 0,
+    "P11": 0,
+    "P12": 0,
+    "P13": 0
+  },
+  "policy_rear_event_counts": {
+    "RR:I": 3,
+    "RL:I": 1,
+    "RR:Q": 2
+  },
+  "recorded_native_and_write_counts": {
+    "physics_ticks": 3071,
+    "physics_ticks_available_rows": 384,
+    "verified_tick_count": 3071,
+    "verified_tick_count_available_rows": 384,
+    "actual_native_effect_tick_count": 3071,
+    "actual_native_effect_tick_count_available_rows": 384,
+    "own_phase_request_effect_tick_count": 3065,
+    "own_phase_request_effect_tick_count_available_rows": 384,
+    "all_ticks_verified_true_rows": 384,
+    "all_ticks_verified_false_rows": 0,
+    "all_ticks_verified_unavailable_rows": 0,
+    "in_episode_root_pose_writes_zero_rows": 384,
+    "in_episode_root_velocity_writes_zero_rows": 384,
+    "in_episode_force_or_impulse_writes_zero_rows": 384,
+    "in_episode_gravity_writes_zero_rows": 384
+  },
+  "prefix_excluded_from_policy_rows": true,
+  "prefix_counts_from_manifest_physical_minus_credit": {
+    "decisions": 1344,
+    "physics_ticks": 10752
+  },
+  "prefix_scope": "Manifest subtraction only, includes any reset/prefix core work; no prefix event/native stream read.",
+  "optional_pose_scope": {
+    "encoded_observation": "UNAVAILABLE",
+    "raw_base_pose": "UNAVAILABLE",
+    "rpy": "UNAVAILABLE",
+    "gravity_vector": "UNAVAILABLE",
+    "reason": "No observation decoding or reconstruction; inspect per-episode key-presence inventory."
+  },
+  "episodes": [
+    {
+      "episode_index": 0,
+      "source_classification": "current_PPO_policy",
+      "task_result_scope": "teacher_initialized_suffix",
+      "curriculum_start": {
+        "mode": "teacher_initialized_suffix",
+        "requested_phase": "P06",
+        "actual_phase": "P06",
+        "physics_tick": 3584,
+        "sim_time_s": 29.866666666666667,
+        "from_P01_current_policy": false,
+        "requested_phase_still_active_at_credit": true,
+        "prefix_attempt_index": 0
+      },
+      "credit_start_episode_physics_tick": 3584,
+      "first_global": 139521,
+      "last_global": 139698,
+      "decisions": 178,
+      "physics_ticks": 1424,
+      "phase_counts": {
+        "P01": 0,
+        "P02": 0,
+        "P03": 0,
+        "P04": 0,
+        "P05": 0,
+        "P06": 162,
+        "P07": 1,
+        "P08": 1,
+        "P09": 14,
+        "P10": 0,
+        "P11": 0,
+        "P12": 0,
+        "P13": 0
+      },
+      "nonterminal_handoffs": 3,
+      "handoff_windows_omitted": 0,
+      "terminal": true,
+      "termination_reason": "FALL",
+      "task_success": false,
+      "full_task_success": false,
+      "last_episode_physics_tick": 5008,
+      "last_sim_time_s": 41.733333333333334,
+      "policy_rear_event_counts": {
+        "RR:I": 2,
+        "RL:I": 1,
+        "RR:Q": 1
+      },
+      "inherited_rear_event_counts_excluded": {
+        "RL:I": 2
+      },
+      "event_windows_policy": "First N-1 and latest per leg/kind; counts include omitted intermediate events.",
+      "event_windows_omitted": 0,
+      "decision_end_ranges": {
+        "RR:front_distance_m": {
+          "min": -0.5765223469035661,
+          "max": -0.2793242152230775,
+          "available_rows": 178,
+          "unavailable_rows": 0
+        },
+        "RR:clearance_m": {
+          "min": -0.05161328137494381,
+          "max": 0.24253061104386725,
+          "available_rows": 178,
+          "unavailable_rows": 0
+        },
+        "RL:front_distance_m": {
+          "min": -0.5092646259264981,
+          "max": -0.2991480197207963,
+          "available_rows": 178,
+          "unavailable_rows": 0
+        },
+        "RL:clearance_m": {
+          "min": -0.051561297554126195,
+          "max": -0.04714059370904737,
+          "available_rows": 178,
+          "unavailable_rows": 0
+        }
+      },
+      "recorded_native_and_write_counts": {
+        "physics_ticks": 1424,
+        "physics_ticks_available_rows": 178,
+        "verified_tick_count": 1424,
+        "verified_tick_count_available_rows": 178,
+        "actual_native_effect_tick_count": 1424,
+        "actual_native_effect_tick_count_available_rows": 178,
+        "own_phase_request_effect_tick_count": 1421,
+        "own_phase_request_effect_tick_count_available_rows": 178,
+        "all_ticks_verified_true_rows": 178,
+        "all_ticks_verified_false_rows": 0,
+        "all_ticks_verified_unavailable_rows": 0,
+        "in_episode_root_pose_writes_zero_rows": 178,
+        "in_episode_root_velocity_writes_zero_rows": 178,
+        "in_episode_force_or_impulse_writes_zero_rows": 178,
+        "in_episode_gravity_writes_zero_rows": 178
+      },
+      "optional_observation_like_fields_present_rows": {},
+      "rpy_gravity_raw_base_pose": "UNAVAILABLE",
+      "rpy_gravity_scope": "No verified serialized observation schema decoded; scalar speed/AABB are not raw pose.",
+      "window_count": 16,
+      "selected_unique_decision_rows": 66
+    },
+    {
+      "episode_index": 1,
+      "source_classification": "current_PPO_policy",
+      "task_result_scope": "teacher_initialized_suffix",
+      "curriculum_start": {
+        "mode": "teacher_initialized_suffix",
+        "requested_phase": "P06",
+        "actual_phase": "P06",
+        "physics_tick": 3584,
+        "sim_time_s": 29.866666666666667,
+        "from_P01_current_policy": false,
+        "requested_phase_still_active_at_credit": true,
+        "prefix_attempt_index": 1
+      },
+      "credit_start_episode_physics_tick": 3584,
+      "first_global": 139699,
+      "last_global": 139815,
+      "decisions": 117,
+      "physics_ticks": 935,
+      "phase_counts": {
+        "P01": 0,
+        "P02": 0,
+        "P03": 0,
+        "P04": 0,
+        "P05": 0,
+        "P06": 112,
+        "P07": 1,
+        "P08": 1,
+        "P09": 3,
+        "P10": 0,
+        "P11": 0,
+        "P12": 0,
+        "P13": 0
+      },
+      "nonterminal_handoffs": 3,
+      "handoff_windows_omitted": 0,
+      "terminal": true,
+      "termination_reason": "FALL",
+      "task_success": false,
+      "full_task_success": false,
+      "last_episode_physics_tick": 4519,
+      "last_sim_time_s": 37.65833333333333,
+      "policy_rear_event_counts": {
+        "RR:I": 1,
+        "RR:Q": 1
+      },
+      "inherited_rear_event_counts_excluded": {
+        "RL:I": 2
+      },
+      "event_windows_policy": "First N-1 and latest per leg/kind; counts include omitted intermediate events.",
+      "event_windows_omitted": 0,
+      "decision_end_ranges": {
+        "RR:front_distance_m": {
+          "min": -0.5490375574128663,
+          "max": -0.28513781385589,
+          "available_rows": 117,
+          "unavailable_rows": 0
+        },
+        "RR:clearance_m": {
+          "min": -0.051541151462730445,
+          "max": 0.014063075888126012,
+          "available_rows": 117,
+          "unavailable_rows": 0
+        },
+        "RL:front_distance_m": {
+          "min": -0.5100755266295707,
+          "max": -0.4173648546831643,
+          "available_rows": 117,
+          "unavailable_rows": 0
+        },
+        "RL:clearance_m": {
+          "min": -0.051041885798191536,
+          "max": -0.04998527777601578,
+          "available_rows": 117,
+          "unavailable_rows": 0
+        }
+      },
+      "recorded_native_and_write_counts": {
+        "physics_ticks": 935,
+        "physics_ticks_available_rows": 117,
+        "verified_tick_count": 935,
+        "verified_tick_count_available_rows": 117,
+        "actual_native_effect_tick_count": 935,
+        "actual_native_effect_tick_count_available_rows": 117,
+        "own_phase_request_effect_tick_count": 932,
+        "own_phase_request_effect_tick_count_available_rows": 117,
+        "all_ticks_verified_true_rows": 117,
+        "all_ticks_verified_false_rows": 0,
+        "all_ticks_verified_unavailable_rows": 0,
+        "in_episode_root_pose_writes_zero_rows": 117,
+        "in_episode_root_velocity_writes_zero_rows": 117,
+        "in_episode_force_or_impulse_writes_zero_rows": 117,
+        "in_episode_gravity_writes_zero_rows": 117
+      },
+      "optional_observation_like_fields_present_rows": {},
+      "rpy_gravity_raw_base_pose": "UNAVAILABLE",
+      "rpy_gravity_scope": "No verified serialized observation schema decoded; scalar speed/AABB are not raw pose.",
+      "window_count": 14,
+      "selected_unique_decision_rows": 42
+    },
+    {
+      "episode_index": 2,
+      "source_classification": "current_PPO_policy",
+      "task_result_scope": "teacher_initialized_suffix",
+      "curriculum_start": {
+        "mode": "teacher_initialized_suffix",
+        "requested_phase": "P06",
+        "actual_phase": "P06",
+        "physics_tick": 3584,
+        "sim_time_s": 29.866666666666667,
+        "from_P01_current_policy": false,
+        "requested_phase_still_active_at_credit": true,
+        "prefix_attempt_index": 2
+      },
+      "credit_start_episode_physics_tick": 3584,
+      "first_global": 139816,
+      "last_global": 139904,
+      "decisions": 89,
+      "physics_ticks": 712,
+      "phase_counts": {
+        "P01": 0,
+        "P02": 0,
+        "P03": 0,
+        "P04": 0,
+        "P05": 0,
+        "P06": 89,
+        "P07": 0,
+        "P08": 0,
+        "P09": 0,
+        "P10": 0,
+        "P11": 0,
+        "P12": 0,
+        "P13": 0
+      },
+      "nonterminal_handoffs": 0,
+      "handoff_windows_omitted": 0,
+      "terminal": false,
+      "termination_reason": null,
+      "task_success": false,
+      "full_task_success": false,
+      "last_episode_physics_tick": 4296,
+      "last_sim_time_s": 35.8,
+      "policy_rear_event_counts": {},
+      "inherited_rear_event_counts_excluded": {
+        "RL:I": 2
+      },
+      "event_windows_policy": "First N-1 and latest per leg/kind; counts include omitted intermediate events.",
+      "event_windows_omitted": 0,
+      "decision_end_ranges": {
+        "RR:front_distance_m": {
+          "min": -0.6001991297500169,
+          "max": -0.36839782850909586,
+          "available_rows": 89,
+          "unavailable_rows": 0
+        },
+        "RR:clearance_m": {
+          "min": -0.0517962751630275,
+          "max": -0.049988289624129864,
+          "available_rows": 89,
+          "unavailable_rows": 0
+        },
+        "RL:front_distance_m": {
+          "min": -0.5274354460099673,
+          "max": -0.41000328617263193,
+          "available_rows": 89,
+          "unavailable_rows": 0
+        },
+        "RL:clearance_m": {
+          "min": -0.05131098648341835,
+          "max": -0.04853444948009658,
+          "available_rows": 89,
+          "unavailable_rows": 0
+        }
+      },
+      "recorded_native_and_write_counts": {
+        "physics_ticks": 712,
+        "physics_ticks_available_rows": 89,
+        "verified_tick_count": 712,
+        "verified_tick_count_available_rows": 89,
+        "actual_native_effect_tick_count": 712,
+        "actual_native_effect_tick_count_available_rows": 89,
+        "own_phase_request_effect_tick_count": 712,
+        "own_phase_request_effect_tick_count_available_rows": 89,
+        "all_ticks_verified_true_rows": 89,
+        "all_ticks_verified_false_rows": 0,
+        "all_ticks_verified_unavailable_rows": 0,
+        "in_episode_root_pose_writes_zero_rows": 89,
+        "in_episode_root_velocity_writes_zero_rows": 89,
+        "in_episode_force_or_impulse_writes_zero_rows": 89,
+        "in_episode_gravity_writes_zero_rows": 89
+      },
+      "optional_observation_like_fields_present_rows": {},
+      "rpy_gravity_raw_base_pose": "UNAVAILABLE",
+      "rpy_gravity_scope": "No verified serialized observation schema decoded; scalar speed/AABB are not raw pose.",
+      "window_count": 9,
+      "selected_unique_decision_rows": 33
+    }
+  ],
+  "limits": [
+    "Only current PPO credited rows/events. Inherited pre-credit events are counted separately, not learned achievements.",
+    "Each event window is centered on its FIRST OBSERVED decision row, not an invented exact event-tick state.",
+    "Geometry/controls are decision-end samples; reward covers that action interval; policy Gaussian moments/raw are pre-action.",
+    "Native command physics_tick and episode physics_tick are preserved separately; no assumed equality or offset conversion.",
+    "Extrema are over credited decision-end samples only, not all 120 Hz states. No minimum-gap/contact claims between samples.",
+    "Native flags are recorded evidence, not independently re-executed validation; no full raw/native trajectory is read.",
+    "old_distribution_mean/std are policy Gaussian moments, NOT encoded observations or body-pose measurements.",
+    "Scalar body speeds, body_forward_m and world AABB do not determine RPY/gravity, signed velocity, or center of mass.",
+    "No encoded-observation inversion. Even if optional observation-like fields appear, their schema is not assumed or decoded.",
+    "No new success, safety reclassification, dynamics/causal proof, optimizer gate, or parameter recommendation."
+  ]
+}

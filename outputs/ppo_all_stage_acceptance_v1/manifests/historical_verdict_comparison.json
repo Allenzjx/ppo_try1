@@ -1,0 +1,42 @@
+{
+  "schema": "wlr50_clean.all_stage_historical_verdicts.v1",
+  "rewrites_original_results": false,
+  "A": {
+    "original_result": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "duration_s": 65.3667,
+    "first_unfinished_stage": "P10 WAIT_ENTRY",
+    "evidence": "old RR knee entry delta 4.5393 deg and rebound-speed delta 20.9746 deg/s; no observed hard safety failure",
+    "classification": "task not completed; original exact-entry controller limit; additionally unpaired initialization",
+    "paired_with_current_C": false,
+    "seed": 4001,
+    "settle_ticks": 180,
+    "extra_zero_action_ticks": 64,
+    "video": "original file retained; 989 decoded frames/15fps; invalid container duration metadata",
+    "new_common_rule_verdict": "UNVERIFIED_without_current_geometry_and_surface_evidence"
+  },
+  "B1": {
+    "original_result": "TASK_FAILURE_WHEEL_ONLY_CLIMB",
+    "duration_s": 50.475,
+    "first_unfinished_stage": "P09",
+    "original_trigger": "missing old above-top AIR Q at RR front-center crossing",
+    "recorded_mechanism": "initial whole-body RR clearance;27AIRticks;maximum old bottom gap -0.000885523m",
+    "new_interpretation": "missing_Q_is_not_positive_proof_of_pure_wheel_climb",
+    "new_common_rule_verdict": "UNVERIFIED_not_retroactive_success"
+  },
+  "C8_source_checkpoint_138496": {
+    "original_result": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "first_unfinished_stage": "P02",
+    "duration_s": 15.133333333333333,
+    "FR_front_distance_m": -0.005898353029969883,
+    "FR_bottom_gap_m": 0.02439346065236893,
+    "original_approach_progress": 0.9964065878801205,
+    "classification": "local task deadline with near-boundary progress; not full traversal",
+    "new_common_rule_verdict": "requires_fresh_reloaded_evaluation_not_threshold_relabeling"
+  },
+  "development_history": {
+    "attempts": 8,
+    "completed": 0,
+    "same_policy_same_semantics_repetitions": false,
+    "do_not_call_this_single_policy_repeat_success_rate": true
+  }
+}

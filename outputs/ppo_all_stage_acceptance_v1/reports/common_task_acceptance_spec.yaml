@@ -1,0 +1,58 @@
+schema: wlr50_clean.common_task_acceptance.all_stage_v1
+implementation: src/wlr50_clean/ppo/semantic_supervisor.py::TaskEvaluator
+selected_config: configs/ppo_all_stage_acceptance_v1/stage_task_spec.yaml
+scope: same physical evaluator for A_original_controller B_zero_residual C_policy
+not_success_evidence: [phase_label, source_motion_endpoint, historical_Trial043, suffix_success, missing_failure]
+clock: {physics_hz: 120, decisions_hz: 15, maximum_episode_s: 200}
+geometry:
+  source: frozen_enabled_collider_body_local_points_transformed_by_live_body_pose
+  body_traversal: whole_live_body_AABB_inside_platform_XY_with_existing_5mm_measurement_tolerance
+  target: obstacle_top_not_off_back_edge
+contacts:
+  requirement: exact_body_obstacle_pair_force_vector_and_optional_mean_point
+  top: mean_point_in_top_plane_band_and_upward_resultant_dominates_horizontal
+  front_wall: mean_point_on_front_below_top_band_and_horizontal_reaction_dominates_vertical
+  ambiguous: corner_or_mixed_or_missing_mean_point_not_claimed_TOP
+  caveat: mean_point_and_resultant_are_not_individual_contact_normals
+  support: verified_gravity_bearing_force_at_least_0.2N
+  unknown_bearing: role_load_fractions_invalid_not_zero_load_evidence
+lift_and_cross:
+  order: [FR, FL, RR, RL]
+  RR_FIRST: true
+  initial: current_attempt_whole_body_joint_demand_plus_measured_response_and_3mm_upward_excursion
+  qualified: same_attempt_8mm_upward_excursion_and_debounced_AIR_or_verified_early_TOP
+  own_target_joint_motion_required: false
+  AIR_above_top_required_for_early_TOP_route: false
+  cross: active_qualification_and_current_air_above_top_or_verified_TOP_in_platform_at_front_cross
+  placed: cross_history_and_two_current_120Hz_TOP_samples
+  revoke: ground_before_cross_revokes_current_attempt_not_other_legs_or_completed_history
+wheel_only_failure:
+  missing_Q_is_proof: false
+  required_positive_evidence: powered_front_wall_upward_process_without_active_joint_demand_in_current_attempt
+  ambiguous: unfinished_unverified_not_success_or_automatic_failure
+finish:
+  traversal_event: all_four_real_placements_and_current_body_wheel_platform_region
+  basic_controlled: actual_wheel_and_body_velocity_limits_with_real_top_support
+  strict_recovery_quality_only: [near_zero_commanded_wheel, reference_home_error, legacy_thin_top_gap]
+  post_completion_observation_s: 1.0
+  observation_started_including_zero_elapsed: explicit_boolean_encoded_in_existing_phase_progress
+  phase_progress_bands: '0=no_event; .25=event_no_timer; .50+.25*t=healthy_post; .80+.19*t=region_loss; 1=true_success'
+  physical_potential_finish: current_body_rectangle_proximity_actual_rates_verified_top_support_and_fixed_post
+  no_extra_finish_reward_family: true
+  same_episode: true
+  later_body_collision_fall_hard_limit_numerical_abort: invalidates_success
+  later_region_retreat: recorded_and_invalidates_success
+safety:
+  task_failures: [BODY_CONTACT, positively_evidenced_WHEEL_ONLY_PROCESS]
+  independent_abort: [FALL, HARD_JOINT_LIMIT, NUMERICAL]
+  critical_sensor_missing: INFRASTRUCTURE_ERROR_UNVERIFIED_not_physical_task_failure
+local_time_limits:
+  original_P01_to_P13_s: [30,15,20,20,30,40,15,20,30,20,20,30,60]
+  classification: finite_task_deadline_with_bounded_current_progress_recovery
+  extension_formula: min(10s,0.5*original_limit)*clip(current_goal_progress,0,1)^2
+  nonrenewable_bound: original_limit_plus_min_10s_half_original_limit_except_already_started_fixed_P13_post_window
+  fixed_post_exception: preserve_original_post_end_only_never_restart_and_never_extend_episode_past_200s
+  observation: phase_id_goal_progress_stage_elapsed_already_in_372
+  global_200s_boundary: incomplete_task_terminates_at_200s_true_completion_exactly_at_boundary_can_pass
+  external_truncation: not_reinterpreted_as_task_success_or_local_deadline
+verification_status: targeted_tests_passed_B2_P01_through_P09_diagnostic_only_C_training_running_no_full_success_yet

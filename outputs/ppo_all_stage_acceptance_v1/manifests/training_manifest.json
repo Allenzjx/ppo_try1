@@ -1,0 +1,188 @@
+{
+  "schema": "wlr50_clean.all_stage_training_plan_and_actual.v1",
+  "source_checkpoint": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_transfer_roles_v1/checkpoints/history/checkpoint_step_000138496.pt",
+  "source_global_policy_decisions": 138496,
+  "source_ppo_updates": 1047,
+  "source_optimizer_steps": 20940,
+  "runtime_head": "a8b1484631156bad6e6ef0c96bd79a2fbf12e308",
+  "source_user_commit_preserved": "285307603f43bfc2846dada5f3ede73b0dc5f536",
+  "branch": "ppo/all-stage-acceptance-v1",
+  "phase_spec": "configs/ppo_all_stage_acceptance_v1/stage_task_spec.yaml",
+  "execution_profile": "configs/ppo_all_stage_acceptance_v1/execution_profile.yaml",
+  "source_boundary_preflight_verified": true,
+  "actual_weight_roundtrip_new_version": true,
+  "actual_training_started": true,
+  "active_run": "runs/ppo_all_stage_acceptance_v1/train/20260909T0532461768313Z_ga8b148463115_50c0b9ea678a413c87c11ebbefe70f6e",
+  "active_block": {
+    "from_phase": "P06",
+    "stage": "phase_suffix",
+    "additional_decisions": 1024,
+    "resume_checkpoint_decisions": 140032,
+    "ordinary_resume_preserves_Adam": true,
+    "new_mdp_warm_start": false,
+    "prefix_source": "frozen_fsm",
+    "teacher_offset_decisions": 0,
+    "seed": 1001,
+    "num_envs": 1,
+    "checkpoint_interval_updates": 4,
+    "status": "RUNNING_PENDING_COMPLETION_NOT_COUNTED",
+    "started_manifest": "runs/ppo_all_stage_acceptance_v1/train/20260909T0532461768313Z_ga8b148463115_50c0b9ea678a413c87c11ebbefe70f6e/run_manifest.started.json"
+  },
+  "counter_scope": "Fixed saved snapshot through completed Block3 at140032/1059/21180; active Block4 P06/1024 is excluded. No live collection or planned budget is credited.",
+  "initial_checkpoint": "outputs/ppo_all_stage_acceptance_v1/checkpoints/history/checkpoint_initial_v3_from_000138496_se568ccd45730_ga8b148463115_6603144ae32ce7e81772763260cd619d20597e96acedfed70f77abeb7e47b3e3.pt",
+  "new_policy_decisions": 1536,
+  "new_ppo_updates": 12,
+  "new_optimizer_steps": 240,
+  "last_verified_update_snapshot": {
+    "global_policy_decisions": 140032,
+    "ppo_updates": 1059,
+    "optimizer_steps": 21180,
+    "actor_parameters_changed": true,
+    "finite_nonzero_gradient_observed": true,
+    "training_block_final_checkpoint_pending": false,
+    "save_load_round_trip": true,
+    "completed_block": "Block3",
+    "lifecycle": "STOPPED_AT_VERIFIED_UPDATE_BOUNDARY"
+  },
+  "completed_snapshot_evidence": {
+    "block1_summary": "outputs/ppo_all_stage_acceptance_v1/block1_summary/training_block_summary.json",
+    "block2_summary": "outputs/ppo_all_stage_acceptance_v1/block2_summary/training_block_summary.json",
+    "cumulative": "outputs/ppo_all_stage_acceptance_v1/metrics/cumulative_after_block3.json",
+    "actual_physics_ticks": 12252,
+    "block3_summary": "outputs/ppo_all_stage_acceptance_v1/block3_summary/training_block_summary.json"
+  },
+  "architecture": {
+    "observations": 372,
+    "actions": 12,
+    "num_envs": 1,
+    "physics_hz": 120,
+    "decision_hz": 15,
+    "rollout_decisions": 128,
+    "policy": "history_conditioned_heteroscedastic_log_v1",
+    "history_rho": 0.9
+  },
+  "learning": {
+    "gamma": 0.9985,
+    "lambda": 0.99,
+    "initial_migration_lr": 0.00003,
+    "reward_families": 5,
+    "configured_dense_quality_or_regularization_families": 4,
+    "active_dense_quality_families": 3,
+    "residual_magnitude_regularization_enabled": false
+  },
+  "curriculum_reallocation_at_verified_boundary": {
+    "run": "20260909T0327591294869Z_ga8b148463115_1996f4a3ba204ea7b30a7bf6b1038046",
+    "status": "COMPLETED_BOUNDARY_PUBLISHED",
+    "lifecycle": "STOPPED_AT_VERIFIED_UPDATE_BOUNDARY",
+    "saved_global_policy_decisions": 139904,
+    "original_P06_requested_decisions": 1536,
+    "actual_P06_decisions": 384,
+    "actual_P06_updates": 3,
+    "actual_P06_optimizer_steps": 60,
+    "unconsumed_P06_decisions": 1152,
+    "reallocated_P07_decisions": 1152,
+    "reason": "Use actual rear-chain coverage to reallocate the unconsumed P06 first-check budget to real P07 preparation prefixes; keep first-check total4096, same runtime and Adam",
+    "P07_completion_pending": false
+  },
+  "pending_P07_to_P06_reallocation": {
+    "status": "FINALIZED_AT_VERIFIED_UPDATE_BOUNDARY",
+    "original_P07_requested_decisions": 1152,
+    "actual_P07_decisions": 128,
+    "actual_P07_updates": 1,
+    "next_P06_preparation_decisions": 1024,
+    "allocation_formula_at_final": "1152 - actual verified final P07 decisions",
+    "reason": "Root reports a closed P07-prefix episode with14 policy decisions/0.875s after49.2667s teacher prefix and an observed short next segment; return the unconsumed budget to P06 preparation after a verified stop boundary",
+    "evidence_scope": "Finalized Block3 summary confirms128/1, saved140032; earlier bounded observations retained only as the stop-request rationale.",
+    "first_check_total_preserved": 4096,
+    "later_P10_planned_decisions": 1024,
+    "later_P05_planned_decisions": 512,
+    "active_P06_run": "runs/ppo_all_stage_acceptance_v1/train/20260909T0532461768313Z_ga8b148463115_50c0b9ea678a413c87c11ebbefe70f6e"
+  },
+  "migration": {
+    "actor_critic_std": "preserve_all_tensors",
+    "optimizer": "verify_source_then_reset_Adam_moments",
+    "normalizer": "preserve_verified_identity_state",
+    "RNG": "preserve_verified_training_RNG",
+    "old_rollout_inherited": false,
+    "original_budget_origin": 10112,
+    "spent_budgets_preserved": true
+  },
+  "first_fixed_revision_block_plan": [
+    {
+      "from_phase": "P01",
+      "stage": "full_episode",
+      "additional_decisions": 1024,
+      "actual_completed_decisions": 1024,
+      "status": "COMPLETED"
+    },
+    {
+      "from_phase": "P06",
+      "stage": "phase_suffix",
+      "additional_decisions": 384,
+      "actual_completed_decisions": 384,
+      "status": "COMPLETED_AT_VERIFIED_UPDATE_BOUNDARY"
+    },
+    {
+      "from_phase": "P07",
+      "stage": "phase_suffix",
+      "additional_decisions": 128,
+      "original_requested_decisions": 1152,
+      "actual_completed_decisions": 128,
+      "status": "COMPLETED_AT_VERIFIED_UPDATE_BOUNDARY",
+      "unconsumed_reallocated_to_P06": 1024
+    },
+    {
+      "from_phase": "P06",
+      "stage": "phase_suffix",
+      "additional_decisions": 1024,
+      "actual_completed_decisions": null,
+      "status": "RUNNING_PENDING_COMPLETION",
+      "run": "runs/ppo_all_stage_acceptance_v1/train/20260909T0532461768313Z_ga8b148463115_50c0b9ea678a413c87c11ebbefe70f6e"
+    },
+    {
+      "from_phase": "P10",
+      "stage": "phase_suffix",
+      "additional_decisions": 1024,
+      "actual_completed_decisions": null,
+      "status": "PLANNED_NOT_STARTED"
+    },
+    {
+      "from_phase": "P05",
+      "stage": "phase_suffix",
+      "additional_decisions": 512,
+      "actual_completed_decisions": null,
+      "status": "PLANNED_NOT_STARTED"
+    }
+  ],
+  "first_revision_plan_total": 4096,
+  "plan_is_not_actual_consumption": true,
+  "after_first_revision": "reload latest checkpoint for fresh natural P01 complete evaluation, then continue fixed training blocks while safe resources remain",
+  "prefix_credit": "real reset-only continuous teacher roll-in excluded from PPO; never isolated already-airborne snapshot injection",
+  "normal_failure_blocks_optimizer": false,
+  "new_revision_diagnostic": "B2 completed900 decisions/7200ticks/60s at2f942; external window atP09, FR/FL placed, RR initial lift only; no PPO credit. See reports/B2_completed/prior_diagnostic_summary.json",
+  "evaluation_success": false,
+  "best_success_checkpoint": null,
+  "latest_new_checkpoint": "outputs/ppo_all_stage_acceptance_v1/checkpoints/history/checkpoint_step_000140032.pt",
+  "completed_block3": {
+    "run": "runs/ppo_all_stage_acceptance_v1/train/20260909T0405165532990Z_ga8b148463115_14d21d83af52454f94eb0eabd4cc01ce",
+    "lifecycle": "STOPPED_AT_VERIFIED_UPDATE_BOUNDARY",
+    "original_requested_decisions": 1152,
+    "actual_decisions": 128,
+    "updates": 1,
+    "optimizer_steps": 20,
+    "unconsumed_decisions": 1024,
+    "physics_ticks": 1004,
+    "completed_episodes": 5,
+    "credited_nonterminal_tail_decisions": 0,
+    "prefix_attempts": 6,
+    "prefix_accepted_attempts": 6,
+    "prefix_excluded_decisions": 4434,
+    "prefix_excluded_physics_ticks": 35472,
+    "outcomes": {
+      "FALL": 2,
+      "BODY_COLLISION": 3
+    },
+    "final_checkpoint_global": 140032,
+    "scope": "Six accepted physical roll-ins, only five credited completed episodes; final post-terminal reset/prefix does not create an extra PPO episode/sample."
+  }
+}

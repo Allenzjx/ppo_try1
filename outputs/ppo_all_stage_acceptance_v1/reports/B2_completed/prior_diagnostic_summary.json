@@ -1,0 +1,2303 @@
+{
+  "schema": "ppo_all_stage_acceptance_v1.completed_prior_diagnostic.v1",
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_all_stage_acceptance_v1\\diagnostics\\20260909T0246187023798Z_g2f942e824f82_a77db36275dd4bc4be422482922fde92",
+  "lifecycle": "SUCCEEDED",
+  "mode": "B_semantic_prior_eval",
+  "seed": 2001,
+  "diagnostic_decisions": 900,
+  "physics_ticks": 7200,
+  "duration_s": 60.0,
+  "new_training_decisions": 0,
+  "PPO_updates": 0,
+  "prefix_decisions": 0,
+  "task_success": false,
+  "controller_task_success": false,
+  "window_ended_before_task_terminal": true,
+  "termination_reason": null,
+  "termination_source": null,
+  "common_physical_result": {
+    "valid": true,
+    "evaluator_version": "all_stage_v1",
+    "run_validity": "VALID",
+    "physical_evidence_status": "CONTACT_BEARING_UNVERIFIED",
+    "termination_reason": null,
+    "termination_source": null,
+    "traversal_event_observed": false,
+    "traversal_task_complete": false,
+    "strict_recovery_quality": {
+      "commanded_wheels_within_tolerance": true,
+      "controlled_stop": true,
+      "home_error_deg": 55.728496158281295,
+      "passed": false,
+      "stable_for_s": 0.0
+    },
+    "post_completion_loss_observed": false,
+    "final_region_valid": false,
+    "final_controlled": true,
+    "final_support_available": true
+  },
+  "phase_counts": {
+    "P01": 2,
+    "P02": 182,
+    "P03": 4,
+    "P04": 1,
+    "P05": 146,
+    "P06": 330,
+    "P07": 1,
+    "P08": 1,
+    "P09": 233,
+    "P10": 0,
+    "P11": 0,
+    "P12": 0,
+    "P13": 0
+  },
+  "phase_transitions": [
+    {
+      "from_stage": "P01",
+      "to_stage": "P02",
+      "sim_time_s": 0.13333333333333333,
+      "physics_tick": 16,
+      "reason": "current physical goal set satisfied",
+      "continuous_takeover": false,
+      "entry": {
+        "valid": true,
+        "reasons": [],
+        "values": {
+          "physical_valid": 1.0
+        }
+      },
+      "completion_values": {
+        "transfer_ready_FR": 1.0
+      },
+      "history": {
+        "active_lift": {
+          "FL": false,
+          "FR": false,
+          "RL": false,
+          "RR": false
+        },
+        "front_edge_crossed": {
+          "FL": false,
+          "FR": false,
+          "RL": false,
+          "RR": false
+        },
+        "placed": {
+          "FL": false,
+          "FR": false,
+          "RL": false,
+          "RR": false
+        },
+        "event_ticks": {
+          "active_lift": {},
+          "front_edge_crossed": {},
+          "placed": {}
+        },
+        "active_lift_semantics": "current_active_attempt_air_or_verified_early_top_until_crossing_then_history",
+        "lift_attempt_events": [
+          {
+            "leg": "RL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 7,
+            "simulation_time_s": 0.058333333333333334,
+            "upward_excursion_m": 0.003117729076182317,
+            "whole_body_joint_motion_deg": 3.1222748770561144,
+            "command_motion_deg": 7.5,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 15,
+            "simulation_time_s": 0.125,
+            "upward_excursion_m": 0.003451488401928715,
+            "whole_body_joint_motion_deg": 9.30056477092943,
+            "command_motion_deg": 16.25,
+            "evidence": "active_air_or_early_top"
+          }
+        ]
+      },
+      "observed_diagnostic_decision": 2,
+      "observed_on_terminal_decision": false,
+      "decision_bootstrap_allowed": true
+    },
+    {
+      "from_stage": "P02",
+      "to_stage": "P03",
+      "sim_time_s": 12.266666666666666,
+      "physics_tick": 1472,
+      "reason": "current physical goal set satisfied",
+      "continuous_takeover": false,
+      "entry": {
+        "valid": true,
+        "reasons": [],
+        "values": {
+          "physical_valid": 1.0
+        }
+      },
+      "completion_values": {
+        "lifted_FR": 1.0,
+        "clear_FR": 1.0,
+        "approach_FR": 1.0
+      },
+      "history": {
+        "active_lift": {
+          "FL": false,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "front_edge_crossed": {
+          "FL": false,
+          "FR": false,
+          "RL": false,
+          "RR": false
+        },
+        "placed": {
+          "FL": false,
+          "FR": false,
+          "RL": false,
+          "RR": false
+        },
+        "event_ticks": {
+          "active_lift": {
+            "FR": 24
+          },
+          "front_edge_crossed": {},
+          "placed": {}
+        },
+        "active_lift_semantics": "current_active_attempt_air_or_verified_early_top_until_crossing_then_history",
+        "lift_attempt_events": [
+          {
+            "leg": "RL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 7,
+            "simulation_time_s": 0.058333333333333334,
+            "upward_excursion_m": 0.003117729076182317,
+            "whole_body_joint_motion_deg": 3.1222748770561144,
+            "command_motion_deg": 7.5,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 15,
+            "simulation_time_s": 0.125,
+            "upward_excursion_m": 0.003451488401928715,
+            "whole_body_joint_motion_deg": 9.30056477092943,
+            "command_motion_deg": 16.25,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 24,
+            "simulation_time_s": 0.2,
+            "upward_excursion_m": 0.008198519202235147,
+            "joint_motion_deg": 2.7681531540879307,
+            "airborne_clearance_above_top_m": -0.042635027186421634
+          }
+        ]
+      },
+      "observed_diagnostic_decision": 184,
+      "observed_on_terminal_decision": false,
+      "decision_bootstrap_allowed": true
+    },
+    {
+      "from_stage": "P03",
+      "to_stage": "P04",
+      "sim_time_s": 12.533333333333333,
+      "physics_tick": 1504,
+      "reason": "current physical goal set satisfied",
+      "continuous_takeover": false,
+      "entry": {
+        "valid": true,
+        "reasons": [],
+        "values": {
+          "physical_valid": 1.0,
+          "lifted_FR": 1.0
+        }
+      },
+      "completion_values": {
+        "placed_FR": 1.0
+      },
+      "history": {
+        "active_lift": {
+          "FL": false,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "front_edge_crossed": {
+          "FL": false,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "placed": {
+          "FL": false,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "event_ticks": {
+          "active_lift": {
+            "FR": 24
+          },
+          "front_edge_crossed": {
+            "FR": 1487
+          },
+          "placed": {
+            "FR": 1502
+          }
+        },
+        "active_lift_semantics": "current_active_attempt_air_or_verified_early_top_until_crossing_then_history",
+        "lift_attempt_events": [
+          {
+            "leg": "RL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 7,
+            "simulation_time_s": 0.058333333333333334,
+            "upward_excursion_m": 0.003117729076182317,
+            "whole_body_joint_motion_deg": 3.1222748770561144,
+            "command_motion_deg": 7.5,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 15,
+            "simulation_time_s": 0.125,
+            "upward_excursion_m": 0.003451488401928715,
+            "whole_body_joint_motion_deg": 9.30056477092943,
+            "command_motion_deg": 16.25,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 24,
+            "simulation_time_s": 0.2,
+            "upward_excursion_m": 0.008198519202235147,
+            "joint_motion_deg": 2.7681531540879307,
+            "airborne_clearance_above_top_m": -0.042635027186421634
+          }
+        ]
+      },
+      "observed_diagnostic_decision": 188,
+      "observed_on_terminal_decision": false,
+      "decision_bootstrap_allowed": true
+    },
+    {
+      "from_stage": "P04",
+      "to_stage": "P05",
+      "sim_time_s": 12.6,
+      "physics_tick": 1512,
+      "reason": "current physical goal set satisfied",
+      "continuous_takeover": false,
+      "entry": {
+        "valid": true,
+        "reasons": [],
+        "values": {
+          "physical_valid": 1.0,
+          "placed_FR": 1.0
+        }
+      },
+      "completion_values": {
+        "edge_proximity_FL": 1.0,
+        "role_prepared_FL": 1.0
+      },
+      "history": {
+        "active_lift": {
+          "FL": false,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "front_edge_crossed": {
+          "FL": false,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "placed": {
+          "FL": false,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "event_ticks": {
+          "active_lift": {
+            "FR": 24
+          },
+          "front_edge_crossed": {
+            "FR": 1487
+          },
+          "placed": {
+            "FR": 1502
+          }
+        },
+        "active_lift_semantics": "current_active_attempt_air_or_verified_early_top_until_crossing_then_history",
+        "lift_attempt_events": [
+          {
+            "leg": "RL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 7,
+            "simulation_time_s": 0.058333333333333334,
+            "upward_excursion_m": 0.003117729076182317,
+            "whole_body_joint_motion_deg": 3.1222748770561144,
+            "command_motion_deg": 7.5,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 15,
+            "simulation_time_s": 0.125,
+            "upward_excursion_m": 0.003451488401928715,
+            "whole_body_joint_motion_deg": 9.30056477092943,
+            "command_motion_deg": 16.25,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 24,
+            "simulation_time_s": 0.2,
+            "upward_excursion_m": 0.008198519202235147,
+            "joint_motion_deg": 2.7681531540879307,
+            "airborne_clearance_above_top_m": -0.042635027186421634
+          }
+        ]
+      },
+      "observed_diagnostic_decision": 189,
+      "observed_on_terminal_decision": false,
+      "decision_bootstrap_allowed": true
+    },
+    {
+      "from_stage": "P05",
+      "to_stage": "P06",
+      "sim_time_s": 22.333333333333332,
+      "physics_tick": 2680,
+      "reason": "current physical goal set satisfied",
+      "continuous_takeover": false,
+      "entry": {
+        "valid": true,
+        "reasons": [],
+        "values": {
+          "physical_valid": 1.0,
+          "placed_FR": 1.0
+        }
+      },
+      "completion_values": {
+        "placed_FL": 1.0
+      },
+      "history": {
+        "active_lift": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "front_edge_crossed": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "placed": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "event_ticks": {
+          "active_lift": {
+            "FR": 24,
+            "FL": 1556
+          },
+          "front_edge_crossed": {
+            "FR": 1487,
+            "FL": 2586
+          },
+          "placed": {
+            "FR": 1502,
+            "FL": 2677
+          }
+        },
+        "active_lift_semantics": "current_active_attempt_air_or_verified_early_top_until_crossing_then_history",
+        "lift_attempt_events": [
+          {
+            "leg": "RL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 7,
+            "simulation_time_s": 0.058333333333333334,
+            "upward_excursion_m": 0.003117729076182317,
+            "whole_body_joint_motion_deg": 3.1222748770561144,
+            "command_motion_deg": 7.5,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 15,
+            "simulation_time_s": 0.125,
+            "upward_excursion_m": 0.003451488401928715,
+            "whole_body_joint_motion_deg": 9.30056477092943,
+            "command_motion_deg": 16.25,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 24,
+            "simulation_time_s": 0.2,
+            "upward_excursion_m": 0.008198519202235147,
+            "joint_motion_deg": 2.7681531540879307,
+            "airborne_clearance_above_top_m": -0.042635027186421634
+          },
+          {
+            "leg": "FL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 1548,
+            "simulation_time_s": 12.9,
+            "upward_excursion_m": 0.00335267071587856,
+            "whole_body_joint_motion_deg": 6.7806171511206825,
+            "command_motion_deg": 9.400000000000002,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FL",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 1556,
+            "simulation_time_s": 12.966666666666667,
+            "upward_excursion_m": 0.008111931536111977,
+            "joint_motion_deg": 8.866737176603637,
+            "airborne_clearance_above_top_m": -0.04367421272535702
+          }
+        ]
+      },
+      "observed_diagnostic_decision": 335,
+      "observed_on_terminal_decision": false,
+      "decision_bootstrap_allowed": true
+    },
+    {
+      "from_stage": "P06",
+      "to_stage": "P07",
+      "sim_time_s": 44.333333333333336,
+      "physics_tick": 5320,
+      "reason": "current physical goal set satisfied",
+      "continuous_takeover": false,
+      "entry": {
+        "valid": true,
+        "reasons": [],
+        "values": {
+          "physical_valid": 1.0,
+          "placed_FR": 1.0,
+          "placed_FL": 1.0
+        }
+      },
+      "completion_values": {
+        "rear_approach": 1.0
+      },
+      "history": {
+        "active_lift": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "front_edge_crossed": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "placed": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "event_ticks": {
+          "active_lift": {
+            "FR": 24,
+            "FL": 1556
+          },
+          "front_edge_crossed": {
+            "FR": 1487,
+            "FL": 2586
+          },
+          "placed": {
+            "FR": 1502,
+            "FL": 2677
+          }
+        },
+        "active_lift_semantics": "current_active_attempt_air_or_verified_early_top_until_crossing_then_history",
+        "lift_attempt_events": [
+          {
+            "leg": "RL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 7,
+            "simulation_time_s": 0.058333333333333334,
+            "upward_excursion_m": 0.003117729076182317,
+            "whole_body_joint_motion_deg": 3.1222748770561144,
+            "command_motion_deg": 7.5,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 15,
+            "simulation_time_s": 0.125,
+            "upward_excursion_m": 0.003451488401928715,
+            "whole_body_joint_motion_deg": 9.30056477092943,
+            "command_motion_deg": 16.25,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 24,
+            "simulation_time_s": 0.2,
+            "upward_excursion_m": 0.008198519202235147,
+            "joint_motion_deg": 2.7681531540879307,
+            "airborne_clearance_above_top_m": -0.042635027186421634
+          },
+          {
+            "leg": "FL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 1548,
+            "simulation_time_s": 12.9,
+            "upward_excursion_m": 0.00335267071587856,
+            "whole_body_joint_motion_deg": 6.7806171511206825,
+            "command_motion_deg": 9.400000000000002,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FL",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 1556,
+            "simulation_time_s": 12.966666666666667,
+            "upward_excursion_m": 0.008111931536111977,
+            "joint_motion_deg": 8.866737176603637,
+            "airborne_clearance_above_top_m": -0.04367421272535702
+          }
+        ]
+      },
+      "observed_diagnostic_decision": 665,
+      "observed_on_terminal_decision": false,
+      "decision_bootstrap_allowed": true
+    },
+    {
+      "from_stage": "P07",
+      "to_stage": "P08",
+      "sim_time_s": 44.4,
+      "physics_tick": 5328,
+      "reason": "current physical goal set satisfied",
+      "continuous_takeover": false,
+      "entry": {
+        "valid": true,
+        "reasons": [],
+        "values": {
+          "physical_valid": 1.0,
+          "placed_FR": 1.0,
+          "placed_FL": 1.0
+        }
+      },
+      "completion_values": {
+        "edge_proximity_RR": 1.0,
+        "edge_proximity_RL": 1.0,
+        "role_prepared_RR": 1.0
+      },
+      "history": {
+        "active_lift": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "front_edge_crossed": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "placed": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "event_ticks": {
+          "active_lift": {
+            "FR": 24,
+            "FL": 1556
+          },
+          "front_edge_crossed": {
+            "FR": 1487,
+            "FL": 2586
+          },
+          "placed": {
+            "FR": 1502,
+            "FL": 2677
+          }
+        },
+        "active_lift_semantics": "current_active_attempt_air_or_verified_early_top_until_crossing_then_history",
+        "lift_attempt_events": [
+          {
+            "leg": "RL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 7,
+            "simulation_time_s": 0.058333333333333334,
+            "upward_excursion_m": 0.003117729076182317,
+            "whole_body_joint_motion_deg": 3.1222748770561144,
+            "command_motion_deg": 7.5,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 15,
+            "simulation_time_s": 0.125,
+            "upward_excursion_m": 0.003451488401928715,
+            "whole_body_joint_motion_deg": 9.30056477092943,
+            "command_motion_deg": 16.25,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 24,
+            "simulation_time_s": 0.2,
+            "upward_excursion_m": 0.008198519202235147,
+            "joint_motion_deg": 2.7681531540879307,
+            "airborne_clearance_above_top_m": -0.042635027186421634
+          },
+          {
+            "leg": "FL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 1548,
+            "simulation_time_s": 12.9,
+            "upward_excursion_m": 0.00335267071587856,
+            "whole_body_joint_motion_deg": 6.7806171511206825,
+            "command_motion_deg": 9.400000000000002,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FL",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 1556,
+            "simulation_time_s": 12.966666666666667,
+            "upward_excursion_m": 0.008111931536111977,
+            "joint_motion_deg": 8.866737176603637,
+            "airborne_clearance_above_top_m": -0.04367421272535702
+          }
+        ]
+      },
+      "observed_diagnostic_decision": 666,
+      "observed_on_terminal_decision": false,
+      "decision_bootstrap_allowed": true
+    },
+    {
+      "from_stage": "P08",
+      "to_stage": "P09",
+      "sim_time_s": 44.46666666666667,
+      "physics_tick": 5336,
+      "reason": "current physical goal set satisfied",
+      "continuous_takeover": false,
+      "entry": {
+        "valid": true,
+        "reasons": [],
+        "values": {
+          "physical_valid": 1.0,
+          "placed_FR": 1.0,
+          "placed_FL": 1.0
+        }
+      },
+      "completion_values": {
+        "edge_proximity_RR": 1.0,
+        "transfer_ready_RR": 1.0
+      },
+      "history": {
+        "active_lift": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "front_edge_crossed": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "placed": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": false
+        },
+        "event_ticks": {
+          "active_lift": {
+            "FR": 24,
+            "FL": 1556
+          },
+          "front_edge_crossed": {
+            "FR": 1487,
+            "FL": 2586
+          },
+          "placed": {
+            "FR": 1502,
+            "FL": 2677
+          }
+        },
+        "active_lift_semantics": "current_active_attempt_air_or_verified_early_top_until_crossing_then_history",
+        "lift_attempt_events": [
+          {
+            "leg": "RL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 7,
+            "simulation_time_s": 0.058333333333333334,
+            "upward_excursion_m": 0.003117729076182317,
+            "whole_body_joint_motion_deg": 3.1222748770561144,
+            "command_motion_deg": 7.5,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 15,
+            "simulation_time_s": 0.125,
+            "upward_excursion_m": 0.003451488401928715,
+            "whole_body_joint_motion_deg": 9.30056477092943,
+            "command_motion_deg": 16.25,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 24,
+            "simulation_time_s": 0.2,
+            "upward_excursion_m": 0.008198519202235147,
+            "joint_motion_deg": 2.7681531540879307,
+            "airborne_clearance_above_top_m": -0.042635027186421634
+          },
+          {
+            "leg": "FL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 1548,
+            "simulation_time_s": 12.9,
+            "upward_excursion_m": 0.00335267071587856,
+            "whole_body_joint_motion_deg": 6.7806171511206825,
+            "command_motion_deg": 9.400000000000002,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FL",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 1556,
+            "simulation_time_s": 12.966666666666667,
+            "upward_excursion_m": 0.008111931536111977,
+            "joint_motion_deg": 8.866737176603637,
+            "airborne_clearance_above_top_m": -0.04367421272535702
+          }
+        ]
+      },
+      "observed_diagnostic_decision": 667,
+      "observed_on_terminal_decision": false,
+      "decision_bootstrap_allowed": true
+    }
+  ],
+  "events": [
+    {
+      "leg": "RL",
+      "kind": "I",
+      "recorded_event_name": "whole_body_initial_clearance",
+      "physics_tick": 7,
+      "first_observed_diagnostic_decision": 1,
+      "source": "zero_residual_semantic_prior_B",
+      "PPO_credit": false
+    },
+    {
+      "leg": "FR",
+      "kind": "I",
+      "recorded_event_name": "whole_body_initial_clearance",
+      "physics_tick": 15,
+      "first_observed_diagnostic_decision": 2,
+      "source": "zero_residual_semantic_prior_B",
+      "PPO_credit": false
+    },
+    {
+      "leg": "FR",
+      "kind": "Q",
+      "recorded_event_name": "qualified_measured_upward_lift",
+      "physics_tick": 24,
+      "first_observed_diagnostic_decision": 3,
+      "source": "zero_residual_semantic_prior_B",
+      "PPO_credit": false
+    },
+    {
+      "leg": "FR",
+      "kind": "C",
+      "recorded_event_name": "front_edge_crossed",
+      "physics_tick": 1487,
+      "first_observed_diagnostic_decision": 186,
+      "source": "zero_residual_semantic_prior_B",
+      "PPO_credit": false
+    },
+    {
+      "leg": "FR",
+      "kind": "P",
+      "recorded_event_name": "placed",
+      "physics_tick": 1502,
+      "first_observed_diagnostic_decision": 188,
+      "source": "zero_residual_semantic_prior_B",
+      "PPO_credit": false
+    },
+    {
+      "leg": "FL",
+      "kind": "I",
+      "recorded_event_name": "whole_body_initial_clearance",
+      "physics_tick": 1548,
+      "first_observed_diagnostic_decision": 194,
+      "source": "zero_residual_semantic_prior_B",
+      "PPO_credit": false
+    },
+    {
+      "leg": "FL",
+      "kind": "Q",
+      "recorded_event_name": "qualified_measured_upward_lift",
+      "physics_tick": 1556,
+      "first_observed_diagnostic_decision": 195,
+      "source": "zero_residual_semantic_prior_B",
+      "PPO_credit": false
+    },
+    {
+      "leg": "FL",
+      "kind": "C",
+      "recorded_event_name": "front_edge_crossed",
+      "physics_tick": 2586,
+      "first_observed_diagnostic_decision": 324,
+      "source": "zero_residual_semantic_prior_B",
+      "PPO_credit": false
+    },
+    {
+      "leg": "FL",
+      "kind": "P",
+      "recorded_event_name": "placed",
+      "physics_tick": 2677,
+      "first_observed_diagnostic_decision": 335,
+      "source": "zero_residual_semantic_prior_B",
+      "PPO_credit": false
+    },
+    {
+      "leg": "RR",
+      "kind": "I",
+      "recorded_event_name": "whole_body_initial_clearance",
+      "physics_tick": 5909,
+      "first_observed_diagnostic_decision": 739,
+      "source": "zero_residual_semantic_prior_B",
+      "PPO_credit": false
+    }
+  ],
+  "event_counts_by_leg": {
+    "FR": {
+      "I": 1,
+      "Q": 1,
+      "C": 1,
+      "P": 1
+    },
+    "FL": {
+      "I": 1,
+      "Q": 1,
+      "C": 1,
+      "P": 1
+    },
+    "RR": {
+      "I": 1
+    },
+    "RL": {
+      "I": 1
+    }
+  },
+  "native_audit": {
+    "physics_ticks": 7200,
+    "native_effect_ticks": 0,
+    "own_phase_effect_ticks": 0,
+    "native_audit_anomaly_rows": 0,
+    "state_write_anomaly_rows": 0,
+    "nonzero_actual_canonical_drive_decisions": 900
+  },
+  "first_unfinished_stage_label": "P09",
+  "current_task": {
+    "stage_id": "P09",
+    "completion_values": {
+      "placed_RR": 0.2767370536953745
+    },
+    "entry_reasons": [],
+    "local_timeout": {
+      "nominal_limit_s": 30.0,
+      "current_progress_allowance_s": 0.7658339688799659,
+      "effective_limit_s": 30.765833968879967,
+      "nominal_limit_exceeded": false,
+      "classification": "finite_task_terminal_not_external_truncation",
+      "timer_inputs_observable_in_existing372": true
+    },
+    "stage_age_s": 15.533333333333331
+  },
+  "current_legs_at_end": {
+    "FL": {
+      "active_attempt": true,
+      "air": false,
+      "bearing_force_n": 0.8279415965080261,
+      "bearing_verified": true,
+      "clearance_m": -0.00097973112648337,
+      "consecutive_air_samples": 0,
+      "consecutive_top_samples": 1027,
+      "contact_reaction": true,
+      "contact_reaction_force_n": 0.8279418602265888,
+      "contact_surface": "TOP",
+      "crossing_evidence_status": "VERIFIED",
+      "crossing_geometry_pending": false,
+      "front_distance_m": 0.3290976916058028,
+      "ground_contact": false,
+      "initial_clearance": true,
+      "load_fraction": 0.03062571490907056,
+      "load_fraction_valid": false,
+      "obstacle_pair_active": true,
+      "recent_clearance_gain_m": 3.163696969644275e-05,
+      "recent_joint_motion_deg": 0.013313746239653312,
+      "recent_whole_body_joint_motion_deg": 0.18689083772106097,
+      "soft_air_actuation_earned": false,
+      "soft_air_earned_tick": null,
+      "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+      "support": true,
+      "top_contact": true,
+      "top_geometry": true,
+      "top_surface_contact": true,
+      "top_xy_outside_distance_m": 0.0,
+      "whole_body_actuation_evidence": false,
+      "within_lateral_span": true,
+      "within_top_xy": true
+    },
+    "FR": {
+      "active_attempt": true,
+      "air": false,
+      "bearing_force_n": 12.613821029663086,
+      "bearing_verified": true,
+      "clearance_m": -0.00019176285750336503,
+      "consecutive_air_samples": 0,
+      "consecutive_top_samples": 1030,
+      "contact_reaction": true,
+      "contact_reaction_force_n": 12.613822027481232,
+      "contact_surface": "TOP",
+      "crossing_evidence_status": "VERIFIED",
+      "crossing_geometry_pending": false,
+      "front_distance_m": 0.47044170243572836,
+      "ground_contact": false,
+      "initial_clearance": true,
+      "load_fraction": 0.46658760521009246,
+      "load_fraction_valid": false,
+      "obstacle_pair_active": true,
+      "recent_clearance_gain_m": 9.407928001151089e-07,
+      "recent_joint_motion_deg": 0.018457945901719786,
+      "recent_whole_body_joint_motion_deg": 0.18689083772106097,
+      "soft_air_actuation_earned": false,
+      "soft_air_earned_tick": null,
+      "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+      "support": true,
+      "top_contact": true,
+      "top_geometry": true,
+      "top_surface_contact": true,
+      "top_xy_outside_distance_m": 0.0,
+      "whole_body_actuation_evidence": false,
+      "within_lateral_span": true,
+      "within_top_xy": true
+    },
+    "RL": {
+      "active_attempt": false,
+      "air": false,
+      "bearing_force_n": 13.59243392944336,
+      "bearing_verified": true,
+      "clearance_m": -0.05126278413903401,
+      "consecutive_air_samples": 0,
+      "consecutive_top_samples": 0,
+      "contact_reaction": true,
+      "contact_reaction_force_n": 13.592433929443482,
+      "contact_surface": "NONE",
+      "crossing_evidence_status": "PENDING",
+      "crossing_geometry_pending": false,
+      "front_distance_m": -0.1869094635741746,
+      "ground_contact": true,
+      "initial_clearance": false,
+      "load_fraction": 0.502786679880837,
+      "load_fraction_valid": false,
+      "obstacle_pair_active": false,
+      "recent_clearance_gain_m": 0.0,
+      "recent_joint_motion_deg": 0,
+      "recent_whole_body_joint_motion_deg": 0,
+      "soft_air_actuation_earned": false,
+      "soft_air_earned_tick": null,
+      "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+      "support": true,
+      "top_contact": false,
+      "top_geometry": false,
+      "top_surface_contact": false,
+      "top_xy_outside_distance_m": 0.1819094635741746,
+      "whole_body_actuation_evidence": false,
+      "within_lateral_span": true,
+      "within_top_xy": false
+    },
+    "RR": {
+      "active_attempt": true,
+      "air": false,
+      "bearing_force_n": 0.0,
+      "bearing_verified": false,
+      "clearance_m": -0.027759643691900947,
+      "consecutive_air_samples": 0,
+      "consecutive_top_samples": 0,
+      "contact_reaction": true,
+      "contact_reaction_force_n": 2.3584804577246348,
+      "contact_surface": "OBSTACLE_AMBIGUOUS",
+      "crossing_evidence_status": "PENDING",
+      "crossing_geometry_pending": false,
+      "front_distance_m": -0.04186454074550028,
+      "ground_contact": false,
+      "initial_clearance": true,
+      "load_fraction": 0.0,
+      "load_fraction_valid": false,
+      "obstacle_pair_active": true,
+      "recent_clearance_gain_m": 0.0,
+      "recent_joint_motion_deg": 0.13626953101774397,
+      "recent_whole_body_joint_motion_deg": 0.18689083772106097,
+      "soft_air_actuation_earned": false,
+      "soft_air_earned_tick": null,
+      "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+      "support": false,
+      "top_contact": false,
+      "top_geometry": false,
+      "top_surface_contact": false,
+      "top_xy_outside_distance_m": 0.036864540745500274,
+      "whole_body_actuation_evidence": false,
+      "within_lateral_span": true,
+      "within_top_xy": false
+    }
+  },
+  "history_at_end": {
+    "active_lift": {
+      "FL": true,
+      "FR": true,
+      "RL": false,
+      "RR": false
+    },
+    "active_lift_semantics": "current_active_attempt_air_or_verified_early_top_until_crossing_then_history",
+    "event_ticks": {
+      "active_lift": {
+        "FL": 1556,
+        "FR": 24
+      },
+      "front_edge_crossed": {
+        "FL": 2586,
+        "FR": 1487
+      },
+      "placed": {
+        "FL": 2677,
+        "FR": 1502
+      }
+    },
+    "front_edge_crossed": {
+      "FL": true,
+      "FR": true,
+      "RL": false,
+      "RR": false
+    },
+    "lift_attempt_events": [
+      {
+        "command_motion_deg": 7.5,
+        "event": "whole_body_initial_clearance",
+        "evidence": "active_air_or_early_top",
+        "leg": "RL",
+        "physics_tick": 7,
+        "simulation_time_s": 0.058333333333333334,
+        "upward_excursion_m": 0.003117729076182317,
+        "whole_body_joint_motion_deg": 3.1222748770561144
+      },
+      {
+        "command_motion_deg": 16.25,
+        "event": "whole_body_initial_clearance",
+        "evidence": "active_air_or_early_top",
+        "leg": "FR",
+        "physics_tick": 15,
+        "simulation_time_s": 0.125,
+        "upward_excursion_m": 0.003451488401928715,
+        "whole_body_joint_motion_deg": 9.30056477092943
+      },
+      {
+        "airborne_clearance_above_top_m": -0.042635027186421634,
+        "event": "qualified_measured_upward_lift",
+        "joint_motion_deg": 2.7681531540879307,
+        "leg": "FR",
+        "physics_tick": 24,
+        "simulation_time_s": 0.2,
+        "upward_excursion_m": 0.008198519202235147
+      },
+      {
+        "command_motion_deg": 9.400000000000002,
+        "event": "whole_body_initial_clearance",
+        "evidence": "active_air_or_early_top",
+        "leg": "FL",
+        "physics_tick": 1548,
+        "simulation_time_s": 12.9,
+        "upward_excursion_m": 0.00335267071587856,
+        "whole_body_joint_motion_deg": 6.7806171511206825
+      },
+      {
+        "airborne_clearance_above_top_m": -0.04367421272535702,
+        "event": "qualified_measured_upward_lift",
+        "joint_motion_deg": 8.866737176603637,
+        "leg": "FL",
+        "physics_tick": 1556,
+        "simulation_time_s": 12.966666666666667,
+        "upward_excursion_m": 0.008111931536111977
+      },
+      {
+        "command_motion_deg": 36.13234611408214,
+        "event": "whole_body_initial_clearance",
+        "evidence": "active_air_or_early_top",
+        "leg": "RR",
+        "physics_tick": 5909,
+        "simulation_time_s": 49.24166666666667,
+        "upward_excursion_m": 0.004755684091500338,
+        "whole_body_joint_motion_deg": 8.7386214773923
+      }
+    ],
+    "placed": {
+      "FL": true,
+      "FR": true,
+      "RL": false,
+      "RR": false
+    }
+  },
+  "terminal_raw_contacts": {
+    "base_link": {
+      "body_name": "base_link",
+      "role": "BODY",
+      "contact_class": "AIR",
+      "ground": {
+        "sensor_body": "base_link",
+        "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      },
+      "obstacle": {
+        "sensor_body": "base_link",
+        "other_body": "/World/Obstacle",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      }
+    },
+    "front_left_upper": {
+      "body_name": "front_left_upper",
+      "role": "LEG",
+      "contact_class": "AIR",
+      "ground": {
+        "sensor_body": "front_left_upper",
+        "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      },
+      "obstacle": {
+        "sensor_body": "front_left_upper",
+        "other_body": "/World/Obstacle",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      }
+    },
+    "front_right_upper": {
+      "body_name": "front_right_upper",
+      "role": "LEG",
+      "contact_class": "AIR",
+      "ground": {
+        "sensor_body": "front_right_upper",
+        "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      },
+      "obstacle": {
+        "sensor_body": "front_right_upper",
+        "other_body": "/World/Obstacle",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      }
+    },
+    "rear_left_upper": {
+      "body_name": "rear_left_upper",
+      "role": "LEG",
+      "contact_class": "AIR",
+      "ground": {
+        "sensor_body": "rear_left_upper",
+        "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      },
+      "obstacle": {
+        "sensor_body": "rear_left_upper",
+        "other_body": "/World/Obstacle",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      }
+    },
+    "rear_right_upper": {
+      "body_name": "rear_right_upper",
+      "role": "LEG",
+      "contact_class": "AIR",
+      "ground": {
+        "sensor_body": "rear_right_upper",
+        "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      },
+      "obstacle": {
+        "sensor_body": "rear_right_upper",
+        "other_body": "/World/Obstacle",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      }
+    },
+    "front_left_bot": {
+      "body_name": "front_left_bot",
+      "role": "LEG",
+      "contact_class": "AIR",
+      "ground": {
+        "sensor_body": "front_left_bot",
+        "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      },
+      "obstacle": {
+        "sensor_body": "front_left_bot",
+        "other_body": "/World/Obstacle",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      }
+    },
+    "front_right_bot": {
+      "body_name": "front_right_bot",
+      "role": "LEG",
+      "contact_class": "AIR",
+      "ground": {
+        "sensor_body": "front_right_bot",
+        "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      },
+      "obstacle": {
+        "sensor_body": "front_right_bot",
+        "other_body": "/World/Obstacle",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      }
+    },
+    "rear_left_bot": {
+      "body_name": "rear_left_bot",
+      "role": "LEG",
+      "contact_class": "AIR",
+      "ground": {
+        "sensor_body": "rear_left_bot",
+        "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      },
+      "obstacle": {
+        "sensor_body": "rear_left_bot",
+        "other_body": "/World/Obstacle",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      }
+    },
+    "rear_right_bot": {
+      "body_name": "rear_right_bot",
+      "role": "LEG",
+      "contact_class": "AIR",
+      "ground": {
+        "sensor_body": "rear_right_bot",
+        "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      },
+      "obstacle": {
+        "sensor_body": "rear_right_bot",
+        "other_body": "/World/Obstacle",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      }
+    },
+    "front_left_wheel": {
+      "body_name": "front_left_wheel",
+      "role": "WHEEL",
+      "contact_class": "OBSTACLE",
+      "ground": {
+        "sensor_body": "front_left_wheel",
+        "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      },
+      "obstacle": {
+        "sensor_body": "front_left_wheel",
+        "other_body": "/World/Obstacle",
+        "active": true,
+        "force_w_n": [
+          -0.0006371985073201358,
+          0.00017511501209810376,
+          0.8279415965080261
+        ],
+        "normal_force_n": 0.8279418602265888,
+        "tangential_force_n": 0.4007496769924971,
+        "contact_point_w_m": [
+          0.8571502566337585,
+          0.0271079633384943,
+          0.05120198056101799
+        ],
+        "force_history_w_n": [
+          [
+            -0.0006371985073201358,
+            0.00017511501209810376,
+            0.8279415965080261
+          ],
+          [
+            -0.0006290350575000048,
+            0.00017517169180791825,
+            0.8586869835853577
+          ],
+          [
+            -0.0005932649946771562,
+            0.0001656530803302303,
+            0.8496695756912231
+          ]
+        ],
+        "active_history": [
+          true,
+          true,
+          true
+        ],
+        "consecutive_active_ticks": 3,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      }
+    },
+    "front_right_wheel": {
+      "body_name": "front_right_wheel",
+      "role": "WHEEL",
+      "contact_class": "OBSTACLE",
+      "ground": {
+        "sensor_body": "front_right_wheel",
+        "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      },
+      "obstacle": {
+        "sensor_body": "front_right_wheel",
+        "other_body": "/World/Obstacle",
+        "active": true,
+        "force_w_n": [
+          -0.004560782108455896,
+          0.0020909009035676718,
+          12.613821029663086
+        ],
+        "normal_force_n": 12.613822027481232,
+        "tangential_force_n": 1.5848285697681501,
+        "contact_point_w_m": [
+          0.9835020899772644,
+          -0.41832950711250305,
+          0.05185477435588837
+        ],
+        "force_history_w_n": [
+          [
+            -0.004560782108455896,
+            0.0020909009035676718,
+            12.613821029663086
+          ],
+          [
+            -0.0040001049637794495,
+            0.0019814888946712017,
+            12.591595649719238
+          ],
+          [
+            -0.0034383991733193398,
+            0.0018515188712626696,
+            12.595309257507324
+          ]
+        ],
+        "active_history": [
+          true,
+          true,
+          true
+        ],
+        "consecutive_active_ticks": 3,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      }
+    },
+    "rear_left_wheel": {
+      "body_name": "rear_left_wheel",
+      "role": "WHEEL",
+      "contact_class": "GROUND",
+      "ground": {
+        "sensor_body": "rear_left_wheel",
+        "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+        "active": true,
+        "force_w_n": [
+          1.826263655857474e-06,
+          0.0,
+          13.59243392944336
+        ],
+        "normal_force_n": 13.592433929443482,
+        "tangential_force_n": 2.0789541283103206,
+        "contact_point_w_m": [
+          0.338114470243454,
+          0.10788118839263916,
+          0.0002785968827083707
+        ],
+        "force_history_w_n": [
+          [
+            1.826263655857474e-06,
+            0.0,
+            13.59243392944336
+          ],
+          [
+            1.8237700487588882e-06,
+            0.0,
+            13.573873519897461
+          ],
+          [
+            1.8247920934300055e-06,
+            0.0,
+            13.58148193359375
+          ]
+        ],
+        "active_history": [
+          true,
+          true,
+          true
+        ],
+        "consecutive_active_ticks": 3,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      },
+      "obstacle": {
+        "sensor_body": "rear_left_wheel",
+        "other_body": "/World/Obstacle",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      }
+    },
+    "rear_right_wheel": {
+      "body_name": "rear_right_wheel",
+      "role": "WHEEL",
+      "contact_class": "OBSTACLE",
+      "ground": {
+        "sensor_body": "rear_right_wheel",
+        "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+        "active": false,
+        "force_w_n": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "normal_force_n": 0.0,
+        "tangential_force_n": 0.0,
+        "contact_point_w_m": null,
+        "force_history_w_n": [
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        "active_history": [
+          false,
+          false,
+          false
+        ],
+        "consecutive_active_ticks": 0,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      },
+      "obstacle": {
+        "sensor_body": "rear_right_wheel",
+        "other_body": "/World/Obstacle",
+        "active": true,
+        "force_w_n": [
+          -2.024554491043091,
+          0.22949573397636414,
+          1.1878303289413452
+        ],
+        "normal_force_n": 2.3584804577246348,
+        "tangential_force_n": 1.1594793841187685,
+        "contact_point_w_m": [
+          0.5201615691184998,
+          -0.3454767167568207,
+          0.0504986047744751
+        ],
+        "force_history_w_n": [
+          [
+            -2.024554491043091,
+            0.22949573397636414,
+            1.1878303289413452
+          ],
+          [
+            -2.0567243099212646,
+            0.2331133931875229,
+            1.2070473432540894
+          ],
+          [
+            -2.0199780464172363,
+            0.22891531884670258,
+            1.1858121156692505
+          ]
+        ],
+        "active_history": [
+          true,
+          true,
+          true
+        ],
+        "consecutive_active_ticks": 3,
+        "source": "isaaclab.ContactSensor.force_matrix_w",
+        "pair_verified": true
+      }
+    }
+  },
+  "terminal_raw_body_collision": {
+    "detected": false,
+    "real_pair_active": false,
+    "persistent": false,
+    "geometry_penetration_m": 0.0,
+    "reason": "no exact base_link/obstacle contact"
+  },
+  "sources": [
+    {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_all_stage_acceptance_v1\\diagnostics\\20260909T0246187023798Z_g2f942e824f82_a77db36275dd4bc4be422482922fde92\\run_manifest.json",
+      "size_bytes": 1516070,
+      "mtime_ns": 1788923078541535200,
+      "read_scopes": [
+        "complete small JSON"
+      ]
+    },
+    {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_all_stage_acceptance_v1\\diagnostics\\20260909T0246187023798Z_g2f942e824f82_a77db36275dd4bc4be422482922fde92\\evaluation_manifest.json",
+      "size_bytes": 1412519,
+      "mtime_ns": 1788923078040546000,
+      "read_scopes": [
+        "complete small JSON"
+      ]
+    },
+    {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_all_stage_acceptance_v1\\diagnostics\\20260909T0246187023798Z_g2f942e824f82_a77db36275dd4bc4be422482922fde92\\residual_and_projection_audit.jsonl",
+      "size_bytes": 56919770,
+      "mtime_ns": 1788923074749707600,
+      "read_scopes": [
+        "single complete decision JSONL pass"
+      ]
+    },
+    {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_all_stage_acceptance_v1\\diagnostics\\20260909T0246187023798Z_g2f942e824f82_a77db36275dd4bc4be422482922fde92\\physical_observations.jsonl",
+      "size_bytes": 180433669,
+      "mtime_ns": 1788923074741212800,
+      "read_scopes": [
+        "first JSONL row",
+        "last JSONL row"
+      ]
+    }
+  ],
+  "limits": [
+    "B diagnostic, never PPO training or a policy success denominator.",
+    "I/Q/C/P/revoke are logged evaluator events, not independent physical replay.",
+    "Native checks consume saved same-tick audit evidence; zero PPO effect is expected for B, not zero actuator motion.",
+    "Only raw first/last sampled; no full raw/contact rescan. Empty independent native/transition files are not imputed.",
+    "First unfinished label is not an independent physical failure classification; current goals and termination source remain separate.",
+    "Unvisited phases have zero diagnostic samples, not zero quality."
+  ]
+}
