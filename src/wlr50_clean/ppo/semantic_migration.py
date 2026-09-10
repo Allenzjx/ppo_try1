@@ -1072,6 +1072,81 @@ def _instrumentation_observation_contract(metadata, old, new, delta, project_roo
     }
 
 
+def _video_observation_contract(metadata, old, new, delta, project_root):
+    """Same372 video receipt only after the separate strict video review.
+
+    The instrumentation-only validator above stays unchanged. This branch
+    additionally permits only existing VIDEO_FILES, never MDP/config changes.
+    Legacy324 video plan shape is preserved.
+    """
+    from .semantic_policy_distribution import (
+        CONFIG_NAMES, HISTORY_POLICY, policy_contract,
+        policy_observation_layout_from_metadata, policy_version_from_metadata,
+    )
+    from .semantic_observation import load_semantic_observation_schema
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    declared = metadata.get("policy_contract") or {}
+    actor = (metadata.get("runner_config") or {}).get("actor", {})
+    candidate = (declared.get("observation_layout") is not None
+                 or declared.get("observation_dimension") == 372
+                 or actor.get("observation_layout") is not None
+                 or old.get("observation_dimension") == 372
+                 or new.get("observation_dimension") == 372)
+    if not candidate:
+        return None
+    if (policy_version_from_metadata(metadata) != HISTORY_POLICY
+            or policy_observation_layout_from_metadata(metadata) != ROLE_OBSERVATION_LAYOUT
+            or metadata.get("semantic_version") != "v3"
+            or old.get("semantic_version") != "v3" or new.get("semantic_version") != "v3"
+            or source_num_envs(metadata) != 1):
+        raise ValueError("video372 requires verified v3 N1 HISTORY role-layout metadata")
+    if set(delta) - INSTRUMENTATION_FILES - VIDEO_FILES:
+        raise ValueError("video372 cannot change task/execution/configuration runtime files")
+    canonical = policy_contract(HISTORY_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    selected = old.get("selected_configuration")
+    if (not isinstance(selected, Mapping) or set(selected) != CONFIG_NAMES
+            or new.get("selected_configuration") != selected):
+        raise ValueError("video372 requires identical complete six selected configuration bindings")
+    namespace = experiment_namespace("v3", old.get("experiment_id"))
+    config_namespace = (namespace if old.get("experiment_id") in (
+        "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2") else "ppo_semantic_v3")
+    records = {}
+    for name, binding in selected.items():
+        relative = f"configs/{config_namespace}/{name}"
+        if (not isinstance(binding, Mapping) or set(binding) != {"path", "sha256"}
+                or binding["path"] != relative
+                or old["files"].get(relative) != binding["sha256"]
+                or new["files"].get(relative) != binding["sha256"]):
+            raise ValueError("video372 configuration path/hash binding differs")
+        before = _version_bytes(project_root, old, relative, prefer_worktree=True)
+        target = project_root / relative
+        after = target.read_bytes()
+        if before != after or hashlib.sha256(after).hexdigest() != binding["sha256"]:
+            raise ValueError("video372 cannot change configuration or preprocessing bytes")
+        records[name] = dict(binding)
+    schema = load_semantic_observation_schema(project_root / selected["observation_schema.json"]["path"])
+    if (schema.transfer_role_features_version != ROLE_OBSERVATION_LAYOUT
+            or schema.dimension != canonical["observation_dimension"]):
+        raise ValueError("video372 schema differs from the complete verified policy layout")
+    for runtime in (old, new):
+        if (runtime.get("observation_dimension", canonical["observation_dimension"])
+                != canonical["observation_dimension"]
+                or runtime.get("action_dimension", canonical["raw_action_dimension"])
+                != canonical["raw_action_dimension"]):
+            raise ValueError("video372 declared runtime dimensions disagree")
+    return {
+        "schema": "wlr50_clean.video_same_observation_contract.v1",
+        "source_policy_contract": canonical, "target_policy_contract": canonical,
+        "observation_layout": ROLE_OBSERVATION_LAYOUT,
+        "selected_configuration": records,
+        "observation_dimension": canonical["observation_dimension"],
+        "action_dimension": canonical["raw_action_dimension"],
+        "num_envs": 1, "parameter_mapping": None,
+        "scope": "reviewed_video_only_no_control_or_MDP_change",
+        "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True,
+    }
+
+
 def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
                          allowed_changed_files: Sequence[str], reason: str,
                          prior_evidence: Mapping[str, Any] | None = None,
@@ -1092,16 +1167,23 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
     if not reason.strip() or len(set(declared)) != len(declared):
         raise ValueError("migration requires a reason and unique exact changed-file names")
     delta = sorted(path for path in set(old["files"]) | set(new["files"]) if old["files"].get(path) != new["files"].get(path))
-    observation_contract = _instrumentation_observation_contract(
-        metadata, old, new, delta, Path(project_root),
-        mixed_factors=any(value is not None for value in (
-            prior_evidence, qualification_evidence, evaluator_review, execution_evidence, video_review)))
+    observation_contract = None
+    if video_review is None or not (set(delta) & VIDEO_FILES):
+        # Existing instrumentation-only permission is unchanged; video has
+        # its own explicit review and receipt, never a widened allowlist.
+        observation_contract = _instrumentation_observation_contract(
+            metadata, old, new, delta, Path(project_root),
+            mixed_factors=any(value is not None for value in (
+                prior_evidence, qualification_evidence, evaluator_review, execution_evidence, video_review)))
     video = None
     if video_review is not None:
         if any(value is not None for value in (
                 prior_evidence, qualification_evidence, evaluator_review, execution_evidence)):
             raise ValueError("video instrumentation and task/execution factors require separate reviewed boundaries")
         video = _video_instrumentation_factor(old, new, video_review, delta, Path(project_root))
+        video_observation = _video_observation_contract(metadata, old, new, delta, Path(project_root))
+        if video_observation is not None:
+            video["observation_contract"] = video_observation
     execution = None
     additional = set(VIDEO_FILES) if video is not None else set()
     if execution_evidence is not None:
@@ -1129,6 +1211,7 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
     prior = _prior_factor(Path(project_root), old, new, prior_evidence, checkpoint,
                            qualification_transition=qualification_evidence is not None) if prior_transition else None
     qualification = _qualification_factor(Path(project_root), old, new, qualification_evidence) if qualification_evidence is not None else None
+    layout_contract = observation_contract or (video or {}).get("observation_contract")
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
     result = {"schema": SCHEMA, "reason": reason.strip(), "source_checkpoint": str(checkpoint),
             "source_checkpoint_sha256": file_sha(checkpoint), "source_manifest_sha256": file_sha(sidecar),
@@ -1136,8 +1219,8 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
             "source_git_commit": old["source_git_commit"], "target_git_commit": new["source_git_commit"],
             "allowed_changed_files": delta, "changed_file_hashes": {path: {"before": old["files"].get(path), "after": new["files"][path]} for path in delta},
             "geometric_factor": geometric,
-            "observation_dimension": (324 if observation_contract is None else observation_contract["observation_dimension"]),
-            "action_dimension": (12 if observation_contract is None else observation_contract["action_dimension"]),
+            "observation_dimension": (324 if layout_contract is None else layout_contract["observation_dimension"]),
+            "action_dimension": (12 if layout_contract is None else layout_contract["action_dimension"]),
             "preserve_actor_critic_optimizer_normalizer_rng_and_budget": True,
             "discard_old_rollout_storage": True, "physics_resume": "fresh_legal_P01_reset"}
     if observation_contract is not None:

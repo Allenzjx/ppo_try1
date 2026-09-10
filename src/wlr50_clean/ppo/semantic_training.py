@@ -464,6 +464,16 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         expected_contract = metadata["runtime_contract"]
         layout = getattr(runner, "_semantic_observation_layout", None)
         factor = verified.get("instrumentation_observation_contract")
+        video_factor = (verified.get("video_instrumentation_factor") or {}).get("observation_contract")
+        if video_factor is not None:
+            if factor is not None:
+                raise RuntimeError("exact video and instrumentation observation receipts must be exclusive")
+            factor = video_factor
+            if (tuple(runner.alg.storage.actions.shape) != (ROLLOUT_LENGTH, 1, factor["action_dimension"])
+                    or any(tuple(runner.alg.storage.observations[key].shape)
+                           != (ROLLOUT_LENGTH, 1, factor["observation_dimension"])
+                           for key in ("policy", "critic"))):
+                raise RuntimeError("video exact resume requires fresh verified N1 policy/critic/action storage")
         actual_contract = _runner_policy_contract(runner)
         if layout is not None and (factor is None
                 or factor["source_policy_contract"] != metadata.get("policy_contract")

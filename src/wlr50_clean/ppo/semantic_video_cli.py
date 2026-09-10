@@ -6,7 +6,8 @@ import traceback
 from datetime import datetime, timezone
 
 from .semantic_cli import (parser, validate_request, runtime_contract,
-                           _preflight_checkpoint, _resolved_policy_version, jsonable)
+                           _preflight_checkpoint, _resolved_policy_version, _observation_layout_options,
+                           _resolved_observation_layout, _resolved_policy_contract, jsonable)
 from .semantic_training import (construct_semantic_runner, load_semantic_checkpoint,
     seed_training_rngs, parameter_hash, state_hash, _normalizers, write_json)
 from .semantic_video import (ROLES, require, capture_semantic_video,
@@ -28,7 +29,8 @@ def checkpoint_loader(args, contract):
                 return TensorDict({"policy": tensor, "critic": tensor.clone()},
                                   batch_size=[1], device=args.device)
         runner, _ = construct_semantic_runner(ObservationEnv(), seed=training_seed,
-            device=args.device, policy_version=_resolved_policy_version(args), initialize_actor=False)
+            device=args.device, policy_version=_resolved_policy_version(args), initialize_actor=False,
+            **_observation_layout_options(args))
         infos = load_semantic_checkpoint(runner, args.checkpoint, contract=contract,
             seed=training_seed, migration=getattr(args,"_migration_record",None))
         runner.alg.eval_mode()
@@ -54,6 +56,9 @@ def checkpoint_loader(args, contract):
                  "policy_version": _resolved_policy_version(args),
                  "parameter_hashes":initial_hashes, "optimizer_updates":0,
                  "migration":getattr(args,"_migration_record",None)}
+        if _resolved_observation_layout(args) is not None:
+            proof.update(observation_layout=_resolved_observation_layout(args),
+                         observation_dimension=len(observation), policy_contract=_resolved_policy_contract(args))
         return action, proof, unchanged
     return load
 
@@ -72,14 +77,26 @@ def validate_video_args(args):
     return next(role for role,mode in ROLES.items() if mode==args.mode)
 
 
-def build_video_core(app, *, role, semantic_version):
-    """A control is unchanged; only B/C select semantic runtime configuration."""
-    configs = video_configuration(semantic_version)
+def build_video_core(app, *, role, semantic_version, experiment_id=None):
+    """Select the same existing A/B/C evaluation recipe; no new control/physics."""
+    configs = (video_configuration(semantic_version) if experiment_id is None else
+               video_configuration(semantic_version, experiment_id=experiment_id))
     if role == "A":
-        from .isaac_fsm_backend import IsaacFSMBackend
+        from .isaac_fsm_backend import IsaacFSMBackend, _load_live_dependencies
         from .residual_direct_env import ResidualEpisodeEnv
-        return ResidualEpisodeEnv(IsaacFSMBackend(app, audit_actuator_target_effect=True),
-                                  collect_trace=False)
+        options = {"audit_actuator_target_effect": True}
+        if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2"):
+            from dataclasses import replace
+            from .semantic_supervisor import load_task_spec
+            from .semantic_physical_sensing import SemanticSensorReader
+            require(load_task_spec(configs["task_spec_path"]).get("physical_acceptance_version")
+                    == "all_stage_v1", "video A requires the selected common measured task spec")
+            # Exactly the current _evaluation_legacy reader recipe. Frozen A
+            # controller, mapper, reset and level calibration are unchanged.
+            options["dependencies"] = replace(_load_live_dependencies(),
+                reader_from_scene=lambda scene, adapter, backends: SemanticSensorReader.from_live_scene(
+                    scene, adapter, backends=backends))
+        return ResidualEpisodeEnv(IsaacFSMBackend(app, **options), collect_trace=False)
     from .semantic_backend import SemanticIsaacBackend
     from .semantic_env import SemanticEpisodeEnv
     backend_options = {"audit_actuator_target_effect": True}
@@ -98,6 +115,9 @@ def main(argv=None):
     role=validate_video_args(args)
     contract_options = {"expected_head": args.expected_head,
                         "semantic_version": args.semantic_version}
+    experiment_id = getattr(args, "experiment_id", None)
+    experiment_options = {} if experiment_id is None else {"experiment_id": experiment_id}
+    contract_options.update(experiment_options)
     contract=runtime_contract(**contract_options)
     _preflight_checkpoint(args,contract)  # Strict contract before any native launch.
     args.run_dir.mkdir(parents=True,exist_ok=False)
@@ -114,12 +134,12 @@ def main(argv=None):
         app=AppLauncher(headless=False,enable_cameras=False).app
         app.update()
         seed_training_rngs(args.seed)
-        core = build_video_core(app, role=role, semantic_version=args.semantic_version)
+        core = build_video_core(app, role=role, semantic_version=args.semantic_version, **experiment_options)
         source=args.run_dir/"source"
         result=capture_semantic_video(core,role=role,seed=args.seed,
             output_directory=source,contract=contract,
             policy_loader=checkpoint_loader(args,contract) if role=="C" else None,
-            semantic_version=args.semantic_version)
+            semantic_version=args.semantic_version, **experiment_options)
         require(runtime_contract(**contract_options)==contract,
                 "runtime changed during capture")
         if result["success_candidate"]:

@@ -29,6 +29,7 @@ from .semantic_training import verified_native_effect, write_json
 
 HZ, FPS, STRIDE = 120, 15, 8
 PRE_TICKS, POST_TICKS, MAX_FRAMES = 64, 184, 3000
+TASK_WINDOW_EXPERIMENT = "fsm_reference_p09_stable_v2"
 CAMERA = {"eye_m": [1.45, -1.25, .8], "target_m": [.45, 0., .12]}
 ROLES = {"A": "legacy_fsm_eval", "B": "semantic_prior_eval",
          "C": "semantic_residual_eval"}
@@ -57,6 +58,97 @@ def jsonl(stream, row):
 def frames_for_episode(episode_ticks):
     require(type(episode_ticks) is int and episode_ticks > 0, "bad episode tick count")
     return 1 + (PRE_TICKS + episode_ticks + POST_TICKS) // STRIDE
+
+
+def task_interval_receipt(episode_ticks):
+    """CFR samples real executed intervals; no extra physics or task deadline."""
+    require(type(episode_ticks) is int and 0 < episode_ticks <= 24000,
+            "task video endpoint must remain inside the unchanged 200s horizon")
+    count = (episode_ticks + STRIDE - 1) // STRIDE
+    final_ticks = episode_ticks - STRIDE * (count - 1)
+    return {"schema": "wlr50_clean.task_interval_video_window.v1",
+        "experiment_id": TASK_WINDOW_EXPERIMENT, "first_episode_tick": 0,
+        "endpoint_episode_tick": episode_ticks, "frame_count": count,
+        "frame_sample": "actual_executed_interval_right_endpoint",
+        "first_frame_episode_tick": min(STRIDE, episode_ticks),
+        "last_frame_episode_tick": episode_ticks,
+        "final_interval_physics_ticks": final_ticks,
+        "terminal_frame_display_quantization_s": (STRIDE - final_ticks) / HZ,
+        "encoded_duration_s": count / FPS, "physical_duration_s": episode_ticks / HZ,
+        "tick0_observation_retained": True, "tick0_encoded_as_extra_frame": False,
+        "extra_physics_ticks": 0, "extra_pre_frames": 0, "extra_post_frames": 0}
+
+
+def source_frame_count(source):
+    if source.get("experiment_id") == TASK_WINDOW_EXPERIMENT:
+        return task_interval_receipt(source["episode_physics_ticks"])["frame_count"]
+    return frames_for_episode(source["episode_physics_ticks"])
+
+
+def capture_task_interval_frame(recorder, backend, episode_tick):
+    """Actual viewport at a real interval end, including an exact partial end."""
+    require(type(episode_tick) is int and 0 < episode_tick <= 24000, "invalid task frame tick")
+    recorder.before_render(sim_step=episode_tick, sim_time_s=episode_tick / HZ)
+    backend.render_video_frame()
+    recorder.after_render()
+    recorder.require_healthy()
+
+
+def task_interval_action_window(source, decoded, ledger):
+    """Narrow adapter to the existing publication window, preserving real ticks.
+
+    Full intervals contain8 ticks; the final interval contains1..8. Its native
+    CFR display quantization is explicit, never a fabricated simulator time.
+    """
+    from wlr50_clean.evaluation.video_timeline import (
+        ActionWindow, _sha256_float64, _sha256_text_rows,
+    )
+    require(source.get("experiment_id") == TASK_WINDOW_EXPERIMENT
+            and source.get("semantic_version") == "v3", "wrong task interval experiment")
+    endpoint = source["episode_physics_ticks"]
+    receipt = task_interval_receipt(endpoint)
+    require(source.get("task_interval_window") == receipt, "task interval manifest mismatch")
+    count = receipt["frame_count"]
+    require(2 <= count <= MAX_FRAMES and len(decoded) == len(ledger) == count,
+            "task interval frame count differs")
+    ticks = [min((index + 1) * STRIDE, endpoint) for index in range(count)]
+    require([row.sim_step for row in ledger] == ticks, "task interval actual endpoint tick mismatch")
+    require(all(frame.frame_index == row.frame_index == index
+                and abs(row.sim_time_s - ticks[index] / HZ) < 1e-10
+                for index, (frame, row) in enumerate(zip(decoded, ledger))),
+            "task interval ledger clock/index mismatch")
+    pts = [frame.pts_s for frame in decoded]
+    deltas = [b - a for a, b in zip(pts, pts[1:])]
+    require(all(abs(delta - 1 / FPS) < 1e-5 for delta in deltas), "task video was retimed")
+    offsets = [row.sim_time_s - frame.pts_s for row, frame in zip(ledger, decoded)]
+    offset = offsets[0]
+    require(all(abs(value - offset) < 1e-5 for value in offsets[:-1])
+            and abs((offset - offsets[-1]) -
+                    receipt["terminal_frame_display_quantization_s"]) < 1e-5,
+            "task terminal interval/PTS quantization mismatch")
+    duration = count / FPS
+    # Keep every decoded frame/hash/native PTS delta. Do not reinterpret the
+    # true endpoint ledger as an ideal physical-time grid.
+    return ActionWindow(
+        semantic_start_sim_s=0., semantic_end_sim_s=endpoint / HZ,
+        source_first_frame_index=0, source_last_frame_index=count-1,
+        source_first_pts_s=pts[0], source_last_pts_s=pts[-1],
+        source_first_sim_time_s=ledger[0].sim_time_s, source_last_sim_time_s=ledger[-1].sim_time_s,
+        trim_start_pts_s=pts[0], trim_end_pts_s=pts[-1]+1/FPS,
+        output_duration_s=duration, expected_frame_count=count,
+        leading_frames_removed=0, trailing_frames_removed=0, phase_clock_origin_sim_s=0.,
+        semantic_start_output_s=0., semantic_end_output_s=endpoint/HZ,
+        action_frame_start_output_pts_s=0., action_frame_end_output_pts_s_exclusive=duration,
+        requested_pre_roll_s=0., requested_post_roll_s=0., maximum_preserved_roll_s=0.,
+        available_pre_roll_s=0., available_post_roll_s=0.,
+        retained_pre_roll_s=0., retained_post_roll_s=0.,
+        capture_lag_after_action_start_s=ledger[0].sim_time_s,
+        packet_copy_start_is_keyframe=decoded[0].key_frame,
+        source_selected_pts_sha256=_sha256_float64(pts),
+        source_selected_pts_delta_sha256=_sha256_float64(deltas),
+        source_selected_checksums_sha256=_sha256_text_rows(frame.checksum for frame in decoded),
+        ledger_to_pts_offset_s=offset,
+        maximum_ledger_to_pts_offset_deviation_s=max(abs(value-offset) for value in offsets))
 
 
 def file_record(path):
@@ -88,16 +180,44 @@ def capture_frame(recorder, backend, global_tick):
     recorder.require_healthy()
 
 
-def video_configuration(semantic_version):
+def video_configuration(semantic_version, *, experiment_id=None):
     """One explicit configuration selection for capture AND independent replay."""
     from .semantic_cli import version_paths
-    config = version_paths(semantic_version)[2]
-    return {name: config / filename for name, filename in (
+    config = (version_paths(semantic_version) if experiment_id is None else
+              version_paths(semantic_version, experiment_id=experiment_id))[2]
+    result = {name: config / filename for name, filename in (
         ("task_spec_path", "stage_task_spec.yaml"),
         ("quality_score_path", "quality_score.yaml"),
         ("execution_profile", "execution_profile.yaml"),
         ("reward_config_path", "reward_config.yaml"),
         ("observation_schema_path", "observation_schema.json"))}
+    if experiment_id is not None:
+        # Bind all six experiment files, even though residual execution uses
+        # execution_profile rather than reading action_schema a second time.
+        result["action_schema_path"] = config / "action_schema.json"
+    return result
+
+
+def _validate_video_configuration_binding(configs, contract, *, experiment_id):
+    """Exact explicit-experiment paths/bytes; no permission to change the MDP."""
+    require(contract.get("experiment_id") == experiment_id, "video/runtime experiment mismatch")
+    if experiment_id is None:
+        return  # Preserve historical implicit v2/v3 source manifests.
+    from .semantic_cli import PROJECT_ROOT
+    from .semantic_policy_distribution import CONFIG_NAMES
+    require(set(path.name for path in configs.values()) == CONFIG_NAMES
+            and len(configs) == len(CONFIG_NAMES), "video requires all six selected configurations")
+    selected = contract.get("selected_configuration")
+    require(isinstance(selected, dict) and set(selected) == CONFIG_NAMES,
+            "video runtime lacks exactly six selected configuration bindings")
+    for path in configs.values():
+        record = file_record(path)
+        actual = Path(record["path"])
+        require(actual.is_relative_to(PROJECT_ROOT.resolve()), "video configuration escaped project")
+        relative = actual.relative_to(PROJECT_ROOT.resolve()).as_posix()
+        require(selected[path.name] == {"path": relative, "sha256": record["sha256"]}
+                and contract.get("files", {}).get(relative) == record["sha256"],
+                "video selected configuration path/hash differs from current runtime bytes")
 
 
 def reset_with_existing_settle_tail(core, recorder, roll, *, seed):
@@ -315,8 +435,10 @@ def common_post_success_tick(backend, evaluator, *, episode_ticks, post_index):
 
 class EndpointObserver:
     """Common physical metrics first; exact-tick endpoint then native-grid render."""
-    def __init__(self, physical, recorder, backend):
+    def __init__(self, physical, recorder, backend, *, task_window=False):
         self.physical, self.recorder, self.backend = physical, recorder, backend
+        self.task_window = task_window
+        self.last_captured_tick = None
         self.last_frame = None
         self.last_global_tick = 0
         self.reason = None
@@ -324,21 +446,26 @@ class EndpointObserver:
     def __call__(self, before, after, projection):
         self.physical.observe(before, after, projection)
         self.last_frame = after
-        self.last_global_tick = PRE_TICKS + after.physics_tick
-        if self.last_global_tick % STRIDE == 0:
-            capture_frame(self.recorder, self.backend, self.last_global_tick)
+        self.last_global_tick = (0 if self.task_window else PRE_TICKS) + after.physics_tick
         result = self.physical.evaluator.snapshot
-        if result.get("success") is True or result.get("termination_reason") is not None:
+        terminal = result.get("success") is True or result.get("termination_reason") is not None
+        if self.task_window:
+            if after.physics_tick % STRIDE == 0 or terminal:
+                capture_task_interval_frame(self.recorder, self.backend, after.physics_tick)
+                self.last_captured_tick = after.physics_tick
+        elif self.last_global_tick % STRIDE == 0:
+            capture_frame(self.recorder, self.backend, self.last_global_tick)
+        if terminal:
             self.reason = "SUCCESS" if result.get("success") else result["termination_reason"]
             raise _PhysicalEndpoint
-        if frames_for_episode(after.physics_tick) > MAX_FRAMES:
+        if not self.task_window and frames_for_episode(after.physics_tick) > MAX_FRAMES:
             self.reason = "VIDEO_FULL_CONTEXT_EXCEEDS_200S"
             raise _PhysicalEndpoint
 
 
 def capture_semantic_video(core, *, role, seed, output_directory, contract,
                            policy_loader=None, recorder_factory=ActiveViewportVideoRecorder,
-                           semantic_version="v2"):
+                           semantic_version="v2", experiment_id=None):
     """Capture one fresh P01 episode in one live process.
 
     policy_loader(refreshed_observation) returns (deterministic_action_callable,
@@ -347,7 +474,9 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
     """
     require(role in ROLES and seed == 4001, "wrong role or locked video seed")
     require((role == "C") == (policy_loader is not None), "wrong checkpoint role")
-    configs = video_configuration(semantic_version)
+    configs = (video_configuration(semantic_version) if experiment_id is None else
+               video_configuration(semantic_version, experiment_id=experiment_id))
+    _validate_video_configuration_binding(configs, contract, experiment_id=experiment_id)
     require(contract.get("semantic_version", "v2") == semantic_version,
             "capture version differs from runtime contract")
     root = Path(output_directory).resolve()
@@ -366,10 +495,12 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
     error = None
     reset_info = {}
     settle_evidence = None
+    task_window = experiment_id == TASK_WINDOW_EXPERIMENT
+    require(not task_window or semantic_version == "v3", "current task video requires v3")
     try:
         roll = (root/"physical_video_roll_ticks.jsonl").open("x", encoding="utf-8")
         decisions = (root/"video_policy_decisions.jsonl").open("x", encoding="utf-8")
-        if semantic_version == "v3":
+        if semantic_version == "v3" and not task_window:
             settle_evidence = reset_with_existing_settle_tail(core, recorder, roll, seed=seed)
         else:
             core.reset(seed=seed)
@@ -384,6 +515,11 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
         require(all(list(camera[key]) == value for key,value in CAMERA.items()),
                 "camera differs from common A/B/C view")
         legacy_controller = backend._controller if role == "A" else None
+        if task_window:
+            for _ in range(3):
+                backend.render_video_frame()  # Shader-only; no physical/control step.
+            require(recorder.start(), "viewport capture did not start")
+            # Tick0 stays in physical_observations.jsonl; no extra encoded frame.
         if semantic_version == "v3":
             observation, refreshed = tuple(core.observation), dict(core.frame.info)
         else:
@@ -417,7 +553,7 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
                     "C source lacks actual checkpoint load proof")
         else:
             action = lambda _observation, _decision: ZERO12
-        observer = EndpointObserver(physical, recorder, backend)
+        observer = EndpointObserver(physical, recorder, backend, task_window=task_window)
         if role == "A":
             core.tick_callback = observer
         else:
@@ -452,12 +588,16 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
                 "environment_step_returned": True, "step_info": step.info})
         endpoint = observer.last_frame
         require(endpoint is not None, "video had no episode physics")
+        if task_window and observer.last_captured_tick != endpoint.physics_tick:
+            capture_task_interval_frame(recorder, backend, endpoint.physics_tick)
+            observer.last_captured_tick = endpoint.physics_tick
         physical_summary = physical.summary()  # Metrics end before all post-roll.
         require(physical_summary["task_success"] is True, "episode did not meet common physical task")
         require(observer.reason == "SUCCESS", "video was stopped for another reason")
-        require(frames_for_episode(endpoint.physics_tick) <= MAX_FRAMES,
-                "full physical context would exceed 200 seconds")
-        for index in range(1, POST_TICKS+1):
+        require((task_interval_receipt(endpoint.physics_tick)["frame_count"] if task_window else
+                 frames_for_episode(endpoint.physics_tick)) <= MAX_FRAMES,
+                "complete source would exceed 200 seconds")
+        for index in range(1, (0 if task_window else POST_TICKS)+1):
             row = common_post_success_tick(backend, physical.evaluator,
                 episode_ticks=endpoint.physics_tick, post_index=index)
             global_tick = PRE_TICKS + endpoint.physics_tick + index
@@ -469,6 +609,13 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
         error = f"{type(exc).__name__}: {exc}"
     finally:
         if physical is not None:
+            if task_window and physical_summary is None:
+                # Preserve measured task outcome even if encoding failed at the
+                # terminal callback; video error still prevents publication.
+                try:
+                    physical_summary = physical.summary()
+                except Exception as exc:
+                    error = error or f"physical summary failed: {type(exc).__name__}: {exc}"
             physical.close()
         if roll is not None:
             roll.close()
@@ -487,14 +634,15 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
     payload = {"schema": "wlr50_clean.semantic_video_source.v1",
         "semantic_version": semantic_version,
         "evaluation_configuration": {name: file_record(path) for name, path in configs.items()},
-        "pre_action_source": "existing_reset_settle_tail" if semantic_version == "v3" else "additional_zero_hold",
+        "pre_action_source": ("not_encoded_natural_reset" if task_window else
+                              "existing_reset_settle_tail" if semantic_version == "v3" else "additional_zero_hold"),
         "extra_pre_action_physics_ticks": 0 if semantic_version == "v3" else PRE_TICKS,
         "settle_capture_evidence": settle_evidence,
         "role": role, "mode": ROLES[role], "seed": seed, "runtime_contract": dict(contract),
         "capture_process_id": os.getpid(), "capture_process_instance_id": uuid.uuid4().hex,
         "fresh_process_single_episode": True, "episode_count": 1,
-        "from_phase": "P01", "pre_action_ticks": PRE_TICKS,
-        "requested_post_success_ticks": POST_TICKS,
+        "from_phase": "P01", "pre_action_ticks": 0 if task_window else PRE_TICKS,
+        "requested_post_success_ticks": 0 if task_window else POST_TICKS,
         "performed_post_success_ticks": backend._video_post_terminal_tick_count,
         "episode_physics_ticks": None if endpoint is None else endpoint.physics_tick,
         "issued_policy_decisions": issued_decisions,
@@ -506,11 +654,17 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
              "video_pre_action_refresh", "semantic_video_initialization")},
         "checkpoint_load_provenance": load_provenance,
         "physical_episode": physical_summary, "optimizer_updates": 0,
+        "physical_task_success": (None if physical_summary is None else
+                                  bool(physical_summary["task_success"])),
         "success_candidate": error is None,
         "diagnostic_only": error is not None, "improved_claim": False,
         "source_acceptance_error": error,
         "stitched": False, "frame_interpolation": False, "speed_modified": False,
         "artifacts": {name: file_record(root/name) for name in names if (root/name).is_file()}}
+    if experiment_id is not None:
+        payload["experiment_id"] = experiment_id
+    if task_window and endpoint is not None:
+        payload["task_interval_window"] = task_interval_receipt(endpoint.physics_tick)
     write_json(root/"semantic_video_source_manifest.json", payload)
     return payload
 
@@ -519,7 +673,10 @@ def validate_video_configuration(source):
     version = source.get("semantic_version", "v2")
     require(source["runtime_contract"].get("semantic_version", "v2") == version,
             "source/runtime semantic version mismatch")
-    configs = video_configuration(version)
+    experiment_id = source.get("experiment_id")
+    configs = (video_configuration(version) if experiment_id is None else
+               video_configuration(version, experiment_id=experiment_id))
+    _validate_video_configuration_binding(configs, source["runtime_contract"], experiment_id=experiment_id)
     if version == "v3" or "evaluation_configuration" in source:
         require(source.get("evaluation_configuration") ==
                 {name: file_record(path) for name, path in configs.items()},
@@ -566,15 +723,29 @@ def validate_semantic_video_source(root, *, expected_role=None):
     require(source["camera"] == {**CAMERA, "resolution": [1280,720], "fps": FPS}, "camera mismatch")
     require(all(source[key] is False for key in ("stitched","frame_interpolation","speed_modified")),
             "source timeline was synthesized")
-    require(source["pre_action_ticks"] == PRE_TICKS
-            and source["performed_post_success_ticks"] == POST_TICKS, "incomplete real context")
+    task_window = source.get("experiment_id") == TASK_WINDOW_EXPERIMENT
+    if task_window:
+        require(source.get("semantic_version") == "v3"
+                and source["pre_action_source"] == "not_encoded_natural_reset"
+                and source["pre_action_ticks"] == source["requested_post_success_ticks"]
+                == source["performed_post_success_ticks"] == source["extra_pre_action_physics_ticks"] == 0
+                and source["settle_capture_evidence"] is None,
+                "current task window added physical or encoded context")
+        require(source.get("physical_task_success") is True
+                and source["physical_episode"]["task_success"] is True,
+                "video candidate lacks independent physical task success")
+    else:
+        require(source["pre_action_ticks"] == PRE_TICKS
+                and source["performed_post_success_ticks"] == POST_TICKS, "incomplete real context")
     paths = {name: inside(root, record) for name,record in source["artifacts"].items()}
     endpoint = source["episode_physics_ticks"]
-    require(frames_for_episode(endpoint) <= MAX_FRAMES, "video context exceeds 200 s")
+    require(source_frame_count(source) <= MAX_FRAMES, "video context exceeds 200 s")
     from .semantic_cli import runtime_contract
     configs = validate_video_configuration(source)
+    experiment_options = ({} if source.get("experiment_id") is None else
+                          {"experiment_id": source["experiment_id"]})
     require(runtime_contract(expected_head=source["runtime_contract"]["source_git_commit"],
-                             semantic_version=source.get("semantic_version", "v2"))
+                             semantic_version=source.get("semantic_version", "v2"), **experiment_options)
             == source["runtime_contract"], "validator runtime/task spec differs from capture")
     if source["role"] == "C":
         require(source["checkpoint_load_provenance"]["checkpoint_loaded_and_verified"] is True,
@@ -607,6 +778,10 @@ def validate_semantic_video_source(root, *, expected_role=None):
         expected_start = row["end_tick"]
     require(expected_start == endpoint and completed_steps == source["completed_environment_steps"],
             "decision ledger endpoint mismatch")
+    if task_window:
+        expected_ends = [min((index+1)*STRIDE, endpoint) for index in range(source_frame_count(source))]
+        require([row["end_tick"] for row in decision_rows] == expected_ends,
+                "task frames must match actual executed policy interval endpoints")
     require(decision_rows[-1]["physics_ticks"] == source["interrupted_final_decision_ticks"]
             and not decision_rows[-1]["environment_step_returned"], "partial endpoint was hidden")
     count = 0
@@ -627,11 +802,14 @@ def validate_semantic_video_source(root, *, expected_role=None):
     roll_rows = [json.loads(line) for line in paths["physical_video_roll_ticks.jsonl"].read_text().splitlines()]
     pre = [row for row in roll_rows if row["kind"] == "pre_action"]
     post = [row for row in roll_rows if row["kind"] == "post_success"]
-    require([row["global_tick"] for row in pre] == list(range(1,PRE_TICKS+1)), "pre-roll tick gap")
-    if source.get("semantic_version", "v2") == "v3":
-        validate_existing_settle_evidence(source, pre)
-    require([row["global_tick"] for row in post] ==
-            list(range(PRE_TICKS+endpoint+1, PRE_TICKS+endpoint+POST_TICKS+1)), "post-roll tick gap")
+    if task_window:
+        require(not roll_rows, "current task window contains extra physical PRE/POST ticks")
+    else:
+        require([row["global_tick"] for row in pre] == list(range(1,PRE_TICKS+1)), "pre-roll tick gap")
+        if source.get("semantic_version", "v2") == "v3":
+            validate_existing_settle_evidence(source, pre)
+        require([row["global_tick"] for row in post] ==
+                list(range(PRE_TICKS+endpoint+1, PRE_TICKS+endpoint+POST_TICKS+1)), "post-roll tick gap")
     for row in pre:
         require(row["task_credit"] is False and row["physical_hold"]["root_state_write_count"] == 0
                 and tuple(row["physical_hold"]["applied_full12"]) == ZERO12,
@@ -643,14 +821,17 @@ def validate_semantic_video_source(root, *, expected_role=None):
                 "independent post-roll replay lost physical stability")
     decoded = decode_frame_timeline(paths["actual_viewport_video.mp4"])
     ledger = load_viewport_frame_ledger(paths["viewport_frame_ledger.jsonl"])
-    require(len(ledger) == frames_for_episode(endpoint), "encoded frame count mismatch")
-    require([row.sim_step for row in ledger] == [STRIDE*i for i in range(len(ledger))],
-            "frames were dropped/duplicated or a partial terminal tick was mislabeled")
-    require(all(abs(row.sim_time_s-row.sim_step/HZ)<1e-10 for row in ledger), "ledger clock drift")
-    window = plan_action_window(decoded, ledger,
-        semantic_start_sim_s=PRE_TICKS/HZ, semantic_end_sim_s=(PRE_TICKS+endpoint)/HZ,
-        expected_fps=FPS, requested_pre_roll_s=PRE_TICKS/HZ,
-        requested_post_roll_s=1., maximum_preserved_roll_s=2.)
+    require(len(ledger) == source_frame_count(source), "encoded frame count mismatch")
+    if task_window:
+        window = task_interval_action_window(source, decoded, ledger)
+    else:
+        require([row.sim_step for row in ledger] == [STRIDE*i for i in range(len(ledger))],
+                "frames were dropped/duplicated or a partial terminal tick was mislabeled")
+        require(all(abs(row.sim_time_s-row.sim_step/HZ)<1e-10 for row in ledger), "ledger clock drift")
+        window = plan_action_window(decoded, ledger,
+            semantic_start_sim_s=PRE_TICKS/HZ, semantic_end_sim_s=(PRE_TICKS+endpoint)/HZ,
+            expected_fps=FPS, requested_pre_roll_s=PRE_TICKS/HZ,
+            requested_post_roll_s=1., maximum_preserved_roll_s=2.)
     require(window.is_full_source, "source context was silently trimmed")
     validation = validate_mp4(paths["actual_viewport_video.mp4"],
         expected_fps=FPS, expected_frame_count=len(ledger), maximum_duration_s=200.,
@@ -679,7 +860,7 @@ def comparison_title(source):
 
 def comparison_filter(left, right):
     """No retiming: the shorter completed source visibly freezes at its end."""
-    frame_counts = [frames_for_episode(item["episode_physics_ticks"]) for item in (left, right)]
+    frame_counts = [source_frame_count(item) for item in (left, right)]
     total = max(frame_counts)
     require(total <= MAX_FRAMES, "comparison exceeds 200 seconds")
     parts = []
@@ -699,7 +880,7 @@ def publish_success_comparison(baseline_root, candidate_root, destination):
     """Publish common-condition actual A/C successes, with no improvement claim."""
     left, _ = validate_semantic_video_source(baseline_root, expected_role="A")
     right, _ = validate_semantic_video_source(candidate_root, expected_role="C")
-    for key in ("seed", "camera", "runtime_contract", "semantic_version",
+    for key in ("seed", "camera", "runtime_contract", "semantic_version", "experiment_id",
                 "pre_action_source", "extra_pre_action_physics_ticks"):
         require(left.get(key) == right.get(key), f"comparison condition differs: {key}")
     destination = Path(destination).resolve()

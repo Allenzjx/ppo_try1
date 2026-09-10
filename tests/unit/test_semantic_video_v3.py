@@ -269,6 +269,8 @@ def test_video_powershell_selects_v3_directories_and_shared_process_lock():
     root=Path(__file__).resolve().parents[2]
     script=(root/"scripts/run_semantic_video.ps1").read_text()
     assert "[ValidateSet('v2','v3')][string]$SemanticVersion = 'v2'" in script
-    assert "runs\\ppo_semantic_$SemanticVersion\\video_eval" in script
+    assert '"ppo_semantic_$SemanticVersion"' in script
+    assert '"ppo_$ExperimentId"' in script
+    assert "runs\\$namespace\\video_eval" in script
     assert "'--semantic-version',$SemanticVersion" in script
     assert "runs\\ppo_semantic_v2\\.single_process.lock" in script

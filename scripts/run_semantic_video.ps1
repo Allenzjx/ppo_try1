@@ -2,6 +2,7 @@
 param(
     [ValidateSet('eval')][string]$Command = 'eval',
     [ValidateSet('v2','v3')][string]$SemanticVersion = 'v2',
+    [ValidateSet('transfer_roles_v1','all_stage_acceptance_v1','fsm_reference_p09_stable_v2')][string]$ExperimentId,
     [Parameter(Mandatory = $true)][ValidatePattern('^[0-9a-f]{40}$')][string]$ExpectedHead,
     [ValidateSet('smoke','phase_suffix','full_episode')][string]$Stage = 'smoke',
     [ValidateRange(1,100000)][int]$Decisions,
@@ -15,6 +16,9 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if (-not [string]::IsNullOrWhiteSpace($ExperimentId) -and $SemanticVersion -cne 'v3') {
+    throw 'ExperimentId requires SemanticVersion v3'
+}
 $project = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $python = 'C:\Users\kskzz\miniconda3\envs\env_isaaclab\python.exe'
 $busy = @(Get-CimInstance Win32_Process | Where-Object {
@@ -30,8 +34,9 @@ $kind = switch ($Command) { 'train' { 'train' }; 'smoke' { 'interface_smoke' }; 
     if ($Mode -eq 'legacy_fsm_eval') { 'baseline_A' } elseif ($Mode -eq 'semantic_prior_eval') { 'prior_B' } elseif ($Seed -ge 3001 -and $Seed -le 3005) { 'locked_test' } else { 'validation' }
 } }
 $runId = [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfffffffZ') + '_g' + $ExpectedHead.Substring(0,12) + '_' + [Guid]::NewGuid().ToString('N')
-$runDir = Join-Path $project ("runs\ppo_semantic_$SemanticVersion\video_eval\$kind\$runId")
-$logDir = Join-Path $project ("runs\ppo_semantic_$SemanticVersion\video_eval\$kind\${runId}_launcher")
+$namespace = if ([string]::IsNullOrWhiteSpace($ExperimentId)) { "ppo_semantic_$SemanticVersion" } else { "ppo_$ExperimentId" }
+$runDir = Join-Path $project ("runs\$namespace\video_eval\$kind\$runId")
+$logDir = Join-Path $project ("runs\$namespace\video_eval\$kind\${runId}_launcher")
 [void](New-Item -ItemType Directory -Path $logDir)
 $lockPath = Join-Path $project 'runs\ppo_semantic_v2\.single_process.lock'
 $lock = [IO.File]::Open($lockPath, [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
@@ -47,6 +52,7 @@ try {
         '--expected-head',$ExpectedHead,'--stage',$Stage,'--seed',[string]$Seed,
         '--max-decisions',[string]$MaxDecisions,'--mode',$Mode,'--device',$Device,
         '--checkpoint-interval-updates',[string]$CheckpointIntervalUpdates,'--no-headless')
+    if (-not [string]::IsNullOrWhiteSpace($ExperimentId)) { $arguments += @('--experiment-id',$ExperimentId) }
     if ($PSBoundParameters.ContainsKey('Decisions')) { $arguments += @('--decisions',[string]$Decisions) }
     if (-not [string]::IsNullOrWhiteSpace($Checkpoint)) {
         $checkpointPath = if ([IO.Path]::IsPathRooted($Checkpoint)) { $Checkpoint } else { Join-Path $project $Checkpoint }
