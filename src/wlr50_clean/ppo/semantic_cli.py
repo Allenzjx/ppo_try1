@@ -200,7 +200,10 @@ def validate_request(args: argparse.Namespace) -> None:
         source_root = output_root
         if args.new_mdp_warm_start:
             if getattr(args, "experiment_id", None) == "fsm_reference_p09_stable_v2":
-                source_root = version_paths("v3", experiment_id="all_stage_acceptance_v1")[1]
+                # A same-experiment nominal boundary remains separately reviewed
+                # by build_v3_warm_start_record; this is path routing, not a waiver.
+                if not args.checkpoint.resolve(strict=True).is_relative_to((output_root / "checkpoints").resolve()):
+                    source_root = version_paths("v3", experiment_id="all_stage_acceptance_v1")[1]
             elif getattr(args, "experiment_id", None) == "all_stage_acceptance_v1":
                 source_root = version_paths("v3", experiment_id="transfer_roles_v1")[1]
             elif getattr(args, "experiment_id", None) is not None:

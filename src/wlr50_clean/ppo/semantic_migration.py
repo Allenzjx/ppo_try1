@@ -43,6 +43,8 @@ ROLE_APPEND_RUNTIME_FILES = frozenset({
 SAME372_AUTHORITY_SCHEMA = "wlr50_clean.transfer_roles_same_layout_authority_transition.v1"
 ALL_STAGE_SCHEMA = "wlr50_clean.all_stage_same372_acceptance_transition.v1"
 FSM_REFERENCE_P09_SCHEMA = "wlr50_clean.fsm_reference_p09_functional_same372_transition.v2"
+CAPTURE_HANDOFF_SAME372_SCHEMA = "wlr50_clean.p05_capture_to_handoff_same372_nominal_transition.v1"
+CAPTURE_HANDOFF_SOURCE_HEAD = "7db0d17f398d393ce026b6990bd2566d53366407"
 SAME372_AUTHORITY_RUNTIME_FILES = frozenset({
     "configs/ppo_semantic_v3/stage_task_spec.yaml",
     "configs/ppo_semantic_v3/execution_profile.yaml",
@@ -150,6 +152,95 @@ def _fsm_reference_p09_same372_transition(before, after, binding, *, metadata, o
         "optimizer": {"kind": "Adam", "state": "reset_all_moments",
             "initial_learning_rate": source_lr, "learning_rate_policy": "preserve_verified_source_effective_learning_rate"},
         "equivalence_scope": "identical372-input learned function only; changed functional-lift observation/task and successful-FSM-derived nominal, not trajectory equivalence"}
+
+
+def _capture_handoff_same372_transition(before, after, binding, *, metadata, old, new,
+                                       config_records, project_root, target_policy_version):
+    """The reviewed FL capture-to-handoff change, not a generic same-MDP waiver."""
+    import yaml
+    from .semantic_policy_distribution import (HISTORY_POLICY, policy_contract,
+        policy_observation_layout_from_metadata, policy_version_from_metadata)
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    experiment = "fsm_reference_p09_stable_v2"
+    if (old.get("experiment_id") != experiment or new.get("experiment_id") != experiment
+            or old.get("semantic_version") != "v3" or new.get("semantic_version") != "v3"
+            or old.get("source_git_commit") != CAPTURE_HANDOFF_SOURCE_HEAD
+            or new.get("source_git_commit") == old.get("source_git_commit")
+            or policy_version_from_metadata(metadata) != HISTORY_POLICY
+            or policy_observation_layout_from_metadata(metadata) != ROLE_OBSERVATION_LAYOUT
+            or source_num_envs(metadata) != 1 or target_policy_version is not None):
+        raise ValueError("capture handoff requires the reviewed same-experiment source HEAD and N1 HISTORY372")
+    if (before != after or binding["source_sha256"] != binding["target_sha256"]
+            or sum(row["size"] for row in after["feature_groups"]) != 372):
+        raise ValueError("capture handoff must preserve all372 schema bytes and fixed preprocessing")
+    variable = {"files", "source_git_commit", "runtime_content_sha256", "selected_configuration"}
+    if ({k:v for k,v in old.items() if k not in variable}
+            != {k:v for k,v in new.items() if k not in variable}):
+        raise ValueError("capture handoff cannot change other runtime/physical metadata")
+    for side, contract in (("source", old), ("target", new)):
+        selected = contract.get("selected_configuration", {})
+        if set(selected) != set(config_records):
+            raise ValueError("capture handoff requires exactly six selected configuration bindings")
+        for name, row in config_records.items():
+            path = f"configs/ppo_fsm_reference_p09_stable_v2/{name}"
+            expected = {"path": path, "sha256": row[f"{side}_sha256"]}
+            if (row[f"{side}_path"] != path or selected[name] != expected
+                    or contract["files"].get(path) != expected["sha256"]):
+                raise ValueError("capture handoff configuration namespace/hash binding differs")
+            if name != "stage_task_spec.yaml" and row["source_sha256"] != row["target_sha256"]:
+                raise ValueError(f"capture handoff cannot change configuration bytes: {name}")
+    spec_row = config_records["stage_task_spec.yaml"]
+    source_spec = yaml.safe_load(_version_bytes(project_root, old, spec_row["source_path"], prefer_worktree=True))
+    target_spec = yaml.safe_load((project_root / spec_row["target_path"]).read_bytes())
+    if (not isinstance(source_spec, dict) or not isinstance(target_spec, dict)
+            or not isinstance(source_spec.get("nominal"), dict)
+            or source_spec["nominal"].get("p05_pending_capture") != "current_FL_capture_wheel_continuation_v1"):
+        raise ValueError("capture handoff source must have the exact v1 nominal capture opt-in")
+    expected_spec = json.loads(json.dumps(source_spec, allow_nan=False))
+    expected_spec["nominal"]["p05_pending_capture"] = "current_FL_capture_wheel_continuation_to_handoff_v2"
+    if target_spec != expected_spec:
+        raise ValueError("capture handoff permits only the exact nominal p05_pending_capture v1-to-v2 change")
+    if old["files"].keys() != new["files"].keys():
+        raise ValueError("capture handoff cannot add or remove runtime files")
+    delta = {p for p in old["files"] if old["files"][p] != new["files"][p]}
+    required = {SUPERVISOR, spec_row["target_path"]}
+    allowed = required | {f"src/wlr50_clean/ppo/{name}.py" for name in
+                          ("semantic_migration", "semantic_training", "semantic_cli")}
+    if not required <= delta or not delta <= allowed:
+        raise ValueError(f"capture handoff changed non-reviewed runtime files: {sorted(delta - allowed)}")
+    for relative in delta:
+        _version_bytes(project_root, old, relative, prefer_worktree=True)
+        if file_sha(project_root / relative) != new["files"][relative]:
+            raise ValueError("capture handoff target runtime bytes differ from inventory")
+    old_regions = _nominal_provider_byte_regions(_version_bytes(project_root, old, SUPERVISOR, prefer_worktree=True))
+    new_regions = _nominal_provider_byte_regions((project_root / SUPERVISOR).read_bytes())
+    if old_regions[0] != new_regions[0] or old_regions[2] != new_regions[2] or old_regions[1] == new_regions[1]:
+        raise ValueError("capture handoff may change only the NominalMotionProvider class bytes")
+    source_lr = metadata.get("optimizer_learning_rate")
+    if type(source_lr) not in (int, float) or not math.isfinite(source_lr) or source_lr <= 0:
+        raise ValueError("capture handoff requires the verified positive source effective Adam learning rate")
+    policy = policy_contract(HISTORY_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    return {"schema": CAPTURE_HANDOFF_SAME372_SCHEMA,
+        "source_observation_dimension": 372, "target_observation_dimension": 372,
+        "source_observation_layout": ROLE_OBSERVATION_LAYOUT, "target_observation_layout": ROLE_OBSERVATION_LAYOUT,
+        "source_schema_sha256": binding["source_sha256"], "target_schema_sha256": binding["target_sha256"],
+        "source_policy_contract": policy, "target_policy_contract": dict(policy),
+        "parameter_mapping": "identity_all_parameters_and_buffers", "observation_bytes_unchanged": True,
+        "observation_semantics_changed": [], "kernel_changed": False, "reward_changed": False,
+        "physical_mdp_changed": True, "nominal_control_changed": True, "task_acceptance_changed": False,
+        "physical_actuators_changed": False, "action_ranges_changed": False,
+        "nominal_provider": {"file": SUPERVISOR,
+            "source_class_sha256": hashlib.sha256(old_regions[1]).hexdigest(),
+            "target_class_sha256": hashlib.sha256(new_regions[1]).hexdigest(),
+            "outside_class_sha256": hashlib.sha256(old_regions[0] + b"\0" + old_regions[2]).hexdigest(),
+            "outside_class_bytes_identical": True},
+        "normalizers": "identity_RSL_state_preserved", "old_rollout_inherited": False,
+        "physical_state_inherited": False, "training_rng_preserved": True,
+        "lifetime_counters_and_spent_budgets_preserved": True,
+        "optimizer": {"kind": "Adam", "state": "reset_all_moments",
+            "initial_learning_rate": source_lr, "learning_rate_policy": "preserve_verified_source_effective_learning_rate",
+            "preserve_source_group_options": True},
+        "equivalence_scope": "identical372-input learned policy/value function only; changed FL nominal capture handoff, not projected actions or physical trajectory equivalence"}
 
 
 def _all_stage_same372_transition(before, after, binding, *, metadata, old, new,
@@ -604,7 +695,9 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
     observation_append_transition = None
     observation_same_layout_transition = None
     if target_experiment == "fsm_reference_p09_stable_v2":
-        observation_same_layout_transition = _fsm_reference_p09_same372_transition(
+        transition_builder = (_capture_handoff_same372_transition
+            if source_experiment == "fsm_reference_p09_stable_v2" else _fsm_reference_p09_same372_transition)
+        observation_same_layout_transition = transition_builder(
             before, after, config_records["observation_schema.json"], metadata=metadata,
             old=old, new=new, config_records=config_records, project_root=project_root,
             target_policy_version=target_policy_version)
@@ -742,7 +835,7 @@ def build_v3_warm_start_record(checkpoint: Path, current_contract: Mapping[str, 
             critic="preserve_all_parameters_and_buffers",
             normalizers="identity_RSL_state_preserved; identical_complete372_schema_bytes")
         result["optimizer"]["reason"] = "explicit same372 semantic/authority boundary; verify source Adam then reset moments"
-        if observation_same_layout_transition["schema"] == FSM_REFERENCE_P09_SCHEMA:
+        if observation_same_layout_transition["schema"] in (FSM_REFERENCE_P09_SCHEMA, CAPTURE_HANDOFF_SAME372_SCHEMA):
             result["optimizer"].update(observation_same_layout_transition["optimizer"])
         result["action_output_semantics"] = observation_same_layout_transition["equivalence_scope"]
     return result

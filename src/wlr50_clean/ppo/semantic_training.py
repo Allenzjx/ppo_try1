@@ -824,7 +824,7 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
     import torch
     from .semantic_migration import (
         build_v3_warm_start_record, checkpoint_metadata, SAME372_AUTHORITY_SCHEMA, ALL_STAGE_SCHEMA,
-        FSM_REFERENCE_P09_SCHEMA,
+        FSM_REFERENCE_P09_SCHEMA, CAPTURE_HANDOFF_SAME372_SCHEMA,
     )
     kernel = record.get("policy_kernel_transition")
     options = {} if kernel is None else {"target_policy_version": kernel.get("target_policy_version")}
@@ -842,7 +842,7 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
     same_layout = record.get("observation_same_layout_transition")
     if same_layout is not None:
         from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
-        if (same_layout.get("schema") not in (SAME372_AUTHORITY_SCHEMA, ALL_STAGE_SCHEMA, FSM_REFERENCE_P09_SCHEMA)
+        if (same_layout.get("schema") not in (SAME372_AUTHORITY_SCHEMA, ALL_STAGE_SCHEMA, FSM_REFERENCE_P09_SCHEMA, CAPTURE_HANDOFF_SAME372_SCHEMA)
                 or same_layout.get("source_observation_dimension") != 372
                 or same_layout.get("target_observation_dimension") != 372
                 or same_layout.get("source_observation_layout") != ROLE_OBSERVATION_LAYOUT
@@ -898,14 +898,14 @@ def _load_v3_warm_start(runner: Any, checkpoint: Path, *, contract: Mapping[str,
     # The temporary official restore above proves the saved state before this
     # deliberate new-MDP reset. No old Adam moment is used by any optimizer step.
     learning_rate, adam_options = 3e-5, {}
-    if same_layout is not None and same_layout.get("schema") == FSM_REFERENCE_P09_SCHEMA:
+    if same_layout is not None and same_layout.get("schema") in (FSM_REFERENCE_P09_SCHEMA, CAPTURE_HANDOFF_SAME372_SCHEMA):
         if type(runner.alg.optimizer) is not torch.optim.Adam or len(runner.alg.optimizer.param_groups) != 1:
-            raise RuntimeError("FSM/P09 migration requires the verified single-group official Adam")
+            raise RuntimeError("source-LR same372 migration requires the verified single-group official Adam")
         learning_rate = optimizer_learning_rate(runner)
         if (learning_rate != metadata.get("optimizer_learning_rate")
                 or learning_rate != record["optimizer"]["initial_learning_rate"]
                 or record["optimizer"].get("learning_rate_policy") != "preserve_verified_source_effective_learning_rate"):
-            raise RuntimeError("FSM/P09 source effective Adam learning rate differs from its migration record")
+            raise RuntimeError("source-LR same372 effective Adam learning rate differs from its migration record")
         adam_options = {key: copy.deepcopy(runner.alg.optimizer.param_groups[0][key])
                         for key in runner.alg.optimizer.defaults if key != "lr"}
     runner.alg.optimizer = torch.optim.Adam(

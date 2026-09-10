@@ -1397,6 +1397,16 @@ class NominalMotionProvider:
         if reference_mode not in (None, "successful_fsm_derived_v2"):
             raise ValueError("unknown successful-FSM nominal semantics")
         self._reference_nominal = reference_mode is not None
+        self._p05_pending_capture_mode = nominal.get("p05_pending_capture")
+        if self._p05_pending_capture_mode not in (None,
+                "current_FL_capture_wheel_continuation_v1",
+                "current_FL_capture_wheel_continuation_to_handoff_v2"):
+            raise ValueError("unknown P05 capture-wheel continuation semantics")
+        if (self._p05_pending_capture_mode == "current_FL_capture_wheel_continuation_to_handoff_v2"
+                and (not self._reference_nominal
+                     or nominal.get("continuous_channel_inheritance") is not True
+                     or self.spec.get("physical_acceptance_version") != "all_stage_v1")):
+            raise ValueError("P05 capture handoff requires continuous source-derived physical ownership")
         self._reference_fsm_spec = None
         self.normal_drive_bias_full12 = ZERO12
         if self._reference_nominal:
@@ -1774,14 +1784,33 @@ class NominalMotionProvider:
         if stage_id=="P02" and isinstance(stage,Mapping) and self._approach_assist_required(stage):
             proposed=proposed[:8]+self._approach_wheel_prior
         if (stage_id == "P05" and isinstance(stage, Mapping)
-                and self.spec["nominal"].get("p05_pending_capture") == "current_FL_capture_wheel_continuation_v1"):
+                and self._p05_pending_capture_mode is not None):
             ev = stage.get("physical_evaluator", {})
             current = ev.get("current_legs", {}).get("FL", {})
             role = stage.get("transfer_roles", {}).get("FL", {})
+            captured_handoff = False
+            if self._p05_pending_capture_mode == "current_FL_capture_wheel_continuation_to_handoff_v2":
+                # Placement is observed at 120 Hz, while phase handoff happens
+                # at the next 15 Hz decision. Do not re-expose an old P05 stop
+                # in those intervening ticks. Continue only an already rolling
+                # suggestion with CURRENT verified capture; no timer or latch.
+                # These layers have already advanced once above. A newly
+                # authored wheel event (including a stop) retains precedence.
+                fresh_wheel_event = any(set(group.channels).intersection(WHEEL_ORDER)
+                    for layer in self._continuous_layers for group in layer["sample"].atomic_groups)
+                captured_handoff = bool(
+                    ev.get("history", {}).get("placed", {}).get("FL") is True
+                    and current.get("top_contact") is True and current.get("support") is True
+                    and current.get("bearing_verified") is True and current.get("within_top_xy") is True
+                    and current.get("air") is False and current.get("ground_contact") is False
+                    and type(ev.get("physics_tick")) is int and ev["physics_tick"] % 8 != 0
+                    and self.nominal_full12[8:] == self._approach_wheel_prior
+                    and not fresh_wheel_event)
             # Same P06-class wheel suggestion before placement; no phase skip,
             # fake contact, servo reset, or residual suppression. Existing servo
-            # layers continue. End on capture/unsafe/out-of-approach geometry.
-            if (role.get("pending_capture") and stage.get("termination_reason") is None
+            # layers continue. v2 bridges a current capture only until handoff;
+            # unsafe/current-contact loss and fresh source events still win.
+            if ((role.get("pending_capture") or captured_handoff) and stage.get("termination_reason") is None
                     and ev.get("valid") is True and ev.get("termination_reason") is None
                     and len([leg for leg in role.get("observed_support_contacts", ()) if leg != "FL"]) >= 2
                     and current.get("clearance_m", -1.) >= self.spec["geometry"]["top_gap_min_m"]
