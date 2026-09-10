@@ -199,6 +199,8 @@ class SemanticRslAdapter:
         self.episode_length_buf = torch.zeros(1, dtype=torch.long, device=device)
         self.completed_episodes: list[dict[str, Any]] = []
         self._terminal_evidence_writer = None
+        self._defer_terminal_reset = False
+        self._pending_episode_reset = False
         self.total_decisions = 0
         self._observation = tuple(core.reset(seed=seed))
         self.observation_dimension = len(self._observation)
@@ -214,6 +216,8 @@ class SemanticRslAdapter:
 
     def step(self, actions: Any) -> tuple[Any, Any, Any, dict[str, Any]]:
         import torch
+        if self._pending_episode_reset:
+            raise RuntimeError("pending terminal reset must complete before the next policy action")
         if actions.shape != (1, 12) or not bool(torch.isfinite(actions).all()):
             raise RuntimeError("semantic PPO must pass one finite raw Full12 action")
         raw = tuple(float(value) for value in actions[0].detach().cpu().tolist())
@@ -250,17 +254,40 @@ class SemanticRslAdapter:
             extras["terminal_observation"] = terminal_observation
             # A teacher-prefix reset may take minutes or fail. The collector's
             # sampled-action evidence must be durable before starting that reset,
-            # without moving the RSL storage/return boundary or changing its obs.
+            # The true final observation stays bound to this sampled transition;
+            # the collector may defer reset only at a complete rollout tail.
             if self._terminal_evidence_writer is not None:
                 self._terminal_evidence_writer(summary, terminal_observation, reward_tensor)
                 extras["terminal_evidence_persisted_before_reset"] = True
-            self._observation = tuple(self.core.reset(seed=self.seed))
-            self.episode_length_buf.zero_()
+            if self._defer_terminal_reset:
+                # Only the collector's final rollout tick may request this.
+                # Keep the real terminal observation readable, but do not run
+                # an uncredited reset/prefix unless another rollout is needed.
+                self._pending_episode_reset = True
+                extras["terminal_reset_deferred"] = True
+            else:
+                self._observation = tuple(self.core.reset(seed=self.seed))
+                self.episode_length_buf.zero_()
         return (self.get_observations(), reward_tensor,
                 torch.tensor([done], dtype=torch.bool, device=self.device), extras)
 
+    @property
+    def episode_reset_pending(self) -> bool:
+        return self._pending_episode_reset
+
+    def reset_pending_episode(self) -> Any:
+        """Explicit next-rollout seam; get_observations never resets physics."""
+        if not self._pending_episode_reset:
+            return self.get_observations()
+        self._observation = tuple(self.core.reset(seed=self.seed))
+        observations = self.get_observations()
+        self.episode_length_buf.zero_()
+        self._pending_episode_reset = False
+        return observations
+
     def telemetry_summary(self) -> dict[str, Any]:
         return {"policy_decisions": self.total_decisions,
+                "episode_reset_pending": self._pending_episode_reset,
                 "completed_episode_count": len(self.completed_episodes),
                 "success_count": sum(row["task_success"] for row in self.completed_episodes),
                 "core": jsonable(self.core.telemetry_summary()),
@@ -1054,18 +1081,39 @@ def semantic_curriculum_epoch(config: Mapping[str, Any]) -> dict[str, Any]:
 
 
 @contextmanager
-def _terminal_evidence_before_reset(env: Any, writer: Any):
+def _terminal_evidence_before_reset(env: Any, writer: Any, *, defer_terminal_reset: bool = False):
     """Install a collector-owned sink only for this single-environment step."""
     if not isinstance(env, SemanticRslAdapter):
         yield
         return
-    if env._terminal_evidence_writer is not None:
+    if env._terminal_evidence_writer is not None or env._defer_terminal_reset:
         raise RuntimeError("terminal evidence writer is already installed")
     env._terminal_evidence_writer = writer
+    env._defer_terminal_reset = defer_terminal_reset
     try:
         yield
     finally:
         env._terminal_evidence_writer = None
+        env._defer_terminal_reset = False
+
+
+def _supports_deferred_terminal_reset(runner: Any, env: Any) -> bool:
+    """Limit this scheduling optimization to the existing stateless N=1 ABI.
+
+    RSL processes next observations through normalizers/RND before storage.
+    A terminal rather than reset observation is equivalent only for this
+    supported identity-normalized, nonrecurrent, no-intrinsic-reward path.
+    Other adapters/topologies retain their original autoreset behavior.
+    """
+    import torch
+    if not isinstance(env, SemanticRslAdapter) or env.num_envs != 1:
+        return False
+    if getattr(runner.alg, "rnd", None) is not None:
+        return False
+    return all(getattr(model, "obs_normalization", None) is False
+               and type(getattr(model, "obs_normalizer", None)) is torch.nn.Identity
+               and getattr(model, "is_recurrent", None) is False
+               for model in (runner.alg.actor, runner.alg.critic))
 
 
 def _semantic_decision_audit_row(*, global_decision: int, index: int,
@@ -1094,6 +1142,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     sampling = jsonable(env.cfg.get("reset_sampling", "P01_only"))
     prefix_request = jsonable(env.cfg.get("prefix_request"))
     curriculum = semantic_curriculum_epoch(env.cfg)
+    defer_tail_reset = _supports_deferred_terminal_reset(runner, env)
     semantic_version = env.cfg.get("semantic_version", "v2")
     stage_spent = {name: int(previous.get("stage_requested_decisions", {}).get(name, 0)) for name in STAGE_BUDGETS}
     if stage_spent[stage] + decisions > STAGE_BUDGETS[stage]:
@@ -1119,6 +1168,15 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
          (run_dir / "completed_episodes.jsonl").open("x", encoding="utf-8") as episode_stream:
         for iteration in range(iterations):
             with torch.inference_mode():
+                if defer_tail_reset and env.episode_reset_pending:
+                    if semantic_curriculum_epoch(env.cfg) != curriculum:
+                        raise RuntimeError("curriculum changed before deferred terminal reset")
+                    # No next policy sample may be drawn from terminal obs.
+                    # Previous complete update/checkpoint is already durable.
+                    obs = env.reset_pending_episode().to(runner.device)
+                    if semantic_curriculum_epoch(env.cfg) != curriculum:
+                        raise RuntimeError("curriculum changed during deferred terminal reset")
+                    assert_semantic_return_consistency(runner, env)
                 for tick in range(int(runner.cfg["num_steps_per_env"])):
                     if semantic_curriculum_epoch(env.cfg) != curriculum:
                         raise RuntimeError("curriculum must remain fixed throughout this on-policy epoch")
@@ -1160,7 +1218,10 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             os.fsync(stream.fileno())
                         terminal_persisted = True
 
-                    with _terminal_evidence_before_reset(env, persist_terminal):
+                    with _terminal_evidence_before_reset(
+                            env, persist_terminal,
+                            defer_terminal_reset=(defer_tail_reset
+                                and tick == int(runner.cfg["num_steps_per_env"]) - 1)):
                         obs, rewards, dones, extras = env.step(raw.to(env.device))
                     if semantic_curriculum_epoch(env.cfg) != curriculum:
                         raise RuntimeError("curriculum changed during a physical step/reset of the on-policy epoch")
@@ -1216,7 +1277,9 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
             runner.current_learning_iteration = base_updates + iteration + 1
             print(json.dumps({"semantic_ppo_update": update}, separators=(",", ":")), flush=True)
             stop_record = _stop_request(run_dir, contract)
-            if stop_record is not None or iteration == 0 or (iteration + 1) % checkpoint_interval_updates == 0 or iteration + 1 == iterations:
+            if (stop_record is not None or iteration == 0
+                    or (iteration + 1) % checkpoint_interval_updates == 0 or iteration + 1 == iterations
+                    or (defer_tail_reset and env.episode_reset_pending)):
                 spent = dict(stage_spent)
                 spent[stage] += min((iteration + 1) * batch, decisions)
                 from .semantic_migration import topology

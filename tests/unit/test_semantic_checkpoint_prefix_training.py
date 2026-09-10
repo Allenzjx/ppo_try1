@@ -53,6 +53,16 @@ def test_terminal_reset_provenance_mutation_aborts_before_storage_optimizer_or_s
     original_reset = core.reset
 
     def changed_provenance_during_reset(*args, **kwargs):
+        # The actual terminal is already durable BEFORE this reset changes
+        # provenance. It is evidence, not a stored/resumable PPO transition.
+        terminal_rows = [json.loads(line) for line in
+            (tmp_path / "run/residual_and_projection_audit.jsonl").read_text().splitlines()]
+        terminal_episodes = [json.loads(line) for line in
+            (tmp_path / "run/completed_episodes.jsonl").read_text().splitlines()]
+        assert len(terminal_rows) == len(terminal_episodes) == 1
+        assert terminal_rows[0]["terminal"] is True
+        assert terminal_rows[0]["applied_audit"] == terminal_episodes[0]["terminal_info"]
+        assert terminal_rows[0]["terminal_observation"]["policy"][0] == [2.] * 324
         observation = original_reset(*args, **kwargs)
         # Simulate a reset-side source replacement after the pre-step binding
         # check passed. The loop must independently reject the returned step.
@@ -89,8 +99,19 @@ def test_terminal_reset_provenance_mutation_aborts_before_storage_optimizer_or_s
     assert training.parameter_hash(runner.alg.actor) == before_actor
     assert training.parameter_hash(runner.alg.critic) == before_critic
     assert training.state_hash(runner.alg.optimizer.state_dict()) == before_optimizer
-    for filename in ("residual_and_projection_audit.jsonl", "optimizer_updates.jsonl", "completed_episodes.jsonl"):
-        assert (tmp_path / "run" / filename).read_text() == ""
+    terminal_rows = [json.loads(line) for line in
+        (tmp_path / "run/residual_and_projection_audit.jsonl").read_text().splitlines()]
+    terminal_episodes = [json.loads(line) for line in
+        (tmp_path / "run/completed_episodes.jsonl").read_text().splitlines()]
+    assert len(terminal_rows) == len(terminal_episodes) == 1
+    assert terminal_rows[0]["global_policy_decision"] == 1 and terminal_rows[0]["terminal"] is True
+    assert terminal_rows[0]["raw_policy_action_full12"] == runner.alg.transition.actions[0].tolist()
+    assert terminal_rows[0]["old_log_probability"] == float(runner.alg.transition.actions_log_prob[0])
+    assert terminal_rows[0]["applied_audit"] == terminal_episodes[0]["terminal_info"]
+    assert terminal_episodes[0]["policy_decisions"] == 1
+    assert terminal_episodes[0]["termination_reason"] == "BODY_COLLISION"
+    assert (tmp_path / "run/optimizer_updates.jsonl").read_text() == ""
+    assert env._terminal_evidence_writer is None and env._defer_terminal_reset is False
     assert not list((tmp_path / "run/rollouts").iterdir())
     assert not (tmp_path / "output").exists()
     failure = json.loads((tmp_path / "run/training_failure.json").read_text())
@@ -112,12 +133,12 @@ def test_real_frozen_prefix_actions_never_enter_official_storage_across_terminal
     assert result["finite_nonzero_gradient_observed"] is True
     assert result["actor_parameter_sha256_before"] != result["actor_parameter_sha256_after"]
     assert env.total_decisions == 128 and len(env.completed_episodes) == 128
-    assert env.core.prefix_decisions == 129  # Initial + each post-terminal reset.
-    assert env.core.prefix_ticks == 129 * 8
+    assert env.core.prefix_decisions == 128  # Initial + only resets needed by another credited sample.
+    assert env.core.prefix_ticks == 128 * 8
     assert env.core.credited_ticks == 128 * 3
-    assert len(core.actions) == 257
+    assert len(core.actions) == 256
     prefix_actions, credited_actions = core.actions[0::2], core.actions[1::2]
-    assert len(prefix_actions) == 129 and len(credited_actions) == 128
+    assert len(prefix_actions) == 128 and len(credited_actions) == 128
     assert all(action == (0.,) * 12 for action in prefix_actions)
     assert training.parameter_hash(frozen._actor) == frozen_hash
     assert frozen._actor.distribution._distribution is None
@@ -154,7 +175,7 @@ def test_real_frozen_prefix_actions_never_enter_official_storage_across_terminal
         assert row["raw_policy_action_full12"] == rollout["actions"][index, 0].tolist()
         assert row["old_log_probability"] == rollout["actions_log_prob"][index, 0].item()
         assert row["applied_audit"]["prefix_checkpoint_policy_data_in_ppo_storage"] is False
-    assert sum(row["kind"] == "checkpoint_prefix_decision" for row in evidence) == 129
+    assert sum(row["kind"] == "checkpoint_prefix_decision" for row in evidence) == 128
     assert all(row["policy_credit"] is False for row in evidence)
     checkpoint = json.loads(Path(result["checkpoints"][-1]["manifest"]).read_text())
     assert checkpoint["global_policy_decisions"] == 128
