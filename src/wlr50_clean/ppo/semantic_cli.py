@@ -323,7 +323,8 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
     else:
         args._migration_record = validate_migration_plan(args.checkpoint, contract, args.resume_migration)
         if metadata.get("runner_config") != semantic_runner_config(seed=int(metadata["seed"]), device=args.device,
-                semantic_version=metadata.get("semantic_version", "v2"), policy_version=args._policy_version):
+                semantic_version=metadata.get("semantic_version", "v2"), policy_version=args._policy_version,
+                observation_layout=args._observation_layout):
             raise ValueError("migration cannot change PPO hyperparameters or normalization")
     if args.command == "train" and metadata["seed"] != args.seed:
         raise ValueError("resume must preserve the checkpoint training RNG seed")
@@ -389,6 +390,161 @@ def _save_policy_migration_initial(runner: Any, env: Any, args: argparse.Namespa
     save_semantic_checkpoint(runner, initial, initial_infos)
 
 
+def _live_runtime_identity(core: Any, args: argparse.Namespace, contract: dict[str, Any], *,
+                           boundary: str) -> dict[str, Any]:
+    """Read actual already-reset objects/modules only; never import/step/re-read sensors."""
+    def attributes(value):
+        return {} if value is None else getattr(value, "__dict__", {})
+    def class_record(cls):
+        module = sys.modules.get(cls.__module__)
+        spec = None if module is None else getattr(module, "__spec__", None)
+        return {"class": cls.__qualname__, "module": cls.__module__,
+                "module_file": None if module is None else getattr(module, "__file__", None),
+                "module_origin": None if spec is None else spec.origin}
+    def identity(value):
+        if value is None:
+            return None
+        return {**class_record(type(value)),
+                "mro": [class_record(cls) for cls in type(value).__mro__ if cls is not object]}
+    def callable_record(value):
+        if value is None:
+            return None
+        function = getattr(value, "__func__", value)
+        module_name = getattr(function, "__module__", type(function).__module__)
+        module = sys.modules.get(module_name)
+        code = getattr(function, "__code__", None)
+        return {"qualname": getattr(function, "__qualname__", type(function).__qualname__),
+                "module": module_name,
+                "module_file": None if module is None else getattr(module, "__file__", None),
+                "source_file": None if code is None else code.co_filename,
+                "source_firstlineno": None if code is None else code.co_firstlineno}
+    def absolute_local_path(value):
+        # Lexical absolutization only: no filesystem/asset-resolver inspection.
+        if value is None:
+            return None
+        text = str(value)
+        return None if not text.strip() or "://" in text else os.path.abspath(text)
+    backend = getattr(core, "backend", None)
+    members = attributes(backend)
+    outer = members.get("_controller")
+    outer_members = attributes(outer)
+    active = outer_members.get("_semantic")
+    teacher = outer_members.get("teacher")
+    if active is None:
+        active = teacher if teacher is not None else outer
+    active_members = attributes(active)
+    provider = active_members.get("nominal_provider")
+    provider_members = attributes(provider)
+    adapter = members.get("_adapter")
+    reader = members.get("_reader")
+    adapter_members, reader_members = attributes(adapter), attributes(reader)
+    reference_spec = provider_members.get("_reference_fsm_spec")
+    if reference_spec is None:
+        reference_spec = active_members.get("spec")
+    source_path = attributes(reference_spec).get("path")
+    mapper = adapter_members.get("servo_target_mapper")
+    recovery = active_members.get("recovery")
+    dependencies = members.get("_dependencies")
+    factory_names = ("create_scene", "create_sensing_backends", "adapter_from_scene",
+                     "reader_from_scene", "controller_from_paths", "capture_reset_state", "reset_scene")
+    # BackendDependencies and SceneHandle are slots dataclasses; these are
+    # stored references, never calls to scene/sensor/reset factories.
+    scene = members.get("_scene")
+    robot = getattr(scene, "robot", None)
+    robot_cfg = attributes(robot).get("cfg")  # AssetBase stores cfg.copy().
+    spawn_cfg = getattr(robot_cfg, "spawn", None)
+    configured_usd = getattr(spawn_cfg, "usd_path", None)
+    apply_method = getattr(adapter, "apply_full12", None)
+    apply_function = getattr(apply_method, "__func__", apply_method)
+    adapter_globals = getattr(apply_function, "__globals__", {})
+    residual_module = sys.modules.get("wlr50_clean.ppo.semantic_residual_adapter")
+    residual_symbols = {} if residual_module is None else vars(residual_module)
+    dispatch_class = residual_symbols.get("SemanticActuationDispatch")
+    frame = members.get("_authoritative_frame")
+    # AuthoritativeFrame is a slots dataclass; these are stored values, not reads.
+    frame_fields = {name: getattr(frame, name, None) for name in ("physics_tick", "state_id")}
+    initialized = all(value is not None for value in (outer, adapter, reader, frame))
+    loaded_reference = {}
+    # Distinguish already-imported reference classes from actually selected objects.
+    for module_name, symbol in (
+            ("wlr50_clean.fsm.controller", "SensorFsmController"),
+            ("wlr50_clean.fsm.recovery", "RecoveryPlanner")):
+        module = sys.modules.get(module_name)
+        cls = None if module is None else vars(module).get(symbol)
+        loaded_reference[symbol] = None if cls is None else class_record(cls)
+    return {
+        "schema": "wlr50_clean.live_runtime_identity.v1",
+        "evidence_scope": ("current_process_already_reset_actual_objects_not_offline_reconstruction"
+                           if initialized else "incomplete_or_synthetic_objects_not_live_runtime_proof"),
+        "boundary": boundary, "backend_initialized": initialized,
+        "python_executable": sys.executable, "cwd": os.getcwd(), "sys_path": list(sys.path),
+        "process_id": os.getpid(), "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
+        "source_git_commit": contract.get("source_git_commit"),
+        "runtime_content_sha256": contract.get("runtime_content_sha256"),
+        "experiment_id": getattr(args, "experiment_id", None),
+        "command": getattr(args, "command", None), "requested_from_phase": getattr(args, "from_phase", "P01"),
+        "physics_tick": frame_fields.get("physics_tick"), "state_id": frame_fields.get("state_id"),
+        "backend": identity(backend), "outer_controller": identity(outer),
+        "active_controller": identity(active), "prefix_mode": outer_members.get("mode"),
+        "nominal_provider": identity(provider),
+        "source_motion_executor": identity(provider_members.get("_source_motion")),
+        "adapter": identity(adapter), "mapper": identity(mapper),
+        "sensor_reader": identity(reader),
+        "contact_backend": identity(reader_members.get("contact_backend")),
+        "geometry_backend": identity(reader_members.get("geometry_backend")),
+        "source_fsm_spec": identity(reference_spec),
+        "loaded_source_fsm_spec_path": absolute_local_path(source_path),
+        "backend_fsm_path": absolute_local_path(members.get("fsm_path")),
+        "effective_configuration_paths": {
+            name: absolute_local_path(members.get(name)) for name in (
+                "execution_profile_path", "task_spec_path", "motion_contract_path", "fsm_path")},
+        "configuration_path_source": "actual_backend_stored_attributes_not_reconstructed_from_cli",
+        "scene": identity(scene), "scene_robot": identity(robot),
+        "configured_robot_asset": {
+            "source": "actual_backend._scene.robot.cfg.spawn.usd_path",
+            "configured_usd_path_as_stored": None if configured_usd is None else str(configured_usd),
+            "configured_usd_absolute_path": absolute_local_path(configured_usd),
+            "evidence_scope": "active_robot_configured_path_only_not_USD_resolver_dependencies",
+            "USD_stage_inspected": False, "resolved_dependency_proof": False},
+        "backend_dependencies": identity(dependencies),
+        "dependency_factory_callables": {
+            name: callable_record(getattr(dependencies, name, None)) for name in factory_names},
+        "dependency_factory_scope": "actual_injected_references_not_claim_each_factory_used_by_current_N",
+        "semantic_controller_factory_override": callable_record(members.get("_semantic_controller_factory")),
+        "active_feedback_method_callables": {
+            "provider_source_normal_bias": callable_record(getattr(provider, "_source_normal_bias", None)),
+            "provider_start_source_motion": callable_record(getattr(provider, "_start_source_motion", None)),
+            "backend_atomic_apply": callable_record(getattr(backend, "_atomic_apply", None)),
+            "adapter_apply_full12": callable_record(apply_method),
+            "mapper_advance": callable_record(getattr(mapper, "advance", None)),
+            "adapter_bound_feedback_step_global": callable_record(adapter_globals.get("bounded_drive_feedback_step")),
+            "adapter_bias_validation_global": callable_record(adapter_globals.get("_full12_drive_feedback_bias"))},
+        "already_loaded_residual_dispatch": {
+            "scope": "already_loaded_symbols_only_transient_dispatch_not_retained_between_ticks",
+            "class": None if dispatch_class is None else class_record(dispatch_class),
+            "apply_full12": callable_record(getattr(dispatch_class, "apply_full12", None)),
+            "apply_semantic_residual": callable_record(residual_symbols.get("apply_semantic_residual")),
+            "bound_feedback_step_global": callable_record(residual_symbols.get("bounded_drive_feedback_step"))},
+        "recovery": identity(recovery),
+        "recovery_absence": (
+            "deliberately_not_used_by_successful_fsm_derived_semantic_N"
+            if recovery is None and provider_members.get("_reference_nominal") is True
+            else ("not_present_on_active_object" if recovery is None else None)),
+        "loaded_reference_classes_not_necessarily_selected": loaded_reference,
+        "control_calls_performed_by_logger": 0, "new_imports_performed_by_logger": 0,
+        "historical_run_identity_backfilled": False,
+    }
+
+
+def _save_live_runtime_identity(core: Any, args: argparse.Namespace, contract: dict[str, Any], *,
+                                boundary: str) -> None:
+    record = _live_runtime_identity(core, args, contract, boundary=boundary)
+    # A fresh per-run artifact: do not overwrite another process's evidence.
+    with (args.run_dir / "live_runtime_identity.json").open("x", encoding="utf-8") as stream:
+        json.dump(record, stream, indent=2, allow_nan=False)
+        stream.write("\n")
+
+
 def _evaluation(core: Any, args: argparse.Namespace, *, contract: dict[str, Any]) -> dict[str, Any]:
     if args.command == "eval":
         from .semantic_legacy_evaluation import PhysicalEvaluationRecorder
@@ -408,6 +564,7 @@ def _evaluation_body(core: Any, args: argparse.Namespace, *, contract: dict[str,
     import torch
     from tensordict import TensorDict
     observation = tuple(core.reset(seed=args.seed))
+    _save_live_runtime_identity(core, args, contract, boundary="evaluation_after_actual_reset")
     if recorder is not None:
         recorder.start(core.frame)
         core.tick_observer = recorder.observe
@@ -858,6 +1015,7 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                     semantic_version=args.semantic_version, policy_version=_resolved_policy_version(args),
                     observation_layout=_resolved_observation_layout(args)),
             })
+        _save_live_runtime_identity(core, args, contract, boundary="training_after_actual_reset_and_checkpoint_load")
         remaining = STAGE_BUDGETS[args.stage] - int((previous or {}).get("stage_requested_decisions", {}).get(args.stage, 0))
         return train_semantic(runner, env, run_dir=args.run_dir, output_root=output_root,
                               stage=args.stage, decisions=remaining if args.decisions is None else args.decisions,

@@ -462,13 +462,23 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         if verified != dict(migration):
             raise RuntimeError("migration changed since pre-AppLauncher validation")
         expected_contract = metadata["runtime_contract"]
-        if (runner.alg.storage.observations["policy"].shape[-1] != 324
-                or runner.alg.storage.actions.shape[-1] != 12
+        layout = getattr(runner, "_semantic_observation_layout", None)
+        factor = verified.get("instrumentation_observation_contract")
+        actual_contract = _runner_policy_contract(runner)
+        if layout is not None and (factor is None
+                or factor["source_policy_contract"] != metadata.get("policy_contract")
+                or factor["target_policy_contract"] != actual_contract
+                or factor["observation_layout"] != layout
+                or factor["num_envs"] != target_count):
+            raise RuntimeError("role-layout migration lacks exact verified source/target observation factor")
+        if (runner.alg.storage.observations["policy"].shape[-1] != verified["observation_dimension"]
+                or runner.alg.storage.actions.shape[-1] != verified["action_dimension"]
+                or actual_contract["observation_dimension"] != verified["observation_dimension"]
                 or runner.alg.storage.step != 0 or runner.alg.transition.actions is not None):
-            raise RuntimeError("migration requires fresh 324-observation/12-action storage with no old rollout")
+            raise RuntimeError("migration requires verified-layout fresh storage with no old rollout")
         if metadata.get("runner_config") != semantic_runner_config(seed=seed, device=str(runner.device),
                 semantic_version=metadata.get("semantic_version", "v2"),
-                policy_version=runner._semantic_policy_version):
+                policy_version=runner._semantic_policy_version, observation_layout=layout):
             raise RuntimeError("migration cannot change PPO hyperparameters or normalization")
     if (metadata.get("schema") != SEMANTIC_CHECKPOINT_SCHEMA
             or metadata.get("checkpoint_path") != str(checkpoint.resolve())
