@@ -463,6 +463,76 @@ class EndpointObserver:
             raise _PhysicalEndpoint
 
 
+def current_video_natural_reset_proof(info, *, role, contract, entry):
+    """Current A/B/C share one no-snapshot criterion, with real backend receipts."""
+    require(role in ROLES and contract.get("semantic_version") == "v3"
+            and contract.get("experiment_id") == TASK_WINDOW_EXPERIMENT,
+            "natural video reset proof has wrong role/runtime")
+    require(isinstance(entry, dict) and entry == {
+        "state_id": "P01", "physics_tick": 0, "decision_count": 0, "done": False}
+        and type(entry["physics_tick"]) is int and type(entry["decision_count"]) is int
+        and entry["done"] is False, "video did not own initial natural P01 state")
+    fields = ("seed", "reset_count", "reset_options", "training_phase_snapshot",
+              "phase_snapshot_restoration", "reset_prime_tick_count",
+              "sensor_tick_at_effective_entry", "fsm_and_episode_clock_at_effective_entry",
+              "sensor_clock_semantics")
+    require(isinstance(info, dict) and all(key in info for key in fields),
+            "natural video reset receipt is incomplete")
+    require(type(info["reset_count"]) is int and info["reset_count"] == 1
+            and info["seed"] == 4001 and info["reset_options"] == {},
+            "video requires first reset with locked seed and no explicit reset options")
+    for key in ("reset_prime_tick_count", "sensor_tick_at_effective_entry",
+                "fsm_and_episode_clock_at_effective_entry"):
+        require(type(info[key]) is int and info[key] == 0,
+                "video reset contains historical replay or a nonzero entry clock")
+    require(info["sensor_clock_semantics"] == "episode_relative_tick",
+            "video reset sensor clock is not natural episode-relative time")
+    restoration = info["phase_snapshot_restoration"]
+    require(isinstance(restoration, dict) and "requested_phase" in restoration
+            and (restoration.get("snapshot_validated") is None
+                 or restoration.get("snapshot_validated") is False)
+            and not any(restoration.get(key) is not None for key in (
+                "snapshot_path", "state_sha256", "file_sha256", "source_tick", "physical_state")),
+            "video cannot start from a validated or restored phase snapshot")
+    # The inherited metadata key names requested_phase, not proof that a
+    # snapshot was loaded. Only the semantic backend's actual natural mode
+    # plus its execution receipt may use the P01 marker.
+    if restoration.get("mode") == "semantic_natural_P01":
+        require(role in ("B", "C") and info.get("execution_mode") == "semantic_B_or_C"
+                and info.get("supervisor_schema") == "task_semantic_v2"
+                and restoration.get("requested_phase") == info["training_phase_snapshot"] == "P01"
+                and restoration.get("historical_state_equality_required") is False
+                and restoration.get("policy_credit_excludes_settle") is True,
+                "semantic P01 marker lacks its actual natural-reset provenance")
+    else:
+        require(role == "A" and restoration.get("mode") == "normal_p01_reset"
+                and restoration.get("requested_phase") is None
+                and info["training_phase_snapshot"] is None
+                and restoration.get("snapshot_validated") is False
+                and info.get("execution_mode") is None,
+                "legacy A reset is not the original unrequested natural P01")
+    metadata = physical_json({key: info[key] for key in fields})
+    metadata.update(execution_mode=info.get("execution_mode"),
+                    supervisor_schema=info.get("supervisor_schema"))
+    return {"schema": "wlr50_clean.current_video_natural_reset.v1",
+            "role": role, "experiment_id": TASK_WINDOW_EXPERIMENT,
+            "semantic_version": "v3", "entry": dict(entry), "reset_metadata": metadata}
+
+
+def validate_current_video_natural_reset(source):
+    proof = source.get("natural_reset_proof")
+    require(isinstance(proof, dict), "current video lacks persisted natural reset proof")
+    verified = current_video_natural_reset_proof(proof.get("reset_metadata"),
+        role=source["role"], contract=source["runtime_contract"], entry=proof.get("entry"))
+    require(proof == verified and source.get("from_phase") == "P01",
+            "current video natural reset proof was altered")
+    legacy_receipt = source.get("reset_evidence") or {}
+    require(all(key in legacy_receipt and legacy_receipt[key] == proof["reset_metadata"][key]
+                for key in ("reset_count", "reset_options", "training_phase_snapshot")),
+            "video reset evidence disagrees with persisted natural reset proof")
+    return proof
+
+
 def capture_semantic_video(core, *, role, seed, output_directory, contract,
                            policy_loader=None, recorder_factory=ActiveViewportVideoRecorder,
                            semantic_version="v2", experiment_id=None):
@@ -495,6 +565,7 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
     error = None
     reset_info = {}
     settle_evidence = None
+    natural_reset_proof = None
     task_window = experiment_id == TASK_WINDOW_EXPERIMENT
     require(not task_window or semantic_version == "v3", "current task video requires v3")
     try:
@@ -507,10 +578,16 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
         require(core.frame.state_id == "P01" and core.frame.physics_tick == 0
                 and core.decision_count == 0 and not core.done, "video did not reset to P01")
         reset_info = dict(core.frame.info)
-        require(reset_info.get("reset_count") == 1
-                and reset_info.get("reset_options") == {}
-                and reset_info.get("training_phase_snapshot") is None,
-                "video must own the first natural reset of a fresh process")
+        if task_window:
+            natural_reset_proof = current_video_natural_reset_proof(reset_info,
+                role=role, contract=contract, entry={"state_id": core.frame.state_id,
+                    "physics_tick": core.frame.physics_tick,
+                    "decision_count": core.decision_count, "done": core.done})
+        else:
+            require(reset_info.get("reset_count") == 1
+                    and reset_info.get("reset_options") == {}
+                    and reset_info.get("training_phase_snapshot") is None,
+                    "video must own the first natural reset of a fresh process")
         camera = reset_info["locked_scene_snapshot"]["camera"]
         require(all(list(camera[key]) == value for key,value in CAMERA.items()),
                 "camera differs from common A/B/C view")
@@ -663,6 +740,8 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
         "artifacts": {name: file_record(root/name) for name in names if (root/name).is_file()}}
     if experiment_id is not None:
         payload["experiment_id"] = experiment_id
+    if task_window:
+        payload["natural_reset_proof"] = natural_reset_proof
     if task_window and endpoint is not None:
         payload["task_interval_window"] = task_interval_receipt(endpoint.physics_tick)
     write_json(root/"semantic_video_source_manifest.json", payload)
@@ -725,6 +804,7 @@ def validate_semantic_video_source(root, *, expected_role=None):
             "source timeline was synthesized")
     task_window = source.get("experiment_id") == TASK_WINDOW_EXPERIMENT
     if task_window:
+        validate_current_video_natural_reset(source)
         require(source.get("semantic_version") == "v3"
                 and source["pre_action_source"] == "not_encoded_natural_reset"
                 and source["pre_action_ticks"] == source["requested_post_success_ticks"]

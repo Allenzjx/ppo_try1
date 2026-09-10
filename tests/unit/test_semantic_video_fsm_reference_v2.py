@@ -457,8 +457,15 @@ def _capture_tick23_fixture(tmp_path, monkeypatch, *, success,
     core = NS(backend=backend, decision_count=0, done=False, observation=(0.,) * 372)
     def reset(*, seed):
         events.append(("reset", seed))
-        core.frame = NS(physics_tick=0, state_id="P01", info={"reset_count": 1,
-            "reset_options": {}, "training_phase_snapshot": None,
+        core.frame = NS(physics_tick=0, state_id="P01", info={"reset_count": 1, "seed": seed,
+            "reset_options": {}, "training_phase_snapshot": "P01",
+            "execution_mode": "semantic_B_or_C", "supervisor_schema": "task_semantic_v2",
+            "reset_prime_tick_count": 0, "sensor_tick_at_effective_entry": 0,
+            "fsm_and_episode_clock_at_effective_entry": 0,
+            "sensor_clock_semantics": "episode_relative_tick",
+            "phase_snapshot_restoration": {"mode": "semantic_natural_P01",
+                "requested_phase": "P01", "historical_state_equality_required": False,
+                "policy_credit_excludes_settle": True, "reset_only_state_writes": {}},
             "locked_scene_snapshot": {"camera": video.CAMERA}})
     def step(action):
         assert len(action) == 12
@@ -525,6 +532,8 @@ def _capture_tick23_fixture(tmp_path, monkeypatch, *, success,
     assert result["pre_action_ticks"] == result["requested_post_success_ticks"] == 0
     assert result["performed_post_success_ticks"] == result["extra_pre_action_physics_ticks"] == 0
     assert result["task_interval_window"] == video.task_interval_receipt(23)
+    assert result["natural_reset_proof"]["reset_metadata"]["training_phase_snapshot"] == "P01"
+    video.validate_current_video_natural_reset(result)
     assert (tmp_path / "source" / "physical_video_roll_ticks.jsonl").read_text() == ""
     return NS(result=result, events=events, core=core, source=tmp_path / "source")
 
