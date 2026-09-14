@@ -493,9 +493,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         factor = verified.get("instrumentation_observation_contract")
         video_factor = (verified.get("video_instrumentation_factor") or {}).get("observation_contract")
         timing_factor = (verified.get("nominal_timing_factor") or {}).get("observation_contract")
-        if video_factor is not None and timing_factor is not None:
-            raise RuntimeError("video and nominal timing migration receipts must be exclusive")
-        reviewed_factor = video_factor or timing_factor
+        body_reward_factor = (verified.get("body_reward_factor") or {}).get("observation_contract")
+        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor)) > 1:
+            raise RuntimeError("video, nominal timing and body reward migration receipts must be exclusive")
+        reviewed_factor = video_factor or timing_factor or body_reward_factor
         if reviewed_factor is not None:
             if factor is not None:
                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")

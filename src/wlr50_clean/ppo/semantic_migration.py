@@ -48,6 +48,10 @@ CAPTURE_HANDOFF_SOURCE_HEAD = "7db0d17f398d393ce026b6990bd2566d53366407"
 TIMING_ONLY_SCHEMA = "wlr50_clean.nominal_timing_same372_continuation.v1"
 TIMING_ONLY_SPEC = "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml"
 TIMING_ONLY_MODE = "source_partial_order_physical_ready_v1"
+BODY_REWARD_SCHEMA = "wlr50_clean.functional_carry_body_reward_same372_continuation.v1"
+BODY_REWARD_MODE = "current_functional_carry_and_capture_settle_v1"
+BODY_REWARD_CODE = "src/wlr50_clean/ppo/semantic_reward.py"
+BODY_REWARD_CONFIG = "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml"
 SAME372_AUTHORITY_RUNTIME_FILES = frozenset({
     "configs/ppo_semantic_v3/stage_task_spec.yaml",
     "configs/ppo_semantic_v3/execution_profile.yaml",
@@ -1279,7 +1283,7 @@ def _timing_only_factor(metadata, old, new, delta, review, project_root):
                     "path": relative, "sha256": contract["files"].get(relative)}):
                 raise ValueError("timing-only selected configuration binding differs")
         before = _version_bytes(project_root, old, relative, prefer_worktree=True)
-        after = (project_root / relative).read_bytes()
+        after = _version_bytes(project_root, new, relative, prefer_worktree=True)
         if hashlib.sha256(after).hexdigest() != new["files"][relative]:
             raise ValueError("timing-only target configuration bytes differ from inventory")
         if name == "stage_task_spec.yaml":
@@ -1297,10 +1301,10 @@ def _timing_only_factor(metadata, old, new, delta, review, project_root):
                          "target_sha256": new["files"][relative]}
     for relative in delta:
         _version_bytes(project_root, old, relative, prefer_worktree=True)
-        if file_sha(project_root / relative) != new["files"][relative]:
+        if hashlib.sha256(_version_bytes(project_root, new, relative, prefer_worktree=True)).hexdigest() != new["files"][relative]:
             raise ValueError("timing-only target runtime bytes differ from inventory")
     before = _nominal_provider_byte_regions(_version_bytes(project_root, old, SUPERVISOR, prefer_worktree=True))
-    after = _nominal_provider_byte_regions((project_root / SUPERVISOR).read_bytes())
+    after = _nominal_provider_byte_regions(_version_bytes(project_root, new, SUPERVISOR, prefer_worktree=True))
     if before[0] != after[0] or before[2] != after[2] or before[1] == after[1]:
         raise ValueError("timing-only may change only the NominalMotionProvider class bytes")
     schema = load_semantic_observation_schema(project_root / records["observation_schema.json"]["path"])
@@ -1329,6 +1333,154 @@ def _timing_only_factor(metadata, old, new, delta, review, project_root):
         "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True}
 
 
+def _body_reward_source_delta(before: str, after: str) -> dict[str, Any]:
+    """Reverse only the reviewed helper/loader/body-weight insertions."""
+    import ast
+    marker = 'ROLE_TRANSFER_VERSION = "diagonal_transfer_roles_v1"\n'
+    boundary = '@dataclass(frozen=True)\nclass SemanticRewardConfig:'
+    if before.count(marker) != 1 or after.count(marker) != 1:
+        raise ValueError("body reward role marker is not unique")
+    source_prefix, source_tail = before.split(marker)
+    target_prefix, target_tail = after.split(marker)
+    source_gap, source_rest = source_tail.split(boundary, 1)
+    added, target_rest = target_tail.split(boundary, 1)
+    if source_prefix != target_prefix or source_gap.strip():
+        raise ValueError("body reward may not change the module prefix")
+    tree = ast.parse(added)
+    helper_names = {"_validate_carry_body_allowance", "_current_functional_body_allowance"}
+    functions = [node for node in tree.body if isinstance(node, ast.FunctionDef)]
+    constants = [node for node in tree.body if isinstance(node, ast.Assign)]
+    if (len(tree.body) != 3 or len(functions) != 2 or {n.name for n in functions} != helper_names
+            or any(n.decorator_list for n in functions) or len(constants) != 1
+            or len(constants[0].targets) != 1 or not isinstance(constants[0].targets[0], ast.Name)
+            or constants[0].targets[0].id != "CARRY_BODY_ALLOWANCE_MODE"
+            or ast.literal_eval(constants[0].value) != BODY_REWARD_MODE):
+        raise ValueError("body reward permits exactly the named constant and two helpers")
+    restored = target_prefix + marker + source_gap + boundary + target_rest
+    loader = "    _validate_carry_body_allowance(v)\n"
+    body = ('            body_transfer_fraction = transfer_fraction\n'
+            '            if v.get("carry_body_allowance") == CARRY_BODY_ALLOWANCE_MODE:\n'
+            '                body_transfer_fraction = max(body_transfer_fraction,\n'
+            '                    _current_functional_body_allowance(sample.current.task, v["capture_settle_window_s"]))\n')
+    new_weight = '            motion_weight = 1.-(1.-v["transfer_attitude_weight"])*body_transfer_fraction\n'
+    old_weight = '            motion_weight = 1.-(1.-v["transfer_attitude_weight"])*transfer_fraction\n'
+    for text in (loader, body, new_weight):
+        if restored.count(text) != 1:
+            raise ValueError("body reward consumer insertion differs from the reviewed form")
+    restored = restored.replace(loader, "").replace(body, "").replace(new_weight, old_weight)
+    if restored != before:
+        raise ValueError("body reward changed another loader/evaluate/contact/smoothness/potential path")
+    return {"source_normalized_sha256": hashlib.sha256(before.encode()).hexdigest(),
+        "target_normalized_sha256": hashlib.sha256(after.encode()).hexdigest(),
+        "added_helpers_sha256": hashlib.sha256(added.encode()).hexdigest(),
+        "outside_reviewed_body_consumption_unchanged": True}
+
+
+def _body_reward_factor(checkpoint, metadata, old, new, delta, review, project_root):
+    import yaml
+    from .semantic_policy_distribution import CONFIG_NAMES, HISTORY_POLICY, policy_contract
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    required_review = {"reason", "nominal_reference_manifest", "timing_plan"}
+    if (not isinstance(review, Mapping) or set(review) != required_review
+            or not isinstance(review["reason"], str) or not review["reason"].strip()):
+        raise ValueError("body reward requires the exact explicit review and same-N reference")
+    reference_path = Path(review["nominal_reference_manifest"]).resolve(strict=True)
+    record = json.loads(reference_path.read_text(encoding="utf-8"))
+    result = record.get("result")
+    if (record.get("lifecycle") not in ("SUCCEEDED", "DIAGNOSTIC_FAILURE")
+            or not record.get("completed_at_utc") or not isinstance(result, Mapping)
+            or result.get("mode") not in ("semantic_prior_eval", "semantic_residual_eval")):
+        raise ValueError("body reward reference must be a completed same-N evaluation; success is not required")
+    updates = [row[key] for row in (record, result) for key in
+               ("optimizer_updates", "optimizer_updates_during_evaluation") if key in row]
+    if not updates or any(type(n) is not int or n != 0 for n in updates):
+        raise ValueError("body reward same-N reference must have zero optimizer updates")
+    reference = _contract(record["runtime_contract"])
+    if result.get("runtime_contract") != reference:
+        raise ValueError("body reward reference runtime bindings disagree")
+    variable = {"files", "runtime_content_sha256", "source_git_commit", "selected_configuration"}
+    for contract in (old, reference):
+        if ({k:v for k,v in contract.items() if k not in variable}
+                != {k:v for k,v in new.items() if k not in variable}):
+            raise ValueError("body reward cannot change fixed physical/runtime metadata")
+    canonical = policy_contract(HISTORY_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    if (metadata.get("semantic_version") != "v3" or metadata.get("policy_contract") != canonical
+            or source_num_envs(metadata) != 1 or new.get("semantic_version") != "v3"
+            or new.get("experiment_id") != "fsm_reference_p09_stable_v2"):
+        raise ValueError("body reward requires same-experiment v3 N1 HISTORY372")
+    if old["files"].keys() != reference["files"].keys() or reference["files"].keys() != new["files"].keys():
+        raise ValueError("body reward cannot add or remove runtime files")
+    required = {BODY_REWARD_CODE, BODY_REWARD_CONFIG}
+    allowed = required | {f"src/wlr50_clean/ppo/{n}.py" for n in ("semantic_migration", "semantic_training")}
+    final_delta = {p for p in reference["files"] if reference["files"][p] != new["files"][p]}
+    if not required <= final_delta or not final_delta <= allowed:
+        raise ValueError("body reward changed N or a file outside the exact body/compatibility scope")
+    configs = {}
+    for name in sorted(CONFIG_NAMES):
+        relative = f"configs/ppo_fsm_reference_p09_stable_v2/{name}"
+        for contract in (old, reference, new):
+            selected = contract.get("selected_configuration", {})
+            if (set(selected) != CONFIG_NAMES or selected[name] != {
+                    "path": relative, "sha256": contract["files"].get(relative)}):
+                raise ValueError("body reward selected configuration binding differs")
+        before = _version_bytes(project_root, reference, relative, prefer_worktree=True)
+        after = _version_bytes(project_root, new, relative, prefer_worktree=True)
+        if name == "reward_config.yaml":
+            source_cfg, target_cfg = yaml.safe_load(before), yaml.safe_load(after)
+            if any(k in source_cfg for k in ("carry_body_allowance", "capture_settle_window_s")):
+                raise ValueError("body reward opt-in already exists in the reference")
+            expected = dict(source_cfg, carry_body_allowance=BODY_REWARD_MODE, capture_settle_window_s=.5)
+            if target_cfg != expected:
+                raise ValueError("body reward permits only the exact two config additions")
+        elif before != after:
+            raise ValueError("body reward cannot change the other five selected config bytes")
+        configs[name] = {"path": relative, "source_sha256": reference["files"][relative],
+                         "target_sha256": new["files"][relative]}
+    reference_spec = yaml.safe_load(_version_bytes(project_root, reference, TIMING_ONLY_SPEC, prefer_worktree=True))
+    source_spec = yaml.safe_load(_version_bytes(project_root, old, TIMING_ONLY_SPEC, prefer_worktree=True))
+    if (reference_spec.get("nominal", {}).get("sequence_semantics") != TIMING_ONLY_MODE
+            or reference_spec.get("transfer_roles", {}).get("window_s") != .5):
+        raise ValueError("body reward reference must retain reviewed timing and the existing0.5s transfer window")
+    timing = None
+    if source_spec.get("nominal", {}).get("sequence_semantics") == TIMING_ONLY_MODE:
+        if review["timing_plan"] is not None or set(delta) - allowed:
+            raise ValueError("already-timed body reward source cannot change nominal or add a timing ancestor")
+        for relative in (SUPERVISOR, TIMING_ONLY_SPEC):
+            if old["files"][relative] != reference["files"][relative]:
+                raise ValueError("body reward source N differs from its evaluated reference")
+    else:
+        if not isinstance(review["timing_plan"], str) or not review["timing_plan"]:
+            raise ValueError("pre-timing body reward source requires its existing verified timing plan")
+        timing = validate_migration_plan(checkpoint, reference, Path(review["timing_plan"]), project_root=project_root)
+        if timing.get("nominal_timing_factor", {}).get("schema") != TIMING_ONLY_SCHEMA:
+            raise ValueError("body reward ancestor must be the narrow timing-only migration")
+    for relative in required:
+        if old["files"][relative] != reference["files"][relative]:
+            raise ValueError("body reward source and same-N reference already differ in reward")
+    before = _version_text(project_root, reference, BODY_REWARD_CODE, prefer_worktree=True)
+    after = _version_text(project_root, new, BODY_REWARD_CODE, prefer_worktree=True)
+    scope = _body_reward_source_delta(before, after)
+    for relative in final_delta:
+        if file_sha(project_root / relative) != new["files"][relative]:
+            raise ValueError("body reward target runtime bytes differ from the current inventory")
+    return {"schema": BODY_REWARD_SCHEMA, "review_reason": review["reason"].strip(),
+        "nominal_reference_manifest": str(reference_path), "nominal_reference_manifest_sha256": file_sha(reference_path),
+        "nominal_reference_contract_sha256": digest(reference), "nominal_reference_commit": reference["source_git_commit"],
+        "timing_ancestor": None if timing is None else {"plan_path": timing["plan_path"],
+            "plan_sha256": timing["plan_sha256"], "nominal_timing_factor": timing["nominal_timing_factor"]},
+        "configuration_bindings": configs, "reward_source_scope": scope,
+        "reward_changed": True, "physical_mdp_changed": True,
+        "nominal_changed_since_checkpoint": timing is not None, "nominal_changed_since_reference": False,
+        "observation_semantics_changed": [], "task_acceptance_changed": False,
+        "physical_actuators_changed": False, "action_ranges_changed": False, "kernel_changed": False,
+        "observation_contract": {"source_policy_contract": canonical, "target_policy_contract": dict(canonical),
+            "observation_layout": ROLE_OBSERVATION_LAYOUT, "observation_dimension": 372,
+            "action_dimension": 12, "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"},
+        "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+        "normalizers": "preserve_verified_identity_RSL_state",
+        "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True}
+
+
 def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
                          allowed_changed_files: Sequence[str], reason: str,
                          prior_evidence: Mapping[str, Any] | None = None,
@@ -1337,13 +1489,16 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                          execution_evidence: Mapping[str, Any] | None = None,
                          video_review: Mapping[str, Any] | None = None,
                          timing_review: Mapping[str, Any] | None = None,
+                         body_reward_review: Mapping[str, Any] | None = None,
                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Build a reviewed plan after committing the new runtime; does not write."""
     checkpoint = Path(checkpoint).resolve(strict=True)
     metadata = checkpoint_metadata(checkpoint)
     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
     variable = {"files", "runtime_content_sha256", "source_git_commit"}
-    if timing_review is not None:
+    if body_reward_review is not None and timing_review is not None:
+        raise ValueError("body reward uses a verified timing ancestor, not a mixed top-level timing factor")
+    if timing_review is not None or body_reward_review is not None:
         if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
                                        execution_evidence, video_review)):
             raise ValueError("timing-only migration cannot mix other reviewed factors")
@@ -1359,7 +1514,9 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
     observation_contract = None
     timing = (_timing_only_factor(metadata, old, new, delta, timing_review, Path(project_root))
               if timing_review is not None else None)
-    if timing is None and (video_review is None or not (set(delta) & VIDEO_FILES)):
+    body_reward = (_body_reward_factor(checkpoint, metadata, old, new, delta, body_reward_review, Path(project_root))
+                   if body_reward_review is not None else None)
+    if timing is None and body_reward is None and (video_review is None or not (set(delta) & VIDEO_FILES)):
         # Existing instrumentation-only permission is unchanged; video has
         # its own explicit review and receipt, never a widened allowlist.
         observation_contract = _instrumentation_observation_contract(
@@ -1377,6 +1534,8 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
             video["observation_contract"] = video_observation
     execution = None
     additional = set(VIDEO_FILES) if video is not None else ({TIMING_ONLY_SPEC} if timing is not None else set())
+    if body_reward is not None:
+        additional = {TIMING_ONLY_SPEC, BODY_REWARD_CODE, BODY_REWARD_CONFIG}
     if execution_evidence is not None:
         if (set(delta) - INSTRUMENTATION_FILES - VECTOR_FILES or prior_evidence is not None
                 or qualification_evidence is not None or evaluator_review is not None):
@@ -1393,7 +1552,7 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                 or qualification_evidence is not None):
             raise ValueError("reviewed evaluator repair cannot mix prior/configuration or historical qualification factors")
         evaluator = _reviewed_evaluator_factor(Path(project_root), old, new, evaluator_review)
-    prior_transition = SUPERVISOR in delta and evaluator is None and timing is None
+    prior_transition = SUPERVISOR in delta and evaluator is None and timing is None and body_reward is None
     if prior_transition != (prior_evidence is not None) or (prior_transition and STAGE_SPEC not in delta):
         raise ValueError("nominal source change and explicit prior evidence/config change must occur together")
     if qualification_evidence is not None and not prior_transition:
@@ -1402,7 +1561,7 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
     prior = _prior_factor(Path(project_root), old, new, prior_evidence, checkpoint,
                            qualification_transition=qualification_evidence is not None) if prior_transition else None
     qualification = _qualification_factor(Path(project_root), old, new, qualification_evidence) if qualification_evidence is not None else None
-    layout_contract = observation_contract or (video or timing or {}).get("observation_contract")
+    layout_contract = observation_contract or (video or timing or body_reward or {}).get("observation_contract")
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
     result = {"schema": SCHEMA, "reason": reason.strip(), "source_checkpoint": str(checkpoint),
             "source_checkpoint_sha256": file_sha(checkpoint), "source_manifest_sha256": file_sha(sidecar),
@@ -1428,6 +1587,8 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
         result["video_instrumentation_factor"] = video
     if timing is not None:
         result["nominal_timing_factor"] = timing
+    if body_reward is not None:
+        result["body_reward_factor"] = body_reward
     return result
 
 
@@ -1450,7 +1611,11 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                                     video_review=None if "video_instrumentation_factor" not in supplied else {
                                         "reason": supplied["video_instrumentation_factor"]["review_reason"]},
                                     timing_review=None if "nominal_timing_factor" not in supplied else {
-                                        "reason": supplied["nominal_timing_factor"]["review_reason"]})
+                                        "reason": supplied["nominal_timing_factor"]["review_reason"]},
+                                    body_reward_review=None if "body_reward_factor" not in supplied else {
+                                        "reason": supplied["body_reward_factor"]["review_reason"],
+                                        "nominal_reference_manifest": supplied["body_reward_factor"]["nominal_reference_manifest"],
+                                        "timing_plan": (supplied["body_reward_factor"].get("timing_ancestor") or {}).get("plan_path")})
     if supplied != expected:
         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}
