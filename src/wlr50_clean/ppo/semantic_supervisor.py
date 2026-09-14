@@ -1397,6 +1397,9 @@ class NominalMotionProvider:
         if reference_mode not in (None, "successful_fsm_derived_v2"):
             raise ValueError("unknown successful-FSM nominal semantics")
         self._reference_nominal = reference_mode is not None
+        self._sequence_mode = nominal.get("sequence_semantics")
+        if self._sequence_mode not in (None, "source_partial_order_physical_ready_v1"):
+            raise ValueError("unknown nominal sequence semantics")
         self._p05_pending_capture_mode = nominal.get("p05_pending_capture")
         if self._p05_pending_capture_mode not in (None,
                 "current_FL_capture_wheel_continuation_v1",
@@ -1407,6 +1410,9 @@ class NominalMotionProvider:
                      or nominal.get("continuous_channel_inheritance") is not True
                      or self.spec.get("physical_acceptance_version") != "all_stage_v1")):
             raise ValueError("P05 capture handoff requires continuous source-derived physical ownership")
+        if self._sequence_mode and (not self._reference_nominal
+                or nominal.get("continuous_channel_inheritance") is not True):
+            raise ValueError("physical source order requires continuous source-derived nominal")
         self._reference_fsm_spec = None
         self.normal_drive_bias_full12 = ZERO12
         if self._reference_nominal:
@@ -1468,6 +1474,14 @@ class NominalMotionProvider:
                 "dormant_reference_rebound_trigger_enabled":False,
                 "source_entry_and_completion_gates_enabled":False,
                 "residual_dependent_controller_selection":False,
+            }
+        if self._sequence_mode:
+            result["source_partial_order"] = {
+                "mode": self._sequence_mode, "default_assist": "RL_source_method",
+                "RR_contact_backup_enabled": False, "residual_channels_restricted": False,
+                "layers": [{"stage": layer["stage"], "source_ticks": layer["ticks"],
+                    **layer.get("sequence_diagnostic", {})} for layer in self._continuous_layers
+                    if layer["stage"] in ("P07", "P08", "P09")],
             }
         if self._p06_tail_source is not None:
             result["p06_wheel_tail"] = dict(self._tail_diagnostic)
@@ -1600,8 +1614,98 @@ class NominalMotionProvider:
         result._start_source_motion(result._source_motion,contract.phase(stage_id))
         return result
 
+    def _sequence_permission(self, layer: dict[str, Any], task: Mapping[str, Any],
+                             observation: Any) -> bool:
+        """Dispatch readiness, not phase completion or a historical pose gate.
+
+        Retain the finite source cadence (including its atomic FR pulse/stop),
+        but do not consume a pending owner's clock. Physical waits hold existing
+        targets while the mapper, residual and simulation continue normally.
+        """
+        if not self._sequence_mode or layer["stage"] not in ("P07", "P08", "P09"):
+            return True
+        ev = task.get("physical_evaluator", {})
+        legs = ev.get("current_legs", {})
+        tick = ev.get("physics_tick")
+        diag = layer.setdefault("sequence_diagnostic", {})
+        diag.update(observation_tick=tick, status="active", wait_reason=None)
+        if ev.get("valid") is not True or task.get("termination_reason") is not None:
+            diag.update(status="holding", wait_reason="no_live_physical_readiness")
+            return False
+        joints = _get(observation, "joints", {}) if observation is not None else {}
+        q = tuple(_number(_get(joints.get(name, {}), "position_deg"),
+                          "sequence measured joint position") for name in SERVO_ORDER)
+        fl, fr, rr = (legs.get(leg, {}) for leg in ("FL", "FR", "RR"))
+        support_count = sum(row.get("support") is True and
+                            (row.get("ground_contact") is True or row.get("top_contact") is True)
+                            for row in legs.values())
+        other_support_count = sum(row.get("support") is True and
+            (row.get("ground_contact") is True or row.get("top_contact") is True)
+            for leg, row in legs.items() if leg != "RR")
+        enough_support = (support_count if layer["stage"] == "P07" else other_support_count
+                          ) >= self.spec["support"]["minimum_other_supports"]
+        base = _vector(_get(_get(observation, "base", {}), "position_w_m"), 3, "sequence body position")
+        wheel = _vector(_get(_get(observation, "wheels", {}).get(WHEEL_ORDER[0], {}),
+                            "center_w_m"), 3, "sequence FL position")
+        fl_radius = math.dist(base, wheel)
+        preparation = next((x for x in self._continuous_layers if x["stage"] == "P07"), layer)
+        preparation.setdefault("FL_initial_body_radius_m", fl_radius)
+        contraction = preparation["FL_initial_body_radius_m"] - fl_radius
+        # Space is measured, not inferred from FL's command or an imagined load.
+        fl_space = bool(fl.get("within_lateral_span") is True and
+            ((fl.get("air") is True and not fl.get("ground_contact")
+              and fl.get("clearance_m", -1.) >= self.spec["history"]["minimum_initial_clearance_gain_m"])
+             or contraction >= self.spec["history"]["minimum_initial_clearance_gain_m"]))
+        rr_continuing = bool(rr.get("current_lift_valid") is True
+                             and rr.get("motion_continuation_allowed") is True
+                             and not rr.get("ground_contact"))
+        minimum_motion = self.spec["history"]["minimum_joint_motion_deg"]
+        ready, reason = True, None
+        if layer["stage"] == "P07":
+            group = next(g for g in layer["motion"].phase.atomic_groups
+                         if "front_right_knee" in g.channels and "front_right_ankle" in g.channels)
+            group_tick = layer["motion"]._scaled_source_tick(group.time_s)
+            if layer["ticks"] == group_tick and "fr_group_start_tick" not in diag:
+                ready = enough_support and (fl_space or rr_continuing)
+                reason = "FL_measured_space_before_FR_atomic_group"
+                if ready:
+                    layer["fr_start_q"] = q[3]
+                    diag["fr_group_start_tick"] = tick
+        elif layer["ticks"] == 0:
+            predecessor_id = "P07" if layer["stage"] == "P08" else "P08"
+            predecessor = next((x for x in self._continuous_layers
+                                if x["stage"] == predecessor_id), None)
+            # Executed suffix handoffs contain no reconstructed predecessor.
+            # In that case use current physical readiness, never replay a prefix.
+            ended = predecessor is None or bool(predecessor.get("sample")
+                                                 and predecessor["sample"].endpoint_issued)
+            if layer["stage"] == "P08":
+                fr_response = predecessor is None or (
+                    "fr_start_q" in predecessor and
+                    predecessor["fr_start_q"] - q[3] >= minimum_motion)
+                ready = enough_support and (rr_continuing or
+                    (ended and fl_space and fr.get("support") is True and fr_response))
+                reason = "P07_source_groups_and_measured_FL_space_FR_response"
+            else:
+                rl_response = predecessor is None or (
+                    "start_q" in predecessor and q[4] - predecessor["start_q"][4] >= minimum_motion)
+                unloaded = (rr.get("load_fraction_valid") is True and
+                            rr.get("load_fraction", 1.) <= self.spec["support"]["unloaded_leg_maximum_load_fraction"])
+                ready = enough_support and (rr_continuing or (ended and rl_response and unloaded))
+                reason = "RL_source_assist_response_and_RR_measured_unload_or_lift"
+        diag.update(support_count=support_count, RR_other_support_count=other_support_count, FL_space_measured=fl_space,
+                    FL_body_radial_contraction_m=contraction, RR_current_continuation=rr_continuing)
+        if not ready:
+            diag.update(status="holding" if layer["ticks"] else "pending", wait_reason=reason)
+            diag["wait_ticks"] = diag.get("wait_ticks", 0) + 1
+        elif layer["ticks"] == 0:
+            layer["start_q"] = q
+            diag["actual_start_tick"] = tick
+        return ready
+
     def _continuous_advisory(self, task: Mapping[str,Any], retirement: Mapping[str,Any] | None=None,
-                            capture: Mapping[str,Any] | None=None) -> tuple[tuple[float,...],tuple[str,...]]:
+                            capture: Mapping[str,Any] | None=None,
+                            observation: Any=None) -> tuple[tuple[float,...],tuple[str,...]]:
         """Continue unfinished predecessor suggestions; never restore an entry vector.
 
         Each layer owns only channels it actually changes, and newer changes
@@ -1661,9 +1765,24 @@ class NominalMotionProvider:
             # before dispatch would suppress the action that can create it.
             # Keep this finite sequence advisory; actual clearance/crossing and
             # placement are evaluated independently, with every residual open.
-            sample=layer["motion"].tick(); layer["ticks"]+=1
-            layer["touched"].update(i for i,(a,b) in enumerate(zip(sample.full12,layer["last"])) if abs(a-b)>1e-9)
-            layer["last"]=sample.full12; layer["sample"]=sample
+            advance = self._sequence_permission(layer, task, observation)
+            layer["advanced_this_tick"] = advance
+            if advance:
+                sample=layer["motion"].tick(); layer["ticks"]+=1
+                layer["touched"].update(i for i,(a,b) in enumerate(zip(sample.full12,layer["last"])) if abs(a-b)>1e-9)
+                if self._sequence_mode:
+                    # An explicit wheel stop owns all authored wheel channels,
+                    # even when this layer's previous local value was already 0.
+                    # Do not restore the unchanged servos in Full12 snapshots.
+                    layer["touched"].update(8+WHEEL_ORDER.index(name)
+                        for group in sample.atomic_groups for name in group.channels if name in WHEEL_ORDER)
+                layer["last"]=sample.full12; layer["sample"]=sample
+            else:
+                sample = layer["sample"]
+                if sample is None:
+                    if layer["stage"] == stage_id:
+                        self.elapsed_s=0.; self.endpoint_issued=False
+                    continue
             source_bias=self._source_normal_bias(layer["motion"],sample)
             gain=1.
             if layer["stage"]=="P06" and retirement is not None:
@@ -1730,11 +1849,25 @@ class NominalMotionProvider:
                     and distance < self.spec["geometry"]["approach_min_m"]
                     and (distance < self.spec["geometry"]["workspace_min_m"]
                          or current.get("clearance_m", -1.) >= 0.))
+                ordered_wheel_owner = bool(self._sequence_mode and any(
+                    layer["sample"] is not None and
+                    ((layer["stage"] in ("P07", "P09") and not layer["sample"].endpoint_issued)
+                     or (layer.get("advanced_this_tick") and any(
+                         set(group.channels).intersection(WHEEL_ORDER)
+                         for group in layer["sample"].atomic_groups)))
+                    for layer in self._continuous_layers))
+                # Extra task feedback must not overwrite the finite source's
+                # FR joint/wheel pulse or its authored stops just because the
+                # task label has already advanced to P09. It remains available
+                # after finite source execution, when current geometry permits.
+                rolling = rolling and not ordered_wheel_owner
                 if rolling:
                     proposed[8:] = self._approach_wheel_prior
                 self._rr_carry_diagnostic = dict(
                     source_joint_owners_continued=True, added_rolling_suggestion=rolling,
-                    reason="current_AIR_safe_approach" if rolling else
+                    ordered_source_wheel_owner=ordered_wheel_owner,
+                    reason="finite_ordered_source_wheel_owner" if ordered_wheel_owner else
+                        "current_AIR_safe_approach" if rolling else
                         "no_extra_wall_push_source_and_residual_adjustment_continue",
                     fixed_lift_timer_gate=False, above_top_15mm_action_gate=False)
             elif (task.get("termination_reason") is None and ev.get("termination_reason") is None
@@ -1776,7 +1909,7 @@ class NominalMotionProvider:
         proposed_tracking=source.tracking_servo_names
         self.normal_drive_bias_full12=self._source_normal_bias(self._source_motion,source)
         if isinstance(stage,Mapping) and self.spec["nominal"].get("continuous_channel_inheritance") is True:
-            proposed,proposed_tracking=self._continuous_advisory(stage,retirement,capture)
+            proposed,proposed_tracking=self._continuous_advisory(stage,retirement,capture,observation)
         # The string-only test seam remains the unmodified finite advisory.
         # All feedback here is in the current task snapshot, with no timer,
         # historical posture or reference-force gate. The opted-in P06 layer
@@ -1797,7 +1930,8 @@ class NominalMotionProvider:
                 # These layers have already advanced once above. A newly
                 # authored wheel event (including a stop) retains precedence.
                 fresh_wheel_event = any(set(group.channels).intersection(WHEEL_ORDER)
-                    for layer in self._continuous_layers for group in layer["sample"].atomic_groups)
+                    for layer in self._continuous_layers if layer.get("advanced_this_tick", True)
+                    and layer["sample"] is not None for group in layer["sample"].atomic_groups)
                 captured_handoff = bool(
                     ev.get("history", {}).get("placed", {}).get("FL") is True
                     and current.get("top_contact") is True and current.get("support") is True

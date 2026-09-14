@@ -45,6 +45,9 @@ ALL_STAGE_SCHEMA = "wlr50_clean.all_stage_same372_acceptance_transition.v1"
 FSM_REFERENCE_P09_SCHEMA = "wlr50_clean.fsm_reference_p09_functional_same372_transition.v2"
 CAPTURE_HANDOFF_SAME372_SCHEMA = "wlr50_clean.p05_capture_to_handoff_same372_nominal_transition.v1"
 CAPTURE_HANDOFF_SOURCE_HEAD = "7db0d17f398d393ce026b6990bd2566d53366407"
+TIMING_ONLY_SCHEMA = "wlr50_clean.nominal_timing_same372_continuation.v1"
+TIMING_ONLY_SPEC = "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml"
+TIMING_ONLY_MODE = "source_partial_order_physical_ready_v1"
 SAME372_AUTHORITY_RUNTIME_FILES = frozenset({
     "configs/ppo_semantic_v3/stage_task_spec.yaml",
     "configs/ppo_semantic_v3/execution_profile.yaml",
@@ -1240,6 +1243,92 @@ def _video_observation_contract(metadata, old, new, delta, project_root):
     }
 
 
+def _timing_only_factor(metadata, old, new, delta, review, project_root):
+    """One nominal timing opt-in, explicitly not equivalent physical trajectories."""
+    import yaml
+    from .semantic_observation import load_semantic_observation_schema
+    from .semantic_policy_distribution import (
+        CONFIG_NAMES, HISTORY_POLICY, policy_contract,
+        policy_observation_layout_from_metadata, policy_version_from_metadata,
+    )
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    if (not isinstance(review, Mapping) or set(review) != {"reason"}
+            or not isinstance(review["reason"], str) or not review["reason"].strip()):
+        raise ValueError("timing-only migration requires an explicit review reason")
+    if (metadata.get("semantic_version") != "v3"
+            or policy_version_from_metadata(metadata) != HISTORY_POLICY
+            or policy_observation_layout_from_metadata(metadata) != ROLE_OBSERVATION_LAYOUT
+            or source_num_envs(metadata) != 1
+            or any(c.get("semantic_version") != "v3"
+                   or c.get("experiment_id") != "fsm_reference_p09_stable_v2" for c in (old, new))):
+        raise ValueError("timing-only migration requires same-experiment v3 N1 HISTORY372")
+    required = {SUPERVISOR, TIMING_ONLY_SPEC}
+    allowed = required | {f"src/wlr50_clean/ppo/{name}.py" for name in
+                          ("semantic_migration", "semantic_training")}
+    if old["files"].keys() != new["files"].keys() or not required <= set(delta) or not set(delta) <= allowed:
+        raise ValueError("timing-only migration permits only nominal class/config and its two compatibility modules")
+    canonical = policy_contract(HISTORY_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    if metadata.get("policy_contract") != canonical:
+        raise ValueError("timing-only source policy contract differs from canonical HISTORY372")
+    records = {}
+    for name in sorted(CONFIG_NAMES):
+        relative = f"configs/ppo_fsm_reference_p09_stable_v2/{name}"
+        for contract in (old, new):
+            selected = contract.get("selected_configuration", {})
+            if (set(selected) != CONFIG_NAMES or selected[name] != {
+                    "path": relative, "sha256": contract["files"].get(relative)}):
+                raise ValueError("timing-only selected configuration binding differs")
+        before = _version_bytes(project_root, old, relative, prefer_worktree=True)
+        after = (project_root / relative).read_bytes()
+        if hashlib.sha256(after).hexdigest() != new["files"][relative]:
+            raise ValueError("timing-only target configuration bytes differ from inventory")
+        if name == "stage_task_spec.yaml":
+            source_spec, target_spec = yaml.safe_load(before), yaml.safe_load(after)
+            if (not isinstance(source_spec, dict) or not isinstance(source_spec.get("nominal"), dict)
+                    or "sequence_semantics" in source_spec["nominal"]):
+                raise ValueError("timing-only source must not already contain the sequence opt-in")
+            expected = json.loads(json.dumps(source_spec, allow_nan=False))
+            expected["nominal"]["sequence_semantics"] = TIMING_ONLY_MODE
+            if target_spec != expected:
+                raise ValueError("timing-only permits only nominal.sequence_semantics addition")
+        elif before != after:
+            raise ValueError(f"timing-only cannot change configuration bytes: {name}")
+        records[name] = {"path": relative, "source_sha256": old["files"][relative],
+                         "target_sha256": new["files"][relative]}
+    for relative in delta:
+        _version_bytes(project_root, old, relative, prefer_worktree=True)
+        if file_sha(project_root / relative) != new["files"][relative]:
+            raise ValueError("timing-only target runtime bytes differ from inventory")
+    before = _nominal_provider_byte_regions(_version_bytes(project_root, old, SUPERVISOR, prefer_worktree=True))
+    after = _nominal_provider_byte_regions((project_root / SUPERVISOR).read_bytes())
+    if before[0] != after[0] or before[2] != after[2] or before[1] == after[1]:
+        raise ValueError("timing-only may change only the NominalMotionProvider class bytes")
+    schema = load_semantic_observation_schema(project_root / records["observation_schema.json"]["path"])
+    if schema.dimension != 372 or schema.transfer_role_features_version != ROLE_OBSERVATION_LAYOUT:
+        raise ValueError("timing-only requires the unchanged complete372 observation schema")
+    for runtime in (old, new):
+        if runtime.get("observation_dimension", 372) != 372 or runtime.get("action_dimension", 12) != 12:
+            raise ValueError("timing-only runtime dimensions differ")
+    return {"schema": TIMING_ONLY_SCHEMA, "review_reason": review["reason"].strip(),
+        "sequence_semantics": TIMING_ONLY_MODE, "configuration_bindings": records,
+        "physical_mdp_changed": True, "nominal_control_changed": True,
+        "reward_changed": False, "task_acceptance_changed": False,
+        "observation_semantics_changed": [], "physical_actuators_changed": False,
+        "action_ranges_changed": False, "kernel_changed": False,
+        "nominal_provider": {"source_class_sha256": hashlib.sha256(before[1]).hexdigest(),
+            "target_class_sha256": hashlib.sha256(after[1]).hexdigest(),
+            "outside_class_sha256": hashlib.sha256(before[0] + b"\0" + before[2]).hexdigest(),
+            "outside_class_bytes_identical": True},
+        "observation_contract": {"source_policy_contract": canonical, "target_policy_contract": dict(canonical),
+            "observation_layout": ROLE_OBSERVATION_LAYOUT, "observation_dimension": 372,
+            "action_dimension": 12, "num_envs": 1,
+            "parameter_mapping": "identity_all_parameters_and_buffers"},
+        "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+        "normalizers": "preserve_verified_identity_RSL_state",
+        "scope": "reviewed_nominal_timing_only_not_physical_MDP_or_trajectory_equivalence",
+        "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True}
+
+
 def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
                          allowed_changed_files: Sequence[str], reason: str,
                          prior_evidence: Mapping[str, Any] | None = None,
@@ -1247,13 +1336,20 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                          evaluator_review: Mapping[str, Any] | None = None,
                          execution_evidence: Mapping[str, Any] | None = None,
                          video_review: Mapping[str, Any] | None = None,
+                         timing_review: Mapping[str, Any] | None = None,
                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Build a reviewed plan after committing the new runtime; does not write."""
     checkpoint = Path(checkpoint).resolve(strict=True)
     metadata = checkpoint_metadata(checkpoint)
     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
-    old_fixed = {key: value for key, value in old.items() if key not in ("files", "runtime_content_sha256", "source_git_commit")}
-    new_fixed = {key: value for key, value in new.items() if key not in ("files", "runtime_content_sha256", "source_git_commit")}
+    variable = {"files", "runtime_content_sha256", "source_git_commit"}
+    if timing_review is not None:
+        if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
+                                       execution_evidence, video_review)):
+            raise ValueError("timing-only migration cannot mix other reviewed factors")
+        variable.add("selected_configuration")  # Bound field-by-field below, not exempted.
+    old_fixed = {key: value for key, value in old.items() if key not in variable}
+    new_fixed = {key: value for key, value in new.items() if key not in variable}
     if old_fixed != new_fixed:
         raise ValueError("migration cannot change frozen physics, runtime versions, rates or budgets")
     declared = list(allowed_changed_files)
@@ -1261,7 +1357,9 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
         raise ValueError("migration requires a reason and unique exact changed-file names")
     delta = sorted(path for path in set(old["files"]) | set(new["files"]) if old["files"].get(path) != new["files"].get(path))
     observation_contract = None
-    if video_review is None or not (set(delta) & VIDEO_FILES):
+    timing = (_timing_only_factor(metadata, old, new, delta, timing_review, Path(project_root))
+              if timing_review is not None else None)
+    if timing is None and (video_review is None or not (set(delta) & VIDEO_FILES)):
         # Existing instrumentation-only permission is unchanged; video has
         # its own explicit review and receipt, never a widened allowlist.
         observation_contract = _instrumentation_observation_contract(
@@ -1278,7 +1376,7 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
         if video_observation is not None:
             video["observation_contract"] = video_observation
     execution = None
-    additional = set(VIDEO_FILES) if video is not None else set()
+    additional = set(VIDEO_FILES) if video is not None else ({TIMING_ONLY_SPEC} if timing is not None else set())
     if execution_evidence is not None:
         if (set(delta) - INSTRUMENTATION_FILES - VECTOR_FILES or prior_evidence is not None
                 or qualification_evidence is not None or evaluator_review is not None):
@@ -1295,7 +1393,7 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                 or qualification_evidence is not None):
             raise ValueError("reviewed evaluator repair cannot mix prior/configuration or historical qualification factors")
         evaluator = _reviewed_evaluator_factor(Path(project_root), old, new, evaluator_review)
-    prior_transition = SUPERVISOR in delta and evaluator is None
+    prior_transition = SUPERVISOR in delta and evaluator is None and timing is None
     if prior_transition != (prior_evidence is not None) or (prior_transition and STAGE_SPEC not in delta):
         raise ValueError("nominal source change and explicit prior evidence/config change must occur together")
     if qualification_evidence is not None and not prior_transition:
@@ -1304,7 +1402,7 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
     prior = _prior_factor(Path(project_root), old, new, prior_evidence, checkpoint,
                            qualification_transition=qualification_evidence is not None) if prior_transition else None
     qualification = _qualification_factor(Path(project_root), old, new, qualification_evidence) if qualification_evidence is not None else None
-    layout_contract = observation_contract or (video or {}).get("observation_contract")
+    layout_contract = observation_contract or (video or timing or {}).get("observation_contract")
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
     result = {"schema": SCHEMA, "reason": reason.strip(), "source_checkpoint": str(checkpoint),
             "source_checkpoint_sha256": file_sha(checkpoint), "source_manifest_sha256": file_sha(sidecar),
@@ -1328,6 +1426,8 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
         result["execution_factor"] = execution
     if video is not None:
         result["video_instrumentation_factor"] = video
+    if timing is not None:
+        result["nominal_timing_factor"] = timing
     return result
 
 
@@ -1348,7 +1448,9 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                                         "target_num_envs": supplied["execution_factor"]["target_num_envs"],
                                         "vector_smoke": supplied["execution_factor"]["vector_smoke"]["manifest"]},
                                     video_review=None if "video_instrumentation_factor" not in supplied else {
-                                        "reason": supplied["video_instrumentation_factor"]["review_reason"]})
+                                        "reason": supplied["video_instrumentation_factor"]["review_reason"]},
+                                    timing_review=None if "nominal_timing_factor" not in supplied else {
+                                        "reason": supplied["nominal_timing_factor"]["review_reason"]})
     if supplied != expected:
         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}

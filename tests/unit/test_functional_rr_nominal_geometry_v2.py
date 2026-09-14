@@ -102,6 +102,9 @@ def test_functional_mode_keeps_same_tick_geometry_schema_and_stale_clock_rejecti
 
 def test_functional_far_air_carry_below_top_has_no_timer_or_blind_edge_wheel_override():
     spec = load_task_spec(ROOT / "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml")
+    # Isolate the existing carry-feedback consumer from the separately tested
+    # measured source-dispatch scheduler, which requires complete raw sensors.
+    spec["nominal"].pop("sequence_semantics", None)
     contract = load_motion_contract(ROOT / "configs/recording_motion_contract.json")
     task = dict(stage_id="P09", termination_reason=None, physical_evaluator=dict(
         valid=True, termination_reason=None, history={"active_lift": {"RR": True}},
