@@ -1,0 +1,1304 @@
+*** Begin Patch
+*** Update File: src/wlr50_clean/ppo/semantic_video.py
+@@
+ 
+ HZ, FPS, STRIDE = 120, 15, 8
+ PRE_TICKS, POST_TICKS, MAX_FRAMES = 64, 184, 3000
++TASK_WINDOW_EXPERIMENT = "fsm_reference_p09_stable_v2"
+ CAMERA = {"eye_m": [1.45, -1.25, .8], "target_m": [.45, 0., .12]}
+ ROLES = {"A": "legacy_fsm_eval", "B": "semantic_prior_eval",
+          "C": "semantic_residual_eval"}
+@@
+     return 1 + (PRE_TICKS + episode_ticks + POST_TICKS) // STRIDE
+ 
+ 
++def task_interval_receipt(episode_ticks):
++    """CFR samples real executed intervals; no extra physics or task deadline."""
++    require(type(episode_ticks) is int and 0 < episode_ticks <= 24000,
++            "task video endpoint must remain inside the unchanged 200s horizon")
++    count = (episode_ticks + STRIDE - 1) // STRIDE
++    final_ticks = episode_ticks - STRIDE * (count - 1)
++    return {"schema": "wlr50_clean.task_interval_video_window.v1",
++        "experiment_id": TASK_WINDOW_EXPERIMENT, "first_episode_tick": 0,
++        "endpoint_episode_tick": episode_ticks, "frame_count": count,
++        "frame_sample": "actual_executed_interval_right_endpoint",
++        "first_frame_episode_tick": min(STRIDE, episode_ticks),
++        "last_frame_episode_tick": episode_ticks,
++        "final_interval_physics_ticks": final_ticks,
++        "terminal_frame_display_quantization_s": (STRIDE - final_ticks) / HZ,
++        "encoded_duration_s": count / FPS, "physical_duration_s": episode_ticks / HZ,
++        "tick0_observation_retained": True, "tick0_encoded_as_extra_frame": False,
++        "extra_physics_ticks": 0, "extra_pre_frames": 0, "extra_post_frames": 0}
++
++
++def source_frame_count(source):
++    if source.get("experiment_id") == TASK_WINDOW_EXPERIMENT:
++        return task_interval_receipt(source["episode_physics_ticks"])["frame_count"]
++    return frames_for_episode(source["episode_physics_ticks"])
++
++
++def capture_task_interval_frame(recorder, backend, episode_tick):
++    """Actual viewport at a real interval end, including an exact partial end."""
++    require(type(episode_tick) is int and 0 < episode_tick <= 24000, "invalid task frame tick")
++    recorder.before_render(sim_step=episode_tick, sim_time_s=episode_tick / HZ)
++    backend.render_video_frame()
++    recorder.after_render()
++    recorder.require_healthy()
++
++
++def task_interval_action_window(source, decoded, ledger):
++    """Narrow adapter to the existing publication window, preserving real ticks.
++
++    Full intervals contain8 ticks; the final interval contains1..8. Its native
++    CFR display quantization is explicit, never a fabricated simulator time.
++    """
++    from wlr50_clean.evaluation.video_timeline import (
++        ActionWindow, _sha256_float64, _sha256_text_rows,
++    )
++    require(source.get("experiment_id") == TASK_WINDOW_EXPERIMENT
++            and source.get("semantic_version") == "v3", "wrong task interval experiment")
++    endpoint = source["episode_physics_ticks"]
++    receipt = task_interval_receipt(endpoint)
++    require(source.get("task_interval_window") == receipt, "task interval manifest mismatch")
++    count = receipt["frame_count"]
++    require(2 <= count <= MAX_FRAMES and len(decoded) == len(ledger) == count,
++            "task interval frame count differs")
++    ticks = [min((index + 1) * STRIDE, endpoint) for index in range(count)]
++    require([row.sim_step for row in ledger] == ticks, "task interval actual endpoint tick mismatch")
++    require(all(frame.frame_index == row.frame_index == index
++                and abs(row.sim_time_s - ticks[index] / HZ) < 1e-10
++                for index, (frame, row) in enumerate(zip(decoded, ledger))),
++            "task interval ledger clock/index mismatch")
++    pts = [frame.pts_s for frame in decoded]
++    deltas = [b - a for a, b in zip(pts, pts[1:])]
++    require(all(abs(delta - 1 / FPS) < 1e-5 for delta in deltas), "task video was retimed")
++    offsets = [row.sim_time_s - frame.pts_s for row, frame in zip(ledger, decoded)]
++    offset = offsets[0]
++    require(all(abs(value - offset) < 1e-5 for value in offsets[:-1])
++            and abs((offset - offsets[-1]) -
++                    receipt["terminal_frame_display_quantization_s"]) < 1e-5,
++            "task terminal interval/PTS quantization mismatch")
++    duration = count / FPS
++    # Keep every decoded frame/hash/native PTS delta. Do not reinterpret the
++    # true endpoint ledger as an ideal physical-time grid.
++    return ActionWindow(
++        semantic_start_sim_s=0., semantic_end_sim_s=endpoint / HZ,
++        source_first_frame_index=0, source_last_frame_index=count-1,
++        source_first_pts_s=pts[0], source_last_pts_s=pts[-1],
++        source_first_sim_time_s=ledger[0].sim_time_s, source_last_sim_time_s=ledger[-1].sim_time_s,
++        trim_start_pts_s=pts[0], trim_end_pts_s=pts[-1]+1/FPS,
++        output_duration_s=duration, expected_frame_count=count,
++        leading_frames_removed=0, trailing_frames_removed=0, phase_clock_origin_sim_s=0.,
++        semantic_start_output_s=0., semantic_end_output_s=endpoint/HZ,
++        action_frame_start_output_pts_s=0., action_frame_end_output_pts_s_exclusive=duration,
++        requested_pre_roll_s=0., requested_post_roll_s=0., maximum_preserved_roll_s=0.,
++        available_pre_roll_s=0., available_post_roll_s=0.,
++        retained_pre_roll_s=0., retained_post_roll_s=0.,
++        capture_lag_after_action_start_s=ledger[0].sim_time_s,
++        packet_copy_start_is_keyframe=decoded[0].key_frame,
++        source_selected_pts_sha256=_sha256_float64(pts),
++        source_selected_pts_delta_sha256=_sha256_float64(deltas),
++        source_selected_checksums_sha256=_sha256_text_rows(frame.checksum for frame in decoded),
++        ledger_to_pts_offset_s=offset,
++        maximum_ledger_to_pts_offset_deviation_s=max(abs(value-offset) for value in offsets))
++
++
+ def file_record(path):
+     path = Path(path).resolve(strict=True)
+     return {"path": str(path), "bytes": path.stat().st_size,
+@@
+     recorder.require_healthy()
+ 
+ 
+-def video_configuration(semantic_version):
++def video_configuration(semantic_version, *, experiment_id=None):
+     """One explicit configuration selection for capture AND independent replay."""
+     from .semantic_cli import version_paths
+-    config = version_paths(semantic_version)[2]
+-    return {name: config / filename for name, filename in (
++    config = (version_paths(semantic_version) if experiment_id is None else
++              version_paths(semantic_version, experiment_id=experiment_id))[2]
++    result = {name: config / filename for name, filename in (
+         ("task_spec_path", "stage_task_spec.yaml"),
+         ("quality_score_path", "quality_score.yaml"),
+         ("execution_profile", "execution_profile.yaml"),
+         ("reward_config_path", "reward_config.yaml"),
+         ("observation_schema_path", "observation_schema.json"))}
++    if experiment_id is not None:
++        # Bind all six experiment files, even though residual execution uses
++        # execution_profile rather than reading action_schema a second time.
++        result["action_schema_path"] = config / "action_schema.json"
++    return result
++
++
++def _validate_video_configuration_binding(configs, contract, *, experiment_id):
++    """Exact explicit-experiment paths/bytes; no permission to change the MDP."""
++    require(contract.get("experiment_id") == experiment_id, "video/runtime experiment mismatch")
++    if experiment_id is None:
++        return  # Preserve historical implicit v2/v3 source manifests.
++    from .semantic_cli import PROJECT_ROOT
++    from .semantic_policy_distribution import CONFIG_NAMES
++    require(set(path.name for path in configs.values()) == CONFIG_NAMES
++            and len(configs) == len(CONFIG_NAMES), "video requires all six selected configurations")
++    selected = contract.get("selected_configuration")
++    require(isinstance(selected, dict) and set(selected) == CONFIG_NAMES,
++            "video runtime lacks exactly six selected configuration bindings")
++    for path in configs.values():
++        record = file_record(path)
++        actual = Path(record["path"])
++        require(actual.is_relative_to(PROJECT_ROOT.resolve()), "video configuration escaped project")
++        relative = actual.relative_to(PROJECT_ROOT.resolve()).as_posix()
++        require(selected[path.name] == {"path": relative, "sha256": record["sha256"]}
++                and contract.get("files", {}).get(relative) == record["sha256"],
++                "video selected configuration path/hash differs from current runtime bytes")
+ 
+ 
+ def reset_with_existing_settle_tail(core, recorder, roll, *, seed):
+@@
+ 
+ class EndpointObserver:
+     """Common physical metrics first; exact-tick endpoint then native-grid render."""
+-    def __init__(self, physical, recorder, backend):
++    def __init__(self, physical, recorder, backend, *, task_window=False):
+         self.physical, self.recorder, self.backend = physical, recorder, backend
++        self.task_window = task_window
++        self.last_captured_tick = None
+         self.last_frame = None
+         self.last_global_tick = 0
+         self.reason = None
+@@
+     def __call__(self, before, after, projection):
+         self.physical.observe(before, after, projection)
+         self.last_frame = after
+-        self.last_global_tick = PRE_TICKS + after.physics_tick
+-        if self.last_global_tick % STRIDE == 0:
+-            capture_frame(self.recorder, self.backend, self.last_global_tick)
++        self.last_global_tick = (0 if self.task_window else PRE_TICKS) + after.physics_tick
+         result = self.physical.evaluator.snapshot
+-        if result.get("success") is True or result.get("termination_reason") is not None:
++        terminal = result.get("success") is True or result.get("termination_reason") is not None
++        if self.task_window:
++            if after.physics_tick % STRIDE == 0 or terminal:
++                capture_task_interval_frame(self.recorder, self.backend, after.physics_tick)
++                self.last_captured_tick = after.physics_tick
++        elif self.last_global_tick % STRIDE == 0:
++            capture_frame(self.recorder, self.backend, self.last_global_tick)
++        if terminal:
+             self.reason = "SUCCESS" if result.get("success") else result["termination_reason"]
+             raise _PhysicalEndpoint
+-        if frames_for_episode(after.physics_tick) > MAX_FRAMES:
++        if not self.task_window and frames_for_episode(after.physics_tick) > MAX_FRAMES:
+             self.reason = "VIDEO_FULL_CONTEXT_EXCEEDS_200S"
+             raise _PhysicalEndpoint
+ 
+ 
+ def capture_semantic_video(core, *, role, seed, output_directory, contract,
+                            policy_loader=None, recorder_factory=ActiveViewportVideoRecorder,
+-                           semantic_version="v2"):
++                           semantic_version="v2", experiment_id=None):
+     """Capture one fresh P01 episode in one live process.
+ 
+     policy_loader(refreshed_observation) returns (deterministic_action_callable,
+@@
+     """
+     require(role in ROLES and seed == 4001, "wrong role or locked video seed")
+     require((role == "C") == (policy_loader is not None), "wrong checkpoint role")
+-    configs = video_configuration(semantic_version)
++    configs = (video_configuration(semantic_version) if experiment_id is None else
++               video_configuration(semantic_version, experiment_id=experiment_id))
++    _validate_video_configuration_binding(configs, contract, experiment_id=experiment_id)
+     require(contract.get("semantic_version", "v2") == semantic_version,
+             "capture version differs from runtime contract")
+     root = Path(output_directory).resolve()
+@@
+     error = None
+     reset_info = {}
+     settle_evidence = None
++    task_window = experiment_id == TASK_WINDOW_EXPERIMENT
++    require(not task_window or semantic_version == "v3", "current task video requires v3")
+     try:
+         roll = (root/"physical_video_roll_ticks.jsonl").open("x", encoding="utf-8")
+         decisions = (root/"video_policy_decisions.jsonl").open("x", encoding="utf-8")
+-        if semantic_version == "v3":
++        if semantic_version == "v3" and not task_window:
+             settle_evidence = reset_with_existing_settle_tail(core, recorder, roll, seed=seed)
+         else:
+             core.reset(seed=seed)
+@@
+         require(all(list(camera[key]) == value for key,value in CAMERA.items()),
+                 "camera differs from common A/B/C view")
+         legacy_controller = backend._controller if role == "A" else None
++        if task_window:
++            for _ in range(3):
++                backend.render_video_frame()  # Shader-only; no physical/control step.
++            require(recorder.start(), "viewport capture did not start")
++            # Tick0 stays in physical_observations.jsonl; no extra encoded frame.
+         if semantic_version == "v3":
+             observation, refreshed = tuple(core.observation), dict(core.frame.info)
+         else:
+@@
+                     "C source lacks actual checkpoint load proof")
+         else:
+             action = lambda _observation, _decision: ZERO12
+-        observer = EndpointObserver(physical, recorder, backend)
++        observer = EndpointObserver(physical, recorder, backend, task_window=task_window)
+         if role == "A":
+             core.tick_callback = observer
+         else:
+@@
+                 "environment_step_returned": True, "step_info": step.info})
+         endpoint = observer.last_frame
+         require(endpoint is not None, "video had no episode physics")
++        if task_window and observer.last_captured_tick != endpoint.physics_tick:
++            capture_task_interval_frame(recorder, backend, endpoint.physics_tick)
++            observer.last_captured_tick = endpoint.physics_tick
+         physical_summary = physical.summary()  # Metrics end before all post-roll.
+         require(physical_summary["task_success"] is True, "episode did not meet common physical task")
+         require(observer.reason == "SUCCESS", "video was stopped for another reason")
+-        require(frames_for_episode(endpoint.physics_tick) <= MAX_FRAMES,
+-                "full physical context would exceed 200 seconds")
+-        for index in range(1, POST_TICKS+1):
++        require((task_interval_receipt(endpoint.physics_tick)["frame_count"] if task_window else
++                 frames_for_episode(endpoint.physics_tick)) <= MAX_FRAMES,
++                "complete source would exceed 200 seconds")
++        for index in range(1, (0 if task_window else POST_TICKS)+1):
+             row = common_post_success_tick(backend, physical.evaluator,
+                 episode_ticks=endpoint.physics_tick, post_index=index)
+             global_tick = PRE_TICKS + endpoint.physics_tick + index
+@@
+         error = f"{type(exc).__name__}: {exc}"
+     finally:
+         if physical is not None:
++            if task_window and physical_summary is None:
++                # Preserve measured task outcome even if encoding failed at the
++                # terminal callback; video error still prevents publication.
++                try:
++                    physical_summary = physical.summary()
++                except Exception as exc:
++                    error = error or f"physical summary failed: {type(exc).__name__}: {exc}"
+             physical.close()
+         if roll is not None:
+             roll.close()
+@@
+     payload = {"schema": "wlr50_clean.semantic_video_source.v1",
+         "semantic_version": semantic_version,
+         "evaluation_configuration": {name: file_record(path) for name, path in configs.items()},
+-        "pre_action_source": "existing_reset_settle_tail" if semantic_version == "v3" else "additional_zero_hold",
++        "pre_action_source": ("not_encoded_natural_reset" if task_window else
++                              "existing_reset_settle_tail" if semantic_version == "v3" else "additional_zero_hold"),
+         "extra_pre_action_physics_ticks": 0 if semantic_version == "v3" else PRE_TICKS,
+         "settle_capture_evidence": settle_evidence,
+         "role": role, "mode": ROLES[role], "seed": seed, "runtime_contract": dict(contract),
+         "capture_process_id": os.getpid(), "capture_process_instance_id": uuid.uuid4().hex,
+         "fresh_process_single_episode": True, "episode_count": 1,
+-        "from_phase": "P01", "pre_action_ticks": PRE_TICKS,
+-        "requested_post_success_ticks": POST_TICKS,
++        "from_phase": "P01", "pre_action_ticks": 0 if task_window else PRE_TICKS,
++        "requested_post_success_ticks": 0 if task_window else POST_TICKS,
+         "performed_post_success_ticks": backend._video_post_terminal_tick_count,
+         "episode_physics_ticks": None if endpoint is None else endpoint.physics_tick,
+         "issued_policy_decisions": issued_decisions,
+@@
+              "video_pre_action_refresh", "semantic_video_initialization")},
+         "checkpoint_load_provenance": load_provenance,
+         "physical_episode": physical_summary, "optimizer_updates": 0,
++        "physical_task_success": (None if physical_summary is None else
++                                  bool(physical_summary["task_success"])),
+         "success_candidate": error is None,
+         "diagnostic_only": error is not None, "improved_claim": False,
+         "source_acceptance_error": error,
+         "stitched": False, "frame_interpolation": False, "speed_modified": False,
+         "artifacts": {name: file_record(root/name) for name in names if (root/name).is_file()}}
++    if experiment_id is not None:
++        payload["experiment_id"] = experiment_id
++    if task_window and endpoint is not None:
++        payload["task_interval_window"] = task_interval_receipt(endpoint.physics_tick)
+     write_json(root/"semantic_video_source_manifest.json", payload)
+     return payload
+ 
+@@
+     version = source.get("semantic_version", "v2")
+     require(source["runtime_contract"].get("semantic_version", "v2") == version,
+             "source/runtime semantic version mismatch")
+-    configs = video_configuration(version)
++    experiment_id = source.get("experiment_id")
++    configs = (video_configuration(version) if experiment_id is None else
++               video_configuration(version, experiment_id=experiment_id))
++    _validate_video_configuration_binding(configs, source["runtime_contract"], experiment_id=experiment_id)
+     if version == "v3" or "evaluation_configuration" in source:
+         require(source.get("evaluation_configuration") ==
+                 {name: file_record(path) for name, path in configs.items()},
+@@
+     require(source["camera"] == {**CAMERA, "resolution": [1280,720], "fps": FPS}, "camera mismatch")
+     require(all(source[key] is False for key in ("stitched","frame_interpolation","speed_modified")),
+             "source timeline was synthesized")
+-    require(source["pre_action_ticks"] == PRE_TICKS
+-            and source["performed_post_success_ticks"] == POST_TICKS, "incomplete real context")
++    task_window = source.get("experiment_id") == TASK_WINDOW_EXPERIMENT
++    if task_window:
++        require(source.get("semantic_version") == "v3"
++                and source["pre_action_source"] == "not_encoded_natural_reset"
++                and source["pre_action_ticks"] == source["requested_post_success_ticks"]
++                == source["performed_post_success_ticks"] == source["extra_pre_action_physics_ticks"] == 0
++                and source["settle_capture_evidence"] is None,
++                "current task window added physical or encoded context")
++        require(source.get("physical_task_success") is True
++                and source["physical_episode"]["task_success"] is True,
++                "video candidate lacks independent physical task success")
++    else:
++        require(source["pre_action_ticks"] == PRE_TICKS
++                and source["performed_post_success_ticks"] == POST_TICKS, "incomplete real context")
+     paths = {name: inside(root, record) for name,record in source["artifacts"].items()}
+     endpoint = source["episode_physics_ticks"]
+-    require(frames_for_episode(endpoint) <= MAX_FRAMES, "video context exceeds 200 s")
++    require(source_frame_count(source) <= MAX_FRAMES, "video context exceeds 200 s")
+     from .semantic_cli import runtime_contract
+     configs = validate_video_configuration(source)
++    experiment_options = ({} if source.get("experiment_id") is None else
++                          {"experiment_id": source["experiment_id"]})
+     require(runtime_contract(expected_head=source["runtime_contract"]["source_git_commit"],
+-                             semantic_version=source.get("semantic_version", "v2"))
++                             semantic_version=source.get("semantic_version", "v2"), **experiment_options)
+             == source["runtime_contract"], "validator runtime/task spec differs from capture")
+     if source["role"] == "C":
+         require(source["checkpoint_load_provenance"]["checkpoint_loaded_and_verified"] is True,
+@@
+         expected_start = row["end_tick"]
+     require(expected_start == endpoint and completed_steps == source["completed_environment_steps"],
+             "decision ledger endpoint mismatch")
++    if task_window:
++        expected_ends = [min((index+1)*STRIDE, endpoint) for index in range(source_frame_count(source))]
++        require([row["end_tick"] for row in decision_rows] == expected_ends,
++                "task frames must match actual executed policy interval endpoints")
+     require(decision_rows[-1]["physics_ticks"] == source["interrupted_final_decision_ticks"]
+             and not decision_rows[-1]["environment_step_returned"], "partial endpoint was hidden")
+     count = 0
+@@
+     roll_rows = [json.loads(line) for line in paths["physical_video_roll_ticks.jsonl"].read_text().splitlines()]
+     pre = [row for row in roll_rows if row["kind"] == "pre_action"]
+     post = [row for row in roll_rows if row["kind"] == "post_success"]
+-    require([row["global_tick"] for row in pre] == list(range(1,PRE_TICKS+1)), "pre-roll tick gap")
+-    if source.get("semantic_version", "v2") == "v3":
+-        validate_existing_settle_evidence(source, pre)
+-    require([row["global_tick"] for row in post] ==
+-            list(range(PRE_TICKS+endpoint+1, PRE_TICKS+endpoint+POST_TICKS+1)), "post-roll tick gap")
++    if task_window:
++        require(not roll_rows, "current task window contains extra physical PRE/POST ticks")
++    else:
++        require([row["global_tick"] for row in pre] == list(range(1,PRE_TICKS+1)), "pre-roll tick gap")
++        if source.get("semantic_version", "v2") == "v3":
++            validate_existing_settle_evidence(source, pre)
++        require([row["global_tick"] for row in post] ==
++                list(range(PRE_TICKS+endpoint+1, PRE_TICKS+endpoint+POST_TICKS+1)), "post-roll tick gap")
+     for row in pre:
+         require(row["task_credit"] is False and row["physical_hold"]["root_state_write_count"] == 0
+                 and tuple(row["physical_hold"]["applied_full12"]) == ZERO12,
+@@
+                 "independent post-roll replay lost physical stability")
+     decoded = decode_frame_timeline(paths["actual_viewport_video.mp4"])
+     ledger = load_viewport_frame_ledger(paths["viewport_frame_ledger.jsonl"])
+-    require(len(ledger) == frames_for_episode(endpoint), "encoded frame count mismatch")
+-    require([row.sim_step for row in ledger] == [STRIDE*i for i in range(len(ledger))],
+-            "frames were dropped/duplicated or a partial terminal tick was mislabeled")
+-    require(all(abs(row.sim_time_s-row.sim_step/HZ)<1e-10 for row in ledger), "ledger clock drift")
+-    window = plan_action_window(decoded, ledger,
+-        semantic_start_sim_s=PRE_TICKS/HZ, semantic_end_sim_s=(PRE_TICKS+endpoint)/HZ,
+-        expected_fps=FPS, requested_pre_roll_s=PRE_TICKS/HZ,
+-        requested_post_roll_s=1., maximum_preserved_roll_s=2.)
++    require(len(ledger) == source_frame_count(source), "encoded frame count mismatch")
++    if task_window:
++        window = task_interval_action_window(source, decoded, ledger)
++    else:
++        require([row.sim_step for row in ledger] == [STRIDE*i for i in range(len(ledger))],
++                "frames were dropped/duplicated or a partial terminal tick was mislabeled")
++        require(all(abs(row.sim_time_s-row.sim_step/HZ)<1e-10 for row in ledger), "ledger clock drift")
++        window = plan_action_window(decoded, ledger,
++            semantic_start_sim_s=PRE_TICKS/HZ, semantic_end_sim_s=(PRE_TICKS+endpoint)/HZ,
++            expected_fps=FPS, requested_pre_roll_s=PRE_TICKS/HZ,
++            requested_post_roll_s=1., maximum_preserved_roll_s=2.)
+     require(window.is_full_source, "source context was silently trimmed")
+     validation = validate_mp4(paths["actual_viewport_video.mp4"],
+         expected_fps=FPS, expected_frame_count=len(ledger), maximum_duration_s=200.,
+@@
+ 
+ def comparison_filter(left, right):
+     """No retiming: the shorter completed source visibly freezes at its end."""
+-    frame_counts = [frames_for_episode(item["episode_physics_ticks"]) for item in (left, right)]
++    frame_counts = [source_frame_count(item) for item in (left, right)]
+     total = max(frame_counts)
+     require(total <= MAX_FRAMES, "comparison exceeds 200 seconds")
+     parts = []
+@@
+     """Publish common-condition actual A/C successes, with no improvement claim."""
+     left, _ = validate_semantic_video_source(baseline_root, expected_role="A")
+     right, _ = validate_semantic_video_source(candidate_root, expected_role="C")
+-    for key in ("seed", "camera", "runtime_contract", "semantic_version",
++    for key in ("seed", "camera", "runtime_contract", "semantic_version", "experiment_id",
+                 "pre_action_source", "extra_pre_action_physics_ticks"):
+         require(left.get(key) == right.get(key), f"comparison condition differs: {key}")
+     destination = Path(destination).resolve()
+*** Update File: src/wlr50_clean/ppo/semantic_training.py
+@@
+         expected_contract = metadata["runtime_contract"]
+         layout = getattr(runner, "_semantic_observation_layout", None)
+         factor = verified.get("instrumentation_observation_contract")
++        video_factor = (verified.get("video_instrumentation_factor") or {}).get("observation_contract")
++        if video_factor is not None:
++            if factor is not None:
++                raise RuntimeError("exact video and instrumentation observation receipts must be exclusive")
++            factor = video_factor
++            if (tuple(runner.alg.storage.actions.shape) != (ROLLOUT_LENGTH, 1, factor["action_dimension"])
++                    or any(tuple(runner.alg.storage.observations[key].shape)
++                           != (ROLLOUT_LENGTH, 1, factor["observation_dimension"])
++                           for key in ("policy", "critic"))):
++                raise RuntimeError("video exact resume requires fresh verified N1 policy/critic/action storage")
+         actual_contract = _runner_policy_contract(runner)
+         if layout is not None and (factor is None
+                 or factor["source_policy_contract"] != metadata.get("policy_contract")
+*** Update File: src/wlr50_clean/ppo/semantic_video_cli.py
+@@
+ from datetime import datetime, timezone
+ 
+ from .semantic_cli import (parser, validate_request, runtime_contract,
+-                           _preflight_checkpoint, _resolved_policy_version, jsonable)
++                           _preflight_checkpoint, _resolved_policy_version, _observation_layout_options,
++                           _resolved_observation_layout, _resolved_policy_contract, jsonable)
+ from .semantic_training import (construct_semantic_runner, load_semantic_checkpoint,
+     seed_training_rngs, parameter_hash, state_hash, _normalizers, write_json)
+ from .semantic_video import (ROLES, require, capture_semantic_video,
+@@
+                 return TensorDict({"policy": tensor, "critic": tensor.clone()},
+                                   batch_size=[1], device=args.device)
+         runner, _ = construct_semantic_runner(ObservationEnv(), seed=training_seed,
+-            device=args.device, policy_version=_resolved_policy_version(args), initialize_actor=False)
++            device=args.device, policy_version=_resolved_policy_version(args), initialize_actor=False,
++            **_observation_layout_options(args))
+         infos = load_semantic_checkpoint(runner, args.checkpoint, contract=contract,
+             seed=training_seed, migration=getattr(args,"_migration_record",None))
+         runner.alg.eval_mode()
+@@
+                  "policy_version": _resolved_policy_version(args),
+                  "parameter_hashes":initial_hashes, "optimizer_updates":0,
+                  "migration":getattr(args,"_migration_record",None)}
++        if _resolved_observation_layout(args) is not None:
++            proof.update(observation_layout=_resolved_observation_layout(args),
++                         observation_dimension=len(observation), policy_contract=_resolved_policy_contract(args))
+         return action, proof, unchanged
+     return load
+ 
+@@
+     return next(role for role,mode in ROLES.items() if mode==args.mode)
+ 
+ 
+-def build_video_core(app, *, role, semantic_version):
+-    """A control is unchanged; only B/C select semantic runtime configuration."""
+-    configs = video_configuration(semantic_version)
++def build_video_core(app, *, role, semantic_version, experiment_id=None):
++    """Select the same existing A/B/C evaluation recipe; no new control/physics."""
++    configs = (video_configuration(semantic_version) if experiment_id is None else
++               video_configuration(semantic_version, experiment_id=experiment_id))
+     if role == "A":
+-        from .isaac_fsm_backend import IsaacFSMBackend
++        from .isaac_fsm_backend import IsaacFSMBackend, _load_live_dependencies
+         from .residual_direct_env import ResidualEpisodeEnv
+-        return ResidualEpisodeEnv(IsaacFSMBackend(app, audit_actuator_target_effect=True),
+-                                  collect_trace=False)
++        options = {"audit_actuator_target_effect": True}
++        if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2"):
++            from dataclasses import replace
++            from .semantic_supervisor import load_task_spec
++            from .semantic_physical_sensing import SemanticSensorReader
++            require(load_task_spec(configs["task_spec_path"]).get("physical_acceptance_version")
++                    == "all_stage_v1", "video A requires the selected common measured task spec")
++            # Exactly the current _evaluation_legacy reader recipe. Frozen A
++            # controller, mapper, reset and level calibration are unchanged.
++            options["dependencies"] = replace(_load_live_dependencies(),
++                reader_from_scene=lambda scene, adapter, backends: SemanticSensorReader.from_live_scene(
++                    scene, adapter, backends=backends))
++        return ResidualEpisodeEnv(IsaacFSMBackend(app, **options), collect_trace=False)
+     from .semantic_backend import SemanticIsaacBackend
+     from .semantic_env import SemanticEpisodeEnv
+     backend_options = {"audit_actuator_target_effect": True}
+@@
+     role=validate_video_args(args)
+     contract_options = {"expected_head": args.expected_head,
+                         "semantic_version": args.semantic_version}
++    experiment_id = getattr(args, "experiment_id", None)
++    experiment_options = {} if experiment_id is None else {"experiment_id": experiment_id}
++    contract_options.update(experiment_options)
+     contract=runtime_contract(**contract_options)
+     _preflight_checkpoint(args,contract)  # Strict contract before any native launch.
+     args.run_dir.mkdir(parents=True,exist_ok=False)
+@@
+         app=AppLauncher(headless=False,enable_cameras=False).app
+         app.update()
+         seed_training_rngs(args.seed)
+-        core = build_video_core(app, role=role, semantic_version=args.semantic_version)
++        core = build_video_core(app, role=role, semantic_version=args.semantic_version, **experiment_options)
+         source=args.run_dir/"source"
+         result=capture_semantic_video(core,role=role,seed=args.seed,
+             output_directory=source,contract=contract,
+             policy_loader=checkpoint_loader(args,contract) if role=="C" else None,
+-            semantic_version=args.semantic_version)
++            semantic_version=args.semantic_version, **experiment_options)
+         require(runtime_contract(**contract_options)==contract,
+                 "runtime changed during capture")
+         if result["success_candidate"]:
+*** Update File: scripts/run_semantic_video.ps1
+@@
+ param(
+     [ValidateSet('eval')][string]$Command = 'eval',
+     [ValidateSet('v2','v3')][string]$SemanticVersion = 'v2',
++    [ValidateSet('transfer_roles_v1','all_stage_acceptance_v1','fsm_reference_p09_stable_v2')][string]$ExperimentId,
+     [Parameter(Mandatory = $true)][ValidatePattern('^[0-9a-f]{40}$')][string]$ExpectedHead,
+     [ValidateSet('smoke','phase_suffix','full_episode')][string]$Stage = 'smoke',
+     [ValidateRange(1,100000)][int]$Decisions,
+@@
+ )
+ Set-StrictMode -Version Latest
+ $ErrorActionPreference = 'Stop'
++if (-not [string]::IsNullOrWhiteSpace($ExperimentId) -and $SemanticVersion -cne 'v3') {
++    throw 'ExperimentId requires SemanticVersion v3'
++}
+ $project = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
+ $python = 'C:\Users\kskzz\miniconda3\envs\env_isaaclab\python.exe'
+ $busy = @(Get-CimInstance Win32_Process | Where-Object {
+@@
+     if ($Mode -eq 'legacy_fsm_eval') { 'baseline_A' } elseif ($Mode -eq 'semantic_prior_eval') { 'prior_B' } elseif ($Seed -ge 3001 -and $Seed -le 3005) { 'locked_test' } else { 'validation' }
+ } }
+ $runId = [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfffffffZ') + '_g' + $ExpectedHead.Substring(0,12) + '_' + [Guid]::NewGuid().ToString('N')
+-$runDir = Join-Path $project ("runs\ppo_semantic_$SemanticVersion\video_eval\$kind\$runId")
+-$logDir = Join-Path $project ("runs\ppo_semantic_$SemanticVersion\video_eval\$kind\${runId}_launcher")
++$namespace = if ([string]::IsNullOrWhiteSpace($ExperimentId)) { "ppo_semantic_$SemanticVersion" } else { "ppo_$ExperimentId" }
++$runDir = Join-Path $project ("runs\$namespace\video_eval\$kind\$runId")
++$logDir = Join-Path $project ("runs\$namespace\video_eval\$kind\${runId}_launcher")
+ [void](New-Item -ItemType Directory -Path $logDir)
+ $lockPath = Join-Path $project 'runs\ppo_semantic_v2\.single_process.lock'
+ $lock = [IO.File]::Open($lockPath, [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+@@
+         '--expected-head',$ExpectedHead,'--stage',$Stage,'--seed',[string]$Seed,
+         '--max-decisions',[string]$MaxDecisions,'--mode',$Mode,'--device',$Device,
+         '--checkpoint-interval-updates',[string]$CheckpointIntervalUpdates,'--no-headless')
++    if (-not [string]::IsNullOrWhiteSpace($ExperimentId)) { $arguments += @('--experiment-id',$ExperimentId) }
+     if ($PSBoundParameters.ContainsKey('Decisions')) { $arguments += @('--decisions',[string]$Decisions) }
+     if (-not [string]::IsNullOrWhiteSpace($Checkpoint)) {
+         $checkpointPath = if ([IO.Path]::IsPathRooted($Checkpoint)) { $Checkpoint } else { Join-Path $project $Checkpoint }
+*** Update File: src/wlr50_clean/ppo/semantic_migration.py
+@@
+     }
+ 
+ 
++def _video_observation_contract(metadata, old, new, delta, project_root):
++    """Same372 video receipt only after the separate strict video review.
++
++    The instrumentation-only validator above stays unchanged. This branch
++    additionally permits only existing VIDEO_FILES, never MDP/config changes.
++    Legacy324 video plan shape is preserved.
++    """
++    from .semantic_policy_distribution import (
++        CONFIG_NAMES, HISTORY_POLICY, policy_contract,
++        policy_observation_layout_from_metadata, policy_version_from_metadata,
++    )
++    from .semantic_observation import load_semantic_observation_schema
++    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
++    declared = metadata.get("policy_contract") or {}
++    actor = (metadata.get("runner_config") or {}).get("actor", {})
++    candidate = (declared.get("observation_layout") is not None
++                 or declared.get("observation_dimension") == 372
++                 or actor.get("observation_layout") is not None
++                 or old.get("observation_dimension") == 372
++                 or new.get("observation_dimension") == 372)
++    if not candidate:
++        return None
++    if (policy_version_from_metadata(metadata) != HISTORY_POLICY
++            or policy_observation_layout_from_metadata(metadata) != ROLE_OBSERVATION_LAYOUT
++            or metadata.get("semantic_version") != "v3"
++            or old.get("semantic_version") != "v3" or new.get("semantic_version") != "v3"
++            or source_num_envs(metadata) != 1):
++        raise ValueError("video372 requires verified v3 N1 HISTORY role-layout metadata")
++    if set(delta) - INSTRUMENTATION_FILES - VIDEO_FILES:
++        raise ValueError("video372 cannot change task/execution/configuration runtime files")
++    canonical = policy_contract(HISTORY_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
++    selected = old.get("selected_configuration")
++    if (not isinstance(selected, Mapping) or set(selected) != CONFIG_NAMES
++            or new.get("selected_configuration") != selected):
++        raise ValueError("video372 requires identical complete six selected configuration bindings")
++    namespace = experiment_namespace("v3", old.get("experiment_id"))
++    config_namespace = (namespace if old.get("experiment_id") in (
++        "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2") else "ppo_semantic_v3")
++    records = {}
++    for name, binding in selected.items():
++        relative = f"configs/{config_namespace}/{name}"
++        if (not isinstance(binding, Mapping) or set(binding) != {"path", "sha256"}
++                or binding["path"] != relative
++                or old["files"].get(relative) != binding["sha256"]
++                or new["files"].get(relative) != binding["sha256"]):
++            raise ValueError("video372 configuration path/hash binding differs")
++        before = _version_bytes(project_root, old, relative, prefer_worktree=True)
++        target = project_root / relative
++        after = target.read_bytes()
++        if before != after or hashlib.sha256(after).hexdigest() != binding["sha256"]:
++            raise ValueError("video372 cannot change configuration or preprocessing bytes")
++        records[name] = dict(binding)
++    schema = load_semantic_observation_schema(project_root / selected["observation_schema.json"]["path"])
++    if (schema.transfer_role_features_version != ROLE_OBSERVATION_LAYOUT
++            or schema.dimension != canonical["observation_dimension"]):
++        raise ValueError("video372 schema differs from the complete verified policy layout")
++    for runtime in (old, new):
++        if (runtime.get("observation_dimension", canonical["observation_dimension"])
++                != canonical["observation_dimension"]
++                or runtime.get("action_dimension", canonical["raw_action_dimension"])
++                != canonical["raw_action_dimension"]):
++            raise ValueError("video372 declared runtime dimensions disagree")
++    return {
++        "schema": "wlr50_clean.video_same_observation_contract.v1",
++        "source_policy_contract": canonical, "target_policy_contract": canonical,
++        "observation_layout": ROLE_OBSERVATION_LAYOUT,
++        "selected_configuration": records,
++        "observation_dimension": canonical["observation_dimension"],
++        "action_dimension": canonical["raw_action_dimension"],
++        "num_envs": 1, "parameter_mapping": None,
++        "scope": "reviewed_video_only_no_control_or_MDP_change",
++        "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True,
++    }
++
++
+ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
+                          allowed_changed_files: Sequence[str], reason: str,
+                          prior_evidence: Mapping[str, Any] | None = None,
+@@
+     if not reason.strip() or len(set(declared)) != len(declared):
+         raise ValueError("migration requires a reason and unique exact changed-file names")
+     delta = sorted(path for path in set(old["files"]) | set(new["files"]) if old["files"].get(path) != new["files"].get(path))
+-    observation_contract = _instrumentation_observation_contract(
+-        metadata, old, new, delta, Path(project_root),
+-        mixed_factors=any(value is not None for value in (
+-            prior_evidence, qualification_evidence, evaluator_review, execution_evidence, video_review)))
++    observation_contract = None
++    if video_review is None:
++        # Existing instrumentation-only permission is unchanged; video has
++        # its own explicit review and receipt, never a widened allowlist.
++        observation_contract = _instrumentation_observation_contract(
++            metadata, old, new, delta, Path(project_root),
++            mixed_factors=any(value is not None for value in (
++                prior_evidence, qualification_evidence, evaluator_review, execution_evidence)))
+     video = None
+     if video_review is not None:
+         if any(value is not None for value in (
+                 prior_evidence, qualification_evidence, evaluator_review, execution_evidence)):
+             raise ValueError("video instrumentation and task/execution factors require separate reviewed boundaries")
+         video = _video_instrumentation_factor(old, new, video_review, delta, Path(project_root))
++        video_observation = _video_observation_contract(metadata, old, new, delta, Path(project_root))
++        if video_observation is not None:
++            video["observation_contract"] = video_observation
+     execution = None
+     additional = set(VIDEO_FILES) if video is not None else set()
+     if execution_evidence is not None:
+@@
+     prior = _prior_factor(Path(project_root), old, new, prior_evidence, checkpoint,
+                            qualification_transition=qualification_evidence is not None) if prior_transition else None
+     qualification = _qualification_factor(Path(project_root), old, new, qualification_evidence) if qualification_evidence is not None else None
++    layout_contract = observation_contract or (video or {}).get("observation_contract")
+     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
+     result = {"schema": SCHEMA, "reason": reason.strip(), "source_checkpoint": str(checkpoint),
+             "source_checkpoint_sha256": file_sha(checkpoint), "source_manifest_sha256": file_sha(sidecar),
+@@
+             "source_git_commit": old["source_git_commit"], "target_git_commit": new["source_git_commit"],
+             "allowed_changed_files": delta, "changed_file_hashes": {path: {"before": old["files"].get(path), "after": new["files"][path]} for path in delta},
+             "geometric_factor": geometric,
+-            "observation_dimension": (324 if observation_contract is None else observation_contract["observation_dimension"]),
+-            "action_dimension": (12 if observation_contract is None else observation_contract["action_dimension"]),
++            "observation_dimension": (324 if layout_contract is None else layout_contract["observation_dimension"]),
++            "action_dimension": (12 if layout_contract is None else layout_contract["action_dimension"]),
+             "preserve_actor_critic_optimizer_normalizer_rng_and_budget": True,
+             "discard_old_rollout_storage": True, "physics_resume": "fresh_legal_P01_reset"}
+     if observation_contract is not None:
+*** Add File: tests/unit/test_semantic_video_fsm_reference_v2.py
++"""DEFERRED 06716a88 video compatibility tests; NOT RUN.
++
++Run against the reviewed applied package after Isaac stops, not mirrored sources.
++Only the explicit CPU test imports Torch, with CUDA disabled. CPU evidence is not
++a live video or physical task-success certificate.
++"""
++from __future__ import annotations
++
++import copy
++from dataclasses import dataclass
++import json
++import os
++from pathlib import Path
++from types import SimpleNamespace as NS
++
++import pytest
++
++from wlr50_clean.ppo import semantic_cli as runtime_cli
++from wlr50_clean.ppo import semantic_video as video, semantic_video_cli as cli
++from wlr50_clean.ppo import semantic_migration as migration
++from wlr50_clean.ppo import semantic_policy_distribution as policies
++from wlr50_clean.ppo import semantic_training as training
++from wlr50_clean.ppo.semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT as LAYOUT
++from test_semantic_runtime_identity_resume372 import (
++    fixture372, refresh, changed, save_metadata, NAMES,
++)
++
++EXPERIMENTS = ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2")
++REVIEW = {"reason": "Reviewed video routing/HISTORY372 loading only; control, physics and all six configs unchanged"}
++VIDEO = "src/wlr50_clean/ppo/semantic_video.py"
++
++
++def fixture_video372(root, *, experiment_id="fsm_reference_p09_stable_v2", add_video=False):
++    source, old, new = fixture372(root)
++    if experiment_id != "fsm_reference_p09_stable_v2":
++        selected = {}
++        for name in NAMES:
++            relative = f"configs/ppo_{experiment_id}/{name}"
++            destination = root / relative
++            destination.parent.mkdir(parents=True, exist_ok=True)
++            destination.write_bytes((migration.PROJECT_ROOT / relative).read_bytes())
++            value = migration.file_sha(destination)
++            old["files"][relative] = new["files"][relative] = value
++            selected[name] = {"path": relative, "sha256": value}
++        for contract in (old, new):
++            contract.update(experiment_id=experiment_id, selected_configuration=copy.deepcopy(selected))
++    for relative in migration.VIDEO_FILES:
++        destination = root / relative
++        destination.parent.mkdir(parents=True, exist_ok=True)
++        destination.write_text("# original video fixture\n", encoding="utf-8")
++        if not add_video:
++            old["files"][relative] = migration.file_sha(destination)
++        if relative == VIDEO:
++            destination.write_text("# reviewed video fixture\n", encoding="utf-8")
++        new["files"][relative] = migration.file_sha(destination)
++    refresh(old)
++    refresh(new)
++    metadata = migration.checkpoint_metadata(source)
++    metadata["runtime_contract"] = old
++    save_metadata(source, metadata)
++    return source, old, new
++
++
++def video_plan(root, source, old, new, **kwargs):
++    return migration.build_migration_plan(source, new, allowed_changed_files=changed(old, new),
++        reason="Explicit same-MDP video compatibility boundary", video_review=REVIEW,
++        project_root=root, **kwargs)
++
++
++@pytest.mark.parametrize("experiment", EXPERIMENTS)
++@pytest.mark.parametrize("add_video", [False, True])
++def test_video372_requires_its_own_exact_factor_and_all_six_unchanged_configs(tmp_path, experiment, add_video):
++    source, old, new = fixture_video372(tmp_path, experiment_id=experiment, add_video=add_video)
++    original_bytes = source.read_bytes()
++    record = video_plan(tmp_path, source, old, new)
++    factor = record["video_instrumentation_factor"]["observation_contract"]
++    assert factor["schema"] == "wlr50_clean.video_same_observation_contract.v1"
++    assert factor["source_policy_contract"] == factor["target_policy_contract"] == policies.policy_contract(
++        policies.HISTORY_POLICY, observation_layout=LAYOUT)
++    assert factor["selected_configuration"] == old["selected_configuration"] == new["selected_configuration"]
++    assert set(factor["selected_configuration"]) == set(NAMES)
++    assert factor["parameter_mapping"] is None and factor["num_envs"] == 1
++    assert (record["observation_dimension"], record["action_dimension"]) == (372, 12)
++    assert "instrumentation_observation_contract" not in record and "execution_factor" not in record
++    assert record["preserve_actor_critic_optimizer_normalizer_rng_and_budget"] is True
++    assert record["discard_old_rollout_storage"] is True
++    path = tmp_path / "video_plan.json"
++    path.write_text(json.dumps(record), encoding="utf-8")
++    assert migration.validate_migration_plan(source, new, path, project_root=tmp_path)[
++        "video_instrumentation_factor"] == record["video_instrumentation_factor"]
++    assert source.read_bytes() == original_bytes
++
++
++def test_existing_instrumentation_only_factor_is_not_replaced_or_widened(tmp_path):
++    source, old, new = fixture372(tmp_path)
++    record = migration.build_migration_plan(source, new, allowed_changed_files=changed(old, new),
++        reason="Existing instrumentation scope", project_root=tmp_path)
++    assert "video_instrumentation_factor" not in record
++    assert record["instrumentation_observation_contract"] == migration._instrumentation_observation_contract(
++        migration.checkpoint_metadata(source), old, new, changed(old, new), tmp_path, mixed_factors=False)
++    assert not (migration.VIDEO_FILES & migration.INSTRUMENTATION_FILES)
++
++
++def test_video_delta_without_explicit_video_review_is_still_rejected(tmp_path):
++    source, old, new = fixture_video372(tmp_path)
++    with pytest.raises(ValueError, match="cannot mix"):
++        migration.build_migration_plan(source, new, allowed_changed_files=changed(old, new),
++            reason="Not video authorization", project_root=tmp_path)
++
++
++@pytest.mark.parametrize("other", ["prior_evidence", "qualification_evidence", "evaluator_review", "execution_evidence"])
++def test_video_review_cannot_mix_task_or_execution_permission(tmp_path, other):
++    source, old, new = fixture_video372(tmp_path)
++    with pytest.raises(ValueError, match="separate reviewed boundaries"):
++        video_plan(tmp_path, source, old, new, **{other: {}})
++
++
++@pytest.mark.parametrize("protected", [
++    "src/wlr50_clean/ppo/semantic_supervisor.py",
++    "src/wlr50_clean/ppo/semantic_backend.py",
++    "src/wlr50_clean/ppo/semantic_observation.py",
++    "src/wlr50_clean/ppo/semantic_reward.py",
++    *("configs/ppo_fsm_reference_p09_stable_v2/" + name for name in NAMES),
++])
++def test_video_review_cannot_change_protected_runtime_or_any_config(tmp_path, protected):
++    source, old, new = fixture_video372(tmp_path)
++    new["files"][protected] = "b" * 64
++    refresh(new)
++    with pytest.raises(ValueError, match="cannot change"):
++        video_plan(tmp_path, source, old, new)
++
++
++@pytest.mark.parametrize("fault", [
++    "missing_contract", "wrong_layout", "mixed_runner", "topology",
++    "missing_action_binding", "extra_binding", "wrong_action_path", "wrong_schema_marker",
++])
++def test_video372_never_inferred_from_width_or_incomplete_bindings(tmp_path, fault):
++    source, old, new = fixture_video372(tmp_path)
++    metadata = migration.checkpoint_metadata(source)
++    if fault == "missing_contract":
++        del metadata["policy_contract"]
++    elif fault == "wrong_layout":
++        metadata["policy_contract"]["observation_layout"] = "unverified372"
++    elif fault == "mixed_runner":
++        metadata["runner_config"]["actor"].pop("observation_layout")
++    elif fault == "topology":
++        metadata["execution_topology"]["num_envs"] = 8
++    elif fault in ("missing_action_binding", "extra_binding", "wrong_action_path"):
++        for contract in (old, new):
++            selected = contract["selected_configuration"]
++            if fault == "missing_action_binding":
++                del selected["action_schema.json"]
++            elif fault == "extra_binding":
++                selected["extra"] = {"path": "extra", "sha256": "a" * 64}
++            else:
++                selected["action_schema.json"]["path"] = "unverified/action_schema.json"
++    else:
++        relative = "configs/ppo_fsm_reference_p09_stable_v2/observation_schema.json"
++        path = tmp_path / relative
++        schema = json.loads(path.read_text())
++        schema.pop("transfer_role_features_version")
++        path.write_text(json.dumps(schema), encoding="utf-8")
++        for contract in (old, new):
++            contract["files"][relative] = migration.file_sha(path)
++            contract["selected_configuration"]["observation_schema.json"]["sha256"] = contract["files"][relative]
++    refresh(old)
++    refresh(new)
++    metadata["runtime_contract"] = old
++    save_metadata(source, metadata)
++    with pytest.raises(ValueError):
++        video_plan(tmp_path, source, old, new)
++
++
++@pytest.mark.parametrize("experiment", EXPERIMENTS)
++def test_explicit_video_routing_and_replay_bind_all_six_current_config_files(tmp_path, monkeypatch, experiment):
++    _, _, new = fixture_video372(tmp_path, experiment_id=experiment)
++    monkeypatch.setattr(runtime_cli, "PROJECT_ROOT", tmp_path)
++    configs = video.video_configuration("v3", experiment_id=experiment)
++    assert len(configs) == 6 and {path.name for path in configs.values()} == set(NAMES)
++    assert all(path.parent == tmp_path / f"configs/ppo_{experiment}" for path in configs.values())
++    source = {"semantic_version": "v3", "experiment_id": experiment, "runtime_contract": new,
++              "evaluation_configuration": {key: video.file_record(path) for key, path in configs.items()}}
++    assert video.validate_video_configuration(source) == configs
++    bad = copy.deepcopy(source)
++    del bad["evaluation_configuration"]["action_schema_path"]
++    with pytest.raises(video.SemanticVideoError, match="configuration"):
++        video.validate_video_configuration(bad)
++    bad = copy.deepcopy(source)
++    bad["runtime_contract"]["selected_configuration"].pop("action_schema.json")
++    with pytest.raises(video.SemanticVideoError, match="six"):
++        video.validate_video_configuration(bad)
++    bad = copy.deepcopy(source)
++    bad["experiment_id"] = None
++    with pytest.raises(video.SemanticVideoError, match="experiment"):
++        video.validate_video_configuration(bad)
++    # The action schema is actually byte-bound, not just named in a manifest.
++    action_path = configs["action_schema_path"]
++    action_path.write_text(action_path.read_text() + "\n ", encoding="utf-8")
++    with pytest.raises(video.SemanticVideoError, match="path/hash"):
++        video.validate_video_configuration(source)
++
++
++@pytest.mark.parametrize("experiment", EXPERIMENTS)
++def test_current_A_reader_recipe_and_identical_BC_config_routing(monkeypatch, experiment):
++    from wlr50_clean.ppo import isaac_fsm_backend as frozen, residual_direct_env
++    from wlr50_clean.ppo import semantic_backend, semantic_env, semantic_physical_sensing
++    @dataclass
++    class Dependencies:
++        reader_from_scene: object
++        frozen_controller_marker: object
++    marker = object()
++    original = Dependencies(lambda *a, **k: "legacy", marker)
++    monkeypatch.setattr(frozen, "_load_live_dependencies", lambda: original)
++    monkeypatch.setattr(frozen, "IsaacFSMBackend", lambda app, **kw: NS(options=kw))
++    monkeypatch.setattr(residual_direct_env, "ResidualEpisodeEnv", lambda backend, **kw: NS(backend=backend, options=kw))
++    monkeypatch.setattr(semantic_physical_sensing.SemanticSensorReader, "from_live_scene",
++                        lambda scene, adapter, **kw: (scene, adapter, kw))
++    baseline = cli.build_video_core(None, role="A", semantic_version="v3", experiment_id=experiment)
++    dependencies = baseline.backend.options["dependencies"]
++    assert dependencies is not original and dependencies.frozen_controller_marker is marker
++    assert dependencies.reader_from_scene(1, 2, 3) == (1, 2, {"backends": 3})
++    monkeypatch.setattr(semantic_backend, "SemanticIsaacBackend", lambda app, **kw: NS(options=kw))
++    monkeypatch.setattr(semantic_env, "SemanticEpisodeEnv", lambda backend, **kw: NS(backend=backend, options=kw))
++    baseline_options = None
++    for role in ("B", "C"):
++        core = cli.build_video_core(None, role=role, semantic_version="v3", experiment_id=experiment)
++        configs = video.video_configuration("v3", experiment_id=experiment)
++        assert core.backend.options["execution_profile"] == configs["execution_profile"]
++        assert core.backend.options["task_spec_path"] == configs["task_spec_path"]
++        assert core.options["action_config"] == configs["execution_profile"]
++        assert core.options["observation_schema_path"] == configs["observation_schema_path"]
++        assert core.options["reward_config_path"] == configs["reward_config_path"]
++        options = (core.backend.options, core.options)
++        assert baseline_options is None or baseline_options == options
++        baseline_options = options
++
++
++def test_default_configuration_shape_and_physical_context_limits_remain_unchanged():
++    for version in ("v2", "v3"):
++        configs = video.video_configuration(version)
++        assert len(configs) == 5 and "action_schema_path" not in configs
++    assert (video.PRE_TICKS, video.POST_TICKS, video.MAX_FRAMES) == (64, 184, 3000)
++    assert video.frames_for_episode(23751) == 3000 and video.frames_for_episode(23752) == 3001
++
++
++@pytest.mark.parametrize("terminal,expected", [
++    ({"success": True, "termination_reason": None}, "SUCCESS"),
++    ({"success": False, "termination_reason": "TASK_TIMEOUT"}, "TASK_TIMEOUT"),
++])
++def test_video_context_cannot_shorten_the_real_200s_task_endpoint(monkeypatch, terminal, expected):
++    captured = []
++    monkeypatch.setattr(video, "capture_task_interval_frame", lambda recorder, backend, tick: captured.append(tick))
++    physical = NS(evaluator=NS(snapshot={"success": False, "termination_reason": None}),
++                  observe=lambda *args: None)
++    observer = video.EndpointObserver(physical, object(), object(), task_window=True)
++    # Old video aborted here solely to reserve 64+184 context ticks. The common
++    # task is still live; packaging cannot truncate it or relabel its outcome.
++    observer(None, NS(physics_tick=23752), None)
++    assert observer.reason is None and captured == [23752]
++    physical.evaluator.snapshot = terminal
++    with pytest.raises(video._PhysicalEndpoint):
++        observer(None, NS(physics_tick=24000), None)
++    assert observer.reason == expected and observer.last_frame.physics_tick == 24000
++
++
++@pytest.mark.parametrize("fault", [
++    {"from_phase": "P06"}, {"num_envs": 8}, {"new_mdp_warm_start": True},
++    {"teacher_offset_decisions": 1}, {"max_decisions": 128}, {"seed": 1001},
++])
++def test_video_entry_remains_natural_single_P01_episode_no_prefix_or_warm_start(monkeypatch, fault):
++    monkeypatch.setattr(cli, "validate_request", lambda args: None)  # Isolate existing video-only checks.
++    args = NS(policy_distribution_migration=False, command="eval", seed=4001, headless=False,
++        max_decisions=3000, decisions=None, num_envs=1, from_phase="P01",
++        teacher_offset_decisions=0, new_mdp_warm_start=False, mode="semantic_residual_eval")
++    assert cli.validate_video_args(args) == "C"
++    vars(args).update(fault)
++    with pytest.raises(video.SemanticVideoError):
++        cli.validate_video_args(args)
++
++
++def test_real_CPU_saved_HISTORY372_video_reload_retains_Adam_rng_budget_and_deterministic_kernel(tmp_path, monkeypatch):
++    assert os.environ.get("CUDA_VISIBLE_DEVICES") == ""
++    import torch
++    from tensordict import TensorDict
++    from test_semantic_v3_continuation import Core324
++
++    class Core372(Core324):
++        def reset(self, **kwargs):
++            return super().reset(**kwargs) + (0.,) * 48
++        def step(self, raw):
++            result = super().step(raw)
++            values = list(result.observation) + [0.] * 48
++            values[195:207] = [max(-20., min(20., float(x))) for x in raw]
++            result.observation = tuple(values)
++            return result
++
++    old_threads = torch.get_num_threads()
++    torch.set_num_threads(1)
++    try:
++        _, old, new = fixture_video372(tmp_path)
++        training.seed_training_rngs(1001)
++        env = training.SemanticRslAdapter(Core372(), seed=1001, device="cpu")
++        env.cfg["semantic_version"] = "v3"
++        runner, _ = training.construct_semantic_runner(env, seed=1001, device="cpu",
++            policy_version=policies.HISTORY_POLICY, observation_layout=LAYOUT, initialize_actor=False)
++        trained = training.train_semantic(runner, env, run_dir=tmp_path / "cpu_source_run",
++            output_root=tmp_path / "cpu_source_outputs", stage="full_episode",
++            decisions=128, contract=old, seed=1001)
++        assert runner.alg.optimizer.state_dict()["state"]
++        source = Path(trained["checkpoints"][-1]["checkpoint"])
++        metadata = migration.checkpoint_metadata(source)
++        path = tmp_path / "video_plan.json"
++        path.write_text(json.dumps(video_plan(tmp_path, source, old, new)), encoding="utf-8")
++        real_validate = migration.validate_migration_plan
++        monkeypatch.setattr(migration, "validate_migration_plan", lambda cp, contract, p:
++            real_validate(cp, contract, p, project_root=tmp_path))
++        verified = migration.validate_migration_plan(source, new, path)
++        args = NS(checkpoint=source, resume_migration=path, new_mdp_warm_start=False,
++            policy_distribution_migration=False, target_policy_version=None,
++            seed=4001, device="cpu", semantic_version="v3", num_envs=1, command="eval",
++            experiment_id="fsm_reference_p09_stable_v2")
++        runtime_cli._preflight_checkpoint(args, new)
++        assert args._migration_record == verified and args._observation_layout == LAYOUT
++        constructed, loaded_infos = [], []
++        real_construct, real_load = cli.construct_semantic_runner, cli.load_semantic_checkpoint
++        def construct(*a, **kw):
++            result = real_construct(*a, **kw)
++            constructed.append(result[0])
++            return result
++        def load(*a, **kw):
++            result = real_load(*a, **kw)
++            loaded_infos.append(result)
++            return result
++        monkeypatch.setattr(cli, "construct_semantic_runner", construct)
++        monkeypatch.setattr(cli, "load_semantic_checkpoint", load)
++        action, proof, unchanged = cli.checkpoint_loader(args, new)((0.,) * 372)
++        target = constructed[0]
++        assert proof["optimizer_updates"] == 0 and proof["observation_dimension"] == 372
++        assert proof["policy_contract"] == metadata["policy_contract"]
++        assert target.alg.storage.step == 0 and target.alg.transition.actions is None
++        for part in ("actor", "critic"):
++            expected, actual = getattr(runner.alg, part).state_dict(), getattr(target.alg, part).state_dict()
++            assert expected.keys() == actual.keys()
++            assert all(torch.equal(expected[key], actual[key]) for key in expected)
++        assert training.state_hash(target.alg.optimizer.state_dict()) == metadata["optimizer_state_sha256"]
++        assert training.state_hash(training._normalizers(target)) == metadata["normalizer_state_sha256"]
++        assert training.capture_training_rng_state(seed=1001) == metadata["training_rng_state"]
++        assert training.optimizer_learning_rate(target) == metadata["optimizer_learning_rate"]
++        for key in ("global_policy_decisions", "ppo_updates", "optimizer_steps", "stage_requested_decisions"):
++            assert loaded_infos[0][key] == metadata[key]
++        for history in (0., .7):
++            values = [0.] * 372
++            values[195:207] = [history] * 12
++            tensor = torch.tensor([values], dtype=torch.float32)
++            inputs = TensorDict({"policy": tensor, "critic": tensor.clone()}, batch_size=[1])
++            with torch.inference_mode():
++                expected = tuple(runner.alg.actor(inputs, stochastic_output=False)[0].tolist())
++            assert action(values, 1) == expected
++            unchanged()
++        target.alg.storage.step = 1
++        with pytest.raises(RuntimeError, match="partial old rollout"):
++            real_load(target, source, contract=new, seed=1001, migration=verified)
++        target.alg.storage.step = 0
++        critic = target.alg.storage.observations["critic"]
++        target.alg.storage.observations["critic"] = critic[..., :-1]
++        with pytest.raises(RuntimeError, match="policy/critic/action storage"):
++            real_load(target, source, contract=new, seed=1001, migration=verified)
++        target.alg.storage.observations["critic"] = critic
++    finally:
++        torch.set_num_threads(old_threads)
++
++
++@pytest.mark.parametrize("ticks", [1, 7, 8, 9, 17, 23752, *range(23993, 24001)])
++def test_current_task_window_count_and_partial_duration_are_exact(ticks):
++    receipt = video.task_interval_receipt(ticks)
++    expected = (ticks + 7) // 8
++    assert receipt["frame_count"] == expected <= 3000
++    assert receipt["encoded_duration_s"] == expected / 15 <= 200
++    assert receipt["last_frame_episode_tick"] == ticks
++    assert 1 <= receipt["final_interval_physics_ticks"] <= 8
++    assert receipt["encoded_duration_s"] - receipt["physical_duration_s"] == pytest.approx(
++        receipt["terminal_frame_display_quantization_s"])
++    assert 0 <= receipt["terminal_frame_display_quantization_s"] <= 7 / 120
++    assert receipt["extra_physics_ticks"] == receipt["extra_pre_frames"] == receipt["extra_post_frames"] == 0
++    assert receipt["tick0_observation_retained"] and not receipt["tick0_encoded_as_extra_frame"]
++
++
++@pytest.mark.parametrize("ticks", [0, -1, True, 1.5, 24001])
++def test_current_task_window_never_accepts_false_or_over_horizon_ticks(ticks):
++    with pytest.raises(video.SemanticVideoError):
++        video.task_interval_receipt(ticks)
++
++
++def interval_fixture(ticks):
++    from wlr50_clean.evaluation.video_timeline import DecodedVideoFrame, LedgerFrame
++    receipt = video.task_interval_receipt(ticks)
++    source = {"experiment_id": video.TASK_WINDOW_EXPERIMENT, "semantic_version": "v3",
++              "episode_physics_ticks": ticks, "task_interval_window": receipt}
++    decoded = [DecodedVideoFrame(i, i / 15, f"{i:08X}", i == 0) for i in range(receipt["frame_count"])]
++    ledger = [LedgerFrame(i, min(8 * (i + 1), ticks), min(8 * (i + 1), ticks) / 120)
++              for i in range(receipt["frame_count"])]
++    return source, decoded, ledger
++
++
++@pytest.mark.parametrize("ticks", [17, 24, 23752, *range(23993, 24001)])
++def test_actual_partial_endpoint_and_all_native_frames_bind_to_existing_publication(ticks):
++    from wlr50_clean.evaluation.video_timeline import verify_native_rate_output
++    source, decoded, ledger = interval_fixture(ticks)
++    window = video.task_interval_action_window(source, decoded, ledger)
++    assert window.is_full_source and window.expected_frame_count == (ticks + 7) // 8
++    assert window.output_duration_s <= 200 and window.source_last_sim_time_s == ticks / 120
++    assert window.semantic_start_sim_s == 0 and window.semantic_end_sim_s == ticks / 120
++    assert ledger[0].sim_step == 8 and ledger[-1].sim_step == ticks
++    assert window.maximum_ledger_to_pts_offset_deviation_s == pytest.approx(
++        source["task_interval_window"]["terminal_frame_display_quantization_s"])
++    identity = verify_native_rate_output(decoded, window, require_decoded_frame_identity=True,
++                                        require_exact_pts_delta_identity=True)
++    assert identity["decoded_frames_unchanged"] and identity["native_frame_cadence_unchanged"]
++
++
++@pytest.mark.parametrize("fault", ["tick0_extra", "false_final_tick", "false_final_time",
++                                  "retimed", "wrong_manifest", "lost_failure_tail"])
++def test_task_interval_adapter_rejects_synthetic_clock_or_missing_endpoint(fault):
++    from dataclasses import replace
++    source, decoded, ledger = interval_fixture(23997)
++    if fault == "tick0_extra":
++        ledger.insert(0, replace(ledger[0], sim_step=0, sim_time_s=0))
++    elif fault == "false_final_tick":
++        ledger[-1] = replace(ledger[-1], sim_step=24000)
++    elif fault == "false_final_time":
++        ledger[-1] = replace(ledger[-1], sim_time_s=200)
++    elif fault == "retimed":
++        decoded[2] = replace(decoded[2], pts_s=decoded[2].pts_s + .01)
++    elif fault == "wrong_manifest":
++        source["task_interval_window"]["final_interval_physics_ticks"] = 8
++    else:
++        ledger.pop()
++        decoded.pop()
++    with pytest.raises(video.SemanticVideoError):
++        video.task_interval_action_window(source, decoded, ledger)
++
++
++def _capture_tick23_fixture(tmp_path, monkeypatch, *, success,
++                            done_only=False, terminal_encoder_failure=False):
++    # Entirely fake physics/encoder fixture: verifies wiring, not live success.
++    events, frames, raw_ticks = [], [], []
++    backend = NS(_episode_tick=0, _video_post_terminal_tick_count=0,
++        _controller=NS(physics_tick=0), render_video_frame=lambda: events.append("render"))
++    core = NS(backend=backend, decision_count=0, done=False, observation=(0.,) * 372)
++    def reset(*, seed):
++        events.append(("reset", seed))
++        core.frame = NS(physics_tick=0, state_id="P01", info={"reset_count": 1,
++            "reset_options": {}, "training_phase_snapshot": None,
++            "locked_scene_snapshot": {"camera": video.CAMERA}})
++    def step(action):
++        assert len(action) == 12
++        for tick in range(backend._episode_tick + 1, min(backend._episode_tick + 8, 23) + 1):
++            before = core.frame
++            backend._episode_tick = tick
++            core.frame = NS(physics_tick=tick, state_id="P13" if tick == 23 else "P01", info={})
++            events.append(("physics", tick))
++            core.tick_observer(before, core.frame, None)
++            if done_only and tick == 23:
++                core.done = True
++                core.frame.info["termination_reason"] = "LOCAL_TASK_TIMEOUT"
++        core.decision_count += 1
++        return NS(observation=core.observation, info=dict(core.frame.info))
++    core.reset, core.step = reset, step
++    class Physical:
++        def __init__(self, root, **kwargs):
++            self.evaluator = NS(snapshot={"success": False, "termination_reason": None})
++        def start(self, frame):
++            raw_ticks.append(frame.physics_tick)
++        def observe(self, before, after, projection):
++            raw_ticks.append(after.physics_tick)
++            if after.physics_tick == 23 and not done_only:
++                self.evaluator.snapshot = {"success": success,
++                    "termination_reason": None if success else "TASK_FAILURE_BODY_CONTACT"}
++        def summary(self):
++            return {"task_success": self.evaluator.snapshot["success"],
++                    "termination_reason": self.evaluator.snapshot["termination_reason"],
++                    "observed_through_tick": raw_ticks[-1]}
++        def close(self):
++            pass
++    class Recorder:
++        def __init__(self, root):
++            self.root = root
++        def start(self):
++            events.append(("record_start", backend._episode_tick))
++            return True
++        def before_render(self, *, sim_step, sim_time_s):
++            assert sim_step == backend._episode_tick
++            frames.append((sim_step, sim_time_s))
++        def after_render(self):
++            pass
++        def require_healthy(self):
++            if terminal_encoder_failure and backend._episode_tick == 23:
++                events.append(("encoder_failure", 23))
++                raise RuntimeError("terminal encoder failure")
++        def finalize(self):
++            events.append(("finalize", backend._episode_tick))
++            return {"valid": not terminal_encoder_failure}
++    monkeypatch.setattr(video, "PhysicalEvaluationRecorder", Physical)
++    monkeypatch.setattr(video, "_validate_video_configuration_binding", lambda *a, **k: None)
++    monkeypatch.setattr(video, "common_post_success_tick",
++                        lambda *a, **k: pytest.fail("current task window added post-success physics"))
++    monkeypatch.setattr(video, "reset_with_existing_settle_tail",
++                        lambda *a, **k: pytest.fail("current window encoded reset context"))
++    result = video.capture_semantic_video(core, role="B", seed=4001,
++        output_directory=tmp_path / "source", contract={"semantic_version": "v3",
++        "experiment_id": video.TASK_WINDOW_EXPERIMENT}, recorder_factory=Recorder,
++        semantic_version="v3", experiment_id=video.TASK_WINDOW_EXPERIMENT)
++    assert events.count(("reset", 4001)) == 1 and ("record_start", 0) in events
++    assert [e[1] for e in events if isinstance(e, tuple) and e[0] == "physics"] == list(range(1, 24))
++    assert raw_ticks == list(range(24))  # Includes initial tick0 evidence.
++    assert frames == [(8, 8 / 120), (16, 16 / 120), (23, 23 / 120)]
++    assert result["pre_action_ticks"] == result["requested_post_success_ticks"] == 0
++    assert result["performed_post_success_ticks"] == result["extra_pre_action_physics_ticks"] == 0
++    assert result["task_interval_window"] == video.task_interval_receipt(23)
++    assert (tmp_path / "source" / "physical_video_roll_ticks.jsonl").read_text() == ""
++    return NS(result=result, events=events, core=core, source=tmp_path / "source")
++
++
++@pytest.mark.parametrize("success", [True, False])
++def test_current_capture_keeps_real_P01_to_partial_terminal_without_PRE_or_POST(tmp_path, monkeypatch, success):
++    capture = _capture_tick23_fixture(tmp_path, monkeypatch, success=success)
++    result = capture.result
++    assert result["physical_task_success"] is success and result["success_candidate"] is success
++    assert result["diagnostic_only"] is not success
++    if not success:
++        assert "did not meet common physical task" in result["source_acceptance_error"]
++        assert "NOT SUCCESS" in video.comparison_title(result)
++
++
++def test_done_only_local_timeout_retains_partial_terminal_and_is_never_success(tmp_path, monkeypatch):
++    capture = _capture_tick23_fixture(tmp_path, monkeypatch, success=False, done_only=True)
++    result = capture.result
++    assert capture.core.done and capture.core.frame.info["termination_reason"] == "LOCAL_TASK_TIMEOUT"
++    # The evaluator has NO terminal flag; the capture's post-loop fallback must
++    # still preserve the real tick23 frame. The helper checks frames8/16/23 and
++    # raw observations0..23, with no PRE/POST physics.
++    assert result["physical_episode"] == {
++        "task_success": False, "termination_reason": None, "observed_through_tick": 23}
++    assert result["physical_task_success"] is False and result["success_candidate"] is False
++    assert result["diagnostic_only"] is True and "NOT SUCCESS" in video.comparison_title(result)
++    decisions = [json.loads(line) for line in
++                 (capture.source / "video_policy_decisions.jsonl").read_text().splitlines()]
++    assert [row["end_tick"] for row in decisions] == [8, 16, 23]
++    assert decisions[-1]["environment_step_returned"] is True
++    assert decisions[-1]["physics_ticks"] == 7
++    assert decisions[-1]["step_info"]["termination_reason"] == "LOCAL_TASK_TIMEOUT"
++    assert "did not meet common physical task" in result["source_acceptance_error"]
++    monkeypatch.setattr(video.subprocess, "run",
++                        lambda *a, **k: pytest.fail("diagnostic cannot launch publication"))
++    with pytest.raises(video.SemanticVideoError, match="failed diagnostic"):
++        video.publish_success_source(capture.source, tmp_path / "semantic_B_success.mp4")
++
++
++def test_terminal_encoder_failure_preserves_physical_success_but_blocks_publication(tmp_path, monkeypatch):
++    capture = _capture_tick23_fixture(tmp_path, monkeypatch, success=True,
++                                      terminal_encoder_failure=True)
++    result = capture.result
++    assert ("encoder_failure", 23) in capture.events and ("finalize", 23) in capture.events
++    # require_healthy throws during the actual terminal callback, before the
++    # normal post-loop summary. The finally path must retain the evaluator's
++    # measured success through23, without converting an invalid video to success.
++    assert result["physical_episode"] == {
++        "task_success": True, "termination_reason": None, "observed_through_tick": 23}
++    assert result["physical_task_success"] is True and result["success_candidate"] is False
++    assert result["diagnostic_only"] is True and "NOT SUCCESS" in video.comparison_title(result)
++    assert "terminal encoder failure" in result["source_acceptance_error"]
++    monkeypatch.setattr(video.subprocess, "run",
++                        lambda *a, **k: pytest.fail("invalid encoder output cannot publish"))
++    with pytest.raises(video.SemanticVideoError, match="failed diagnostic"):
++        video.publish_success_source(capture.source, tmp_path / "semantic_B_success.mp4")
++
++
++def test_old_experiment_window_and_current_comparison_count_remain_distinct():
++    old = {"episode_physics_ticks": 23752, "experiment_id": "all_stage_acceptance_v1"}
++    current = {"episode_physics_ticks": 24000, "experiment_id": video.TASK_WINDOW_EXPERIMENT,
++               "role": "C", "success_candidate": True, "diagnostic_only": False,
++               "physical_episode": {"task_success": True}}
++    assert video.source_frame_count(old) == 3001  # Historical packaging shape preserved.
++    assert video.source_frame_count(current) == 3000
++    baseline = dict(current, role="A", episode_physics_ticks=23997)
++    _, count = video.comparison_filter(baseline, current)
++    assert count == 3000
+*** End Patch

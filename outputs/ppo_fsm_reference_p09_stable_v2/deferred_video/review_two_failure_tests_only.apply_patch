@@ -1,0 +1,212 @@
+*** Begin Patch
+*** Update File: tests/unit/test_semantic_video_fsm_reference_v2_deferred.py
+@@
+-@pytest.mark.parametrize("success", [True, False])
+-def test_current_capture_keeps_real_P01_to_partial_terminal_without_PRE_or_POST(tmp_path, monkeypatch, success):
+-    # Entirely fake physics/encoder fixture: verifies wiring, not live success.
+-    events, frames, raw_ticks = [], [], []
+-    backend = NS(_episode_tick=0, _video_post_terminal_tick_count=0,
+-        _controller=NS(physics_tick=0), render_video_frame=lambda: events.append("render"))
+-    core = NS(backend=backend, decision_count=0, done=False, observation=(0.,) * 372)
+-    def reset(*, seed):
+-        events.append(("reset", seed))
+-        core.frame = NS(physics_tick=0, state_id="P01", info={"reset_count": 1,
+-            "reset_options": {}, "training_phase_snapshot": None,
+-            "locked_scene_snapshot": {"camera": video.CAMERA}})
+-    def step(action):
+-        assert len(action) == 12
+-        for tick in range(backend._episode_tick + 1, min(backend._episode_tick + 8, 23) + 1):
+-            before = core.frame
+-            backend._episode_tick = tick
+-            core.frame = NS(physics_tick=tick, state_id="P13" if tick == 23 else "P01", info={})
+-            events.append(("physics", tick))
+-            core.tick_observer(before, core.frame, None)
+-        core.decision_count += 1
+-        return NS(observation=core.observation, info={})
+-    core.reset, core.step = reset, step
+-    class Physical:
+-        def __init__(self, root, **kwargs):
+-            self.evaluator = NS(snapshot={"success": False, "termination_reason": None})
+-        def start(self, frame):
+-            raw_ticks.append(frame.physics_tick)
+-        def observe(self, before, after, projection):
+-            raw_ticks.append(after.physics_tick)
+-            if after.physics_tick == 23:
+-                self.evaluator.snapshot = {"success": success,
+-                    "termination_reason": None if success else "TASK_FAILURE_BODY_CONTACT"}
+-        def summary(self):
+-            return {"task_success": self.evaluator.snapshot["success"]}
+-        def close(self):
+-            pass
+-    class Recorder:
+-        def __init__(self, root):
+-            self.root = root
+-        def start(self):
+-            events.append(("record_start", backend._episode_tick))
+-            return True
+-        def before_render(self, *, sim_step, sim_time_s):
+-            assert sim_step == backend._episode_tick
+-            frames.append((sim_step, sim_time_s))
+-        def after_render(self):
+-            pass
+-        def require_healthy(self):
+-            pass
+-        def finalize(self):
+-            return {"valid": True}
+-    monkeypatch.setattr(video, "PhysicalEvaluationRecorder", Physical)
+-    monkeypatch.setattr(video, "_validate_video_configuration_binding", lambda *a, **k: None)
+-    monkeypatch.setattr(video, "common_post_success_tick",
+-                        lambda *a, **k: pytest.fail("current task window added post-success physics"))
+-    monkeypatch.setattr(video, "reset_with_existing_settle_tail",
+-                        lambda *a, **k: pytest.fail("current window encoded reset context"))
+-    result = video.capture_semantic_video(core, role="B", seed=4001,
+-        output_directory=tmp_path / "source", contract={"semantic_version": "v3",
+-        "experiment_id": video.TASK_WINDOW_EXPERIMENT}, recorder_factory=Recorder,
+-        semantic_version="v3", experiment_id=video.TASK_WINDOW_EXPERIMENT)
+-    assert events.count(("reset", 4001)) == 1 and ("record_start", 0) in events
+-    assert [e[1] for e in events if isinstance(e, tuple) and e[0] == "physics"] == list(range(1, 24))
+-    assert raw_ticks == list(range(24))  # Includes initial tick0 evidence.
+-    assert frames == [(8, 8 / 120), (16, 16 / 120), (23, 23 / 120)]
+-    assert result["pre_action_ticks"] == result["requested_post_success_ticks"] == 0
+-    assert result["performed_post_success_ticks"] == result["extra_pre_action_physics_ticks"] == 0
+-    assert result["task_interval_window"] == video.task_interval_receipt(23)
+-    assert result["physical_task_success"] is success and result["success_candidate"] is success
+-    assert result["diagnostic_only"] is not success
+-    assert (tmp_path / "source" / "physical_video_roll_ticks.jsonl").read_text() == ""
+-    if not success:
+-        assert "did not meet common physical task" in result["source_acceptance_error"]
+-        assert "NOT SUCCESS" in video.comparison_title(result)
++def _capture_tick23_fixture(tmp_path, monkeypatch, *, success,
++                            done_only=False, terminal_encoder_failure=False):
++    # Entirely fake physics/encoder fixture: verifies wiring, not live success.
++    events, frames, raw_ticks = [], [], []
++    backend = NS(_episode_tick=0, _video_post_terminal_tick_count=0,
++        _controller=NS(physics_tick=0), render_video_frame=lambda: events.append("render"))
++    core = NS(backend=backend, decision_count=0, done=False, observation=(0.,) * 372)
++    def reset(*, seed):
++        events.append(("reset", seed))
++        core.frame = NS(physics_tick=0, state_id="P01", info={"reset_count": 1,
++            "reset_options": {}, "training_phase_snapshot": None,
++            "locked_scene_snapshot": {"camera": video.CAMERA}})
++    def step(action):
++        assert len(action) == 12
++        for tick in range(backend._episode_tick + 1, min(backend._episode_tick + 8, 23) + 1):
++            before = core.frame
++            backend._episode_tick = tick
++            core.frame = NS(physics_tick=tick, state_id="P13" if tick == 23 else "P01", info={})
++            events.append(("physics", tick))
++            core.tick_observer(before, core.frame, None)
++            if done_only and tick == 23:
++                core.done = True
++                core.frame.info["termination_reason"] = "LOCAL_TASK_TIMEOUT"
++        core.decision_count += 1
++        return NS(observation=core.observation, info=dict(core.frame.info))
++    core.reset, core.step = reset, step
++    class Physical:
++        def __init__(self, root, **kwargs):
++            self.evaluator = NS(snapshot={"success": False, "termination_reason": None})
++        def start(self, frame):
++            raw_ticks.append(frame.physics_tick)
++        def observe(self, before, after, projection):
++            raw_ticks.append(after.physics_tick)
++            if after.physics_tick == 23 and not done_only:
++                self.evaluator.snapshot = {"success": success,
++                    "termination_reason": None if success else "TASK_FAILURE_BODY_CONTACT"}
++        def summary(self):
++            return {"task_success": self.evaluator.snapshot["success"],
++                    "termination_reason": self.evaluator.snapshot["termination_reason"],
++                    "observed_through_tick": raw_ticks[-1]}
++        def close(self):
++            pass
++    class Recorder:
++        def __init__(self, root):
++            self.root = root
++        def start(self):
++            events.append(("record_start", backend._episode_tick))
++            return True
++        def before_render(self, *, sim_step, sim_time_s):
++            assert sim_step == backend._episode_tick
++            frames.append((sim_step, sim_time_s))
++        def after_render(self):
++            pass
++        def require_healthy(self):
++            if terminal_encoder_failure and backend._episode_tick == 23:
++                events.append(("encoder_failure", 23))
++                raise RuntimeError("terminal encoder failure")
++        def finalize(self):
++            events.append(("finalize", backend._episode_tick))
++            return {"valid": not terminal_encoder_failure}
++    monkeypatch.setattr(video, "PhysicalEvaluationRecorder", Physical)
++    monkeypatch.setattr(video, "_validate_video_configuration_binding", lambda *a, **k: None)
++    monkeypatch.setattr(video, "common_post_success_tick",
++                        lambda *a, **k: pytest.fail("current task window added post-success physics"))
++    monkeypatch.setattr(video, "reset_with_existing_settle_tail",
++                        lambda *a, **k: pytest.fail("current window encoded reset context"))
++    result = video.capture_semantic_video(core, role="B", seed=4001,
++        output_directory=tmp_path / "source", contract={"semantic_version": "v3",
++        "experiment_id": video.TASK_WINDOW_EXPERIMENT}, recorder_factory=Recorder,
++        semantic_version="v3", experiment_id=video.TASK_WINDOW_EXPERIMENT)
++    assert events.count(("reset", 4001)) == 1 and ("record_start", 0) in events
++    assert [e[1] for e in events if isinstance(e, tuple) and e[0] == "physics"] == list(range(1, 24))
++    assert raw_ticks == list(range(24))  # Includes initial tick0 evidence.
++    assert frames == [(8, 8 / 120), (16, 16 / 120), (23, 23 / 120)]
++    assert result["pre_action_ticks"] == result["requested_post_success_ticks"] == 0
++    assert result["performed_post_success_ticks"] == result["extra_pre_action_physics_ticks"] == 0
++    assert result["task_interval_window"] == video.task_interval_receipt(23)
++    assert (tmp_path / "source" / "physical_video_roll_ticks.jsonl").read_text() == ""
++    return NS(result=result, events=events, core=core, source=tmp_path / "source")
++
++
++@pytest.mark.parametrize("success", [True, False])
++def test_current_capture_keeps_real_P01_to_partial_terminal_without_PRE_or_POST(tmp_path, monkeypatch, success):
++    capture = _capture_tick23_fixture(tmp_path, monkeypatch, success=success)
++    result = capture.result
++    assert result["physical_task_success"] is success and result["success_candidate"] is success
++    assert result["diagnostic_only"] is not success
++    if not success:
++        assert "did not meet common physical task" in result["source_acceptance_error"]
++        assert "NOT SUCCESS" in video.comparison_title(result)
++
++
++def test_done_only_local_timeout_retains_partial_terminal_and_is_never_success(tmp_path, monkeypatch):
++    capture = _capture_tick23_fixture(tmp_path, monkeypatch, success=False, done_only=True)
++    result = capture.result
++    assert capture.core.done and capture.core.frame.info["termination_reason"] == "LOCAL_TASK_TIMEOUT"
++    # The evaluator has NO terminal flag; the capture's post-loop fallback must
++    # still preserve the real tick23 frame. The helper checks frames8/16/23 and
++    # raw observations0..23, with no PRE/POST physics.
++    assert result["physical_episode"] == {
++        "task_success": False, "termination_reason": None, "observed_through_tick": 23}
++    assert result["physical_task_success"] is False and result["success_candidate"] is False
++    assert result["diagnostic_only"] is True and "NOT SUCCESS" in video.comparison_title(result)
++    decisions = [json.loads(line) for line in
++                 (capture.source / "video_policy_decisions.jsonl").read_text().splitlines()]
++    assert [row["end_tick"] for row in decisions] == [8, 16, 23]
++    assert decisions[-1]["environment_step_returned"] is True
++    assert decisions[-1]["physics_ticks"] == 7
++    assert decisions[-1]["step_info"]["termination_reason"] == "LOCAL_TASK_TIMEOUT"
++    assert "did not meet common physical task" in result["source_acceptance_error"]
++    monkeypatch.setattr(video.subprocess, "run",
++                        lambda *a, **k: pytest.fail("diagnostic cannot launch publication"))
++    with pytest.raises(video.SemanticVideoError, match="failed diagnostic"):
++        video.publish_success_source(capture.source, tmp_path / "semantic_B_success.mp4")
++
++
++def test_terminal_encoder_failure_preserves_physical_success_but_blocks_publication(tmp_path, monkeypatch):
++    capture = _capture_tick23_fixture(tmp_path, monkeypatch, success=True,
++                                      terminal_encoder_failure=True)
++    result = capture.result
++    assert ("encoder_failure", 23) in capture.events and ("finalize", 23) in capture.events
++    # require_healthy throws during the actual terminal callback, before the
++    # normal post-loop summary. The finally path must retain the evaluator's
++    # measured success through23, without converting an invalid video to success.
++    assert result["physical_episode"] == {
++        "task_success": True, "termination_reason": None, "observed_through_tick": 23}
++    assert result["physical_task_success"] is True and result["success_candidate"] is False
++    assert result["diagnostic_only"] is True and "NOT SUCCESS" in video.comparison_title(result)
++    assert "terminal encoder failure" in result["source_acceptance_error"]
++    monkeypatch.setattr(video.subprocess, "run",
++                        lambda *a, **k: pytest.fail("invalid encoder output cannot publish"))
++    with pytest.raises(video.SemanticVideoError, match="failed diagnostic"):
++        video.publish_success_source(capture.source, tmp_path / "semantic_B_success.mp4")
+*** End Patch

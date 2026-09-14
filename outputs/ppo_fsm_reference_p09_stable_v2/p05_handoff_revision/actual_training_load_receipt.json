@@ -1,0 +1,238 @@
+{
+  "UTC": "2026-09-10T16:32:54.7611111Z",
+  "identity": {
+    "boundary": "training_after_actual_reset_and_checkpoint_load",
+    "recorded_at_utc": "2026-09-10T12:31:41.29976-04:00",
+    "python_executable": "C:\\Users\\kskzz\\miniconda3\\envs\\env_isaaclab\\python.exe",
+    "cwd": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1",
+    "process_id": 17080,
+    "state_id": "P01",
+    "physics_tick": 0,
+    "prefix_mode": null,
+    "source_git_commit": "d4e46006b382093b960f2c428081d8a1c595bb6a",
+    "runtime_content_sha256": "ecee8d3abba1981b95d462a70c9ea39deb3e949878caea9d6589c95cdc043458",
+    "control_calls_performed_by_logger": 0,
+    "new_imports_performed_by_logger": 0
+  },
+  "warm_start": {
+    "schema": "wlr50_clean.semantic_v3_new_mdp_warm_start.v1",
+    "exact_mdp_resume": false,
+    "source_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000152192.pt",
+    "source_checkpoint_sha256": "979514bfae6aaa92f8387c63747adccde51862678f285c2f1fadcee307a2f021",
+    "source_manifest_sha256": "6f590ff80cacfd5e19ace72eb738e225300bca986f36251322f261254af49398",
+    "source_global_policy_decisions": 152192,
+    "source_stage_requested_decisions": {
+      "full_episode": 73088,
+      "phase_suffix": 68992,
+      "smoke": 0
+    },
+    "target_stage_requested_decisions": {
+      "full_episode": 73088,
+      "phase_suffix": 68992,
+      "smoke": 0
+    },
+    "new_mdp_origin_global_policy_decisions": 10112,
+    "network": {
+      "actor": "preserve_all_parameters_and_buffers_including_learned_std",
+      "critic": "preserve_all_parameters_and_buffers",
+      "normalizers": "identity_RSL_state_preserved; identical_complete372_schema_bytes",
+      "observation_dimension": 372,
+      "raw_action_dimension": 12,
+      "source_observation_dimension": 372
+    },
+    "optimizer": {
+      "initial_learning_rate": 0.00001,
+      "kind": "Adam",
+      "learning_rate_policy": "preserve_verified_source_effective_learning_rate",
+      "preserve_source_group_options": true,
+      "reason": "explicit same372 semantic/authority boundary; verify source Adam then reset moments",
+      "state": "reset_all_moments"
+    },
+    "old_rollout_buffer_inherited": false,
+    "physical_state_inherited": false,
+    "observation_same_layout_transition": {
+      "action_ranges_changed": false,
+      "equivalence_scope": "identical372-input learned policy/value function only; changed FL nominal capture handoff, not projected actions or physical trajectory equivalence",
+      "kernel_changed": false,
+      "lifetime_counters_and_spent_budgets_preserved": true,
+      "nominal_control_changed": true,
+      "nominal_provider": {
+        "file": "src/wlr50_clean/ppo/semantic_supervisor.py",
+        "outside_class_bytes_identical": true,
+        "outside_class_sha256": "661de8d1c4e8febd3d03eb04a8ea3425f5728d21c314e491605597230a02a62b",
+        "source_class_sha256": "a083f6795edc34e2cac9b34b88b35ab0542b160b26ec3652ceb8289918775fac",
+        "target_class_sha256": "c1dd43f3a491eb12a350d33f8d43a5a45e1aec259f1bed3009b14512dc8f631f"
+      },
+      "normalizers": "identity_RSL_state_preserved",
+      "observation_bytes_unchanged": true,
+      "observation_semantics_changed": [],
+      "old_rollout_inherited": false,
+      "optimizer": {
+        "initial_learning_rate": 0.00001,
+        "kind": "Adam",
+        "learning_rate_policy": "preserve_verified_source_effective_learning_rate",
+        "preserve_source_group_options": true,
+        "state": "reset_all_moments"
+      },
+      "parameter_mapping": "identity_all_parameters_and_buffers",
+      "physical_actuators_changed": false,
+      "physical_mdp_changed": true,
+      "physical_state_inherited": false,
+      "reward_changed": false,
+      "schema": "wlr50_clean.p05_capture_to_handoff_same372_nominal_transition.v1",
+      "source_observation_dimension": 372,
+      "source_observation_layout": "diagonal_transfer_state_v1",
+      "source_policy_contract": {
+        "activation": "elu",
+        "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+        "actor_hidden_dims": [
+          256,
+          256
+        ],
+        "base_observation_dimension": 324,
+        "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+        "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+        "deterministic_output": "conditional_mean",
+        "distribution_class": "HeteroscedasticGaussianDistribution",
+        "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+        "history_clip": 20,
+        "history_feature": "previous_raw_full12",
+        "history_slice": [
+          195,
+          207
+        ],
+        "history_state": "stored_observation_only; no_actor_mutable_history",
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "observation_dimension": 372,
+        "observation_layout": "diagonal_transfer_state_v1",
+        "raw_action_dimension": 12,
+        "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+        "rho": 0.9,
+        "role_observation_fields": [
+          "valid",
+          "workspace_progress",
+          "preparation_progress",
+          "transfer_progress",
+          "motion_fraction",
+          "preparation_ready",
+          "transfer_ready",
+          "fixed_direction_world_x",
+          "fixed_direction_world_y",
+          "short_support_continuity_fraction",
+          "continued_response_fraction",
+          "window_evidence_fraction"
+        ],
+        "role_observation_group": "transfer_role_context_full48",
+        "role_observation_leg_order": [
+          "FL",
+          "FR",
+          "RL",
+          "RR"
+        ],
+        "role_observation_slice": [
+          324,
+          372
+        ],
+        "schema": "wlr50_clean.semantic_policy_distribution.v1",
+        "state_dependent_std": true,
+        "std_type": "log",
+        "version": "history_conditioned_heteroscedastic_log_v1"
+      },
+      "source_schema_sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b",
+      "target_observation_dimension": 372,
+      "target_observation_layout": "diagonal_transfer_state_v1",
+      "target_policy_contract": {
+        "activation": "elu",
+        "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+        "actor_hidden_dims": [
+          256,
+          256
+        ],
+        "base_observation_dimension": 324,
+        "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+        "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+        "deterministic_output": "conditional_mean",
+        "distribution_class": "HeteroscedasticGaussianDistribution",
+        "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+        "history_clip": 20,
+        "history_feature": "previous_raw_full12",
+        "history_slice": [
+          195,
+          207
+        ],
+        "history_state": "stored_observation_only; no_actor_mutable_history",
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "observation_dimension": 372,
+        "observation_layout": "diagonal_transfer_state_v1",
+        "raw_action_dimension": 12,
+        "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+        "rho": 0.9,
+        "role_observation_fields": [
+          "valid",
+          "workspace_progress",
+          "preparation_progress",
+          "transfer_progress",
+          "motion_fraction",
+          "preparation_ready",
+          "transfer_ready",
+          "fixed_direction_world_x",
+          "fixed_direction_world_y",
+          "short_support_continuity_fraction",
+          "continued_response_fraction",
+          "window_evidence_fraction"
+        ],
+        "role_observation_group": "transfer_role_context_full48",
+        "role_observation_leg_order": [
+          "FL",
+          "FR",
+          "RL",
+          "RR"
+        ],
+        "role_observation_slice": [
+          324,
+          372
+        ],
+        "schema": "wlr50_clean.semantic_policy_distribution.v1",
+        "state_dependent_std": true,
+        "std_type": "log",
+        "version": "history_conditioned_heteroscedastic_log_v1"
+      },
+      "target_schema_sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b",
+      "task_acceptance_changed": false,
+      "training_rng_preserved": true
+    }
+  },
+  "initial_metadata_path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_initial_v3_from_000152192_s979514bfae6a_gd4e46006b382_ecee8d3abba1981b95d462a70c9ea39deb3e949878caea9d6589c95cdc043458_manifest.json",
+  "initial": {
+    "global_policy_decisions": 152192,
+    "ppo_updates": 1154,
+    "optimizer_steps": 23080,
+    "actor_parameter_sha256": "dd5ff32c6835f540b46ef50ff0f8627e5a54f7a4abf832102a23b9ecc254113c",
+    "critic_parameter_sha256": "210e96b1d0335c1d220de034c0a0494f1ebd53d0dc1c95ed7508e32e1ea17e64",
+    "optimizer_state_sha256": "e5d213b17dd6512a22141be6167ee0714d95350a1a17954ae0e8559a9e6ae6b5",
+    "optimizer_learning_rate": 0.00001,
+    "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+    "save_load_round_trip": true,
+    "checkpoint_path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_initial_v3_from_000152192_s979514bfae6a_gd4e46006b382_ecee8d3abba1981b95d462a70c9ea39deb3e949878caea9d6589c95cdc043458.pt",
+    "checkpoint_sha256": "23086e3ccd625afbcf5e5da5b257f1989b952a08cae3902264d233116d6eb045"
+  },
+  "root_observed_early_policy": {
+    "at_utc": "2026-09-10T16:32:49.4029048Z",
+    "new_policy_decisions": 59,
+    "global_policy_decision": 152251,
+    "phase": "P02",
+    "physics_tick": 472,
+    "terminal": false
+  },
+  "requested_training": {
+    "stage": "full_episode",
+    "from_phase": "P01",
+    "decisions": 2048,
+    "seed": 1001,
+    "num_envs": 1,
+    "device": "cuda:0",
+    "checkpoint_interval_updates": 1,
+    "new_mdp_warm_start": true
+  },
+  "read_receipt_scope": "Root selected actual live identity, official warm-start record, immutable initial checkpoint sidecar. Initial sidecar contains official roundtrip proof; root did not independently rehash or deserialize its model tensor bytes. No new complete update yet at this fixed policy snapshot."
+}

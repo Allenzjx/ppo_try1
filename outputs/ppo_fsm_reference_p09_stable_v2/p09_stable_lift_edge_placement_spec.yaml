@@ -1,0 +1,283 @@
+schema: wlr50_clean.p09_functional_lift_review.v2
+status: committed_integrated_and_live_PPO_exercised_RR_lift_and_continuity_observed_full_task_not_completed
+control_mdp_commit: 28609010db4e57c5b34304a4ae2563c69f9d00b9
+runtime_logging_commit: 06716a88bcc9ee2fff615bcf2681dd59d97142e5
+revision_boundary: runtime_logging_commit_adds_actual_object_identity_and_exact_HISTORY372_resume_only_not_new_controls_or_MDP
+evidence_boundary: fixed_completed_reports_and_20260910T075644591846Z_snapshot_not_a_live_counter_or_new_simulation
+implementation_evidence:
+  opt_in: p09_lift_semantics_functional_lift_edge_v2
+  event_scope: RR_functional_attempt_only_other_leg_event_semantics_preserved
+  files: [src/wlr50_clean/ppo/semantic_supervisor.py, src/wlr50_clean/ppo/semantic_transfer_roles.py]
+  focused_tests:
+    files: [tests/unit/test_p09_functional_edge_lift_v2.py, tests/unit/test_functional_rr_nominal_geometry_v2.py]
+    passed: 24
+    failed: 0
+    cpu_only: true
+    junit: outputs/ppo_fsm_reference_p09_stable_v2/p09_agent_focused_tests.xml
+    actual_simulation_claim: false
+  observation_semantics_migration:
+    shape_unchanged: 372
+    existing_RR_active_lift_history_actor_bit: current_lift_valid
+    detailed_history_active_lift: established_attempt_or_completed_crossing_history
+    transfer_role_valid: verified_CoM_geometry_with_separate_load_validity
+  integrated_evidence:
+    source_nominal_regression_junit: outputs/ppo_fsm_reference_p09_stable_v2/source_nominal_regression.xml
+    exact_runtime_identity_resume_junit: outputs/ppo_fsm_reference_p09_stable_v2/runtime_identity_resume372_tests.xml
+    source_control_chain_report: outputs/ppo_fsm_reference_p09_stable_v2/first_execution_divergence.md
+    consumer_audit: outputs/ppo_fsm_reference_p09_stable_v2/rr_timer_consumer_audit.md
+    actual_runtime_identity_report: outputs/ppo_fsm_reference_p09_stable_v2/fsm_reference_and_runtime_identity.json
+    actual_runtime_identity_scope: live_run_after_actual_reset_and_checkpoint_load_not_offline_backfill
+    actual_runtime_identity_recorded_at_utc: "2026-09-10T07:00:48.739846+00:00"
+    actual_runtime_content_sha256: f318d65f6dad66ebca2493f07150743475b15debc507f10054214ce9626ec4fc
+    no_tests_rerun_by_this_document_update: true
+  live_physical_evidence:
+    P06_first_policy_episode:
+      report: outputs/ppo_fsm_reference_p09_stable_v2/p06_first_episode_event_chain.md
+      run: runs/ppo_fsm_reference_p09_stable_v2/train/20260910T0542011958077Z_g28609010db4e_b88e6f85c2e1480ea33d2fbcf28d6139
+      scope: fixed_first_82_policy_decisions_after_real_P01_teacher_prefix_not_full_P01_policy
+      RR_initial_tick: 4189
+      RR_established_tick: 4195
+      continuous_takeover_ticks: [4200, 4208, 4216]
+      continuous_takeover_edges: [P06_to_P07, P07_to_P08, P08_to_P09]
+      same_RR_attempt_retained: true
+      current_valid_decision_end_snapshots: 5
+      RR_crossed: false
+      RR_placed: false
+      termination: BODY_COLLISION
+      terminal_tick: 4240
+      terminal_current_lift_valid: false
+      qualification_is_not_static_stability_or_future_placement_proof: true
+    P07_fixed_progress_snapshot:
+      report: outputs/ppo_fsm_reference_p09_stable_v2/p07_first_episode_control_chain.md
+      snapshot: outputs/ppo_fsm_reference_p09_stable_v2/progress_snapshots/20260910T075644591846Z.json
+      observed_at_utc: "2026-09-10T07:56:44.591846+00:00"
+      run: runs/ppo_fsm_reference_p09_stable_v2/train/20260910T0647306226372Z_g06716a88bcc9_c6cfcadd350b418a9969f7dfc35406a5
+      policy_samples_at_snapshot_only: 61
+      completed_PPO_updates_in_this_run_at_snapshot_only: 0
+      new_RR_initial_events_after_credit: 2
+      RR_established_decision_end_samples: 0
+      RR_current_valid_decision_end_samples: 0
+      RR_crossed_decision_end_samples: 0
+      RR_placed_decision_end_samples: 0
+      RR_contact_mode_decision_end_counts: {AIR: 21, GROUND: 40}
+      limitation: sampled_terminal_evidence_before_prefix_reset_is_not_an_optimized_or_saved_rollout
+    natural_P01_evaluation:
+      report: outputs/ppo_fsm_reference_p09_stable_v2/seed2001_p05_compact_diagnosis.md
+      run: runs/ppo_fsm_reference_p09_stable_v2/validation/20260910T0624345531274Z_g28609010db4e_2d880bd470694bcea9a6028c0902774e
+      checkpoint_global_policy_decisions: 141568
+      verdict: INCOMPLETE_CONTROLLER_BLOCKED
+      termination_source: LOCAL_TASK_DEADLINE
+      first_unfinished_phase: P05
+      first_unfinished_task: FL_crossing_and_controlled_TOP_placement
+      full_PPO_success_claim: false
+    aggregate_training_and_evaluation_report: outputs/ppo_fsm_reference_p09_stable_v2/training_and_evaluation_manifest.json
+    edge_evidence_boundary:
+      positive_and_negative_synthetic_cases_passed: true
+      focused_test_receipt: outputs/ppo_fsm_reference_p09_stable_v2/p09_agent_focused_tests.xml
+      positive_case: active_WALL_or_AMBIGUOUS_lift_can_establish_without_relabeling_as_AIR_or_claiming_C_or_P
+      negative_cases: long_edge_hang_without_recent_response_and_single_dropout_do_not_qualify_by_time
+      actual_RR_EDGE_encounter_established_by_reviewed_live_reports: false
+      actual_RR_EDGE_transfer_or_placement_verified: false
+      scope_limit: no_recorded_RR_EDGE_encounter_in_reviewed_live_evidence_so_far_not_a_claim_of_all_tick_contact_absence
+      do_not_conflate: unit_EDGE_coverage_is_not_real_Isaac_EDGE_success
+scope: P06_P08_preparation_P09_physical_attempt_P10_current_placement_handoff
+preserved:
+  observation_dimension: 372
+  action_dimension: 12
+  physics_hz: 120
+  policy_hz: 15
+  architecture_history_action_ranges_hyperparameters: unchanged
+  macro_phase_order: P01_to_P13_RR_FIRST
+  original_fsm_assets_and_physics: read_only_unchanged
+fixed_rr_hold_audit:
+  result: no_active_RR_one_second_gate_found
+  searched: [src, configs, tests, scripts]
+  patterns: [rr_air_stable_1s, minimum_hold_duration, wait_for_1s, rr_lift_duration, rr_stable_hold, stable_duration]
+  not_removed:
+    final_post_completion_observation_s: unrelated_existing_whole_body_P13_window
+    final_stable_duration_s: unrelated_legacy_final_stop_quality_not_RR_lift
+    transfer_minimum_evidence_s: existing_short_measured_response_noise_filter_not_hover_task
+functional_state:
+  initial_lift_observed:
+    meaning: fresh_actual_upward_geometry_with_commanded_whole_body_joint_demand_and_measured_response
+    own_rr_joint_motion_required: false
+    use_existing_scales_only: [minimum_initial_clearance_gain_m, minimum_command_motion_deg, minimum_joint_motion_deg, minimum_gravity_direction_change]
+  lift_established:
+    meaning: same_attempt_reliable_active_lift_from_original_ground_with_current_body_and_other_support_evidence
+    no_fixed_elapsed_time_gate: true
+    no_above_platform_15mm_requirement: true
+    no_front_plane_crossing_requirement: true
+    reliability: reuse_existing_two_sample_contact_geometry_evidence_and_verified_current_supports
+    evidence_modes: [AIR, verified_or_explicitly_ambiguous_obstacle_contact_with_independent_active_upward_evidence]
+    caution: obstacle_contact_alone_or_long_duration_never_establishes_lift
+  current_lift_valid:
+    meaning: current_non_ground_same_attempt_physical_validity_not_permanent_historical_qualification
+    qualified_history_retained_across: [P08_to_P09, AIR_to_edge_contact, edge_contact_to_AIR]
+    invalidated_by: [return_to_original_ground, immediate_physical_safety_abort, stale_or_invalid_required_geometry]
+    hanging: retain_past_progress_but_report_current_response_unverified_or_stalled_not_qualified_by_duration
+  contact_mode:
+    values: [AIR, GROUND, GROUND_AND_OBSTACLE, TOP, FRONT_WALL, OBSTACLE_AMBIGUOUS, UNVERIFIED]
+    constraint: never_relabel_edge_or_unknown_as_AIR
+  motion_continuation_allowed:
+    meaning: safe_continuous_bounded_adjustment_remains_available_even_when_establishment_evidence_is_incomplete
+    no_circular_gate: never_require_future_carry_success_to_generate_carry_action
+    no_forced_wait_pose: true
+    all_twelve_residual_channels_remain_available: true
+    edge_policy: no_unconditional_forward_wheel_push_from_edge_boolean
+  front_edge_crossed:
+    required: same_active_attempt_and_current_non_ground_wheel_center_crossing_with_feasible_AIR_or_verified_TOP_geometry
+    edge_contact_alone_sufficient: false
+  placed_on_top:
+    required: legal_crossing_history_and_actual_TOP_capture_using_existing_contact_hysteresis
+    no_retroactive_hold_test: true
+  P09_completion:
+    required: RR_legal_crossing_and_true_TOP_placement
+    lift_only_completes_P09: false
+  P10_entry:
+    required: actual_RR_placement_and_current_usable_RR_state
+    historical_RR_placement_alone_sufficient: false
+independent_validity:
+  unknown_normalized_load: invalidate_load_fraction_and_load_change_inferences_only
+  preserve_if_valid: [mass_weighted_CoM_geometry, measured_joint_motion, wheel_geometry, verified_other_contact_supports, established_active_attempt]
+  missing_critical_sensor: explicit_UNVERIFIED_not_invented_AIR_or_pure_wheel_failure
+safety:
+  body_collision: authoritative_base_link_obstacle_contact_still_task_failure
+  wheel_only: positive_powered_wall_ascent_without_required_active_joint_process_not_missing_AIR_or_missing_Q
+  actual_joint_hard_limits: already_checked_from_measured_position_deg_in_TaskEvaluator
+  fall_nan_physics_explosion: independent_safety_abort
+  diagnostic_window_end: external_truncation_not_fabricated_physical_failure
+consumer_findings:
+  reviewed_control_commit: 28609010db4e57c5b34304a4ae2563c69f9d00b9
+  detailed_evidence: outputs/ppo_fsm_reference_p09_stable_v2/rr_timer_consumer_audit.md
+  initial_and_qualified_lift: active_functional_RR_override_uses_measured_ground_relative_lift_whole_body_response_and_current_support_not_fixed_hover_duration
+  qualification_current_split: established_attempt_history_and_current_lift_valid_are_separate_ground_return_and_physical_abort_revoke_current_qualification
+  P08_takeover: current_valid_RR_attempt_can_continue_into_P09_without_landing_or_restarting_qualification
+  P10_entry: placed_RR_requires_real_crossing_TOP_history_and_current_usable_RR_state_not_historical_placement_alone
+  carry_nominal_assist: source_joint_owners_continue_without_Q_or_above_top_15mm_gate_extra_rolling_prior_is_AIR_and_geometry_specific_not_blind_EDGE_push
+  nominal_geometry: opt_in_measured_ground_and_front_distance_aware_nominal_only_descent_advisory_residual_remains_independent
+  unknown_load: only_load_dependent_inferences_are_invalidated_independent_verified_CoM_geometry_motion_and_support_evidence_are_preserved
+  reward: existing_global_physical_potential_no_RR_hold_time_reward_found
+  ordinary_phase_transition: no_episode_done_or_reward_history_reset_current_residual_and_mapper_state_continue
+  video_scope: current_experiment_and_HISTORY372_video_routing_patch_is_deferred_not_applied_or_live_verified_by_this_document
+  performance_scope: real_RR_initial_and_qualified_lift_observed_but_no_reviewed_real_RR_crossing_placement_or_complete_PPO_success
+historical_preintegration_review:
+  scope: retained_old_review_and_proposal_not_current_implementation_findings_or_pending_control_work
+  status: implemented_in_worktree_focused_unit_verified_pending_integrated_and_live_verification
+  audited_head_prefix: 042e6e6
+  consumer_findings:
+    initial_and_qualified_lift: semantic_supervisor.py_568_585_excludes_active_edge_contact_before_any_AIR_or_TOP
+    qualification_current_split: active_lift_is_latched_until_ground_before_crossing_no_explicit_current_controllability_field
+    P08_takeover: semantic_supervisor.py_885_887_and_1118_1124_accept_only_AIR_or_TOP
+    P10_entry: current_config_and_placed_predicate_use_historical_placement_only
+    carry_nominal_assist: semantic_supervisor.py_1503_1509_requires_above_top_15mm_before_adding_all_wheel_prior
+    nominal_geometry: semantic_nominal_geometry.py_89_93_and_252_257_projects_all_non_ground_pre_xy_RR_downward_nominal_against_platform_margin
+    unknown_load: semantic_transfer_roles.py_109_124_discards_independent_CoM_geometry_and_response_history
+    reward: existing_global_physical_potential_no_RR_hold_time_reward_found
+  minimal_patch_plan:
+    - Opt_in_new_experiment_semantics_without_reinterpreting_frozen_historical_runs.
+    - Add_current_functional_RR_diagnostics_using_existing_current_legs_and_history_slots_not_new_tensor_dimensions.
+    - Let_measured_active_edge_attempt_establish_and_continue_without_AIR_relabeling_or_ground_history_reuse.
+    - Preserve_current_attempt_across_edge_contact_and_P08_P09_without_resetting_mapper_filter_or_nominal.
+    - Separate_load_validity_from_geometry_actuation_and_support_evidence_in_transfer_tracker.
+    - Review_nominal_geometry_projection_against_successful_FSM_same_state_targets_before_deciding_minimal_opt_out_or_contact_aware_application.
+    - Keep_wheel_forward_assist_geometry_specific_not_unconditional_edge_push_and_never_gate_joint_repositioning_on_top_clearance.
+    - Require_current_RR_usability_in_P09_P10_handoff_without_requiring_fixed_load_template_or_static_pose.
+    - Reuse_single_physical_progress_potential_and_sync_observation_event_test_eval_video_consumers.
+positive_negative_cases:
+  - active_two_sample_lift_under_one_second_continues
+  - one_contact_dropout_without_upward_response_does_not_establish
+  - own_RR_joints_constant_other_joints_cause_measured_lift_accepted
+  - active_edge_lift_with_verified_geometry_retains_attempt_but_is_not_AIR
+  - edge_hang_without_response_longer_than_one_second_not_qualified_by_time
+  - transient_unknown_load_keeps_valid_CoM_and_motion_history_no_false_lowload
+  - AIR_to_edge_to_AIR_keeps_attempt_and_mapper_residual_state
+  - ground_return_revokes_current_attempt_then_fresh_retry_allowed
+  - active_early_TOP_cross_and_placement_without_AIR_hold_accepted
+  - lift_far_from_front_records_lift_not_P09_completion
+  - wheel_only_wall_ascent_and_actual_hardlimit_remain_failures
+  - P10_does_not_start_from_lift_only_or_lost_current_RR_placement
+  - nominal_clock_never_forces_unconditional_descent_against_measured_contact_geometry
+  - ordinary_phase_transition_never_done_or_GAE_cutoff
+
+# Additive live evidence: all earlier timestamped findings remain historical.
+latest_completed_evidence_reference: completed_block4_live_evidence
+completed_block4_live_evidence:
+  recorded_from_snapshot_utc: "2026-09-10T08:23:08.229118+00:00"
+  scope: completed_P07_origin_128_policy_decisions_not_full_P01_policy_success
+  snapshot: outputs/ppo_fsm_reference_p09_stable_v2/progress_snapshots/20260910T082308229118Z.json
+  detailed_report: outputs/ppo_fsm_reference_p09_stable_v2/p07_edge_crossing_block128.md
+  run: runs/ppo_fsm_reference_p09_stable_v2/train/20260910T0647306226372Z_g06716a88bcc9_c6cfcadd350b418a9969f7dfc35406a5
+  runtime_commit: 06716a88bcc9ee2fff615bcf2681dd59d97142e5
+  control_mdp_commit_unchanged: 28609010db4e57c5b34304a4ae2563c69f9d00b9
+  completed_policy_decisions: 128
+  completed_PPO_updates: 1
+  completed_optimizer_steps: 20
+  phase_samples: {P07: 7, P08: 7, P09: 114, P10: 0, P11: 0, P12: 0, P13: 0}
+  six_completed_episode_terminations: BODY_COLLISION
+  teacher_prefix_policy_credit: 0
+  RR_new_events: {I: 5, Q: 3, Q_revoked_ground: 2, C: 1, P: 0}
+  RR_current_valid_decision_end_samples: 25
+  actual_RR_EDGE_encounter_verified_in_this_block: true
+  actual_RR_EDGE_qualification_and_continuation_verified_in_this_block: true
+  actual_RR_front_crossing_event_verified_in_this_block: true
+  actual_RR_placement_verified_in_this_block: false
+  full_PPO_success_claim: false
+  old_edge_not_observed_scope: previous61_sample_snapshot_only_not_rewritten
+  episode6_first_attempt:
+    initial_tick: 5995
+    qualified_tick: 6001
+    ground_return_and_current_qualification_revocation_tick: 6055
+    current_valid_decision_end_samples: 6
+    crossed: false
+    placed: false
+  episode6_fresh_edge_retry:
+    initial_tick: 6240
+    qualified_tick: 6249
+    qualified_ground_relative_lift_m: 0.008297
+    contact_mode_at_first_qualified_decision_end: FRONT_WALL
+    first_qualified_decision_end_tick: 6256
+    AIR_duration_at_that_end_s: 0
+    subsequent_contact_mode: OBSTACLE_AMBIGUOUS
+    first_actual_AIR_decision_end_tick: 6304
+    crossing_tick: 6328
+    crossing_front_distance_m: 0.000973
+    crossing_top_clearance_m: 0.048437
+    placed: false
+    current_qualification_not_elapsed_time_gate: true
+    contact_mode_not_relabelled_AIR: true
+    historical_first_active_lift_tick6001_is_not_fresh_retry_start: true
+    FL_suspended_is_not_bearing: true
+    actual_FL_support_first_observed_decision_end_tick: 6336
+    RR_load_valid_false_ticks: [6240, 6296]
+    unknown_load_not_invented_zero_and_independent_geometry_response_preserved: true
+  episode6_nonterminal_tail:
+    policy_decisions: 57
+    last_physics_tick: 6368
+    sim_time_s: 53.06666666666666
+    phase: P09
+    terminal: false
+    termination_reason: null
+    RR_current_lift_valid: true
+    RR_historical_crossed: true
+    RR_current_front_distance_m: -0.023148354460481357
+    RR_current_within_top_xy: false
+    RR_placed: false
+    first_unfinished_task: RR_current_usable_capture_and_real_TOP_placement
+    neither_seventh_failure_nor_complete_success: true
+  causal_limit: all128_samples_precede_the_single_update_not_proof_that_the_updated_actor_improved
+  saved_checkpoint: outputs/ppo_fsm_reference_p09_stable_v2/checkpoints/history/checkpoint_step_000141696.pt
+  saved_lifetime: {policy_decisions: 141696, PPO_updates: 1072, optimizer_steps: 21440}
+  total_new_saved: {policy_decisions: 1152, PPO_updates: 9, optimizer_steps: 180}
+  video_runtime_followup:
+    applied_commit: 64c03243ac05e43e7a5843eaee252eef1136c925
+    report: outputs/ppo_fsm_reference_p09_stable_v2/video_applied_64c0324.md
+    control_MDP_and_six_configs_changed: false
+    directed_CPU_regression: {passed: 231, failed: 0, errors: 0, skipped: 0}
+    real_video_or_complete_task_success_claim: false
+  latest_fixed_timeline:
+    path: outputs/ppo_fsm_reference_p09_stable_v2/p09_evidence_timeline_000141696.csv
+    rows: 1787
+    columns: 263
+    training_rows: 1152
+    retained_141568_evaluation_rows: 635
+    active_P10_run_included: false

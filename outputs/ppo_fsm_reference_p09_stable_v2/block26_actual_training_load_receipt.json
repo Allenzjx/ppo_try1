@@ -1,0 +1,78 @@
+{
+  "schema": "wlr50_clean.actual_training_load_root_receipt.v1",
+  "read_at_utc": "2026-09-11T01:47:21.6518054Z",
+  "identity": {
+    "evidence_scope": "current_process_already_reset_actual_objects_not_offline_reconstruction",
+    "boundary": "training_after_actual_reset_and_checkpoint_load",
+    "backend_initialized": true,
+    "python_executable": "C:\\Users\\kskzz\\miniconda3\\envs\\env_isaaclab\\python.exe",
+    "cwd": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1",
+    "process_id": 19768,
+    "source_git_commit": "d4e46006b382093b960f2c428081d8a1c595bb6a",
+    "runtime_content_sha256": "ecee8d3abba1981b95d462a70c9ea39deb3e949878caea9d6589c95cdc043458",
+    "requested_from_phase": "P01",
+    "physics_tick": 0,
+    "state_id": "P01",
+    "prefix_mode": null,
+    "control_calls_performed_by_logger": 0,
+    "new_imports_performed_by_logger": 0,
+    "recorded_at_utc": "2026-09-11T01:46:07.2707000Z"
+  },
+  "objects": [
+    {
+      "role": "active_controller",
+      "class": "SemanticControllerAdapter",
+      "module": "wlr50_clean.ppo.semantic_supervisor",
+      "module_file": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\ppo\\semantic_supervisor.py",
+      "module_origin": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\ppo\\semantic_supervisor.py"
+    },
+    {
+      "role": "nominal_provider",
+      "class": "NominalMotionProvider",
+      "module": "wlr50_clean.ppo.semantic_supervisor",
+      "module_file": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\ppo\\semantic_supervisor.py",
+      "module_origin": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\ppo\\semantic_supervisor.py"
+    },
+    {
+      "role": "source_motion_executor",
+      "class": "MotionExecutor",
+      "module": "wlr50_clean.fsm.motion_executor",
+      "module_file": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\fsm\\motion_executor.py",
+      "module_origin": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\fsm\\motion_executor.py"
+    },
+    {
+      "role": "adapter",
+      "class": "RobotAdapter",
+      "module": "wlr50_clean.infrastructure.robot_adapter",
+      "module_file": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\infrastructure\\robot_adapter.py",
+      "module_origin": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\infrastructure\\robot_adapter.py"
+    },
+    {
+      "role": "mapper",
+      "class": "ServoTargetMapper",
+      "module": "wlr50_clean.infrastructure.servo_target_mapper",
+      "module_file": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\infrastructure\\servo_target_mapper.py",
+      "module_origin": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\infrastructure\\servo_target_mapper.py"
+    },
+    {
+      "role": "sensor_reader",
+      "class": "SemanticSensorReader",
+      "module": "wlr50_clean.ppo.semantic_physical_sensing",
+      "module_file": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\ppo\\semantic_physical_sensing.py",
+      "module_origin": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\ppo\\semantic_physical_sensing.py"
+    }
+  ],
+  "first_global": 164737,
+  "first_phase": "P01",
+  "first_tick": 8,
+  "curriculum_start": null,
+  "teacher_credit": null,
+  "run_dir": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\train\\20260911T0145416449267Z_gd4e46006b382_482d15b13ace41cea49b82b53b600490",
+  "source_verified_checkpoint": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_fsm_reference_p09_stable_v2/completed_block25_checkpoint_verification.json",
+  "migration": null,
+  "requested_decisions": 2048,
+  "seed": 1001,
+  "stage": "full_episode",
+  "scope": "Actual current-process identity after reset and checkpoint load. Natural P01 first decision; absent teacher/curriculum fields remain null, not synthesized false.",
+  "actual_launch_command": "& .\\scripts\\run_semantic_ppo.ps1 -Command train -ExpectedHead d4e46006b382093b960f2c428081d8a1c595bb6a -SemanticVersion v3 -ExperimentId fsm_reference_p09_stable_v2 -Stage full_episode -FromPhase P01 -Decisions 2048 -Seed 1001 -NumEnvs 1 -Device cuda:0 -CheckpointIntervalUpdates 1 -Checkpoint 'C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000164736.pt'"
+}

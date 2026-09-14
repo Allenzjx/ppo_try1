@@ -1,0 +1,88 @@
+{
+  "schema": "wlr50_clean.root_actual_training_load_receipt.v1",
+  "run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_fsm_reference_p09_stable_v2/train/20260911T0053577123642Z_gd4e46006b382_6f25b311ef674a58984702fd575ad5d4",
+  "read_at_utc": "2026-09-11T00:57:11.4359895Z",
+  "identity": {
+    "evidence_scope": "current_process_already_reset_actual_objects_not_offline_reconstruction",
+    "boundary": "training_after_actual_reset_and_checkpoint_load",
+    "backend_initialized": true,
+    "python_executable": "C:\\Users\\kskzz\\miniconda3\\envs\\env_isaaclab\\python.exe",
+    "cwd": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1",
+    "process_id": 12416,
+    "source_git_commit": "d4e46006b382093b960f2c428081d8a1c595bb6a",
+    "runtime_content_sha256": "ecee8d3abba1981b95d462a70c9ea39deb3e949878caea9d6589c95cdc043458",
+    "requested_from_phase": "P01",
+    "physics_tick": 0,
+    "state_id": "P01",
+    "prefix_mode": null,
+    "control_calls_performed_by_logger": 0,
+    "new_imports_performed_by_logger": 0,
+    "recorded_at_utc": "2026-09-11T00:54:20.7013920Z"
+  },
+  "objects": {
+    "adapter": {
+      "class": "RobotAdapter",
+      "module": "wlr50_clean.infrastructure.robot_adapter",
+      "module_file": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\infrastructure\\robot_adapter.py",
+      "module_origin": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\infrastructure\\robot_adapter.py"
+    },
+    "mapper": {
+      "class": "ServoTargetMapper",
+      "module": "wlr50_clean.infrastructure.servo_target_mapper",
+      "module_file": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\infrastructure\\servo_target_mapper.py",
+      "module_origin": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\infrastructure\\servo_target_mapper.py"
+    },
+    "source_motion_executor": {
+      "class": "MotionExecutor",
+      "module": "wlr50_clean.fsm.motion_executor",
+      "module_file": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\fsm\\motion_executor.py",
+      "module_origin": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\fsm\\motion_executor.py"
+    },
+    "active_controller": {
+      "class": "SemanticControllerAdapter",
+      "module": "wlr50_clean.ppo.semantic_supervisor",
+      "module_file": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\ppo\\semantic_supervisor.py",
+      "module_origin": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\ppo\\semantic_supervisor.py"
+    },
+    "sensor_reader": {
+      "class": "SemanticSensorReader",
+      "module": "wlr50_clean.ppo.semantic_physical_sensing",
+      "module_file": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\ppo\\semantic_physical_sensing.py",
+      "module_origin": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\ppo\\semantic_physical_sensing.py"
+    },
+    "nominal_provider": {
+      "class": "NominalMotionProvider",
+      "module": "wlr50_clean.ppo.semantic_supervisor",
+      "module_file": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\ppo\\semantic_supervisor.py",
+      "module_origin": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\src\\wlr50_clean\\ppo\\semantic_supervisor.py"
+    }
+  },
+  "request": {
+    "command": "train",
+    "stage": "full_episode",
+    "from_phase": "P01",
+    "decisions": 2048,
+    "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000162688.pt",
+    "seed": 1001,
+    "num_envs": 1,
+    "device": "cuda:0",
+    "checkpoint_interval_updates": 1,
+    "new_mdp_warm_start": false,
+    "resume_migration": null,
+    "teacher_offset_decisions": 0,
+    "prefix_source": "frozen_fsm"
+  },
+  "curriculum_start": null,
+  "first_policy_decision": 162689,
+  "first_request_phase": "P01",
+  "first_end_phase": "P01",
+  "first_tick": 8,
+  "teacher_flag": null,
+  "source_independently_verified_checkpoint": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_fsm_reference_p09_stable_v2/completed_block24_checkpoint_verification.json",
+  "source_saved_counters": {
+    "decisions": 162688,
+    "ppo_updates": 1236,
+    "optimizer_steps": 24720
+  },
+  "note": "Actual natural P01/tick0 reset and ordinary same-version resume. No prefix object; curriculum_start and teacher flag are absent/null, not false. CLI prefix_source=frozen_fsm is an unused default in full_episode. No migration or optimizer/normalizer reset."
+}

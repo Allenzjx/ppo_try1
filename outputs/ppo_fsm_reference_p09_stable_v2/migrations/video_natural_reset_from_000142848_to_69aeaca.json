@@ -1,0 +1,199 @@
+{
+  "schema": "wlr50_clean.semantic_checkpoint_migration.v1",
+  "reason": "Reviewed video-only natural P01 reset provenance repair after the zero-action capture failure. Only semantic_video.py changes: distinguish the existing semantic P01 marker from real snapshot restoration, persist its actual reset receipt, and use the same current-experiment A/B/C criterion during capture and independent replay. All six configs, physics, control, nominal, reward, observation layout and policy kernel are unchanged. Retain actor, critic, learned std, Adam moments and effective LR, identity normalizers, RNG and lifetime counters; discard old rollout storage and collect fresh natural P01 data. CPU regression: 316 passed; no real success-video claim.",
+  "source_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000142848.pt",
+  "source_checkpoint_sha256": "7fb0a5a1607125d477c7e49c05422a40e3cb33d72dcad83c1fb1aeaf5e59eaa1",
+  "source_manifest_sha256": "fb89869010f6fd100e4d0c37f3e5c2ba43e79df4312ec805f92a5b86bca4344e",
+  "source_contract_sha256": "622ca3d2b2253c5a532e91e960b176e7b087e8b080b7899b84bd0fe32aea598e",
+  "target_contract_sha256": "52117e4f6df4d987941b36bd69389a93aa5052e24f13600cafbd1df72c75a9ed",
+  "source_git_commit": "64c03243ac05e43e7a5843eaee252eef1136c925",
+  "target_git_commit": "69aeaca777dcc8653e60f19da56ae1cd002e5271",
+  "allowed_changed_files": [
+    "src/wlr50_clean/ppo/semantic_video.py"
+  ],
+  "changed_file_hashes": {
+    "src/wlr50_clean/ppo/semantic_video.py": {
+      "before": "c480d482054a1e1124c3b8b89fe137f4dd0f13db15d6b93790417ed7f6ad781b",
+      "after": "3d8b23596c88ac7bc2771ea3725a206c56a523e9659adcc6ace5a5fecc86cc85"
+    }
+  },
+  "geometric_factor": null,
+  "observation_dimension": 372,
+  "action_dimension": 12,
+  "preserve_actor_critic_optimizer_normalizer_rng_and_budget": true,
+  "discard_old_rollout_storage": true,
+  "physics_resume": "fresh_legal_P01_reset",
+  "video_instrumentation_factor": {
+    "schema": "wlr50_clean.semantic_video_instrumentation_migration.v1",
+    "review_reason": "Reviewed video-only natural P01 reset provenance repair after the zero-action capture failure. Only semantic_video.py changes: distinguish the existing semantic P01 marker from real snapshot restoration, persist its actual reset receipt, and use the same current-experiment A/B/C criterion during capture and independent replay. All six configs, physics, control, nominal, reward, observation layout and policy kernel are unchanged. Retain actor, critic, learned std, Adam moments and effective LR, identity normalizers, RNG and lifetime counters; discard old rollout storage and collect fresh natural P01 data. CPU regression: 316 passed; no real success-video claim.",
+    "video_file_hashes": {
+      "scripts/run_semantic_video.ps1": {
+        "before": "b9c49f65168123fe9fde9593908e9532c75d9590212ca19e89dd9af3e115c0d7",
+        "after": "b9c49f65168123fe9fde9593908e9532c75d9590212ca19e89dd9af3e115c0d7"
+      },
+      "src/wlr50_clean/ppo/semantic_video.py": {
+        "before": "c480d482054a1e1124c3b8b89fe137f4dd0f13db15d6b93790417ed7f6ad781b",
+        "after": "3d8b23596c88ac7bc2771ea3725a206c56a523e9659adcc6ace5a5fecc86cc85"
+      },
+      "src/wlr50_clean/ppo/semantic_video_cli.py": {
+        "before": "520899cae720158e15af1f74bfdd0e30859561cea405b6f9029c42537472c42c",
+        "after": "520899cae720158e15af1f74bfdd0e30859561cea405b6f9029c42537472c42c"
+      }
+    },
+    "added_files": [],
+    "modified_files": [
+      "src/wlr50_clean/ppo/semantic_video.py"
+    ],
+    "reviewed_scope": "video_instrumentation_only_no_task_reward_or_topology_change",
+    "scope_is_reviewer_assertion_not_semantic_equivalence_proof": true,
+    "video_success_or_improvement_certified": false,
+    "observation_contract": {
+      "schema": "wlr50_clean.video_same_observation_contract.v1",
+      "source_policy_contract": {
+        "schema": "wlr50_clean.semantic_policy_distribution.v1",
+        "version": "history_conditioned_heteroscedastic_log_v1",
+        "distribution_class": "HeteroscedasticGaussianDistribution",
+        "std_type": "log",
+        "observation_dimension": 372,
+        "raw_action_dimension": 12,
+        "actor_hidden_dims": [
+          256,
+          256
+        ],
+        "activation": "elu",
+        "state_dependent_std": true,
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+        "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+        "history_feature": "previous_raw_full12",
+        "history_slice": [
+          195,
+          207
+        ],
+        "history_clip": 20,
+        "rho": 0.9,
+        "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+        "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+        "history_state": "stored_observation_only; no_actor_mutable_history",
+        "deterministic_output": "conditional_mean",
+        "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+        "observation_layout": "diagonal_transfer_state_v1",
+        "base_observation_dimension": 324,
+        "role_observation_group": "transfer_role_context_full48",
+        "role_observation_slice": [
+          324,
+          372
+        ],
+        "role_observation_leg_order": [
+          "FL",
+          "FR",
+          "RL",
+          "RR"
+        ],
+        "role_observation_fields": [
+          "valid",
+          "workspace_progress",
+          "preparation_progress",
+          "transfer_progress",
+          "motion_fraction",
+          "preparation_ready",
+          "transfer_ready",
+          "fixed_direction_world_x",
+          "fixed_direction_world_y",
+          "short_support_continuity_fraction",
+          "continued_response_fraction",
+          "window_evidence_fraction"
+        ]
+      },
+      "target_policy_contract": {
+        "schema": "wlr50_clean.semantic_policy_distribution.v1",
+        "version": "history_conditioned_heteroscedastic_log_v1",
+        "distribution_class": "HeteroscedasticGaussianDistribution",
+        "std_type": "log",
+        "observation_dimension": 372,
+        "raw_action_dimension": 12,
+        "actor_hidden_dims": [
+          256,
+          256
+        ],
+        "activation": "elu",
+        "state_dependent_std": true,
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+        "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+        "history_feature": "previous_raw_full12",
+        "history_slice": [
+          195,
+          207
+        ],
+        "history_clip": 20,
+        "rho": 0.9,
+        "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+        "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+        "history_state": "stored_observation_only; no_actor_mutable_history",
+        "deterministic_output": "conditional_mean",
+        "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+        "observation_layout": "diagonal_transfer_state_v1",
+        "base_observation_dimension": 324,
+        "role_observation_group": "transfer_role_context_full48",
+        "role_observation_slice": [
+          324,
+          372
+        ],
+        "role_observation_leg_order": [
+          "FL",
+          "FR",
+          "RL",
+          "RR"
+        ],
+        "role_observation_fields": [
+          "valid",
+          "workspace_progress",
+          "preparation_progress",
+          "transfer_progress",
+          "motion_fraction",
+          "preparation_ready",
+          "transfer_ready",
+          "fixed_direction_world_x",
+          "fixed_direction_world_y",
+          "short_support_continuity_fraction",
+          "continued_response_fraction",
+          "window_evidence_fraction"
+        ]
+      },
+      "observation_layout": "diagonal_transfer_state_v1",
+      "selected_configuration": {
+        "action_schema.json": {
+          "path": "configs/ppo_fsm_reference_p09_stable_v2/action_schema.json",
+          "sha256": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7"
+        },
+        "execution_profile.yaml": {
+          "path": "configs/ppo_fsm_reference_p09_stable_v2/execution_profile.yaml",
+          "sha256": "1f9b08220c7d528a7e6e8fec0b76dee627009cf22b77df4924bb96115054d21f"
+        },
+        "observation_schema.json": {
+          "path": "configs/ppo_fsm_reference_p09_stable_v2/observation_schema.json",
+          "sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b"
+        },
+        "quality_score.yaml": {
+          "path": "configs/ppo_fsm_reference_p09_stable_v2/quality_score.yaml",
+          "sha256": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6"
+        },
+        "reward_config.yaml": {
+          "path": "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml",
+          "sha256": "e6c3b90a9a0fd6ae9be17ae5b9f6f2c6a0c379df1b3df389b6e852dde9f5eeea"
+        },
+        "stage_task_spec.yaml": {
+          "path": "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml",
+          "sha256": "e4696c71dfc358832b5b0a63f3d35800e4c446fcf38f54bb45c0ee8b98a76e51"
+        }
+      },
+      "observation_dimension": 372,
+      "action_dimension": 12,
+      "num_envs": 1,
+      "parameter_mapping": null,
+      "scope": "reviewed_video_only_no_control_or_MDP_change",
+      "scope_is_reviewer_assertion_not_semantic_equivalence_proof": true
+    }
+  }
+}

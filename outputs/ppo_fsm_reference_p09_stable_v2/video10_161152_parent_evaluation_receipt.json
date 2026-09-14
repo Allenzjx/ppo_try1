@@ -1,0 +1,154 @@
+{
+  "schema": "wlr50_clean.root_evaluation_load_receipt.v1",
+  "run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_fsm_reference_p09_stable_v2/video_eval/validation/20260910T2329210669061Z_gd4e46006b382_b1afaf16892b450b81d986e7148862d0",
+  "read_at_utc": "2026-09-10T23:46:56.8966947Z",
+  "lifecycle": "DIAGNOSTIC_FAILURE",
+  "completed_at_utc": "2026-09-10T23:44:57.6804950Z",
+  "load": {
+    "checkpoint_loaded_and_verified": true,
+    "migration": null,
+    "observation_dimension": 372,
+    "observation_layout": "diagonal_transfer_state_v1",
+    "official_load_semantic_checkpoint": true,
+    "optimizer_updates": 0,
+    "parameter_hashes": {
+      "actor_parameter_sha256": "1a8a836cc4083ba2d7b7d082f0cc668d92f964a0b6ddad1ae68a0678973e46de",
+      "critic_parameter_sha256": "34f910186df4c4c9b87bbe09ced0c1b97dc6267fa77cbfac8c10b259b38571a8",
+      "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+      "optimizer_state_sha256": "c2caa18757cbb40ad98dd4b7c4c94eb29362b12882ac5c4f46bd19f291bbd5ca"
+    },
+    "policy_contract": {
+      "activation": "elu",
+      "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+      "actor_hidden_dims": [
+        256,
+        256
+      ],
+      "base_observation_dimension": 324,
+      "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+      "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+      "deterministic_output": "conditional_mean",
+      "distribution_class": "HeteroscedasticGaussianDistribution",
+      "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+      "history_clip": 20,
+      "history_feature": "previous_raw_full12",
+      "history_slice": [
+        195,
+        207
+      ],
+      "history_state": "stored_observation_only; no_actor_mutable_history",
+      "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+      "observation_dimension": 372,
+      "observation_layout": "diagonal_transfer_state_v1",
+      "raw_action_dimension": 12,
+      "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+      "rho": 0.9,
+      "role_observation_fields": [
+        "valid",
+        "workspace_progress",
+        "preparation_progress",
+        "transfer_progress",
+        "motion_fraction",
+        "preparation_ready",
+        "transfer_ready",
+        "fixed_direction_world_x",
+        "fixed_direction_world_y",
+        "short_support_continuity_fraction",
+        "continued_response_fraction",
+        "window_evidence_fraction"
+      ],
+      "role_observation_group": "transfer_role_context_full48",
+      "role_observation_leg_order": [
+        "FL",
+        "FR",
+        "RL",
+        "RR"
+      ],
+      "role_observation_slice": [
+        324,
+        372
+      ],
+      "schema": "wlr50_clean.semantic_policy_distribution.v1",
+      "state_dependent_std": true,
+      "std_type": "log",
+      "version": "history_conditioned_heteroscedastic_log_v1"
+    },
+    "policy_version": "history_conditioned_heteroscedastic_log_v1",
+    "saved_global_policy_decisions": 161152,
+    "source": {
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000161152.pt",
+      "checkpoint_sha256": "796f0fda4c28dd004f05652a5fc70d3b46c49bb77a173e1ed549b66ce8ffd34d",
+      "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000161152_manifest.json",
+      "manifest_sha256": "7a52cb99ed1aca4b56a0c1e48c10bae1b4384dccbe55257d137c51fc4ccae367"
+    },
+    "training_seed": 1001,
+    "video_seed": 4001
+  },
+  "runtime": {
+    "head": "d4e46006b382093b960f2c428081d8a1c595bb6a",
+    "decision_hz": 15,
+    "physics_hz": 120,
+    "sha256": "ecee8d3abba1981b95d462a70c9ea39deb3e949878caea9d6589c95cdc043458"
+  },
+  "reset_entry": {
+    "decision_count": 0,
+    "done": false,
+    "physics_tick": 0,
+    "state_id": "P01"
+  },
+  "reset_count": 1,
+  "reset_options": {},
+  "prime_ticks": 0,
+  "extra_pre": 0,
+  "pre": 0,
+  "post": 0,
+  "optimizer_updates": 0,
+  "issued": 664,
+  "returned": 664,
+  "ticks": 5309,
+  "interrupted_final_decision_ticks": 0,
+  "duration_s": 44.24166666666667,
+  "final_start_tick": 5304,
+  "final_end_tick": 5309,
+  "final_returned": true,
+  "final_phase": "P05",
+  "reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+  "termination_source": "LOCAL_BOUNDED_RECOVERY_EXHAUSTED",
+  "stage_elapsed_s": 30.708333333333336,
+  "local_timeout": {
+    "nominal_limit_s": 30,
+    "current_progress_allowance_s": 0.702902442398064,
+    "fixed_post_window_allowance_s": 0,
+    "effective_limit_s": 30.702902442398063,
+    "nominal_limit_exceeded": true,
+    "classification": "finite_task_terminal_not_external_truncation",
+    "timer_inputs_observable_in_existing372": true
+  },
+  "physical_reason": null,
+  "physical_source": null,
+  "run_validity": "VALID",
+  "physical_evidence_status": "CONTACT_BEARING_UNVERIFIED",
+  "full_success": false,
+  "source_error": "SemanticVideoError: episode did not meet common physical task",
+  "quality": {
+    "pitch_rate_rms_rad_s": 0.05556597533823111,
+    "pitch_peak_rad": 0.21254004348553396,
+    "pitch_rms_rad": 0.11394856979074118,
+    "roll_rms_rad": 0.0992162839779966,
+    "roll_rate_rms_rad_s": 0.0728803284277878,
+    "roll_peak_rad": 0.1987791632599576
+  },
+  "initial_parameter_hashes_match_independent_source_checkpoint": true,
+  "source_byte_hashes_match_independent_verification": true,
+  "independent_source_verification": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_fsm_reference_p09_stable_v2/completed_block22_checkpoint_verification.json",
+  "final_model_unchanged_check_executed": false,
+  "final_model_check_scope": "semantic_video.py requires physical success before check_model; failure path did not execute final four-hash check. Initial verified load and zero updates do not substitute for it.",
+  "stability_scope": "single incomplete P01 episode; no paired FSM comparison or improvement claim",
+  "process_exit": {
+    "chunk_id": "60b696",
+    "wall_time_seconds": 33.7796477,
+    "exit_code": 1,
+    "original_token_count": 93,
+    "output": "Exception: C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\scripts\\run_semantic_video.ps1:69\r\nLine |\r\n  69 |  … UNDARY')) { throw 'Semantic process did not finalize successful execu …\r\n     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n     | Semantic process did not finalize successful execution or verified graceful stop\r\n"
+  }
+}

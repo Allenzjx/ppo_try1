@@ -1,0 +1,64 @@
+{
+  "baseline": "06716a88bcc9ee2fff615bcf2681dd59d97142e5",
+  "status": "READY_FOR_READ_ONLY_REVIEW_NOT_APPLIED_TESTS_NOT_RUN",
+  "scope": "video_only_same_MDP_exact_HISTORY372",
+  "production_files": [
+    "src/wlr50_clean/ppo/semantic_video.py",
+    "src/wlr50_clean/ppo/semantic_training.py",
+    "src/wlr50_clean/ppo/semantic_video_cli.py",
+    "scripts/run_semantic_video.ps1",
+    "src/wlr50_clean/ppo/semantic_migration.py"
+  ],
+  "new_production_test": "tests/unit/test_semantic_video_fsm_reference_v2.py",
+  "draft_test": "tests/unit/test_semantic_video_fsm_reference_v2_deferred.py",
+  "patch": "production_06716a88.apply_patch",
+  "source_hunks_match_recorded_baseline": {
+    "src/wlr50_clean/ppo/semantic_video.py": 20,
+    "src/wlr50_clean/ppo/semantic_training.py": 1,
+    "src/wlr50_clean/ppo/semantic_video_cli.py": 6,
+    "scripts/run_semantic_video.ps1": 4,
+    "src/wlr50_clean/ppo/semantic_migration.py": 4
+  },
+  "instrumentation372_validator_unchanged": true,
+  "semantic_cli_runtime_identity_untouched": true,
+  "INSTRUMENTATION_FILES_not_expanded": true,
+  "VIDEO_FILES_not_expanded": true,
+  "config_files_changed": [],
+  "physics_control_observation_reward_changed": false,
+  "checkpoint_files_touched": false,
+  "commands_executed": "Read-only git/status/source reads; apply_patch writes deferred output artifacts only. No Python/Torch/Isaac or test execution.",
+  "verification_scope": "Text-level hunk match and unchanged instrumentation helper comparison only; not compiled, applied or executed.",
+  "current_window": {
+    "experiment_id": "fsm_reference_p09_stable_v2",
+    "physical_bounds_ticks": [
+      0,
+      24000
+    ],
+    "frame_count": "ceil(endpoint_ticks/8) <= 3000",
+    "frame_sampling": "actual executed interval right endpoints; actual final partial tick retained",
+    "extra_pre_physics": 0,
+    "extra_post_physics": 0,
+    "extra_tick0_encoded_frame": false,
+    "tick0_raw_observation_retained": true,
+    "final_CFR_display_quantization_seconds": "0..7/120, explicit",
+    "task_success_deadline_unchanged": true,
+    "legacy_experiment_window_unchanged": true
+  },
+  "additional_task_window_files_outside_video_allowlist": [],
+  "tests_executed": false,
+  "old_settle_and_preroll_refresh_and_post_receipt_helpers_unchanged": true,
+  "task_window_tests": "Unrun: 24000 tick/3000 frame boundary and all terminal remainders; actual endpoint ledger/PTS matching; fake capture success/failure through tick23; no PRE/POST physics; failed task never publishes success; old-vs-current comparison windows.",
+  "video_task_outcome_independent": true,
+  "test_only_followup": {
+    "status": "TWO_FAILURE_PATH_TESTS_ADDED_NOT_RUN",
+    "production_mirrors_changed": false,
+    "production_patch_sections_changed": false,
+    "existing_fake_capture_fixture_reused": true,
+    "added_tests": [
+      "test_done_only_local_timeout_retains_partial_terminal_and_is_never_success",
+      "test_terminal_encoder_failure_preserves_physical_success_but_blocks_publication"
+    ],
+    "review_delta": "review_two_failure_tests_only.apply_patch",
+    "scope": "Tests only: actual tick23 fallback without evaluator terminal; physical success summary retained after terminal require_healthy failure, invalid video blocked from publication."
+  }
+}

@@ -1,0 +1,159 @@
+*** Begin Patch
+*** Update File: src/wlr50_clean/ppo/semantic_training.py
+@@
+         self.completed_episodes: list[dict[str, Any]] = []
+         self._terminal_evidence_writer = None
++        self._defer_terminal_reset = False
++        self._pending_episode_reset = False
+         self.total_decisions = 0
+@@
+     def step(self, actions: Any) -> tuple[Any, Any, Any, dict[str, Any]]:
+         import torch
++        if self._pending_episode_reset:
++            raise RuntimeError("pending terminal reset must complete before the next policy action")
+         if actions.shape != (1, 12) or not bool(torch.isfinite(actions).all()):
+@@
+-            # without moving the RSL storage/return boundary or changing its obs.
++            # The true final observation stays bound to this sampled transition;
++            # the collector may defer reset only at a complete rollout tail.
+@@
+-            self._observation = tuple(self.core.reset(seed=self.seed))
+-            self.episode_length_buf.zero_()
++            if self._defer_terminal_reset:
++                # Only the collector's final rollout tick may request this.
++                # Keep the real terminal observation readable, but do not run
++                # an uncredited reset/prefix unless another rollout is needed.
++                self._pending_episode_reset = True
++                extras["terminal_reset_deferred"] = True
++            else:
++                self._observation = tuple(self.core.reset(seed=self.seed))
++                self.episode_length_buf.zero_()
+         return (self.get_observations(), reward_tensor,
+                 torch.tensor([done], dtype=torch.bool, device=self.device), extras)
+ 
++    @property
++    def episode_reset_pending(self) -> bool:
++        return self._pending_episode_reset
++
++    def reset_pending_episode(self) -> Any:
++        """Explicit next-rollout seam; get_observations never resets physics."""
++        if not self._pending_episode_reset:
++            return self.get_observations()
++        self._observation = tuple(self.core.reset(seed=self.seed))
++        observations = self.get_observations()
++        self.episode_length_buf.zero_()
++        self._pending_episode_reset = False
++        return observations
++
+     def telemetry_summary(self) -> dict[str, Any]:
+         return {"policy_decisions": self.total_decisions,
++                "episode_reset_pending": self._pending_episode_reset,
+@@
+-def _terminal_evidence_before_reset(env: Any, writer: Any):
++def _terminal_evidence_before_reset(env: Any, writer: Any, *, defer_terminal_reset: bool = False):
+     """Install a collector-owned sink only for this single-environment step."""
+@@
+-    if env._terminal_evidence_writer is not None:
++    if env._terminal_evidence_writer is not None or env._defer_terminal_reset:
+         raise RuntimeError("terminal evidence writer is already installed")
+     env._terminal_evidence_writer = writer
++    env._defer_terminal_reset = defer_terminal_reset
+     try:
+         yield
+     finally:
+         env._terminal_evidence_writer = None
++        env._defer_terminal_reset = False
++
++
++def _supports_deferred_terminal_reset(runner: Any, env: Any) -> bool:
++    """Limit this scheduling optimization to the existing stateless N=1 ABI.
++
++    RSL processes next observations through normalizers/RND before storage.
++    A terminal rather than reset observation is equivalent only for this
++    supported identity-normalized, nonrecurrent, no-intrinsic-reward path.
++    Other adapters/topologies retain their original autoreset behavior.
++    """
++    import torch
++    if not isinstance(env, SemanticRslAdapter) or env.num_envs != 1:
++        return False
++    if getattr(runner.alg, "rnd", None) is not None:
++        return False
++    return all(getattr(model, "obs_normalization", None) is False
++               and type(getattr(model, "obs_normalizer", None)) is torch.nn.Identity
++               and getattr(model, "is_recurrent", None) is False
++               for model in (runner.alg.actor, runner.alg.critic))
+@@
+     curriculum = semantic_curriculum_epoch(env.cfg)
++    defer_tail_reset = _supports_deferred_terminal_reset(runner, env)
+     semantic_version = env.cfg.get("semantic_version", "v2")
+@@
+         for iteration in range(iterations):
+             with torch.inference_mode():
++                if defer_tail_reset and env.episode_reset_pending:
++                    if semantic_curriculum_epoch(env.cfg) != curriculum:
++                        raise RuntimeError("curriculum changed before deferred terminal reset")
++                    # No next policy sample may be drawn from terminal obs.
++                    # Previous complete update/checkpoint is already durable.
++                    obs = env.reset_pending_episode().to(runner.device)
++                    if semantic_curriculum_epoch(env.cfg) != curriculum:
++                        raise RuntimeError("curriculum changed during deferred terminal reset")
++                    assert_semantic_return_consistency(runner, env)
+                 for tick in range(int(runner.cfg["num_steps_per_env"])):
+@@
+-                    with _terminal_evidence_before_reset(env, persist_terminal):
++                    with _terminal_evidence_before_reset(
++                            env, persist_terminal,
++                            defer_terminal_reset=(defer_tail_reset
++                                and tick == int(runner.cfg["num_steps_per_env"]) - 1)):
+                         obs, rewards, dones, extras = env.step(raw.to(env.device))
+@@
+-            if stop_record is not None or iteration == 0 or (iteration + 1) % checkpoint_interval_updates == 0 or iteration + 1 == iterations:
++            if (stop_record is not None or iteration == 0
++                    or (iteration + 1) % checkpoint_interval_updates == 0 or iteration + 1 == iterations
++                    or (defer_tail_reset and env.episode_reset_pending)):
+*** Update File: tests/unit/test_semantic_checkpoint_prefix_training.py
+@@
+     def changed_provenance_during_reset(*args, **kwargs):
++        # The actual terminal is already durable BEFORE this reset changes
++        # provenance. It is evidence, not a stored/resumable PPO transition.
++        terminal_rows = [json.loads(line) for line in
++            (tmp_path / "run/residual_and_projection_audit.jsonl").read_text().splitlines()]
++        terminal_episodes = [json.loads(line) for line in
++            (tmp_path / "run/completed_episodes.jsonl").read_text().splitlines()]
++        assert len(terminal_rows) == len(terminal_episodes) == 1
++        assert terminal_rows[0]["terminal"] is True
++        assert terminal_rows[0]["applied_audit"] == terminal_episodes[0]["terminal_info"]
++        assert terminal_rows[0]["terminal_observation"]["policy"][0] == [2.] * 324
+         observation = original_reset(*args, **kwargs)
+@@
+-    for filename in ("residual_and_projection_audit.jsonl", "optimizer_updates.jsonl", "completed_episodes.jsonl"):
+-        assert (tmp_path / "run" / filename).read_text() == ""
++    terminal_rows = [json.loads(line) for line in
++        (tmp_path / "run/residual_and_projection_audit.jsonl").read_text().splitlines()]
++    terminal_episodes = [json.loads(line) for line in
++        (tmp_path / "run/completed_episodes.jsonl").read_text().splitlines()]
++    assert len(terminal_rows) == len(terminal_episodes) == 1
++    assert terminal_rows[0]["global_policy_decision"] == 1 and terminal_rows[0]["terminal"] is True
++    assert terminal_rows[0]["raw_policy_action_full12"] == runner.alg.transition.actions[0].tolist()
++    assert terminal_rows[0]["old_log_probability"] == float(runner.alg.transition.actions_log_prob[0])
++    assert terminal_rows[0]["applied_audit"] == terminal_episodes[0]["terminal_info"]
++    assert terminal_episodes[0]["policy_decisions"] == 1
++    assert terminal_episodes[0]["termination_reason"] == "BODY_COLLISION"
++    assert (tmp_path / "run/optimizer_updates.jsonl").read_text() == ""
++    assert env._terminal_evidence_writer is None and env._defer_terminal_reset is False
+     assert not list((tmp_path / "run/rollouts").iterdir())
+@@
+-    assert env.core.prefix_decisions == 129  # Initial + each post-terminal reset.
+-    assert env.core.prefix_ticks == 129 * 8
++    assert env.core.prefix_decisions == 128  # Initial + only resets needed by another credited sample.
++    assert env.core.prefix_ticks == 128 * 8
+@@
+-    assert len(core.actions) == 257
++    assert len(core.actions) == 256
+@@
+-    assert len(prefix_actions) == 129 and len(credited_actions) == 128
++    assert len(prefix_actions) == 128 and len(credited_actions) == 128
+@@
+-    assert sum(row["kind"] == "checkpoint_prefix_decision" for row in evidence) == 129
++    assert sum(row["kind"] == "checkpoint_prefix_decision" for row in evidence) == 128
+*** End Patch

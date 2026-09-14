@@ -1,0 +1,1428 @@
+{
+  "schema": "wlr50_clean.fixed_video6_diagnostic.v1",
+  "checked_at_utc": "2026-09-10T15:58:34.099568+00:00",
+  "run_id": "20260910T1528556872035Z_g7db0d17f398d_a5db22d8e4b545969459f6ea059a6c87",
+  "lifecycle": "DIAGNOSTIC_FAILURE",
+  "completed_at_utc": "2026-09-10T15:52:36.790432+00:00",
+  "physical_task_success": false,
+  "diagnostic_only": true,
+  "optimizer_updates": 0,
+  "decisions": 1176,
+  "physics_ticks": 9408,
+  "duration_s": 78.4,
+  "phase_counts": {
+    "P01": 2,
+    "P02": 170,
+    "P03": 7,
+    "P04": 39,
+    "P05": 358,
+    "P06": 600,
+    "P07": 0,
+    "P08": 0,
+    "P09": 0,
+    "P10": 0,
+    "P11": 0,
+    "P12": 0,
+    "P13": 0
+  },
+  "native_contiguous": true,
+  "native": {
+    "ticks": 9408,
+    "verified": 9408,
+    "effect": 9408,
+    "own_phase_effect": 9403
+  },
+  "no_in_episode_state_writes": true,
+  "open_12_channel_mask_counts": {
+    "P01": 2,
+    "P02": 170,
+    "P03": 7,
+    "P04": 39,
+    "P05": 358,
+    "P06": 600
+  },
+  "tanh_cap_formula_equal_counts": {
+    "P01": 2,
+    "P02": 170,
+    "P03": 6,
+    "P04": 39,
+    "P05": 358,
+    "P06": 598
+  },
+  "tanh_cap_max_absolute_error": {
+    "P01": 4.440892098500626e-16,
+    "P02": 3.552713678800501e-15,
+    "P03": 0.006237384800469814,
+    "P04": 3.552713678800501e-15,
+    "P05": 3.9968028886505635e-15,
+    "P06": 7.457007814059374
+  },
+  "leg_events": [
+    {
+      "leg": "FL",
+      "event": "whole_body_initial_clearance",
+      "physics_tick": 1805,
+      "simulation_time_s": 15.041666666666666,
+      "upward_excursion_m": 0.0033183202943646087,
+      "whole_body_joint_motion_deg": 8.407094153600646,
+      "command_motion_deg": 3.2822543193055616,
+      "evidence": "active_air_or_early_top"
+    },
+    {
+      "leg": "FL",
+      "event": "qualified_measured_upward_lift",
+      "physics_tick": 1809,
+      "simulation_time_s": 15.075,
+      "upward_excursion_m": 0.00932664424314146,
+      "joint_motion_deg": 11.59722578612206,
+      "airborne_clearance_above_top_m": -0.04112613121737421
+    },
+    {
+      "leg": "FL",
+      "event": "qualification_revoked_ground_before_cross",
+      "physics_tick": 1843,
+      "simulation_time_s": 15.358333333333333
+    },
+    {
+      "leg": "FL",
+      "event": "whole_body_initial_clearance",
+      "physics_tick": 3890,
+      "simulation_time_s": 32.416666666666664,
+      "upward_excursion_m": 0.005544267343174494,
+      "whole_body_joint_motion_deg": 6.936306510774367,
+      "command_motion_deg": 16.87624184334751,
+      "evidence": "active_air_or_early_top"
+    },
+    {
+      "leg": "FL",
+      "event": "qualified_measured_upward_lift",
+      "physics_tick": 3937,
+      "simulation_time_s": 32.80833333333333,
+      "upward_excursion_m": 0.008102600776689083,
+      "joint_motion_deg": 2.972017652226709,
+      "airborne_clearance_above_top_m": -0.03744781762494809
+    }
+  ],
+  "event_ticks": {
+    "active_lift": {
+      "FL": 1809,
+      "RR": null
+    },
+    "front_edge_crossed": {
+      "FL": 4486,
+      "RR": null
+    },
+    "placed": {
+      "FL": 4604,
+      "RR": null
+    }
+  },
+  "terminal_task": {
+    "stage_id": "P06",
+    "completed_stage_ids": [
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P05"
+    ],
+    "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "termination_source": "LOCAL_TASK_DEADLINE",
+    "local_timeout": {
+      "nominal_limit_s": 40,
+      "current_progress_allowance_s": 0,
+      "fixed_post_window_allowance_s": 0,
+      "effective_limit_s": 40,
+      "nominal_limit_exceeded": true,
+      "classification": "finite_task_terminal_not_external_truncation",
+      "timer_inputs_observable_in_existing372": true
+    },
+    "stage_age_s": 40.00000000000001,
+    "completion_values": {
+      "rear_approach": 0
+    },
+    "stall_diagnostic": true
+  },
+  "terminal_info": {
+    "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "done": null,
+    "terminated": null,
+    "truncated": null,
+    "time_outs": false,
+    "terminal_bootstrap_allowed": false
+  },
+  "physical_status": {
+    "valid": true,
+    "run_validity": "VALID",
+    "physical_evidence_status": "CONTACT_BEARING_UNVERIFIED",
+    "success": false,
+    "task_violations": null,
+    "safety_aborts": null
+  },
+  "partial_quality": {
+    "duration_s": 78.39999999999999,
+    "physics_ticks": 9408,
+    "roll_rms_rad": 0.08184420257152801,
+    "pitch_rms_rad": 0.112216785700398,
+    "roll_rate_rms_rad_s": 0.055599755792752024,
+    "pitch_rate_rms_rad_s": 0.05728904570591845
+  },
+  "all_phases_sampled": false,
+  "capture": {
+    "valid": true,
+    "status": "PASS",
+    "frame_count": 1176,
+    "frame_ledger_complete": true,
+    "one_callback_per_render": true,
+    "encoder_finalized_before_app_close": true,
+    "render_observer_only": true
+  },
+  "source_acceptance_error": "SemanticVideoError: episode did not meet common physical task",
+  "limits": [
+    "One completed policy ledger pass; no separate physical/native large-stream scan or model-byte hash.",
+    "Decision endpoints are sampled at 8 physics ticks; event ticks can be exact history without exact-tick force telemetry.",
+    "Initial load parameter hashes are not end-of-evaluation unchanged-model proof; failure at physical success requirement precedes check_model().",
+    "Partial trajectory quality is not successful full-course stability, and unknown bearing is not BODY_COLLISION or wheel-only evidence.",
+    "One additional 131KB stage-transition evidence read supplied exact C/P geometry; no independent physical/native stream scan."
+  ],
+  "load": {
+    "checkpoint_loaded_and_verified": true,
+    "official_load_semantic_checkpoint": true,
+    "saved_global_policy_decisions": 151936,
+    "migration": null,
+    "observation_dimension": 372,
+    "source": {
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000151936.pt",
+      "checkpoint_sha256": "ba52ffcd874c227c41632d8a9b3b58a4980b715ec6181eba0113d84e837f61c9",
+      "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000151936_manifest.json",
+      "manifest_sha256": "58c34b5f2ee649d708ae6629b5e4c6292490dbdf2a86804f83d8e8fc1772302d"
+    },
+    "parameter_hashes": {
+      "actor_parameter_sha256": "c878c6b1fe68297997601df5f7d7d38ff4a65a2d42276bf9873b36449c7b4236",
+      "critic_parameter_sha256": "b51c1e8c204fe954e108bc230f0423d1a3b9d1a55ed1fb7468767f7b82551dc1",
+      "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+      "optimizer_state_sha256": "d6ff448f3431fcf3854e742629f2684456d4b1f4c7c000d5a890626a413f5a29"
+    },
+    "video_seed": 4001,
+    "optimizer_updates": 0,
+    "deterministic_output": "conditional_mean"
+  },
+  "natural_reset": {
+    "entry": {
+      "decision_count": 0,
+      "done": false,
+      "physics_tick": 0,
+      "state_id": "P01"
+    },
+    "reset_metadata": {
+      "reset_count": 1,
+      "reset_options": {},
+      "reset_prime_tick_count": 0,
+      "training_phase_snapshot": "P01",
+      "seed": 4001
+    },
+    "entry_scope": {
+      "from_phase": "P01",
+      "pre_action_ticks": 0,
+      "pre_action_source": "not_encoded_natural_reset",
+      "extra_pre_action_physics_ticks": 0,
+      "episode_count": 1,
+      "fresh_process_single_episode": true,
+      "performed_post_success_ticks": 0
+    }
+  },
+  "stage_transitions": [
+    {
+      "from_stage": "P01",
+      "to_stage": "P02",
+      "physics_tick": 16,
+      "sim_time_s": 0.13333333333333333,
+      "completion_values": {
+        "transfer_ready_FR": 1
+      }
+    },
+    {
+      "from_stage": "P02",
+      "to_stage": "P03",
+      "physics_tick": 1376,
+      "sim_time_s": 11.466666666666667,
+      "completion_values": {
+        "lifted_FR": 1,
+        "clear_FR": 1,
+        "approach_FR": 1
+      }
+    },
+    {
+      "from_stage": "P03",
+      "to_stage": "P04",
+      "physics_tick": 1432,
+      "sim_time_s": 11.933333333333334,
+      "completion_values": {
+        "placed_FR": 1
+      }
+    },
+    {
+      "from_stage": "P04",
+      "to_stage": "P05",
+      "physics_tick": 1744,
+      "sim_time_s": 14.533333333333333,
+      "completion_values": {
+        "edge_proximity_FL": 1,
+        "role_prepared_FL": 1
+      }
+    },
+    {
+      "from_stage": "P05",
+      "to_stage": "P06",
+      "physics_tick": 4608,
+      "sim_time_s": 38.4,
+      "completion_values": {
+        "placed_FL": 1
+      }
+    }
+  ],
+  "selected_decision_endpoints": [
+    {
+      "decision": 226,
+      "tick": 1808,
+      "time_s": 15.066666666666666,
+      "request_phase": "P05",
+      "returned_phase": "P05",
+      "FL": {
+        "air": true,
+        "top_contact": false,
+        "ground_contact": false,
+        "support": false,
+        "bearing_verified": true,
+        "bearing_force_n": 0,
+        "load_fraction": 0,
+        "load_fraction_valid": true,
+        "front_distance_m": -0.05365207450557108,
+        "clearance_m": -0.042464305467031345,
+        "current_lift_valid": null
+      },
+      "RR": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": true,
+        "support": true,
+        "bearing_verified": true,
+        "bearing_force_n": 7.123288631439209,
+        "load_fraction": 0.24105866033513446,
+        "load_fraction_valid": true,
+        "front_distance_m": -0.5657161551909482,
+        "clearance_m": -0.049994939356480965,
+        "current_lift_valid": false
+      },
+      "FL_C_history": false,
+      "FL_placed_history": false,
+      "physical_evidence_status": "VERIFIED"
+    },
+    {
+      "decision": 227,
+      "tick": 1816,
+      "time_s": 15.133333333333333,
+      "request_phase": "P05",
+      "returned_phase": "P05",
+      "FL": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": false,
+        "support": false,
+        "bearing_verified": false,
+        "bearing_force_n": 0,
+        "load_fraction": 0,
+        "load_fraction_valid": false,
+        "front_distance_m": -0.04755398290324564,
+        "clearance_m": -0.04028174227096545,
+        "current_lift_valid": null
+      },
+      "RR": {
+        "air": true,
+        "top_contact": false,
+        "ground_contact": false,
+        "support": false,
+        "bearing_verified": true,
+        "bearing_force_n": 0,
+        "load_fraction": 0,
+        "load_fraction_valid": false,
+        "front_distance_m": -0.5714556205468213,
+        "clearance_m": -0.04964775498325889,
+        "current_lift_valid": false
+      },
+      "FL_C_history": false,
+      "FL_placed_history": false,
+      "physical_evidence_status": "CONTACT_BEARING_UNVERIFIED"
+    },
+    {
+      "decision": 231,
+      "tick": 1848,
+      "time_s": 15.4,
+      "request_phase": "P05",
+      "returned_phase": "P05",
+      "FL": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": true,
+        "support": true,
+        "bearing_verified": false,
+        "bearing_force_n": 8.797978401184082,
+        "load_fraction": 0.20270408890095815,
+        "load_fraction_valid": false,
+        "front_distance_m": -0.04948043482470865,
+        "clearance_m": -0.051022326490722976,
+        "current_lift_valid": null
+      },
+      "RR": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": true,
+        "support": true,
+        "bearing_verified": true,
+        "bearing_force_n": 5.198172092437744,
+        "load_fraction": 0.1197650971507464,
+        "load_fraction_valid": false,
+        "front_distance_m": -0.6003590937154328,
+        "clearance_m": -0.05157483347566166,
+        "current_lift_valid": false
+      },
+      "FL_C_history": false,
+      "FL_placed_history": false,
+      "physical_evidence_status": "CONTACT_BEARING_UNVERIFIED"
+    },
+    {
+      "decision": 486,
+      "tick": 3888,
+      "time_s": 32.4,
+      "request_phase": "P05",
+      "returned_phase": "P05",
+      "FL": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": false,
+        "support": false,
+        "bearing_verified": false,
+        "bearing_force_n": 0,
+        "load_fraction": 0,
+        "load_fraction_valid": false,
+        "front_distance_m": -0.04897862332034464,
+        "clearance_m": -0.044770718689023395,
+        "current_lift_valid": null
+      },
+      "RR": {
+        "air": true,
+        "top_contact": false,
+        "ground_contact": false,
+        "support": false,
+        "bearing_verified": true,
+        "bearing_force_n": 0,
+        "load_fraction": 0,
+        "load_fraction_valid": false,
+        "front_distance_m": -0.6543522592084443,
+        "clearance_m": -0.05020924143699982,
+        "current_lift_valid": false
+      },
+      "FL_C_history": false,
+      "FL_placed_history": false,
+      "physical_evidence_status": "CONTACT_BEARING_UNVERIFIED"
+    },
+    {
+      "decision": 487,
+      "tick": 3896,
+      "time_s": 32.46666666666667,
+      "request_phase": "P05",
+      "returned_phase": "P05",
+      "FL": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": false,
+        "support": false,
+        "bearing_verified": false,
+        "bearing_force_n": 0,
+        "load_fraction": 0,
+        "load_fraction_valid": false,
+        "front_distance_m": -0.04839712040591593,
+        "clearance_m": -0.04269526692864738,
+        "current_lift_valid": null
+      },
+      "RR": {
+        "air": true,
+        "top_contact": false,
+        "ground_contact": false,
+        "support": false,
+        "bearing_verified": true,
+        "bearing_force_n": 0,
+        "load_fraction": 0,
+        "load_fraction_valid": false,
+        "front_distance_m": -0.6537000800864732,
+        "clearance_m": -0.050436713765786845,
+        "current_lift_valid": false
+      },
+      "FL_C_history": false,
+      "FL_placed_history": false,
+      "physical_evidence_status": "CONTACT_BEARING_UNVERIFIED"
+    },
+    {
+      "decision": 492,
+      "tick": 3936,
+      "time_s": 32.8,
+      "request_phase": "P05",
+      "returned_phase": "P05",
+      "FL": {
+        "air": true,
+        "top_contact": false,
+        "ground_contact": false,
+        "support": false,
+        "bearing_verified": true,
+        "bearing_force_n": 0,
+        "load_fraction": 0,
+        "load_fraction_valid": true,
+        "front_distance_m": -0.04790180580783243,
+        "clearance_m": -0.03787891984284271,
+        "current_lift_valid": null
+      },
+      "RR": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": true,
+        "support": true,
+        "bearing_verified": true,
+        "bearing_force_n": 1.8853811025619507,
+        "load_fraction": 0.06505747191590333,
+        "load_fraction_valid": true,
+        "front_distance_m": -0.6532184894578492,
+        "clearance_m": -0.05038821107185607,
+        "current_lift_valid": false
+      },
+      "FL_C_history": false,
+      "FL_placed_history": false,
+      "physical_evidence_status": "VERIFIED"
+    },
+    {
+      "decision": 493,
+      "tick": 3944,
+      "time_s": 32.86666666666667,
+      "request_phase": "P05",
+      "returned_phase": "P05",
+      "FL": {
+        "air": true,
+        "top_contact": false,
+        "ground_contact": false,
+        "support": false,
+        "bearing_verified": true,
+        "bearing_force_n": 0,
+        "load_fraction": 0,
+        "load_fraction_valid": true,
+        "front_distance_m": -0.04671904103923197,
+        "clearance_m": -0.03441235705737919,
+        "current_lift_valid": null
+      },
+      "RR": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": true,
+        "support": true,
+        "bearing_verified": true,
+        "bearing_force_n": 1.9609816074371338,
+        "load_fraction": 0.06783854400249614,
+        "load_fraction_valid": true,
+        "front_distance_m": -0.6520543511407411,
+        "clearance_m": -0.05057170913906606,
+        "current_lift_valid": false
+      },
+      "FL_C_history": false,
+      "FL_placed_history": false,
+      "physical_evidence_status": "VERIFIED"
+    },
+    {
+      "decision": 560,
+      "tick": 4480,
+      "time_s": 37.333333333333336,
+      "request_phase": "P05",
+      "returned_phase": "P05",
+      "FL": {
+        "air": true,
+        "top_contact": false,
+        "ground_contact": false,
+        "support": false,
+        "bearing_verified": true,
+        "bearing_force_n": 0,
+        "load_fraction": 0,
+        "load_fraction_valid": true,
+        "front_distance_m": -0.0004641975657975195,
+        "clearance_m": 0.0015418828507956714,
+        "current_lift_valid": null
+      },
+      "RR": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": true,
+        "support": true,
+        "bearing_verified": true,
+        "bearing_force_n": 3.2732651233673096,
+        "load_fraction": 0.11870881360306762,
+        "load_fraction_valid": true,
+        "front_distance_m": -0.6006997789638078,
+        "clearance_m": -0.050616629424443824,
+        "current_lift_valid": false
+      },
+      "FL_C_history": false,
+      "FL_placed_history": false,
+      "physical_evidence_status": "VERIFIED"
+    },
+    {
+      "decision": 561,
+      "tick": 4488,
+      "time_s": 37.4,
+      "request_phase": "P05",
+      "returned_phase": "P05",
+      "FL": {
+        "air": true,
+        "top_contact": false,
+        "ground_contact": false,
+        "support": false,
+        "bearing_verified": true,
+        "bearing_force_n": 0,
+        "load_fraction": 0,
+        "load_fraction_valid": true,
+        "front_distance_m": 0.00035715443920736334,
+        "clearance_m": 0.0014750621637088443,
+        "current_lift_valid": null
+      },
+      "RR": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": true,
+        "support": true,
+        "bearing_verified": true,
+        "bearing_force_n": 3.401808738708496,
+        "load_fraction": 0.11805628666179467,
+        "load_fraction_valid": true,
+        "front_distance_m": -0.5999539609448945,
+        "clearance_m": -0.05046174779617777,
+        "current_lift_valid": false
+      },
+      "FL_C_history": true,
+      "FL_placed_history": false,
+      "physical_evidence_status": "VERIFIED"
+    },
+    {
+      "decision": 575,
+      "tick": 4600,
+      "time_s": 38.333333333333336,
+      "request_phase": "P05",
+      "returned_phase": "P05",
+      "FL": {
+        "air": true,
+        "top_contact": false,
+        "ground_contact": false,
+        "support": false,
+        "bearing_verified": true,
+        "bearing_force_n": 0,
+        "load_fraction": 0,
+        "load_fraction_valid": true,
+        "front_distance_m": 0.013496998379942227,
+        "clearance_m": 0.00010494925412940503,
+        "current_lift_valid": null
+      },
+      "RR": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": true,
+        "support": true,
+        "bearing_verified": true,
+        "bearing_force_n": 3.6806492805480957,
+        "load_fraction": 0.12865280469521473,
+        "load_fraction_valid": true,
+        "front_distance_m": -0.5869311581747567,
+        "clearance_m": -0.049992715472295404,
+        "current_lift_valid": false
+      },
+      "FL_C_history": true,
+      "FL_placed_history": false,
+      "physical_evidence_status": "VERIFIED"
+    },
+    {
+      "decision": 576,
+      "tick": 4608,
+      "time_s": 38.4,
+      "request_phase": "P05",
+      "returned_phase": "P06",
+      "FL": {
+        "air": false,
+        "top_contact": true,
+        "ground_contact": false,
+        "support": true,
+        "bearing_verified": true,
+        "bearing_force_n": 5.405339241027832,
+        "load_fraction": 0.18834708325669564,
+        "load_fraction_valid": true,
+        "front_distance_m": 0.012922707627531338,
+        "clearance_m": -0.00024105581347036442,
+        "current_lift_valid": null
+      },
+      "RR": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": true,
+        "support": true,
+        "bearing_verified": true,
+        "bearing_force_n": 8.909000396728516,
+        "load_fraction": 0.31043088410071545,
+        "load_fraction_valid": true,
+        "front_distance_m": -0.5856849889652764,
+        "clearance_m": -0.04999974457862903,
+        "current_lift_valid": false
+      },
+      "FL_C_history": true,
+      "FL_placed_history": true,
+      "physical_evidence_status": "VERIFIED"
+    },
+    {
+      "decision": 577,
+      "tick": 4616,
+      "time_s": 38.46666666666667,
+      "request_phase": "P06",
+      "returned_phase": "P06",
+      "FL": {
+        "air": false,
+        "top_contact": true,
+        "ground_contact": false,
+        "support": true,
+        "bearing_verified": true,
+        "bearing_force_n": 7.942325115203857,
+        "load_fraction": 0.28871130700583514,
+        "load_fraction_valid": true,
+        "front_distance_m": 0.01174879414868002,
+        "clearance_m": -0.0001466369334039569,
+        "current_lift_valid": null
+      },
+      "RR": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": true,
+        "support": true,
+        "bearing_verified": true,
+        "bearing_force_n": 11.61066722869873,
+        "load_fraction": 0.4220591403883104,
+        "load_fraction_valid": true,
+        "front_distance_m": -0.5846438671844041,
+        "clearance_m": -0.050008160538898255,
+        "current_lift_valid": false
+      },
+      "FL_C_history": true,
+      "FL_placed_history": true,
+      "physical_evidence_status": "VERIFIED"
+    },
+    {
+      "decision": 610,
+      "tick": 4880,
+      "time_s": 40.666666666666664,
+      "request_phase": "P06",
+      "returned_phase": "P06",
+      "FL": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": false,
+        "support": true,
+        "bearing_verified": true,
+        "bearing_force_n": 11.579611778259277,
+        "load_fraction": 0.39887255564926305,
+        "load_fraction_valid": true,
+        "front_distance_m": -0.005437013079408359,
+        "clearance_m": -0.0015008152811645248,
+        "current_lift_valid": null
+      },
+      "RR": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": true,
+        "support": true,
+        "bearing_verified": true,
+        "bearing_force_n": 15.139036178588867,
+        "load_fraction": 0.5214808722653177,
+        "load_fraction_valid": true,
+        "front_distance_m": -0.5571790676014459,
+        "clearance_m": -0.051066161223351114,
+        "current_lift_valid": false
+      },
+      "FL_C_history": true,
+      "FL_placed_history": true,
+      "physical_evidence_status": "VERIFIED"
+    },
+    {
+      "decision": 628,
+      "tick": 5024,
+      "time_s": 41.86666666666667,
+      "request_phase": "P06",
+      "returned_phase": "P06",
+      "FL": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": false,
+        "support": false,
+        "bearing_verified": false,
+        "bearing_force_n": 0,
+        "load_fraction": 0,
+        "load_fraction_valid": false,
+        "front_distance_m": -0.03317713396716471,
+        "clearance_m": -0.014527398922628831,
+        "current_lift_valid": null
+      },
+      "RR": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": true,
+        "support": true,
+        "bearing_verified": true,
+        "bearing_force_n": 14.59796142578125,
+        "load_fraction": 0.772308294111597,
+        "load_fraction_valid": false,
+        "front_distance_m": -0.5420682880477941,
+        "clearance_m": -0.05003715010114937,
+        "current_lift_valid": false
+      },
+      "FL_C_history": true,
+      "FL_placed_history": true,
+      "physical_evidence_status": "CONTACT_BEARING_UNVERIFIED"
+    },
+    {
+      "decision": 646,
+      "tick": 5168,
+      "time_s": 43.06666666666667,
+      "request_phase": "P06",
+      "returned_phase": "P06",
+      "FL": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": true,
+        "support": true,
+        "bearing_verified": false,
+        "bearing_force_n": 8.755218505859375,
+        "load_fraction": 0.2871843722980699,
+        "load_fraction_valid": false,
+        "front_distance_m": -0.04926836149859781,
+        "clearance_m": -0.050827798188117404,
+        "current_lift_valid": null
+      },
+      "RR": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": true,
+        "support": true,
+        "bearing_verified": true,
+        "bearing_force_n": 11.337076187133789,
+        "load_fraction": 0.37187319840372557,
+        "load_fraction_valid": false,
+        "front_distance_m": -0.555968638827089,
+        "clearance_m": -0.05037751261162762,
+        "current_lift_valid": false
+      },
+      "FL_C_history": true,
+      "FL_placed_history": true,
+      "physical_evidence_status": "CONTACT_BEARING_UNVERIFIED"
+    },
+    {
+      "decision": 1176,
+      "tick": 9408,
+      "time_s": 78.4,
+      "request_phase": "P06",
+      "returned_phase": "P06",
+      "FL": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": true,
+        "support": true,
+        "bearing_verified": false,
+        "bearing_force_n": 12.36954116821289,
+        "load_fraction": 0.3776398628065757,
+        "load_fraction_valid": false,
+        "front_distance_m": -0.04756578462291117,
+        "clearance_m": -0.05043091830026143,
+        "current_lift_valid": null
+      },
+      "RR": {
+        "air": false,
+        "top_contact": false,
+        "ground_contact": true,
+        "support": true,
+        "bearing_verified": true,
+        "bearing_force_n": 11.177556991577148,
+        "load_fraction": 0.34124880069595376,
+        "load_fraction_valid": false,
+        "front_distance_m": -0.4671746905343568,
+        "clearance_m": -0.0500497061757114,
+        "current_lift_valid": false
+      },
+      "FL_C_history": true,
+      "FL_placed_history": true,
+      "physical_evidence_status": "CONTACT_BEARING_UNVERIFIED"
+    }
+  ],
+  "P06_commands": [
+    {
+      "tick": 4600,
+      "nominal_action_full12": [
+        22.8,
+        -13.4,
+        0,
+        45.9,
+        6.9,
+        0,
+        0,
+        0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "projected_residual_full12": [
+        4.962012902809352,
+        22.0169271693872,
+        8.041871022463651,
+        2.0739371710027683,
+        -10.269513427686578,
+        -9.514022814359336,
+        -4.9107712464069015,
+        -5.007139581288801,
+        -0.6190220991821306,
+        -0.14481458826674146,
+        -0.024575317143212927,
+        0.5187384465898401
+      ],
+      "actual_drive_target_full12": [
+        28.467060168643634,
+        9.866927169387198,
+        8.041871022463651,
+        48.60094292000229,
+        -3.3695134276865772,
+        -9.514022814359336,
+        -4.9107712464069015,
+        -5.007139581288801,
+        -0.3190220991821306,
+        0.15518541173325853,
+        0.27542468285678706,
+        0.8187384465898402
+      ]
+    },
+    {
+      "tick": 4608,
+      "nominal_action_full12": [
+        22.8,
+        -13.4,
+        0,
+        45.9,
+        6.9,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "projected_residual_full12": [
+        4.965413050181397,
+        22.017748781505663,
+        8.039290756450518,
+        2.0684172967261105,
+        -10.270182498056668,
+        -9.503198588850028,
+        -4.901699139689625,
+        -5.008986113201821,
+        -0.6186790387301253,
+        -0.14465614085942707,
+        -0.02360644197004768,
+        0.5187828143715043
+      ],
+      "actual_drive_target_full12": [
+        27.22046031601568,
+        9.867748781505663,
+        8.039290756450518,
+        48.59542304572563,
+        -3.3701824980566677,
+        -9.503198588850028,
+        -4.901699139689625,
+        -5.008986113201821,
+        -0.6186790387301253,
+        -0.14465614085942707,
+        -0.02360644197004768,
+        0.5187828143715043
+      ]
+    },
+    {
+      "tick": 4616,
+      "nominal_action_full12": [
+        22.8,
+        -13.4,
+        0,
+        45.9,
+        6.9,
+        0,
+        0,
+        0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "projected_residual_full12": [
+        8.465413050181393,
+        25.517748781505666,
+        10.60813304904839,
+        5.5684172967261105,
+        -13.770182498056666,
+        -13.003198588850028,
+        -8.401699139689626,
+        -8.508986113201821,
+        -0.7236790387301253,
+        -0.24965614085942717,
+        -0.021189490241768805,
+        0.5175588838197365
+      ],
+      "actual_drive_target_full12": [
+        30.720460316015675,
+        13.367748781505666,
+        10.60813304904839,
+        52.09542304572563,
+        -6.870182498056666,
+        -13.003198588850028,
+        -8.401699139689626,
+        -8.508986113201821,
+        -0.4236790387301253,
+        0.05034385914057282,
+        0.2788105097582312,
+        0.8175588838197365
+      ]
+    },
+    {
+      "tick": 4880,
+      "nominal_action_full12": [
+        22.8,
+        -13.4,
+        0,
+        45.9,
+        6.9,
+        0,
+        0,
+        0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "projected_residual_full12": [
+        -1.4792730133943337,
+        27.1522206257068,
+        7.152517489033541,
+        28.59981328279452,
+        -13.076251262625934,
+        -24.052966550418716,
+        -10.567936004960032,
+        -6.805129524243601,
+        -0.9047261825622412,
+        -0.23859834670107297,
+        -0.2698389854167694,
+        0.3419294305376988
+      ],
+      "actual_drive_target_full12": [
+        20.77577425243995,
+        15.0022206257068,
+        7.152517489033541,
+        75.12681903179404,
+        -6.176251262625934,
+        -24.052966550418716,
+        -10.567936004960032,
+        -6.805129524243601,
+        -0.6047261825622412,
+        0.06140165329892702,
+        0.030161014583230616,
+        0.6419294305376988
+      ]
+    },
+    {
+      "tick": 5024,
+      "nominal_action_full12": [
+        22.8,
+        -13.4,
+        0,
+        45.9,
+        6.9,
+        0,
+        0,
+        0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "projected_residual_full12": [
+        -1.0665143956623915,
+        23.699074939624253,
+        6.325006924677829,
+        23.767922624395943,
+        -14.029898066500937,
+        -25.667120217901047,
+        -11.041995131507594,
+        -9.972347734724519,
+        -1.0494137159509456,
+        -0.19436431786695837,
+        -0.2505864785696099,
+        0.41104820699808103
+      ],
+      "actual_drive_target_full12": [
+        21.18853287017189,
+        11.549074939624253,
+        6.325006924677829,
+        70.29492837339546,
+        -7.129898066500937,
+        -25.667120217901047,
+        -11.041995131507594,
+        -9.972347734724519,
+        -0.7494137159509455,
+        0.10563568213304161,
+        0.04941352143039007,
+        0.711048206998081
+      ]
+    },
+    {
+      "tick": 5168,
+      "nominal_action_full12": [
+        22.8,
+        -13.4,
+        0,
+        45.9,
+        6.9,
+        0,
+        0,
+        0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "projected_residual_full12": [
+        0.1477820946784867,
+        26.392336867898955,
+        7.245670058384408,
+        23.464538848787974,
+        -15.537410572648712,
+        -24.829008123404876,
+        -10.306673318746547,
+        -10.342126901437888,
+        -1.0299555507787999,
+        -0.1916899186869254,
+        -0.1865324753132106,
+        0.43725845617233455
+      ],
+      "actual_drive_target_full12": [
+        22.40282936051277,
+        14.242336867898954,
+        7.245670058384408,
+        69.9915445977875,
+        -8.637410572648712,
+        -24.829008123404876,
+        -10.306673318746547,
+        -10.342126901437888,
+        -0.7299555507787998,
+        0.1083100813130746,
+        0.11346752468678939,
+        0.7372584561723345
+      ]
+    },
+    {
+      "tick": 9408,
+      "nominal_action_full12": [
+        22.8,
+        -13.4,
+        0,
+        45.9,
+        6.9,
+        0,
+        0,
+        0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "projected_residual_full12": [
+        -0.31754929500154816,
+        27.561477290693457,
+        7.549909618560144,
+        26.96704878959327,
+        -14.983239811716844,
+        -24.53137979979067,
+        -10.170019508808746,
+        -9.442861733805337,
+        -0.9869849948570966,
+        -0.2044613855533445,
+        -0.19332142000582445,
+        0.41282986195773935
+      ],
+      "actual_drive_target_full12": [
+        21.937497970832734,
+        15.411477290693457,
+        7.549909618560144,
+        73.49405453859279,
+        -8.083239811716844,
+        -24.53137979979067,
+        -10.170019508808746,
+        -9.442861733805337,
+        -0.6869849948570965,
+        0.09553861444665548,
+        0.10667857999417554,
+        0.7128298619577393
+      ]
+    }
+  ],
+  "P06_endpoint_contacts": {
+    "FL": {
+      "TOP": 33,
+      "not_TOP_not_GROUND_bearing_verified": 18,
+      "not_TOP_not_GROUND_no_support_unverified": 18,
+      "GROUND": 531,
+      "ground_bearing_unverified": 524,
+      "ground_bearing_verified": 7
+    },
+    "RR": {
+      "GROUND": 600,
+      "current_lift_valid_true": 0
+    }
+  },
+  "RR_sampled_AIR_mode_starts": [
+    {
+      "tick": 1816,
+      "time_s": 15.133333333333333,
+      "front_distance_m": -0.5714556205468213,
+      "clearance_m": -0.04964775498325889
+    },
+    {
+      "tick": 3752,
+      "time_s": 31.266666666666666,
+      "front_distance_m": -0.6531853045718705,
+      "clearance_m": -0.050298002689199865
+    },
+    {
+      "tick": 3800,
+      "time_s": 31.666666666666668,
+      "front_distance_m": -0.6541669930713212,
+      "clearance_m": -0.051091951637724876
+    },
+    {
+      "tick": 3880,
+      "time_s": 32.333333333333336,
+      "front_distance_m": -0.6543716158168351,
+      "clearance_m": -0.05002280950471283
+    }
+  ],
+  "terminal_legs": {
+    "FL": {
+      "front_distance_m": -0.04756578462291117,
+      "clearance_m": -0.05043091830026143,
+      "top_geometry": false,
+      "top_contact": false,
+      "air": false,
+      "crossing_geometry_pending": false,
+      "recent_joint_motion_deg": 1.1831407359552486,
+      "recent_clearance_gain_m": 0.0002668134921774701,
+      "recent_whole_body_joint_motion_deg": 3.7840648190650397,
+      "whole_body_actuation_evidence": true,
+      "initial_clearance": true,
+      "ground_contact": true,
+      "obstacle_pair_active": true,
+      "consecutive_air_samples": 0,
+      "consecutive_top_samples": 0,
+      "within_top_xy": false,
+      "within_lateral_span": true,
+      "support": true,
+      "contact_surface": "OBSTACLE_AMBIGUOUS",
+      "top_surface_contact": false,
+      "contact_reaction": true,
+      "contact_reaction_force_n": 18.525521278381472,
+      "bearing_force_n": 12.36954116821289,
+      "bearing_verified": false,
+      "active_attempt": true,
+      "crossing_evidence_status": "VERIFIED",
+      "top_xy_outside_distance_m": 0.04256578462291116,
+      "load_fraction": 0.3776398628065757,
+      "load_fraction_valid": false,
+      "soft_air_actuation_earned": false,
+      "soft_air_earned_tick": null,
+      "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+    },
+    "RR": {
+      "front_distance_m": -0.4671746905343568,
+      "clearance_m": -0.0500497061757114,
+      "top_geometry": false,
+      "top_contact": false,
+      "air": false,
+      "crossing_geometry_pending": false,
+      "recent_joint_motion_deg": 0,
+      "recent_clearance_gain_m": 0,
+      "recent_whole_body_joint_motion_deg": 0,
+      "whole_body_actuation_evidence": false,
+      "initial_clearance": false,
+      "ground_contact": true,
+      "obstacle_pair_active": false,
+      "consecutive_air_samples": 0,
+      "consecutive_top_samples": 0,
+      "within_top_xy": false,
+      "within_lateral_span": true,
+      "support": true,
+      "contact_surface": "NONE",
+      "top_surface_contact": false,
+      "contact_reaction": true,
+      "contact_reaction_force_n": 11.17755699157725,
+      "bearing_force_n": 11.177556991577148,
+      "bearing_verified": true,
+      "active_attempt": false,
+      "crossing_evidence_status": "PENDING",
+      "initial_now": false,
+      "lift_established_now": false,
+      "current_lift_valid": false,
+      "contact_mode": "GROUND",
+      "motion_continuation_allowed": true,
+      "motion_continuation_reason": "bounded_adjustment_to_acquire_measured_response",
+      "ground_relative_lift_m": 0,
+      "recent_wheel_displacement_m": 0,
+      "edge_adjustment_response_observed": null,
+      "body_control_evidence": true,
+      "body_control_evidence_semantics": "unchanged_live_safety_and_short_verified_other_supports_not_static_stability_proof",
+      "observed_other_support_contacts": [
+        "FL",
+        "FR",
+        "RL"
+      ],
+      "air_duration_s": 0,
+      "edge_contact_duration_s": 0,
+      "durations_are_diagnostic_only": true,
+      "lift_established": false,
+      "initial_lift_observed": false,
+      "front_edge_crossed": false,
+      "placed_on_top": false,
+      "top_xy_outside_distance_m": 0.4621746905343568,
+      "load_fraction": 0.34124880069595376,
+      "load_fraction_valid": false,
+      "soft_air_actuation_earned": false,
+      "soft_air_earned_tick": null,
+      "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+    }
+  },
+  "recorded_decode_metadata": {
+    "valid": true,
+    "full_decode": true,
+    "bytes": 110515863,
+    "sha256": "20f8ee06793334e1b66f84b6f46b7198f5d68e1ccd23631c2e3a1673b7c62bdc",
+    "frame_count": 1176,
+    "fps": 15,
+    "duration_s": 78.39999999999999,
+    "container_duration_s": 286331153,
+    "container_duration_valid": false,
+    "unique_frame_checksums": 1176,
+    "black_like_frame_count": 0
+  },
+  "P06_FL_exit_evidence": {
+    "first_sampled_not_TOP_tick": 4880,
+    "prior_sampled_TOP_tick": 4872,
+    "first_sampled_no_support_and_bearing_unverified_tick": 5024,
+    "first_sampled_ground_tick": 5168,
+    "event_precision": "decision-endpoints; transition lies after previous 8-tick endpoint"
+  },
+  "handoff_scope": {
+    "endpoint_residuals_nonzero": true,
+    "nominal_wheels_4600": [
+      0.3,
+      0.3,
+      0.3,
+      0.3
+    ],
+    "nominal_wheels_4608": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "nominal_wheels_4616": [
+      0.3,
+      0.3,
+      0.3,
+      0.3
+    ],
+    "actual_wheels_4608": [
+      -0.6186790387301253,
+      -0.14465614085942707,
+      -0.02360644197004768,
+      0.5187828143715043
+    ],
+    "no_exact_single_tick_bridge_reconstruction": true,
+    "no_causal_claim": true
+  },
+  "exact_event_scalar_receipts": [
+    {
+      "physics_tick": 1809,
+      "simulation_time_s": 15.075,
+      "FL_front_distance_m": -0.05091568486857767,
+      "FL_clearance_m": -0.04112613121737421,
+      "FL_load_fraction_numeric": 0,
+      "support_count": 3,
+      "note": "Exact event file scalar; load_fraction_valid and force-at-tick are not present here; neighboring decision endpoint supplies separately timed validity."
+    },
+    {
+      "physics_tick": 1843,
+      "simulation_time_s": 15.358333333333333,
+      "FL_front_distance_m": -0.04938411371875162,
+      "FL_clearance_m": -0.05067353504489287,
+      "FL_load_fraction_numeric": 0.09516643690914475,
+      "support_count": 4,
+      "note": "Exact event file scalar; load_fraction_valid and force-at-tick are not present here; neighboring decision endpoint supplies separately timed validity."
+    },
+    {
+      "physics_tick": 3937,
+      "simulation_time_s": 32.80833333333333,
+      "FL_front_distance_m": -0.04778957026172037,
+      "FL_clearance_m": -0.03744781762494809,
+      "FL_load_fraction_numeric": 0,
+      "support_count": 3,
+      "note": "Exact event file scalar; load_fraction_valid and force-at-tick are not present here; neighboring decision endpoint supplies separately timed validity."
+    },
+    {
+      "physics_tick": 4486,
+      "simulation_time_s": 37.38333333333333,
+      "FL_front_distance_m": 0.000028554032560634823,
+      "FL_clearance_m": 0.0011328171314634317,
+      "FL_load_fraction_numeric": 0,
+      "support_count": 3,
+      "note": "Exact event file scalar; load_fraction_valid and force-at-tick are not present here; neighboring decision endpoint supplies separately timed validity."
+    },
+    {
+      "physics_tick": 4604,
+      "simulation_time_s": 38.36666666666667,
+      "FL_front_distance_m": 0.01351273400616293,
+      "FL_clearance_m": -0.0002757644583425839,
+      "FL_load_fraction_numeric": 0.14817262869062764,
+      "support_count": 4,
+      "note": "Exact event file scalar; load_fraction_valid and force-at-tick are not present here; neighboring decision endpoint supplies separately timed validity."
+    },
+    {
+      "physics_tick": 4608,
+      "simulation_time_s": 38.4,
+      "FL_front_distance_m": 0.012922707627531338,
+      "FL_clearance_m": -0.00024105581347036442,
+      "FL_load_fraction_numeric": 0.18834708325669564,
+      "support_count": 4,
+      "note": "Exact event file scalar; load_fraction_valid and force-at-tick are not present here; neighboring decision endpoint supplies separately timed validity."
+    }
+  ],
+  "end_model_unchanged_check": {
+    "executed": false,
+    "evidence": "Source acceptance fails physical_summary.task_success before semantic_video.py check_model() at line 684; initial load hashes are preserved but are not end-of-evaluation equality proof."
+  },
+  "P06_projection_note": "598/600 decision endpoints equal tanh(raw)*phase_cap; two differ, maximum 7.457007814059374 in mixed-unit full12. Exact differing slot/tick not retained by this bounded summary; do not label all downstream projection absent or infer defect. All 600 masks open and native effects verified.",
+  "artifacts": {
+    "diagnostic_video": "video_diagnostics/video6_151936_p01_incomplete.mp4",
+    "remux_receipt": "video_diagnostics/video6_151936_p01_incomplete.remux_receipt.json",
+    "first_png": "video_diagnostics/video6_151936_decoded_01.png",
+    "last_png": "video_diagnostics/video6_151936_decoded_02.png"
+  }
+}

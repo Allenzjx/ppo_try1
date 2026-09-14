@@ -1,0 +1,185 @@
+{
+  "schema": "wlr50_clean.parent_video_evaluation_receipt.v1",
+  "read_at_utc": "2026-09-11T01:44:47.3665642Z",
+  "lifecycle": "DIAGNOSTIC_FAILURE",
+  "completed_at_utc": "2026-09-11T01:34:13.8225660Z",
+  "load": {
+    "checkpoint_loaded_and_verified": true,
+    "migration": null,
+    "observation_dimension": 372,
+    "observation_layout": "diagonal_transfer_state_v1",
+    "official_load_semantic_checkpoint": true,
+    "optimizer_updates": 0,
+    "parameter_hashes": {
+      "actor_parameter_sha256": "24922851c41bb8eaed2bb06bb9b6efb5dba291936cf8c600eee4dbf48ccadd83",
+      "critic_parameter_sha256": "5459f19f33da1a8e03632b3bd99685558516b79384e2bf7fc07d7bba8fb5fc36",
+      "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+      "optimizer_state_sha256": "fe4fc2349f2b4bc6f3c37c2d2196fc7bcfd0df0d64655117d504b93197da084b"
+    },
+    "policy_contract": {
+      "activation": "elu",
+      "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+      "actor_hidden_dims": [
+        256,
+        256
+      ],
+      "base_observation_dimension": 324,
+      "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+      "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+      "deterministic_output": "conditional_mean",
+      "distribution_class": "HeteroscedasticGaussianDistribution",
+      "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+      "history_clip": 20,
+      "history_feature": "previous_raw_full12",
+      "history_slice": [
+        195,
+        207
+      ],
+      "history_state": "stored_observation_only; no_actor_mutable_history",
+      "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+      "observation_dimension": 372,
+      "observation_layout": "diagonal_transfer_state_v1",
+      "raw_action_dimension": 12,
+      "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+      "rho": 0.9,
+      "role_observation_fields": [
+        "valid",
+        "workspace_progress",
+        "preparation_progress",
+        "transfer_progress",
+        "motion_fraction",
+        "preparation_ready",
+        "transfer_ready",
+        "fixed_direction_world_x",
+        "fixed_direction_world_y",
+        "short_support_continuity_fraction",
+        "continued_response_fraction",
+        "window_evidence_fraction"
+      ],
+      "role_observation_group": "transfer_role_context_full48",
+      "role_observation_leg_order": [
+        "FL",
+        "FR",
+        "RL",
+        "RR"
+      ],
+      "role_observation_slice": [
+        324,
+        372
+      ],
+      "schema": "wlr50_clean.semantic_policy_distribution.v1",
+      "state_dependent_std": true,
+      "std_type": "log",
+      "version": "history_conditioned_heteroscedastic_log_v1"
+    },
+    "policy_version": "history_conditioned_heteroscedastic_log_v1",
+    "saved_global_policy_decisions": 164736,
+    "source": {
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000164736.pt",
+      "checkpoint_sha256": "d46770c15969240e0e8c146750ac2d9246092899573a28e8cfed83cb6ac40711",
+      "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000164736_manifest.json",
+      "manifest_sha256": "33131560d441a2f0c105ac6058457c90694a518cfeb9ab8f5cab3b2f7a56b80d"
+    },
+    "training_seed": 1001,
+    "video_seed": 4001
+  },
+  "runtime": {
+    "source_git_commit": "d4e46006b382093b960f2c428081d8a1c595bb6a",
+    "runtime_content_sha256": "ecee8d3abba1981b95d462a70c9ea39deb3e949878caea9d6589c95cdc043458",
+    "physics_hz": 120,
+    "decision_hz": 15
+  },
+  "reset_entry": {
+    "decision_count": 0,
+    "done": false,
+    "physics_tick": 0,
+    "state_id": "P01"
+  },
+  "reset_metadata": {
+    "execution_mode": "semantic_B_or_C",
+    "fsm_and_episode_clock_at_effective_entry": 0,
+    "phase_snapshot_restoration": {
+      "historical_state_equality_required": false,
+      "mode": "semantic_natural_P01",
+      "policy_credit_excludes_settle": true,
+      "requested_phase": "P01",
+      "reset_only_state_writes": {
+        "global_simulation_resets": 1,
+        "joint_state_writes": 0,
+        "physics_lifecycle_reset": "scene_factory_reset_before_limit_authoring",
+        "pre_limit_native_state_instance_count": 1,
+        "pre_limit_native_state_observed_sha256": "ed85365bcdbbe1576f5cb4b4014fe0abba0d9c404122f1528ae45fd2884e9ab2",
+        "pre_physics_composed_limit_state_sha256": "0d6a1476ee3d88ce739d2efc13ad4d74c7c12ebb9235780164f91c6acd405875",
+        "pre_physics_session_limit_state_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "removed_session_limit_state_sha256": null,
+        "reset_contact_sensor_count": 13,
+        "reset_initialization_order": "physics_reset_without_session_limits_then_author_limits_then_settle",
+        "root_pose_writes": 0,
+        "root_velocity_writes": 0,
+        "session_limit_specs_present_during_physics_reset": 0,
+        "session_limit_specs_removed_before_reset": 0,
+        "simulation_forward_syncs": 0
+      }
+    },
+    "reset_count": 1,
+    "reset_options": {},
+    "reset_prime_tick_count": 0,
+    "seed": 4001,
+    "sensor_clock_semantics": "episode_relative_tick",
+    "sensor_tick_at_effective_entry": 0,
+    "supervisor_schema": "task_semantic_v2",
+    "training_phase_snapshot": "P01"
+  },
+  "prime_ticks": 0,
+  "extra_pre": 0,
+  "pre": 0,
+  "post": 0,
+  "optimizer_updates": 0,
+  "issued": 165,
+  "returned": 164,
+  "ticks": 1317,
+  "interrupted_final_decision_ticks": 5,
+  "duration_s": 10.975,
+  "final_start_tick": 1312,
+  "final_end_tick": 1317,
+  "final_returned": false,
+  "final_requested_phase": "P02",
+  "physical_reason": "SAFETY_ABORT",
+  "physical_source": "HARD_JOINT_LIMIT",
+  "physical_explanation": "hard joint limit: rear_right_knee",
+  "run_validity": "VALID",
+  "physical_evidence_status": "VERIFIED",
+  "full_success": false,
+  "source_error": "SemanticVideoError: episode did not meet common physical task",
+  "quality": {
+    "roll_rms_rad": 0.11784411855303914,
+    "pitch_rms_rad": 0.1126428723023116,
+    "roll_peak_rad": 0.19540555541397234,
+    "pitch_peak_rad": 0.1338550782349354,
+    "roll_rate_rms_rad_s": 0.09474679291819084,
+    "pitch_rate_rms_rad_s": 0.06269500751013417
+  },
+  "root_source_hash_comparison": {
+    "checkpoint_path": true,
+    "checkpoint_sha": true,
+    "manifest_sha": true,
+    "actor": true,
+    "critic": true,
+    "optimizer": true,
+    "normalizer": true,
+    "head": true,
+    "runtime": true
+  },
+  "end_model_hash_check_executed": false,
+  "end_hash_scope": "Actual physical safety failure occurs before check_model; initial loaded hashes and zero updates do not establish final hash identity.",
+  "process_exit": {
+    "chunk_id": "f1c694",
+    "wall_time_seconds": 16.2669283,
+    "exit_code": 1,
+    "original_token_count": 93,
+    "output": "Exception: C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\scripts\\run_semantic_video.ps1:69\r\nLine |\r\n  69 |  … UNDARY')) { throw 'Semantic process did not finalize successful execu …\r\n     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n     | Semantic process did not finalize successful execution or verified graceful stop\r\n"
+  },
+  "result_classification": "P02 rear_right_knee actual hard-limit safety abort, not full traversal success or video IO failure.",
+  "first_unfinished_task": "Front-right clearance/carry/placement not completed before P02 physical safety abort; detailed event diagnosis pending.",
+  "stability_comparison": "Unpaired incomplete 10.975-second diagnostic only; no FSM improvement claim."
+}

@@ -1,0 +1,160 @@
+{
+  "read_at_utc": "2026-09-10T21:18:45.7111269Z",
+  "lifecycle": "DIAGNOSTIC_FAILURE",
+  "completed_at_utc": "2026-09-10T21:15:09.3296840Z",
+  "mode": "semantic_residual_eval",
+  "role": "C",
+  "seed": 4001,
+  "from_phase": "P01",
+  "optimizer_updates": 0,
+  "load": {
+    "official": true,
+    "verified": true,
+    "saved_global_policy_decisions": 157568,
+    "observation_dimension": 372,
+    "source": {
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000157568.pt",
+      "checkpoint_sha256": "82723c554365ee9f37d6e7fe4b6db6134edeec427dfb892f70bfdd2a40f42493",
+      "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000157568_manifest.json",
+      "manifest_sha256": "dd6bc6cadda7b1b75163da228fa0331eecffde99a1bb163f2ab4263cfa3a7cbf"
+    },
+    "parameter_hashes": {
+      "actor_parameter_sha256": "1430dc42b722be0a92a29b1bfef0c92301087479161232ccde330a438b7b90c2",
+      "critic_parameter_sha256": "80c45acb6190aeb9f6e34fa30def552ce2a00aa77a8ff5b0fb53dc564eb6ed67",
+      "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+      "optimizer_state_sha256": "72494c9d75bd8643892fdeecc0bcfeb08562b65e9eb61e8a5a748d8e207f5ab8"
+    },
+    "migration": null,
+    "policy_version": "history_conditioned_heteroscedastic_log_v1",
+    "deterministic_output": "conditional_mean",
+    "training_seed": 1001,
+    "video_seed": 4001
+  },
+  "runtime": {
+    "head": "d4e46006b382093b960f2c428081d8a1c595bb6a",
+    "sha": "ecee8d3abba1981b95d462a70c9ea39deb3e949878caea9d6589c95cdc043458",
+    "physics_hz": 120,
+    "decision_hz": 15
+  },
+  "natural_reset": {
+    "entry": {
+      "decision_count": 0,
+      "done": false,
+      "physics_tick": 0,
+      "state_id": "P01"
+    },
+    "reset_count": 1,
+    "reset_options": {},
+    "prime_tick_count": 0,
+    "mode": "semantic_natural_P01",
+    "pre_action_ticks": 0,
+    "extra_pre_action_ticks": 0,
+    "post_ticks": 0
+  },
+  "issued_policy_decisions": 722,
+  "completed_environment_steps": 722,
+  "episode_physics_ticks": 5772,
+  "interrupted_final_decision_ticks": 0,
+  "final_environment_step_physics_ticks": 4,
+  "physical_duration_s": 48.1,
+  "physical_task_success": false,
+  "diagnostic_only": true,
+  "source_acceptance_error": "SemanticVideoError: episode did not meet common physical task",
+  "terminal": {
+    "phase": "P05",
+    "reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "source": "LOCAL_BOUNDED_RECOVERY_EXHAUSTED",
+    "local_timeout": {
+      "nominal_limit_s": 30,
+      "current_progress_allowance_s": 0.6992694770061105,
+      "fixed_post_window_allowance_s": 0,
+      "effective_limit_s": 30.699269477006112,
+      "nominal_limit_exceeded": true,
+      "classification": "finite_task_terminal_not_external_truncation",
+      "timer_inputs_observable_in_existing372": true
+    },
+    "stage_age_s": 30.700000000000003,
+    "stage_elapsed_s": 30.700000000000003,
+    "physical_failure": null,
+    "physical_failure_source": null,
+    "physical_validity": "VALID",
+    "physical_evidence_status": "CONTACT_BEARING_UNVERIFIED",
+    "history": {
+      "active_lift": {
+        "FL": false,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "front_edge_crossed": {
+        "FL": false,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "placed": {
+        "FL": false,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      }
+    },
+    "FL": {
+      "front_distance_m": -0.04889312045741434,
+      "clearance_m": -0.05081423824147398,
+      "ground_contact": true,
+      "air": false,
+      "top_contact": false,
+      "bearing_verified": false,
+      "contact_surface": "OBSTACLE_AMBIGUOUS"
+    },
+    "FR": {
+      "front_distance_m": 0.04046607358288412,
+      "clearance_m": -0.00042617768546873713,
+      "ground_contact": false,
+      "top_contact": true,
+      "bearing_verified": true,
+      "bearing_force_n": 9.31071662902832
+    }
+  },
+  "quality": {
+    "duration_s": 48.1,
+    "physics_ticks": 5772,
+    "roll_rms_rad": 0.1150064809137848,
+    "pitch_rms_rad": 0.08444040483760788,
+    "roll_peak_rad": 0.22024120234871555,
+    "pitch_peak_rad": 0.14359453187857213,
+    "roll_rate_rms_rad_s": 0.07149546195569322,
+    "pitch_rate_rms_rad_s": 0.0577335307896696
+  },
+  "quality_keys": [
+    "all_phases_sampled",
+    "comparison_window",
+    "diagnostic_notes",
+    "diagnostic_schema",
+    "fixed_quality_score",
+    "global",
+    "nonfinite_terminal_ticks_skipped",
+    "phases",
+    "schema",
+    "score_config",
+    "score_is_not_success",
+    "transfer_capture_split"
+  ],
+  "schema": "wlr50_clean.parent_video_evaluation_receipt.v1",
+  "source_run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_fsm_reference_p09_stable_v2/video_eval/validation/20260910T2100033647207Z_gd4e46006b382_e98a9290c0f44825aa705e61f7a57377",
+  "process_exit": {
+    "chunk_id": "56e47f",
+    "wall_time_seconds": 17.7748288,
+    "exit_code": 1,
+    "original_token_count": 93,
+    "output": "Exception: C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\scripts\\run_semantic_video.ps1:69\r\nLine |\r\n  69 |  … UNDARY')) { throw 'Semantic process did not finalize successful execu …\r\n     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n     | Semantic process did not finalize successful execution or verified graceful stop\r\n"
+  },
+  "initial_load_hashes_match_root_independent_checkpoint_verification": true,
+  "final_model_unchanged_check_executed": false,
+  "final_model_unchanged_check_scope": "Production semantic_video.py checks common physical success before check_model(); this diagnostic branch failed that require and never reached the final parameter hash comparison. Initial verified load and zero updates are not a replacement for end-hash evidence.",
+  "first_unfinished_task": "P05 FL active lift/carry/front crossing/placement; no FL C/P. Detailed all-attempt timeline pending, do not infer from terminal false that no earlier Q occurred.",
+  "full_eight_tick_decisions": 721,
+  "complete_ppo_success": false,
+  "paired_fsm_stability_improvement_proven": false
+}

@@ -1,0 +1,253 @@
+{
+  "read_at_utc": "2026-09-10T22:52:26.0552631Z",
+  "lifecycle": "DIAGNOSTIC_FAILURE",
+  "completed_at_utc": "2026-09-10T22:49:42.9814540Z",
+  "mode": "semantic_residual_eval",
+  "role": "C",
+  "seed": 4001,
+  "from_phase": "P01",
+  "optimizer_updates": 0,
+  "load": {
+    "official": true,
+    "verified": true,
+    "saved_global_policy_decisions": 159104,
+    "observation_dimension": 372,
+    "source": {
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000159104.pt",
+      "checkpoint_sha256": "26a43475372f93d63a69bf602716a11cb8060cd76f3945838ac322dffc17ac4e",
+      "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000159104_manifest.json",
+      "manifest_sha256": "702c389a119b8b0e04f39c51bbe5ffe60d9204d62caf35209bff20fb3688dfce"
+    },
+    "parameter_hashes": {
+      "actor_parameter_sha256": "4609e7cb804e90ad1d4ecee578c30a71a9bc912c4fdcae678e56ddb27536e940",
+      "critic_parameter_sha256": "b5a3d2d96bb15ca10c77bef56f741a3d787ec304a1e4ed31942d2f68ba2bab8c",
+      "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+      "optimizer_state_sha256": "94d0957a4480078cc3e2da4f452b95a6f431884677d23c16d455a18ef260b777"
+    },
+    "migration": null,
+    "policy_version": "history_conditioned_heteroscedastic_log_v1",
+    "deterministic_output": "conditional_mean",
+    "training_seed": 1001,
+    "video_seed": 4001
+  },
+  "runtime": {
+    "head": "d4e46006b382093b960f2c428081d8a1c595bb6a",
+    "sha": "ecee8d3abba1981b95d462a70c9ea39deb3e949878caea9d6589c95cdc043458",
+    "physics_hz": 120,
+    "decision_hz": 15
+  },
+  "natural_reset": {
+    "entry": {
+      "decision_count": 0,
+      "done": false,
+      "physics_tick": 0,
+      "state_id": "P01"
+    },
+    "experiment_id": "fsm_reference_p09_stable_v2",
+    "reset_metadata": {
+      "execution_mode": "semantic_B_or_C",
+      "fsm_and_episode_clock_at_effective_entry": 0,
+      "phase_snapshot_restoration": {
+        "historical_state_equality_required": false,
+        "mode": "semantic_natural_P01",
+        "policy_credit_excludes_settle": true,
+        "requested_phase": "P01",
+        "reset_only_state_writes": {
+          "global_simulation_resets": 1,
+          "joint_state_writes": 0,
+          "physics_lifecycle_reset": "scene_factory_reset_before_limit_authoring",
+          "pre_limit_native_state_instance_count": 1,
+          "pre_limit_native_state_observed_sha256": "ed85365bcdbbe1576f5cb4b4014fe0abba0d9c404122f1528ae45fd2884e9ab2",
+          "pre_physics_composed_limit_state_sha256": "0d6a1476ee3d88ce739d2efc13ad4d74c7c12ebb9235780164f91c6acd405875",
+          "pre_physics_session_limit_state_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "removed_session_limit_state_sha256": null,
+          "reset_contact_sensor_count": 13,
+          "reset_initialization_order": "physics_reset_without_session_limits_then_author_limits_then_settle",
+          "root_pose_writes": 0,
+          "root_velocity_writes": 0,
+          "session_limit_specs_present_during_physics_reset": 0,
+          "session_limit_specs_removed_before_reset": 0,
+          "simulation_forward_syncs": 0
+        }
+      },
+      "reset_count": 1,
+      "reset_options": {},
+      "reset_prime_tick_count": 0,
+      "seed": 4001,
+      "sensor_clock_semantics": "episode_relative_tick",
+      "sensor_tick_at_effective_entry": 0,
+      "supervisor_schema": "task_semantic_v2",
+      "training_phase_snapshot": "P01"
+    },
+    "role": "C",
+    "schema": "wlr50_clean.current_video_natural_reset.v1",
+    "semantic_version": "v3"
+  },
+  "issued_policy_decisions": 631,
+  "completed_environment_steps": 631,
+  "episode_physics_ticks": 5045,
+  "interrupted_final_decision_ticks": 0,
+  "final_environment_step_physics_ticks": 5,
+  "physical_duration_s": 42.041666666666664,
+  "physical_task_success": false,
+  "diagnostic_only": true,
+  "source_acceptance_error": "SemanticVideoError: episode did not meet common physical task",
+  "terminal": {
+    "phase": "P05",
+    "reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "source": "LOCAL_BOUNDED_RECOVERY_EXHAUSTED",
+    "local_timeout": {
+      "nominal_limit_s": 30,
+      "current_progress_allowance_s": 0.7007313081436775,
+      "fixed_post_window_allowance_s": 0,
+      "effective_limit_s": 30.700731308143677,
+      "nominal_limit_exceeded": true,
+      "classification": "finite_task_terminal_not_external_truncation",
+      "timer_inputs_observable_in_existing372": true
+    },
+    "stage_age_s": null,
+    "stage_elapsed_s": 30.70833333333333,
+    "physical_failure": null,
+    "physical_failure_source": null,
+    "physical_validity": "VALID",
+    "physical_evidence_status": "CONTACT_BEARING_UNVERIFIED",
+    "history": {
+      "active_lift": {
+        "FL": false,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "front_edge_crossed": {
+        "FL": false,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "placed": {
+        "FL": false,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "event_ticks": {
+        "active_lift": {
+          "FR": 24,
+          "FL": 1434
+        },
+        "front_edge_crossed": {
+          "FR": 1147
+        },
+        "placed": {
+          "FR": 1188
+        }
+      },
+      "active_lift_semantics": "RR_same_attempt_establishment_with_separate_current_validity_and_contact_mode",
+      "lift_attempt_events": [
+        {
+          "leg": "RL",
+          "event": "whole_body_initial_clearance",
+          "physics_tick": 7,
+          "simulation_time_s": 0.058333333333333334,
+          "upward_excursion_m": 0.003234158353823076,
+          "whole_body_joint_motion_deg": 2.8223512679422273,
+          "command_motion_deg": 7.86444049327006,
+          "evidence": "active_air_or_early_top"
+        },
+        {
+          "leg": "FR",
+          "event": "whole_body_initial_clearance",
+          "physics_tick": 15,
+          "simulation_time_s": 0.125,
+          "upward_excursion_m": 0.003008158477303159,
+          "whole_body_joint_motion_deg": 9.713219804357076,
+          "command_motion_deg": 19.14333011092678,
+          "evidence": "active_air_or_early_top"
+        },
+        {
+          "leg": "FR",
+          "event": "qualified_measured_upward_lift",
+          "physics_tick": 24,
+          "simulation_time_s": 0.2,
+          "upward_excursion_m": 0.008374095665841068,
+          "joint_motion_deg": 3.906915124444724,
+          "airborne_clearance_above_top_m": -0.04246178948912586
+        },
+        {
+          "leg": "RL",
+          "event": "whole_body_initial_clearance",
+          "physics_tick": 1169,
+          "simulation_time_s": 9.741666666666667,
+          "upward_excursion_m": 0.003088996881166678,
+          "whole_body_joint_motion_deg": 20.789348372308353,
+          "command_motion_deg": 8.29906450044496,
+          "evidence": "active_air_or_early_top"
+        },
+        {
+          "leg": "FL",
+          "event": "whole_body_initial_clearance",
+          "physics_tick": 1429,
+          "simulation_time_s": 11.908333333333333,
+          "upward_excursion_m": 0.0033432037835430042,
+          "whole_body_joint_motion_deg": 7.469728169974785,
+          "command_motion_deg": 3.068202843277703,
+          "evidence": "active_air_or_early_top"
+        },
+        {
+          "leg": "FL",
+          "event": "qualified_measured_upward_lift",
+          "physics_tick": 1434,
+          "simulation_time_s": 11.95,
+          "upward_excursion_m": 0.009027936225725619,
+          "joint_motion_deg": 12.104568822576027,
+          "airborne_clearance_above_top_m": -0.0409442237195843
+        },
+        {
+          "leg": "FL",
+          "event": "qualification_revoked_ground_before_cross",
+          "physics_tick": 1472,
+          "simulation_time_s": 12.266666666666666
+        }
+      ]
+    },
+    "FL": {
+      "initial_lift_observed": null,
+      "lift_established": null,
+      "active_lift_qualified": null,
+      "contact_surface": "OBSTACLE_AMBIGUOUS",
+      "ground_contact": true,
+      "air": false,
+      "front_distance_m": -0.04873525755572672,
+      "clearance_m": -0.050019037546292805,
+      "bearing_force_n": 7.876734733581543,
+      "bearing_verified": false
+    }
+  },
+  "quality": {
+    "sampled": true,
+    "physics_ticks": 5045,
+    "duration_s": 42.041666666666664,
+    "roll_rms_rad": 0.11063958048056141,
+    "pitch_rms_rad": 0.11696007442422915,
+    "roll_peak_rad": 0.2111547039584668,
+    "pitch_peak_rad": 0.2108511522516512,
+    "roll_rate_rms_rad_s": 0.08853656519313925,
+    "pitch_rate_rms_rad_s": 0.06669266016446816
+  },
+  "schema": "wlr50_clean.actual_video_evaluation_parent_receipt.v1",
+  "source_run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_fsm_reference_p09_stable_v2/video_eval/validation/20260910T2235582002787Z_gd4e46006b382_0f64bf3b35f74953994f8ca191952ee8",
+  "process_exit": {
+    "chunk_id": "469903",
+    "wall_time_seconds": 25.3123794,
+    "exit_code": 1,
+    "original_token_count": 93,
+    "output": "Exception: C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\scripts\\run_semantic_video.ps1:69\r\nLine |\r\n  69 |  … UNDARY')) { throw 'Semantic process did not finalize successful execu …\r\n     |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\r\n     | Semantic process did not finalize successful execution or verified graceful stop\r\n"
+  },
+  "initial_load_hashes_match_root_independent_checkpoint_verification": true,
+  "final_model_unchanged_check_executed": false,
+  "final_model_unchanged_check_scope": "Initial official load hashes and zero evaluation updates verified. Current production common-physical-task rejection precedes final check_model, so failed run did not execute its final-model hash check.",
+  "first_unfinished_task": "P05 FL sustained lift/carry across front edge and placement: I1429/Q1434 occurred, Q revoked on ground at1472; no recorded FL crossing or placement.",
+  "full_eight_tick_decisions": 630,
+  "complete_ppo_success": false,
+  "paired_fsm_stability_improvement_proven": false
+}

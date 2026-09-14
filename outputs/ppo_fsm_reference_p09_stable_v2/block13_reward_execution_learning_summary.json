@@ -1,0 +1,532 @@
+{
+  "schema": "wlr50_clean.fixed_block13_learning_audit.v1",
+  "checked_at_utc": "2026-09-10T17:00:17.564827+00:00",
+  "source_run": "20260910T1451368221058Z_g7db0d17f398d_19bb6607a9384f08b00d341ba21060b7",
+  "source_head": "7db0d17f398d393ce026b6990bd2566d53366407",
+  "scope": "completed block13 2048 policy audits and 16 update rows; no rollout tensor, checkpoint/model bytes, physical stream, active data or CSV",
+  "sampled_and_update_covered_decisions": 2048,
+  "global_range": [
+    149889,
+    151936
+  ],
+  "ppo_updates": 16,
+  "optimizer_steps": 320,
+  "phase_counts": {
+    "P01": 16,
+    "P02": 835,
+    "P03": 35,
+    "P04": 25,
+    "P05": 746,
+    "P06": 266,
+    "P07": 6,
+    "P08": 3,
+    "P09": 116
+  },
+  "native_total": {
+    "ticks": 16365,
+    "verified": 16365,
+    "effect": 16365,
+    "own_phase": 16323
+  },
+  "checks": {
+    "PBRS_formula_within_1e-10": 2048,
+    "task_family_within_1e-10": 2048,
+    "weighted_family_sum_within_1e-10": 2048,
+    "audit_double_reward_within_1e-10": 2048,
+    "collector_float32_reward_within_1e-10": 2048,
+    "body_component_identity_within_1e-10": 2048,
+    "applied_only_smoothness_identity_within_1e-10": 2048,
+    "contact_component_identity_within_1e-10": 2048,
+    "actual_tick_duration_within_1e-10": 2048,
+    "raw_matches_applied_audit": 2048,
+    "finite_raw_mean_std_logp_reward": 2048,
+    "positive_std": 2048,
+    "timeout_false": 2048,
+    "bootstrap_matches_nonterminal": 2048,
+    "reward_bootstrap_matches_nonterminal": 2048,
+    "terminal_phi_zero": 7,
+    "nonpositive_nonprogress_families": 2048,
+    "no_regularization": 2048,
+    "no_in_episode_state_writes": 2048,
+    "all12_mask_open": 2048
+  },
+  "max_errors": {
+    "PBRS_formula": 0,
+    "task_family": 0,
+    "weighted_family_sum": 7.105427357601002e-15,
+    "audit_double_reward": 0,
+    "collector_float32_reward": 0,
+    "body_component_identity": 8.673617379884035e-19,
+    "applied_only_smoothness_identity": 1.3010426069826053e-18,
+    "contact_component_identity": 0,
+    "actual_tick_duration": 6.938893903907228e-18,
+    "family_weight_identity": 0,
+    "old_joint_gaussian_logp_float64_vs_logged_float32": 0.0000030713754526345838,
+    "nonterminal_phi_continuity": 0
+  },
+  "all_updates_actor_changed": true,
+  "all_updates_finite_nonzero_gradient": true,
+  "limitations": [
+    "tanh >=.95/.99 are descriptive saturation thresholds, not control/success gates.",
+    "Requested-minus-filtered is directly measured; the rate+handoff formula is only a consistency classification, not a replay of every physical projector tick.",
+    "Headroom and final target differences use recorded end-tick receipts; final target difference may include final clamp/slew, not measured joint tracking.",
+    "Audit reward/raw/logprob/done checks and successful optimizer guards are not a fresh independent tensor-storage/GAE reconstruction; no Torch/rollout loading was requested.",
+    "No causal counterfactual proves which transient motion was necessary; positive task shaping offset by stability/smoothness cost is a tradeoff, not alone a reward-sign defect.",
+    "This is old-v1 natural-P01 stochastic training with mid-episode updates, not a fixed-policy full success or the current v2-control learning distribution."
+  ],
+  "phase_summary": {
+    "P05": {
+      "all_decisions": 746,
+      "nonterminal_decisions": 744,
+      "nonterminal_mean": {
+        "reward": 0.0006784533755415649,
+        "task_progress": 0.002694999685557943,
+        "PBRS": 0.004028333018891276,
+        "body_stability": -0.0001658009593472909,
+        "contact_motion_quality": -0.0000035482377586766757,
+        "control_smoothness": -0.001847197047718668,
+        "time_cost": -0.0013333333333333333
+      },
+      "PBRS_nonterminal_distribution": {
+        "min": -0.4765017722090731,
+        "p05": -0.05863558653481489,
+        "median": -0.001443845216552997,
+        "p95": 0.09355449916398921,
+        "max": 0.5312785210973264
+      },
+      "positive_PBRS_decisions": 343,
+      "positive_PBRS_but_negative_total": 64,
+      "positive_delta_but_nonpositive_PBRS": 105,
+      "body_cost_magnitude_to_positive_PBRS_sum": 0.009397594561517545,
+      "positive_PBRS_sum": 13.126328545766144,
+      "negative_PBRS_magnitude_sum": 10.129248779711034,
+      "terminal_rewards": [
+        {
+          "episode": 3,
+          "reason": "FALL",
+          "reward": -41.71454620361328,
+          "PBRS": -1.711952239621728,
+          "event": -40
+        },
+        {
+          "episode": 5,
+          "reason": "FALL",
+          "reward": -41.46443176269531,
+          "PBRS": -1.4637711974708765,
+          "event": -40
+        }
+      ],
+      "residual_decision_counts": {
+        "requested_vs_filtered_diff": 616,
+        "rate_consistent_unmet": 616,
+        "headroom_effective_diff": 16,
+        "candidate_vs_final_target_diff": 9,
+        "headroom_receipt_available": 746,
+        "final_candidate_receipt_available": 746,
+        "handoff_hold_tick_in_decision": 7,
+        "headroom_clipped_servo_indices_nonempty": 16
+      },
+      "channel_cells": 8952,
+      "tanh_ge95_cells": 853,
+      "tanh_ge99_cells": 374,
+      "unmet_filtered_cells": 1789,
+      "rate_consistent_unmet_cells": 1789,
+      "important_channels": {
+        "FL_hip_deg": {
+          "samples": 746,
+          "tanh_abs_ge_0.95": 96,
+          "tanh_abs_ge_0.99": 49,
+          "filtered_abs_cap_fraction_ge_0.95": 74,
+          "requested_vs_filtered_diff": 235,
+          "unmet_consistent_with_rate_and_handoff_hold": 235,
+          "headroom_effective_diff": 0,
+          "candidate_vs_final_target_diff": 8
+        },
+        "FL_knee_deg": {
+          "samples": 746,
+          "tanh_abs_ge_0.95": 114,
+          "tanh_abs_ge_0.99": 8,
+          "filtered_abs_cap_fraction_ge_0.95": 100,
+          "requested_vs_filtered_diff": 145,
+          "unmet_consistent_with_rate_and_handoff_hold": 145,
+          "headroom_effective_diff": 16,
+          "candidate_vs_final_target_diff": 1
+        },
+        "FR_knee_deg": {
+          "samples": 746,
+          "tanh_abs_ge_0.95": 118,
+          "tanh_abs_ge_0.99": 57,
+          "filtered_abs_cap_fraction_ge_0.95": 84,
+          "requested_vs_filtered_diff": 332,
+          "unmet_consistent_with_rate_and_handoff_hold": 332,
+          "headroom_effective_diff": 0,
+          "candidate_vs_final_target_diff": 0
+        },
+        "RR_knee_deg": {
+          "samples": 746,
+          "tanh_abs_ge_0.95": 1,
+          "tanh_abs_ge_0.99": 0,
+          "filtered_abs_cap_fraction_ge_0.95": 1,
+          "requested_vs_filtered_diff": 34,
+          "unmet_consistent_with_rate_and_handoff_hold": 34,
+          "headroom_effective_diff": 0,
+          "candidate_vs_final_target_diff": 0
+        },
+        "FL_wheel_rad_s": {
+          "samples": 746,
+          "tanh_abs_ge_0.95": 178,
+          "tanh_abs_ge_0.99": 121,
+          "filtered_abs_cap_fraction_ge_0.95": 82,
+          "requested_vs_filtered_diff": 266,
+          "unmet_consistent_with_rate_and_handoff_hold": 266,
+          "headroom_effective_diff": 0,
+          "candidate_vs_final_target_diff": 0
+        }
+      },
+      "confirmed_rebound_integral": 0,
+      "chatter_diagnostic_integral": 2.6875
+    },
+    "P06": {
+      "all_decisions": 266,
+      "nonterminal_decisions": 265,
+      "nonterminal_mean": {
+        "reward": -0.006675739323759873,
+        "task_progress": -0.0038443800233271216,
+        "PBRS": -0.0025110466899937885,
+        "body_stability": -0.00039216979148044547,
+        "contact_motion_quality": -0.000009752014560839485,
+        "control_smoothness": -0.0024294374799053893,
+        "time_cost": -0.0013333333333333333
+      },
+      "PBRS_nonterminal_distribution": {
+        "min": -0.13619008355261975,
+        "p05": -0.06457795432973623,
+        "median": -0.003297423728682858,
+        "p95": 0.06303658593408645,
+        "max": 0.10732137750679882
+      },
+      "positive_PBRS_decisions": 80,
+      "positive_PBRS_but_negative_total": 14,
+      "positive_delta_but_nonpositive_PBRS": 80,
+      "body_cost_magnitude_to_positive_PBRS_sum": 0.04043236611519515,
+      "positive_PBRS_sum": 2.5703416526806064,
+      "negative_PBRS_magnitude_sum": 3.2357690255289606,
+      "terminal_rewards": [
+        {
+          "episode": 6,
+          "reason": "FALL",
+          "reward": -42.24539566040039,
+          "PBRS": -2.240305230522389,
+          "event": -40
+        }
+      ],
+      "residual_decision_counts": {
+        "requested_vs_filtered_diff": 264,
+        "rate_consistent_unmet": 264,
+        "headroom_effective_diff": 1,
+        "candidate_vs_final_target_diff": 0,
+        "headroom_receipt_available": 266,
+        "final_candidate_receipt_available": 266,
+        "handoff_hold_tick_in_decision": 4,
+        "headroom_clipped_servo_indices_nonempty": 1
+      },
+      "channel_cells": 3192,
+      "tanh_ge95_cells": 399,
+      "tanh_ge99_cells": 173,
+      "unmet_filtered_cells": 1410,
+      "rate_consistent_unmet_cells": 1410,
+      "important_channels": {
+        "FL_hip_deg": {
+          "samples": 266,
+          "tanh_abs_ge_0.95": 62,
+          "tanh_abs_ge_0.99": 19,
+          "filtered_abs_cap_fraction_ge_0.95": 30,
+          "requested_vs_filtered_diff": 153,
+          "unmet_consistent_with_rate_and_handoff_hold": 153,
+          "headroom_effective_diff": 0,
+          "candidate_vs_final_target_diff": 0
+        },
+        "FL_knee_deg": {
+          "samples": 266,
+          "tanh_abs_ge_0.95": 40,
+          "tanh_abs_ge_0.99": 4,
+          "filtered_abs_cap_fraction_ge_0.95": 38,
+          "requested_vs_filtered_diff": 92,
+          "unmet_consistent_with_rate_and_handoff_hold": 92,
+          "headroom_effective_diff": 0,
+          "candidate_vs_final_target_diff": 0
+        },
+        "FR_knee_deg": {
+          "samples": 266,
+          "tanh_abs_ge_0.95": 47,
+          "tanh_abs_ge_0.99": 23,
+          "filtered_abs_cap_fraction_ge_0.95": 4,
+          "requested_vs_filtered_diff": 235,
+          "unmet_consistent_with_rate_and_handoff_hold": 235,
+          "headroom_effective_diff": 1,
+          "candidate_vs_final_target_diff": 0
+        },
+        "RR_knee_deg": {
+          "samples": 266,
+          "tanh_abs_ge_0.95": 0,
+          "tanh_abs_ge_0.99": 0,
+          "filtered_abs_cap_fraction_ge_0.95": 0,
+          "requested_vs_filtered_diff": 135,
+          "unmet_consistent_with_rate_and_handoff_hold": 135,
+          "headroom_effective_diff": 0,
+          "candidate_vs_final_target_diff": 0
+        },
+        "FL_wheel_rad_s": {
+          "samples": 266,
+          "tanh_abs_ge_0.95": 121,
+          "tanh_abs_ge_0.99": 90,
+          "filtered_abs_cap_fraction_ge_0.95": 57,
+          "requested_vs_filtered_diff": 140,
+          "unmet_consistent_with_rate_and_handoff_hold": 140,
+          "headroom_effective_diff": 0,
+          "candidate_vs_final_target_diff": 0
+        }
+      },
+      "confirmed_rebound_integral": 0,
+      "chatter_diagnostic_integral": 1.5833333333333333
+    },
+    "P09": {
+      "all_decisions": 116,
+      "nonterminal_decisions": 113,
+      "nonterminal_mean": {
+        "reward": -0.012687603609643638,
+        "task_progress": -0.009239752004541819,
+        "PBRS": -0.007906418671208486,
+        "body_stability": -0.0011564311347554376,
+        "contact_motion_quality": -0.00001722541115471396,
+        "control_smoothness": -0.002274195167702325,
+        "time_cost": -0.0013333333333333333
+      },
+      "PBRS_nonterminal_distribution": {
+        "min": -0.22546559155702306,
+        "p05": -0.09031963550457983,
+        "median": -0.003583356512780189,
+        "p95": 0.05185440296691908,
+        "max": 0.22216916931987324
+      },
+      "positive_PBRS_decisions": 25,
+      "positive_PBRS_but_negative_total": 5,
+      "positive_delta_but_nonpositive_PBRS": 43,
+      "body_cost_magnitude_to_positive_PBRS_sum": 0.1374486309565287,
+      "positive_PBRS_sum": 0.9507313191696611,
+      "negative_PBRS_magnitude_sum": 1.8441566290162201,
+      "terminal_rewards": [
+        {
+          "episode": 0,
+          "reason": "HARD_JOINT_LIMIT",
+          "reward": -42.256202697753906,
+          "PBRS": -2.2516047137405004,
+          "event": -40
+        },
+        {
+          "episode": 1,
+          "reason": "FALL",
+          "reward": -42.65154266357422,
+          "PBRS": -2.64871993250612,
+          "event": -40
+        },
+        {
+          "episode": 2,
+          "reason": "FALL",
+          "reward": -42.21132278442383,
+          "PBRS": -2.207421303441553,
+          "event": -40
+        }
+      ],
+      "residual_decision_counts": {
+        "requested_vs_filtered_diff": 110,
+        "rate_consistent_unmet": 110,
+        "headroom_effective_diff": 4,
+        "candidate_vs_final_target_diff": 15,
+        "headroom_receipt_available": 116,
+        "final_candidate_receipt_available": 116,
+        "handoff_hold_tick_in_decision": 3,
+        "headroom_clipped_servo_indices_nonempty": 4
+      },
+      "channel_cells": 1392,
+      "tanh_ge95_cells": 135,
+      "tanh_ge99_cells": 57,
+      "unmet_filtered_cells": 379,
+      "rate_consistent_unmet_cells": 379,
+      "important_channels": {
+        "FL_hip_deg": {
+          "samples": 116,
+          "tanh_abs_ge_0.95": 15,
+          "tanh_abs_ge_0.99": 13,
+          "filtered_abs_cap_fraction_ge_0.95": 0,
+          "requested_vs_filtered_diff": 45,
+          "unmet_consistent_with_rate_and_handoff_hold": 45,
+          "headroom_effective_diff": 0,
+          "candidate_vs_final_target_diff": 3
+        },
+        "FL_knee_deg": {
+          "samples": 116,
+          "tanh_abs_ge_0.95": 43,
+          "tanh_abs_ge_0.99": 0,
+          "filtered_abs_cap_fraction_ge_0.95": 43,
+          "requested_vs_filtered_diff": 14,
+          "unmet_consistent_with_rate_and_handoff_hold": 14,
+          "headroom_effective_diff": 0,
+          "candidate_vs_final_target_diff": 0
+        },
+        "FR_knee_deg": {
+          "samples": 116,
+          "tanh_abs_ge_0.95": 15,
+          "tanh_abs_ge_0.99": 11,
+          "filtered_abs_cap_fraction_ge_0.95": 0,
+          "requested_vs_filtered_diff": 106,
+          "unmet_consistent_with_rate_and_handoff_hold": 106,
+          "headroom_effective_diff": 0,
+          "candidate_vs_final_target_diff": 0
+        },
+        "RR_knee_deg": {
+          "samples": 116,
+          "tanh_abs_ge_0.95": 0,
+          "tanh_abs_ge_0.99": 0,
+          "filtered_abs_cap_fraction_ge_0.95": 0,
+          "requested_vs_filtered_diff": 32,
+          "unmet_consistent_with_rate_and_handoff_hold": 32,
+          "headroom_effective_diff": 4,
+          "candidate_vs_final_target_diff": 3
+        },
+        "FL_wheel_rad_s": {
+          "samples": 116,
+          "tanh_abs_ge_0.95": 14,
+          "tanh_abs_ge_0.99": 14,
+          "filtered_abs_cap_fraction_ge_0.95": 0,
+          "requested_vs_filtered_diff": 24,
+          "unmet_consistent_with_rate_and_handoff_hold": 24,
+          "headroom_effective_diff": 0,
+          "candidate_vs_final_target_diff": 0
+        }
+      },
+      "confirmed_rebound_integral": 0,
+      "chatter_diagnostic_integral": 0.725
+    }
+  },
+  "ordinary_boundary_summary": {
+    "count": 42,
+    "all_done_false": true,
+    "all_bootstrap_true": true,
+    "all_terminal_event_zero": true,
+    "nonterminal_phi_continuity_error": 0,
+    "max_episode_discounted_PBRS_telescoping_error": 1.6930901125533637e-15
+  },
+  "terminal_summary": {
+    "count": 7,
+    "FALL": 6,
+    "HARD_JOINT_LIMIT": 1,
+    "next_potential_zero": 7,
+    "collection_tail_is_terminal": false
+  },
+  "update_statistics": {
+    "optimizer_learning_rate": {
+      "mean": 0.000013320312500000003,
+      "min": 0.00001,
+      "max": 0.00005062500000000001
+    },
+    "kl_mean": {
+      "mean": 0.020835774822248992,
+      "min": 0.012081134322222787,
+      "max": 0.03592576222218617
+    },
+    "clip_fraction": {
+      "mean": 0.24130859375,
+      "min": 0.1640625,
+      "max": 0.340625
+    },
+    "value_loss": {
+      "mean": 50.56099789836444,
+      "min": 0.14307310692965985,
+      "max": 230.07359161376954
+    }
+  },
+  "verified_small_source_bindings": {
+    "source_head": "7db0d17f398d393ce026b6990bd2566d53366407",
+    "bindings": {
+      "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml": "e6c3b90a9a0fd6ae9be17ae5b9f6f2c6a0c379df1b3df389b6e852dde9f5eeea",
+      "configs/ppo_fsm_reference_p09_stable_v2/execution_profile.yaml": "1f9b08220c7d528a7e6e8fec0b76dee627009cf22b77df4924bb96115054d21f",
+      "src/wlr50_clean/ppo/semantic_reward.py": "101d7d83175d7225235590db87b0f0d45c91bba37df98b62a3691365bf10aaf9",
+      "src/wlr50_clean/ppo/semantic_training.py": "e386acb2f4d2e04a3ab93edfdf6b0746fb6c8323c9a1ee9d612a9156c1afe976"
+    },
+    "reward_values": {
+      "gamma": 0.9985,
+      "potential_weight": 5,
+      "time_cost_per_s": 0.02,
+      "family_weights": {
+        "task_progress": 1,
+        "body_stability": 0.4,
+        "contact_motion_quality": 0.2,
+        "control_smoothness": 0.1,
+        "control_regularization": 0
+      },
+      "control_regularization_enabled": false,
+      "smoothness_components": "applied_only"
+    },
+    "residual_values": {
+      "servo_rate_deg_s": 60,
+      "wheel_rate_rad_s2": 1.8
+    },
+    "caps": {
+      "P05": [
+        18,
+        24,
+        18,
+        24,
+        12,
+        18,
+        12,
+        18,
+        1,
+        0.6,
+        1,
+        0.6
+      ],
+      "P06": [
+        32,
+        36,
+        24,
+        112,
+        24,
+        36,
+        24,
+        36,
+        1.2,
+        1.2,
+        1,
+        0.6
+      ],
+      "P09": [
+        32,
+        36,
+        24,
+        112,
+        24,
+        36,
+        24,
+        36,
+        1.2,
+        1.2,
+        1,
+        0.6
+      ]
+    }
+  },
+  "conclusion": {
+    "proven_training_consumer_error": false,
+    "proven_reward_sign_defect": false,
+    "observed_local_tradeoff": true,
+    "algorithm_or_hyperparameter_change_recommended": false
+  },
+  "references": [
+    "natural_p01_block13_episode0_rl_knee_limit.md",
+    "natural_p01_block13_episode1_p09_fall.md",
+    "natural_p01_block13_episodes2_to7.md",
+    "block13_reward_execution_learning_diagnosis.json"
+  ]
+}

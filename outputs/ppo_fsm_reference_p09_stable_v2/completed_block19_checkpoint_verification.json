@@ -1,0 +1,85 @@
+{
+  "schema": "wlr50_clean.completed_training_root_verification.v1",
+  "verified_at_utc": "2026-09-10T20:59:44.4444588Z",
+  "pointer": {
+    "checkpoint": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_fsm_reference_p09_stable_v2/checkpoints/history/checkpoint_step_000157568.pt",
+    "checkpoint_sha256": "82723c554365ee9f37d6e7fe4b6db6134edeec427dfb892f70bfdd2a40f42493",
+    "manifest": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_fsm_reference_p09_stable_v2/checkpoints/history/checkpoint_step_000157568_manifest.json",
+    "manifest_sha256": "dd6bc6cadda7b1b75163da228fa0331eecffde99a1bb163f2ab4263cfa3a7cbf"
+  },
+  "checkpoint_sha256_verified": "82723c554365ee9f37d6e7fe4b6db6134edeec427dfb892f70bfdd2a40f42493",
+  "manifest_sha256_verified": "dd6bc6cadda7b1b75163da228fa0331eecffde99a1bb163f2ab4263cfa3a7cbf",
+  "lifecycle": "SUCCEEDED",
+  "completed_at_utc": "2026-09-10T20:59:11.0529200Z",
+  "global_policy_decisions": 157568,
+  "ppo_updates": 1196,
+  "optimizer_steps": 23920,
+  "save_load_round_trip": true,
+  "actor": "1430dc42b722be0a92a29b1bfef0c92301087479161232ccde330a438b7b90c2",
+  "critic": "80c45acb6190aeb9f6e34fa30def552ce2a00aa77a8ff5b0fb53dc564eb6ed67",
+  "optimizer": "72494c9d75bd8643892fdeecc0bcfeb08562b65e9eb61e8a5a748d8e207f5ab8",
+  "normalizer": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+  "lr": 0.00001,
+  "runtime": {
+    "source_git_commit": "d4e46006b382093b960f2c428081d8a1c595bb6a",
+    "runtime_content_sha256": "ecee8d3abba1981b95d462a70c9ea39deb3e949878caea9d6589c95cdc043458",
+    "physics_hz": 120,
+    "decision_hz": 15
+  },
+  "observation_dimension": 372,
+  "action_dimension": 12,
+  "budgets": {
+    "full_episode": 77184,
+    "phase_suffix": 70272,
+    "smoke": 0
+  },
+  "process_exit": {
+    "chunk_id": "449f16",
+    "wall_time_seconds": 37.8356276,
+    "exit_code": 0,
+    "original_token_count": 44,
+    "output": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\train\\20260910T2021542525340Z_gd4e46006b382_6707fa943a204563ab1699572bde18a9\r\n"
+  },
+  "source_nominal_revision_baseline": 152192,
+  "new_nominal_decisions": 5376,
+  "new_nominal_updates": 42,
+  "new_nominal_optimizer_steps": 840,
+  "completed_blocks": 19,
+  "new_saved_since_turn_baseline": {
+    "policy_decisions": 17024,
+    "ppo_updates": 133,
+    "optimizer_steps": 2660
+  },
+  "completed_snapshot": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\progress_snapshots\\20260910T210052945289Z.json",
+  "order_review": {
+    "read_at_utc": "2026-09-10 20:50:09 UTC",
+    "production_changed": false,
+    "finding": "No confirmed implementation error in current episode. Retain existing RR_FIRST macro task constraint; do not relax after an exploratory failure.",
+    "episode0": {
+      "decisions": 580,
+      "physics_ticks": 4640,
+      "rr_cross_tick": 4615,
+      "rr_placed": false,
+      "rl_cross_history": false,
+      "rl_placement_history": false,
+      "rl_terminal_geometry": true,
+      "source": "RR_FIRST_ORDER",
+      "result": "INCOMPLETE_CONTROLLER_BLOCKED",
+      "first_unfinished": "RR controlled placement",
+      "body_or_wheel_only_task_violation": false,
+      "physical_safety_abort": false
+    },
+    "known_scope_boundary": "User prescribes RR placement before RL task but not explicit immediate termination versus local recovery. Existing implementation terminates/no-bootstrap/general terminal cost. Same-tick first RR P + RL C coverage not established; not implicated here because RR remains AIR and unplaced.",
+    "root_read": [
+      "latest full request",
+      "continuous primary first40lines",
+      "previous all-stage P08-P12 task requirements",
+      "semantic_supervisor.py current and legacy mutually exclusive RR_FIRST branches",
+      "tests/unit/test_semantic_all_stage_physical_acceptance.py relevant negative/positive setup",
+      "tests/unit/test_p09_functional_edge_lift_v2.py current P10 usability test",
+      "fsm/task_result.py",
+      "block19_episode0_rr_rl_order_terminal.md",
+      "block19_completed_terminals_fixed.md"
+    ]
+  }
+}

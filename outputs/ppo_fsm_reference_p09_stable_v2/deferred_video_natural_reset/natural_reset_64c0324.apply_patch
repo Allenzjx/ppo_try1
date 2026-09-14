@@ -1,0 +1,326 @@
+*** Begin Patch
+*** Update File: src/wlr50_clean/ppo/semantic_video.py
+@@
+             raise _PhysicalEndpoint
+ 
+ 
++def current_video_natural_reset_proof(info, *, role, contract, entry):
++    """Current A/B/C share one no-snapshot criterion, with real backend receipts."""
++    require(role in ROLES and contract.get("semantic_version") == "v3"
++            and contract.get("experiment_id") == TASK_WINDOW_EXPERIMENT,
++            "natural video reset proof has wrong role/runtime")
++    require(isinstance(entry, dict) and entry == {
++        "state_id": "P01", "physics_tick": 0, "decision_count": 0, "done": False}
++        and type(entry["physics_tick"]) is int and type(entry["decision_count"]) is int
++        and entry["done"] is False, "video did not own initial natural P01 state")
++    fields = ("seed", "reset_count", "reset_options", "training_phase_snapshot",
++              "phase_snapshot_restoration", "reset_prime_tick_count",
++              "sensor_tick_at_effective_entry", "fsm_and_episode_clock_at_effective_entry",
++              "sensor_clock_semantics")
++    require(isinstance(info, dict) and all(key in info for key in fields),
++            "natural video reset receipt is incomplete")
++    require(type(info["reset_count"]) is int and info["reset_count"] == 1
++            and info["seed"] == 4001 and info["reset_options"] == {},
++            "video requires first reset with locked seed and no explicit reset options")
++    for key in ("reset_prime_tick_count", "sensor_tick_at_effective_entry",
++                "fsm_and_episode_clock_at_effective_entry"):
++        require(type(info[key]) is int and info[key] == 0,
++                "video reset contains historical replay or a nonzero entry clock")
++    require(info["sensor_clock_semantics"] == "episode_relative_tick",
++            "video reset sensor clock is not natural episode-relative time")
++    restoration = info["phase_snapshot_restoration"]
++    require(isinstance(restoration, dict) and "requested_phase" in restoration
++            and (restoration.get("snapshot_validated") is None
++                 or restoration.get("snapshot_validated") is False)
++            and not any(restoration.get(key) is not None for key in (
++                "snapshot_path", "state_sha256", "file_sha256", "source_tick", "physical_state")),
++            "video cannot start from a validated or restored phase snapshot")
++    # The inherited metadata key names requested_phase, not proof that a
++    # snapshot was loaded. Only the semantic backend's actual natural mode
++    # plus its execution receipt may use the P01 marker.
++    if restoration.get("mode") == "semantic_natural_P01":
++        require(role in ("B", "C") and info.get("execution_mode") == "semantic_B_or_C"
++                and info.get("supervisor_schema") == "task_semantic_v2"
++                and restoration.get("requested_phase") == info["training_phase_snapshot"] == "P01"
++                and restoration.get("historical_state_equality_required") is False
++                and restoration.get("policy_credit_excludes_settle") is True,
++                "semantic P01 marker lacks its actual natural-reset provenance")
++    else:
++        require(role == "A" and restoration.get("mode") == "normal_p01_reset"
++                and restoration.get("requested_phase") is None
++                and info["training_phase_snapshot"] is None
++                and restoration.get("snapshot_validated") is False
++                and info.get("execution_mode") is None,
++                "legacy A reset is not the original unrequested natural P01")
++    metadata = physical_json({key: info[key] for key in fields})
++    metadata.update(execution_mode=info.get("execution_mode"),
++                    supervisor_schema=info.get("supervisor_schema"))
++    return {"schema": "wlr50_clean.current_video_natural_reset.v1",
++            "role": role, "experiment_id": TASK_WINDOW_EXPERIMENT,
++            "semantic_version": "v3", "entry": dict(entry), "reset_metadata": metadata}
++
++
++def validate_current_video_natural_reset(source):
++    proof = source.get("natural_reset_proof")
++    require(isinstance(proof, dict), "current video lacks persisted natural reset proof")
++    verified = current_video_natural_reset_proof(proof.get("reset_metadata"),
++        role=source["role"], contract=source["runtime_contract"], entry=proof.get("entry"))
++    require(proof == verified and source.get("from_phase") == "P01",
++            "current video natural reset proof was altered")
++    legacy_receipt = source.get("reset_evidence") or {}
++    require(all(key in legacy_receipt and legacy_receipt[key] == proof["reset_metadata"][key]
++                for key in ("reset_count", "reset_options", "training_phase_snapshot")),
++            "video reset evidence disagrees with persisted natural reset proof")
++    return proof
++
++
+ def capture_semantic_video(core, *, role, seed, output_directory, contract,
+                            policy_loader=None, recorder_factory=ActiveViewportVideoRecorder,
+                            semantic_version="v2", experiment_id=None):
+@@
+     error = None
+     reset_info = {}
+     settle_evidence = None
++    natural_reset_proof = None
+     task_window = experiment_id == TASK_WINDOW_EXPERIMENT
+     require(not task_window or semantic_version == "v3", "current task video requires v3")
+     try:
+@@
+         require(core.frame.state_id == "P01" and core.frame.physics_tick == 0
+                 and core.decision_count == 0 and not core.done, "video did not reset to P01")
+         reset_info = dict(core.frame.info)
+-        require(reset_info.get("reset_count") == 1
+-                and reset_info.get("reset_options") == {}
+-                and reset_info.get("training_phase_snapshot") is None,
+-                "video must own the first natural reset of a fresh process")
++        if task_window:
++            natural_reset_proof = current_video_natural_reset_proof(reset_info,
++                role=role, contract=contract, entry={"state_id": core.frame.state_id,
++                    "physics_tick": core.frame.physics_tick,
++                    "decision_count": core.decision_count, "done": core.done})
++        else:
++            require(reset_info.get("reset_count") == 1
++                    and reset_info.get("reset_options") == {}
++                    and reset_info.get("training_phase_snapshot") is None,
++                    "video must own the first natural reset of a fresh process")
+         camera = reset_info["locked_scene_snapshot"]["camera"]
+         require(all(list(camera[key]) == value for key,value in CAMERA.items()),
+                 "camera differs from common A/B/C view")
+@@
+         "artifacts": {name: file_record(root/name) for name in names if (root/name).is_file()}}
+     if experiment_id is not None:
+         payload["experiment_id"] = experiment_id
++    if task_window:
++        payload["natural_reset_proof"] = natural_reset_proof
+     if task_window and endpoint is not None:
+         payload["task_interval_window"] = task_interval_receipt(endpoint.physics_tick)
+     write_json(root/"semantic_video_source_manifest.json", payload)
+@@
+             "source timeline was synthesized")
+     task_window = source.get("experiment_id") == TASK_WINDOW_EXPERIMENT
+     if task_window:
++        validate_current_video_natural_reset(source)
+         require(source.get("semantic_version") == "v3"
+                 and source["pre_action_source"] == "not_encoded_natural_reset"
+                 and source["pre_action_ticks"] == source["requested_post_success_ticks"]
+*** Update File: tests/unit/test_semantic_video_fsm_reference_v2.py
+@@
+     core = NS(backend=backend, decision_count=0, done=False, observation=(0.,) * 372)
+     def reset(*, seed):
+         events.append(("reset", seed))
+-        core.frame = NS(physics_tick=0, state_id="P01", info={"reset_count": 1,
+-            "reset_options": {}, "training_phase_snapshot": None,
++        core.frame = NS(physics_tick=0, state_id="P01", info={"reset_count": 1, "seed": seed,
++            "reset_options": {}, "training_phase_snapshot": "P01",
++            "execution_mode": "semantic_B_or_C", "supervisor_schema": "task_semantic_v2",
++            "reset_prime_tick_count": 0, "sensor_tick_at_effective_entry": 0,
++            "fsm_and_episode_clock_at_effective_entry": 0,
++            "sensor_clock_semantics": "episode_relative_tick",
++            "phase_snapshot_restoration": {"mode": "semantic_natural_P01",
++                "requested_phase": "P01", "historical_state_equality_required": False,
++                "policy_credit_excludes_settle": True, "reset_only_state_writes": {}},
+             "locked_scene_snapshot": {"camera": video.CAMERA}})
+     def step(action):
+         assert len(action) == 12
+@@
+     assert result["pre_action_ticks"] == result["requested_post_success_ticks"] == 0
+     assert result["performed_post_success_ticks"] == result["extra_pre_action_physics_ticks"] == 0
+     assert result["task_interval_window"] == video.task_interval_receipt(23)
++    assert result["natural_reset_proof"]["reset_metadata"]["training_phase_snapshot"] == "P01"
++    video.validate_current_video_natural_reset(result)
+     assert (tmp_path / "source" / "physical_video_roll_ticks.jsonl").read_text() == ""
+     return NS(result=result, events=events, core=core, source=tmp_path / "source")
+ 
+*** Add File: tests/unit/test_semantic_video_natural_reset.py
++"""Deferred current-video natural-reset proof tests. NOT RUN; no live Isaac proof."""
++from __future__ import annotations
++
++import copy
++import json
++
++import pytest
++from wlr50_clean.ppo import semantic_video as video
++
++CONTRACT = {"semantic_version": "v3", "experiment_id": "fsm_reference_p09_stable_v2"}
++ENTRY = {"state_id": "P01", "physics_tick": 0, "decision_count": 0, "done": False}
++
++
++def actual_backend_receipt(role, monkeypatch):
++    # Use the real backend reset implementation with existing fake physical
++    # dependencies, not the incorrect marker=None semantic capture fixture.
++    from test_isaac_fsm_backend import FakeRuntime, _backend
++    from test_semantic_backend import SemanticFrameStub
++    from wlr50_clean.ppo import semantic_backend
++    runtime = FakeRuntime()
++    monkeypatch.setattr(semantic_backend, "_sha256_file", lambda path: "a" * 64)
++    backend = (_backend(runtime) if role == "A" else semantic_backend.SemanticIsaacBackend(
++        dependencies=runtime.dependencies(), controller_factory=lambda *args: SemanticFrameStub()))
++    frame = backend.reset(seed=4001, options={})
++    return runtime, frame
++
++
++def source_with_proof(role, info):
++    proof = video.current_video_natural_reset_proof(info, role=role, contract=CONTRACT, entry=ENTRY)
++    return {"role": role, "runtime_contract": CONTRACT, "from_phase": "P01",
++            "natural_reset_proof": proof,
++            "reset_evidence": {key: info[key] for key in
++                ("reset_count", "reset_options", "training_phase_snapshot")}}
++
++
++@pytest.mark.parametrize("role", ["A", "B", "C"])
++def test_real_backend_natural_receipt_is_accepted_and_persisted_without_side_effects(role, monkeypatch):
++    runtime, frame = actual_backend_receipt(role, monkeypatch)
++    counts = (runtime.sim.step_count, runtime.adapter.write_count, runtime.reader_count)
++    assert frame.physics_tick == 0 and frame.state_id == "P01"
++    assert frame.info["training_phase_snapshot"] == (None if role == "A" else "P01")
++    assert frame.info["phase_snapshot_restoration"]["mode"] == (
++        "normal_p01_reset" if role == "A" else "semantic_natural_P01")
++    source = source_with_proof(role, frame.info)
++    loaded = json.loads(json.dumps(source))  # Exactly the artifact replay boundary.
++    assert video.validate_current_video_natural_reset(loaded) == source["natural_reset_proof"]
++    assert (runtime.sim.step_count, runtime.adapter.write_count, runtime.reader_count) == counts
++    assert counts[0] == counts[1] == 180
++    assert loaded["natural_reset_proof"]["reset_metadata"]["reset_prime_tick_count"] == 0
++
++
++@pytest.mark.parametrize("role", ["A", "B", "C"])
++@pytest.mark.parametrize("fault", [
++    "second_reset", "explicit_p01_snapshot", "explicit_start", "loaded_p01_hidden_options",
++    "historical_restore", "missing_restoration", "missing_requested_phase", "missing_prime",
++    "prime_replay", "sensor_offset", "entry_clock", "marker_mismatch", "missing_execution",
++    "snapshot_file", "source_tick", "unknown_mode",
++])
++def test_current_natural_reset_rejects_actual_or_unproven_snapshots_equally(role, fault, monkeypatch):
++    _, frame = actual_backend_receipt(role, monkeypatch)
++    info = copy.deepcopy(frame.info)
++    restoration = info["phase_snapshot_restoration"]
++    if fault == "second_reset":
++        info["reset_count"] = 2
++    elif fault == "explicit_p01_snapshot":
++        info["reset_options"] = {"training_phase_snapshot": "P01"}
++    elif fault == "explicit_start":
++        info["reset_options"] = {"start_phase": "P01"}
++    elif fault == "loaded_p01_hidden_options":
++        info["training_phase_snapshot"] = "P01"
++        restoration.update(mode="normal_p01_reset", requested_phase="P01", snapshot_validated=True)
++    elif fault == "historical_restore":
++        restoration.update(mode="phase_entry_snapshot", requested_phase="P09")
++    elif fault == "missing_restoration":
++        del info["phase_snapshot_restoration"]
++    elif fault == "missing_requested_phase":
++        del restoration["requested_phase"]
++    elif fault == "missing_prime":
++        del info["reset_prime_tick_count"]
++    elif fault == "prime_replay":
++        info["reset_prime_tick_count"] = 1
++    elif fault == "sensor_offset":
++        info["sensor_tick_at_effective_entry"] = 120
++    elif fault == "entry_clock":
++        info["fsm_and_episode_clock_at_effective_entry"] = 1
++    elif fault == "marker_mismatch":
++        info["training_phase_snapshot"] = "P01" if role == "A" else None
++    elif fault == "missing_execution":
++        if role == "A":
++            info["execution_mode"] = "semantic_B_or_C"
++        else:
++            del info["execution_mode"]
++    elif fault == "snapshot_file":
++        restoration["snapshot_path"] = "real-snapshot.json"
++    elif fault == "source_tick":
++        restoration["source_tick"] = 0
++    else:
++        restoration["mode"] = "unproven_natural_P01"
++    with pytest.raises(video.SemanticVideoError):
++        video.current_video_natural_reset_proof(info, role=role, contract=CONTRACT, entry=ENTRY)
++
++
++@pytest.mark.parametrize("entry", [
++    dict(ENTRY, state_id="P09"), dict(ENTRY, physics_tick=1),
++    dict(ENTRY, decision_count=1), dict(ENTRY, done=True),
++])
++def test_receipt_cannot_override_actual_noninitial_episode_state(entry, monkeypatch):
++    _, frame = actual_backend_receipt("C", monkeypatch)
++    with pytest.raises(video.SemanticVideoError, match="initial natural P01"):
++        video.current_video_natural_reset_proof(frame.info, role="C", contract=CONTRACT, entry=entry)
++
++
++@pytest.mark.parametrize("fault", ["missing", "count", "mode", "prime", "role", "entry", "summary"])
++def test_persisted_receipt_replay_rejects_missing_or_changed_proof(fault, monkeypatch):
++    _, frame = actual_backend_receipt("C", monkeypatch)
++    source = json.loads(json.dumps(source_with_proof("C", frame.info)))
++    proof = source["natural_reset_proof"]
++    if fault == "missing":
++        del source["natural_reset_proof"]
++    elif fault == "count":
++        proof["reset_metadata"]["reset_count"] = 2
++    elif fault == "mode":
++        proof["reset_metadata"]["phase_snapshot_restoration"]["mode"] = "phase_entry_snapshot"
++    elif fault == "prime":
++        proof["reset_metadata"]["reset_prime_tick_count"] = 1
++    elif fault == "role":
++        proof["role"] = "A"
++    elif fault == "entry":
++        proof["entry"]["physics_tick"] = 1
++    else:
++        source["reset_evidence"]["training_phase_snapshot"] = None
++    with pytest.raises(video.SemanticVideoError):
++        video.validate_current_video_natural_reset(source)
++
++
++def source_until_artifact_boundary(version, experiment):
++    return {"schema": "wlr50_clean.semantic_video_source.v1", "role": "B",
++        "mode": video.ROLES["B"], "success_candidate": True, "diagnostic_only": False,
++        "improved_claim": False, "optimizer_updates": 0, "seed": 4001,
++        "episode_count": 1, "fresh_process_single_episode": True,
++        "camera": {**video.CAMERA, "resolution": [1280, 720], "fps": 15},
++        "stitched": False, "frame_interpolation": False, "speed_modified": False,
++        "semantic_version": version, "experiment_id": experiment,
++        "pre_action_ticks": video.PRE_TICKS, "performed_post_success_ticks": video.POST_TICKS,
++        "artifacts": {"boundary": {}}}
++
++
++@pytest.mark.parametrize("version,experiment", [
++    ("v2", None), ("v3", None), ("v3", "all_stage_acceptance_v1"),
++])
++def test_older_video_sources_do_not_acquire_the_new_reset_proof_requirement(tmp_path, monkeypatch, version, experiment):
++    class ArtifactBoundary(Exception):
++        pass
++    source = source_until_artifact_boundary(version, experiment)
++    (tmp_path / "semantic_video_source_manifest.json").write_text(json.dumps(source))
++    monkeypatch.setattr(video, "validate_current_video_natural_reset",
++                        lambda *a, **k: pytest.fail("historical video acquired new proof requirement"))
++    def boundary(*args):
++        raise ArtifactBoundary
++    monkeypatch.setattr(video, "inside", boundary)
++    with pytest.raises(ArtifactBoundary):
++        video.validate_semantic_video_source(tmp_path)
++
++
++def test_current_independent_source_validator_checks_reset_proof_before_artifacts(tmp_path, monkeypatch):
++    source = source_until_artifact_boundary("v3", video.TASK_WINDOW_EXPERIMENT)
++    # No proof: a claimed current success cannot get past the common guard.
++    (tmp_path / "semantic_video_source_manifest.json").write_text(json.dumps(source))
++    monkeypatch.setattr(video, "inside", lambda *a: pytest.fail("missing proof reached artifact processing"))
++    with pytest.raises(video.SemanticVideoError, match="persisted natural reset proof"):
++        video.validate_semantic_video_source(tmp_path)
+*** End Patch
