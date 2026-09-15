@@ -1,0 +1,88 @@
+*** Begin Patch
+*** Update File: C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_supervisor.py
+@@
+             diag["actual_start_tick"] = tick
+         return ready
+ 
++    def _rr_top_continuation_allowed(self, task: Mapping[str, Any]) -> bool:
++        """Existing wheel suggestion may create crossing after a real TOP contact.
++
++        TOP surface sensing is independent of center-plane crossing: requiring
++        top_contact/top_geometry/within_top_xy here would wait for the very
++        forward motion being suggested. No Q/C/P event is changed or awarded.
++        """
++        ev = task.get("physical_evaluator", {})
++        if (task.get("stage_id") != "P09" or task.get("termination_reason") is not None
++                or not isinstance(ev, Mapping)
++                or ev.get("valid") is not True or ev.get("termination_reason") is not None
++                or ev.get("physical_evidence_status") not in ("VERIFIED", "CONTACT_BEARING_UNVERIFIED")
++                or not any(layer["stage"] == "P09" and layer.get("sample") is not None
++                           and layer["sample"].endpoint_issued for layer in self._continuous_layers)):
++            return False
++        legs, history = ev.get("current_legs", {}), ev.get("history", {})
++        if not isinstance(legs, Mapping) or not isinstance(history, Mapping):
++            return False
++        rr = legs.get("RR", {})
++        geo, support = self.spec["geometry"], self.spec["support"]
++
++        def bearing(row):
++            if not isinstance(row, Mapping):
++                return False
++            try:
++                force = _number(row.get("bearing_force_n"), "RR continuation bearing")
++            except (SemanticObservationError, TypeError):
++                return False
++            return (row.get("support") is True and row.get("bearing_verified") is True
++                    and row.get("air") is False and force >= support["force_noise_floor_n"]
++                    and (row.get("ground_contact") is True or row.get("top_surface_contact") is True))
++
++        try:
++            distance = _number(rr.get("front_distance_m"), "RR continuation front distance")
++            clearance = _number(rr.get("clearance_m"), "RR continuation current gap")
++        except (SemanticObservationError, TypeError):
++            return False
++        return bool(history.get("active_lift", {}).get("RR") is True
++            and history.get("placed", {}).get("RR") is False and rr.get("active_attempt") is True
++            and rr.get("current_lift_valid") is True and rr.get("motion_continuation_allowed") is True
++            and rr.get("ground_contact") is False and rr.get("within_lateral_span") is True
++            and rr.get("contact_surface") == "TOP" and rr.get("top_surface_contact") is True
++            and rr.get("obstacle_pair_active") is True and bearing(rr)
++            and geo["top_gap_min_m"] <= clearance <= geo["top_gap_max_m"]
++            and geo["workspace_min_m"] <= distance < geo["approach_max_m"]
++            and sum(bearing(legs.get(leg, {})) for leg in LEG_ORDER if leg != "RR")
++                >= support["minimum_other_supports"])
++
+     def _continuous_advisory(self, task: Mapping[str,Any], retirement: Mapping[str,Any] | None=None,
+                             capture: Mapping[str,Any] | None=None,
+                             observation: Any=None) -> tuple[tuple[float,...],tuple[str,...]]:
+@@
+             if functional_rr:
+                 # Source hip/knee/whole-body owners continue without a Q/height
+                 # dispatch gate. This extra P01-derived rolling suggestion is
+-                # only for verified AIR away from the wall, or surface-height
+-                # AIR near it; EDGE is never a reason to add blind wheel push.
++                # retained for verified AIR; after the finite source, real
++                # TOP-corner contact may also continue toward crossing/capture.
++                # FRONT_WALL or unknown EDGE never enables that TOP extension.
+                 distance = current.get("front_distance_m", 1.)
+                 rolling = bool(ev.get("valid") is True and task.get("termination_reason") is None
+                     and ev.get("termination_reason") is None and current.get("current_lift_valid")
+@@
+                 # FR joint/wheel pulse or its authored stops just because the
+                 # task label has already advanced to P09. It remains available
+                 # after finite source execution, when current geometry permits.
+-                rolling = rolling and not ordered_wheel_owner
++                top_rolling = self._rr_top_continuation_allowed(task)
++                rolling = (rolling or top_rolling) and not ordered_wheel_owner
+                 if rolling:
+                     proposed[8:] = self._approach_wheel_prior
+                 self._rr_carry_diagnostic = dict(
+                     source_joint_owners_continued=True, added_rolling_suggestion=rolling,
+                     ordered_source_wheel_owner=ordered_wheel_owner,
++                    current_TOP_continuation_eligible=top_rolling,
+                     reason="finite_ordered_source_wheel_owner" if ordered_wheel_owner else
++                        "current_TOP_corner_continuation" if top_rolling and rolling else
+                         "current_AIR_safe_approach" if rolling else
+                         "no_extra_wall_push_source_and_residual_adjustment_continue",
+                     fixed_lift_timer_gate=False, above_top_15mm_action_gate=False)
+*** End Patch

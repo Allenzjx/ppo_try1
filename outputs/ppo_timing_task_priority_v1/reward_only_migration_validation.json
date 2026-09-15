@@ -1,0 +1,34 @@
+{
+  "status": "prepared_unapplied",
+  "production_patch": "outputs/ppo_timing_task_priority_v1/reward_only_migration.patch",
+  "test_patch": "outputs/ppo_timing_task_priority_v1/reward_only_migration_tests.patch",
+  "builder": "outputs/ppo_timing_task_priority_v1/build_body_reward_migration_plan.py",
+  "candidate_mirror": "C:/Users/kskzz/AppData/Local/Temp/wlr_reward_migration_7610b0c20f164afb9980ece9798e8a63",
+  "cpu_test_count_passed": 104,
+  "test_suites": [
+    "test_semantic_body_reward_migration.py",
+    "test_semantic_timing_only_migration.py",
+    "test_semantic_runtime_identity_resume372.py",
+    "test_semantic_video_migration.py"
+  ],
+  "paired_with_latest_reward_candidate": "outputs/ppo_timing_task_priority_v1/reward_candidate/semantic_reward.py",
+  "git_apply_check_all_four_reward_and_migration_patches": "passed",
+  "covered_paths": ["already_timed_checkpoint_to_reward", "original_checkpoint_to_verified_timing_reference_to_reward"],
+  "completed_same_nominal_manifest": "required; DIAGNOSTIC_FAILURE is accepted; no optimizer update is allowed",
+  "synthetic_cpu_roundtrip_verified": [
+    "actor and critic hashes",
+    "complete nonempty Adam state and effective learning rate",
+    "normalizer state",
+    "training RNG state",
+    "fresh empty rollout and no environment action during restore",
+    "reject partial old rollout",
+    "continued update and save/reload with cumulative counters",
+    "preserve verified timing ancestry"
+  ],
+  "real_training_decisions_added_by_this_subtask": 0,
+  "real_ppo_updates_added_by_this_subtask": 0,
+  "real_checkpoints_loaded_or_written_by_this_subtask": 0,
+  "production_source_or_config_modified_by_this_subtask": false,
+  "required_runtime_environment": "PYTHONPATH=<project>/src; env_isaaclab Python",
+  "note": "Apply the reviewed consumer/config and migration patches only after frozen B/C finish, test and scoped commit, then build the real plan with the final commit and completed reference manifest. A generated migration plan is not a learned checkpoint."
+}

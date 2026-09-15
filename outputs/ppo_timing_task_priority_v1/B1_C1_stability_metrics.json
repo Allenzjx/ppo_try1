@@ -1,0 +1,560 @@
+{
+  "schema": "wlr50_clean.paired_physical_stability_metrics.v1",
+  "created_at_utc": "2026-09-14T23:15:27.166Z",
+  "scope": "Explicit completed runs only; full 120Hz physical stream plus reused, bound full-rate native/physical summary; no new native audit read or policy sampling",
+  "same_recorded_runtime": true,
+  "matched_window": {
+    "inclusive_tick_range": [
+      0,
+      879
+    ],
+    "duration_s": 7.325,
+    "samples_per_run": 880
+  },
+  "definitions": {
+    "RMS": "sqrt(mean(value squared)) over valid inclusive 120Hz observations, with per-metric sample counts",
+    "attitude": "Derived calibrated ZYX roll/pitch from normalized(q_world_body * fixed_chassis_to_body); radians, not raw quaternion components",
+    "angle_rate": "Derived shortest-angle first difference of consecutive calibrated Euler roll/pitch times 120; ticks1..end; not measured angular velocity",
+    "measured_angular_velocity": "Recorded base.angular_velocity_w_rad_s in WORLD axes; x/y are not Euler roll/pitch rates",
+    "height": "Recorded base origin or valid mass-weighted CoM world Z; base-origin Z is not body-mesh obstacle clearance",
+    "tracking": "Measured RR joint position_deg minus final command_deg, same physical row; derived error, not torque or a causal attribution",
+    "sample_scope": "Physics observations, not PPO decisions; no invented terminal reward or 15Hz forward fill"
+  },
+  "interpretation": "No stability superiority claim: shorter, more horizontal or lower-variance motion can coexist with body/CoM collapse, safety abort or unfinished tasks. Compare common time first, retain both complete endpoints and task outcomes; equal runtime alone does not prove identical initial state.",
+  "runs": [
+    {
+      "role": "B",
+      "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\prior_B\\20260914T2239069664767Z_ga89ba82af061_fa3a7f654dd34828834613adc1162e33",
+      "source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\prior_B\\20260914T2239069664767Z_ga89ba82af061_fa3a7f654dd34828834613adc1162e33\\source",
+      "source_git_commit": "a89ba82af0618ebaa1829f91d9f01b3e80b47cd2",
+      "runtime_content_sha256": "39a8b3984217357ead9ac2673804f8539f71bdfbf64fa4e84a62d58fa7332408",
+      "calibration": {
+        "status": "recorded_configuration_sha256_verified",
+        "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\configs\\ppo_fsm_reference_p09_stable_v2\\observation_schema.json",
+        "sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b",
+        "fixed_chassis_to_body_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "formula": "normalized(q_world_body * normalized(fixed_chassis_to_body)); semantic_observation.py convention",
+        "verification": "Reused existing SHA-verified completed extractor calibration, bound to recorded run configuration"
+      },
+      "native_evidence": {
+        "summary": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_timing_task_priority_v1\\B_TIMING1_AFTER.summary.json",
+        "native_ticks": 9281,
+        "verified_ticks": 9281,
+        "full_rate_RR_peaks_recomputed_and_matched": true,
+        "native_stream_reread": false
+      },
+      "task": {
+        "lifecycle": "DIAGNOSTIC_FAILURE",
+        "physical_task_success": false,
+        "success": false,
+        "task_completed_controlled": false,
+        "traversal_task_complete": false,
+        "termination_reason": null,
+        "termination_source": null,
+        "physics_tick": 9281,
+        "simulation_time_s": 77.34166666666667,
+        "last_phase_from_recorded_transition": "P09",
+        "source_acceptance_error": "SemanticVideoError: episode did not meet common physical task",
+        "checkpoint_decisions": null,
+        "optimizer_updates": 0,
+        "issued_policy_decisions": 1161,
+        "returned_environment_steps": 1161,
+        "interrupted_final_decision_ticks": 0
+      },
+      "full_episode": {
+        "first_tick": 0,
+        "last_tick": 9281,
+        "duration_s": 77.34166666666667,
+        "physical_sample_count": 9282,
+        "calibrated_body_roll_pitch_rad": {
+          "roll": {
+            "valid_samples": 9282,
+            "rms": 0.12147426806680732,
+            "max_abs": 0.24337851366511262,
+            "max_abs_tick": 303
+          },
+          "pitch": {
+            "valid_samples": 9282,
+            "rms": 0.12948570462851486,
+            "max_abs": 0.19162604211523546,
+            "max_abs_tick": 409
+          }
+        },
+        "derived_calibrated_Euler_rate_rad_s": {
+          "roll": {
+            "valid_samples": 9281,
+            "rms": 0.0644614524319609,
+            "max_abs": 0.9467260156960178,
+            "max_abs_tick": 100
+          },
+          "pitch": {
+            "valid_samples": 9281,
+            "rms": 0.05283354380429459,
+            "max_abs": 0.9379970935613602,
+            "max_abs_tick": 1489
+          }
+        },
+        "measured_body_angular_velocity_world_rad_s": {
+          "x": {
+            "valid_samples": 9282,
+            "rms": 0.07035571927240332,
+            "max_abs": 0.8934362530708313,
+            "max_abs_tick": 98
+          },
+          "y": {
+            "valid_samples": 9282,
+            "rms": 0.05666487652607766,
+            "max_abs": 0.9996036887168884,
+            "max_abs_tick": 1489
+          },
+          "z": {
+            "valid_samples": 9282,
+            "rms": 0.04142531795944258,
+            "max_abs": 0.6516884565353394,
+            "max_abs_tick": 6094
+          },
+          "norm": {
+            "valid_samples": 9282,
+            "rms": 0.09938255598490976,
+            "max_abs": 1.2393260277394267,
+            "max_abs_tick": 1489
+          }
+        },
+        "minimum_height_world_m": {
+          "base_origin": {
+            "valid_samples": 9282,
+            "min": 0.04550568759441376,
+            "min_tick": 5866
+          },
+          "valid_mass_weighted_CoM": {
+            "valid_samples": 9282,
+            "min": 0.1469142549965062,
+            "min_tick": 1547
+          }
+        },
+        "RR_actual_minus_final_command_deg": {
+          "hip": {
+            "valid_samples": 9282,
+            "max_abs": 13.163035099752566,
+            "signed_error_at_peak": -13.163035099752566,
+            "physics_tick": 5457
+          },
+          "knee": {
+            "valid_samples": 9282,
+            "max_abs": 10.419785534498985,
+            "signed_error_at_peak": 10.419785534498985,
+            "physics_tick": 5537
+          }
+        },
+        "start": {
+          "physics_tick": 0,
+          "simulation_time_s": 0,
+          "calibrated_roll_pitch_rad": [
+            -0.00003884937598026426,
+            -0.012019878918690498
+          ],
+          "base_origin_z_world_m": 0.09901974350214005,
+          "valid_CoM_z_world_m": 0.15462384420150221
+        },
+        "end": {
+          "physics_tick": 9281,
+          "simulation_time_s": 77.34166666666667,
+          "calibrated_roll_pitch_rad": [
+            0.07564265661915381,
+            -0.1749172463939656
+          ],
+          "base_origin_z_world_m": 0.09998368471860886,
+          "valid_CoM_z_world_m": 0.15250634697537463
+        },
+        "quality": {
+          "all_finite_flag_not_true_rows": 0,
+          "data_quality_nonempty_rows": 0,
+          "near_Euler_gimbal_singularity_rows": 0
+        }
+      },
+      "matched_common_window": {
+        "first_tick": 0,
+        "last_tick": 879,
+        "duration_s": 7.325,
+        "physical_sample_count": 880,
+        "calibrated_body_roll_pitch_rad": {
+          "roll": {
+            "valid_samples": 880,
+            "rms": 0.22811151771014657,
+            "max_abs": 0.24337851366511262,
+            "max_abs_tick": 303
+          },
+          "pitch": {
+            "valid_samples": 880,
+            "rms": 0.18066684691449228,
+            "max_abs": 0.19162604211523546,
+            "max_abs_tick": 409
+          }
+        },
+        "derived_calibrated_Euler_rate_rad_s": {
+          "roll": {
+            "valid_samples": 879,
+            "rms": 0.12009924508914742,
+            "max_abs": 0.9467260156960178,
+            "max_abs_tick": 100
+          },
+          "pitch": {
+            "valid_samples": 879,
+            "rms": 0.08660970911658418,
+            "max_abs": 0.6630515942686676,
+            "max_abs_tick": 100
+          }
+        },
+        "measured_body_angular_velocity_world_rad_s": {
+          "x": {
+            "valid_samples": 880,
+            "rms": 0.11862220005588865,
+            "max_abs": 0.8934362530708313,
+            "max_abs_tick": 98
+          },
+          "y": {
+            "valid_samples": 880,
+            "rms": 0.08246137970585408,
+            "max_abs": 0.6548767685890198,
+            "max_abs_tick": 99
+          },
+          "z": {
+            "valid_samples": 880,
+            "rms": 0.019084164425730972,
+            "max_abs": 0.15015080571174622,
+            "max_abs_tick": 101
+          },
+          "norm": {
+            "valid_samples": 880,
+            "rms": 0.14572340519257923,
+            "max_abs": 1.0972088424700044,
+            "max_abs_tick": 98
+          }
+        },
+        "minimum_height_world_m": {
+          "base_origin": {
+            "valid_samples": 880,
+            "min": 0.07190962135791779,
+            "min_tick": 623
+          },
+          "valid_mass_weighted_CoM": {
+            "valid_samples": 880,
+            "min": 0.15457122533889606,
+            "min_tick": 2
+          }
+        },
+        "RR_actual_minus_final_command_deg": {
+          "hip": {
+            "valid_samples": 880,
+            "max_abs": 0.7219522492503907,
+            "signed_error_at_peak": 0.7219522492503907,
+            "physics_tick": 690
+          },
+          "knee": {
+            "valid_samples": 880,
+            "max_abs": 0.8651487126644419,
+            "signed_error_at_peak": -0.8651487126644419,
+            "physics_tick": 43
+          }
+        },
+        "start": {
+          "physics_tick": 0,
+          "simulation_time_s": 0,
+          "calibrated_roll_pitch_rad": [
+            -0.00003884937598026426,
+            -0.012019878918690498
+          ],
+          "base_origin_z_world_m": 0.09901974350214005,
+          "valid_CoM_z_world_m": 0.15462384420150221
+        },
+        "end": {
+          "physics_tick": 879,
+          "simulation_time_s": 7.325,
+          "calibrated_roll_pitch_rad": [
+            -0.24031880535674385,
+            -0.18935794715485138
+          ],
+          "base_origin_z_world_m": 0.07225120812654495,
+          "valid_CoM_z_world_m": 0.16435902165433844
+        },
+        "quality": {
+          "all_finite_flag_not_true_rows": 0,
+          "data_quality_nonempty_rows": 0,
+          "near_Euler_gimbal_singularity_rows": 0
+        }
+      }
+    },
+    {
+      "role": "C",
+      "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\validation\\20260914T2304169309827Z_ga89ba82af061_0b60925a21ed4a9c87cce008dbce5db3",
+      "source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\validation\\20260914T2304169309827Z_ga89ba82af061_0b60925a21ed4a9c87cce008dbce5db3\\source",
+      "source_git_commit": "a89ba82af0618ebaa1829f91d9f01b3e80b47cd2",
+      "runtime_content_sha256": "39a8b3984217357ead9ac2673804f8539f71bdfbf64fa4e84a62d58fa7332408",
+      "calibration": {
+        "status": "recorded_configuration_sha256_verified",
+        "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\configs\\ppo_fsm_reference_p09_stable_v2\\observation_schema.json",
+        "sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b",
+        "fixed_chassis_to_body_wxyz": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "formula": "normalized(q_world_body * normalized(fixed_chassis_to_body)); semantic_observation.py convention",
+        "verification": "Reused existing SHA-verified completed extractor calibration, bound to recorded run configuration"
+      },
+      "native_evidence": {
+        "summary": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_timing_task_priority_v1\\C_TIMING1_AFTER.summary.json",
+        "native_ticks": 879,
+        "verified_ticks": 879,
+        "full_rate_RR_peaks_recomputed_and_matched": true,
+        "native_stream_reread": false
+      },
+      "task": {
+        "lifecycle": "DIAGNOSTIC_FAILURE",
+        "physical_task_success": false,
+        "success": false,
+        "task_completed_controlled": false,
+        "traversal_task_complete": false,
+        "termination_reason": "SAFETY_ABORT",
+        "termination_source": "HARD_JOINT_LIMIT",
+        "physics_tick": 879,
+        "simulation_time_s": 7.325,
+        "last_phase_from_recorded_transition": "P02",
+        "source_acceptance_error": "SemanticVideoError: episode did not meet common physical task",
+        "checkpoint_decisions": 167424,
+        "optimizer_updates": 0,
+        "issued_policy_decisions": 110,
+        "returned_environment_steps": 109,
+        "interrupted_final_decision_ticks": 7
+      },
+      "full_episode": {
+        "first_tick": 0,
+        "last_tick": 879,
+        "duration_s": 7.325,
+        "physical_sample_count": 880,
+        "calibrated_body_roll_pitch_rad": {
+          "roll": {
+            "valid_samples": 880,
+            "rms": 0.11032912684189262,
+            "max_abs": 0.18427082343555323,
+            "max_abs_tick": 95
+          },
+          "pitch": {
+            "valid_samples": 880,
+            "rms": 0.107123173524229,
+            "max_abs": 0.13163807444272937,
+            "max_abs_tick": 73
+          }
+        },
+        "derived_calibrated_Euler_rate_rad_s": {
+          "roll": {
+            "valid_samples": 879,
+            "rms": 0.11502833514442189,
+            "max_abs": 0.9134820395294019,
+            "max_abs_tick": 73
+          },
+          "pitch": {
+            "valid_samples": 879,
+            "rms": 0.07630297220194926,
+            "max_abs": 0.6697410484793298,
+            "max_abs_tick": 73
+          }
+        },
+        "measured_body_angular_velocity_world_rad_s": {
+          "x": {
+            "valid_samples": 880,
+            "rms": 0.13567398655789684,
+            "max_abs": 0.8132684826850891,
+            "max_abs_tick": 71
+          },
+          "y": {
+            "valid_samples": 880,
+            "rms": 0.0845300432957106,
+            "max_abs": 0.6933013200759888,
+            "max_abs_tick": 72
+          },
+          "z": {
+            "valid_samples": 880,
+            "rms": 0.04414014131568618,
+            "max_abs": 0.18768928945064545,
+            "max_abs_tick": 105
+          },
+          "norm": {
+            "valid_samples": 880,
+            "rms": 0.16583458904419116,
+            "max_abs": 1.0683593596274636,
+            "max_abs_tick": 72
+          }
+        },
+        "minimum_height_world_m": {
+          "base_origin": {
+            "valid_samples": 880,
+            "min": 0.04982227832078934,
+            "min_tick": 879
+          },
+          "valid_mass_weighted_CoM": {
+            "valid_samples": 880,
+            "min": 0.11609381829411457,
+            "min_tick": 879
+          }
+        },
+        "RR_actual_minus_final_command_deg": {
+          "hip": {
+            "valid_samples": 880,
+            "max_abs": 1.5278948648704134,
+            "signed_error_at_peak": -1.5278948648704134,
+            "physics_tick": 849
+          },
+          "knee": {
+            "valid_samples": 880,
+            "max_abs": 53.65861198600767,
+            "signed_error_at_peak": -53.65861198600767,
+            "physics_tick": 879
+          }
+        },
+        "start": {
+          "physics_tick": 0,
+          "simulation_time_s": 0,
+          "calibrated_roll_pitch_rad": [
+            -0.00003884937598026426,
+            -0.012019878918690498
+          ],
+          "base_origin_z_world_m": 0.09901974350214005,
+          "valid_CoM_z_world_m": 0.15462384420150221
+        },
+        "end": {
+          "physics_tick": 879,
+          "simulation_time_s": 7.325,
+          "calibrated_roll_pitch_rad": [
+            0.07295113315529139,
+            -0.1104107652080251
+          ],
+          "base_origin_z_world_m": 0.04982227832078934,
+          "valid_CoM_z_world_m": 0.11609381829411457
+        },
+        "quality": {
+          "all_finite_flag_not_true_rows": 0,
+          "data_quality_nonempty_rows": 0,
+          "near_Euler_gimbal_singularity_rows": 0
+        }
+      },
+      "matched_common_window": {
+        "first_tick": 0,
+        "last_tick": 879,
+        "duration_s": 7.325,
+        "physical_sample_count": 880,
+        "calibrated_body_roll_pitch_rad": {
+          "roll": {
+            "valid_samples": 880,
+            "rms": 0.11032912684189262,
+            "max_abs": 0.18427082343555323,
+            "max_abs_tick": 95
+          },
+          "pitch": {
+            "valid_samples": 880,
+            "rms": 0.107123173524229,
+            "max_abs": 0.13163807444272937,
+            "max_abs_tick": 73
+          }
+        },
+        "derived_calibrated_Euler_rate_rad_s": {
+          "roll": {
+            "valid_samples": 879,
+            "rms": 0.11502833514442189,
+            "max_abs": 0.9134820395294019,
+            "max_abs_tick": 73
+          },
+          "pitch": {
+            "valid_samples": 879,
+            "rms": 0.07630297220194926,
+            "max_abs": 0.6697410484793298,
+            "max_abs_tick": 73
+          }
+        },
+        "measured_body_angular_velocity_world_rad_s": {
+          "x": {
+            "valid_samples": 880,
+            "rms": 0.13567398655789684,
+            "max_abs": 0.8132684826850891,
+            "max_abs_tick": 71
+          },
+          "y": {
+            "valid_samples": 880,
+            "rms": 0.0845300432957106,
+            "max_abs": 0.6933013200759888,
+            "max_abs_tick": 72
+          },
+          "z": {
+            "valid_samples": 880,
+            "rms": 0.04414014131568618,
+            "max_abs": 0.18768928945064545,
+            "max_abs_tick": 105
+          },
+          "norm": {
+            "valid_samples": 880,
+            "rms": 0.16583458904419116,
+            "max_abs": 1.0683593596274636,
+            "max_abs_tick": 72
+          }
+        },
+        "minimum_height_world_m": {
+          "base_origin": {
+            "valid_samples": 880,
+            "min": 0.04982227832078934,
+            "min_tick": 879
+          },
+          "valid_mass_weighted_CoM": {
+            "valid_samples": 880,
+            "min": 0.11609381829411457,
+            "min_tick": 879
+          }
+        },
+        "RR_actual_minus_final_command_deg": {
+          "hip": {
+            "valid_samples": 880,
+            "max_abs": 1.5278948648704134,
+            "signed_error_at_peak": -1.5278948648704134,
+            "physics_tick": 849
+          },
+          "knee": {
+            "valid_samples": 880,
+            "max_abs": 53.65861198600767,
+            "signed_error_at_peak": -53.65861198600767,
+            "physics_tick": 879
+          }
+        },
+        "start": {
+          "physics_tick": 0,
+          "simulation_time_s": 0,
+          "calibrated_roll_pitch_rad": [
+            -0.00003884937598026426,
+            -0.012019878918690498
+          ],
+          "base_origin_z_world_m": 0.09901974350214005,
+          "valid_CoM_z_world_m": 0.15462384420150221
+        },
+        "end": {
+          "physics_tick": 879,
+          "simulation_time_s": 7.325,
+          "calibrated_roll_pitch_rad": [
+            0.07295113315529139,
+            -0.1104107652080251
+          ],
+          "base_origin_z_world_m": 0.04982227832078934,
+          "valid_CoM_z_world_m": 0.11609381829411457
+        },
+        "quality": {
+          "all_finite_flag_not_true_rows": 0,
+          "data_quality_nonempty_rows": 0,
+          "near_Euler_gimbal_singularity_rows": 0
+        }
+      }
+    }
+  ]
+}

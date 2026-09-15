@@ -1,0 +1,634 @@
+{
+  "schema": "wlr50_clean.bounded_rr_geometry_boundary_diagnosis.v1",
+  "scope": {
+    "readonly": true,
+    "production_modified": false,
+    "new_simulation": false,
+    "new_probe": false,
+    "policy_loaded": false,
+    "inspected": "Existing B2 final native and physical rows; five original A command rows plus their exact t+1 physical rows; current geometry/headroom/dispatch code and existing CPU test assertions.",
+    "original_A_clock": "command control_physics_tick t -> physical physics_tick t+1. Neither A native adapter clock nor B2 native dispatch tick is an episode observation tick.",
+    "boundary_scope": "Nominal-only fixed-base first-order two-DOF projection. Robot itself remains floating-base (context.fixed_base=false)."
+  },
+  "sources": {
+    "B2_run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_fsm_reference_p09_stable_v2/video_eval/prior_B/20260914T2310036230645Z_g4db24eabd129_332256dc4c39442d8d4f8b257a0df053",
+    "B2_files": [
+      "source/native_tick_audit.jsonl",
+      "source/physical_observations.jsonl"
+    ],
+    "A_run": "C:/robotics_sim/wlr_robot/fsm_50mm_recording_shaped_clean_v1/runs/trial_043_20260902_clean_v010",
+    "A_files": [
+      "full12_commands_120hz.jsonl",
+      "observation_120hz.jsonl",
+      "leg_crossing_events.jsonl"
+    ]
+  },
+  "terminal": {
+    "episode_physics_tick": 6374,
+    "phase": "P09",
+    "sim_time_s": 53.11666666666667,
+    "RR_source_deg": [
+      -6.9,
+      -37.8
+    ],
+    "RR_mapper_compensation_deg": [
+      0.17641887635033981,
+      10
+    ],
+    "RR_geometry_adjustment_deg": [
+      0.05146728238095477,
+      -32.20000000000001
+    ],
+    "RR_geometry_corrected_N_deg": [
+      -6.672113841268706,
+      -60.00000000000001
+    ],
+    "RR_previous_final_deg": [
+      -6.667819748827403,
+      -60
+    ],
+    "RR_final_deg": [
+      -6.672113841268706,
+      -60
+    ],
+    "RR_actual_deg": [
+      -6.68970170369783,
+      -60.000011087842644
+    ],
+    "bounded_controller_bias_full12": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "requested_policy_residual_full12": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "effective_policy_residual_full12": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "effective_combined_post_mapper_bias_full12": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "RR_residual_intervals_deg": [
+      [
+        -126.32788615873129,
+        139.6721138412687
+      ],
+      [
+        0,
+        268
+      ]
+    ],
+    "baseline_outside_reserved_servo_indices": [
+      7
+    ],
+    "geometry_status": "projected_relaxed_forward",
+    "geometry_context": {
+      "source_control_tick": 6373,
+      "dispatch_physics_tick": 6553,
+      "source_sim_time_s": 53.108333333333334,
+      "physical_q_rad": [
+        0.1109791249036789,
+        1.0509400367736816
+      ],
+      "jacobian_x_m_per_rad": [
+        0.06334836035966873,
+        0.021208427846431732
+      ],
+      "jacobian_z_m_per_rad": [
+        0.01329472940415144,
+        0.1549496352672577
+      ],
+      "clearance_m": -0.005783942362812371,
+      "clearance_margin_m": -0.005783942362812371,
+      "clearance_floor_semantics": "current_below_top_or_surface_floor_before_cross",
+      "place_xy": false,
+      "ground_contact": false,
+      "fixed_base": false,
+      "physical_joint_ids": [
+        3,
+        7
+      ],
+      "jacobian_joint_columns": [
+        9,
+        13
+      ],
+      "COM_velocity_identity_max_error": 2.9802322387695312e-8,
+      "link_velocity_identity_max_error_m_s": 1.7462298274040222e-9,
+      "jacobian_model": "world_COM_shifted_to_measured_link_origin_fixed_base_joint_columns",
+      "physical_motion_guaranteed": false
+    },
+    "projection": {
+      "scope": "nominal_only_fixed_base_first_order_two_dof",
+      "residual_constraint_applied": false,
+      "available_descent_m": 0,
+      "original_linear_x_m": -0.0004159970815924631,
+      "original_linear_z_m": -0.0033685343341490234,
+      "corrected_linear_x_m": -0.000010205118299088078,
+      "corrected_linear_z_m": 1.5246593050577406e-20,
+      "mathematical_contract_verified": true,
+      "box_satisfied": true,
+      "downward_halfspace_satisfied": true
+    },
+    "old_zero_policy_physical_target_rad": [
+      0.11171153887642934,
+      1.0291376519284272
+    ],
+    "RR_front_distance_m": -0.019751604964021396,
+    "RR_gap_m": -0.005733860554657154,
+    "RR_contact_class": "OBSTACLE",
+    "RR_obstacle_pair": {
+      "active": true,
+      "normal_force_n": 10.776341862212298,
+      "pair_verified": true
+    },
+    "body_collision": {
+      "detected": false,
+      "real_pair_active": false,
+      "persistent": false,
+      "geometry_penetration_m": 0,
+      "reason": "no exact base_link/obstacle contact"
+    }
+  },
+  "exact_knee_chain_deg": {
+    "source": -37.8,
+    "mapper_compensation": 10,
+    "standalone_mapped_N": -27.8,
+    "nominal_geometry_adjustment": -32.20000000000001,
+    "geometry_corrected_N": -60.00000000000001,
+    "controller_bias": 0,
+    "effective_policy_residual": 0,
+    "final_canonical_target": -60,
+    "actual": -60.000011087842644
+  },
+  "source_locations": [
+    {
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_nominal_geometry.py",
+      "line": 98,
+      "meaning": "Bypass nominal preplacement advisory on within_top_xy, ground contact, or outside lateral span; exact TOP contact alone does not bypass while wheel center remains before edge."
+    },
+    {
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_nominal_geometry.py",
+      "line": 123,
+      "meaning": "Current below-top floor sets margin=min(clearance,0)."
+    },
+    {
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_nominal_geometry.py",
+      "line": 238,
+      "meaning": "Use actual previous final target history, then existing bounded native/controller slew target."
+    },
+    {
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_nominal_geometry.py",
+      "line": 263,
+      "meaning": "available_descent=max(0,clearance-margin) is zero at terminal; two-DOF advisory projects the original downward release toward knee boundary."
+    },
+    {
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_nominal_geometry.py",
+      "line": 275,
+      "meaning": "Inverse projected canonical target becomes adjusted native target after removing controller bias."
+    },
+    {
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_residual_adapter.py",
+      "line": 146,
+      "meaning": "Headroom uses geometry-corrected N and independent current policy request."
+    },
+    {
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_residual_adapter.py",
+      "line": 155,
+      "meaning": "Real final native-plus-effective-bias target passes existing hard clamp/slew, then one actual write and history update."
+    },
+    {
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_headroom.py",
+      "line": 91,
+      "meaning": "Residual interval=[min(0,L-(geometryN+controller)),max(0,U-(geometryN+controller))]."
+    },
+    {
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_headroom.py",
+      "line": 99,
+      "meaning": "Zero preserved; inward request allowed even when zero-policy baseline is outside reserved band."
+    },
+    {
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_supervisor.py",
+      "line": 1513,
+      "meaning": "Source normal bias is finite-source scoped, not accumulated; terminal measured controller and combined bias are both zero."
+    }
+  ],
+  "original_A_rr_events": {
+    "active_lift_tick": 6918,
+    "front_face_crossed_tick": 7109,
+    "top_loaded_tick": 7579,
+    "P09_finite_endpoint_tick": 7776
+  },
+  "original_A_bounded_tail": {
+    "A_command_ticks": {
+      "7578": {
+        "control_physics_tick": 7578,
+        "sim_time_s": 63.15,
+        "state_id": "P09",
+        "lifecycle": "EXECUTE_MOTION",
+        "motion_tick_index": 666,
+        "nominal_full12": [
+          -6.9,
+          -37.8
+        ],
+        "full12": [
+          -6.9,
+          -37.8
+        ],
+        "native_drive_target_full12": [
+          -6.9,
+          -37.40496191671092
+        ],
+        "drive_target_full12": [
+          -6.9,
+          -37.40496191671092
+        ],
+        "normal_drive_bias_full12": [
+          0,
+          0
+        ],
+        "drive_feedback_bias_requested_full12": [
+          0,
+          0
+        ],
+        "tracking_servo_names": [
+          "front_left_hip",
+          "front_left_knee",
+          "front_right_hip",
+          "front_right_knee",
+          "rear_left_hip",
+          "rear_left_knee",
+          "rear_right_hip",
+          "rear_right_knee"
+        ]
+      },
+      "7579": {
+        "control_physics_tick": 7579,
+        "sim_time_s": 63.15833333333333,
+        "state_id": "P09",
+        "lifecycle": "EXECUTE_MOTION",
+        "motion_tick_index": 667,
+        "nominal_full12": [
+          -6.9,
+          -37.8
+        ],
+        "full12": [
+          -6.9,
+          -37.8
+        ],
+        "native_drive_target_full12": [
+          -6.9,
+          -37.40496191671092
+        ],
+        "drive_target_full12": [
+          -6.9,
+          -37.40496191671092
+        ],
+        "normal_drive_bias_full12": [
+          0,
+          0
+        ],
+        "drive_feedback_bias_requested_full12": [
+          0,
+          0
+        ],
+        "tracking_servo_names": [
+          "front_left_hip",
+          "front_left_knee",
+          "front_right_hip",
+          "front_right_knee",
+          "rear_left_hip",
+          "rear_left_knee",
+          "rear_right_hip",
+          "rear_right_knee"
+        ]
+      },
+      "7680": {
+        "control_physics_tick": 7680,
+        "sim_time_s": 64,
+        "state_id": "P09",
+        "lifecycle": "EXECUTE_MOTION",
+        "motion_tick_index": 768,
+        "nominal_full12": [
+          -6.9,
+          -37.8
+        ],
+        "full12": [
+          -6.9,
+          -37.8
+        ],
+        "native_drive_target_full12": [
+          -5.172810578260362,
+          -35.13919692372092
+        ],
+        "drive_target_full12": [
+          -5.172810578260362,
+          -35.13919692372092
+        ],
+        "normal_drive_bias_full12": [
+          0,
+          0
+        ],
+        "drive_feedback_bias_requested_full12": [
+          0,
+          0
+        ],
+        "tracking_servo_names": [
+          "front_left_hip",
+          "front_left_knee",
+          "front_right_hip",
+          "front_right_knee",
+          "rear_left_hip",
+          "rear_left_knee",
+          "rear_right_hip",
+          "rear_right_knee"
+        ]
+      },
+      "7776": {
+        "control_physics_tick": 7776,
+        "sim_time_s": 64.8,
+        "state_id": "P09",
+        "lifecycle": "VERIFY_RESULT",
+        "motion_tick_index": 864,
+        "nominal_full12": [
+          -6.9,
+          -37.8
+        ],
+        "full12": [
+          -6.9,
+          -37.8
+        ],
+        "native_drive_target_full12": [
+          -5.174907446335554,
+          -27.799999999999997
+        ],
+        "drive_target_full12": [
+          -5.174907446335554,
+          -27.799999999999997
+        ],
+        "normal_drive_bias_full12": [
+          0,
+          0
+        ],
+        "drive_feedback_bias_requested_full12": [
+          0,
+          0
+        ],
+        "tracking_servo_names": []
+      },
+      "7784": {
+        "control_physics_tick": 7784,
+        "sim_time_s": 64.86666666666666,
+        "state_id": "P10",
+        "lifecycle": "WAIT_ENTRY",
+        "motion_tick_index": null,
+        "nominal_full12": [
+          -6.9,
+          -37.8
+        ],
+        "full12": [
+          -6.9,
+          -37.8
+        ],
+        "native_drive_target_full12": [
+          -5.174907446335554,
+          -27.799999999999997
+        ],
+        "drive_target_full12": [
+          -5.174907446335554,
+          -27.799999999999997
+        ],
+        "normal_drive_bias_full12": [
+          0,
+          0
+        ],
+        "drive_feedback_bias_requested_full12": [
+          0,
+          0
+        ],
+        "tracking_servo_names": []
+      }
+    },
+    "A_physical_post_action_ticks": {
+      "7579": {
+        "physics_tick": 7579,
+        "simulation_time_s": 63.15833333333333,
+        "actual_RR_hip_knee_deg": [
+          -6.377609016178791,
+          -38.05484892611804
+        ],
+        "command_RR_hip_knee_deg": [
+          -6.9,
+          -37.40496191671092
+        ],
+        "RR_front_distance_m": 0.09133947236370688,
+        "RR_gap_m": -0.0017831984503325904,
+        "RR_contact_class": "OBSTACLE",
+        "RR_obstacle_contact": {
+          "active": true,
+          "normal_force_n": 17.458049774169936,
+          "pair_verified": true
+        },
+        "RR_crossed": {
+          "latched": true,
+          "latch_tick": 7109
+        },
+        "RR_top_loaded": {
+          "latched": true,
+          "latch_tick": 7579
+        }
+      },
+      "7580": {
+        "physics_tick": 7580,
+        "simulation_time_s": 63.166666666666664,
+        "actual_RR_hip_knee_deg": [
+          -6.359638788472488,
+          -38.0840821357657
+        ],
+        "command_RR_hip_knee_deg": [
+          -6.9,
+          -37.40496191671092
+        ],
+        "RR_front_distance_m": 0.09136540038418417,
+        "RR_gap_m": -0.0017610478742179358,
+        "RR_contact_class": "OBSTACLE",
+        "RR_obstacle_contact": {
+          "active": true,
+          "normal_force_n": 15.870120048523153,
+          "pair_verified": true
+        },
+        "RR_crossed": {
+          "latched": true,
+          "latch_tick": 7109
+        },
+        "RR_top_loaded": {
+          "latched": true,
+          "latch_tick": 7579
+        }
+      },
+      "7681": {
+        "physics_tick": 7681,
+        "simulation_time_s": 64.00833333333333,
+        "actual_RR_hip_knee_deg": [
+          -7.092975709089246,
+          -38.14852838567935
+        ],
+        "command_RR_hip_knee_deg": [
+          -5.172810578260362,
+          -35.13919692372092
+        ],
+        "RR_front_distance_m": 0.0920490656597579,
+        "RR_gap_m": -0.0012672159416732276,
+        "RR_contact_class": "OBSTACLE",
+        "RR_obstacle_contact": {
+          "active": true,
+          "normal_force_n": 13.099566097094016,
+          "pair_verified": true
+        },
+        "RR_crossed": {
+          "latched": true,
+          "latch_tick": 7109
+        },
+        "RR_top_loaded": {
+          "latched": true,
+          "latch_tick": 7579
+        }
+      },
+      "7777": {
+        "physics_tick": 7777,
+        "simulation_time_s": 64.80833333333334,
+        "actual_RR_hip_knee_deg": [
+          -6.886107635262954,
+          -52.90949267270944
+        ],
+        "command_RR_hip_knee_deg": [
+          -5.174907446335554,
+          -27.799999999999997
+        ],
+        "RR_front_distance_m": 0.07174986941647177,
+        "RR_gap_m": -0.0007547873599585975,
+        "RR_contact_class": "OBSTACLE",
+        "RR_obstacle_contact": {
+          "active": true,
+          "normal_force_n": 16.188005615847064,
+          "pair_verified": true
+        },
+        "RR_crossed": {
+          "latched": true,
+          "latch_tick": 7109
+        },
+        "RR_top_loaded": {
+          "latched": true,
+          "latch_tick": 7579
+        }
+      },
+      "7785": {
+        "physics_tick": 7785,
+        "simulation_time_s": 64.875,
+        "actual_RR_hip_knee_deg": [
+          -6.459636599902883,
+          -52.606747952843214
+        ],
+        "command_RR_hip_knee_deg": [
+          -5.174907446335554,
+          -27.799999999999997
+        ],
+        "RR_front_distance_m": 0.07101250035595541,
+        "RR_gap_m": -0.00101531926227183,
+        "RR_contact_class": "OBSTACLE",
+        "RR_obstacle_contact": {
+          "active": true,
+          "normal_force_n": 16.56694630743413,
+          "pair_verified": true
+        },
+        "RR_crossed": {
+          "latched": true,
+          "latch_tick": 7109
+        },
+        "RR_top_loaded": {
+          "latched": true,
+          "latch_tick": 7579
+        }
+      }
+    }
+  },
+  "inward_policy_authority": {
+    "conclusion": "Positive canonical RR knee policy residual remains able to move the commanded target inward from -60 degrees; it is added after nominal geometry and is not reprojected through that advisory.",
+    "terminal_interval_deg": [
+      0,
+      268
+    ],
+    "original_final_slew_deg_per_physics_tick": 1.25,
+    "arithmetic_example_not_experiment": "For the terminal geometry baseline and prior target approximately -60, +0.25 deg yields approximately -59.75 next target; >=+1.25 deg is limited to approximately -58.75 on that physics step.",
+    "authority_is_not": "Not an actual motion, torque, stability, obstacle clearance, or task-success guarantee.",
+    "existing_tests_read": [
+      {
+        "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/tests/unit/test_semantic_headroom.py",
+        "line": 58,
+        "test": "test_outside_reserve_never_relocates_baseline"
+      },
+      {
+        "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/tests/unit/test_semantic_headroom.py",
+        "line": 91,
+        "test": "test_each_servo_bound_and_one_degree_reserve_violation"
+      },
+      {
+        "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/tests/unit/test_semantic_headroom_dispatch.py",
+        "line": 163,
+        "test": "test_real_geometry_precedes_headroom_three_branches_and_wheels_unchanged"
+      }
+    ]
+  },
+  "conclusion": {
+    "classification": "Confirmed new exposed nominal geometry boundary failure in B2; terminal command is explained by the intentional existing pre-cross advisory, not an unidentified dispatch/history/normal-bias failure.",
+    "required_pretraining_repair_found": false,
+    "parameter_mismatch_found_in_bounded_review": false,
+    "caution": "This bounded read is not a proof that every environment parameter is correct. It found no mismatch requiring a new optimizer gate. Do not treat zero-residual failure as a requirement to retrain or replay A to 5/5.",
+    "source_A_comparison": "A had RR front crossing at 7109 and top load at 7579, both before finite source endpoint 7776. At command7776 its same RR source knee -37.8 mapped to -27.8 and final -27.8; physical7777 actual knee -52.90949 but wheel center already +71.75mm past edge with true obstacle contact. B2 is still -19.75mm before edge, so the live geometry mode/state differs; this is not a common-state policy or source-only causal comparison.",
+    "reporting_correction": "Do not label final minus standalone mapped N as PPO residual: terminal -32.2 deg is nominal geometry correction. Prior shorthand history-mapper explanation was incomplete.",
+    "failure": "B2 P09 HARD_JOINT_LIMIT; RR crossing/placement not complete. Terminal base-obstacle collision false.",
+    "no_guaranteed_solution": "Other legs/wheels and positive RR residual retain action authority; this does not prove that cooperation will succeed or establish a unique physical cause. Instantaneous joint drive torque was not measured; recorded contact forces were not decomposed causally here."
+  }
+}

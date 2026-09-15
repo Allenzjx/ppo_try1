@@ -1,0 +1,69 @@
+{
+  "schema": "course_first_episode_receipt.v1",
+  "source_run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\train\\20260914T0518470549569Z_g4b2c038887c4_98748e39f68e441a8ff2ab2fe47d79da",
+  "source_checkpoint_global_policy_decisions": 167296,
+  "evidence_scope": "Previously read first prefix boundary and first 32 completed audit rows only. No new stream scan was performed to create this receipt.",
+  "source_files": [
+    "prefix_evidence.jsonl",
+    "residual_and_projection_audit.jsonl"
+  ],
+  "initial_prefix": {
+    "target_phase": "P06",
+    "teacher_offset_decisions": 0,
+    "maximum_takeover_decisions": 30,
+    "actual_prefix_decisions_without_PPO_credit": 448,
+    "actual_prefix_physics_ticks": 3584,
+    "accepted": true,
+    "miss": null,
+    "handoff_episode_tick": 3584,
+    "handoff_time_s": 29.866666666666667,
+    "handoff_phase": "P06",
+    "handoff_controller_bias_full12": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "policy_credit_start_episode_tick": 3584,
+    "policy_credit_start_time_s": 29.866666666666667,
+    "policy_credit_start_phase": "P06",
+    "requested_phase_still_active_at_credit": true,
+    "handoff_to_credit_elapsed_ticks": 0,
+    "interpretation": "No 30-decision takeover wait occurred in this first prefix. The real P01-to-P06 roll-in caused the initialization cost; takeover did not discard P06/P07/P08 learning."
+  },
+  "first_collected_episode": {
+    "global_policy_decision_first": 167297,
+    "global_policy_decision_last": 167328,
+    "collected_decisions": 32,
+    "phase_decisions_by_start_phase": {"P06": 19, "P07": 1, "P08": 1, "P09": 11},
+    "credited_physics_ticks": 249,
+    "terminal_episode_tick": 3833,
+    "terminal_time_s": 31.941666666666666,
+    "terminal_phase": "P09",
+    "termination_reason": "FALL",
+    "optimization_status_at_inspection": "Collected but not yet optimized: 32 decisions were insufficient for the first complete 128-decision rollout/update.",
+    "later_status_authority": "Whether these rows were subsequently optimized must be established from block 2's final run_manifest.json and verified checkpoint/update records. This point-in-time receipt does not override that final status.",
+    "task_result_scope": "teacher_initialized_suffix_not_full_P01_PPO_success"
+  },
+  "selected_credit_boundaries": [
+    {"decision_index": 1, "global_policy_decision": 167297, "phase_id": "P06", "end_phase_id": "P06", "episode_tick": 3592},
+    {"decision_index": 19, "global_policy_decision": 167315, "phase_id": "P06", "end_phase_id": "P07", "episode_tick": 3736},
+    {"decision_index": 20, "global_policy_decision": 167316, "phase_id": "P07", "end_phase_id": "P08", "episode_tick": 3744},
+    {"decision_index": 21, "global_policy_decision": 167317, "phase_id": "P08", "end_phase_id": "P09", "episode_tick": 3752},
+    {"decision_index": 22, "global_policy_decision": 167318, "phase_id": "P09", "end_phase_id": "P09", "episode_tick": 3760},
+    {"decision_index": 32, "global_policy_decision": 167328, "phase_id": "P09", "end_phase_id": "P09", "episode_tick": 3833, "termination_reason": "FALL"}
+  ],
+  "existing_stop_protocol": {
+    "filename_in_run_directory": "stop_after_update.request.json",
+    "request_schema": "wlr50_clean.semantic_stop_after_update.v1",
+    "required_fields": ["schema", "run_dir", "source_git_commit", "reason"],
+    "source_git_commit": "4b2c038887c4109c639eea720f9e60de2c6d8d93",
+    "run_dir_must_match_exact_resolved_absolute_run_path": true,
+    "reason_must_be_nonempty": true,
+    "read_point": "After collecting the full 128-decision rollout and completing audited_ppo_update; then save/reload-verify checkpoint and stop.",
+    "successful_stop_lifecycle": "STOPPED_AT_VERIFIED_UPDATE_BOUNDARY",
+    "immediate_partial_rollout_stop_protocol_implemented": false,
+    "request_sent_by_this_subagent": false,
+    "request_status_from_parent_message_only": "Parent reported writing the native stop request. This receipt does not independently re-read its file or assert that the request has already been consumed."
+  },
+  "code_references": {
+    "semantic_prefix.py": {"handoff_condition": 194, "zero_bias_READY": 203, "policy_credit_start_record": 357},
+    "semantic_training.py": {"build_stop_request": 1015, "read_stop_request": 1022, "partial_rollout_failure_ledger": 1034, "audited_update_call": 1268, "post_update_stop_poll": 1279, "stop_after_checkpoint": 1325}
+  },
+  "mutations": "Only this output receipt was created with apply_patch. No new simulation, stream scan, training interruption, production edit, or checkpoint edit."
+}

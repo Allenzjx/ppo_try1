@@ -1,0 +1,167 @@
+{
+  "schema": "wlr50_clean.semantic_checkpoint_migration.v1",
+  "reason": "Git provenance-only continuation: tracked runtime/config bytes unchanged; preserve all learned state, fresh legal P01 diagnostic evaluation",
+  "source_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000166784.pt",
+  "source_checkpoint_sha256": "24e63d10cb48c1e8d686e49248ef5e434314d89efc40877fac2899303e6fb5ad",
+  "source_manifest_sha256": "a21a48f235657ab482132e1755cb2634b86f48f11e36b1620c1df4bc61c72963",
+  "source_contract_sha256": "8020bf37f7cf2b1648732ee3ea2ea969082b01ce84ba33880c5f567b94d2a5c5",
+  "target_contract_sha256": "01a6375a672d690fe4f9eb21efb0c3adbcb3a92f6f14149b1372fa978f7b97dd",
+  "source_git_commit": "d4e46006b382093b960f2c428081d8a1c595bb6a",
+  "target_git_commit": "4b2c038887c4109c639eea720f9e60de2c6d8d93",
+  "allowed_changed_files": [],
+  "changed_file_hashes": {},
+  "geometric_factor": null,
+  "observation_dimension": 372,
+  "action_dimension": 12,
+  "preserve_actor_critic_optimizer_normalizer_rng_and_budget": true,
+  "discard_old_rollout_storage": true,
+  "physics_resume": "fresh_legal_P01_reset",
+  "instrumentation_observation_contract": {
+    "schema": "wlr50_clean.instrumentation_same_observation_contract.v1",
+    "source_policy_contract": {
+      "schema": "wlr50_clean.semantic_policy_distribution.v1",
+      "version": "history_conditioned_heteroscedastic_log_v1",
+      "distribution_class": "HeteroscedasticGaussianDistribution",
+      "std_type": "log",
+      "observation_dimension": 372,
+      "raw_action_dimension": 12,
+      "actor_hidden_dims": [
+        256,
+        256
+      ],
+      "activation": "elu",
+      "state_dependent_std": true,
+      "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+      "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+      "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+      "history_feature": "previous_raw_full12",
+      "history_slice": [
+        195,
+        207
+      ],
+      "history_clip": 20,
+      "rho": 0.9,
+      "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+      "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+      "history_state": "stored_observation_only; no_actor_mutable_history",
+      "deterministic_output": "conditional_mean",
+      "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+      "observation_layout": "diagonal_transfer_state_v1",
+      "base_observation_dimension": 324,
+      "role_observation_group": "transfer_role_context_full48",
+      "role_observation_slice": [
+        324,
+        372
+      ],
+      "role_observation_leg_order": [
+        "FL",
+        "FR",
+        "RL",
+        "RR"
+      ],
+      "role_observation_fields": [
+        "valid",
+        "workspace_progress",
+        "preparation_progress",
+        "transfer_progress",
+        "motion_fraction",
+        "preparation_ready",
+        "transfer_ready",
+        "fixed_direction_world_x",
+        "fixed_direction_world_y",
+        "short_support_continuity_fraction",
+        "continued_response_fraction",
+        "window_evidence_fraction"
+      ]
+    },
+    "target_policy_contract": {
+      "schema": "wlr50_clean.semantic_policy_distribution.v1",
+      "version": "history_conditioned_heteroscedastic_log_v1",
+      "distribution_class": "HeteroscedasticGaussianDistribution",
+      "std_type": "log",
+      "observation_dimension": 372,
+      "raw_action_dimension": 12,
+      "actor_hidden_dims": [
+        256,
+        256
+      ],
+      "activation": "elu",
+      "state_dependent_std": true,
+      "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+      "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+      "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+      "history_feature": "previous_raw_full12",
+      "history_slice": [
+        195,
+        207
+      ],
+      "history_clip": 20,
+      "rho": 0.9,
+      "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+      "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+      "history_state": "stored_observation_only; no_actor_mutable_history",
+      "deterministic_output": "conditional_mean",
+      "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+      "observation_layout": "diagonal_transfer_state_v1",
+      "base_observation_dimension": 324,
+      "role_observation_group": "transfer_role_context_full48",
+      "role_observation_slice": [
+        324,
+        372
+      ],
+      "role_observation_leg_order": [
+        "FL",
+        "FR",
+        "RL",
+        "RR"
+      ],
+      "role_observation_fields": [
+        "valid",
+        "workspace_progress",
+        "preparation_progress",
+        "transfer_progress",
+        "motion_fraction",
+        "preparation_ready",
+        "transfer_ready",
+        "fixed_direction_world_x",
+        "fixed_direction_world_y",
+        "short_support_continuity_fraction",
+        "continued_response_fraction",
+        "window_evidence_fraction"
+      ]
+    },
+    "observation_layout": "diagonal_transfer_state_v1",
+    "selected_configuration": {
+      "action_schema.json": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/action_schema.json",
+        "sha256": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7"
+      },
+      "execution_profile.yaml": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/execution_profile.yaml",
+        "sha256": "1f9b08220c7d528a7e6e8fec0b76dee627009cf22b77df4924bb96115054d21f"
+      },
+      "observation_schema.json": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/observation_schema.json",
+        "sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b"
+      },
+      "quality_score.yaml": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/quality_score.yaml",
+        "sha256": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6"
+      },
+      "reward_config.yaml": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml",
+        "sha256": "e6c3b90a9a0fd6ae9be17ae5b9f6f2c6a0c379df1b3df389b6e852dde9f5eeea"
+      },
+      "stage_task_spec.yaml": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml",
+        "sha256": "e412c6800e5acf06b559a460b8f32a3290cc4b9fed222b88ce9cf73f314aa72a"
+      }
+    },
+    "observation_dimension": 372,
+    "action_dimension": 12,
+    "num_envs": 1,
+    "parameter_mapping": null,
+    "scope": "reviewed_instrumentation_only_no_control_or_MDP_change",
+    "scope_is_reviewer_assertion_not_semantic_equivalence_proof": true
+  }
+}

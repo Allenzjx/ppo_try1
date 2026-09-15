@@ -1,0 +1,111 @@
+{
+  "schema": "wlr50_clean.diagnostic_comparison.v1",
+  "created_at_utc": "2026-09-14T04:51:50.392684+00:00",
+  "output": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_video_diagnosis_v1\\videos\\zero_vs_ppo_before.mp4",
+  "sources": [
+    "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_video_diagnosis_v1\\videos\\zero_residual_before.media.json",
+    "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_video_diagnosis_v1\\videos\\ppo_before.media.json"
+  ],
+  "physical_result": {
+    "B0": "TASK_INCOMPLETE",
+    "C0": "SAFETY_ABORT"
+  },
+  "media_validity": "COMPLETE_PLAYABLE",
+  "media_duration_s": 73.86666666666666,
+  "frame_count": 1108,
+  "alignment": "Same elapsed P01 task-interval time; source ledger verified. No phase/event synchronization or time stretching.",
+  "first_actual_frame_ticks": [
+    8,
+    8
+  ],
+  "terminal_quantization_s": {
+    "B0": 0.03333333333333144,
+    "C0": 0.00833333333333286
+  },
+  "static_terminal_frames_added": {
+    "B0": 0,
+    "C0": 985
+  },
+  "freeze_is_physical_evidence": false,
+  "freeze_label": "RUN ENDED - FROZEN TERMINAL FRAME",
+  "derived_pts": "N/15 after padding, identical to both verified 15 Hz source grids before the explicit static tail; avoids invalid padded PTS from FFmpeg tpad/hstack.",
+  "new_physical_ticks": 0,
+  "speed_modified": false,
+  "phase_sync": false,
+  "leg_labels": null,
+  "initial_physical_state_equality": "See independently measured pair audit; seed and logical entry alone are not proof.",
+  "pre_roll_available": false,
+  "validation": {
+    "sha256": "0e5a533db65980eb1e368ad889ea3c63d41c0e094ec657dfc7036f2a1acd45e2",
+    "bytes": 1962046,
+    "valid": true,
+    "full_decode": true,
+    "frame_count": 1108,
+    "fps": 15.0,
+    "resolution": [
+      1920,
+      610
+    ],
+    "codec": "h264",
+    "pixel_format": "yuv420p",
+    "duration_s": 73.86666699999999,
+    "container_duration_s": 73.87,
+    "container_duration_valid": true,
+    "first_pts_s": 0.0,
+    "last_pts_s": 73.8,
+    "frame_pts_sha256": "8e2495d2c64e03a188c62383fe701f40fa13bd849a9dabdd835466efdd3fd8c1",
+    "decoded_frame_checksums_sha256": "654c05e72e74126d98d80c02ab5ecd3fc89e246584f50d56cafb03dc36c4f511",
+    "unique_frame_checksums": 1108,
+    "black_like_frame_count": 0,
+    "timestamps_monotonic": true,
+    "timestamps_continuous": true
+  },
+  "command": [
+    "C:\\Users\\kskzz\\miniconda3\\envs\\env_isaaclab\\Lib\\site-packages\\imageio_ffmpeg\\binaries\\ffmpeg-win-x86_64-v7.1.exe",
+    "-hide_banner",
+    "-nostdin",
+    "-v",
+    "error",
+    "-n",
+    "-i",
+    "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_video_diagnosis_v1\\videos\\zero_residual_before.mp4",
+    "-i",
+    "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_video_diagnosis_v1\\videos\\ppo_before.mp4",
+    "-filter_complex_threads",
+    "1",
+    "-filter_complex",
+    "[0:v]setpts=PTS-STARTPTS,scale=960:540,pad=960:610:0:70:black,tpad=stop_mode=clone:stop=0,setpts=N/(15*TB),drawtext=fontfile='C\\:/Windows/Fonts/arial.ttf':text='B0 | TASK_INCOMPLETE | ends 73.833s | P09':fontcolor=white:fontsize=24:x=15:y=10,drawtext=fontfile='C\\:/Windows/Fonts/arial.ttf':text='1x real elapsed time - 15 Hz interval endpoints':fontcolor=white:fontsize=18:x=15:y=42,drawtext=fontfile='C\\:/Windows/Fonts/arial.ttf':text='RUN ENDED - FROZEN TERMINAL FRAME':fontcolor=yellow:fontsize=24:x=15:y=570:enable='gte(n,1108)'[v0];[1:v]setpts=PTS-STARTPTS,scale=960:540,pad=960:610:0:70:black,tpad=stop_mode=clone:stop=985,setpts=N/(15*TB),drawtext=fontfile='C\\:/Windows/Fonts/arial.ttf':text='C0 | SAFETY_ABORT | ends 8.192s | P02':fontcolor=white:fontsize=24:x=15:y=10,drawtext=fontfile='C\\:/Windows/Fonts/arial.ttf':text='1x real elapsed time - 15 Hz interval endpoints':fontcolor=white:fontsize=18:x=15:y=42,drawtext=fontfile='C\\:/Windows/Fonts/arial.ttf':text='RUN ENDED - FROZEN TERMINAL FRAME':fontcolor=yellow:fontsize=24:x=15:y=570:enable='gte(n,123)'[v1];[v0][v1]hstack=inputs=2:shortest=1,format=yuv420p[out]",
+    "-map",
+    "[out]",
+    "-an",
+    "-frames:v",
+    "1108",
+    "-r",
+    "15",
+    "-fps_mode",
+    "cfr",
+    "-c:v",
+    "libx264",
+    "-preset",
+    "veryfast",
+    "-crf",
+    "20",
+    "-pix_fmt",
+    "yuv420p",
+    "-threads",
+    "2",
+    "-movflags",
+    "+faststart",
+    "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_video_diagnosis_v1\\videos\\zero_vs_ppo_before.mp4"
+  ],
+  "previews": [
+    {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_video_diagnosis_v1\\videos\\zero_vs_ppo_before_decoded_01.png",
+      "frame_index": 0
+    },
+    {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_video_diagnosis_v1\\videos\\zero_vs_ppo_before_decoded_02.png",
+      "frame_index": 1107
+    }
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "schema": "wlr50_clean.reward_body_allowance_migration_design.v1",
+  "status": "DESIGN_ONLY_NOT_APPLIED",
+  "scope": "No src/config edits while timing-only B/C runtime is fixed; this design creates no checkpoint and starts no simulation.",
+  "first_timing_reference_commit_observed": "a89ba82af0618ebaa1829f91d9f01b3e80b47cd2",
+  "reference_commit_is_not_a_hardcoded_acceptance_gate": true,
+  "target_reward_opt_in": {
+    "carry_body_allowance": "current_functional_carry_and_capture_settle_v1",
+    "capture_settle_window_s": 0.5,
+    "exact_validation": "Both keys absent in source reward config; target parsed YAML equals source plus exactly these two keys. target capture_settle_window_s equals the selected nominal-reference task spec transfer_roles.window_s and exact0.5."
+  },
+  "source_checkpoint_policy": "Use the actually selected immutable compatible checkpoint (initial candidate167424); do not roll back or hardcode a global decision counter.",
+  "proposed_api": {
+    "existing_entrypoint": "semantic_migration.build_migration_plan",
+    "new_optional_keyword": "body_reward_review",
+    "exact_review_fields": [
+      "reason",
+      "nominal_reference_manifest",
+      "timing_plan"
+    ],
+    "timing_plan": "Absolute existing timing-only plan path only when source checkpoint predates the nominal sequence opt-in; null for an already-timed source with identical nominal bytes.",
+    "nominal_reference_manifest": "Immutable completed same-N run manifest containing the actual runtime_contract, e.g. completed frozen C after the same-version B/C pair. Record its path and SHA256. Do not require task success, a media hash,5/5, or a new actor probe.",
+    "use_existing_cli_flag": "--resume-migration",
+    "no_new_warm_start_or_policy_distribution_migration": true
+  },
+  "decomposition": {
+    "reward_only_source_already_timed": [
+      "Validate the immutable source checkpoint/manifest using the existing metadata loader, canonical v3 N1 HISTORY372/12, fixed preprocessing, source training configuration and full state hashes.",
+      "Require source and nominal-reference provider/spec bytes to match, and source nominal.sequence_semantics to be the reviewed timing mode.",
+      "Require source reward source/config hashes to equal the nominal-reference hashes before the body opt-in.",
+      "Validate nominal-reference→target as only the body reward change plus its two compatibility modules.",
+      "Load directly from the original selected checkpoint, retaining full state; do not synthesize or materialize an intermediate checkpoint."
+    ],
+    "combined_source_still_pre_timing": [
+      "Read the actual nominal-reference runtime contract from the completed same-N run manifest; validate its contract digest and bindings.",
+      "Validate the already-created timing-only migration plan against the same original checkpoint and nominal-reference runtime contract.",
+      "This reuses the existing exact one-key sequence opt-in and NominalMotionProvider-class-only proof, rather than re-authorizing arbitrary nominal edits in the reward factor.",
+      "Validate nominal-reference→target as only the body reward change plus two compatibility modules; provider/spec must match the completed B/C reference exactly.",
+      "Record the verified timing-plan path/SHA and intermediate contract digest inside the body-reward factor. Restore original checkpoint once with no intermediate optimizer update."
+    ],
+    "fixed_metadata": "Frozen A, topology, observation/action dimensions, HISTORY kernel, rates120/15, horizon200, runtime/library versions, actuator/physics configuration, training budget accounting and PPO hyperparameters remain identical."
+  },
+  "exact_paths": {
+    "selected_reward_config": "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml",
+    "reward_code": "src/wlr50_clean/ppo/semantic_reward.py",
+    "compatibility_modules": [
+      "src/wlr50_clean/ppo/semantic_migration.py",
+      "src/wlr50_clean/ppo/semantic_training.py"
+    ],
+    "nominal_must_match_reference": [
+      "src/wlr50_clean/ppo/semantic_supervisor.py",
+      "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml"
+    ],
+    "target_delta_against_nominal_reference_required": [
+      "src/wlr50_clean/ppo/semantic_reward.py",
+      "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml"
+    ],
+    "target_delta_against_nominal_reference_optional": [
+      "src/wlr50_clean/ppo/semantic_migration.py",
+      "src/wlr50_clean/ppo/semantic_training.py"
+    ],
+    "other_files": "No added/removed runtime files; all other runtime file hashes unchanged versus reference. Other five selected configs remain byte-identical to reference."
+  },
+  "reward_code_scope": {
+    "agreed_with_reward_agent": true,
+    "new_constant": "CARRY_BODY_ALLOWANCE_MODE",
+    "new_module_level_helpers": [
+      "_validate_carry_body_allowance",
+      "_current_functional_body_allowance"
+    ],
+    "loader_change": "Exactly one _validate_carry_body_allowance(v) call; all prior loader checks retained.",
+    "evaluate_change": "Initialize body_transfer_fraction from existing transfer_fraction; under exact opt-in use max(existing fraction, helper(task, window)); only the body motion_weight line switches from transfer_fraction to body_transfer_fraction.",
+    "retain_exact_existing_paths": [
+      "contact uses the original transfer_fraction and unchanged contact calculation",
+      "applied smoothness and its diagnostic derivatives",
+      "potential shaping and terminal values",
+      "terminal success/failure event",
+      "actual elapsed-time cost",
+      "residual regularization",
+      "family weights and cost aggregation"
+    ],
+    "no_new_observation_or_task_fields": true,
+    "no_new_positive_bonus": true,
+    "guard_recommendation": "Implement an exact reviewed source-delta guard for those named constant/helper insertions, loader call and body weighting replacement. Record source/target helper/body-region SHA256. Reject changes to unrelated evaluate statements or other helpers. Do not whitelist the entire reward class/evaluate method.",
+    "pending": "Final exact byte regions must be taken from the reward agent's final unapplied patch, not guessed from this design."
+  },
+  "minimal_implementation_changes": {
+    "timing_validator_historical_target_readback": [
+      "To revalidate an already published timing plan after the reward files have changed, use the existing _version_bytes(project_root,target_contract,path,prefer_worktree=True) for target config/provider/changed-file reads instead of assuming target is the current worktree.",
+      "This is hash-bound Git fallback, not a synthetic contract or source override. Recomputed old timing plans must remain byte-for-byte identical and no runtime writes occur.",
+      "The final current target must still be obtained from clean committed runtime_contract and independently match actual current target hashes."
+    ],
+    "new_factor": "A single private _body_reward_factor returning source/target canonical observation_contract, verified reference+optional timing plan bindings, exact reward delta, optimizer preservation and explicit changed reward/MDP semantics.",
+    "plan_builder": "Add one optional body_reward_review branch before the current instrumentation-only dispatcher. Do not add reward/provider/config to INSTRUMENTATION_FILES. Reject video/evaluator/execution/prior/warm-start factors mixed with this branch. Timing composition is only via the validated existing plan described above.",
+    "plan_validator": "Rebuild the body factor from the bound review manifest and optional existing timing plan, compare entire supplied plan exactly, and fail if either referenced artifact changed.",
+    "loader": "Treat body_reward_factor.observation_contract as the alternative reviewed HISTORY372 contract. Keep it exclusive of video/instrumentation/top-level timing factors; the optional timing ancestor lives inside this factor. Reuse current full-state hash verification and fresh-rollout checks."
+  },
+  "receipt_semantics": {
+    "reward_changed": true,
+    "physical_mdp_changed": true,
+    "nominal_changed_since_completed_reference": false,
+    "nominal_changed_since_source_checkpoint": "True only in the combined pre-timing-source case; include the verified earlier timing factor rather than claiming reward caused it.",
+    "observation_semantics_changed": [],
+    "learned_function_preservation": "Identical complete input schema and parameter mapping; no claim of identical actions on changed physical trajectories.",
+    "preserve_actor_critic_optimizer_normalizer_rng_and_budget": true,
+    "optimizer": "Keep complete nonempty Adam state, group options and effective source LR; no reset_all_moments.",
+    "discard_old_rollout_storage": true,
+    "physics_resume": "fresh_legal_P01_reset",
+    "evaluation_normalizer": "frozen identity normalizer, no validation updates"
+  },
+  "proposed_tests": [
+    "Old timing-only plan validates identically against its committed reference after current reward code/config change.",
+    "Pure reward migration from an already-timed synthetic checkpoint preserves canonical372/12 and all source counters.",
+    "Combined migration from a pre-timing synthetic checkpoint validates the existing timing plan then the body-only delta without constructing an intermediate model.",
+    "Reject wrong/missing/orphan reward keys, wrong settle value, or settle window inconsistent with selected task transfer window.",
+    "Reject provider/spec change after reference, selected action/observation/profile changes, arbitrary reward evaluate edits, missing/mutated reference manifest, or timing-plan source/checkpoint mismatch.",
+    "Reject a combined source without a verified timing ancestor; reject fabricated same-MDP/instrumentation labels.",
+    "Real CPU synthetic save/load test preserves all actor/critic tensors, nonempty Adam hash, identity normalizers, RNG, counters and LR; stale rollout is rejected.",
+    "One fresh CPU synthetic update/save/reload succeeds and records the composed provenance; this is not real Isaac PPO credit.",
+    "Existing timing/video/instrumentation/capture migrations remain unchanged when body_reward_review is absent."
+  ],
+  "not_to_do": [
+    "Do not apply this design or reward patch while the active same-N B/C runtime is running.",
+    "Do not hand-edit checkpoint metadata, fake source/target contracts or label the changed reward as instrumentation-only.",
+    "Do not use --new-mdp-warm-start because the current same372 path resets Adam.",
+    "Do not attribute frozen same-N actor outputs to the new reward; actual learning claims require fresh finite PPO updates and reloaded evaluation."
+  ]
+}

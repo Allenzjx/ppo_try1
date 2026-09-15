@@ -1,0 +1,897 @@
+*** Begin Patch
+*** Update File: src/wlr50_clean/ppo/semantic_reward.py
+@@
+ DEFAULT_REWARD_CONFIG = CONFIG_ROOT / "reward_config.yaml"
+ ROLE_TRANSFER_VERSION = "diagonal_transfer_roles_v1"
+ 
++CARRY_BODY_ALLOWANCE_MODE = "current_functional_carry_and_capture_settle_v1"
++
++
++def _validate_carry_body_allowance(values: Mapping[str, Any]) -> None:
++    mode = values.get("carry_body_allowance")
++    if mode is None:
++        if "capture_settle_window_s" in values:
++            raise ValueError("capture settle window requires carry body allowance mode")
++        return
++    if mode != CARRY_BODY_ALLOWANCE_MODE:
++        raise ValueError("unknown carry body allowance mode")
++    window = values.get("capture_settle_window_s")
++    if isinstance(window, bool) or not 0. < finite(window, "capture settle window") <= .5:
++        raise ValueError("capture settle window must be positive and at most 0.5 s")
++
++
++def _current_functional_body_allowance(task: Mapping[str, Any], window_s: float) -> float:
++    """Body-cost floor only; existing current evidence, never a task/bonus gate.
++
++    The v1 engineering limits mirror the current task: 15 mm non-RR airborne
++    clearance, near-front [-.40, .15] m or current platform XY, and two verified
++    other supports. No motion derivative, normalized load or phase label is a
++    substitute for earned qualification and current usable geometry/contact.
++    """
++    if task.get("transfer_roles_version") != ROLE_TRANSFER_VERSION:
++        return 0.
++    ev = task.get("physical_evaluator", {})
++    if (not isinstance(ev, Mapping) or ev.get("valid") is not True
++            or ev.get("physical_evidence_status") not in ("VERIFIED", "CONTACT_BEARING_UNVERIFIED")
++            or task.get("termination_reason") is not None
++            or ev.get("termination_reason") is not None):
++        return 0.
++    legs, history = ev.get("current_legs", {}), ev.get("history", {})
++    tick = ev.get("physics_tick")
++    if not isinstance(legs, Mapping) or not isinstance(history, Mapping) or type(tick) is not int:
++        return 0.
++
++    def measured(value):
++        try:
++            return None if isinstance(value, bool) else finite(value, "carry measured value")
++        except (TypeError, ValueError):
++            return None
++
++    def support(row):
++        if not isinstance(row, Mapping):
++            return False
++        force = measured(row.get("bearing_force_n"))
++        return (row.get("support") is True and row.get("bearing_verified") is True
++                and force is not None and force >= .2 and row.get("air") is False
++                and (row.get("ground_contact") is True or
++                     (row.get("top_contact") is True and row.get("top_surface_contact") is True)))
++
++    order = ("FR", "FL", "RR", "RL")
++    qualified, placed = history.get("active_lift", {}), history.get("placed", {})
++    crossed = history.get("front_edge_crossed", {})
++    placement_ticks = history.get("event_ticks", {}).get("placed", {})
++    allowance = 0.
++    for index, leg in enumerate(order):
++        row = legs.get(leg, {})
++        if (not isinstance(row, Mapping) or qualified.get(leg) is not True
++                or row.get("active_attempt") is not True
++                or row.get("ground_contact") is not False
++                or row.get("within_lateral_span") is not True):
++            continue
++        distance, clearance = measured(row.get("front_distance_m")), measured(row.get("clearance_m"))
++        in_region = row.get("within_top_xy") is True or (
++            distance is not None and -.40 <= distance <= .15)
++        if (distance is None or clearance is None or not in_region
++                or sum(support(legs.get(other, {})) for other in order if other != leg) < 2):
++            continue
++        top_contact = (row.get("top_contact") is True and row.get("top_surface_contact") is True
++                       and row.get("within_top_xy") is True and row.get("air") is False
++                       and row.get("top_geometry") is True and -.015 <= clearance <= .025)
++        if placed.get(leg) is True:
++            event_tick = placement_ticks.get(leg)
++            if (crossed.get(leg) is True and top_contact and support(row)
++                    and type(event_tick) is int and 0 <= event_tick <= tick):
++                # Real placement age, not reward-instance time or phase age.
++                allowance = max(allowance, max(0., 1.-(tick-event_tick)/(120.*window_s)))
++            continue
++        if placed.get(leg) is not False or not all(placed.get(p) is True for p in order[:index]):
++            continue
++        if leg == "RR":
++            usable = (row.get("current_lift_valid") is True
++                      and row.get("motion_continuation_allowed") is True
++                      and (row.get("air") is True or row.get("obstacle_pair_active") is True))
++        else:
++            usable = top_contact or (row.get("air") is True
++                and row.get("obstacle_pair_active") is False
++                and clearance is not None and clearance >= .015)
++        if usable:
++            allowance = 1.
++    return allowance
++
++
+ 
+ @dataclass(frozen=True)
+ class SemanticRewardConfig:
+@@
+             raise ValueError(f"{key} must be positive")
+     if type(v["control_regularization_enabled"]) is not bool:
+         raise ValueError("regularization switch must be boolean")
++    _validate_carry_body_allowance(v)
+     config = SemanticRewardConfig(v,selected)
+     if v["failure_cost"]*v["family_weights"]["task_progress"] <= config.failure_avoidance_bound:
+         raise ValueError("failure event must exceed avoidable future costs and potential")
+@@
+                                  if v.get("physical_transfer_weighting") else float(transfer))
+             if role_motion_weighting:
+                 transfer_fraction = role_fraction
++            body_transfer_fraction = transfer_fraction
++            if v.get("carry_body_allowance") == CARRY_BODY_ALLOWANCE_MODE:
++                body_transfer_fraction = max(body_transfer_fraction,
++                    _current_functional_body_allowance(sample.current.task, v["capture_settle_window_s"]))
+             attitude = _square_cost(metrics["rpy"][:2], (v["attitude_scale_rad"],)*2)
+             rates = _square_cost(metrics["euler_roll_pitch_rate"], (v["euler_rate_scale_rad_s"],)*2)
+             acceleration = _square_cost(metrics["body_angular_acceleration"], (v["angular_acceleration_scale_rad_s2"],)*3)
+-            motion_weight = 1.-(1.-v["transfer_attitude_weight"])*transfer_fraction
++            motion_weight = 1.-(1.-v["transfer_attitude_weight"])*body_transfer_fraction
+             attitude *= motion_weight
+             if role_motion_weighting:
+                 # The versioned measured role window, not AIR/load or a phase
+*** Update File: configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml
+@@
+ contact_loss_semantics: recent_touchdown_without_active_command_change
+ smoothness_components: applied_only
+ physical_transfer_weighting: true
++carry_body_allowance: current_functional_carry_and_capture_settle_v1
++capture_settle_window_s: 0.5
+ # Only diagonal_transfer_roles_v1 tasks extend the existing attitude blend to
+ # Euler rates and angular acceleration. Reuse transfer_attitude_weight; no new
+ # family, coefficient, phase-label switch, or AIR/contact penalty is introduced.
+*** Add File: tests/unit/test_semantic_functional_carry_reward.py
++"""Reward-only carry floor: fixtures use existing TaskEvaluator snapshot fields.
++
++No Isaac, optimizer, actor checkpoint, observation/schema or production config
++mutation. The floor changes three body costs only, not physical task acceptance.
++"""
++from copy import deepcopy
++from dataclasses import replace
++
++import pytest
++
++from test_semantic_transfer_role_reward import frame, reward
++from wlr50_clean.ppo.semantic_reward import (
++    CARRY_BODY_ALLOWANCE_MODE, SemanticRewardCalculator,
++    _current_functional_body_allowance, _validate_carry_body_allowance,
++    load_semantic_reward_config,
++)
++
++ORDER = ("FR", "FL", "RR", "RL")
++CFG = load_semantic_reward_config().path.parent.parent / "ppo_fsm_reference_p09_stable_v2/reward_config.yaml"
++
++
++def calculator(enabled=True):
++    config = load_semantic_reward_config(CFG)
++    values = dict(config.values)
++    if enabled:
++        values.update(carry_body_allowance=CARRY_BODY_ALLOWANCE_MODE, capture_settle_window_s=.5)
++    return SemanticRewardCalculator(replace(config, values=values))
++
++
++def carrying(leg="FR", *, tick=240, fraction=0., stage="P02"):
++    built = frame(tick, fraction=fraction, stage=stage)
++    legs = {name: dict(support=True, bearing_verified=True, bearing_force_n=10.,
++        ground_contact=True, top_contact=False, top_surface_contact=False, top_geometry=False,
++        obstacle_pair_active=False, air=False, within_lateral_span=True,
++        within_top_xy=False, front_distance_m=-.1, clearance_m=-.05,
++        active_attempt=False, load_fraction=0., load_fraction_valid=False) for name in ORDER}
++    legs[leg].update(support=False, bearing_force_n=0., ground_contact=False, air=True,
++        clearance_m=.02, active_attempt=True, current_lift_valid=leg == "RR",
++        motion_continuation_allowed=True)
++    if leg == "RR":
++        legs[leg]["clearance_m"] = -.03  # Functional lift need not already be above the platform.
++    # One non-target pair has unavailable bearing classification. The producer
++    # therefore marks ALL normalized fractions unavailable, while two other
++    # legs still have independent verified bearing force/contact evidence.
++    legs["RR" if leg != "RR" else "RL"]["bearing_verified"] = False
++    history = {key: dict.fromkeys(ORDER, False) for key in ("active_lift", "front_edge_crossed", "placed")}
++    history["active_lift"][leg] = True
++    for prior in ORDER[:ORDER.index(leg)]:
++        history["placed"][prior] = True
++    history["event_ticks"] = {"active_lift": {leg: tick-100}, "front_edge_crossed": {}, "placed": {}}
++    task = deepcopy(built.task)
++    task["physical_evaluator"] = dict(valid=True, physical_evidence_status="CONTACT_BEARING_UNVERIFIED",
++        termination_reason=None, physics_tick=tick, simulation_time_s=tick/120,
++        current_legs=legs, history=history)
++    # No instantaneous motion/CoM/load-drop evidence is supplied or required.
++    return replace(built, task=task)
++
++
++def captured(leg="FR", *, tick=240, event_tick=240, fraction=0., stage="P03"):
++    built = carrying(leg, tick=tick, fraction=fraction, stage=stage)
++    ev = built.task["physical_evaluator"]
++    ev["history"]["placed"][leg] = True
++    ev["history"]["front_edge_crossed"][leg] = True
++    ev["history"]["event_ticks"]["placed"][leg] = event_tick
++    ev["current_legs"][leg].update(support=True, bearing_verified=True, bearing_force_n=10.,
++        air=False, top_contact=True, top_surface_contact=True, obstacle_pair_active=True,
++        within_top_xy=True, top_geometry=True, front_distance_m=.01, clearance_m=0.)
++    return built
++
++
++def compare(built):
++    before = frame(0)
++    old = reward(before, built, calculator=calculator(False))
++    new = reward(before, built, calculator=calculator())
++    return old, new
++
++
++@pytest.mark.parametrize("leg", ORDER)
++def test_current_earned_functional_carry_keeps_all_three_body_allowances_without_motion(leg):
++    built = carrying(leg)
++    snapshot = deepcopy(built)
++    old, new = compare(built)
++    for name in ("gravity_attitude", "euler_rate", "angular_acceleration"):
++        assert new["cost_components"][name] == pytest.approx(old["cost_components"][name]*.2)
++    assert new["families"]["body_stability"] == pytest.approx(old["families"]["body_stability"]*.2)
++    for family in old["families"]:
++        if family != "body_stability":
++            assert new["families"][family] == old["families"][family]
++    for key in ("potential_shaping", "terminal_event", "elapsed_physics_s"):
++        assert new[key] == old[key]
++    assert built == snapshot  # Fixed 372/HISTORY/task input is only consumed.
++
++
++@pytest.mark.parametrize("stage", ["P01", "P02", "P03", "P07", "P08", "P09", "P10", "P13"])
++def test_carry_allowance_is_phase_independent(stage):
++    assert _current_functional_body_allowance(carrying(stage=stage).task, .5) == 1.
++
++
++def test_earned_current_top_contact_before_capture_is_allowed_without_air_requirement():
++    built = carrying()
++    built.task["physical_evaluator"]["current_legs"]["FR"].update(
++        air=False, obstacle_pair_active=True, top_contact=True,
++        top_surface_contact=True, within_top_xy=True, top_geometry=True, clearance_m=0.)
++    assert _current_functional_body_allowance(built.task, .5) == 1.
++
++
++def test_rr_current_edge_permission_is_consumed_but_stale_lift_is_not():
++    built = carrying("RR")
++    rr = built.task["physical_evaluator"]["current_legs"]["RR"]
++    rr.update(air=False, obstacle_pair_active=True, contact_mode="FRONT_WALL")
++    assert _current_functional_body_allowance(built.task, .5) == 1.
++    rr["current_lift_valid"] = False
++    assert _current_functional_body_allowance(built.task, .5) == 0.
++    rr.update(current_lift_valid=True, motion_continuation_allowed=False)
++    assert _current_functional_body_allowance(built.task, .5) == 0.
++
++
++@pytest.mark.parametrize("status", ["UNVERIFIED_SENSOR", "NONFINITE", None])
++def test_unverified_sensor_or_nonfinite_status_is_never_a_carry_allowance(status):
++    built = carrying()
++    built.task["physical_evaluator"]["physical_evidence_status"] = status
++    assert _current_functional_body_allowance(built.task, .5) == 0.
++
++
++@pytest.mark.parametrize("placed", [False, True])
++@pytest.mark.parametrize("clearance, geometry, expected", [
++    (-.001, True, 1.), (-.0151, True, 0.), (.0251, True, 0.),
++    (0., False, 0.), (None, True, 0.), (float("nan"), True, 0.),
++])
++def test_top_boolean_alone_does_not_override_current_contact_geometry(placed, clearance, geometry, expected):
++    built = captured()
++    ev = built.task["physical_evaluator"]
++    ev["history"]["placed"]["FR"] = placed
++    ev["current_legs"]["FR"].update(clearance_m=clearance, top_geometry=geometry)
++    assert _current_functional_body_allowance(built.task, .5) == expected
++
++
++@pytest.mark.parametrize("fault", [
++    "unearned", "inactive_attempt", "grounded", "lateral_lost", "front_roi_lost",
++    "insufficient_clearance", "air_contact_conflict", "missing_actual_support",
++    "unverified_bearing", "wall_only_support", "invalid_evaluator", "safety_abort",
++])
++def test_stale_air_and_missing_physical_evidence_cannot_create_body_floor(fault):
++    built = carrying()
++    ev = built.task["physical_evaluator"]
++    row = ev["current_legs"]["FR"]
++    if fault == "unearned":
++        ev["history"]["active_lift"]["FR"] = False
++    elif fault == "inactive_attempt":
++        row["active_attempt"] = False
++    elif fault == "grounded":
++        row["ground_contact"] = True
++    elif fault == "lateral_lost":
++        row["within_lateral_span"] = False
++    elif fault == "front_roi_lost":
++        row["front_distance_m"] = -.41
++    elif fault == "insufficient_clearance":
++        row["clearance_m"] = .0149
++    elif fault == "air_contact_conflict":
++        row["obstacle_pair_active"] = True
++    elif fault == "missing_actual_support":
++        for leg in ("FL", "RL"):
++            ev["current_legs"][leg]["support"] = False
++    elif fault == "unverified_bearing":
++        for leg in ("FL", "RL"):
++            ev["current_legs"][leg]["bearing_verified"] = False
++    elif fault == "wall_only_support":
++        for leg in ("FL", "RL"):
++            ev["current_legs"][leg].update(ground_contact=False, obstacle_pair_active=True)
++    elif fault == "invalid_evaluator":
++        ev["valid"] = False
++    else:
++        ev["termination_reason"] = "SAFETY_ABORT"
++    assert _current_functional_body_allowance(built.task, .5) == 0.
++    old, new = compare(built)
++    assert new == old
++
++
++def test_unknown_normalized_load_is_neither_support_nor_a_reason_to_discard_verified_forces():
++    built = carrying()
++    ev = built.task["physical_evaluator"]
++    # Producer-consistent: _all_stage_finish marks CONTACT_BEARING_UNVERIFIED
++    # when ANY leg prevents normalized load validity, including an airborne
++    # target or unrelated fourth leg; separately verified force supports remain.
++    assert ev["physical_evidence_status"] == "CONTACT_BEARING_UNVERIFIED"
++    assert all(row["load_fraction_valid"] is False for row in ev["current_legs"].values())
++    ev["current_legs"]["RR"]["bearing_verified"] = False
++    # Target FR and fourth leg RR are not counted; FL and RL are two real supports.
++    assert _current_functional_body_allowance(built.task, .5) == 1.
++    for leg in ("FL", "RL"):
++        ev["current_legs"][leg].update(bearing_force_n=None, bearing_verified=False)
++    assert _current_functional_body_allowance(built.task, .5) == 0.
++
++
++@pytest.mark.parametrize("age_ticks, expected", [(0, 1.), (15, .75), (30, .5), (59, 1/60), (60, 0.), (90, 0.)])
++def test_real_capture_event_tick_restores_cost_continuously_without_a_phase_timer(age_ticks, expected):
++    built = captured(tick=240+age_ticks, event_tick=240, stage="P13")
++    assert _current_functional_body_allowance(built.task, .5) == pytest.approx(expected)
++    old, new = compare(built)
++    weight = 1.-.8*expected
++    for name in ("gravity_attitude", "euler_rate", "angular_acceleration"):
++        assert new["cost_components"][name] == pytest.approx(old["cost_components"][name]*weight)
++
++
++@pytest.mark.parametrize("fault", ["missing_event", "future_event", "float_event", "lost_top", "grounded"])
++def test_capture_settle_requires_real_past_event_and_current_capture(fault):
++    built = captured(tick=270, event_tick=240)
++    ev = built.task["physical_evaluator"]
++    if fault == "missing_event":
++        ev["history"]["event_ticks"]["placed"].clear()
++    elif fault == "future_event":
++        ev["history"]["event_ticks"]["placed"]["FR"] = 271
++    elif fault == "float_event":
++        ev["history"]["event_ticks"]["placed"]["FR"] = 240.
++    elif fault == "lost_top":
++        ev["current_legs"]["FR"].update(air=True, top_contact=False, top_surface_contact=False)
++    else:
++        ev["current_legs"]["FR"]["ground_contact"] = True
++    assert _current_functional_body_allowance(built.task, .5) == 0.
++
++
++def test_successor_carry_does_not_get_interrupted_by_predecessor_settle_expiry():
++    built = carrying("FL", tick=300)
++    ev = built.task["physical_evaluator"]
++    ev["history"]["active_lift"]["FR"] = True
++    ev["history"]["front_edge_crossed"]["FR"] = True
++    ev["history"]["event_ticks"]["placed"]["FR"] = 240
++    ev["current_legs"]["FR"].update(active_attempt=True, ground_contact=False,
++        top_contact=True, top_surface_contact=True, obstacle_pair_active=True,
++        within_top_xy=True, top_geometry=True, front_distance_m=.01, clearance_m=0.)
++    assert _current_functional_body_allowance(built.task, .5) == 1.
++
++
++@pytest.mark.parametrize("fraction", [0., .25, .5, .75, 1.])
++def test_only_body_floor_changes_contact_keeps_original_fraction(fraction):
++    built = carrying(fraction=fraction)
++    metrics = deepcopy(built.metrics)
++    for wheel in metrics["wheels"]:
++        wheel["slip_speed"] = .4
++    built = replace(built, metrics=metrics)
++    old, new = compare(built)
++    assert old["families"]["contact_motion_quality"] < 0.
++    assert new["families"]["contact_motion_quality"] == old["families"]["contact_motion_quality"]
++    assert new["cost_components"]["contact_quality"] == old["cost_components"]["contact_quality"]
++    if fraction == 1.:
++        assert new == old  # In particular, the recorded C0 full-f case is unchanged.
++
++
++@pytest.mark.parametrize("values", [
++    {"capture_settle_window_s": .5},
++    {"carry_body_allowance": "typo", "capture_settle_window_s": .5},
++    {"carry_body_allowance": CARRY_BODY_ALLOWANCE_MODE},
++    {"carry_body_allowance": CARRY_BODY_ALLOWANCE_MODE, "capture_settle_window_s": 0.},
++    {"carry_body_allowance": CARRY_BODY_ALLOWANCE_MODE, "capture_settle_window_s": .51},
++    {"carry_body_allowance": CARRY_BODY_ALLOWANCE_MODE, "capture_settle_window_s": True},
++])
++def test_mode_and_window_are_validated_without_relaxing_other_configuration(values):
++    with pytest.raises((TypeError, ValueError)):
++        _validate_carry_body_allowance(values)
++
++
++def test_legacy_configuration_and_task_remain_exact():
++    _validate_carry_body_allowance({})
++    _validate_carry_body_allowance({"carry_body_allowance": CARRY_BODY_ALLOWANCE_MODE, "capture_settle_window_s": .5})
++    before, after = frame(), frame(1)
++    assert reward(before, after, calculator=calculator()) == reward(before, after, calculator=calculator(False))
+*** Update File: src/wlr50_clean/ppo/semantic_migration.py
+@@
+ TIMING_ONLY_SCHEMA = "wlr50_clean.nominal_timing_same372_continuation.v1"
+ TIMING_ONLY_SPEC = "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml"
+ TIMING_ONLY_MODE = "source_partial_order_physical_ready_v1"
++BODY_REWARD_SCHEMA = "wlr50_clean.functional_carry_body_reward_same372_continuation.v1"
++BODY_REWARD_MODE = "current_functional_carry_and_capture_settle_v1"
++BODY_REWARD_CODE = "src/wlr50_clean/ppo/semantic_reward.py"
++BODY_REWARD_CONFIG = "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml"
+ SAME372_AUTHORITY_RUNTIME_FILES = frozenset({
+     "configs/ppo_semantic_v3/stage_task_spec.yaml",
+     "configs/ppo_semantic_v3/execution_profile.yaml",
+@@
+                     "path": relative, "sha256": contract["files"].get(relative)}):
+                 raise ValueError("timing-only selected configuration binding differs")
+         before = _version_bytes(project_root, old, relative, prefer_worktree=True)
+-        after = (project_root / relative).read_bytes()
++        after = _version_bytes(project_root, new, relative, prefer_worktree=True)
+         if hashlib.sha256(after).hexdigest() != new["files"][relative]:
+             raise ValueError("timing-only target configuration bytes differ from inventory")
+         if name == "stage_task_spec.yaml":
+@@
+                          "target_sha256": new["files"][relative]}
+     for relative in delta:
+         _version_bytes(project_root, old, relative, prefer_worktree=True)
+-        if file_sha(project_root / relative) != new["files"][relative]:
++        if hashlib.sha256(_version_bytes(project_root, new, relative, prefer_worktree=True)).hexdigest() != new["files"][relative]:
+             raise ValueError("timing-only target runtime bytes differ from inventory")
+     before = _nominal_provider_byte_regions(_version_bytes(project_root, old, SUPERVISOR, prefer_worktree=True))
+-    after = _nominal_provider_byte_regions((project_root / SUPERVISOR).read_bytes())
++    after = _nominal_provider_byte_regions(_version_bytes(project_root, new, SUPERVISOR, prefer_worktree=True))
+     if before[0] != after[0] or before[2] != after[2] or before[1] == after[1]:
+         raise ValueError("timing-only may change only the NominalMotionProvider class bytes")
+     schema = load_semantic_observation_schema(project_root / records["observation_schema.json"]["path"])
+@@
+         "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True}
+ 
+ 
++def _body_reward_source_delta(before: str, after: str) -> dict[str, Any]:
++    """Reverse only the reviewed helper/loader/body-weight insertions."""
++    import ast
++    marker = 'ROLE_TRANSFER_VERSION = "diagonal_transfer_roles_v1"\n'
++    boundary = '@dataclass(frozen=True)\nclass SemanticRewardConfig:'
++    if before.count(marker) != 1 or after.count(marker) != 1:
++        raise ValueError("body reward role marker is not unique")
++    source_prefix, source_tail = before.split(marker)
++    target_prefix, target_tail = after.split(marker)
++    source_gap, source_rest = source_tail.split(boundary, 1)
++    added, target_rest = target_tail.split(boundary, 1)
++    if source_prefix != target_prefix or source_gap.strip():
++        raise ValueError("body reward may not change the module prefix")
++    tree = ast.parse(added)
++    helper_names = {"_validate_carry_body_allowance", "_current_functional_body_allowance"}
++    functions = [node for node in tree.body if isinstance(node, ast.FunctionDef)]
++    constants = [node for node in tree.body if isinstance(node, ast.Assign)]
++    if (len(tree.body) != 3 or len(functions) != 2 or {n.name for n in functions} != helper_names
++            or any(n.decorator_list for n in functions) or len(constants) != 1
++            or len(constants[0].targets) != 1 or not isinstance(constants[0].targets[0], ast.Name)
++            or constants[0].targets[0].id != "CARRY_BODY_ALLOWANCE_MODE"
++            or ast.literal_eval(constants[0].value) != BODY_REWARD_MODE):
++        raise ValueError("body reward permits exactly the named constant and two helpers")
++    restored = target_prefix + marker + source_gap + boundary + target_rest
++    loader = "    _validate_carry_body_allowance(v)\n"
++    body = ('            body_transfer_fraction = transfer_fraction\n'
++            '            if v.get("carry_body_allowance") == CARRY_BODY_ALLOWANCE_MODE:\n'
++            '                body_transfer_fraction = max(body_transfer_fraction,\n'
++            '                    _current_functional_body_allowance(sample.current.task, v["capture_settle_window_s"]))\n')
++    new_weight = '            motion_weight = 1.-(1.-v["transfer_attitude_weight"])*body_transfer_fraction\n'
++    old_weight = '            motion_weight = 1.-(1.-v["transfer_attitude_weight"])*transfer_fraction\n'
++    for text in (loader, body, new_weight):
++        if restored.count(text) != 1:
++            raise ValueError("body reward consumer insertion differs from the reviewed form")
++    restored = restored.replace(loader, "").replace(body, "").replace(new_weight, old_weight)
++    if restored != before:
++        raise ValueError("body reward changed another loader/evaluate/contact/smoothness/potential path")
++    return {"source_normalized_sha256": hashlib.sha256(before.encode()).hexdigest(),
++        "target_normalized_sha256": hashlib.sha256(after.encode()).hexdigest(),
++        "added_helpers_sha256": hashlib.sha256(added.encode()).hexdigest(),
++        "outside_reviewed_body_consumption_unchanged": True}
++
++
++def _body_reward_factor(checkpoint, metadata, old, new, delta, review, project_root):
++    import yaml
++    from .semantic_policy_distribution import CONFIG_NAMES, HISTORY_POLICY, policy_contract
++    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
++    required_review = {"reason", "nominal_reference_manifest", "timing_plan"}
++    if (not isinstance(review, Mapping) or set(review) != required_review
++            or not isinstance(review["reason"], str) or not review["reason"].strip()):
++        raise ValueError("body reward requires the exact explicit review and same-N reference")
++    reference_path = Path(review["nominal_reference_manifest"]).resolve(strict=True)
++    record = json.loads(reference_path.read_text(encoding="utf-8"))
++    result = record.get("result")
++    if (record.get("lifecycle") not in ("SUCCEEDED", "DIAGNOSTIC_FAILURE")
++            or not record.get("completed_at_utc") or not isinstance(result, Mapping)
++            or result.get("mode") not in ("semantic_prior_eval", "semantic_residual_eval")):
++        raise ValueError("body reward reference must be a completed same-N evaluation; success is not required")
++    updates = [row[key] for row in (record, result) for key in
++               ("optimizer_updates", "optimizer_updates_during_evaluation") if key in row]
++    if not updates or any(type(n) is not int or n != 0 for n in updates):
++        raise ValueError("body reward same-N reference must have zero optimizer updates")
++    reference = _contract(record["runtime_contract"])
++    if result.get("runtime_contract") != reference:
++        raise ValueError("body reward reference runtime bindings disagree")
++    variable = {"files", "runtime_content_sha256", "source_git_commit", "selected_configuration"}
++    for contract in (old, reference):
++        if ({k:v for k,v in contract.items() if k not in variable}
++                != {k:v for k,v in new.items() if k not in variable}):
++            raise ValueError("body reward cannot change fixed physical/runtime metadata")
++    canonical = policy_contract(HISTORY_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
++    if (metadata.get("semantic_version") != "v3" or metadata.get("policy_contract") != canonical
++            or source_num_envs(metadata) != 1 or new.get("semantic_version") != "v3"
++            or new.get("experiment_id") != "fsm_reference_p09_stable_v2"):
++        raise ValueError("body reward requires same-experiment v3 N1 HISTORY372")
++    if old["files"].keys() != reference["files"].keys() or reference["files"].keys() != new["files"].keys():
++        raise ValueError("body reward cannot add or remove runtime files")
++    required = {BODY_REWARD_CODE, BODY_REWARD_CONFIG}
++    allowed = required | {f"src/wlr50_clean/ppo/{n}.py" for n in ("semantic_migration", "semantic_training")}
++    final_delta = {p for p in reference["files"] if reference["files"][p] != new["files"][p]}
++    if not required <= final_delta or not final_delta <= allowed:
++        raise ValueError("body reward changed N or a file outside the exact body/compatibility scope")
++    configs = {}
++    for name in sorted(CONFIG_NAMES):
++        relative = f"configs/ppo_fsm_reference_p09_stable_v2/{name}"
++        for contract in (old, reference, new):
++            selected = contract.get("selected_configuration", {})
++            if (set(selected) != CONFIG_NAMES or selected[name] != {
++                    "path": relative, "sha256": contract["files"].get(relative)}):
++                raise ValueError("body reward selected configuration binding differs")
++        before = _version_bytes(project_root, reference, relative, prefer_worktree=True)
++        after = _version_bytes(project_root, new, relative, prefer_worktree=True)
++        if name == "reward_config.yaml":
++            source_cfg, target_cfg = yaml.safe_load(before), yaml.safe_load(after)
++            if any(k in source_cfg for k in ("carry_body_allowance", "capture_settle_window_s")):
++                raise ValueError("body reward opt-in already exists in the reference")
++            expected = dict(source_cfg, carry_body_allowance=BODY_REWARD_MODE, capture_settle_window_s=.5)
++            if target_cfg != expected:
++                raise ValueError("body reward permits only the exact two config additions")
++        elif before != after:
++            raise ValueError("body reward cannot change the other five selected config bytes")
++        configs[name] = {"path": relative, "source_sha256": reference["files"][relative],
++                         "target_sha256": new["files"][relative]}
++    reference_spec = yaml.safe_load(_version_bytes(project_root, reference, TIMING_ONLY_SPEC, prefer_worktree=True))
++    source_spec = yaml.safe_load(_version_bytes(project_root, old, TIMING_ONLY_SPEC, prefer_worktree=True))
++    if (reference_spec.get("nominal", {}).get("sequence_semantics") != TIMING_ONLY_MODE
++            or reference_spec.get("transfer_roles", {}).get("window_s") != .5):
++        raise ValueError("body reward reference must retain reviewed timing and the existing0.5s transfer window")
++    timing = None
++    if source_spec.get("nominal", {}).get("sequence_semantics") == TIMING_ONLY_MODE:
++        if review["timing_plan"] is not None or set(delta) - allowed:
++            raise ValueError("already-timed body reward source cannot change nominal or add a timing ancestor")
++        for relative in (SUPERVISOR, TIMING_ONLY_SPEC):
++            if old["files"][relative] != reference["files"][relative]:
++                raise ValueError("body reward source N differs from its evaluated reference")
++    else:
++        if not isinstance(review["timing_plan"], str) or not review["timing_plan"]:
++            raise ValueError("pre-timing body reward source requires its existing verified timing plan")
++        timing = validate_migration_plan(checkpoint, reference, Path(review["timing_plan"]), project_root=project_root)
++        if timing.get("nominal_timing_factor", {}).get("schema") != TIMING_ONLY_SCHEMA:
++            raise ValueError("body reward ancestor must be the narrow timing-only migration")
++    for relative in required:
++        if old["files"][relative] != reference["files"][relative]:
++            raise ValueError("body reward source and same-N reference already differ in reward")
++    before = _version_text(project_root, reference, BODY_REWARD_CODE, prefer_worktree=True)
++    after = _version_text(project_root, new, BODY_REWARD_CODE, prefer_worktree=True)
++    scope = _body_reward_source_delta(before, after)
++    for relative in final_delta:
++        if file_sha(project_root / relative) != new["files"][relative]:
++            raise ValueError("body reward target runtime bytes differ from the current inventory")
++    return {"schema": BODY_REWARD_SCHEMA, "review_reason": review["reason"].strip(),
++        "nominal_reference_manifest": str(reference_path), "nominal_reference_manifest_sha256": file_sha(reference_path),
++        "nominal_reference_contract_sha256": digest(reference), "nominal_reference_commit": reference["source_git_commit"],
++        "timing_ancestor": None if timing is None else {"plan_path": timing["plan_path"],
++            "plan_sha256": timing["plan_sha256"], "nominal_timing_factor": timing["nominal_timing_factor"]},
++        "configuration_bindings": configs, "reward_source_scope": scope,
++        "reward_changed": True, "physical_mdp_changed": True,
++        "nominal_changed_since_checkpoint": timing is not None, "nominal_changed_since_reference": False,
++        "observation_semantics_changed": [], "task_acceptance_changed": False,
++        "physical_actuators_changed": False, "action_ranges_changed": False, "kernel_changed": False,
++        "observation_contract": {"source_policy_contract": canonical, "target_policy_contract": dict(canonical),
++            "observation_layout": ROLE_OBSERVATION_LAYOUT, "observation_dimension": 372,
++            "action_dimension": 12, "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"},
++        "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
++        "normalizers": "preserve_verified_identity_RSL_state",
++        "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True}
++
++
+ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
+                          allowed_changed_files: Sequence[str], reason: str,
+                          prior_evidence: Mapping[str, Any] | None = None,
+@@
+                          execution_evidence: Mapping[str, Any] | None = None,
+                          video_review: Mapping[str, Any] | None = None,
+                          timing_review: Mapping[str, Any] | None = None,
++                         body_reward_review: Mapping[str, Any] | None = None,
+                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
+     """Build a reviewed plan after committing the new runtime; does not write."""
+     checkpoint = Path(checkpoint).resolve(strict=True)
+     metadata = checkpoint_metadata(checkpoint)
+     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
+     variable = {"files", "runtime_content_sha256", "source_git_commit"}
+-    if timing_review is not None:
++    if body_reward_review is not None and timing_review is not None:
++        raise ValueError("body reward uses a verified timing ancestor, not a mixed top-level timing factor")
++    if timing_review is not None or body_reward_review is not None:
+         if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
+                                        execution_evidence, video_review)):
+             raise ValueError("timing-only migration cannot mix other reviewed factors")
+@@
+     observation_contract = None
+     timing = (_timing_only_factor(metadata, old, new, delta, timing_review, Path(project_root))
+               if timing_review is not None else None)
+-    if timing is None and (video_review is None or not (set(delta) & VIDEO_FILES)):
++    body_reward = (_body_reward_factor(checkpoint, metadata, old, new, delta, body_reward_review, Path(project_root))
++                   if body_reward_review is not None else None)
++    if timing is None and body_reward is None and (video_review is None or not (set(delta) & VIDEO_FILES)):
+         # Existing instrumentation-only permission is unchanged; video has
+         # its own explicit review and receipt, never a widened allowlist.
+         observation_contract = _instrumentation_observation_contract(
+@@
+             video["observation_contract"] = video_observation
+     execution = None
+     additional = set(VIDEO_FILES) if video is not None else ({TIMING_ONLY_SPEC} if timing is not None else set())
++    if body_reward is not None:
++        additional = {TIMING_ONLY_SPEC, BODY_REWARD_CODE, BODY_REWARD_CONFIG}
+     if execution_evidence is not None:
+         if (set(delta) - INSTRUMENTATION_FILES - VECTOR_FILES or prior_evidence is not None
+                 or qualification_evidence is not None or evaluator_review is not None):
+@@
+                 or qualification_evidence is not None):
+             raise ValueError("reviewed evaluator repair cannot mix prior/configuration or historical qualification factors")
+         evaluator = _reviewed_evaluator_factor(Path(project_root), old, new, evaluator_review)
+-    prior_transition = SUPERVISOR in delta and evaluator is None and timing is None
++    prior_transition = SUPERVISOR in delta and evaluator is None and timing is None and body_reward is None
+     if prior_transition != (prior_evidence is not None) or (prior_transition and STAGE_SPEC not in delta):
+         raise ValueError("nominal source change and explicit prior evidence/config change must occur together")
+     if qualification_evidence is not None and not prior_transition:
+@@
+     prior = _prior_factor(Path(project_root), old, new, prior_evidence, checkpoint,
+                            qualification_transition=qualification_evidence is not None) if prior_transition else None
+     qualification = _qualification_factor(Path(project_root), old, new, qualification_evidence) if qualification_evidence is not None else None
+-    layout_contract = observation_contract or (video or timing or {}).get("observation_contract")
++    layout_contract = observation_contract or (video or timing or body_reward or {}).get("observation_contract")
+     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
+     result = {"schema": SCHEMA, "reason": reason.strip(), "source_checkpoint": str(checkpoint),
+             "source_checkpoint_sha256": file_sha(checkpoint), "source_manifest_sha256": file_sha(sidecar),
+@@
+         result["video_instrumentation_factor"] = video
+     if timing is not None:
+         result["nominal_timing_factor"] = timing
++    if body_reward is not None:
++        result["body_reward_factor"] = body_reward
+     return result
+ 
+ 
+@@
+                                     video_review=None if "video_instrumentation_factor" not in supplied else {
+                                         "reason": supplied["video_instrumentation_factor"]["review_reason"]},
+                                     timing_review=None if "nominal_timing_factor" not in supplied else {
+-                                        "reason": supplied["nominal_timing_factor"]["review_reason"]})
++                                        "reason": supplied["nominal_timing_factor"]["review_reason"]},
++                                    body_reward_review=None if "body_reward_factor" not in supplied else {
++                                        "reason": supplied["body_reward_factor"]["review_reason"],
++                                        "nominal_reference_manifest": supplied["body_reward_factor"]["nominal_reference_manifest"],
++                                        "timing_plan": (supplied["body_reward_factor"].get("timing_ancestor") or {}).get("plan_path")})
+     if supplied != expected:
+         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
+     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}
+*** Update File: src/wlr50_clean/ppo/semantic_training.py
+@@
+         factor = verified.get("instrumentation_observation_contract")
+         video_factor = (verified.get("video_instrumentation_factor") or {}).get("observation_contract")
+         timing_factor = (verified.get("nominal_timing_factor") or {}).get("observation_contract")
+-        if video_factor is not None and timing_factor is not None:
+-            raise RuntimeError("video and nominal timing migration receipts must be exclusive")
+-        reviewed_factor = video_factor or timing_factor
++        body_reward_factor = (verified.get("body_reward_factor") or {}).get("observation_contract")
++        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor)) > 1:
++            raise RuntimeError("video, nominal timing and body reward migration receipts must be exclusive")
++        reviewed_factor = video_factor or timing_factor or body_reward_factor
+         if reviewed_factor is not None:
+             if factor is not None:
+                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")
+*** Add File: tests/unit/test_semantic_body_reward_migration.py
++"""Exact body-only and composed timing/reward migration; no live Isaac artifacts."""
++from __future__ import annotations
++
++import copy
++import json
++from pathlib import Path
++import shutil
++from types import SimpleNamespace
++
++import pytest
++import yaml
++
++from wlr50_clean.ppo import semantic_migration as m, semantic_reward as reward
++from wlr50_clean.ppo.semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
++from test_semantic_role_observation_migration import NAMES, commit, git, source_metadata, write_json
++from test_semantic_timing_only_migration import bind
++
++CONFIG = "configs/ppo_fsm_reference_p09_stable_v2"
++
++
++def source_reward(candidate):
++    marker = 'ROLE_TRANSFER_VERSION = "diagonal_transfer_roles_v1"\n'
++    boundary = '@dataclass(frozen=True)\nclass SemanticRewardConfig:'
++    prefix, rest = candidate.split(marker)
++    _, rest = rest.split(boundary, 1)
++    original = prefix + marker + "\n\n" + boundary + rest
++    original = original.replace("    _validate_carry_body_allowance(v)\n", "")
++    original = original.replace('            body_transfer_fraction = transfer_fraction\n'
++        '            if v.get("carry_body_allowance") == CARRY_BODY_ALLOWANCE_MODE:\n'
++        '                body_transfer_fraction = max(body_transfer_fraction,\n'
++        '                    _current_functional_body_allowance(sample.current.task, v["capture_settle_window_s"]))\n', "")
++    return original.replace('*body_transfer_fraction\n', '*transfer_fraction\n')
++
++
++@pytest.fixture(scope="module")
++def prototype(tmp_path_factory):
++    root = tmp_path_factory.mktemp("body_reward_git")
++    paths = {f"{CONFIG}/{name}" for name in NAMES} | {m.SUPERVISOR, m.BODY_REWARD_CODE} | {
++        f"src/wlr50_clean/ppo/{name}.py" for name in ("semantic_migration", "semantic_training")}
++    for relative in paths:
++        dest = root / relative
++        dest.parent.mkdir(parents=True, exist_ok=True)
++        dest.write_bytes((m.PROJECT_ROOT / relative).read_bytes())
++    candidate = Path(reward.__file__).read_text(encoding="utf-8")
++    assert "CARRY_BODY_ALLOWANCE_MODE" in candidate
++    (root / m.BODY_REWARD_CODE).write_text(source_reward(candidate), encoding="utf-8")
++    spec = yaml.safe_load((root / m.TIMING_ONLY_SPEC).read_bytes())
++    spec["nominal"].pop("sequence_semantics", None)
++    (root / m.TIMING_ONLY_SPEC).write_text(yaml.safe_dump(spec, sort_keys=False), encoding="utf-8")
++    cfg = yaml.safe_load((root / m.BODY_REWARD_CONFIG).read_bytes())
++    for key in ("carry_body_allowance", "capture_settle_window_s"): cfg.pop(key, None)
++    (root / m.BODY_REWARD_CONFIG).write_text(yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8")
++    provider = root / m.SUPERVISOR
++    provider.write_text("LOCKED = 1\n\nclass NominalMotionProvider:\n    timing = 'old'\n\nclass TaskEvaluator:\n    pass\n", encoding="utf-8")
++    git(root, "init"); git(root, "config", "user.name", "Body reward fixture")
++    git(root, "config", "user.email", "body-reward@example.invalid")
++    old = {"source_git_commit": commit(root, "pre-timing"), "files": dict.fromkeys(sorted(paths)),
++        "semantic_version": "v3", "experiment_id": "fsm_reference_p09_stable_v2",
++        "frozen_A_files": {"frozen": "a" * 64}, "physics_hz": 120., "decision_hz": 15.,
++        "task_timeout_s": 200., "timeout_bootstrap": False, "rsl_rl_version": "5.0.1",
++        "local_runtime_versions": {"fixture": "not Isaac"}}
++    bind(root, old)
++    spec["nominal"]["sequence_semantics"] = m.TIMING_ONLY_MODE
++    (root / m.TIMING_ONLY_SPEC).write_text(yaml.safe_dump(spec, sort_keys=False), encoding="utf-8")
++    provider.write_bytes(provider.read_bytes().replace(b"timing = 'old'", b"timing = 'timed'"))
++    reference = copy.deepcopy(old); reference["source_git_commit"] = commit(root, "timing reference")
++    bind(root, reference)
++    cfg.update(carry_body_allowance=m.BODY_REWARD_MODE, capture_settle_window_s=.5)
++    (root / m.BODY_REWARD_CONFIG).write_text(yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8")
++    (root / m.BODY_REWARD_CODE).write_text(candidate, encoding="utf-8")
++    new = copy.deepcopy(reference); new["source_git_commit"] = commit(root, "body-only candidate")
++    bind(root, new)
++    return SimpleNamespace(root=root, old=old, reference=reference, new=new)
++
++
++def changed(old, new):
++    return sorted(p for p in set(old["files"]) | set(new["files"]) if old["files"].get(p) != new["files"].get(p))
++
++
++def reference_and_timing(f, *, combined):
++    f.reference_path = f.root / "reference_run.json"
++    write_json(f.reference_path, {"lifecycle": "DIAGNOSTIC_FAILURE", "completed_at_utc": "fixture_complete",
++        "runtime_contract": f.reference, "optimizer_updates": 0,
++        "result": {"mode": "semantic_residual_eval", "optimizer_updates": 0, "runtime_contract": f.reference}})
++    f.timing_path = None
++    if combined:
++        f.timing_path = f.root / "original_timing_plan.json"
++        r = m.build_migration_plan(f.checkpoint, f.reference, allowed_changed_files=changed(f.old, f.reference),
++            reason="Timing only first", timing_review={"reason": "Class and opt-in only"}, project_root=f.root)
++        write_json(f.timing_path, r)
++
++
++@pytest.fixture(params=[False, True], ids=["reward_only", "combined"])
++def f(prototype, tmp_path, request):
++    root = tmp_path / "case"; shutil.copytree(prototype.root, root)
++    old = copy.deepcopy(prototype.old if request.param else prototype.reference)
++    checkpoint = root / "source.pt"; checkpoint.write_bytes(b"opaque fixture, no torch load")
++    metadata = source_metadata(checkpoint, old, layout=ROLE_OBSERVATION_LAYOUT)
++    write_json(checkpoint.with_name("source_manifest.json"), metadata)
++    f = SimpleNamespace(root=root, checkpoint=checkpoint, metadata=metadata, old=old,
++        reference=copy.deepcopy(prototype.reference), new=copy.deepcopy(prototype.new), combined=request.param)
++    reference_and_timing(f, combined=request.param)
++    return f
++
++
++def plan(f):
++    return m.build_migration_plan(f.checkpoint, f.new, allowed_changed_files=changed(f.old, f.new),
++        reason="Only body allowance after the same-N frozen pair", body_reward_review={"reason": "Exact body consumer",
++            "nominal_reference_manifest": str(f.reference_path),
++            "timing_plan": None if f.timing_path is None else str(f.timing_path)}, project_root=f.root)
++
++
++def test_both_paths_preserve_contract_and_allow_failed_completed_reference(f):
++    immutable = f.checkpoint.read_bytes(), f.checkpoint.with_name("source_manifest.json").read_bytes()
++    r = plan(f); factor = r["body_reward_factor"]
++    assert factor["schema"] == m.BODY_REWARD_SCHEMA
++    assert factor["nominal_changed_since_checkpoint"] is f.combined
++    assert factor["nominal_changed_since_reference"] is False and factor["reward_changed"]
++    assert factor["reward_source_scope"]["outside_reviewed_body_consumption_unchanged"]
++    assert r["observation_dimension"] == 372 and r["action_dimension"] == 12
++    assert r["preserve_actor_critic_optimizer_normalizer_rng_and_budget"] and r["discard_old_rollout_storage"]
++    p = f.root / "body_plan.json"; write_json(p, r)
++    assert m.validate_migration_plan(f.checkpoint, f.new, p, project_root=f.root)["body_reward_factor"] == factor
++    if f.combined:
++        original = json.loads(f.timing_path.read_text())
++        rebuilt = m.validate_migration_plan(f.checkpoint, f.reference, f.timing_path, project_root=f.root)
++        assert {k:v for k,v in rebuilt.items() if k not in ("plan_path", "plan_sha256")} == original
++    assert immutable == (f.checkpoint.read_bytes(), f.checkpoint.with_name("source_manifest.json").read_bytes())
++    record = json.loads(f.reference_path.read_text()); record["completed_at_utc"] += "changed"
++    write_json(f.reference_path, record)
++    with pytest.raises(ValueError, match="exactly bound"):
++        m.validate_migration_plan(f.checkpoint, f.new, p, project_root=f.root)
++
++
++@pytest.mark.parametrize("case", ["nominal", "task", "action", "wrong_mode", "window", "extra_config",
++    "contact", "potential", "smoothness", "unfinished", "updated", "binding", "missing_ancestor"])
++def test_narrow_scope_rejects_counterexamples(f, case):
++    if case == "nominal":
++        p = f.root / m.SUPERVISOR; p.write_bytes(p.read_bytes().replace(b"'timed'", b"'other'"))
++    elif case in ("task", "wrong_mode", "window", "extra_config"):
++        p = f.root / (m.TIMING_ONLY_SPEC if case == "task" else m.BODY_REWARD_CONFIG)
++        cfg = yaml.safe_load(p.read_bytes())
++        if case == "task": cfg["rear_leg_order"] = "RL_FIRST"
++        elif case == "wrong_mode": cfg["carry_body_allowance"] = "other"
++        elif case == "window": cfg["capture_settle_window_s"] = .4
++        else: cfg["transfer_attitude_weight"] = .1
++        p.write_text(yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8")
++    elif case == "action":
++        p = f.root / CONFIG / "action_schema.json"; p.write_bytes(p.read_bytes() + b"\n")
++    elif case in ("contact", "potential", "smoothness"):
++        p = f.root / m.BODY_REWARD_CODE; text = p.read_text()
++        key = {"contact": "contact = sum(contact_terms)/4", "potential": 'potential = v["potential_weight"]*',
++               "smoothness": 'smooth = ((smooth_parts["actual_drive_first_difference"]+'}[case]
++        assert key in text; p.write_text(text.replace(key, "# unreviewed\n            " + key), encoding="utf-8")
++    elif case in ("unfinished", "updated", "binding"):
++        r = json.loads(f.reference_path.read_text())
++        if case == "unfinished": r["lifecycle"] = "RUNNING"
++        elif case == "updated": r["result"]["optimizer_updates"] = 1
++        else: r["result"]["runtime_contract"] = {}
++        write_json(f.reference_path, r)
++    else:
++        if f.combined: f.timing_path = None
++        else: f.timing_path = f.root / "not-an-ancestor.json"
++    bind(f.root, f.new)
++    with pytest.raises((ValueError, SyntaxError)):
++        plan(f)
++
++
++def test_real_cpu_combined_keeps_adam_then_updates_and_reloads(prototype, tmp_path, monkeypatch):
++    torch = pytest.importorskip("torch"); pytest.importorskip("rsl_rl")
++    from test_semantic_role_append_training import make
++    from wlr50_clean.ppo import semantic_training as training
++    threads = torch.get_num_threads(); torch.set_num_threads(1)
++    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
++    try:
++        root = tmp_path / "cpu"; shutil.copytree(prototype.root, root)
++        training.seed_training_rngs(1001); source, env = make(True)
++        result = training.train_semantic(source, env, run_dir=root / "source_run", output_root=root / "source_out",
++            stage="full_episode", decisions=128, contract=prototype.old, seed=1001)
++        checkpoint = Path(result["checkpoints"][-1]["checkpoint"]); saved = m.checkpoint_metadata(checkpoint)
++        assert source.alg.optimizer.state_dict()["state"]
++        f = SimpleNamespace(root=root, checkpoint=checkpoint, old=prototype.old, reference=prototype.reference, new=prototype.new)
++        reference_and_timing(f, combined=True); path = root / "body_plan.json"; write_json(path, plan(f))
++        real = m.validate_migration_plan
++        monkeypatch.setattr(m, "validate_migration_plan", lambda cp, contract, p, **kw: real(cp, contract, p, project_root=root))
++        verified = m.validate_migration_plan(checkpoint, prototype.new, path)
++        target, target_env = make(True)
++        loaded = training.load_semantic_checkpoint(target, checkpoint, contract=prototype.new, seed=1001, migration=verified)
++        for role in ("actor", "critic"):
++            assert training.parameter_hash(getattr(target.alg, role)) == saved[f"{role}_parameter_sha256"]
++        assert training.state_hash(target.alg.optimizer.state_dict()) == saved["optimizer_state_sha256"]
++        assert training.state_hash(training._normalizers(target)) == saved["normalizer_state_sha256"]
++        assert training.capture_training_rng_state(seed=1001) == saved["training_rng_state"]
++        assert training.optimizer_learning_rate(target) == saved["optimizer_learning_rate"]
++        assert target.alg.storage.step == 0 and target.alg.transition.actions is None and target_env.core.calls == 0
++        target.alg.storage.step = 1
++        with pytest.raises(RuntimeError, match="partial old rollout"):
++            training.load_semantic_checkpoint(target, checkpoint, contract=prototype.new, seed=1001, migration=verified)
++        target.alg.storage.step = 0
++        result = training.train_semantic(target, target_env, run_dir=root / "target_run", output_root=root / "target_out",
++            stage="full_episode", decisions=128, contract=prototype.new, seed=1001, resume_infos=loaded)
++        final, _ = make(True)
++        infos = training.load_semantic_checkpoint(final, Path(result["checkpoints"][-1]["checkpoint"]), contract=prototype.new, seed=1001)
++        assert (infos["global_policy_decisions"], infos["ppo_updates"], infos["optimizer_steps"]) == (256, 2, 40)
++        assert training.state_hash(final.alg.optimizer.state_dict()) == training.state_hash(target.alg.optimizer.state_dict())
++        assert infos["resume_ancestry"]["resume_migration"]["body_reward_factor"]["timing_ancestor"]
++    finally:
++        torch.set_num_threads(threads)
+*** End Patch

@@ -1,0 +1,80 @@
+{
+  "schema": "wlr50_clean.unapplied_reward_functional_carry_patch.v1",
+  "production_applied": false,
+  "requested_base_commit": "a89ba82",
+  "patches": {
+    "consumer_and_opt_in_config": "outputs/ppo_timing_task_priority_v1/reward_functional_carry.patch",
+    "focused_tests": "outputs/ppo_timing_task_priority_v1/reward_functional_carry_tests.patch"
+  },
+  "exact_opt_in": {
+    "carry_body_allowance": "current_functional_carry_and_capture_settle_v1",
+    "capture_settle_window_s": 0.5
+  },
+  "candidate_scope": {
+    "new_module_constant": "CARRY_BODY_ALLOWANCE_MODE",
+    "new_pure_helpers": [
+      "_validate_carry_body_allowance",
+      "_current_functional_body_allowance"
+    ],
+    "loader": "one validation call; old validation retained",
+    "evaluate": "separate body_transfer_fraction=max(original transfer_fraction,current functional carry/settle floor); motion_weight uses body fraction only",
+    "unchanged": [
+      "contact original transfer_fraction",
+      "smoothness",
+      "regularization",
+      "potential",
+      "time_cost",
+      "terminal events",
+      "family weights",
+      "actor",
+      "normalizer",
+      "372 observation/HISTORY",
+      "task stage/event producer",
+      "physical acceptance",
+      "nominal control"
+    ],
+    "geometry_bounds_origin": "Existing current task engineering values: non-RR AIR gap >= 0.015 m, near-front [-0.40,0.15] m or within_top_xy, TOP gap [-0.015,0.025] m, force noise >=0.2 N, at least two independently verified other supports. These affect reward allowance only.",
+    "capture_settle_window_origin": "Existing stage_task_spec.transfer_roles.window_s = 0.5; real placement event tick/120 is used, not reward-instance elapsed time or a success timer.",
+    "no_hidden_motion_requirement": "Earned same-attempt Q/current active_attempt and usable present geometry/contact; no additional derivative/command-change gate."
+  },
+  "physical_field_sources": {
+    "current_legs": "TaskEvaluator current_legs: active_attempt, current_lift_valid, motion_continuation_allowed, air, ground_contact, obstacle_pair_active, top_contact, top_surface_contact, top_geometry, within_lateral_span, within_top_xy, front_distance_m, clearance_m, support, bearing_verified, bearing_force_n",
+    "history": "physical_evaluator.history.active_lift/front_edge_crossed/placed and history.event_ticks.placed",
+    "current_clock": "physical_evaluator.physics_tick",
+    "global_evidence": "VERIFIED or CONTACT_BEARING_UNVERIFIED only; the latter is not global permission and still needs all per-leg conditions. UNVERIFIED_SENSOR/NONFINITE rejected.",
+    "normalized_load": "Not consumed as bearing. A consistent fixture sets an unrelated fourth leg bearing classification unknown, all normalized fractions invalid, and global CONTACT_BEARING_UNVERIFIED while two actual other supports stay verified."
+  },
+  "verification": {
+    "method": "CPU-only process imports candidate semantic_reward.py under its package name; original test helpers and existing role-reward tests run against that candidate. Production files untouched.",
+    "python": "C:/Users/kskzz/miniconda3/envs/env_isaaclab/python.exe",
+    "scoped_cuda_visible_devices": "",
+    "modules": [
+      "outputs/ppo_timing_task_priority_v1/reward_candidate/test_semantic_functional_carry_reward.py",
+      "tests/unit/test_semantic_transfer_role_reward.py"
+    ],
+    "passed": 103,
+    "exit_code": 0,
+    "git_apply_check_exit_code": 0,
+    "production_reward_config_and_target_test_diff": "empty at final check",
+    "covered": [
+      "stationary earned carry all four legs",
+      "phase-independent allowance",
+      "current RR EDGE vs stale lift",
+      "TOP current geometry validity",
+      "unknown normalized load vs missing true support",
+      "sensor/nonfinite rejection",
+      "real placement event 0.5 s linear exit",
+      "successor carry continuity",
+      "contact weighting unchanged",
+      "original f=1 full reward result exact equality",
+      "invalid config mode/window",
+      "legacy behavior exact"
+    ]
+  },
+  "interpretation_limits": [
+    "This is an unapplied consumer/config proposal with CPU regression evidence, not a learned checkpoint evaluation.",
+    "The original transfer fraction is preserved as a lower bound; failing new carry eligibility does not change old reward behavior.",
+    "Recorded C0 already had original f=1, so this patch gives exactly the same reward there and does not explain RR collapse.",
+    "No Isaac run, optimizer update, checkpoint load, physical configuration change or task success claim was performed for this subtask."
+  ]
+}

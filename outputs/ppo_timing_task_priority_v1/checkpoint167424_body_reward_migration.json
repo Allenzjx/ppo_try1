@@ -1,0 +1,406 @@
+{
+  "schema": "wlr50_clean.semantic_checkpoint_migration.v1",
+  "reason": "Functional carry/capture-settle body allowance after a frozen same-N evaluation; preserve learned state and collect fresh rollouts",
+  "source_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000167424.pt",
+  "source_checkpoint_sha256": "9eb4bbdb2cb93afcc4fc04ab1295b92bde06167a72af9febe09804e9e5603a44",
+  "source_manifest_sha256": "02a38c858a8d4b7a0c1642dfd377ae61b5ec74410bc6d301c12c9b3e54dd0337",
+  "source_contract_sha256": "01a6375a672d690fe4f9eb21efb0c3adbcb3a92f6f14149b1372fa978f7b97dd",
+  "target_contract_sha256": "1fb9167eef574b0cde1a69f06fbee974febb4bee218da4c8d68ebb3594ae6fa7",
+  "source_git_commit": "4b2c038887c4109c639eea720f9e60de2c6d8d93",
+  "target_git_commit": "dbc492f25c0a3f9713b8477b9ef4341159625a41",
+  "allowed_changed_files": [
+    "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml",
+    "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml",
+    "src/wlr50_clean/ppo/semantic_migration.py",
+    "src/wlr50_clean/ppo/semantic_reward.py",
+    "src/wlr50_clean/ppo/semantic_supervisor.py",
+    "src/wlr50_clean/ppo/semantic_training.py"
+  ],
+  "changed_file_hashes": {
+    "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml": {
+      "before": "e6c3b90a9a0fd6ae9be17ae5b9f6f2c6a0c379df1b3df389b6e852dde9f5eeea",
+      "after": "9e4f2380b0b4b63363bb626c872a43753c3121eee43b6c7387178186fcea31ca"
+    },
+    "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml": {
+      "before": "e412c6800e5acf06b559a460b8f32a3290cc4b9fed222b88ce9cf73f314aa72a",
+      "after": "7825de8fe5ae6892e209b3be2f70cc423c50583f2352a43de4bbb90bb568b240"
+    },
+    "src/wlr50_clean/ppo/semantic_migration.py": {
+      "before": "d6fe4636e887bd690c7e93c9624c64a5213d186d47d67e8739754beacdc44caf",
+      "after": "26f0ac908e07a40fef03e7e9e943521c1e42ceefa9c9de00af37d46ca66e72d6"
+    },
+    "src/wlr50_clean/ppo/semantic_reward.py": {
+      "before": "101d7d83175d7225235590db87b0f0d45c91bba37df98b62a3691365bf10aaf9",
+      "after": "c18db2b98e3c06c6beff10980578a6043d21d0c80c56fb4926dcff7fa084406b"
+    },
+    "src/wlr50_clean/ppo/semantic_supervisor.py": {
+      "before": "4e4279d44debf95862c2b9e19e7774e3bbb1971d446ef967adb74064d8d6b680",
+      "after": "a664a00e823b9276d641fff3013373bc93795f05dc0f64490ec0ac51e7156ec1"
+    },
+    "src/wlr50_clean/ppo/semantic_training.py": {
+      "before": "6f6a5f08d829695df687bc1e0228953b536c070fc5d5a485e3feab2c4a4b40b8",
+      "after": "915f7dc0ef36a6732eeefa860ca1adec3baaf5a20d00e570208421c0aa394e99"
+    }
+  },
+  "geometric_factor": null,
+  "observation_dimension": 372,
+  "action_dimension": 12,
+  "preserve_actor_critic_optimizer_normalizer_rng_and_budget": true,
+  "discard_old_rollout_storage": true,
+  "physics_resume": "fresh_legal_P01_reset",
+  "body_reward_factor": {
+    "schema": "wlr50_clean.functional_carry_body_reward_same372_continuation.v1",
+    "review_reason": "Exact two reward keys and isolated body-weight consumer; retain evaluated nominal provider, task acceptance, physical configuration, contact/smoothness/potential terms and HISTORY372",
+    "nominal_reference_manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\prior_B\\20260914T2310036230645Z_g4db24eabd129_332256dc4c39442d8d4f8b257a0df053\\run_manifest.json",
+    "nominal_reference_manifest_sha256": "02b7a9af09f2028d6302132a5ab33e97bf04434065ab8f9dde4aad7c22d9fbd2",
+    "nominal_reference_contract_sha256": "231b0de384375ddbf558b1a036ffc47f49bb2a7c1e1abb850d520430556d39f6",
+    "nominal_reference_commit": "4db24eabd129a20752b0ef263c24b5e72de7407b",
+    "timing_ancestor": {
+      "plan_path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_timing_task_priority_v1\\checkpoint167424_timing_top_continuation_migration.json",
+      "plan_sha256": "53c898ee5490fcc125b8d68280348783c002267640f836cb5ad9bc619dc7de1b",
+      "nominal_timing_factor": {
+        "schema": "wlr50_clean.nominal_timing_same372_continuation.v1",
+        "review_reason": "Timing-only first candidate: one nominal sequence opt-in and NominalMotionProvider class; reward, task acceptance, physical parameters and HISTORY372 are unchanged",
+        "sequence_semantics": "source_partial_order_physical_ready_v1",
+        "configuration_bindings": {
+          "action_schema.json": {
+            "path": "configs/ppo_fsm_reference_p09_stable_v2/action_schema.json",
+            "source_sha256": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7",
+            "target_sha256": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7"
+          },
+          "execution_profile.yaml": {
+            "path": "configs/ppo_fsm_reference_p09_stable_v2/execution_profile.yaml",
+            "source_sha256": "1f9b08220c7d528a7e6e8fec0b76dee627009cf22b77df4924bb96115054d21f",
+            "target_sha256": "1f9b08220c7d528a7e6e8fec0b76dee627009cf22b77df4924bb96115054d21f"
+          },
+          "observation_schema.json": {
+            "path": "configs/ppo_fsm_reference_p09_stable_v2/observation_schema.json",
+            "source_sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b",
+            "target_sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b"
+          },
+          "quality_score.yaml": {
+            "path": "configs/ppo_fsm_reference_p09_stable_v2/quality_score.yaml",
+            "source_sha256": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6",
+            "target_sha256": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6"
+          },
+          "reward_config.yaml": {
+            "path": "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml",
+            "source_sha256": "e6c3b90a9a0fd6ae9be17ae5b9f6f2c6a0c379df1b3df389b6e852dde9f5eeea",
+            "target_sha256": "e6c3b90a9a0fd6ae9be17ae5b9f6f2c6a0c379df1b3df389b6e852dde9f5eeea"
+          },
+          "stage_task_spec.yaml": {
+            "path": "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml",
+            "source_sha256": "e412c6800e5acf06b559a460b8f32a3290cc4b9fed222b88ce9cf73f314aa72a",
+            "target_sha256": "7825de8fe5ae6892e209b3be2f70cc423c50583f2352a43de4bbb90bb568b240"
+          }
+        },
+        "physical_mdp_changed": true,
+        "nominal_control_changed": true,
+        "reward_changed": false,
+        "task_acceptance_changed": false,
+        "observation_semantics_changed": [],
+        "physical_actuators_changed": false,
+        "action_ranges_changed": false,
+        "kernel_changed": false,
+        "nominal_provider": {
+          "source_class_sha256": "c1dd43f3a491eb12a350d33f8d43a5a45e1aec259f1bed3009b14512dc8f631f",
+          "target_class_sha256": "cad029b64dcb1073adfafb8ccf826cb4cf0b9e9af5e50fcbb21d284647859b53",
+          "outside_class_sha256": "661de8d1c4e8febd3d03eb04a8ea3425f5728d21c314e491605597230a02a62b",
+          "outside_class_bytes_identical": true
+        },
+        "observation_contract": {
+          "source_policy_contract": {
+            "schema": "wlr50_clean.semantic_policy_distribution.v1",
+            "version": "history_conditioned_heteroscedastic_log_v1",
+            "distribution_class": "HeteroscedasticGaussianDistribution",
+            "std_type": "log",
+            "observation_dimension": 372,
+            "raw_action_dimension": 12,
+            "actor_hidden_dims": [
+              256,
+              256
+            ],
+            "activation": "elu",
+            "state_dependent_std": true,
+            "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+            "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+            "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+            "history_feature": "previous_raw_full12",
+            "history_slice": [
+              195,
+              207
+            ],
+            "history_clip": 20.0,
+            "rho": 0.9,
+            "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+            "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+            "history_state": "stored_observation_only; no_actor_mutable_history",
+            "deterministic_output": "conditional_mean",
+            "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+            "observation_layout": "diagonal_transfer_state_v1",
+            "base_observation_dimension": 324,
+            "role_observation_group": "transfer_role_context_full48",
+            "role_observation_slice": [
+              324,
+              372
+            ],
+            "role_observation_leg_order": [
+              "FL",
+              "FR",
+              "RL",
+              "RR"
+            ],
+            "role_observation_fields": [
+              "valid",
+              "workspace_progress",
+              "preparation_progress",
+              "transfer_progress",
+              "motion_fraction",
+              "preparation_ready",
+              "transfer_ready",
+              "fixed_direction_world_x",
+              "fixed_direction_world_y",
+              "short_support_continuity_fraction",
+              "continued_response_fraction",
+              "window_evidence_fraction"
+            ]
+          },
+          "target_policy_contract": {
+            "schema": "wlr50_clean.semantic_policy_distribution.v1",
+            "version": "history_conditioned_heteroscedastic_log_v1",
+            "distribution_class": "HeteroscedasticGaussianDistribution",
+            "std_type": "log",
+            "observation_dimension": 372,
+            "raw_action_dimension": 12,
+            "actor_hidden_dims": [
+              256,
+              256
+            ],
+            "activation": "elu",
+            "state_dependent_std": true,
+            "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+            "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+            "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+            "history_feature": "previous_raw_full12",
+            "history_slice": [
+              195,
+              207
+            ],
+            "history_clip": 20.0,
+            "rho": 0.9,
+            "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+            "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+            "history_state": "stored_observation_only; no_actor_mutable_history",
+            "deterministic_output": "conditional_mean",
+            "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+            "observation_layout": "diagonal_transfer_state_v1",
+            "base_observation_dimension": 324,
+            "role_observation_group": "transfer_role_context_full48",
+            "role_observation_slice": [
+              324,
+              372
+            ],
+            "role_observation_leg_order": [
+              "FL",
+              "FR",
+              "RL",
+              "RR"
+            ],
+            "role_observation_fields": [
+              "valid",
+              "workspace_progress",
+              "preparation_progress",
+              "transfer_progress",
+              "motion_fraction",
+              "preparation_ready",
+              "transfer_ready",
+              "fixed_direction_world_x",
+              "fixed_direction_world_y",
+              "short_support_continuity_fraction",
+              "continued_response_fraction",
+              "window_evidence_fraction"
+            ]
+          },
+          "observation_layout": "diagonal_transfer_state_v1",
+          "observation_dimension": 372,
+          "action_dimension": 12,
+          "num_envs": 1,
+          "parameter_mapping": "identity_all_parameters_and_buffers"
+        },
+        "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+        "normalizers": "preserve_verified_identity_RSL_state",
+        "scope": "reviewed_nominal_timing_only_not_physical_MDP_or_trajectory_equivalence",
+        "scope_is_reviewer_assertion_not_semantic_equivalence_proof": true
+      }
+    },
+    "configuration_bindings": {
+      "action_schema.json": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/action_schema.json",
+        "source_sha256": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7",
+        "target_sha256": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7"
+      },
+      "execution_profile.yaml": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/execution_profile.yaml",
+        "source_sha256": "1f9b08220c7d528a7e6e8fec0b76dee627009cf22b77df4924bb96115054d21f",
+        "target_sha256": "1f9b08220c7d528a7e6e8fec0b76dee627009cf22b77df4924bb96115054d21f"
+      },
+      "observation_schema.json": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/observation_schema.json",
+        "source_sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b",
+        "target_sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b"
+      },
+      "quality_score.yaml": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/quality_score.yaml",
+        "source_sha256": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6",
+        "target_sha256": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6"
+      },
+      "reward_config.yaml": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml",
+        "source_sha256": "e6c3b90a9a0fd6ae9be17ae5b9f6f2c6a0c379df1b3df389b6e852dde9f5eeea",
+        "target_sha256": "9e4f2380b0b4b63363bb626c872a43753c3121eee43b6c7387178186fcea31ca"
+      },
+      "stage_task_spec.yaml": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml",
+        "source_sha256": "7825de8fe5ae6892e209b3be2f70cc423c50583f2352a43de4bbb90bb568b240",
+        "target_sha256": "7825de8fe5ae6892e209b3be2f70cc423c50583f2352a43de4bbb90bb568b240"
+      }
+    },
+    "reward_source_scope": {
+      "source_normalized_sha256": "101d7d83175d7225235590db87b0f0d45c91bba37df98b62a3691365bf10aaf9",
+      "target_normalized_sha256": "c18db2b98e3c06c6beff10980578a6043d21d0c80c56fb4926dcff7fa084406b",
+      "added_helpers_sha256": "a18d2134549f4d48203799987a45a8cf3a237e910fca88d84bbdae30e4b3c722",
+      "outside_reviewed_body_consumption_unchanged": true
+    },
+    "reward_changed": true,
+    "physical_mdp_changed": true,
+    "nominal_changed_since_checkpoint": true,
+    "nominal_changed_since_reference": false,
+    "observation_semantics_changed": [],
+    "task_acceptance_changed": false,
+    "physical_actuators_changed": false,
+    "action_ranges_changed": false,
+    "kernel_changed": false,
+    "observation_contract": {
+      "source_policy_contract": {
+        "schema": "wlr50_clean.semantic_policy_distribution.v1",
+        "version": "history_conditioned_heteroscedastic_log_v1",
+        "distribution_class": "HeteroscedasticGaussianDistribution",
+        "std_type": "log",
+        "observation_dimension": 372,
+        "raw_action_dimension": 12,
+        "actor_hidden_dims": [
+          256,
+          256
+        ],
+        "activation": "elu",
+        "state_dependent_std": true,
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+        "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+        "history_feature": "previous_raw_full12",
+        "history_slice": [
+          195,
+          207
+        ],
+        "history_clip": 20.0,
+        "rho": 0.9,
+        "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+        "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+        "history_state": "stored_observation_only; no_actor_mutable_history",
+        "deterministic_output": "conditional_mean",
+        "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+        "observation_layout": "diagonal_transfer_state_v1",
+        "base_observation_dimension": 324,
+        "role_observation_group": "transfer_role_context_full48",
+        "role_observation_slice": [
+          324,
+          372
+        ],
+        "role_observation_leg_order": [
+          "FL",
+          "FR",
+          "RL",
+          "RR"
+        ],
+        "role_observation_fields": [
+          "valid",
+          "workspace_progress",
+          "preparation_progress",
+          "transfer_progress",
+          "motion_fraction",
+          "preparation_ready",
+          "transfer_ready",
+          "fixed_direction_world_x",
+          "fixed_direction_world_y",
+          "short_support_continuity_fraction",
+          "continued_response_fraction",
+          "window_evidence_fraction"
+        ]
+      },
+      "target_policy_contract": {
+        "schema": "wlr50_clean.semantic_policy_distribution.v1",
+        "version": "history_conditioned_heteroscedastic_log_v1",
+        "distribution_class": "HeteroscedasticGaussianDistribution",
+        "std_type": "log",
+        "observation_dimension": 372,
+        "raw_action_dimension": 12,
+        "actor_hidden_dims": [
+          256,
+          256
+        ],
+        "activation": "elu",
+        "state_dependent_std": true,
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+        "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+        "history_feature": "previous_raw_full12",
+        "history_slice": [
+          195,
+          207
+        ],
+        "history_clip": 20.0,
+        "rho": 0.9,
+        "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+        "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+        "history_state": "stored_observation_only; no_actor_mutable_history",
+        "deterministic_output": "conditional_mean",
+        "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+        "observation_layout": "diagonal_transfer_state_v1",
+        "base_observation_dimension": 324,
+        "role_observation_group": "transfer_role_context_full48",
+        "role_observation_slice": [
+          324,
+          372
+        ],
+        "role_observation_leg_order": [
+          "FL",
+          "FR",
+          "RL",
+          "RR"
+        ],
+        "role_observation_fields": [
+          "valid",
+          "workspace_progress",
+          "preparation_progress",
+          "transfer_progress",
+          "motion_fraction",
+          "preparation_ready",
+          "transfer_ready",
+          "fixed_direction_world_x",
+          "fixed_direction_world_y",
+          "short_support_continuity_fraction",
+          "continued_response_fraction",
+          "window_evidence_fraction"
+        ]
+      },
+      "observation_layout": "diagonal_transfer_state_v1",
+      "observation_dimension": 372,
+      "action_dimension": 12,
+      "num_envs": 1,
+      "parameter_mapping": "identity_all_parameters_and_buffers"
+    },
+    "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+    "normalizers": "preserve_verified_identity_RSL_state",
+    "scope_is_reviewer_assertion_not_semantic_equivalence_proof": true
+  }
+}

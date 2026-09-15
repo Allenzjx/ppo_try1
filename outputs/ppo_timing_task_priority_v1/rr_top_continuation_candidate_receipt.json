@@ -1,0 +1,46 @@
+{
+  "schema": "wlr50_clean.unapplied_rr_top_continuation_candidate.v1",
+  "production_applied": false,
+  "production_patch": "outputs/ppo_timing_task_priority_v1/rr_top_continuation.apply_patch",
+  "tests_patch": "outputs/ppo_timing_task_priority_v1/rr_top_continuation_tests.apply_patch",
+  "format": "*** Begin Patch / absolute target path; source update and test addition separate",
+  "scope": "Only existing functional-RR task wheel suggestion in NominalMotionProvider; one new predicate, OR with unchanged AIR branch, existing finite-owner/fresh-stop final veto, diagnostic reason.",
+  "action": "Existing _approach_wheel_prior=(0.3,0.3,0.3,0.3) rad/s; no amplitude/actuator/mapper/residual/phase-acceptance change.",
+  "required_current_evidence": [
+    "Actual continuous P09 source endpoint already issued",
+    "No finite ordered wheel owner or fresh authored wheel group/stop this tick",
+    "Current task/evaluator valid, no termination; VERIFIED or CONTACT_BEARING_UNVERIFIED with independent support evidence",
+    "RR earned active_lift + active_attempt + current_lift_valid + motion_continuation_allowed",
+    "RR ground false, TOP contact_surface, top_surface_contact, obstacle_pair_active and verified bearing >= existing force_noise_floor",
+    "Existing measured gap top_gap_min..top_gap_max, lateral ROI, workspace_min<=front_distance<approach_max",
+    "At least two OTHER real verified ground/TOP-bearing supports, not RR itself",
+    "RR not already physically placed"
+  ],
+  "deliberately_not_required": [
+    "center crossed",
+    "within_top_xy/top_contact/top_geometry before center crossing",
+    "static body",
+    "new own-RR joint motion",
+    "known normalized-load denominator for independently verified forces"
+  ],
+  "verification": {
+    "cpu_modules": [
+      "outputs/ppo_timing_task_priority_v1/rr_top_candidate/test_semantic_rr_top_continuation.py",
+      "tests/unit/test_semantic_source_partial_order_v1.py",
+      "tests/unit/test_functional_rr_nominal_geometry_v2.py"
+    ],
+    "cpu_process_scope": "CUDA_VISIBLE_DEVICES empty, candidate semantic_supervisor imported under its package name; no actor/checkpoint/Isaac/optimizer load",
+    "passed": 68,
+    "exit_code": 0,
+    "patch_format": "Both artifacts actually applied to output-directory copies via apply_patch; resulting source/test SHA256 exactly matched tested candidate files.",
+    "production_source_and_target_test_diff": "empty at final check",
+    "non_behavioral_post_test_change": "One comment grammar correction only; patch-format verification used final corrected candidate."
+  },
+  "evidence": "outputs/ppo_timing_task_priority_v1/rr_top_corner_live_readonly.json",
+  "warnings": [
+    "No new physical run has tested this candidate. Opportunity to continue from confirmed TOP contact is not a crossing/stability guarantee.",
+    "Root's finalized B1 evidence has RR knee sequential mapped final about -59.989757 deg and actual -59.981091 deg despite zero raw/projected/direct policy residual. This is existing history-dependent mapping, not PPO residual.",
+    "Existing hard-limit/body-collision/physical safety behavior remains unchanged; TOP continuation may expose a real hard-limit abort.",
+    "Current C1 is running against unchanged production. Root must decide application only after the paired frozen evaluation ends."
+  ]
+}

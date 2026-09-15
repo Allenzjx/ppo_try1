@@ -1,0 +1,200 @@
+{
+  "schema": "ppo_rr_video_diagnosis_v1.frozen_before_binding.v1",
+  "priority": "Deliver historical failure and current frozen B0/C0 videos before control/reward changes or more training",
+  "project": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1",
+  "git": {
+    "head": "4b2c038887c4109c639eea720f9e60de2c6d8d93",
+    "branch": "ppo/all-stage-acceptance-v1",
+    "remote": "https://github.com/Allenzjx/ppo_try1.git",
+    "working_tree_clean_before_run": true,
+    "parent_project_agents_files_found": 0,
+    "production_diff_from_d4": []
+  },
+  "checkpoint": {
+    "binding_role": "frozen BEFORE pair and RR-off diagnostic, not latest after subsequent training",
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000166784.pt",
+    "sha256": "24e63d10cb48c1e8d686e49248ef5e434314d89efc40877fac2899303e6fb5ad",
+    "manifest_sha256": "a21a48f235657ab482132e1755cb2634b86f48f11e36b1620c1df4bc61c72963",
+    "global_policy_decisions": 166784,
+    "ppo_updates": 1268,
+    "optimizer_steps": 25360,
+    "byte_verified_at_utc": "2026-09-14T04:22:13.7146768Z",
+    "save_load_round_trip": true,
+    "observation_dimension": 372,
+    "action_dimension": 12,
+    "is_best_verified": false
+  },
+  "provenance_only_migration": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_rr_video_diagnosis_v1/checkpoint166784_provenance_only_migration.json",
+  "B0": {
+    "status": "completed_and_video_delivered",
+    "physical_result": "TASK_INCOMPLETE",
+    "terminal_phase": "P09",
+    "terminal_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "episode_physics_ticks": 8860,
+    "physical_duration_s": 73.83333333333333,
+    "media_receipt": "videos/zero_residual_before.media.json",
+    "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\prior_B\\20260914T0422580971667Z_g4b2c038887c4_52ea704dca9c4cd19b12df41e9897e8d",
+    "process_id": 2168,
+    "launch_command": "& .\\scripts\\run_semantic_video.ps1 -Command eval -ExpectedHead 4b2c038887c4109c639eea720f9e60de2c6d8d93 -SemanticVersion v3 -ExperimentId fsm_reference_p09_stable_v2 -Stage full_episode -MaxDecisions 3000 -Seed 4001 -Mode semantic_prior_eval -Device cuda:0",
+    "initial": {
+      "started": "2026-09-14T04:22:59.4150670Z",
+      "head": "4b2c038887c4109c639eea720f9e60de2c6d8d93",
+      "content_hash": "ecee8d3abba1981b95d462a70c9ea39deb3e949878caea9d6589c95cdc043458",
+      "rates": {
+        "physics_hz": 120,
+        "decision_hz": 15,
+        "task_timeout_s": 200
+      },
+      "configuration": {
+        "action_schema.json": {
+          "path": "configs/ppo_fsm_reference_p09_stable_v2/action_schema.json",
+          "sha256": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7"
+        },
+        "execution_profile.yaml": {
+          "path": "configs/ppo_fsm_reference_p09_stable_v2/execution_profile.yaml",
+          "sha256": "1f9b08220c7d528a7e6e8fec0b76dee627009cf22b77df4924bb96115054d21f"
+        },
+        "observation_schema.json": {
+          "path": "configs/ppo_fsm_reference_p09_stable_v2/observation_schema.json",
+          "sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b"
+        },
+        "quality_score.yaml": {
+          "path": "configs/ppo_fsm_reference_p09_stable_v2/quality_score.yaml",
+          "sha256": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6"
+        },
+        "reward_config.yaml": {
+          "path": "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml",
+          "sha256": "e6c3b90a9a0fd6ae9be17ae5b9f6f2c6a0c379df1b3df389b6e852dde9f5eeea"
+        },
+        "stage_task_spec.yaml": {
+          "path": "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml",
+          "sha256": "e412c6800e5acf06b559a460b8f32a3290cc4b9fed222b88ce9cf73f314aa72a"
+        }
+      },
+      "local_versions": {
+        "distributions": {
+          "isaaclab": "0.54.3",
+          "isaacsim": "5.1.0.0",
+          "rsl-rl-lib": "5.0.1",
+          "tensordict": "0.12.2",
+          "torch": "2.7.0+cu128"
+        },
+        "python": "3.11.15",
+        "python_executable": "C:\\Users\\kskzz\\miniconda3\\envs\\env_isaaclab\\python.exe"
+      },
+      "arguments": {
+        "command": "eval",
+        "mode": "semantic_prior_eval",
+        "stage": "full_episode",
+        "from_phase": "P01",
+        "num_envs": 1,
+        "seed": 4001,
+        "max_decisions": 3000,
+        "checkpoint": null,
+        "experiment_id": "fsm_reference_p09_stable_v2",
+        "headless": false
+      }
+    }
+  },
+  "C0": {
+    "status": "completed_and_video_delivered",
+    "run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_fsm_reference_p09_stable_v2/video_eval/validation/20260914T0445447525570Z_g4b2c038887c4_7610e06fd2cc4efeaae4b47106f9529e",
+    "checkpoint": 166784,
+    "mode": "semantic_residual_eval",
+    "seed": 4001,
+    "physical_result": "SAFETY_ABORT",
+    "terminal_phase": "P02",
+    "terminal_reason": "SAFETY_ABORT",
+    "terminal_source": "HARD_JOINT_LIMIT",
+    "terminal_joint": "rear_right_knee",
+    "episode_physics_ticks": 983,
+    "physical_duration_s": 8.191666666666666,
+    "media_receipt": "videos/ppo_before.media.json",
+    "official_checkpoint_load_verified": true,
+    "loaded_actor_critic_optimizer_normalizer_hashes_match_selected_checkpoint": true,
+    "evaluation_optimizer_updates": 0,
+    "post_failure_model_hash_check_executed": false,
+    "post_failure_model_hash_check_note": "Frozen recorder calls the final assertion only after physical success; initial official load is verified, but no invented final hash receipt. No training routine is called by this evaluation."
+  },
+  "historical_video": {
+    "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_fsm_reference_p09_stable_v2/video_diagnostics/video11_164736_p01_safety_abort.mp4",
+    "checkpoint": 164736,
+    "physical_duration_s": 10.975,
+    "physical_result": "P02 SAFETY_ABORT/HARD_JOINT_LIMIT rear_right_knee",
+    "same_as_user_player_attachment_confirmed": false,
+    "paired_with_current_B0": false
+  },
+  "D_RR_OFF": {
+    "status": "completed_and_video_delivered",
+    "run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_fsm_reference_p09_stable_v2/rr_channels_off_diagnostic/20260914T0503017583189Z_g4b2c038887c4_0d7983dafbee4b78ad64ba31363625f4",
+    "result_receipt": "rr_off_intervention_result.json",
+    "actual_import_and_drive_getter_receipt": "source/live_preaction_drive_getters.json (relative to D run)",
+    "masked_raw_channels_from_first_action": [6,7],
+    "actual_masked_history_verified": true,
+    "final_frozen_model_unchanged_verified": true,
+    "formal_C0": false,
+    "on_policy_samples": 0,
+    "optimizer_updates": 0,
+    "physical_result": "P02 SAFETY_ABORT/HARD_JOINT_LIMIT rear_right_knee",
+    "physical_ticks": 998
+  },
+  "training_after_first_pair": {
+    "initial_checkpoint": 166784,
+    "block1_completed_decisions": 512,
+    "block1_completed_ppo_updates": 4,
+    "block1_checkpoint": 167296,
+    "block2_lifecycle": "STOPPED_AT_VERIFIED_UPDATE_BOUNDARY",
+    "block2_completed_decisions": 128,
+    "block2_completed_ppo_updates": 1,
+    "block2_unconsumed_requested_decisions": 384,
+    "teacher_decisions_excluded": 896,
+    "new_policy_decisions": 640,
+    "new_ppo_updates": 5,
+    "new_optimizer_steps": 100,
+    "latest_checkpoint": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_fsm_reference_p09_stable_v2/checkpoints/history/checkpoint_step_000167424.pt",
+    "latest_checkpoint_sha256": "9eb4bbdb2cb93afcc4fc04ab1295b92bde06167a72af9febe09804e9e5603a44",
+    "latest_global_policy_decisions": 167424,
+    "latest_ppo_updates": 1273,
+    "latest_optimizer_steps": 25460,
+    "latest_save_load_round_trip": true,
+    "actual_new_phase_decisions": {"P01":2,"P02":101,"P03":8,"P04":1,"P05":400,"P06":115,"P07":1,"P08":1,"P09":11,"P10":0,"P11":0,"P12":0,"P13":0},
+    "production_control_reward_physics_changes": false
+  },
+  "C_after_learning": {
+    "status": "completed_and_video_delivered",
+    "run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_fsm_reference_p09_stable_v2/video_eval/validation/20260914T0540369315910Z_g4b2c038887c4_85756e634ebf4aa2999aa1273ba6077b",
+    "checkpoint": 167424,
+    "official_checkpoint_reload_verified": true,
+    "loaded_actor_critic_optimizer_normalizer_hashes_match_saved_checkpoint": true,
+    "evaluation_receipt": "after_learning_eval_receipt.json",
+    "recorded_initial_physical_arrays_and_contacts_equal_B0": true,
+    "initial_comparison_scope": "canonical q/qd, wheel velocity, root pose/velocities, world CoM position/velocity and wheel contact pairs; native pre-step q/standing offsets not separately inspected in this after-learning comparison",
+    "natural_P01": true,
+    "teacher_prefix": false,
+    "deterministic": true,
+    "optimizer_updates": 0,
+    "physical_task_success": false,
+    "terminal_phase": "P02",
+    "termination_source": "HARD_JOINT_LIMIT rear_right_knee",
+    "physical_ticks": 879,
+    "physical_duration_s": 7.325,
+    "terminal_RR_knee_target_deg": -6.358187706814865,
+    "terminal_RR_knee_actual_deg": -60.01679969282254,
+    "first_uncompleted_task": "P02 FR current clearance and approach; no crossing or placement",
+    "media_receipt": "videos/ppo_after_learning.media.json",
+    "after_repair": false,
+    "production_control_reward_physics_changes": false
+  },
+  "physical_parameters_changed": false,
+  "control_reward_parameters_changed": false,
+  "actual_initial_state_pair_equality": {
+    "status": "all_recorded_initial_components_exactly_equal",
+    "maximum_absolute_difference": 0.0,
+    "components": ["canonical joint q and qd", "native pre-first-step q", "standing offsets", "wheel speeds", "root pose and velocities", "mass-weighted world CoM position and velocity", "recorded contact pairs"],
+    "evidence": "rr_bounded_before.summary.json",
+    "not_claimed": "unrecorded internal PhysX contact-cache identity"
+  },
+  "rendering_note": "Initial texture/shader loading differs visually between fresh processes; recorded physical initial states and camera/configuration are identical. No video retouching or substituted frames.",
+  "first_pair_delivered_before_any_new_PPO_training": true,
+  "pre_roll_limitation": "Frozen task-window recorder retains tick0 physical evidence, but no encoded pre-control frames. First video endpoint is tick8; no synthetic pre-roll presented as simulation."
+}

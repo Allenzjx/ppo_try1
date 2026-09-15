@@ -1,0 +1,160 @@
+{
+  "outputs": [
+    {
+      "output": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_timing_task_priority_v1\\sequence_before_after.csv",
+      "rows": 56,
+      "columns": 48,
+      "scalar_grid_verified": true,
+      "recalculated": true,
+      "roundtrip_verified": true,
+      "inspection": {
+        "recordCount": 1,
+        "truncated": false,
+        "metadata": {
+          "revision": "sxeco3",
+          "target": {
+            "id": "wb/rtpncm",
+            "beforeLines": 0,
+            "afterLines": 0
+          },
+          "kind": {
+            "requested": "region",
+            "tokens": [
+              "region"
+            ]
+          },
+          "include": {
+            "tokens": []
+          },
+          "exclude": {
+            "tokens": []
+          },
+          "notices": []
+        }
+      },
+      "errors": {
+        "recordCount": 1,
+        "truncated": false,
+        "metadata": {
+          "revision": "zv0t1g",
+          "target": {
+            "id": "wb/5o7cql",
+            "beforeLines": 0,
+            "afterLines": 0
+          },
+          "kind": {
+            "requested": "match",
+            "tokens": [
+              "match"
+            ]
+          },
+          "include": {
+            "tokens": []
+          },
+          "exclude": {
+            "tokens": []
+          },
+          "notices": []
+        }
+      }
+    },
+    {
+      "output": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_timing_task_priority_v1\\rr_target_actual_and_task_trace.csv",
+      "rows": 910,
+      "columns": 218,
+      "scalar_grid_verified": true,
+      "recalculated": true,
+      "roundtrip_verified": true,
+      "inspection": {
+        "recordCount": 1,
+        "truncated": false,
+        "metadata": {
+          "revision": "4td84f",
+          "target": {
+            "id": "wb/k8lx7q",
+            "beforeLines": 0,
+            "afterLines": 0
+          },
+          "kind": {
+            "requested": "region",
+            "tokens": [
+              "region"
+            ]
+          },
+          "include": {
+            "tokens": []
+          },
+          "exclude": {
+            "tokens": []
+          },
+          "notices": []
+        }
+      },
+      "errors": {
+        "recordCount": 1,
+        "truncated": false,
+        "metadata": {
+          "revision": "koo6en",
+          "target": {
+            "id": "wb/7hyw35",
+            "beforeLines": 0,
+            "afterLines": 0
+          },
+          "kind": {
+            "requested": "match",
+            "tokens": [
+              "match"
+            ]
+          },
+          "include": {
+            "tokens": []
+          },
+          "exclude": {
+            "tokens": []
+          },
+          "notices": []
+        }
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "prefix": "B_AFTER_FULL",
+      "source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\prior_B\\20260914T2310036230645Z_g4db24eabd129_332256dc4c39442d8d4f8b257a0df053\\source",
+      "head": "4db24eabd129a20752b0ef263c24b5e72de7407b",
+      "runtime_sha": "772df5f40f0bd60e41e2d9f847d4f5ed2effb03d0bd85cf2d8df9cc8d49bb597",
+      "checkpoint_decisions": null,
+      "rows": 798,
+      "end_tick": 6374
+    },
+    {
+      "prefix": "C_AFTER_FULL",
+      "source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\validation\\20260915T0011185025896Z_gdbc492f25c0a_ccb65744dd8f48dd94fbf44d3a1285b8\\source",
+      "head": "dbc492f25c0a3f9713b8477b9ef4341159625a41",
+      "runtime_sha": "34f2c9d249be66441f2f20ba8437492fb9a330db63008e668baabf665bfa53ec",
+      "checkpoint_decisions": 168192,
+      "rows": 112,
+      "end_tick": 887
+    }
+  ],
+  "sequence_input": "sequence_before_after_final.payload.json",
+  "missing": "blank means unknown/not-sampled, never invented zero",
+  "units": "canonical joint deg, wheel rad/s, world m and m/s; body rad and rad/s",
+  "trace_scope": "tick0, every8 physics ticks and true terminal; full-rate extrema remain in each summary",
+  "clock_contract": {
+    "sequence_source_definition": "command_time_s=pre-step tick/120; native B/C rows are post-step, A commands are pre-step",
+    "sequence_export_definition": "command_pre_step_time_s explicitly renames legacy command_time_s; pre-step tick t precedes the effect in post-step physical tick t+1, at 120Hz.",
+    "trace_definition": "episode_physics_tick and simulation_time_s are measured post-step coordinates (except true reset tick0); native_internal_tick is a different reset-offset clock and is never substituted.",
+    "owner_definition": "Owner observation_tick and decision_end_tick remain separately recorded inside JSON cells; neither is silently aligned to current trace measurement.",
+    "response_definition": "available_response_sample_tick is a retained measurement, not an exact response onset; measured_response_tick can be null or a separately labeled evaluator event.",
+    "sequence_source_limits": [
+      "Event-aligned table; not retiming videos",
+      "Sparse response samples are not exact onset or causal attribution",
+      "Missing measurement remains null; contact_surface TOP is not necessarily top_contact/placement",
+      "A historical latch/guard semantics remain labeled; no historical posture gate imported",
+      "No full trajectory copying or new simulation; JSON rows for separate spreadsheet author"
+    ]
+  },
+  "attribution": "final minus mapper N before geometry is a total difference that can include nominal geometry, controller bias, slew and shared history; N is this run's actual unique mapper output, not an independent fresh FSM trajectory. Use explicit RR decomposition and exact same-prestate policy deltas. Native wheel signs are canonical times [-1,+1,-1,+1].",
+  "physics_or_learning_modified": false
+}

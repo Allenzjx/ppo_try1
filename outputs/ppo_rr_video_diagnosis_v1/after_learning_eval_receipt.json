@@ -1,0 +1,176 @@
+{
+  "schema": "after_learning_eval_receipt.v1",
+  "source_run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\validation\\20260914T0540369315910Z_g4b2c038887c4_85756e634ebf4aa2999aa1273ba6077b",
+  "evidence_scope": "Completed run manifest, first physical row, final physical/native row, original B0 first physical row; no full failure-window scan, no simulator/checkpoint load by this receipt author.",
+  "completed_at_utc": "2026-09-14T01:43:17.367471-04:00",
+  "lifecycle": "DIAGNOSTIC_FAILURE",
+  "evaluation": {
+    "from_phase": "P01",
+    "mode": "semantic_residual_eval",
+    "seed": 4001,
+    "maximum_policy_decisions": 3000,
+    "issued_policy_decisions": 110,
+    "episode_physics_ticks": 879,
+    "duration_s": 7.325,
+    "optimizer_updates": 0,
+    "physical_task_success": false,
+    "source_acceptance_error": "SemanticVideoError: episode did not meet common physical task"
+  },
+  "official_checkpoint_reload": {
+    "checkpoint_loaded_and_verified": true,
+    "official_load_semantic_checkpoint": true,
+    "saved_global_policy_decisions": 167424,
+    "observation_dimension": 372,
+    "observation_layout": "diagonal_transfer_state_v1",
+    "policy_version": "history_conditioned_heteroscedastic_log_v1",
+    "training_seed": 1001,
+    "video_seed": 4001,
+    "source": {
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000167424.pt",
+      "checkpoint_sha256": "9eb4bbdb2cb93afcc4fc04ab1295b92bde06167a72af9febe09804e9e5603a44",
+      "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000167424_manifest.json",
+      "manifest_sha256": "02a38c858a8d4b7a0c1642dfd377ae61b5ec74410bc6d301c12c9b3e54dd0337"
+    },
+    "parameter_hashes": {
+      "actor_parameter_sha256": "a95c080d71a9cf00b39c71823b7232e901935737c3a310023c0ee38c8b124835",
+      "critic_parameter_sha256": "b68c8debad2275a564964c41419ca1188b5578c014bf6567703135d141437b50",
+      "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+      "optimizer_state_sha256": "6c8e4354544013827c35c146bd0a09e0769a317b0962a5e652f19196394db9a1"
+    },
+    "provenance": "Recorded official live evaluation reload evidence; this receipt did not torchload or rehash checkpoint bytes."
+  },
+  "initial_pairing": {
+    "B0_run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\prior_B\\20260914T0422580971667Z_g4b2c038887c4_52ea704dca9c4cd19b12df41e9897e8d",
+    "B0_tick": 0,
+    "after_learning_tick": 0,
+    "components": {
+      "joint_position_canonical_deg": {
+        "component_count": 8,
+        "maximum_absolute_difference": 0,
+        "exact_equal": true
+      },
+      "joint_velocity_canonical_deg_s": {
+        "component_count": 8,
+        "maximum_absolute_difference": 0,
+        "exact_equal": true
+      },
+      "wheel_velocity_rad_s": {
+        "component_count": 4,
+        "maximum_absolute_difference": 0,
+        "exact_equal": true
+      },
+      "root_position_world_m": {
+        "component_count": 3,
+        "maximum_absolute_difference": 0,
+        "exact_equal": true
+      },
+      "root_orientation_wxyz": {
+        "component_count": 4,
+        "maximum_absolute_difference": 0,
+        "exact_equal": true
+      },
+      "root_linear_velocity_world_m_s": {
+        "component_count": 3,
+        "maximum_absolute_difference": 0,
+        "exact_equal": true
+      },
+      "root_angular_velocity_world_rad_s": {
+        "component_count": 3,
+        "maximum_absolute_difference": 0,
+        "exact_equal": true
+      },
+      "com_position_world_m": {
+        "component_count": 3,
+        "maximum_absolute_difference": 0,
+        "exact_equal": true
+      },
+      "com_velocity_world_m_s": {
+        "component_count": 3,
+        "maximum_absolute_difference": 0,
+        "exact_equal": true
+      }
+    },
+    "wheel_contact_pairs_exact_equal": {
+      "front_left_ankle": true,
+      "front_right_ankle": true,
+      "rear_left_ankle": true,
+      "rear_right_ankle": true
+    },
+    "B0_com_valid": true,
+    "after_learning_com_valid": true,
+    "native_pre_step_q_and_standing_offsets": "Not separately inspected in this bounded physical-row comparison."
+  },
+  "terminal": {
+    "episode_tick": 879,
+    "simulation_time_s": 7.325,
+    "phase": "P02",
+    "termination_reason": "SAFETY_ABORT",
+    "termination_source": "HARD_JOINT_LIMIT",
+    "reason": "hard joint limit: rear_right_knee",
+    "run_validity": "VALID",
+    "all_finite": true,
+    "RR": {
+      "rear_right_hip": {
+        "target_deg": -4.863527308191081,
+        "actual_deg": -6.384892986041787,
+        "actual_minus_target_deg": -1.5213656778507056,
+        "velocity_deg_s": 1.1763377608202028
+      },
+      "rear_right_knee": {
+        "target_deg": -6.358187706814865,
+        "actual_deg": -60.01679969282254,
+        "actual_minus_target_deg": -53.65861198600767,
+        "velocity_deg_s": -8.765336294907335
+      }
+    },
+    "body_collision_at_terminal": {
+      "detected": false,
+      "real_pair_active": false,
+      "persistent": false,
+      "geometry_penetration_m": 0,
+      "reason": "no exact base_link/obstacle contact"
+    },
+    "base_origin_height_world_m": 0.04982227832078934,
+    "com_height_world_m": 0.11609381829411457,
+    "RR_bearing": {
+      "bearing_force_n": 15.839682579040527,
+      "bearing_verified": true,
+      "load_fraction": 0.5106827536654691,
+      "load_fraction_valid": true,
+      "support": true,
+      "ground_contact": true,
+      "air": false
+    },
+    "FR": {
+      "I_initial_clearance_current": true,
+      "Q_qualified_lift_history": true,
+      "Q_qualified_event_tick": 26,
+      "C_front_edge_crossed_history": false,
+      "P_placed_history": false,
+      "air_current": true,
+      "clearance_m_current": -0.01611231995775217,
+      "front_distance_m_current": -0.14715069191623087,
+      "bearing_force_n": 0,
+      "bearing_verified": true,
+      "load_fraction": 0,
+      "load_fraction_valid": true,
+      "history_is_not_current_clearance_or_approach_readiness": true
+    }
+  },
+  "first_unfinished_task": {
+    "phase": "P02",
+    "purpose": "Lift FR with clearance and approach",
+    "completion_predicates": [
+      "lifted_FR",
+      "clear_FR",
+      "approach_FR"
+    ],
+    "interpretation": "FR qualified-lift history is true, but current FR clearance/approach task remains unfinished; no crossing or placement event. Safety abort is RR knee hard limit during P02, not a P09-stage failure."
+  },
+  "limits": [
+    "No whole-run body-collision absence claim from the terminal row alone.",
+    "Instantaneous joint drive torque was not measured; contact-force/bearing evidence is recorded, but no time-resolved force/torque causal decomposition was performed.",
+    "This full-P01-start evaluation failed; it is not full PPO success or evidence of improved stability."
+  ],
+  "mutations": "Only this derived JSON receipt is authored; no production/checkpoint modifications or experiments."
+}

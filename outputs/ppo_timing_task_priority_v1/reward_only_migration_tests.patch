@@ -1,0 +1,213 @@
+diff --git a/tests/unit/test_semantic_body_reward_migration.py b/tests/unit/test_semantic_body_reward_migration.py
+new file mode 100644
+--- /dev/null
++++ b/tests/unit/test_semantic_body_reward_migration.py
+@@ -0,0 +1,208 @@
++"""Exact body-only and composed timing/reward migration; no live Isaac artifacts."""
++from __future__ import annotations
++
++import copy
++import json
++from pathlib import Path
++import shutil
++from types import SimpleNamespace
++
++import pytest
++import yaml
++
++from wlr50_clean.ppo import semantic_migration as m, semantic_reward as reward
++from wlr50_clean.ppo.semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
++from test_semantic_role_observation_migration import NAMES, commit, git, source_metadata, write_json
++from test_semantic_timing_only_migration import bind
++
++CONFIG = "configs/ppo_fsm_reference_p09_stable_v2"
++
++
++def source_reward(candidate):
++    marker = 'ROLE_TRANSFER_VERSION = "diagonal_transfer_roles_v1"\n'
++    boundary = '@dataclass(frozen=True)\nclass SemanticRewardConfig:'
++    prefix, rest = candidate.split(marker)
++    _, rest = rest.split(boundary, 1)
++    original = prefix + marker + "\n\n" + boundary + rest
++    original = original.replace("    _validate_carry_body_allowance(v)\n", "")
++    original = original.replace('            body_transfer_fraction = transfer_fraction\n'
++        '            if v.get("carry_body_allowance") == CARRY_BODY_ALLOWANCE_MODE:\n'
++        '                body_transfer_fraction = max(body_transfer_fraction,\n'
++        '                    _current_functional_body_allowance(sample.current.task, v["capture_settle_window_s"]))\n', "")
++    return original.replace('*body_transfer_fraction\n', '*transfer_fraction\n')
++
++
++@pytest.fixture(scope="module")
++def prototype(tmp_path_factory):
++    root = tmp_path_factory.mktemp("body_reward_git")
++    paths = {f"{CONFIG}/{name}" for name in NAMES} | {m.SUPERVISOR, m.BODY_REWARD_CODE} | {
++        f"src/wlr50_clean/ppo/{name}.py" for name in ("semantic_migration", "semantic_training")}
++    for relative in paths:
++        dest = root / relative
++        dest.parent.mkdir(parents=True, exist_ok=True)
++        dest.write_bytes((m.PROJECT_ROOT / relative).read_bytes())
++    candidate = Path(reward.__file__).read_text(encoding="utf-8")
++    assert "CARRY_BODY_ALLOWANCE_MODE" in candidate
++    (root / m.BODY_REWARD_CODE).write_text(source_reward(candidate), encoding="utf-8")
++    spec = yaml.safe_load((root / m.TIMING_ONLY_SPEC).read_bytes())
++    spec["nominal"].pop("sequence_semantics", None)
++    (root / m.TIMING_ONLY_SPEC).write_text(yaml.safe_dump(spec, sort_keys=False), encoding="utf-8")
++    cfg = yaml.safe_load((root / m.BODY_REWARD_CONFIG).read_bytes())
++    for key in ("carry_body_allowance", "capture_settle_window_s"): cfg.pop(key, None)
++    (root / m.BODY_REWARD_CONFIG).write_text(yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8")
++    provider = root / m.SUPERVISOR
++    provider.write_text("LOCKED = 1\n\nclass NominalMotionProvider:\n    timing = 'old'\n\nclass TaskEvaluator:\n    pass\n", encoding="utf-8")
++    git(root, "init"); git(root, "config", "user.name", "Body reward fixture")
++    git(root, "config", "user.email", "body-reward@example.invalid")
++    old = {"source_git_commit": commit(root, "pre-timing"), "files": dict.fromkeys(sorted(paths)),
++        "semantic_version": "v3", "experiment_id": "fsm_reference_p09_stable_v2",
++        "frozen_A_files": {"frozen": "a" * 64}, "physics_hz": 120., "decision_hz": 15.,
++        "task_timeout_s": 200., "timeout_bootstrap": False, "rsl_rl_version": "5.0.1",
++        "local_runtime_versions": {"fixture": "not Isaac"}}
++    bind(root, old)
++    spec["nominal"]["sequence_semantics"] = m.TIMING_ONLY_MODE
++    (root / m.TIMING_ONLY_SPEC).write_text(yaml.safe_dump(spec, sort_keys=False), encoding="utf-8")
++    provider.write_bytes(provider.read_bytes().replace(b"timing = 'old'", b"timing = 'timed'"))
++    reference = copy.deepcopy(old); reference["source_git_commit"] = commit(root, "timing reference")
++    bind(root, reference)
++    cfg.update(carry_body_allowance=m.BODY_REWARD_MODE, capture_settle_window_s=.5)
++    (root / m.BODY_REWARD_CONFIG).write_text(yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8")
++    (root / m.BODY_REWARD_CODE).write_text(candidate, encoding="utf-8")
++    new = copy.deepcopy(reference); new["source_git_commit"] = commit(root, "body-only candidate")
++    bind(root, new)
++    return SimpleNamespace(root=root, old=old, reference=reference, new=new)
++
++
++def changed(old, new):
++    return sorted(p for p in set(old["files"]) | set(new["files"]) if old["files"].get(p) != new["files"].get(p))
++
++
++def reference_and_timing(f, *, combined):
++    f.reference_path = f.root / "reference_run.json"
++    write_json(f.reference_path, {"lifecycle": "DIAGNOSTIC_FAILURE", "completed_at_utc": "fixture_complete",
++        "runtime_contract": f.reference, "optimizer_updates": 0,
++        "result": {"mode": "semantic_residual_eval", "optimizer_updates": 0, "runtime_contract": f.reference}})
++    f.timing_path = None
++    if combined:
++        f.timing_path = f.root / "original_timing_plan.json"
++        r = m.build_migration_plan(f.checkpoint, f.reference, allowed_changed_files=changed(f.old, f.reference),
++            reason="Timing only first", timing_review={"reason": "Class and opt-in only"}, project_root=f.root)
++        write_json(f.timing_path, r)
++
++
++@pytest.fixture(params=[False, True], ids=["reward_only", "combined"])
++def f(prototype, tmp_path, request):
++    root = tmp_path / "case"; shutil.copytree(prototype.root, root)
++    old = copy.deepcopy(prototype.old if request.param else prototype.reference)
++    checkpoint = root / "source.pt"; checkpoint.write_bytes(b"opaque fixture, no torch load")
++    metadata = source_metadata(checkpoint, old, layout=ROLE_OBSERVATION_LAYOUT)
++    write_json(checkpoint.with_name("source_manifest.json"), metadata)
++    f = SimpleNamespace(root=root, checkpoint=checkpoint, metadata=metadata, old=old,
++        reference=copy.deepcopy(prototype.reference), new=copy.deepcopy(prototype.new), combined=request.param)
++    reference_and_timing(f, combined=request.param)
++    return f
++
++
++def plan(f):
++    return m.build_migration_plan(f.checkpoint, f.new, allowed_changed_files=changed(f.old, f.new),
++        reason="Only body allowance after the same-N frozen pair", body_reward_review={"reason": "Exact body consumer",
++            "nominal_reference_manifest": str(f.reference_path),
++            "timing_plan": None if f.timing_path is None else str(f.timing_path)}, project_root=f.root)
++
++
++def test_both_paths_preserve_contract_and_allow_failed_completed_reference(f):
++    immutable = f.checkpoint.read_bytes(), f.checkpoint.with_name("source_manifest.json").read_bytes()
++    r = plan(f); factor = r["body_reward_factor"]
++    assert factor["schema"] == m.BODY_REWARD_SCHEMA
++    assert factor["nominal_changed_since_checkpoint"] is f.combined
++    assert factor["nominal_changed_since_reference"] is False and factor["reward_changed"]
++    assert factor["reward_source_scope"]["outside_reviewed_body_consumption_unchanged"]
++    assert r["observation_dimension"] == 372 and r["action_dimension"] == 12
++    assert r["preserve_actor_critic_optimizer_normalizer_rng_and_budget"] and r["discard_old_rollout_storage"]
++    p = f.root / "body_plan.json"; write_json(p, r)
++    assert m.validate_migration_plan(f.checkpoint, f.new, p, project_root=f.root)["body_reward_factor"] == factor
++    if f.combined:
++        original = json.loads(f.timing_path.read_text())
++        rebuilt = m.validate_migration_plan(f.checkpoint, f.reference, f.timing_path, project_root=f.root)
++        assert {k:v for k,v in rebuilt.items() if k not in ("plan_path", "plan_sha256")} == original
++    assert immutable == (f.checkpoint.read_bytes(), f.checkpoint.with_name("source_manifest.json").read_bytes())
++    record = json.loads(f.reference_path.read_text()); record["completed_at_utc"] += "changed"
++    write_json(f.reference_path, record)
++    with pytest.raises(ValueError, match="exactly bound"):
++        m.validate_migration_plan(f.checkpoint, f.new, p, project_root=f.root)
++
++
++@pytest.mark.parametrize("case", ["nominal", "task", "action", "wrong_mode", "window", "extra_config",
++    "contact", "potential", "smoothness", "unfinished", "updated", "binding", "missing_ancestor"])
++def test_narrow_scope_rejects_counterexamples(f, case):
++    if case == "nominal":
++        p = f.root / m.SUPERVISOR; p.write_bytes(p.read_bytes().replace(b"'timed'", b"'other'"))
++    elif case in ("task", "wrong_mode", "window", "extra_config"):
++        p = f.root / (m.TIMING_ONLY_SPEC if case == "task" else m.BODY_REWARD_CONFIG)
++        cfg = yaml.safe_load(p.read_bytes())
++        if case == "task": cfg["rear_leg_order"] = "RL_FIRST"
++        elif case == "wrong_mode": cfg["carry_body_allowance"] = "other"
++        elif case == "window": cfg["capture_settle_window_s"] = .4
++        else: cfg["transfer_attitude_weight"] = .1
++        p.write_text(yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8")
++    elif case == "action":
++        p = f.root / CONFIG / "action_schema.json"; p.write_bytes(p.read_bytes() + b"\n")
++    elif case in ("contact", "potential", "smoothness"):
++        p = f.root / m.BODY_REWARD_CODE; text = p.read_text()
++        key = {"contact": "contact = sum(contact_terms)/4", "potential": 'potential = v["potential_weight"]*',
++               "smoothness": 'smooth = ((smooth_parts["actual_drive_first_difference"]+'}[case]
++        assert key in text; p.write_text(text.replace(key, "# unreviewed\n            " + key), encoding="utf-8")
++    elif case in ("unfinished", "updated", "binding"):
++        r = json.loads(f.reference_path.read_text())
++        if case == "unfinished": r["lifecycle"] = "RUNNING"
++        elif case == "updated": r["result"]["optimizer_updates"] = 1
++        else: r["result"]["runtime_contract"] = {}
++        write_json(f.reference_path, r)
++    else:
++        if f.combined: f.timing_path = None
++        else: f.timing_path = f.root / "not-an-ancestor.json"
++    bind(f.root, f.new)
++    with pytest.raises((ValueError, SyntaxError)):
++        plan(f)
++
++
++def test_real_cpu_combined_keeps_adam_then_updates_and_reloads(prototype, tmp_path, monkeypatch):
++    torch = pytest.importorskip("torch"); pytest.importorskip("rsl_rl")
++    from test_semantic_role_append_training import make
++    from wlr50_clean.ppo import semantic_training as training
++    threads = torch.get_num_threads(); torch.set_num_threads(1)
++    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
++    try:
++        root = tmp_path / "cpu"; shutil.copytree(prototype.root, root)
++        training.seed_training_rngs(1001); source, env = make(True)
++        result = training.train_semantic(source, env, run_dir=root / "source_run", output_root=root / "source_out",
++            stage="full_episode", decisions=128, contract=prototype.old, seed=1001)
++        checkpoint = Path(result["checkpoints"][-1]["checkpoint"]); saved = m.checkpoint_metadata(checkpoint)
++        assert source.alg.optimizer.state_dict()["state"]
++        f = SimpleNamespace(root=root, checkpoint=checkpoint, old=prototype.old, reference=prototype.reference, new=prototype.new)
++        reference_and_timing(f, combined=True); path = root / "body_plan.json"; write_json(path, plan(f))
++        real = m.validate_migration_plan
++        monkeypatch.setattr(m, "validate_migration_plan", lambda cp, contract, p, **kw: real(cp, contract, p, project_root=root))
++        verified = m.validate_migration_plan(checkpoint, prototype.new, path)
++        target, target_env = make(True)
++        loaded = training.load_semantic_checkpoint(target, checkpoint, contract=prototype.new, seed=1001, migration=verified)
++        for role in ("actor", "critic"):
++            assert training.parameter_hash(getattr(target.alg, role)) == saved[f"{role}_parameter_sha256"]
++        assert training.state_hash(target.alg.optimizer.state_dict()) == saved["optimizer_state_sha256"]
++        assert training.state_hash(training._normalizers(target)) == saved["normalizer_state_sha256"]
++        assert training.capture_training_rng_state(seed=1001) == saved["training_rng_state"]
++        assert training.optimizer_learning_rate(target) == saved["optimizer_learning_rate"]
++        assert target.alg.storage.step == 0 and target.alg.transition.actions is None and target_env.core.calls == 0
++        target.alg.storage.step = 1
++        with pytest.raises(RuntimeError, match="partial old rollout"):
++            training.load_semantic_checkpoint(target, checkpoint, contract=prototype.new, seed=1001, migration=verified)
++        target.alg.storage.step = 0
++        result = training.train_semantic(target, target_env, run_dir=root / "target_run", output_root=root / "target_out",
++            stage="full_episode", decisions=128, contract=prototype.new, seed=1001, resume_infos=loaded)
++        final, _ = make(True)
++        infos = training.load_semantic_checkpoint(final, Path(result["checkpoints"][-1]["checkpoint"]), contract=prototype.new, seed=1001)
++        assert (infos["global_policy_decisions"], infos["ppo_updates"], infos["optimizer_steps"]) == (256, 2, 40)
++        assert training.state_hash(final.alg.optimizer.state_dict()) == training.state_hash(target.alg.optimizer.state_dict())
++        assert infos["resume_ancestry"]["resume_migration"]["body_reward_factor"]["timing_ancestor"]
++    finally:
++        torch.set_num_threads(threads)

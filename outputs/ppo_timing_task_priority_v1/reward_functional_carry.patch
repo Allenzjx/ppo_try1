@@ -1,0 +1,142 @@
+diff --git a/src/wlr50_clean/ppo/semantic_reward.py b/src/wlr50_clean/ppo/semantic_reward.py
+index 86d0ce1..c390e12 100644
+--- a/src/wlr50_clean/ppo/semantic_reward.py
++++ b/src/wlr50_clean/ppo/semantic_reward.py
+@@ -19,6 +19,101 @@ FAMILIES = ("task_progress", "body_stability", "contact_motion_quality",
+ DEFAULT_REWARD_CONFIG = CONFIG_ROOT / "reward_config.yaml"
+ ROLE_TRANSFER_VERSION = "diagonal_transfer_roles_v1"
+ 
++CARRY_BODY_ALLOWANCE_MODE = "current_functional_carry_and_capture_settle_v1"
++
++
++def _validate_carry_body_allowance(values: Mapping[str, Any]) -> None:
++    mode = values.get("carry_body_allowance")
++    if mode is None:
++        if "capture_settle_window_s" in values:
++            raise ValueError("capture settle window requires carry body allowance mode")
++        return
++    if mode != CARRY_BODY_ALLOWANCE_MODE:
++        raise ValueError("unknown carry body allowance mode")
++    window = values.get("capture_settle_window_s")
++    if isinstance(window, bool) or not 0. < finite(window, "capture settle window") <= .5:
++        raise ValueError("capture settle window must be positive and at most 0.5 s")
++
++
++def _current_functional_body_allowance(task: Mapping[str, Any], window_s: float) -> float:
++    """Body-cost floor only; existing current evidence, never a task/bonus gate.
++
++    The v1 engineering limits mirror the current task: 15 mm non-RR airborne
++    clearance, near-front [-.40, .15] m or current platform XY, and two verified
++    other supports. No motion derivative, normalized load or phase label is a
++    substitute for earned qualification and current usable geometry/contact.
++    """
++    if task.get("transfer_roles_version") != ROLE_TRANSFER_VERSION:
++        return 0.
++    ev = task.get("physical_evaluator", {})
++    if (not isinstance(ev, Mapping) or ev.get("valid") is not True
++            or ev.get("physical_evidence_status") not in ("VERIFIED", "CONTACT_BEARING_UNVERIFIED")
++            or task.get("termination_reason") is not None
++            or ev.get("termination_reason") is not None):
++        return 0.
++    legs, history = ev.get("current_legs", {}), ev.get("history", {})
++    tick = ev.get("physics_tick")
++    if not isinstance(legs, Mapping) or not isinstance(history, Mapping) or type(tick) is not int:
++        return 0.
++
++    def measured(value):
++        try:
++            return None if isinstance(value, bool) else finite(value, "carry measured value")
++        except (TypeError, ValueError):
++            return None
++
++    def support(row):
++        if not isinstance(row, Mapping):
++            return False
++        force = measured(row.get("bearing_force_n"))
++        return (row.get("support") is True and row.get("bearing_verified") is True
++                and force is not None and force >= .2 and row.get("air") is False
++                and (row.get("ground_contact") is True or
++                     (row.get("top_contact") is True and row.get("top_surface_contact") is True)))
++
++    order = ("FR", "FL", "RR", "RL")
++    qualified, placed = history.get("active_lift", {}), history.get("placed", {})
++    crossed = history.get("front_edge_crossed", {})
++    placement_ticks = history.get("event_ticks", {}).get("placed", {})
++    allowance = 0.
++    for index, leg in enumerate(order):
++        row = legs.get(leg, {})
++        if (not isinstance(row, Mapping) or qualified.get(leg) is not True
++                or row.get("active_attempt") is not True
++                or row.get("ground_contact") is not False
++                or row.get("within_lateral_span") is not True):
++            continue
++        distance, clearance = measured(row.get("front_distance_m")), measured(row.get("clearance_m"))
++        in_region = row.get("within_top_xy") is True or (
++            distance is not None and -.40 <= distance <= .15)
++        if (distance is None or clearance is None or not in_region
++                or sum(support(legs.get(other, {})) for other in order if other != leg) < 2):
++            continue
++        top_contact = (row.get("top_contact") is True and row.get("top_surface_contact") is True
++                       and row.get("within_top_xy") is True and row.get("air") is False
++                       and row.get("top_geometry") is True and -.015 <= clearance <= .025)
++        if placed.get(leg) is True:
++            event_tick = placement_ticks.get(leg)
++            if (crossed.get(leg) is True and top_contact and support(row)
++                    and type(event_tick) is int and 0 <= event_tick <= tick):
++                # Real placement age, not reward-instance time or phase age.
++                allowance = max(allowance, max(0., 1.-(tick-event_tick)/(120.*window_s)))
++            continue
++        if placed.get(leg) is not False or not all(placed.get(p) is True for p in order[:index]):
++            continue
++        if leg == "RR":
++            usable = (row.get("current_lift_valid") is True
++                      and row.get("motion_continuation_allowed") is True
++                      and (row.get("air") is True or row.get("obstacle_pair_active") is True))
++        else:
++            usable = top_contact or (row.get("air") is True
++                and row.get("obstacle_pair_active") is False
++                and clearance is not None and clearance >= .015)
++        if usable:
++            allowance = 1.
++    return allowance
++
++
+ 
+ @dataclass(frozen=True)
+ class SemanticRewardConfig:
+@@ -65,6 +160,7 @@ def load_semantic_reward_config(path: Path | str = DEFAULT_REWARD_CONFIG) -> Sem
+             raise ValueError(f"{key} must be positive")
+     if type(v["control_regularization_enabled"]) is not bool:
+         raise ValueError("regularization switch must be boolean")
++    _validate_carry_body_allowance(v)
+     config = SemanticRewardConfig(v,selected)
+     if v["failure_cost"]*v["family_weights"]["task_progress"] <= config.failure_avoidance_bound:
+         raise ValueError("failure event must exceed avoidable future costs and potential")
+@@ -129,10 +225,14 @@ class SemanticRewardCalculator:
+                                  if v.get("physical_transfer_weighting") else float(transfer))
+             if role_motion_weighting:
+                 transfer_fraction = role_fraction
++            body_transfer_fraction = transfer_fraction
++            if v.get("carry_body_allowance") == CARRY_BODY_ALLOWANCE_MODE:
++                body_transfer_fraction = max(body_transfer_fraction,
++                    _current_functional_body_allowance(sample.current.task, v["capture_settle_window_s"]))
+             attitude = _square_cost(metrics["rpy"][:2], (v["attitude_scale_rad"],)*2)
+             rates = _square_cost(metrics["euler_roll_pitch_rate"], (v["euler_rate_scale_rad_s"],)*2)
+             acceleration = _square_cost(metrics["body_angular_acceleration"], (v["angular_acceleration_scale_rad_s2"],)*3)
+-            motion_weight = 1.-(1.-v["transfer_attitude_weight"])*transfer_fraction
++            motion_weight = 1.-(1.-v["transfer_attitude_weight"])*body_transfer_fraction
+             attitude *= motion_weight
+             if role_motion_weighting:
+                 # The versioned measured role window, not AIR/load or a phase
+diff --git a/configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml b/configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml
+--- a/configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml
++++ b/configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml
+@@ -4,6 +4,8 @@
+ contact_loss_semantics: recent_touchdown_without_active_command_change
+ smoothness_components: applied_only
+ physical_transfer_weighting: true
++carry_body_allowance: current_functional_carry_and_capture_settle_v1
++capture_settle_window_s: 0.5
+ # Only diagonal_transfer_roles_v1 tasks extend the existing attitude blend to
+ # Euler rates and angular acceleration. Reuse transfer_attitude_weight; no new
+ # family, coefficient, phase-label switch, or AIR/contact penalty is introduced.

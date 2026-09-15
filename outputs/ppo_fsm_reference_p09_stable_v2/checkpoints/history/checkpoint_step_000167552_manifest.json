@@ -1,22 +1,12 @@
 {
-  "actor_parameter_sha256": "d72212bf402beb50b65405809c729cfe90042111ee607a5202424795165b6707",
-  "checkpoint_path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000168192.pt",
-  "checkpoint_sha256": "cea6f089e32dc0384c5e1d08c661da40471e3b429ab813ffa29f13250713711a",
-  "critic_parameter_sha256": "1681c1bd252c13859ce1d660bb5af1835ed9353c5319699016b02210c12037ab",
+  "actor_parameter_sha256": "f9aa313a66725880c532fc461f2b7549427cfb306bfb81f8fa414f69dfb0925d",
+  "checkpoint_path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000167552.pt",
+  "checkpoint_sha256": "0f87e255a7b840671b2b9a6da0de0582349a2285e3635f011ea0105f43525beb",
+  "critic_parameter_sha256": "f760ba0f5b9dfe07ea40f134267257297b7a8e841d6d67caff50eaf1455a86da",
   "curriculum_epoch": {
     "changes_allowed_only_between_complete_rollout_updates": true,
-    "prefix_request": {
-      "entry_is_exact_historical_snapshot": false,
-      "fallback": "one_fresh_P01",
-      "maximum_prefix_decisions": 1800,
-      "maximum_takeover_decisions": 30,
-      "ordinary_phase_transitions_end_episode": false,
-      "target_phase": "P06",
-      "task_horizon_includes_prefix": true,
-      "teacher": "unmodified_SensorFsmController_reset_only",
-      "teacher_offset_decisions": 0
-    },
-    "reset_sampling": "natural_P01_A_teacher_prefix_then_semantic_suffix_N1.v2:P06:offset_0"
+    "prefix_request": null,
+    "reset_sampling": "P01_full_task_only_initial_version"
   },
   "execution_topology": {
     "action_dimension": 12,
@@ -24,31 +14,31 @@
     "observation_dimension": 372,
     "observation_layout": "diagonal_transfer_state_v1",
     "peer_reset": "none",
-    "phase_suffix_curriculum_implemented": true,
+    "phase_suffix_curriculum_implemented": false,
     "physical_state_saved": false,
-    "reset_sampling": "natural_P01_A_teacher_prefix_then_semantic_suffix_N1.v2:P06:offset_0",
+    "reset_sampling": "P01_full_task_only_initial_version",
     "rollout_decisions_per_env": 128,
     "schema": "wlr50_clean.semantic_execution_topology.v2",
     "task_timeout_bootstrap": false
   },
-  "global_policy_decisions": 168192,
-  "implemented_reset_sampling": "natural_P01_A_teacher_prefix_then_semantic_suffix_N1.v2:P06:offset_0",
+  "global_policy_decisions": 167552,
+  "implemented_reset_sampling": "P01_full_task_only_initial_version",
   "last_update": {
-    "actor_parameter_sha256_after": "d72212bf402beb50b65405809c729cfe90042111ee607a5202424795165b6707",
-    "actor_parameter_sha256_before": "21c313b440ea1a029f5d36327ae4a86d809106d79ecd044f87f30a2066d3631a",
+    "actor_parameter_sha256_after": "f9aa313a66725880c532fc461f2b7549427cfb306bfb81f8fa414f69dfb0925d",
+    "actor_parameter_sha256_before": "a95c080d71a9cf00b39c71823b7232e901935737c3a310023c0ee38c8b124835",
     "actor_parameters_changed": true,
-    "clip_fraction": 0.25625,
-    "entropy": -5.178575396537781,
+    "clip_fraction": 0.259375,
+    "entropy": -6.025132656097412,
     "finite_nonzero_gradient_observed": true,
-    "global_policy_decisions": 168192,
-    "gradient_norm_max": 1.4142135826447637,
-    "gradient_norm_min": 1.414213360721201,
-    "kl_mean": 0.019028133128461255,
+    "global_policy_decisions": 167552,
+    "gradient_norm_max": 1.414213511339996,
+    "gradient_norm_min": 1.2702600190550737,
+    "kl_mean": 0.018620659524466253,
     "optimizer_learning_rate": 1e-05,
     "optimizer_steps": 20,
-    "ppo_update": 1279,
-    "surrogate_loss": -0.03491247817873955,
-    "value_loss": 57.43433017730713
+    "ppo_update": 1274,
+    "surrogate_loss": -0.02828446701169014,
+    "value_loss": 0.18609775155782698
   },
   "new_mdp_initial_action_comparison": {
     "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\train\\20260910T1631133451770Z_gd4e46006b382_079314d0fcb0460bbd585da6715d4cb9\\new_mdp_initial_action_comparison.json",
@@ -1137,9 +1127,9 @@
     }
   },
   "optimizer_learning_rate": 1e-05,
-  "optimizer_state_sha256": "62538886d631e10ed9e21b1441d11ddf25930c87862419ecd1bec88518216b53",
-  "optimizer_steps": 25580,
-  "phase_suffix_curriculum_implemented": true,
+  "optimizer_state_sha256": "701ec7cac49eba74a33434acb9f0e3d118bf49ef8678bf99a5950a79659abda7",
+  "optimizer_steps": 25480,
+  "phase_suffix_curriculum_implemented": false,
   "physical_env_state_saved": false,
   "policy_contract": {
     "activation": "elu",
@@ -2007,19 +1997,426 @@
     "source_rng_restored_after_construction_and_comparison": true,
     "target_actor_parameter_sha256": "3ba295ffd216eb1c2e87f476559f36c8ff89e122979c607bcb41583597fba517"
   },
-  "ppo_updates": 1279,
+  "ppo_updates": 1274,
   "resume_ancestry": {
-    "resume_migration": null,
-    "source_actor_parameter_sha256": "0666d0aea76ea4afd4698fc096026619f9c6fd2655252ba51f60f17c0941185a",
-    "source_checkpoint": {
-      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000167936.pt",
-      "checkpoint_sha256": "1b460620a54d7ddd779ae1773b4679cc7582e437dff4019b5ce4fbcda53dcca3",
-      "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000167936_manifest.json",
-      "manifest_sha256": "5ca32d988ddceae4d95e4e63aaac4212352a059c5b9cea5984744bd5490fdf5b"
+    "resume_migration": {
+      "action_dimension": 12,
+      "allowed_changed_files": [
+        "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml",
+        "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml",
+        "src/wlr50_clean/ppo/semantic_migration.py",
+        "src/wlr50_clean/ppo/semantic_reward.py",
+        "src/wlr50_clean/ppo/semantic_supervisor.py",
+        "src/wlr50_clean/ppo/semantic_training.py"
+      ],
+      "body_reward_factor": {
+        "action_ranges_changed": false,
+        "configuration_bindings": {
+          "action_schema.json": {
+            "path": "configs/ppo_fsm_reference_p09_stable_v2/action_schema.json",
+            "source_sha256": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7",
+            "target_sha256": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7"
+          },
+          "execution_profile.yaml": {
+            "path": "configs/ppo_fsm_reference_p09_stable_v2/execution_profile.yaml",
+            "source_sha256": "1f9b08220c7d528a7e6e8fec0b76dee627009cf22b77df4924bb96115054d21f",
+            "target_sha256": "1f9b08220c7d528a7e6e8fec0b76dee627009cf22b77df4924bb96115054d21f"
+          },
+          "observation_schema.json": {
+            "path": "configs/ppo_fsm_reference_p09_stable_v2/observation_schema.json",
+            "source_sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b",
+            "target_sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b"
+          },
+          "quality_score.yaml": {
+            "path": "configs/ppo_fsm_reference_p09_stable_v2/quality_score.yaml",
+            "source_sha256": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6",
+            "target_sha256": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6"
+          },
+          "reward_config.yaml": {
+            "path": "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml",
+            "source_sha256": "e6c3b90a9a0fd6ae9be17ae5b9f6f2c6a0c379df1b3df389b6e852dde9f5eeea",
+            "target_sha256": "9e4f2380b0b4b63363bb626c872a43753c3121eee43b6c7387178186fcea31ca"
+          },
+          "stage_task_spec.yaml": {
+            "path": "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml",
+            "source_sha256": "7825de8fe5ae6892e209b3be2f70cc423c50583f2352a43de4bbb90bb568b240",
+            "target_sha256": "7825de8fe5ae6892e209b3be2f70cc423c50583f2352a43de4bbb90bb568b240"
+          }
+        },
+        "kernel_changed": false,
+        "nominal_changed_since_checkpoint": true,
+        "nominal_changed_since_reference": false,
+        "nominal_reference_commit": "4db24eabd129a20752b0ef263c24b5e72de7407b",
+        "nominal_reference_contract_sha256": "231b0de384375ddbf558b1a036ffc47f49bb2a7c1e1abb850d520430556d39f6",
+        "nominal_reference_manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\prior_B\\20260914T2310036230645Z_g4db24eabd129_332256dc4c39442d8d4f8b257a0df053\\run_manifest.json",
+        "nominal_reference_manifest_sha256": "02b7a9af09f2028d6302132a5ab33e97bf04434065ab8f9dde4aad7c22d9fbd2",
+        "normalizers": "preserve_verified_identity_RSL_state",
+        "observation_contract": {
+          "action_dimension": 12,
+          "num_envs": 1,
+          "observation_dimension": 372,
+          "observation_layout": "diagonal_transfer_state_v1",
+          "parameter_mapping": "identity_all_parameters_and_buffers",
+          "source_policy_contract": {
+            "activation": "elu",
+            "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+            "actor_hidden_dims": [
+              256,
+              256
+            ],
+            "base_observation_dimension": 324,
+            "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+            "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+            "deterministic_output": "conditional_mean",
+            "distribution_class": "HeteroscedasticGaussianDistribution",
+            "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+            "history_clip": 20.0,
+            "history_feature": "previous_raw_full12",
+            "history_slice": [
+              195,
+              207
+            ],
+            "history_state": "stored_observation_only; no_actor_mutable_history",
+            "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+            "observation_dimension": 372,
+            "observation_layout": "diagonal_transfer_state_v1",
+            "raw_action_dimension": 12,
+            "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+            "rho": 0.9,
+            "role_observation_fields": [
+              "valid",
+              "workspace_progress",
+              "preparation_progress",
+              "transfer_progress",
+              "motion_fraction",
+              "preparation_ready",
+              "transfer_ready",
+              "fixed_direction_world_x",
+              "fixed_direction_world_y",
+              "short_support_continuity_fraction",
+              "continued_response_fraction",
+              "window_evidence_fraction"
+            ],
+            "role_observation_group": "transfer_role_context_full48",
+            "role_observation_leg_order": [
+              "FL",
+              "FR",
+              "RL",
+              "RR"
+            ],
+            "role_observation_slice": [
+              324,
+              372
+            ],
+            "schema": "wlr50_clean.semantic_policy_distribution.v1",
+            "state_dependent_std": true,
+            "std_type": "log",
+            "version": "history_conditioned_heteroscedastic_log_v1"
+          },
+          "target_policy_contract": {
+            "activation": "elu",
+            "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+            "actor_hidden_dims": [
+              256,
+              256
+            ],
+            "base_observation_dimension": 324,
+            "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+            "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+            "deterministic_output": "conditional_mean",
+            "distribution_class": "HeteroscedasticGaussianDistribution",
+            "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+            "history_clip": 20.0,
+            "history_feature": "previous_raw_full12",
+            "history_slice": [
+              195,
+              207
+            ],
+            "history_state": "stored_observation_only; no_actor_mutable_history",
+            "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+            "observation_dimension": 372,
+            "observation_layout": "diagonal_transfer_state_v1",
+            "raw_action_dimension": 12,
+            "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+            "rho": 0.9,
+            "role_observation_fields": [
+              "valid",
+              "workspace_progress",
+              "preparation_progress",
+              "transfer_progress",
+              "motion_fraction",
+              "preparation_ready",
+              "transfer_ready",
+              "fixed_direction_world_x",
+              "fixed_direction_world_y",
+              "short_support_continuity_fraction",
+              "continued_response_fraction",
+              "window_evidence_fraction"
+            ],
+            "role_observation_group": "transfer_role_context_full48",
+            "role_observation_leg_order": [
+              "FL",
+              "FR",
+              "RL",
+              "RR"
+            ],
+            "role_observation_slice": [
+              324,
+              372
+            ],
+            "schema": "wlr50_clean.semantic_policy_distribution.v1",
+            "state_dependent_std": true,
+            "std_type": "log",
+            "version": "history_conditioned_heteroscedastic_log_v1"
+          }
+        },
+        "observation_semantics_changed": [],
+        "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+        "physical_actuators_changed": false,
+        "physical_mdp_changed": true,
+        "review_reason": "Exact two reward keys and isolated body-weight consumer; retain evaluated nominal provider, task acceptance, physical configuration, contact/smoothness/potential terms and HISTORY372",
+        "reward_changed": true,
+        "reward_source_scope": {
+          "added_helpers_sha256": "a18d2134549f4d48203799987a45a8cf3a237e910fca88d84bbdae30e4b3c722",
+          "outside_reviewed_body_consumption_unchanged": true,
+          "source_normalized_sha256": "101d7d83175d7225235590db87b0f0d45c91bba37df98b62a3691365bf10aaf9",
+          "target_normalized_sha256": "c18db2b98e3c06c6beff10980578a6043d21d0c80c56fb4926dcff7fa084406b"
+        },
+        "schema": "wlr50_clean.functional_carry_body_reward_same372_continuation.v1",
+        "scope_is_reviewer_assertion_not_semantic_equivalence_proof": true,
+        "task_acceptance_changed": false,
+        "timing_ancestor": {
+          "nominal_timing_factor": {
+            "action_ranges_changed": false,
+            "configuration_bindings": {
+              "action_schema.json": {
+                "path": "configs/ppo_fsm_reference_p09_stable_v2/action_schema.json",
+                "source_sha256": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7",
+                "target_sha256": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7"
+              },
+              "execution_profile.yaml": {
+                "path": "configs/ppo_fsm_reference_p09_stable_v2/execution_profile.yaml",
+                "source_sha256": "1f9b08220c7d528a7e6e8fec0b76dee627009cf22b77df4924bb96115054d21f",
+                "target_sha256": "1f9b08220c7d528a7e6e8fec0b76dee627009cf22b77df4924bb96115054d21f"
+              },
+              "observation_schema.json": {
+                "path": "configs/ppo_fsm_reference_p09_stable_v2/observation_schema.json",
+                "source_sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b",
+                "target_sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b"
+              },
+              "quality_score.yaml": {
+                "path": "configs/ppo_fsm_reference_p09_stable_v2/quality_score.yaml",
+                "source_sha256": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6",
+                "target_sha256": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6"
+              },
+              "reward_config.yaml": {
+                "path": "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml",
+                "source_sha256": "e6c3b90a9a0fd6ae9be17ae5b9f6f2c6a0c379df1b3df389b6e852dde9f5eeea",
+                "target_sha256": "e6c3b90a9a0fd6ae9be17ae5b9f6f2c6a0c379df1b3df389b6e852dde9f5eeea"
+              },
+              "stage_task_spec.yaml": {
+                "path": "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml",
+                "source_sha256": "e412c6800e5acf06b559a460b8f32a3290cc4b9fed222b88ce9cf73f314aa72a",
+                "target_sha256": "7825de8fe5ae6892e209b3be2f70cc423c50583f2352a43de4bbb90bb568b240"
+              }
+            },
+            "kernel_changed": false,
+            "nominal_control_changed": true,
+            "nominal_provider": {
+              "outside_class_bytes_identical": true,
+              "outside_class_sha256": "661de8d1c4e8febd3d03eb04a8ea3425f5728d21c314e491605597230a02a62b",
+              "source_class_sha256": "c1dd43f3a491eb12a350d33f8d43a5a45e1aec259f1bed3009b14512dc8f631f",
+              "target_class_sha256": "cad029b64dcb1073adfafb8ccf826cb4cf0b9e9af5e50fcbb21d284647859b53"
+            },
+            "normalizers": "preserve_verified_identity_RSL_state",
+            "observation_contract": {
+              "action_dimension": 12,
+              "num_envs": 1,
+              "observation_dimension": 372,
+              "observation_layout": "diagonal_transfer_state_v1",
+              "parameter_mapping": "identity_all_parameters_and_buffers",
+              "source_policy_contract": {
+                "activation": "elu",
+                "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+                "actor_hidden_dims": [
+                  256,
+                  256
+                ],
+                "base_observation_dimension": 324,
+                "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+                "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+                "deterministic_output": "conditional_mean",
+                "distribution_class": "HeteroscedasticGaussianDistribution",
+                "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+                "history_clip": 20.0,
+                "history_feature": "previous_raw_full12",
+                "history_slice": [
+                  195,
+                  207
+                ],
+                "history_state": "stored_observation_only; no_actor_mutable_history",
+                "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+                "observation_dimension": 372,
+                "observation_layout": "diagonal_transfer_state_v1",
+                "raw_action_dimension": 12,
+                "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+                "rho": 0.9,
+                "role_observation_fields": [
+                  "valid",
+                  "workspace_progress",
+                  "preparation_progress",
+                  "transfer_progress",
+                  "motion_fraction",
+                  "preparation_ready",
+                  "transfer_ready",
+                  "fixed_direction_world_x",
+                  "fixed_direction_world_y",
+                  "short_support_continuity_fraction",
+                  "continued_response_fraction",
+                  "window_evidence_fraction"
+                ],
+                "role_observation_group": "transfer_role_context_full48",
+                "role_observation_leg_order": [
+                  "FL",
+                  "FR",
+                  "RL",
+                  "RR"
+                ],
+                "role_observation_slice": [
+                  324,
+                  372
+                ],
+                "schema": "wlr50_clean.semantic_policy_distribution.v1",
+                "state_dependent_std": true,
+                "std_type": "log",
+                "version": "history_conditioned_heteroscedastic_log_v1"
+              },
+              "target_policy_contract": {
+                "activation": "elu",
+                "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+                "actor_hidden_dims": [
+                  256,
+                  256
+                ],
+                "base_observation_dimension": 324,
+                "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+                "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+                "deterministic_output": "conditional_mean",
+                "distribution_class": "HeteroscedasticGaussianDistribution",
+                "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+                "history_clip": 20.0,
+                "history_feature": "previous_raw_full12",
+                "history_slice": [
+                  195,
+                  207
+                ],
+                "history_state": "stored_observation_only; no_actor_mutable_history",
+                "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+                "observation_dimension": 372,
+                "observation_layout": "diagonal_transfer_state_v1",
+                "raw_action_dimension": 12,
+                "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+                "rho": 0.9,
+                "role_observation_fields": [
+                  "valid",
+                  "workspace_progress",
+                  "preparation_progress",
+                  "transfer_progress",
+                  "motion_fraction",
+                  "preparation_ready",
+                  "transfer_ready",
+                  "fixed_direction_world_x",
+                  "fixed_direction_world_y",
+                  "short_support_continuity_fraction",
+                  "continued_response_fraction",
+                  "window_evidence_fraction"
+                ],
+                "role_observation_group": "transfer_role_context_full48",
+                "role_observation_leg_order": [
+                  "FL",
+                  "FR",
+                  "RL",
+                  "RR"
+                ],
+                "role_observation_slice": [
+                  324,
+                  372
+                ],
+                "schema": "wlr50_clean.semantic_policy_distribution.v1",
+                "state_dependent_std": true,
+                "std_type": "log",
+                "version": "history_conditioned_heteroscedastic_log_v1"
+              }
+            },
+            "observation_semantics_changed": [],
+            "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+            "physical_actuators_changed": false,
+            "physical_mdp_changed": true,
+            "review_reason": "Timing-only first candidate: one nominal sequence opt-in and NominalMotionProvider class; reward, task acceptance, physical parameters and HISTORY372 are unchanged",
+            "reward_changed": false,
+            "schema": "wlr50_clean.nominal_timing_same372_continuation.v1",
+            "scope": "reviewed_nominal_timing_only_not_physical_MDP_or_trajectory_equivalence",
+            "scope_is_reviewer_assertion_not_semantic_equivalence_proof": true,
+            "sequence_semantics": "source_partial_order_physical_ready_v1",
+            "task_acceptance_changed": false
+          },
+          "plan_path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_timing_task_priority_v1\\checkpoint167424_timing_top_continuation_migration.json",
+          "plan_sha256": "53c898ee5490fcc125b8d68280348783c002267640f836cb5ad9bc619dc7de1b"
+        }
+      },
+      "changed_file_hashes": {
+        "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml": {
+          "after": "9e4f2380b0b4b63363bb626c872a43753c3121eee43b6c7387178186fcea31ca",
+          "before": "e6c3b90a9a0fd6ae9be17ae5b9f6f2c6a0c379df1b3df389b6e852dde9f5eeea"
+        },
+        "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml": {
+          "after": "7825de8fe5ae6892e209b3be2f70cc423c50583f2352a43de4bbb90bb568b240",
+          "before": "e412c6800e5acf06b559a460b8f32a3290cc4b9fed222b88ce9cf73f314aa72a"
+        },
+        "src/wlr50_clean/ppo/semantic_migration.py": {
+          "after": "26f0ac908e07a40fef03e7e9e943521c1e42ceefa9c9de00af37d46ca66e72d6",
+          "before": "d6fe4636e887bd690c7e93c9624c64a5213d186d47d67e8739754beacdc44caf"
+        },
+        "src/wlr50_clean/ppo/semantic_reward.py": {
+          "after": "c18db2b98e3c06c6beff10980578a6043d21d0c80c56fb4926dcff7fa084406b",
+          "before": "101d7d83175d7225235590db87b0f0d45c91bba37df98b62a3691365bf10aaf9"
+        },
+        "src/wlr50_clean/ppo/semantic_supervisor.py": {
+          "after": "a664a00e823b9276d641fff3013373bc93795f05dc0f64490ec0ac51e7156ec1",
+          "before": "4e4279d44debf95862c2b9e19e7774e3bbb1971d446ef967adb74064d8d6b680"
+        },
+        "src/wlr50_clean/ppo/semantic_training.py": {
+          "after": "915f7dc0ef36a6732eeefa860ca1adec3baaf5a20d00e570208421c0aa394e99",
+          "before": "6f6a5f08d829695df687bc1e0228953b536c070fc5d5a485e3feab2c4a4b40b8"
+        }
+      },
+      "discard_old_rollout_storage": true,
+      "geometric_factor": null,
+      "observation_dimension": 372,
+      "physics_resume": "fresh_legal_P01_reset",
+      "plan_path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_timing_task_priority_v1\\checkpoint167424_body_reward_migration.json",
+      "plan_sha256": "512d81b542afa93ecd7965c9084d1bf285076c523d8eae9c626642e7aaa793a4",
+      "preserve_actor_critic_optimizer_normalizer_rng_and_budget": true,
+      "reason": "Functional carry/capture-settle body allowance after a frozen same-N evaluation; preserve learned state and collect fresh rollouts",
+      "schema": "wlr50_clean.semantic_checkpoint_migration.v1",
+      "source_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000167424.pt",
+      "source_checkpoint_sha256": "9eb4bbdb2cb93afcc4fc04ab1295b92bde06167a72af9febe09804e9e5603a44",
+      "source_contract_sha256": "01a6375a672d690fe4f9eb21efb0c3adbcb3a92f6f14149b1372fa978f7b97dd",
+      "source_git_commit": "4b2c038887c4109c639eea720f9e60de2c6d8d93",
+      "source_manifest_sha256": "02a38c858a8d4b7a0c1642dfd377ae61b5ec74410bc6d301c12c9b3e54dd0337",
+      "target_contract_sha256": "1fb9167eef574b0cde1a69f06fbee974febb4bee218da4c8d68ebb3594ae6fa7",
+      "target_git_commit": "dbc492f25c0a3f9713b8477b9ef4341159625a41"
     },
-    "source_global_policy_decisions": 167936,
-    "source_optimizer_steps": 25540,
-    "source_ppo_updates": 1277,
+    "source_actor_parameter_sha256": "a95c080d71a9cf00b39c71823b7232e901935737c3a310023c0ee38c8b124835",
+    "source_checkpoint": {
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000167424.pt",
+      "checkpoint_sha256": "9eb4bbdb2cb93afcc4fc04ab1295b92bde06167a72af9febe09804e9e5603a44",
+      "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000167424_manifest.json",
+      "manifest_sha256": "02a38c858a8d4b7a0c1642dfd377ae61b5ec74410bc6d301c12c9b3e54dd0337"
+    },
+    "source_global_policy_decisions": 167424,
+    "source_optimizer_steps": 25460,
+    "source_ppo_updates": 1273,
     "source_runtime_contract": {
       "decision_hz": 15.0,
       "experiment_id": "fsm_reference_p09_stable_v2",
@@ -2051,8 +2448,8 @@
         "configs/ppo_fsm_reference_p09_stable_v2/execution_profile.yaml": "1f9b08220c7d528a7e6e8fec0b76dee627009cf22b77df4924bb96115054d21f",
         "configs/ppo_fsm_reference_p09_stable_v2/observation_schema.json": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b",
         "configs/ppo_fsm_reference_p09_stable_v2/quality_score.yaml": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6",
-        "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml": "9e4f2380b0b4b63363bb626c872a43753c3121eee43b6c7387178186fcea31ca",
-        "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml": "7825de8fe5ae6892e209b3be2f70cc423c50583f2352a43de4bbb90bb568b240",
+        "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml": "e6c3b90a9a0fd6ae9be17ae5b9f6f2c6a0c379df1b3df389b6e852dde9f5eeea",
+        "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml": "e412c6800e5acf06b559a460b8f32a3290cc4b9fed222b88ce9cf73f314aa72a",
         "configs/ppo_interface.yaml": "d93931fe02ca790278eb66013eedf57e3264d6bf9798584c621b818bdf65bfb8",
         "configs/ppo_interface_v2.yaml": "cf215d251bbefad3729f6f8bd43202fe0aba6be7a6050f83a5e45bc5681d12d8",
         "configs/ppo_observation_schema.json": "045e4d1bfae63508a250e407c2ecf01814833a377c6048621a612518510cd90b",
@@ -2191,7 +2588,7 @@
         "src/wlr50_clean/ppo/semantic_history_actor.py": "3a659255e19e1eede5d8e5ad62a6e6a378d16d3ece6dfa7bf139f6e4622150ec",
         "src/wlr50_clean/ppo/semantic_legacy_evaluation.py": "dbd1cb33118297eb62206d4d8cfffeffa2b6d9f0a25de6e44e15ce280ed34b99",
         "src/wlr50_clean/ppo/semantic_metrics.py": "d391d4f149c46c4778b5536c3af1388de6ec0c5e0a135098320249f2fb74b6fb",
-        "src/wlr50_clean/ppo/semantic_migration.py": "26f0ac908e07a40fef03e7e9e943521c1e42ceefa9c9de00af37d46ca66e72d6",
+        "src/wlr50_clean/ppo/semantic_migration.py": "d6fe4636e887bd690c7e93c9624c64a5213d186d47d67e8739754beacdc44caf",
         "src/wlr50_clean/ppo/semantic_nominal_geometry.py": "a60f0cc240d68f7b6f20ec44ead6d1a20ddd7a90abe4df1571d14305477db77a",
         "src/wlr50_clean/ppo/semantic_nominal_projection.py": "3c75ff06be900cc3eee7cb74bbcf826add2ed8faff557b4c2e6fd2533f5f1c9d",
         "src/wlr50_clean/ppo/semantic_observation.py": "a5c6e748c81f90e44d413ad6d959bccc259c876a6f5b83d18f6a8d8987bf304e",
@@ -2200,10 +2597,10 @@
         "src/wlr50_clean/ppo/semantic_prefix.py": "5b4ca691c655a017aa9c7807ca1fbb02285db0dab37790e363a147454e2bec0c",
         "src/wlr50_clean/ppo/semantic_residual_adapter.py": "a0971dab00d6f5cde13bd886322bffb7beab07c68f80a7fd860977b8bafe24b8",
         "src/wlr50_clean/ppo/semantic_return_profile.py": "5a57c4dab709552519a601ebfdfdde65c43513f2ea9c5878c561337efa530485",
-        "src/wlr50_clean/ppo/semantic_reward.py": "c18db2b98e3c06c6beff10980578a6043d21d0c80c56fb4926dcff7fa084406b",
-        "src/wlr50_clean/ppo/semantic_supervisor.py": "a664a00e823b9276d641fff3013373bc93795f05dc0f64490ec0ac51e7156ec1",
+        "src/wlr50_clean/ppo/semantic_reward.py": "101d7d83175d7225235590db87b0f0d45c91bba37df98b62a3691365bf10aaf9",
+        "src/wlr50_clean/ppo/semantic_supervisor.py": "4e4279d44debf95862c2b9e19e7774e3bbb1971d446ef967adb74064d8d6b680",
         "src/wlr50_clean/ppo/semantic_tracking_reference.py": "ad7b66c1da4d0726483e2d0e5e827dc021bc99316104e6936a1edb3782f26a73",
-        "src/wlr50_clean/ppo/semantic_training.py": "915f7dc0ef36a6732eeefa860ca1adec3baaf5a20d00e570208421c0aa394e99",
+        "src/wlr50_clean/ppo/semantic_training.py": "6f6a5f08d829695df687bc1e0228953b536c070fc5d5a485e3feab2c4a4b40b8",
         "src/wlr50_clean/ppo/semantic_transfer_roles.py": "4e06739456814a9742c44ecb7426cedadf1a0f6d1d1b974faf0c62db184eb874",
         "src/wlr50_clean/ppo/semantic_vector_backend.py": "ae0402c27520e81f45d3fb35713a03a2db47617e59ceb5f653e61f0c5e69e531",
         "src/wlr50_clean/ppo/semantic_vector_env.py": "0f88bf0e9778a1b5061b71a22fdb4413a93e8773d772272aaf8627c5e200a1c7",
@@ -2282,7 +2679,7 @@
       },
       "physics_hz": 120.0,
       "rsl_rl_version": "5.0.1",
-      "runtime_content_sha256": "34f2c9d249be66441f2f20ba8437492fb9a330db63008e668baabf665bfa53ec",
+      "runtime_content_sha256": "ecee8d3abba1981b95d462a70c9ea39deb3e949878caea9d6589c95cdc043458",
       "schema": "wlr50_clean.semantic_runtime_contract.v1",
       "selected_configuration": {
         "action_schema.json": {
@@ -2303,15 +2700,15 @@
         },
         "reward_config.yaml": {
           "path": "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml",
-          "sha256": "9e4f2380b0b4b63363bb626c872a43753c3121eee43b6c7387178186fcea31ca"
+          "sha256": "e6c3b90a9a0fd6ae9be17ae5b9f6f2c6a0c379df1b3df389b6e852dde9f5eeea"
         },
         "stage_task_spec.yaml": {
           "path": "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml",
-          "sha256": "7825de8fe5ae6892e209b3be2f70cc423c50583f2352a43de4bbb90bb568b240"
+          "sha256": "e412c6800e5acf06b559a460b8f32a3290cc4b9fed222b88ce9cf73f314aa72a"
         }
       },
       "semantic_version": "v3",
-      "source_git_commit": "dbc492f25c0a3f9713b8477b9ef4341159625a41",
+      "source_git_commit": "4b2c038887c4109c639eea720f9e60de2c6d8d93",
       "task_timeout_s": 200.0,
       "timeout_bootstrap": false,
       "training_budgets": {
@@ -2689,30 +3086,22 @@
       "smoke": 10000
     }
   },
-  "sampling": "natural_P01_A_teacher_prefix_then_semantic_suffix_N1.v2:P06:offset_0",
+  "sampling": "P01_full_task_only_initial_version",
   "save_load_round_trip": true,
   "schema": "wlr50_clean.semantic_checkpoint.v1",
   "seed": 1001,
   "semantic_version": "v3",
-  "source_run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\train\\20260914T2342209306682Z_gdbc492f25c0a_686f2c92ebb74ee0befbb8d111ab2d41",
+  "source_run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\train\\20260914T2332031251091Z_gdbc492f25c0a_5f07ea0fc12a4428b87ec5191c70d209",
   "source_stage_requested_decisions": {
     "full_episode": 73088,
     "phase_suffix": 68992,
     "smoke": 0
   },
-  "stage": "phase_suffix",
+  "stage": "full_episode",
   "stage_requested_decisions": {
-    "full_episode": 84352,
-    "phase_suffix": 73728,
+    "full_episode": 83968,
+    "phase_suffix": 73472,
     "smoke": 0
-  },
-  "stop_after_update": {
-    "reason": "Bound this continuation at the next complete verified PPO update after two P09 body-collision episodes, then prioritize the requested latest checkpoint-reloaded natural-P01 diagnostic video. Preserve all collected evidence; report requested versus actual decisions separately. No unsafe process termination or unfinished-rollout checkpoint.",
-    "request_path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\train\\20260914T2342209306682Z_gdbc492f25c0a_686f2c92ebb74ee0befbb8d111ab2d41\\stop_after_update.request.json",
-    "request_sha256": "e46cfa2c773e0d50b27064a0c8d12065256b64b720650308db6d8572bceeea5f",
-    "run_dir": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\train\\20260914T2342209306682Z_gdbc492f25c0a_686f2c92ebb74ee0befbb8d111ab2d41",
-    "schema": "wlr50_clean.semantic_stop_after_update.v1",
-    "source_git_commit": "dbc492f25c0a3f9713b8477b9ef4341159625a41"
   },
   "training_rng_state": {
     "numpy_random": {
@@ -3982,7 +4371,7 @@
     "seed": 1001,
     "torch_cpu": "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",
     "torch_cuda": [
-      "6QMAAAAAAACsMg4AAAAAAA=="
+      "6QMAAAAAAACIJA4AAAAAAA=="
     ],
     "torch_cuda_device_count": 1
   },

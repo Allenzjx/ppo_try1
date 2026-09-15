@@ -1,0 +1,578 @@
+{
+  "schema": "wlr50_clean.training_configuration_verified.v1",
+  "scope": {
+    "completed_run_only": true,
+    "active_rear_run_read": false,
+    "production_modified": false,
+    "checkpoint_tensor_loaded": false,
+    "new_hash_computed": false,
+    "evidence_note": "Existing completed JSON manifests/audit rows and current production source were read. Existing recorded digest equality is metadata comparison, not a new hash/tensor verification."
+  },
+  "completed_training": {
+    "actual_policy_decisions": 512,
+    "ppo_updates_this_run": 4,
+    "optimizer_steps_this_run": 80,
+    "implemented_sampling": "P01_full_task_only_initial_version",
+    "phase_counts": {
+      "P01": 4,
+      "P02": 219,
+      "P03": 19,
+      "P04": 43,
+      "P05": 139,
+      "P06": 88
+    },
+    "lifecycle": "SUCCEEDED",
+    "global_policy_decisions": 167936,
+    "global_ppo_updates": 1277,
+    "original_source_global_policy_decisions": 167424,
+    "original_source_ppo_updates": 1273
+  },
+  "sources": {
+    "training_manifest": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_fsm_reference_p09_stable_v2/train/20260914T2332031251091Z_gdbc492f25c0a_5f07ea0fc12a4428b87ec5191c70d209/training_manifest.json",
+    "checkpoint167936_manifest": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_fsm_reference_p09_stable_v2/checkpoints/history/checkpoint_step_000167936_manifest.json",
+    "source_checkpoint167424_manifest": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_fsm_reference_p09_stable_v2/checkpoints/history/checkpoint_step_000167424_manifest.json",
+    "credited_audit": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_fsm_reference_p09_stable_v2/train/20260914T2332031251091Z_gdbc492f25c0a_5f07ea0fc12a4428b87ec5191c70d209/residual_and_projection_audit.jsonl",
+    "optimizer_updates": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_fsm_reference_p09_stable_v2/train/20260914T2332031251091Z_gdbc492f25c0a_5f07ea0fc12a4428b87ec5191c70d209/optimizer_updates.jsonl",
+    "execution_profile": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/configs/ppo_fsm_reference_p09_stable_v2/execution_profile.yaml",
+    "action_schema": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/configs/ppo_fsm_reference_p09_stable_v2/action_schema.json",
+    "migration_plan": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_timing_task_priority_v1\\checkpoint167424_body_reward_migration.json",
+    "prior_actual_effect_receipt": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_timing_task_priority_v1/P01_credited_actual_control.json"
+  },
+  "model_and_clock": {
+    "observation_dimension": 372,
+    "action_dimension": 12,
+    "num_envs": 1,
+    "physics_hz": 120,
+    "policy_decision_hz": 15,
+    "observed_physics_ticks_per_decision": [
+      8
+    ],
+    "rollout_decisions_per_env": 128,
+    "rollout_shape": [
+      128,
+      1,
+      12
+    ],
+    "device": "cuda:0",
+    "seed": 1001,
+    "evidence": [
+      "checkpoint167936_manifest.execution_topology",
+      "checkpoint167936_manifest.runner_config",
+      "execution_profile.physics_hz/decision_hz",
+      "credited_audit.applied_audit.physics_ticks"
+    ]
+  },
+  "optimizer": {
+    "kind": "adam",
+    "constructor_default_learning_rate": 0.00003,
+    "source167424_effective_learning_rate": 0.00001,
+    "restored_effective_learning_rate": 0.00001,
+    "final167936_effective_learning_rate": 0.00001,
+    "actual_updates": [
+      {
+        "ppo_update": 1274,
+        "optimizer_learning_rate": 0.00001,
+        "optimizer_steps": 20
+      },
+      {
+        "ppo_update": 1275,
+        "optimizer_learning_rate": 0.00001,
+        "optimizer_steps": 20
+      },
+      {
+        "ppo_update": 1276,
+        "optimizer_learning_rate": 0.00001,
+        "optimizer_steps": 20
+      },
+      {
+        "ppo_update": 1277,
+        "optimizer_learning_rate": 0.00001,
+        "optimizer_steps": 20
+      }
+    ],
+    "learning_rate_schedule": "adaptive",
+    "target_kl": 0.01,
+    "epochs_per_update": 5,
+    "minibatches_per_epoch": 4,
+    "optimizer_steps_per_update": 20,
+    "total_optimizer_steps_this_run": 80,
+    "gamma": 0.9985,
+    "gae_lambda": 0.99,
+    "clip_ratio": 0.2,
+    "constructor_default_entropy_coefficient": 0.005,
+    "effective_entropy_coefficient_from_executed_formula": {
+      "formula": "0.005 + (0.001 - 0.005) * min(global_step / sum(STAGE_BUDGETS.values()), 1.0)",
+      "stage_budgets": {
+        "smoke": 10000,
+        "phase_suffix": 100000,
+        "full_episode": 100000
+      },
+      "denominator": 210000,
+      "update_coefficients": [
+        {
+          "ppo_update": 1274,
+          "global_policy_decisions": 167552,
+          "entropy_coefficient": 0.0018085333333333338
+        },
+        {
+          "ppo_update": 1275,
+          "global_policy_decisions": 167680,
+          "entropy_coefficient": 0.0018060952380952382
+        },
+        {
+          "ppo_update": 1276,
+          "global_policy_decisions": 167808,
+          "entropy_coefficient": 0.001803657142857143
+        },
+        {
+          "ppo_update": 1277,
+          "global_policy_decisions": 167936,
+          "entropy_coefficient": 0.0018012190476190473
+        }
+      ],
+      "final_at_167936": 0.0018012190476190473,
+      "scalar_recorded_directly_in_update_log": false,
+      "derivation": "Computed from current executed production formula and completed update global counters. optimizer_updates.entropy is measured distribution entropy/loss, not its coefficient.",
+      "evidence": [
+        {
+          "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_training.py",
+          "line": 37,
+          "meaning": "STAGE_BUDGETS sum210000"
+        },
+        {
+          "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_training.py",
+          "line": 1272,
+          "meaning": "Assign effective entropy coefficient immediately before each actual PPO update."
+        },
+        "optimizer_updates[*].global_policy_decisions"
+      ]
+    },
+    "value_loss_coefficient": 1,
+    "max_grad_norm": 1,
+    "evidence": [
+      "source_checkpoint167424_manifest.optimizer_learning_rate",
+      "checkpoint167936_manifest.optimizer_learning_rate",
+      "optimizer_updates[*].optimizer_learning_rate",
+      "training_manifest.runner_config.algorithm"
+    ],
+    "restoration_code": {
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/rl_library_wrapper.py",
+      "line": 1060,
+      "meaning": "After runner.load, synchronize restored Adam parameter-group LR into PPO.learning_rate; do not restart adaptive schedule at constructor 3e-5."
+    }
+  },
+  "action_authority": {
+    "canonical_order": [
+      "FL_hip",
+      "FL_knee",
+      "FR_hip",
+      "FR_knee",
+      "RL_hip",
+      "RL_knee",
+      "RR_hip",
+      "RR_knee",
+      "FL_wheel",
+      "FR_wheel",
+      "RL_wheel",
+      "RR_wheel"
+    ],
+    "raw_domain": "unbounded Gaussian latent; existing tanh before physical scaling",
+    "phase_caps_full12": {
+      "P01": [
+        18,
+        24,
+        18,
+        24,
+        12,
+        18,
+        12,
+        18,
+        0.6,
+        0.6,
+        0.6,
+        0.6
+      ],
+      "P02": [
+        18,
+        24,
+        18,
+        24,
+        12,
+        18,
+        12,
+        18,
+        0.6,
+        0.6,
+        0.6,
+        0.6
+      ],
+      "P03": [
+        18,
+        24,
+        18,
+        24,
+        12,
+        18,
+        12,
+        18,
+        1,
+        0.6,
+        1,
+        0.6
+      ],
+      "P04": [
+        18,
+        24,
+        18,
+        24,
+        12,
+        18,
+        12,
+        18,
+        1,
+        0.6,
+        1,
+        0.6
+      ],
+      "P05": [
+        18,
+        24,
+        18,
+        24,
+        12,
+        18,
+        12,
+        18,
+        1,
+        0.6,
+        1,
+        0.6
+      ],
+      "P06": [
+        32,
+        36,
+        24,
+        112,
+        24,
+        36,
+        24,
+        36,
+        1.2,
+        1.2,
+        1,
+        0.6
+      ],
+      "P07": [
+        32,
+        36,
+        24,
+        112,
+        24,
+        36,
+        24,
+        36,
+        1.2,
+        1.2,
+        1,
+        0.6
+      ],
+      "P08": [
+        32,
+        36,
+        24,
+        112,
+        24,
+        36,
+        24,
+        36,
+        1.2,
+        1.2,
+        1,
+        0.6
+      ],
+      "P09": [
+        32,
+        36,
+        24,
+        112,
+        24,
+        36,
+        24,
+        36,
+        1.2,
+        1.2,
+        1,
+        0.6
+      ],
+      "P10": [
+        32,
+        36,
+        24,
+        112,
+        24,
+        36,
+        24,
+        36,
+        1.2,
+        1.2,
+        1,
+        0.6
+      ],
+      "P11": [
+        32,
+        36,
+        24,
+        112,
+        24,
+        36,
+        24,
+        36,
+        1.2,
+        1.2,
+        1,
+        0.6
+      ],
+      "P12": [
+        32,
+        36,
+        24,
+        112,
+        24,
+        36,
+        24,
+        36,
+        1.2,
+        1.2,
+        1,
+        0.6
+      ],
+      "P13": [
+        32,
+        36,
+        24,
+        112,
+        24,
+        36,
+        24,
+        36,
+        1.2,
+        1.2,
+        1,
+        0.6
+      ]
+    },
+    "cap_units": "first eight deg, last four rad/s",
+    "all_phase_masks_full12": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "recording_percentage_hard_limit": false,
+    "configured_initial_fallback_caps": {
+      "servo_deg": 4,
+      "wheel_rad_s": 0.12,
+      "used_as_actual_phase_cap": false
+    },
+    "fallback_explanation": "Complete phase_caps_full12 overrides fallback engineering scales in build_semantic_projector; do not describe this run as 4deg/0.12rad/s residual caps.",
+    "residual_slew": {
+      "servo_deg_s": 60,
+      "servo_deg_per_120Hz_tick": 0.5,
+      "wheel_rad_s2": 1.8,
+      "wheel_rad_s_per_120Hz_tick": 0.015
+    },
+    "final_servo_target_slew_deg_per_120Hz_tick": 1.25,
+    "tracking_compensation_limit_deg": 10,
+    "tracking_feedback_interval_physics_ticks": 4,
+    "headroom": {
+      "mode": "same_tick_post_mapper_servo_margin_v1",
+      "servo_reserve_deg": 2,
+      "scope": "Policy residual only after current mapper/nominal geometry/controller; zero-policy baseline is not forcibly relocated into reserve."
+    },
+    "physical_hard_limits": {
+      "hip_deg": [
+        -135,
+        135
+      ],
+      "knee_deg": [
+        -60,
+        210
+      ],
+      "wheel_abs_rad_s": 2.0943951023931953
+    },
+    "cap_or_slew_saturation_rate": null,
+    "cap_or_slew_saturation_note": "No explicit projection saturation/rate-limit flags in this credited schema. Headroom endpoint clipping is separately measured in prior_actual_effect_receipt; do not infer exploration or physical q motion from configured caps.",
+    "evidence": [
+      "execution_profile.residual",
+      "credited_audit.applied_audit.actuator_target_effect_audit.tracking_reference_evidence",
+      {
+        "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_backend.py",
+        "line": 78,
+        "meaning": "Phase-specific cap override and monotone handoff validation."
+      },
+      {
+        "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/infrastructure/command_batch.py",
+        "line": 64,
+        "meaning": "Unchanged physical hard limits."
+      },
+      {
+        "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_headroom.py",
+        "line": 91,
+        "meaning": "Same-tick residual interval around actual baseline."
+      }
+    ]
+  },
+  "phase_and_return_semantics": {
+    "ordinary_phase_transition_sets_done": false,
+    "ordinary_transition_cuts_returns": false,
+    "gamma_application": "once per issued policy decision",
+    "actual_ordinary_phase_change_rows": [
+      {
+        "global_policy_decision": 167426,
+        "from": "P01",
+        "to": "P02",
+        "terminal": false,
+        "reason": null,
+        "terminal_bootstrap_allowed": true
+      },
+      {
+        "global_policy_decision": 167553,
+        "from": "P02",
+        "to": "P03",
+        "terminal": false,
+        "reason": null,
+        "terminal_bootstrap_allowed": true
+      },
+      {
+        "global_policy_decision": 167559,
+        "from": "P03",
+        "to": "P04",
+        "terminal": false,
+        "reason": null,
+        "terminal_bootstrap_allowed": true
+      },
+      {
+        "global_policy_decision": 167602,
+        "from": "P04",
+        "to": "P05",
+        "terminal": false,
+        "reason": null,
+        "terminal_bootstrap_allowed": true
+      },
+      {
+        "global_policy_decision": 167741,
+        "from": "P05",
+        "to": "P06",
+        "terminal": false,
+        "reason": null,
+        "terminal_bootstrap_allowed": true
+      },
+      {
+        "global_policy_decision": 167831,
+        "from": "P01",
+        "to": "P02",
+        "terminal": false,
+        "reason": null,
+        "terminal_bootstrap_allowed": true
+      },
+      {
+        "global_policy_decision": 167923,
+        "from": "P02",
+        "to": "P03",
+        "terminal": false,
+        "reason": null,
+        "terminal_bootstrap_allowed": true
+      }
+    ],
+    "actual_terminal_rows": [
+      {
+        "global_policy_decision": 167829,
+        "phase": "P06",
+        "reason": "BODY_COLLISION",
+        "bootstrap": false
+      }
+    ],
+    "terminal_rule": "done only when _terminal_reason is non-null: task success/failure/safety/finite task timeout. Ordinary phase change alone is not terminal.",
+    "task_timeout_s": 200,
+    "task_timeout_bootstrap": false,
+    "task_terminal_bootstrap": false,
+    "preserve_cross_phase_action_history": "retain feasible residual and slew toward next target; no global zero",
+    "evidence": [
+      {
+        "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_env.py",
+        "line": 196,
+        "meaning": "self.done = reason is not None."
+      },
+      {
+        "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_env.py",
+        "line": 167,
+        "meaning": "Previous raw/residual/applied/nominal histories update continuously every actual tick."
+      },
+      {
+        "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_env.py",
+        "line": 230,
+        "meaning": "Terminal bootstrap false only for reason; gamma once per policy action."
+      },
+      "credited_audit: seven actual phase-change decisions remained terminal=false and bootstrap=true"
+    ]
+  },
+  "migration_and_reload": {
+    "source_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000167424.pt",
+    "source_global_policy_decisions": 167424,
+    "transition": "same372 timing+body-reward reviewed migration; not from-zero network initialization",
+    "actor_critic_parameters": "preserve all compatible learned parameters before fresh PPO updates; actual learned parameters then updated",
+    "optimizer_state": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+    "optimizer_moments_reset_this_migration": false,
+    "normalizer": "preserve_verified_identity_RSL_state",
+    "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+    "source_target_normalizer_recorded_digest_equal": true,
+    "source_target_policy_contract_equal": true,
+    "history": {
+      "observation_dimension": 372,
+      "rho": 0.9,
+      "clip": 20,
+      "feature": "previous_raw_full12",
+      "slice": [
+        195,
+        207
+      ],
+      "history_state": "stored_observation_only; no_actor_mutable_history",
+      "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+      "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+      "learned_sigma_preserved": true,
+      "constructor_initial_std_not_a_noise_reset": 0.15
+    },
+    "old_rollout_discarded": true,
+    "storage_collection": "Fresh [128,1,12] raw-action and [128,1,372] actor/critic observation storage; no old partial rollout inherited.",
+    "rng": "verified training RNG restored; fresh physical reset then newly collected samples",
+    "physical_state_saved": false,
+    "physical_resume": "legal_reset_not_bitwise_continuation",
+    "last_checkpoint_save_load_round_trip": true,
+    "current_nominal_unchanged_since_B2_reference": true,
+    "evidence": [
+      "checkpoint167936_manifest.resume_ancestry.resume_migration",
+      "checkpoint167936_manifest.policy_contract",
+      "checkpoint167936_manifest.save_load_round_trip",
+      "checkpoint167936_manifest.resume_physics",
+      {
+        "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_training.py",
+        "line": 482,
+        "meaning": "Reject nonempty old rollout before checkpoint loading."
+      },
+      {
+        "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_training.py",
+        "line": 533,
+        "meaning": "Actual load-roundtrip and actor/critic/optimizer/normalizer preservation checks in completed training path; RNG restoration follows."
+      }
+    ],
+    "historical_metadata_warning": "The inherited new_mdp_warm_start object describes older migrations (for example source152192/reset moments); current continuation is governed by resume_ancestry source167424 and preserves full verified Adam state."
+  }
+}
