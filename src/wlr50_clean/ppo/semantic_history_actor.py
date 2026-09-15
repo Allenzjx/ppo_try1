@@ -120,3 +120,53 @@ class SemanticHistoryMLPModel(MLPModel):
 
     def as_onnx(self, verbose: bool = False) -> torch.nn.Module:
         raise NotImplementedError("history-conditioned ONNX export is not supported; base export drops history")
+
+
+class SemanticTemperedHistoryMLPModel(SemanticHistoryMLPModel):
+    """Same learned state and mean; versioned half-temperature innovation only.
+
+    The exact temperature is explicit constructor configuration, not a learned
+    parameter, mutable action history, sampler wrapper, or observation feature.
+    The official distribution cache supplies sampling AND every PPO likelihood.
+    """
+
+    def __init__(
+        self, obs: TensorDict, obs_groups: dict[str, list[str]], obs_set: str,
+        output_dim: int, hidden_dims: tuple[int, ...] | list[int] = (256, 256),
+        activation: str = "elu", obs_normalization: bool = False,
+        distribution_cfg: dict | None = None,
+        observation_layout: str | None = None,
+        exploration_std_temperature: float | None = None,
+    ) -> None:
+        if (type(exploration_std_temperature) is not float
+                or exploration_std_temperature != 0.5
+                or observation_layout != ROLE_OBSERVATION_LAYOUT):
+            raise ValueError("tempered history requires explicit temperature 0.5 and the 372 role layout")
+        super().__init__(obs, obs_groups, obs_set, output_dim, hidden_dims,
+                         activation, obs_normalization, distribution_cfg, observation_layout)
+
+    @property
+    def exploration_std_temperature(self) -> float:
+        return 0.5
+
+    def forward(
+        self, obs: TensorDict, masks: torch.Tensor | None = None,
+        hidden_state: HiddenState = None, stochastic_output: bool = False,
+    ) -> torch.Tensor:
+        if not stochastic_output:
+            # Keep frozen deterministic output, cache and RNG exactly on v1.
+            return super().forward(obs, masks, hidden_state, stochastic_output=False)
+        obs = unpad_trajectories(obs, masks) if masks is not None and not self.is_recurrent else obs
+        latent = self.get_latent(obs, masks, hidden_state)
+        if (getattr(self, "observation_layout", None) != ROLE_OBSERVATION_LAYOUT
+                or self.obs_dim != ROLE_OBSERVATION_DIM or latent.shape[-1] != ROLE_OBSERVATION_DIM):
+            raise ValueError("tempered history actor observation differs from its explicit 372 layout")
+        head = history_conditioned_head(
+            self.mlp(latent), latent[..., HISTORY_START:HISTORY_STOP], HISTORY_RHO)
+        effective_log_std = head[..., 1, :] + math.log(self.exploration_std_temperature)
+        effective_std = effective_log_std.exp()
+        if not bool((torch.isfinite(effective_std) & (effective_std > 0)).all()):
+            raise ValueError("effective conditional sigma must be finite and strictly positive without clipping")
+        effective_head = torch.stack((head[..., 0, :], effective_log_std), dim=-2)
+        self.distribution.update(effective_head)
+        return self.distribution.sample()

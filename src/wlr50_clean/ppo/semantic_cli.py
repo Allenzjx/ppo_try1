@@ -325,7 +325,15 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
             raise ValueError("checkpoint runtime changed; an explicit reviewed resume migration is required")
     else:
         args._migration_record = validate_migration_plan(args.checkpoint, contract, args.resume_migration)
-        if metadata.get("runner_config") != semantic_runner_config(seed=int(metadata["seed"]), device=args.device,
+        from .semantic_training import _validated_exploration_temperature_factor
+        temperature = _validated_exploration_temperature_factor(metadata, args._migration_record,
+            semantic_version=args.semantic_version, seed=int(metadata["seed"]), device=args.device,
+            observation_layout=args._observation_layout)
+        if temperature is not None:
+            if getattr(args, "num_envs", 1) != 1:
+                raise ValueError("exploration temperature migration requires N1")
+            args._policy_version = temperature["target_policy_contract"]["version"]
+        elif metadata.get("runner_config") != semantic_runner_config(seed=int(metadata["seed"]), device=args.device,
                 semantic_version=metadata.get("semantic_version", "v2"), policy_version=args._policy_version,
                 observation_layout=args._observation_layout):
             raise ValueError("migration cannot change PPO hyperparameters or normalization")
@@ -337,7 +345,8 @@ def _resolved_policy_version(args: argparse.Namespace) -> str:
     """Use preflight's verified choice; direct CPU entry calls verify metadata too."""
     resolved = getattr(args, "_policy_version", None)
     if resolved is not None:
-        policy_contract(resolved)  # Reject an unsupported internal selection.
+        policy_contract(resolved, observation_layout=_resolved_observation_layout(args))
+        # Reject an unsupported internal selection, including a missing role layout.
         return resolved
     if args.checkpoint is None:
         return LEGACY_POLICY

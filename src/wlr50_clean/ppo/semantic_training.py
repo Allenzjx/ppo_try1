@@ -108,9 +108,12 @@ def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_versio
                            observation_layout: str | None = None) -> dict[str, Any]:
     if semantic_version not in ("v2", "v3"):
         raise ValueError("unsupported semantic runtime version")
-    from .semantic_policy_distribution import HISTORY_POLICY
-    if policy_version == HISTORY_POLICY and semantic_version != "v3":
+    from .semantic_policy_distribution import HISTORY_POLICY, HISTORY_TEMPERED_POLICY
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    if policy_version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY) and semantic_version != "v3":
         raise ValueError("history-conditioned policy requires the v3 semantic runtime")
+    if policy_version == HISTORY_TEMPERED_POLICY and observation_layout != ROLE_OBSERVATION_LAYOUT:
+        raise ValueError("tempered history policy requires the explicit role372 observation layout")
     if return_profile is None:
         from .semantic_reward import load_semantic_reward_config
         path = Path(__file__).resolve().parents[3] / "configs" / f"ppo_semantic_{semantic_version}" / "reward_config.yaml"
@@ -442,6 +445,48 @@ def save_semantic_checkpoint(runner: Any, checkpoint: Path, infos: Mapping[str, 
     return checkpoint, sidecar
 
 
+def _validated_exploration_temperature_factor(metadata: Mapping[str, Any], record: Mapping[str, Any], *,
+        semantic_version: str, seed: int, device: str, observation_layout: str | None) -> Mapping[str, Any] | None:
+    """Validate only the reviewed same372 distribution boundary, after plan revalidation."""
+    factor = record.get("exploration_temperature_factor")
+    if factor is None:
+        return None
+    from .semantic_migration import source_num_envs
+    from .semantic_policy_distribution import HISTORY_POLICY, HISTORY_TEMPERED_POLICY, policy_version_from_metadata
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    exclusive = ("execution_factor", "instrumentation_observation_contract", "video_instrumentation_factor",
+        "nominal_timing_factor", "body_reward_factor", "height_recovery_factor")
+    if any(record.get(key) is not None for key in exclusive):
+        raise RuntimeError("exploration temperature migration cannot mix other migration factors")
+    if (not isinstance(factor, Mapping) or semantic_version != "v3"
+            or metadata.get("semantic_version") != "v3" or seed != metadata.get("seed")
+            or observation_layout != ROLE_OBSERVATION_LAYOUT or source_num_envs(metadata) != 1
+            or metadata.get("runner_config", {}).get("device") != device
+            or policy_version_from_metadata(metadata) != HISTORY_POLICY):
+        raise RuntimeError("exploration temperature migration requires the exact v3 role372 N1 source")
+    source_policy = policy_contract(HISTORY_POLICY, observation_layout=observation_layout)
+    target_policy = policy_contract(HISTORY_TEMPERED_POLICY, observation_layout=observation_layout)
+    observation = {"source_policy_contract": source_policy, "target_policy_contract": target_policy,
+        "observation_layout": observation_layout, "observation_dimension": 372, "action_dimension": 12,
+        "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"}
+    if (metadata.get("policy_contract") != source_policy
+            or factor.get("source_policy_contract") != source_policy
+            or factor.get("target_policy_contract") != target_policy
+            or factor.get("source_policy_version") != source_policy["version"]
+            or factor.get("target_policy_version") != target_policy["version"]
+            or factor.get("observation_contract") != observation):
+        raise RuntimeError("exploration temperature migration lacks exact source/target policy and observation contracts")
+    horizon = runner_return_profile(metadata["runner_config"], semantic_version="v3")["version"]
+    configs = {version: semantic_runner_config(seed=seed, device=device, semantic_version="v3",
+        policy_version=version, observation_layout=observation_layout, return_profile=horizon)
+        for version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY)}
+    if (metadata["runner_config"] != configs[HISTORY_POLICY]
+            or factor.get("source_runner_config") != configs[HISTORY_POLICY]
+            or factor.get("target_runner_config") != configs[HISTORY_TEMPERED_POLICY]):
+        raise RuntimeError("exploration temperature migration runner configuration differs from its exact contracts")
+    return factor
+
+
 def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping[str, Any], seed: int,
                              migration: Mapping[str, Any] | None = None,
                              warm_start: Mapping[str, Any] | None = None,
@@ -458,11 +503,26 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
     metadata = json.loads(sidecar.read_text(encoding="utf-8"))
     from .semantic_policy_distribution import policy_version_from_metadata
-    if policy_version_from_metadata(metadata) != runner._semantic_policy_version:
-        raise RuntimeError("checkpoint policy distribution differs from the constructed actor")
-    if runner.alg.storage.observations["policy"].shape[-1] in (324, 372):
-        if metadata.get("policy_contract") != _runner_policy_contract(runner):
-            raise RuntimeError("checkpoint observation layout differs; explicit append migration is required")
+    verified = None
+    if migration is not None and migration.get("exploration_temperature_factor") is not None:
+        from .semantic_migration import validate_migration_plan
+        verified = validate_migration_plan(checkpoint, contract, Path(migration["plan_path"]))
+        if verified != dict(migration):
+            raise RuntimeError("migration changed since pre-AppLauncher validation")
+    temperature = _validated_exploration_temperature_factor(metadata, verified or {},
+        semantic_version=runner._semantic_version, seed=seed, device=str(runner.device),
+        observation_layout=getattr(runner, "_semantic_observation_layout", None))
+    if temperature is not None:
+        if (runner._semantic_policy_version != temperature["target_policy_contract"]["version"]
+                or _runner_policy_contract(runner) != temperature["target_policy_contract"]
+                or runner._semantic_runner_config != temperature["target_runner_config"]):
+            raise RuntimeError("constructed tempered actor differs from the verified target configuration")
+    else:
+        if policy_version_from_metadata(metadata) != runner._semantic_policy_version:
+            raise RuntimeError("checkpoint policy distribution differs from the constructed actor")
+        if runner.alg.storage.observations["policy"].shape[-1] in (324, 372):
+            if metadata.get("policy_contract") != _runner_policy_contract(runner):
+                raise RuntimeError("checkpoint observation layout differs; explicit append migration is required")
     source_return = runner_return_profile(metadata["runner_config"],
                                          semantic_version=metadata.get("semantic_version", "v2"))
     if source_return != assert_semantic_return_consistency(runner, runner.env):
@@ -484,10 +544,11 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
     if target_count == 8 and tuple(runner.alg.storage.actions.shape) != (128,8,12):
         raise RuntimeError("N8 requires fresh128x8x12 raw-action storage")
     if migration is not None:
-        from .semantic_migration import validate_migration_plan
-        verified = validate_migration_plan(checkpoint, contract, Path(migration["plan_path"]))
-        if verified != dict(migration):
-            raise RuntimeError("migration changed since pre-AppLauncher validation")
+        if verified is None:
+            from .semantic_migration import validate_migration_plan
+            verified = validate_migration_plan(checkpoint, contract, Path(migration["plan_path"]))
+            if verified != dict(migration):
+                raise RuntimeError("migration changed since pre-AppLauncher validation")
         expected_contract = metadata["runtime_contract"]
         layout = getattr(runner, "_semantic_observation_layout", None)
         factor = verified.get("instrumentation_observation_contract")
@@ -495,9 +556,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         timing_factor = (verified.get("nominal_timing_factor") or {}).get("observation_contract")
         body_reward_factor = (verified.get("body_reward_factor") or {}).get("observation_contract")
         height_factor = (verified.get("height_recovery_factor") or {}).get("observation_contract")
-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, height_factor)) > 1:
-            raise RuntimeError("video, nominal timing, body reward and height migration receipts must be exclusive")
-        reviewed_factor = video_factor or timing_factor or body_reward_factor or height_factor
+        temperature_factor = None if temperature is None else temperature["observation_contract"]
+        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, height_factor, temperature_factor)) > 1:
+            raise RuntimeError("video, nominal timing, body reward, height and temperature migration receipts must be exclusive")
+        reviewed_factor = video_factor or timing_factor or body_reward_factor or height_factor or temperature_factor
         if reviewed_factor is not None:
             if factor is not None:
                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")
@@ -519,7 +581,7 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
                 or actual_contract["observation_dimension"] != verified["observation_dimension"]
                 or runner.alg.storage.step != 0 or runner.alg.transition.actions is not None):
             raise RuntimeError("migration requires verified-layout fresh storage with no old rollout")
-        if metadata.get("runner_config") != semantic_runner_config(seed=seed, device=str(runner.device),
+        if temperature is None and metadata.get("runner_config") != semantic_runner_config(seed=seed, device=str(runner.device),
                 semantic_version=metadata.get("semantic_version", "v2"),
                 policy_version=runner._semantic_policy_version, observation_layout=layout):
             raise RuntimeError("migration cannot change PPO hyperparameters or normalization")

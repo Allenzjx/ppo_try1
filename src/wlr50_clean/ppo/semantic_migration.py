@@ -64,6 +64,10 @@ HEIGHT_CODE_FILES = HEIGHT_NEW_FILES | {SUPERVISOR} | frozenset(
         "semantic_nominal_geometry", "semantic_backend", "semantic_video",
         "semantic_migration", "semantic_training"))
 HEIGHT_FILES = HEIGHT_CODE_FILES | {TIMING_ONLY_SPEC, HEIGHT_EXECUTION}
+EXPLORATION_TEMPERATURE_SCHEMA = "wlr50_clean.history372_innovation_temperature_continuation.v1"
+EXPLORATION_TEMPERATURE_FILES = frozenset(f"src/wlr50_clean/ppo/{name}.py" for name in (
+    "semantic_history_actor", "semantic_policy_distribution", "semantic_training",
+    "semantic_cli", "semantic_migration"))
 SAME372_AUTHORITY_RUNTIME_FILES = frozenset({
     "configs/ppo_semantic_v3/stage_task_spec.yaml",
     "configs/ppo_semantic_v3/execution_profile.yaml",
@@ -1709,6 +1713,149 @@ def _height_recovery_factor(metadata, old, new, delta, review, project_root):
     return result
 
 
+def _temperature_protected_scope(before, after, *, functions=(), classes=(), constants=()):
+    """Protect old control/learner code outside the explicit sampling boundary."""
+    import ast
+    def protected(text):
+        tree = ast.parse(text)
+        seen, retained = set(), []
+        for node in tree.body:
+            key = getattr(node, "name", None)
+            if (isinstance(node, ast.FunctionDef) and key in functions
+                    or isinstance(node, ast.ClassDef) and key in classes):
+                seen.add(key)
+                continue
+            if (isinstance(node, ast.Assign) and len(node.targets) == 1
+                    and isinstance(node.targets[0], ast.Name) and node.targets[0].id in constants):
+                seen.add(node.targets[0].id)
+                continue
+            retained.append(node)
+        tree.body = retained
+        return ast.dump(tree, include_attributes=False), seen
+    source, old_seen = protected(before)
+    target, new_seen = protected(after)
+    if source != target or not old_seen <= new_seen:
+        raise ValueError("temperature continuation changed code outside reviewed sampling regions")
+    def physical_calls(text):
+        calls = []
+        for node in ast.walk(ast.parse(text)):
+            if isinstance(node, ast.Call):
+                name = getattr(node.func, "attr", getattr(node.func, "id", ""))
+                if (name.startswith(("set_", "write_joint", "write_root", "apply_force"))
+                        or name in {"reset", "step", "step_physics", "simulate", "render", "write_data_to_sim", "apply_action"}):
+                    calls.append(ast.dump(node, include_attributes=False))
+        return sorted(calls)
+    if physical_calls(before) != physical_calls(after):
+        raise ValueError("temperature continuation cannot change physical or optimizer step calls")
+    return {"protected_ast_sha256": digest(source), "protected_ast_identical": True,
+            "reviewed_regions": sorted(new_seen)}
+
+
+def _build_exploration_temperature_plan(checkpoint, metadata, old, new, *,
+        allowed_changed_files, reason, review, project_root):
+    from .semantic_policy_distribution import (CONFIG_NAMES, HISTORY_POLICY,
+        HISTORY_TEMPERED_POLICY, policy_contract, policy_version_from_metadata, _same_json)
+    from .semantic_training import semantic_runner_config
+    from .semantic_return_profile import runner_return_profile
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    if (not isinstance(review, Mapping) or set(review) != {"reason", "reviewed_code_sha256"}
+            or not isinstance(review["reason"], str) or not review["reason"].strip()
+            or not isinstance(review["reviewed_code_sha256"], Mapping)
+            or not isinstance(reason, str) or not reason.strip()):
+        raise ValueError("temperature continuation requires an explicit exact-code review")
+    source_policy = policy_contract(HISTORY_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    target_policy = policy_contract(HISTORY_TEMPERED_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    if (policy_version_from_metadata(metadata) != HISTORY_POLICY
+            or not _same_json(metadata.get("policy_contract"), source_policy)
+            or metadata.get("semantic_version") != "v3" or source_num_envs(metadata) != 1
+            or any(c.get("semantic_version") != "v3" or c.get("experiment_id") != "fsm_reference_p09_stable_v2"
+                   for c in (old, new))):
+        raise ValueError("temperature continuation requires existing same-experiment N1 HISTORY372")
+    variable = {"files", "runtime_content_sha256", "source_git_commit"}
+    if ({k:v for k,v in old.items() if k not in variable}
+            != {k:v for k,v in new.items() if k not in variable}):
+        raise ValueError("temperature continuation cannot change runtime, physics, budgets or configuration bindings")
+    delta = sorted(p for p in set(old["files"]) | set(new["files"]) if old["files"].get(p) != new["files"].get(p))
+    declared = list(allowed_changed_files)
+    if (len(set(declared)) != len(declared) or sorted(declared) != delta
+            or set(old["files"]) != set(new["files"])
+            or not EXPLORATION_TEMPERATURE_FILES <= set(new["files"])
+            or not set(delta) <= EXPLORATION_TEMPERATURE_FILES):
+        raise ValueError("temperature continuation delta exceeds its exact five-file sampling boundary")
+    hashes = {p: new["files"][p] for p in sorted(EXPLORATION_TEMPERATURE_FILES)}
+    if dict(review["reviewed_code_sha256"]) != hashes:
+        raise ValueError("temperature review hashes do not bind the exact current code")
+    records = {}
+    for name in sorted(CONFIG_NAMES):
+        path = f"configs/ppo_fsm_reference_p09_stable_v2/{name}"
+        for c in (old, new):
+            selected = c.get("selected_configuration", {})
+            if set(selected) != CONFIG_NAMES or selected[name] != {"path": path, "sha256": c["files"].get(path)}:
+                raise ValueError("temperature selected configuration binding differs")
+        before = _version_bytes(project_root, old, path, prefer_worktree=True)
+        after = _version_bytes(project_root, new, path, prefer_worktree=True)
+        if before != after:
+            raise ValueError("temperature continuation cannot change any nominal/reward/action/observation/quality config bytes")
+        records[name] = {"path": path, "source_sha256": old["files"][path], "target_sha256": new["files"][path]}
+    scopes = {}
+    allowed = {
+        "semantic_history_actor": {"classes": ("SemanticTemperedHistoryMLPModel",)},
+        "semantic_policy_distribution": {
+            "functions": ("policy_contract", "configure_policy_distribution", "supported_heteroscedastic_contract_version", "policy_version_from_metadata"),
+            "constants": ("HISTORY_TEMPERED_POLICY", "HISTORY_TEMPERED_ACTOR_CLASS")},
+        "semantic_training": {"functions": ("semantic_runner_config", "load_semantic_checkpoint", "_validated_exploration_temperature_factor")},
+        "semantic_cli": {"functions": ("_preflight_checkpoint", "_resolved_policy_version")},
+    }
+    for name, options in allowed.items():
+        path = f"src/wlr50_clean/ppo/{name}.py"
+        before = _version_bytes(project_root, old, path, prefer_worktree=True).decode("utf-8")
+        after = _version_bytes(project_root, new, path, prefer_worktree=True).decode("utf-8")
+        scopes[path] = _temperature_protected_scope(before, after, **options)
+    _version_bytes(project_root, new, "src/wlr50_clean/ppo/semantic_migration.py", prefer_worktree=True)
+    horizon = runner_return_profile(metadata["runner_config"], semantic_version="v3")
+    options = {"seed": metadata["seed"], "device": metadata["runner_config"]["device"],
+        "semantic_version": "v3", "return_profile": horizon["version"], "observation_layout": ROLE_OBSERVATION_LAYOUT}
+    source_config = semantic_runner_config(policy_version=HISTORY_POLICY, **options)
+    target_config = semantic_runner_config(policy_version=HISTORY_TEMPERED_POLICY, **options)
+    if not _same_json(metadata["runner_config"], source_config):
+        raise ValueError("temperature source runner configuration is not canonical")
+    # The actor selector/explicit innovation scale are the only configuration changes.
+    source_rest = json.loads(json.dumps(source_config))
+    target_rest = json.loads(json.dumps(target_config))
+    source_rest["actor"].pop("class_name")
+    target_rest["actor"].pop("class_name")
+    if target_rest["actor"].pop("exploration_std_temperature", None) != 0.5 or source_rest != target_rest:
+        raise ValueError("temperature continuation may change only actor selection and its fixed0.5 innovation scale")
+    observation = {"source_policy_contract": source_policy, "target_policy_contract": target_policy,
+        "observation_layout": ROLE_OBSERVATION_LAYOUT, "observation_dimension": 372,
+        "action_dimension": 12, "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"}
+    factor = {"schema": EXPLORATION_TEMPERATURE_SCHEMA, "review_reason": review["reason"].strip(),
+        "reviewed_code_sha256": hashes, "configuration_bindings": records, "code_scope": scopes,
+        "source_policy_version": HISTORY_POLICY, "target_policy_version": HISTORY_TEMPERED_POLICY,
+        "source_policy_contract": source_policy, "target_policy_contract": target_policy,
+        "source_runner_config": source_config, "target_runner_config": target_config,
+        "source_exploration_std_temperature": 1.0, "target_exploration_std_temperature": 0.5,
+        "kernel_changed": True, "physical_mdp_changed": False, "nominal_control_changed": False,
+        "reward_changed": False, "task_acceptance_changed": False, "action_ranges_changed": False,
+        "observation_semantics_changed": [], "observation_contract": observation,
+        "deterministic_same_weights_same_observation": "exact_original_conditional_mean_path",
+        "stochastic_likelihood": "same_effective_std_for_sampling_old_params_logprob_entropy_KL_and_update",
+        "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+        "normalizers": "preserve_verified_identity_RSL_state", "migration_added_updates": 0,
+        "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True}
+    sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
+    return {"schema": SCHEMA, "reason": reason.strip(), "source_checkpoint": str(checkpoint),
+        "source_checkpoint_sha256": file_sha(checkpoint), "source_manifest_sha256": file_sha(sidecar),
+        "source_contract_sha256": digest(old), "target_contract_sha256": digest(new),
+        "source_git_commit": old["source_git_commit"], "target_git_commit": new["source_git_commit"],
+        "allowed_changed_files": delta,
+        "changed_file_hashes": {p: {"before": old["files"][p], "after": new["files"][p]} for p in delta},
+        "geometric_factor": None, "observation_dimension": 372, "action_dimension": 12,
+        "preserve_actor_critic_optimizer_normalizer_rng_and_budget": True,
+        "discard_old_rollout_storage": True, "physics_resume": "fresh_legal_P01_reset",
+        "exploration_temperature_factor": factor}
+
+
 def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
                          allowed_changed_files: Sequence[str], reason: str,
                          prior_evidence: Mapping[str, Any] | None = None,
@@ -1719,11 +1866,19 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                          timing_review: Mapping[str, Any] | None = None,
                          body_reward_review: Mapping[str, Any] | None = None,
                          height_recovery_review: Mapping[str, Any] | None = None,
+                         exploration_temperature_review: Mapping[str, Any] | None = None,
                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Build a reviewed plan after committing the new runtime; does not write."""
     checkpoint = Path(checkpoint).resolve(strict=True)
     metadata = checkpoint_metadata(checkpoint)
     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
+    if exploration_temperature_review is not None:
+        if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
+                execution_evidence, video_review, timing_review, body_reward_review, height_recovery_review)):
+            raise ValueError("temperature continuation cannot mix any other migration factor")
+        return _build_exploration_temperature_plan(checkpoint, metadata, old, new,
+            allowed_changed_files=allowed_changed_files, reason=reason,
+            review=exploration_temperature_review, project_root=Path(project_root))
     variable = {"files", "runtime_content_sha256", "source_git_commit"}
     if body_reward_review is not None and timing_review is not None:
         raise ValueError("body reward uses a verified timing ancestor, not a mixed top-level timing factor")
@@ -1857,7 +2012,10 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                                         "timing_plan": (supplied["body_reward_factor"].get("timing_ancestor") or {}).get("plan_path")},
                                     height_recovery_review=None if "height_recovery_factor" not in supplied else {
                                         "reason": supplied["height_recovery_factor"]["review_reason"],
-                                        "reviewed_code_sha256": supplied["height_recovery_factor"]["reviewed_code_sha256"]})
+                                        "reviewed_code_sha256": supplied["height_recovery_factor"]["reviewed_code_sha256"]},
+                                    exploration_temperature_review=None if "exploration_temperature_factor" not in supplied else {
+                                        "reason": supplied["exploration_temperature_factor"]["review_reason"],
+                                        "reviewed_code_sha256": supplied["exploration_temperature_factor"]["reviewed_code_sha256"]})
     if supplied != expected:
         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}
