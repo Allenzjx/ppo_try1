@@ -81,10 +81,11 @@ def prototype(tmp_path_factory):
 def f(prototype, tmp_path):
     root = tmp_path / "case"
     shutil.copytree(prototype.root, root)
-    checkpoint = root / "source.pt"
+    checkpoint = root / "outputs/ppo_fsm_reference_p09_stable_v2/checkpoints/history/source.pt"
+    checkpoint.parent.mkdir(parents=True)
     checkpoint.write_bytes(b"opaque fixture, not torch loaded")
     metadata = source_metadata(checkpoint, prototype.old, layout=ROLE_OBSERVATION_LAYOUT)
-    sidecar = root / "source_manifest.json"
+    sidecar = checkpoint.with_name("source_manifest.json")
     write_json(sidecar, metadata)
     return SimpleNamespace(root=root, old=copy.deepcopy(prototype.old), new=copy.deepcopy(prototype.new),
         checkpoint=checkpoint, sidecar=sidecar, metadata=metadata)

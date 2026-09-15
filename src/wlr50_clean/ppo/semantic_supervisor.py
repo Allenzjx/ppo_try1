@@ -1417,6 +1417,26 @@ class NominalMotionProvider:
         if self._sequence_mode and (not self._reference_nominal
                 or nominal.get("continuous_channel_inheritance") is not True):
             raise ValueError("physical source order requires continuous source-derived nominal")
+        self._p09_late_source = None
+        if self._sequence_mode and self.spec.get("p09_lift_semantics") == "functional_lift_edge_v2":
+            phase = contract.phase("P09")
+            groups = [g for g in phase.atomic_groups if g.source_full12_atomic]
+            if len(groups) != 1:
+                raise ValueError("P09 late reconfiguration requires one authored full12 atomic group")
+            group = groups[0]
+            index = next(i for i, w in enumerate(phase.waypoints)
+                         if math.isclose(w.time_s, group.time_s, rel_tol=0., abs_tol=1e-9))
+            waypoint, before = phase.waypoints[index], phase.waypoints[index-1]
+            changed = {"front_left_hip", "front_left_knee", "rear_left_hip",
+                       "rear_left_knee", "front_left_ankle"}
+            if (index == 0 or set(waypoint.changed_channels) != changed
+                    or set(group.required_runtime_channels) != set(SERVO_ORDER+WHEEL_ORDER)
+                    or set(before.atomic_channels) != set(WHEEL_ORDER)
+                    or before.full12[8:] != (0.,)*4
+                    or not any(g.time_s == before.time_s and set(g.channels) == set(WHEEL_ORDER)
+                               for g in phase.atomic_groups)):
+                raise ValueError("P09 late reconfiguration must follow the authored four-wheel stop")
+            self._p09_late_source = (before.time_s, group.time_s)
         self._reference_fsm_spec = None
         self.normal_drive_bias_full12 = ZERO12
         if self._reference_nominal:
@@ -1699,6 +1719,17 @@ class NominalMotionProvider:
                             rr.get("load_fraction", 1.) <= self.spec["support"]["unloaded_leg_maximum_load_fraction"])
                 ready = enough_support and (rr_continuing or (ended and rl_response and unloaded))
                 reason = "RL_source_assist_response_and_RR_measured_unload_or_lift"
+        elif layer["stage"] == "P09" and self._p09_late_source is not None:
+            group_tick = layer["motion"]._scaled_source_tick(self._p09_late_source[1])
+            if layer["ticks"] == group_tick:
+                ready = self._rr_late_reconfiguration_ready(task)
+                reason = "current_RR_over_top_before_late_reconfiguration"
+                diag.update(late_group_source_tick=group_tick,
+                    RR_late_front_distance_m=rr.get("front_distance_m"),
+                    RR_late_clearance_m=rr.get("clearance_m"),
+                    RR_late_within_top_xy=rr.get("within_top_xy"))
+                if ready:
+                    diag["late_group_start_tick"] = tick
         diag.update(support_count=support_count, RR_other_support_count=other_support_count, FL_space_measured=fl_space,
                     FL_body_radial_contraction_m=contraction, RR_current_continuation=rr_continuing)
         if not ready:
@@ -1708,6 +1739,57 @@ class NominalMotionProvider:
             layer["start_q"] = q
             diag["actual_start_tick"] = tick
         return ready
+
+    def _rr_verified_bearing(self, row: Any) -> bool:
+        if not isinstance(row, Mapping):
+            return False
+        try:
+            force = _number(row.get("bearing_force_n"), "RR continuation bearing")
+        except (SemanticObservationError, TypeError):
+            return False
+        return (row.get("support") is True and row.get("bearing_verified") is True
+                and row.get("air") is False and force >= self.spec["support"]["force_noise_floor_n"]
+                and (row.get("ground_contact") is True or row.get("top_surface_contact") is True))
+
+    def _rr_late_reconfiguration_ready(self, task: Mapping[str, Any]) -> bool:
+        """Current safe drop region, not capture/history-pose or initial-lift height.
+
+        AIR above the platform may be lowered by this very atomic group. TOP
+        uses the existing contact gap tolerance; a front-corner touch alone is
+        not an over-platform entry. No task event or support is manufactured.
+        """
+        ev = task.get("physical_evaluator", {})
+        legs = ev.get("current_legs", {})
+        rr = legs.get("RR", {})
+        try:
+            distance = _number(rr.get("front_distance_m"), "RR late front distance")
+            clearance = _number(rr.get("clearance_m"), "RR late clearance")
+        except (SemanticObservationError, TypeError):
+            return False
+        geo = self.spec["geometry"]
+        legal_gap = ((rr.get("air") is True and clearance >= 0.) or
+            (rr.get("contact_surface") == "TOP" and rr.get("top_surface_contact") is True
+             and rr.get("top_geometry") is True and rr.get("obstacle_pair_active") is True
+             and self._rr_verified_bearing(rr)
+             and geo["top_gap_min_m"] <= clearance <= geo["top_gap_max_m"]))
+        return bool(ev.get("valid") is True and task.get("termination_reason") is None
+            and ev.get("termination_reason") is None
+            and ev.get("physical_evidence_status") in ("VERIFIED", "CONTACT_BEARING_UNVERIFIED")
+            and rr.get("current_lift_valid") is True and rr.get("motion_continuation_allowed") is True
+            and rr.get("ground_contact") is False and rr.get("within_lateral_span") is True
+            and rr.get("within_top_xy") is True and distance >= 0. and legal_gap
+            and sum(self._rr_verified_bearing(legs.get(leg, {})) for leg in LEG_ORDER if leg != "RR")
+                >= self.spec["support"]["minimum_other_supports"])
+
+    def _rr_waiting_late_group(self, layer: Mapping[str, Any]) -> bool:
+        """Only this pending group relinquishes wheel ownership, not fresh stops."""
+        if self._p09_late_source is None or layer["stage"] != "P09" or layer.get("sample") is None:
+            return False
+        stop, group = (layer["motion"]._scaled_source_tick(t) for t in self._p09_late_source)
+        return bool(layer["ticks"] == group and layer["sample"].tick_index > stop
+            and layer.get("advanced_this_tick") is False
+            and layer.get("sequence_diagnostic", {}).get("wait_reason")
+                == "current_RR_over_top_before_late_reconfiguration")
 
     def _rr_top_continuation_allowed(self, task: Mapping[str, Any]) -> bool:
         """Existing wheel suggestion may create crossing after a real TOP contact.
@@ -1722,7 +1804,8 @@ class NominalMotionProvider:
                 or ev.get("valid") is not True or ev.get("termination_reason") is not None
                 or ev.get("physical_evidence_status") not in ("VERIFIED", "CONTACT_BEARING_UNVERIFIED")
                 or not any(layer["stage"] == "P09" and layer.get("sample") is not None
-                           and layer["sample"].endpoint_issued for layer in self._continuous_layers)):
+                           and (layer["sample"].endpoint_issued or self._rr_waiting_late_group(layer))
+                           for layer in self._continuous_layers)):
             return False
         legs, history = ev.get("current_legs", {}), ev.get("history", {})
         if not isinstance(legs, Mapping) or not isinstance(history, Mapping):
@@ -1730,16 +1813,7 @@ class NominalMotionProvider:
         rr = legs.get("RR", {})
         geo, support = self.spec["geometry"], self.spec["support"]
 
-        def bearing(row):
-            if not isinstance(row, Mapping):
-                return False
-            try:
-                force = _number(row.get("bearing_force_n"), "RR continuation bearing")
-            except (SemanticObservationError, TypeError):
-                return False
-            return (row.get("support") is True and row.get("bearing_verified") is True
-                    and row.get("air") is False and force >= support["force_noise_floor_n"]
-                    and (row.get("ground_contact") is True or row.get("top_surface_contact") is True))
+        bearing = self._rr_verified_bearing
 
         try:
             distance = _number(rr.get("front_distance_m"), "RR continuation front distance")
@@ -1832,6 +1906,8 @@ class NominalMotionProvider:
             # before dispatch would suppress the action that can create it.
             # Keep this finite sequence advisory; actual clearance/crossing and
             # placement are evaluated independently, with every residual open.
+            # Only the separately verified late whole-body drop group waits
+            # for a current over-platform entry; earlier RR carry keeps running.
             advance = self._sequence_permission(layer, task, observation)
             layer["advanced_this_tick"] = advance
             if advance:
@@ -1922,16 +1998,29 @@ class NominalMotionProvider:
                 # TOP-corner contact may also continue toward crossing/capture.
                 # FRONT_WALL or unknown EDGE never enables that TOP extension.
                 distance = current.get("front_distance_m", 1.)
+                late_wait = any(self._rr_waiting_late_group(layer) for layer in self._continuous_layers)
+                clearance = current.get("clearance_m", -1.)
+                if late_wait:
+                    try:
+                        distance = _number(distance, "pending RR carry distance")
+                        clearance = _number(clearance, "pending RR carry clearance")
+                    except (SemanticObservationError, TypeError):
+                        distance, clearance = math.inf, -math.inf
                 rolling = bool(ev.get("valid") is True and task.get("termination_reason") is None
                     and ev.get("termination_reason") is None and current.get("current_lift_valid")
                     and current.get("motion_continuation_allowed") and current.get("air")
                     and not current.get("ground_contact") and current.get("within_lateral_span")
-                    and distance < self.spec["geometry"]["approach_min_m"]
+                    and (not late_wait or ev.get("physical_evidence_status")
+                        in ("VERIFIED", "CONTACT_BEARING_UNVERIFIED"))
+                    and (not late_wait or sum(self._rr_verified_bearing(legs.get(leg, {}))
+                        for leg in LEG_ORDER if leg != "RR") >= self.spec["support"]["minimum_other_supports"])
+                    and distance < self.spec["geometry"]["approach_max_m" if late_wait else "approach_min_m"]
                     and (distance < self.spec["geometry"]["workspace_min_m"]
-                         or current.get("clearance_m", -1.) >= 0.))
+                         or clearance >= 0.))
                 ordered_wheel_owner = bool(self._sequence_mode and any(
                     layer["sample"] is not None and
-                    ((layer["stage"] in ("P07", "P09") and not layer["sample"].endpoint_issued)
+                    ((layer["stage"] in ("P07", "P09") and not layer["sample"].endpoint_issued
+                      and not self._rr_waiting_late_group(layer))
                      or (layer.get("advanced_this_tick") and any(
                          set(group.channels).intersection(WHEEL_ORDER)
                          for group in layer["sample"].atomic_groups)))
@@ -1947,6 +2036,7 @@ class NominalMotionProvider:
                 self._rr_carry_diagnostic = dict(
                     source_joint_owners_continued=True, added_rolling_suggestion=rolling,
                     ordered_source_wheel_owner=ordered_wheel_owner,
+                    late_reconfiguration_waiting=late_wait,
                     current_TOP_continuation_eligible=top_rolling,
                     reason="finite_ordered_source_wheel_owner" if ordered_wheel_owner else
                         "current_TOP_corner_continuation" if top_rolling and rolling else

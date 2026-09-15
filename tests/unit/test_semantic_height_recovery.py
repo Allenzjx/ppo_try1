@@ -43,6 +43,17 @@ def test_fl_only_preserves_source_clock_atomic_group_and_later_owner(contract):
         phase = 'P07' if tick < 220 else 'P08' if tick < 280 else 'P09'
         item, raw = current_input(contract, phase, tick, space=True, fr_motion=3.,rl_motion=3.,rr_load=.1,
                                   continuing=phase != 'P07')
+        if phase == 'P09':
+            # Both candidates receive the same synthetic physical drop entry.
+            # This isolates height-owner replacement from the late-group wait;
+            # no capture/history credit or historical joint posture is supplied.
+            ev = item['physical_evaluator']
+            ev['physical_evidence_status'] = 'VERIFIED'
+            ev['current_legs']['RR'].update(front_distance_m=.03, clearance_m=.013,
+                                           within_top_xy=True)
+            for leg in ('FR', 'RL'):
+                ev['current_legs'][leg].update(air=False, ground_contact=True,
+                    bearing_force_n=1., support=True, bearing_verified=True)
         ca, cb = a.evaluate(item,raw), b.evaluate(item,raw)
         assert ca[1:] == cb[1:]
         for la,lb in zip(a._continuous_layers,b._continuous_layers):
