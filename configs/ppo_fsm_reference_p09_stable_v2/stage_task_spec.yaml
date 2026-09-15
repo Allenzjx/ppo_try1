@@ -99,6 +99,10 @@ final:
   maximum_body_angular_speed_rad_s: 0.30
   stable_duration_s: 0.5
 nominal:
+  # After a real P13 stop starts the unchanged physical completion observation,
+  # retain the current nominal pose/stop instead of restarting optional home motion.
+  # This retires source advice only; all policy residuals and safety checks remain.
+  final_stop_owner: current_physical_stop_nominal_owner_v1
   height_recovery:
     mode: source_segment_reduction_and_live_recovery_v1
     candidate_id: RL_preparation_minus3_v1

@@ -1398,6 +1398,16 @@ class NominalMotionProvider:
             raise ValueError("unknown successful-FSM nominal semantics")
         self._reference_nominal = reference_mode is not None
         self._sequence_mode = nominal.get("sequence_semantics")
+        self._final_stop_mode = nominal.get("final_stop_owner")
+        if self._final_stop_mode not in (None, "current_physical_stop_nominal_owner_v1"):
+            raise ValueError("unknown nominal final stop ownership")
+        if self._final_stop_mode and (not self._reference_nominal
+                or nominal.get("continuous_channel_inheritance") is not True
+                or self.spec.get("physical_acceptance_version") != "all_stage_v1"):
+            raise ValueError("final stop ownership requires continuous source-derived all-stage nominal")
+        self._final_stop_owner = None
+        self._final_stop_owner_retired = False
+        self._final_stop_diagnostic = {}
         from .semantic_height_recovery import validate_height_candidate
         self._height_candidate = validate_height_candidate(nominal.get("height_recovery"))
         self._height_recovery_offsets = {"front_left_hip": 0., "rear_left_hip": 0.}
@@ -1509,6 +1519,8 @@ class NominalMotionProvider:
             }
         if self._p06_tail_source is not None:
             result["p06_wheel_tail"] = dict(self._tail_diagnostic)
+        if self._final_stop_mode:
+            result["final_stop_owner"] = dict(self._final_stop_diagnostic)
         if hasattr(self, "_rr_carry_diagnostic"):
             result["rr_carry_continuation"] = dict(self._rr_carry_diagnostic)
         if self._height_candidate is not None:
@@ -2065,11 +2077,88 @@ class NominalMotionProvider:
             and _number(current.get("clearance_m"),"current FR clearance") >= geometry["airborne_clearance_above_top_m"]
             and _number(current.get("front_distance_m"),"current FR front distance") < geometry["approach_min_m"])
 
+    def _observe_final_stop_owner(self, task: Mapping[str, Any], observation: Any) -> bool:
+        """Retire obsolete P13 suggestions after a real, already-issued stop.
+
+        Capture the preceding nominal request, never actual q/final drive or
+        this tick's future home pulse. The evaluator still owns the fixed post
+        window and every failure; transient control loss cannot replay a pulse.
+        """
+        if self._final_stop_mode is None:
+            return False
+        ev = task.get("physical_evaluator", {})
+        terminal = task.get("termination_reason") is not None or ev.get("termination_reason") is not None
+        in_phase = task.get("stage_id") == "P13"
+        tick, now = ev.get("physics_tick"), ev.get("simulation_time_s")
+        elapsed = ev.get("post_completion_elapsed_s")
+        finite = lambda x: type(x) in (int, float) and math.isfinite(x)
+        fresh = bool(observation is not None and type(tick) is int and tick >= 0 and finite(now)
+            and math.isclose(now, tick/self.physics_hz, rel_tol=0., abs_tol=1e-9)
+            and _get(observation, "physics_tick") == tick
+            and finite(_get(observation, "simulation_time_s"))
+            and math.isclose(_get(observation, "simulation_time_s"), now, rel_tol=0., abs_tol=1e-9))
+        placed = ev.get("history", {}).get("placed", {})
+        legs = ev.get("current_legs", {})
+        leg_evidence = all(isinstance(row, Mapping) and row.get("load_fraction_valid") is True
+            and row.get("bearing_verified") is True and finite(row.get("bearing_force_n"))
+            and row["bearing_force_n"] >= 0. and finite(row.get("load_fraction"))
+            and 0. <= row["load_fraction"] <= 1.
+            and type(row.get("air")) is bool and type(row.get("support")) is bool
+            and not (row["air"] and row["support"])
+            and row.get("within_top_xy") is True and finite(row.get("clearance_m"))
+            and row["clearance_m"] >= self.spec["geometry"]["top_gap_min_m"]
+            for row in (legs.get(leg) for leg in LEG_ORDER))
+        top_supports = sum(isinstance(row, Mapping) and row.get("top_surface_contact") is True
+            and self._rr_verified_bearing(row)
+            for row in (legs.get(leg, {}) for leg in LEG_ORDER))
+        current = {key: ev.get(key) for key in ("valid", "physical_evidence_status", "final_region_valid",
+            "final_controlled", "final_support_available", "task_completed_controlled",
+            "post_completion_observation_started", "post_completion_observation_complete",
+            "post_completion_loss_observed")}
+        current_valid = bool(fresh and leg_evidence and ev.get("valid") is True and not terminal
+            and ev.get("physical_evidence_status") == "VERIFIED"
+            and all(placed.get(leg) is True for leg in LEG_ORDER)
+            and top_supports >= self.spec["support"]["minimum_other_supports"]
+            and all(ev.get(key) is True for key in ("final_region_valid", "final_controlled",
+                "final_support_available", "task_completed_controlled", "post_completion_observation_started"))
+            and ev.get("post_completion_observation_complete") is False
+            and ev.get("post_completion_loss_observed") is False
+            and finite(elapsed) and 0. <= elapsed < self.spec["final"]["post_completion_observation_s"]
+            and elapsed <= now)
+        issued_stop = bool(self.state_id == "P13" and any(layer["stage"] == "P13"
+            and layer.get("sample") is not None for layer in self._continuous_layers)
+            and max(map(abs, self.nominal_full12[8:])) <= self.spec["final"]["maximum_commanded_wheel_speed_rad_s"])
+        if self._final_stop_owner is not None and (terminal or not in_phase):
+            self._final_stop_owner_retired = True
+        if (self._final_stop_owner is None and not self._final_stop_owner_retired
+                and in_phase and current_valid and issued_stop):
+            self._final_stop_owner = {"entry_observation_tick": tick,
+                "entry_sim_time_s": now, "post_window_start_s": now-elapsed,
+                "entry_post_elapsed_s": elapsed, "issued_nominal_full12": self.nominal_full12,
+                "held_nominal_servo_deg": self.nominal_full12[:8],
+                "held_tracking_servo_names": self.tracking_servo_names,
+                "held_normal_servo_bias_deg": self.normal_drive_bias_full12[:8],
+                "entry_top_bearing_support_count": top_supports, "entry_evidence": current}
+        active = bool(self._final_stop_owner is not None and not self._final_stop_owner_retired
+                      and in_phase and not terminal)
+        self._final_stop_diagnostic = {"mode": self._final_stop_mode, "active": active,
+            "status": ("holding_currently_eligible" if current_valid else "holding_live_eligibility_lost") if active
+                else "retired_episode_or_phase" if self._final_stop_owner_retired else "not_acquired",
+            "entry": self._final_stop_owner, "current_observation_tick": tick,
+            "current_evidence_fresh": fresh, "current_entry_eligibility": current_valid,
+            "current_evidence": current, "current_top_bearing_support_count": top_supports,
+            "current_four_leg_evidence_valid": leg_evidence,
+            "preceding_issued_nominal_wheels_stopped": issued_stop,
+            "source_clocks_continue_contributions_retired": active,
+            "raw_residual_mapper_or_evaluator_reset": False, "task_success_awarded": False}
+        return active
+
     def evaluate(self, stage: str | Mapping[str,Any], observation: Any=None) -> tuple[float,...]:
         stage_id=stage if isinstance(stage,str) else str(stage["stage_id"])
         # Validate before any layer/source clock, ownership or nominal mutation.
         retirement=self._retirement_measurement(stage,observation) if isinstance(stage,Mapping) else None
         capture=self._capture_hold_measurement(stage,observation) if isinstance(stage,Mapping) else None
+        final_stop = self._observe_final_stop_owner(stage, observation) if isinstance(stage, Mapping) else False
         phase=self.contract.phase(stage_id)
         handoff=self.state_id is not None and self.state_id!=stage_id
         if self.state_id!=stage_id:
@@ -2123,8 +2212,16 @@ class NominalMotionProvider:
                     and current.get("clearance_m", -1.) >= self.spec["geometry"]["top_gap_min_m"]
                     and current.get("front_distance_m", 1.) < self.spec["geometry"]["approach_max_m"]):
                 proposed = proposed[:8]+self._approach_wheel_prior
-        if stage_id=="P13" and self.endpoint_issued:
+        if stage_id=="P13" and self.endpoint_issued and not final_stop:
             proposed=tuple(self.spec["final"]["home_servo_pose_deg"])+(0.,)*4
+        if final_stop:
+            owner = self._final_stop_owner
+            proposed = owner["held_nominal_servo_deg"]+(0.,)*4
+            proposed_tracking = owner["held_tracking_servo_names"]
+            self.normal_drive_bias_full12 = owner["held_normal_servo_bias_deg"]+(0.,)*4
+            self._final_stop_diagnostic.update(source_elapsed_s=self.elapsed_s,
+                source_endpoint_issued=self.endpoint_issued,
+                source_layer_ticks={layer["stage"]: layer["ticks"] for layer in self._continuous_layers})
         if self._reference_nominal:
             # Logical source requests hold between authored events. The one
             # mature mapper below owns physical servo slew and load feedback;

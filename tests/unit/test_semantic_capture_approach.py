@@ -385,7 +385,7 @@ def test_loader_validates_optin_and_existing_dependency_scales(tmp_path, bad):
     with pytest.raises(ValueError): load_task_spec(path)
 
 
-def test_actual_actor_schema_stays_324_and_changes_only_existing_phi_scalar():
+def test_actual_actor_schema_stays_372_and_changes_only_existing_phi_scalar():
     from wlr50_clean.ppo.semantic_observation import HISTORY_GROUPS, SemanticObservationBuilder, load_semantic_observation_schema
     ev, _, _ = _qualified()
     new, old = _supervisors(ev)
@@ -394,8 +394,8 @@ def test_actual_actor_schema_stays_324_and_changes_only_existing_phi_scalar():
     history = dict.fromkeys(HISTORY_GROUPS, (0.,)*12)
     a = SemanticObservationBuilder(schema).build(_frame(phi=old_phi), history)
     b = SemanticObservationBuilder(schema).build(_frame(phi=new_phi), history)
-    assert schema.dimension == 324
-    assert len(schema.encode(a.groups)) == len(schema.encode(b.groups)) == 324
+    assert schema.dimension == 372
+    assert len(schema.encode(a.groups)) == len(schema.encode(b.groups)) == 372
     changed = [key for key in a.groups if a.groups[key] != b.groups[key]]
     assert changed == ["task_progress"]
     assert a.groups["task_progress"][0] == b.groups["task_progress"][0]

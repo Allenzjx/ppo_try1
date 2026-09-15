@@ -255,6 +255,8 @@ def test_unknown_capture_mode_rejected_by_provider(resources, bad):
 def test_v2_requires_current_continuous_source_dependencies(resources, missing):
     fsm, contract = resources
     spec = configured()
+    # Isolate capture handoff's dependency contract from other opt-in owners.
+    spec["nominal"].pop("final_stop_owner", None)
     if missing == "reference": spec.pop("reference_nominal_semantics")
     elif missing == "inheritance": spec["nominal"]["continuous_channel_inheritance"] = False
     else: spec.pop("physical_acceptance_version")

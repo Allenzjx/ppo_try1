@@ -49,6 +49,7 @@ def prototype(tmp_path_factory):
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes((m.PROJECT_ROOT / path).read_bytes())
     yaml_edit(root, m.TIMING_ONLY_SPEC, lambda v: v["nominal"].pop("height_recovery", None))
+    yaml_edit(root, m.TIMING_ONLY_SPEC, lambda v: v["nominal"].pop("final_stop_owner", None))
     yaml_edit(root, m.HEIGHT_EXECUTION, lambda v: v.update(nominal_geometry_advisory="functional_rr_preplace_nominal_advisory_v2"))
     modules = {
         m.SUPERVISOR: "LOCKED = 1\nclass NominalMotionProvider:\n    amount = 1\nclass TaskEvaluator:\n    pass\n",
@@ -131,6 +132,58 @@ def test_config_only_candidate_revision_from_height_source(f):
     assert plan["allowed_changed_files"] == [m.TIMING_ONLY_SPEC]
     assert plan["height_recovery_factor"]["source_candidate"] == candidate()
     assert plan["height_recovery_factor"]["target_candidate"] == candidate("RL_minus3", 0., 3.)
+
+
+def test_reviewed_final_stop_owner_preserves_physical_acceptance(f):
+    f.old = copy.deepcopy(f.new)
+    f.metadata["runtime_contract"] = copy.deepcopy(f.old)
+    write_json(f.sidecar, f.metadata)
+    yaml_edit(f.root, m.TIMING_ONLY_SPEC,
+              lambda v: v["nominal"].update(final_stop_owner=m.HEIGHT_FINAL_STOP_MODE))
+    bind(f.root, f.new)
+    plan = record(f)
+    factor = plan["height_recovery_factor"]
+    assert plan["allowed_changed_files"] == [m.TIMING_ONLY_SPEC]
+    assert factor["final_stop_nominal_owner"] == {
+        "source_mode": None, "target_mode": m.HEIGHT_FINAL_STOP_MODE,
+        "task_acceptance_and_post_completion_window_changed": False,
+        "policy_channels_or_action_distribution_changed": False,
+    }
+    assert not factor["task_acceptance_changed"] and not factor["action_ranges_changed"]
+    assert plan["preserve_actor_critic_optimizer_normalizer_rng_and_budget"]
+    assert plan["discard_old_rollout_storage"]
+    path = f.root / "final_stop_plan.json"
+    write_json(path, plan)
+    assert m.validate_migration_plan(f.checkpoint, f.new, path, project_root=f.root)["height_recovery_factor"] == factor
+
+
+@pytest.mark.parametrize("mode", [False, True, "skip_observation", 1, {}])
+def test_final_stop_owner_rejects_unreviewed_modes(f, mode):
+    yaml_edit(f.root, m.TIMING_ONLY_SPEC, lambda v: v["nominal"].update(final_stop_owner=mode))
+    bind(f.root, f.new)
+    with pytest.raises(ValueError, match="final-stop owner"):
+        record(f)
+
+
+def test_final_stop_owner_does_not_open_observer_or_task_thresholds(f):
+    yaml_edit(f.root, m.TIMING_ONLY_SPEC, lambda v: v["nominal"].update(final_stop_owner=m.HEIGHT_FINAL_STOP_MODE))
+    yaml_edit(f.root, m.TIMING_ONLY_SPEC, lambda v: v["final"].update(post_completion_observation_s=0.1))
+    bind(f.root, f.new)
+    with pytest.raises(ValueError, match="task spec"):
+        record(f)
+
+
+def test_final_stop_owner_cannot_silently_remove_existing_owner(f):
+    yaml_edit(f.root, m.TIMING_ONLY_SPEC, lambda v: v["nominal"].update(final_stop_owner=m.HEIGHT_FINAL_STOP_MODE))
+    bind(f.root, f.new)
+    f.new["source_git_commit"] = commit(f.root, "reviewed final stop source")
+    f.old = copy.deepcopy(f.new)
+    f.metadata["runtime_contract"] = copy.deepcopy(f.old)
+    write_json(f.sidecar, f.metadata)
+    yaml_edit(f.root, m.TIMING_ONLY_SPEC, lambda v: v["nominal"].pop("final_stop_owner"))
+    bind(f.root, f.new)
+    with pytest.raises(ValueError, match="final-stop owner"):
+        record(f)
 
 
 @pytest.mark.parametrize("case", ["negative", "too_large", "nan", "bool", "other_leg", "rate_zero", "rate_large",

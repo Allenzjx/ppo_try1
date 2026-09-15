@@ -55,6 +55,7 @@ BODY_REWARD_CONFIG = "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml
 HEIGHT_RECOVERY_SCHEMA = "wlr50_clean.height_and_p02_recovery_same372_continuation.v1"
 HEIGHT_RECOVERY_MODE = "source_segment_reduction_and_live_recovery_v1"
 HEIGHT_GEOMETRY_MODE = "contact_aware_bounded_rr_nominal_v3"
+HEIGHT_FINAL_STOP_MODE = "current_physical_stop_nominal_owner_v1"
 HEIGHT_EXECUTION = "configs/ppo_fsm_reference_p09_stable_v2/execution_profile.yaml"
 HEIGHT_NEW_FILES = frozenset(f"src/wlr50_clean/ppo/{name}.py" for name in (
     "semantic_height_recovery", "semantic_height_diagnostics"))
@@ -1617,6 +1618,7 @@ def _height_recovery_factor(metadata, old, new, delta, review, project_root):
         if path in old["files"]:
             raw_old[path] = _version_bytes(project_root, old, path, prefer_worktree=True)
     records, source_candidate, target_candidate = {}, None, None
+    source_final_stop, target_final_stop = None, None
     for name in sorted(CONFIG_NAMES):
         path = f"configs/ppo_fsm_reference_p09_stable_v2/{name}"
         for contract in (old, new):
@@ -1634,8 +1636,14 @@ def _height_recovery_factor(metadata, old, new, delta, review, project_root):
             target_candidate = _height_candidate(target["nominal"].pop("height_recovery", None))
             if source_candidate is not None:
                 _height_candidate(source_candidate)
+            source_final_stop = source["nominal"].pop("final_stop_owner", None)
+            target_final_stop = target["nominal"].pop("final_stop_owner", None)
+            if (source_final_stop not in (None, HEIGHT_FINAL_STOP_MODE)
+                    or target_final_stop not in (None, HEIGHT_FINAL_STOP_MODE)
+                    or source_final_stop is not None and target_final_stop is None):
+                raise ValueError("height recovery permits only the reviewed current-physical final-stop owner")
             if source != target:
-                raise ValueError("height recovery may change only nominal.height_recovery in task spec")
+                raise ValueError("height recovery may change only its nominal height/final-stop candidates in task spec")
         elif name == "execution_profile.yaml":
             prior_mode = source.pop("nominal_geometry_advisory", None)
             if (prior_mode not in ("functional_rr_preplace_nominal_advisory_v2", HEIGHT_GEOMETRY_MODE)
@@ -1677,7 +1685,7 @@ def _height_recovery_factor(metadata, old, new, delta, review, project_root):
     schema = load_semantic_observation_schema(project_root / records["observation_schema.json"]["path"])
     if schema.dimension != 372 or schema.transfer_role_features_version != ROLE_OBSERVATION_LAYOUT:
         raise ValueError("height recovery requires the unchanged complete372 observation schema")
-    return {"schema": HEIGHT_RECOVERY_SCHEMA, "review_reason": review["reason"].strip(),
+    result = {"schema": HEIGHT_RECOVERY_SCHEMA, "review_reason": review["reason"].strip(),
         "reviewed_code_sha256": hashes, "configuration_bindings": records, "code_scope": scopes,
         "source_candidate": source_candidate, "target_candidate": target_candidate,
         "physical_mdp_changed": True, "nominal_control_changed": True, "reward_changed": False,
@@ -1689,6 +1697,16 @@ def _height_recovery_factor(metadata, old, new, delta, review, project_root):
         "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
         "normalizers": "preserve_verified_identity_RSL_state",
         "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True}
+    # Leave earlier immutable plans byte-structurally compatible when neither
+    # side has this opt-in. The new candidate is nominal ownership, never an
+    # exemption from the protected TaskEvaluator or final observation window.
+    if source_final_stop is not None or target_final_stop is not None:
+        result["final_stop_nominal_owner"] = {
+            "source_mode": source_final_stop, "target_mode": target_final_stop,
+            "task_acceptance_and_post_completion_window_changed": False,
+            "policy_channels_or_action_distribution_changed": False,
+        }
+    return result
 
 
 def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
