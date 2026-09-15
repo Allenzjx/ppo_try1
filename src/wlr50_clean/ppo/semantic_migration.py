@@ -1555,6 +1555,17 @@ def _height_source_scope(before: str, after: str, *, functions=(), methods=(), c
     target, new_seen = stripped(after)
     if source != target or not old_seen <= new_seen:
         raise ValueError("height recovery changed code outside reviewed named regions")
+    def physical_calls(text):
+        calls = []
+        for node in ast.walk(ast.parse(text)):
+            if isinstance(node, ast.Call):
+                name = getattr(node.func, "attr", getattr(node.func, "id", ""))
+                if (name.startswith(("set_", "write_joint", "write_root", "apply_force"))
+                        or name in {"reset", "step", "step_physics", "simulate", "render", "write_data_to_sim", "apply_action"}):
+                    calls.append(ast.dump(node, include_attributes=False))
+        return sorted(calls)
+    if physical_calls(before) != physical_calls(after):
+        raise ValueError("height recovery may not change physical setter/reset/step/render calls")
     return {"protected_ast_sha256": digest(source), "reviewed_regions": sorted(new_seen),
             "protected_ast_identical": True}
 
@@ -1572,8 +1583,10 @@ def _height_no_physics_writes(text: str):
         if isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
             targets = node.targets if isinstance(node, ast.Assign) else [node.target]
             for target in targets:
-                if isinstance(target, ast.Attribute) and not (isinstance(target.value, ast.Name) and target.value.id == "self"):
-                    raise ValueError("height helper may not assign external object attributes")
+                for child in ast.walk(target):
+                    if isinstance(child, ast.Attribute) and isinstance(child.ctx, ast.Store) and not (
+                            isinstance(child.value, ast.Name) and child.value.id == "self"):
+                        raise ValueError("height helper may not assign external object attributes")
 
 
 def _height_recovery_factor(metadata, old, new, delta, review, project_root):
@@ -1632,7 +1645,9 @@ def _height_recovery_factor(metadata, old, new, delta, review, project_root):
         elif before != after:
             raise ValueError(f"height recovery cannot change protected config bytes: {name}")
         records[name] = {"path": path, "source_sha256": old["files"][path], "target_sha256": new["files"][path]}
-    if (source_candidate is None) != (not (HEIGHT_NEW_FILES & set(old["files"]))):
+    source_helpers = HEIGHT_NEW_FILES & set(old["files"])
+    if (source_helpers not in (set(), HEIGHT_NEW_FILES)
+            or (source_candidate is None) != (not source_helpers)):
         raise ValueError("height recovery source candidate and new-module inventory disagree")
     scopes = {}
     before = _nominal_provider_byte_regions(raw_old[SUPERVISOR])
