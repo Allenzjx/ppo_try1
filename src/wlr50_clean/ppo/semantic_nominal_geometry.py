@@ -19,6 +19,7 @@ from .semantic_nominal_projection import project_nominal_downward
 
 MODE = "preplace_world_down_nominal_advisory_v1"
 FUNCTIONAL_RR_MODE = "functional_rr_preplace_nominal_advisory_v2"
+BOUNDED_RR_MODE = "contact_aware_bounded_rr_nominal_v3"
 CONTEXT_SCHEMA = "wlr50_clean.semantic_nominal_geometry_context.v1"
 EVIDENCE_SCHEMA = "wlr50_clean.semantic_nominal_geometry.v1"
 ACTIVE = {"P09": ("RR", (6, 7), 3), "P12": ("RL", (4, 5), 2)}
@@ -55,17 +56,19 @@ def _physical_deg_to_rad(adapter, index, value):
 
 def capture_nominal_geometry_context(*, adapter, observation, source_frame,
                                      task_snapshot, clearance_margin_m, physics_tick,
-                                     mode=MODE, minimum_lift_gain_m=None, workspace_min_m=None):
+                                     mode=MODE, minimum_lift_gain_m=None, workspace_min_m=None,
+                                     collider_local_points=None, top_gap_min_m=None):
     """Read a same-state wheel-link Jacobian without a write, step or reset.
 
     PhysX dense Jacobians are at each link COM in world axes:
     https://nvidia-omniverse.github.io/PhysX/physx/5.6.1/docs/Articulations.html#jacobian
-    The existing sensor measures link-origin translation plus cached wheel
-    extents. Convert the COM Jacobian to that same link-origin point, without
-    changing the evaluator's collider geometry definition.
+    The semantic sensor rotates collider-local vertices with the live pose.
+    Legacy modes approximate its bottom derivative with link-origin velocity;
+    bounded RR v3 instead differentiates the current lowest collider vertex.
+    Neither model changes the evaluator or models contact-induced body motion.
     """
     phase = str(_member(source_frame, "state_id"))
-    if mode not in (MODE, FUNCTIONAL_RR_MODE):
+    if mode not in (MODE, FUNCTIONAL_RR_MODE, BOUNDED_RR_MODE):
         raise NominalGeometryError("unknown nominal geometry mode")
     if phase not in ACTIVE:
         return None
@@ -101,7 +104,7 @@ def capture_nominal_geometry_context(*, adapter, observation, source_frame,
     if margin <= 0.:
         raise NominalGeometryError("positive existing clearance margin required")
     floor_semantics = "existing_above_top_margin"
-    if mode == FUNCTIONAL_RR_MODE and leg == "RR":
+    if mode in (FUNCTIONAL_RR_MODE, BOUNDED_RR_MODE) and leg == "RR":
         # This is a nominal descent advisory, never an action/lift entry gate.
         # Far from the front, preserve the established ground-relative lift;
         # below the top, do not force a timed nominal descent before carry.
@@ -122,6 +125,16 @@ def capture_nominal_geometry_context(*, adapter, observation, source_frame,
         else:
             margin = min(clearance, 0.)
             floor_semantics = "current_below_top_or_surface_floor_before_cross"
+        if (mode == BOUNDED_RR_MODE and current.get("contact_surface") == "TOP"
+                and current.get("top_surface_contact") is True
+                and current.get("bearing_verified") is True
+                and current.get("support") is True and current.get("obstacle_pair_active") is True):
+            # A currently supported TOP corner is not a freely airborne wheel.
+            # Use the existing allowable contact band, not a perpetual zero-
+            # descent AIR constraint. Crossing/placement/safety stay unchanged.
+            contact_floor = _finite((top_gap_min_m,), 1, "existing TOP gap floor")[0]
+            margin = min(clearance, contact_floor)
+            floor_semantics = "current_verified_TOP_contact_existing_gap_band"
 
     import torch
     robot = adapter.robot
@@ -201,6 +214,38 @@ def capture_nominal_geometry_context(*, adapter, observation, source_frame,
         raise NominalGeometryError("Jacobian does not match same-state COM/link velocities")
     jx = tuple(j_link_linear[0, list(columns)].detach().cpu().tolist())
     jz = tuple(j_link_linear[2, list(columns)].detach().cpu().tolist())
+    point_evidence = {}
+    if mode == BOUNDED_RR_MODE and leg == "RR":
+        # The current semantic reader rotates immutable collider vertices on
+        # every tick. Its bottom is NOT a translated constant world extent.
+        # X remains wheel-link origin; Z follows the actual lowest collider
+        # vertex, including its rotational point-velocity term.
+        import numpy as np
+        try:
+            points = np.asarray(collider_local_points, dtype=np.float64)
+        except (TypeError, ValueError) as exc:
+            raise NominalGeometryError("invalid collider-local points") from exc
+        if points.ndim != 2 or points.shape[1] != 3 or not len(points) or not np.isfinite(points).all():
+            raise NominalGeometryError("bounded RR geometry requires measured collider-local points")
+        orientation = tensor(data.body_link_quat_w, (1, len(names), 4), "body_link_quat_w")
+        w, x, y, z = orientation[0, body_index].detach().cpu().tolist()
+        if not math.isclose(w*w+x*x+y*y+z*z, 1., abs_tol=1e-5):
+            raise NominalGeometryError("nonunit live wheel orientation")
+        vx, vy, vz = points[:, 0], points[:, 1], points[:, 2]
+        tx, ty, tz = 2*(y*vz-z*vy), 2*(z*vx-x*vz), 2*(x*vy-y*vx)
+        rotated = np.column_stack((vx+w*tx+y*tz-z*ty,
+                                   vy+w*ty+z*tx-x*tz, vz+w*tz+x*ty-y*tx))
+        lowest = int(np.argmin(rotated[:, 2]))
+        point = tuple(float(a+b) for a,b in zip(live_center, rotated[lowest]))
+        _close((point[2],), (measured_bottom[2],), 2e-6, "lowest live collision point versus sensor bottom")
+        point_offset = torch.tensor(rotated[lowest], dtype=j_com.dtype, device=j_com.device)
+        j_bottom = j_link_linear + torch.cross(j_com[3:].transpose(0, 1),
+            point_offset.expand(j_com.shape[1], 3), dim=1).transpose(0, 1)
+        point_evidence = {"lowest_collider_vertex_index": lowest,
+            "lowest_collider_point_world_m": point, "collider_point_count": len(points),
+            "link_origin_jacobian_z_m_per_rad": jz,
+            "bottom_derivative_scope": "current_minimum_vertex_piecewise_linear_not_contact_dynamics"}
+        jz = tuple(j_bottom[2, list(columns)].detach().cpu().tolist())
     return {
         "schema": CONTEXT_SCHEMA, "mode": mode, "source_phase_id": phase,
         "source_control_tick": tick, "dispatch_physics_tick": physics_tick,
@@ -216,8 +261,11 @@ def capture_nominal_geometry_context(*, adapter, observation, source_frame,
         "link_minus_com_world_m": tuple(offset.detach().cpu().tolist()),
         "COM_velocity_identity_max_error": com_error,
         "link_velocity_identity_max_error_m_s": link_error,
-        "geometry_model": "existing_link_origin_plus_cached_world_extent",
-        "jacobian_model": "world_COM_shifted_to_measured_link_origin_fixed_base_joint_columns",
+        "geometry_model": ("current_pose_collider_lowest_vertex" if point_evidence else
+                           "link_origin_proxy_sensor_bottom_pose_dependence_not_modelled"),
+        "jacobian_model": ("world_COM_shifted_to_link_origin_X_and_lowest_collider_Z_joint_columns"
+                           if point_evidence else "world_COM_shifted_to_measured_link_origin_fixed_base_joint_columns"),
+        "contact_surface": current.get("contact_surface"), **point_evidence,
         "physical_motion_guaranteed": False,
     }
 
@@ -226,15 +274,17 @@ def correct_nominal_geometry(*, adapter, native_full12, controller_bias_full12, 
     """Return adjusted native nominal and evidence; never consume current r."""
     native = _finite(native_full12, 12, "raw native nominal")
     bias = _finite(controller_bias_full12, 12, "bounded controller bias")
-    if not isinstance(context, Mapping) or context.get("schema") != CONTEXT_SCHEMA or context.get("mode") not in (MODE, FUNCTIONAL_RR_MODE):
+    if not isinstance(context, Mapping) or context.get("schema") != CONTEXT_SCHEMA or context.get("mode") not in (MODE, FUNCTIONAL_RR_MODE, BOUNDED_RR_MODE):
         raise NominalGeometryError("versioned nominal geometry context required")
     phase = context.get("source_phase_id")
     if phase not in ACTIVE or tuple(context.get("canonical_servo_indices", ())) != ACTIVE[phase][1]:
         raise NominalGeometryError("active leg/context index mismatch")
     indices = ACTIVE[phase][1]
-    q = _finite(context["physical_q_rad"], 2, "current physical q")
     if context.get("place_xy") is not False or context.get("ground_contact") is not False:
         raise NominalGeometryError("ineligible context must bypass before mapper dispatch")
+    if context["mode"] == BOUNDED_RR_MODE and phase == "P09":
+        return _bounded_rr_correction(adapter=adapter, native=native, bias=bias, context=context)
+    q = _finite(context["physical_q_rad"], 2, "current physical q")
     previous = tuple(float(adapter._final_drive_servo_deg[name]) for name in SERVO_ORDER)
     maximum_delta = float(adapter.servo_target_mapper.maximum_delta_deg)
     if not math.isfinite(maximum_delta) or maximum_delta <= 0.:
@@ -291,3 +341,99 @@ def correct_nominal_geometry(*, adapter, native_full12, controller_bias_full12, 
         "degraded_bypass_is_clearance_guarantee": False,
     }
     return tuple(adjusted), evidence
+
+
+def _bounded_rr_correction(*, adapter, native, bias, context):
+    """Non-integrating local model, existing reserve, explicit infeasibility.
+
+    No assertion of whole-body feasibility: body/support candidates must supply
+    missing reachability. The correction envelope is relative to THIS mapped
+    source, never yesterday's corrected output; it cannot chase a hard limit.
+    """
+    from .semantic_headroom import SERVO_RESERVE_DEG
+    from wlr50_clean.infrastructure.servo_target_mapper import SERVO_TRACKING_COMPENSATION_MAX_DEG
+    indices = ACTIVE["P09"][1]
+    q = _finite(context["physical_q_rad"], 2, "physical q")
+    slew = float(adapter.servo_target_mapper.maximum_delta_deg)
+    if not math.isfinite(slew) or slew <= 0.:
+        raise NominalGeometryError("invalid frozen final slew")
+    clearance, margin = _finite((context["clearance_m"], context["clearance_margin_m"]), 2, "clearance")
+    jx = _finite(context["jacobian_x_m_per_rad"], 2, "Jacobian X")
+    jz = _finite(context["jacobian_z_m_per_rad"], 2, "Jacobian Z")
+    cap = SERVO_TRACKING_COMPENSATION_MAX_DEG
+    trust = math.radians(SERVO_RESERVE_DEG)
+    targets, lower, upper, fallback = [], [], [], []
+    tracking_valid = True
+    bands, recovering = [], []
+    for i, actual in zip(indices, q):
+        name = SERVO_ORDER[i]
+        previous = float(adapter._final_drive_servo_deg[name])
+        if not math.isfinite(previous):
+            raise NominalGeometryError("nonfinite previous final target")
+        hard_lo, hard_hi = servo_limits_deg(name)
+        base = native[i]+bias[i]
+        band_lo, band_hi = max(hard_lo+SERVO_RESERVE_DEG, base-cap), min(hard_hi-SERVO_RESERVE_DEG, base+cap)
+        if band_lo > band_hi:
+            # An already out-of-band source is reported, not legitimized by a
+            # relaxed hard limit. Move toward the existing operating interval.
+            band_lo = band_hi = max(hard_lo+SERVO_RESERVE_DEG, min(hard_hi-SERVO_RESERVE_DEG, base))
+        lo, hi = max(band_lo, previous-slew), min(band_hi, previous+slew)
+        recovering.append(lo > hi)
+        if lo > hi:
+            toward = max(band_lo, min(band_hi, previous))
+            lo = hi = previous+max(-slew, min(slew, toward-previous))
+        desired = max(lo, min(hi, base))
+        p_lo, p_hi = sorted((_physical_deg_to_rad(adapter, i, lo), _physical_deg_to_rad(adapter, i, hi)))
+        fallback.append(_physical_deg_to_rad(adapter, i, max(lo, min(hi, previous))))
+        t_lo, t_hi = max(p_lo, actual-trust), min(p_hi, actual+trust)
+        if t_lo > t_hi:
+            tracking_valid = False
+            t_lo, t_hi = p_lo, p_hi
+        lower.append(t_lo-actual); upper.append(t_hi-actual)
+        targets.append(max(t_lo, min(t_hi, _physical_deg_to_rad(adapter, i, desired)))-actual)
+        bands.append((band_lo, band_hi))
+    result = None
+    if tracking_valid:
+        result = project_nominal_downward(nominal_delta_rad=targets,
+            jacobian_x_m_per_rad=jx,
+            jacobian_z_m_per_rad=jz,
+            delta_lower_rad=lower, delta_upper_rad=upper,
+            available_descent_m=max(0., clearance-margin), place_xy=False)
+    needs_body = result is None or not result.feasible
+    if result is not None and result.feasible:
+        selected, status = result.corrected_delta_rad, result.status
+    elif tracking_valid:
+        # Best vertical step inside the bounded local box, not an unconstrained
+        # reissue of the old downward source. Report that the requested linear
+        # clearance/forward combination has NO feasible local solution.
+        selected = tuple(hi if row > 0 else lo if row < 0 else max(lo, min(hi, 0.))
+                         for row,lo,hi in zip(jz, lower, upper))
+        status = "bounded_best_vertical_step_needs_whole_body_height"
+    else:
+        selected = tuple(t-p for t,p in zip(fallback,q))
+        status = "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust"
+    adjusted, desired = list(native), []
+    for i, actual, delta in zip(indices, q, selected):
+        name = SERVO_ORDER[i]
+        value = (math.degrees(actual+delta)-float(adapter.standing_pose_deg[name]))/SERVO_COMMAND_SIGN[name]
+        adjusted[i] = value-bias[i]
+        desired.append(value)
+        lo, hi = servo_limits_deg(name)
+        reconstructed = bounded_drive_feedback_step(previous_deg=float(adapter._final_drive_servo_deg[name]),
+            native_deg=adjusted[i], bias_deg=bias[i], maximum_delta_deg=slew,
+            lower_deg=lo, upper_deg=hi)
+        _close((value,), (reconstructed,), 1e-9, "bounded adjusted zero-policy final nominal")
+    at_envelope = any(min(value-lo, hi-value) <= 1e-6 for value,(lo,hi) in zip(desired,bands))
+    return tuple(adjusted), {"schema": EVIDENCE_SCHEMA, "mode": context["mode"], "status": status,
+        "context": dict(context), "projection": dict(result.proof) if result is not None else None,
+        "desired_zero_policy_canonical_target_deg": desired,
+        "nominal_geometry_adjustment_full12": [a-b for a,b in zip(adjusted,native)],
+        "operating_reserve_deg": SERVO_RESERVE_DEG, "mapped_source_correction_envelope_deg": cap,
+        "actual_q_linear_trust_deg": SERVO_RESERVE_DEG, "tracking_inside_linear_trust": tracking_valid,
+        "source_relative_operating_bands_deg": bands, "operating_envelope_reached": at_envelope,
+        "slew_recovery_toward_source_band": recovering,
+        "predicted_local_delta_x_m": sum(a*b for a,b in zip(jx, selected)),
+        "predicted_local_delta_z_m": sum(a*b for a,b in zip(jz, selected)),
+        "needs_whole_body_height_or_support_reconfiguration": needs_body or at_envelope,
+        "current_policy_residual_used": False, "physical_motion_guaranteed": False,
+        "fallback_is_clearance_guarantee": False, "nonintegrating_source_relative_bound": True}

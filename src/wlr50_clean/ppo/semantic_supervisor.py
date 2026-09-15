@@ -1398,6 +1398,10 @@ class NominalMotionProvider:
             raise ValueError("unknown successful-FSM nominal semantics")
         self._reference_nominal = reference_mode is not None
         self._sequence_mode = nominal.get("sequence_semantics")
+        from .semantic_height_recovery import validate_height_candidate
+        self._height_candidate = validate_height_candidate(nominal.get("height_recovery"))
+        self._height_recovery_offsets = {"front_left_hip": 0., "rear_left_hip": 0.}
+        self._height_diagnostic = {}
         if self._sequence_mode not in (None, "source_partial_order_physical_ready_v1"):
             raise ValueError("unknown nominal sequence semantics")
         self._p05_pending_capture_mode = nominal.get("p05_pending_capture")
@@ -1487,6 +1491,8 @@ class NominalMotionProvider:
             result["p06_wheel_tail"] = dict(self._tail_diagnostic)
         if hasattr(self, "_rr_carry_diagnostic"):
             result["rr_carry_continuation"] = dict(self._rr_carry_diagnostic)
+        if self._height_candidate is not None:
+            result["height_recovery"] = dict(self._height_diagnostic)
         if self._all_stage_acceptance:
             result["capture_owner_hold"] = {
                 "schema": "wlr50_clean.nominal_capture_owner_hold.v1",
@@ -1803,6 +1809,19 @@ class NominalMotionProvider:
         tracking=set() if self._reference_nominal else set(self.tracking_servo_names)
         normal_bias=list(ZERO12)
         ev=task.get("physical_evaluator",{}); legs=ev.get("current_legs",{}); history=ev.get("history",{})
+        if self._height_candidate is not None:
+            from .semantic_height_recovery import current_rr_recovery_permission
+            permitted = current_rr_recovery_permission(task, support_spec=self.spec["support"])
+            step = self._height_candidate["recovery_rate_deg_s"]/self.physics_hz
+            for name, previous_offset in self._height_recovery_offsets.items():
+                goal = self._height_candidate["post_lift_recovery_deg"][name] if permitted else 0.
+                self._height_recovery_offsets[name] = previous_offset+max(-step, min(step, goal-previous_offset))
+            self._height_diagnostic = {"mode": self._height_candidate["mode"],
+                "candidate_id": self._height_candidate["candidate_id"], "source_observation_tick": ev.get("physics_tick"),
+                "current_RR_carry_recovery_permitted": permitted,
+                "post_lift_recovery_offsets_deg": dict(self._height_recovery_offsets), "owners": [],
+                "source_clocks_and_atomic_groups_unchanged": True, "task_or_support_credit_awarded": False,
+                "exit": "later source owner replaces this segment; no permanent hip lock or home restore"}
         if self._p06_tail_source is not None:
             self._tail_diagnostic.update(layer_present=False, source_endpoint_issued=False,
                 finite_source_tail_replaced=False, wheel_gain=None, status="not_applicable_no_P06_layer")
@@ -1868,6 +1887,18 @@ class NominalMotionProvider:
                 # Keep layer.last/sample as the original source (including its
                 # zero endpoint); only this local owner's contribution changes.
                 source_value = self._p06_tail_source[i-8] if replace_tail and i>=8 else sample.full12[i]
+                if self._height_candidate is not None:
+                    from .semantic_height_recovery import OWNERS, source_owner_height_target
+                    owner = OWNERS.get(layer["stage"])
+                    if owner is not None and i == owner[0]:
+                        entry = layer["motion"].phase.start_full12[i]
+                        original = source_value
+                        source_value = source_owner_height_target(source_value=original, source_entry=entry,
+                            reduction_deg=self._height_candidate["preparation_reduction_deg"][owner[1]],
+                            recovery_deg=self._height_recovery_offsets[owner[1]])
+                        self._height_diagnostic["owners"].append({"stage": layer["stage"], "channel": owner[1],
+                            "fixed_source_entry_deg": entry, "original_source_target_deg": original,
+                            "candidate_source_target_deg": source_value, "reduction_deg": original-source_value})
                 proposed[i]=source_value*(gain if i>=8 else 1.)
                 if self._reference_nominal:
                     normal_bias[i]=source_bias[i]

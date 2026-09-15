@@ -52,6 +52,17 @@ BODY_REWARD_SCHEMA = "wlr50_clean.functional_carry_body_reward_same372_continuat
 BODY_REWARD_MODE = "current_functional_carry_and_capture_settle_v1"
 BODY_REWARD_CODE = "src/wlr50_clean/ppo/semantic_reward.py"
 BODY_REWARD_CONFIG = "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml"
+HEIGHT_RECOVERY_SCHEMA = "wlr50_clean.height_and_p02_recovery_same372_continuation.v1"
+HEIGHT_RECOVERY_MODE = "source_segment_reduction_and_live_recovery_v1"
+HEIGHT_GEOMETRY_MODE = "contact_aware_bounded_rr_nominal_v3"
+HEIGHT_EXECUTION = "configs/ppo_fsm_reference_p09_stable_v2/execution_profile.yaml"
+HEIGHT_NEW_FILES = frozenset(f"src/wlr50_clean/ppo/{name}.py" for name in (
+    "semantic_height_recovery", "semantic_height_diagnostics"))
+HEIGHT_CODE_FILES = HEIGHT_NEW_FILES | {SUPERVISOR} | frozenset(
+    f"src/wlr50_clean/ppo/{name}.py" for name in (
+        "semantic_nominal_geometry", "semantic_backend", "semantic_video",
+        "semantic_migration", "semantic_training"))
+HEIGHT_FILES = HEIGHT_CODE_FILES | {TIMING_ONLY_SPEC, HEIGHT_EXECUTION}
 SAME372_AUTHORITY_RUNTIME_FILES = frozenset({
     "configs/ppo_semantic_v3/stage_task_spec.yaml",
     "configs/ppo_semantic_v3/execution_profile.yaml",
@@ -1481,6 +1492,190 @@ def _body_reward_factor(checkpoint, metadata, old, new, delta, review, project_r
         "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True}
 
 
+def _height_candidate(value):
+    """Independent migration bounds: do not trust the candidate's own validator."""
+    keys = {"mode", "candidate_id", "preparation_reduction_deg", "post_lift_recovery_deg",
+            "recovery_rate_deg_s"}
+    if (not isinstance(value, dict) or set(value) != keys
+            or value["mode"] != HEIGHT_RECOVERY_MODE
+            or not isinstance(value["candidate_id"], str) or not value["candidate_id"].strip()):
+        raise ValueError("height recovery requires the exact versioned candidate schema")
+    for name in ("preparation_reduction_deg", "post_lift_recovery_deg"):
+        row = value[name]
+        if (not isinstance(row, dict) or set(row) != {"front_left_hip", "rear_left_hip"}
+                or any(type(v) not in (int, float) or not math.isfinite(v) or not 0 <= v <= 10
+                       for v in row.values())):
+            raise ValueError("height recovery permits only separate FL/RL amounts in 0..10 degrees")
+    rate = value["recovery_rate_deg_s"]
+    if type(rate) not in (int, float) or not math.isfinite(rate) or not 0 < rate <= 60:
+        raise ValueError("height recovery rate must be finite, positive and at most60 deg/s")
+    return value
+
+
+def _height_source_scope(before: str, after: str, *, functions=(), methods=(), constant=False,
+                         geometry_import=False):
+    """Compare protected AST outside exact reviewed function/method regions.
+
+    Bodies remain a code-review assertion, not a proof of physical equivalence.
+    Module additions and physical setter/step calls are not opened by this scope.
+    """
+    import ast
+    def stripped(text):
+        tree = ast.parse(text)
+        seen = set()
+        class Scope(ast.NodeTransformer):
+            def visit_FunctionDef(self, node):
+                if node.name in functions:
+                    seen.add(node.name)
+                    return None
+                return node
+
+            def visit_ClassDef(self, node):
+                for item in list(node.body):
+                    key = f"{node.name}.{getattr(item, 'name', '')}"
+                    if isinstance(item, ast.FunctionDef) and key in methods:
+                        seen.add(key)
+                        node.body.remove(item)
+                return node
+
+            def visit_Assign(self, node):
+                if constant and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name) and node.targets[0].id == "BOUNDED_RR_MODE":
+                    if ast.literal_eval(node.value) != HEIGHT_GEOMETRY_MODE:
+                        raise ValueError("height geometry mode constant changed")
+                    return None
+                return node
+
+            def visit_ImportFrom(self, node):
+                if geometry_import and node.module == "semantic_nominal_geometry":
+                    node.names = [n for n in node.names if not (n.name == "BOUNDED_RR_MODE" and n.asname is None)]
+                return node
+        tree = Scope().visit(tree)
+        return ast.dump(tree, include_attributes=False), seen
+    source, old_seen = stripped(before)
+    target, new_seen = stripped(after)
+    if source != target or not old_seen <= new_seen:
+        raise ValueError("height recovery changed code outside reviewed named regions")
+    return {"protected_ast_sha256": digest(source), "reviewed_regions": sorted(new_seen),
+            "protected_ast_identical": True}
+
+
+def _height_no_physics_writes(text: str):
+    """Conservative syntactic veto, not a claim that arbitrary Python is pure."""
+    import ast
+    forbidden = {"setattr", "exec", "eval", "step", "step_physics", "simulate", "reset",
+                 "render", "update", "write_data_to_sim", "apply_torque", "apply_action"}
+    for node in ast.walk(ast.parse(text)):
+        if isinstance(node, ast.Call):
+            name = getattr(node.func, "attr", getattr(node.func, "id", ""))
+            if name in forbidden or name.startswith(("set_", "write_joint", "write_root", "apply_force")):
+                raise ValueError(f"height read-only helper contains forbidden physical/dynamic call: {name}")
+        if isinstance(node, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            for target in targets:
+                if isinstance(target, ast.Attribute) and not (isinstance(target.value, ast.Name) and target.value.id == "self"):
+                    raise ValueError("height helper may not assign external object attributes")
+
+
+def _height_recovery_factor(metadata, old, new, delta, review, project_root):
+    import ast
+    import yaml
+    from .semantic_observation import load_semantic_observation_schema
+    from .semantic_policy_distribution import CONFIG_NAMES, HISTORY_POLICY, policy_contract
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    if (not isinstance(review, Mapping) or set(review) != {"reason", "reviewed_code_sha256"}
+            or not isinstance(review["reason"], str) or not review["reason"].strip()
+            or not isinstance(review["reviewed_code_sha256"], Mapping)):
+        raise ValueError("height recovery requires an explicit reason and exact reviewed code hashes")
+    canonical = policy_contract(HISTORY_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    if (metadata.get("semantic_version") != "v3" or metadata.get("policy_contract") != canonical
+            or source_num_envs(metadata) != 1
+            or any(c.get("semantic_version") != "v3" or c.get("experiment_id") != "fsm_reference_p09_stable_v2"
+                   for c in (old, new))):
+        raise ValueError("height recovery requires the same experiment N1 canonical HISTORY372")
+    if (set(old["files"]) - set(new["files"]) or set(new["files"]) - set(old["files"]) - HEIGHT_NEW_FILES
+            or not HEIGHT_FILES <= set(new["files"]) or not set(delta) <= HEIGHT_FILES):
+        raise ValueError("height recovery runtime delta exceeds its exact candidate boundary")
+    hashes = {p: new["files"][p] for p in sorted(HEIGHT_CODE_FILES)}
+    if dict(review["reviewed_code_sha256"]) != hashes:
+        raise ValueError("height recovery code review is not bound to every exact candidate code file")
+    raw_old, raw_new = {}, {}
+    for path in sorted(HEIGHT_FILES):
+        raw_new[path] = _version_bytes(project_root, new, path, prefer_worktree=True)
+        if path in old["files"]:
+            raw_old[path] = _version_bytes(project_root, old, path, prefer_worktree=True)
+    records, source_candidate, target_candidate = {}, None, None
+    for name in sorted(CONFIG_NAMES):
+        path = f"configs/ppo_fsm_reference_p09_stable_v2/{name}"
+        for contract in (old, new):
+            selected = contract.get("selected_configuration", {})
+            if set(selected) != CONFIG_NAMES or selected[name] != {"path": path, "sha256": contract["files"].get(path)}:
+                raise ValueError("height recovery selected configuration bindings differ")
+        before = _version_bytes(project_root, old, path, prefer_worktree=True)
+        after = _version_bytes(project_root, new, path, prefer_worktree=True)
+        source, target = yaml.safe_load(before), yaml.safe_load(after)
+        if name == "stage_task_spec.yaml":
+            if (source.get("nominal", {}).get("sequence_semantics") != TIMING_ONLY_MODE
+                    or target.get("nominal", {}).get("sequence_semantics") != TIMING_ONLY_MODE):
+                raise ValueError("height recovery requires existing source partial-order timing")
+            source_candidate = source["nominal"].pop("height_recovery", None)
+            target_candidate = _height_candidate(target["nominal"].pop("height_recovery", None))
+            if source_candidate is not None:
+                _height_candidate(source_candidate)
+            if source != target:
+                raise ValueError("height recovery may change only nominal.height_recovery in task spec")
+        elif name == "execution_profile.yaml":
+            prior_mode = source.pop("nominal_geometry_advisory", None)
+            if (prior_mode not in ("functional_rr_preplace_nominal_advisory_v2", HEIGHT_GEOMETRY_MODE)
+                    or target.pop("nominal_geometry_advisory", None) != HEIGHT_GEOMETRY_MODE
+                    or source != target):
+                raise ValueError("height recovery may change only the reviewed geometry advisory version")
+        elif before != after:
+            raise ValueError(f"height recovery cannot change protected config bytes: {name}")
+        records[name] = {"path": path, "source_sha256": old["files"][path], "target_sha256": new["files"][path]}
+    if (source_candidate is None) != (not (HEIGHT_NEW_FILES & set(old["files"]))):
+        raise ValueError("height recovery source candidate and new-module inventory disagree")
+    scopes = {}
+    before = _nominal_provider_byte_regions(raw_old[SUPERVISOR])
+    after = _nominal_provider_byte_regions(raw_new[SUPERVISOR])
+    if before[0] != after[0] or before[2] != after[2]:
+        raise ValueError("height recovery may not change supervisor outside NominalMotionProvider")
+    scopes[SUPERVISOR] = {"outside_class_bytes_identical": True,
+        "source_class_sha256": hashlib.sha256(before[1]).hexdigest(),
+        "target_class_sha256": hashlib.sha256(after[1]).hexdigest()}
+    for name, functions, methods, constant, geometry_import in (
+        ("semantic_nominal_geometry", ("capture_nominal_geometry_context", "correct_nominal_geometry", "_bounded_rr_correction"), (), True, False),
+        ("semantic_backend", ("load_execution_profile",), ("SemanticIsaacBackend.__init__", "SemanticIsaacBackend._atomic_apply"), False, True),
+        ("semantic_video", ("capture_semantic_video",), ("EndpointObserver.__init__", "EndpointObserver.__call__"), False, False)):
+        path = f"src/wlr50_clean/ppo/{name}.py"
+        scopes[path] = _height_source_scope(raw_old[path].decode("utf-8"), raw_new[path].decode("utf-8"),
+            functions=functions, methods=methods, constant=constant, geometry_import=geometry_import)
+    for path in HEIGHT_NEW_FILES:
+        text = raw_new[path].decode("utf-8")
+        tree = ast.parse(text)
+        names = {n.name for n in tree.body if isinstance(n, (ast.FunctionDef, ast.ClassDef))}
+        expected = ({"validate_height_candidate", "source_owner_height_target", "current_rr_recovery_permission"}
+            if path.endswith("semantic_height_recovery.py") else
+            {"member", "plain", "read_value", "transform_point", "lowest_collider_point", "resolve_rr_mount", "HeightDiagnostics"})
+        if names != expected:
+            raise ValueError("height helper top-level definitions exceed reviewed scope")
+        _height_no_physics_writes(text)
+    schema = load_semantic_observation_schema(project_root / records["observation_schema.json"]["path"])
+    if schema.dimension != 372 or schema.transfer_role_features_version != ROLE_OBSERVATION_LAYOUT:
+        raise ValueError("height recovery requires the unchanged complete372 observation schema")
+    return {"schema": HEIGHT_RECOVERY_SCHEMA, "review_reason": review["reason"].strip(),
+        "reviewed_code_sha256": hashes, "configuration_bindings": records, "code_scope": scopes,
+        "source_candidate": source_candidate, "target_candidate": target_candidate,
+        "physical_mdp_changed": True, "nominal_control_changed": True, "reward_changed": False,
+        "task_acceptance_changed": False, "observation_semantics_changed": [],
+        "physical_actuators_changed": False, "action_ranges_changed": False, "kernel_changed": False,
+        "observation_contract": {"source_policy_contract": canonical, "target_policy_contract": dict(canonical),
+            "observation_layout": ROLE_OBSERVATION_LAYOUT, "observation_dimension": 372,
+            "action_dimension": 12, "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"},
+        "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+        "normalizers": "preserve_verified_identity_RSL_state",
+        "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True}
+
+
 def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
                          allowed_changed_files: Sequence[str], reason: str,
                          prior_evidence: Mapping[str, Any] | None = None,
@@ -1490,6 +1685,7 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                          video_review: Mapping[str, Any] | None = None,
                          timing_review: Mapping[str, Any] | None = None,
                          body_reward_review: Mapping[str, Any] | None = None,
+                         height_recovery_review: Mapping[str, Any] | None = None,
                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Build a reviewed plan after committing the new runtime; does not write."""
     checkpoint = Path(checkpoint).resolve(strict=True)
@@ -1498,7 +1694,11 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
     variable = {"files", "runtime_content_sha256", "source_git_commit"}
     if body_reward_review is not None and timing_review is not None:
         raise ValueError("body reward uses a verified timing ancestor, not a mixed top-level timing factor")
-    if timing_review is not None or body_reward_review is not None:
+    if height_recovery_review is not None and any(v is not None for v in (
+            timing_review, body_reward_review, prior_evidence, qualification_evidence,
+            evaluator_review, execution_evidence, video_review)):
+        raise ValueError("height recovery cannot mix other migration factors")
+    if timing_review is not None or body_reward_review is not None or height_recovery_review is not None:
         if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
                                        execution_evidence, video_review)):
             raise ValueError("timing-only migration cannot mix other reviewed factors")
@@ -1516,7 +1716,9 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
               if timing_review is not None else None)
     body_reward = (_body_reward_factor(checkpoint, metadata, old, new, delta, body_reward_review, Path(project_root))
                    if body_reward_review is not None else None)
-    if timing is None and body_reward is None and (video_review is None or not (set(delta) & VIDEO_FILES)):
+    height = (_height_recovery_factor(metadata, old, new, delta, height_recovery_review, Path(project_root))
+              if height_recovery_review is not None else None)
+    if timing is None and body_reward is None and height is None and (video_review is None or not (set(delta) & VIDEO_FILES)):
         # Existing instrumentation-only permission is unchanged; video has
         # its own explicit review and receipt, never a widened allowlist.
         observation_contract = _instrumentation_observation_contract(
@@ -1536,6 +1738,8 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
     additional = set(VIDEO_FILES) if video is not None else ({TIMING_ONLY_SPEC} if timing is not None else set())
     if body_reward is not None:
         additional = {TIMING_ONLY_SPEC, BODY_REWARD_CODE, BODY_REWARD_CONFIG}
+    if height is not None:
+        additional = set(HEIGHT_FILES)
     if execution_evidence is not None:
         if (set(delta) - INSTRUMENTATION_FILES - VECTOR_FILES or prior_evidence is not None
                 or qualification_evidence is not None or evaluator_review is not None):
@@ -1552,7 +1756,7 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                 or qualification_evidence is not None):
             raise ValueError("reviewed evaluator repair cannot mix prior/configuration or historical qualification factors")
         evaluator = _reviewed_evaluator_factor(Path(project_root), old, new, evaluator_review)
-    prior_transition = SUPERVISOR in delta and evaluator is None and timing is None and body_reward is None
+    prior_transition = SUPERVISOR in delta and evaluator is None and timing is None and body_reward is None and height is None
     if prior_transition != (prior_evidence is not None) or (prior_transition and STAGE_SPEC not in delta):
         raise ValueError("nominal source change and explicit prior evidence/config change must occur together")
     if qualification_evidence is not None and not prior_transition:
@@ -1561,7 +1765,7 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
     prior = _prior_factor(Path(project_root), old, new, prior_evidence, checkpoint,
                            qualification_transition=qualification_evidence is not None) if prior_transition else None
     qualification = _qualification_factor(Path(project_root), old, new, qualification_evidence) if qualification_evidence is not None else None
-    layout_contract = observation_contract or (video or timing or body_reward or {}).get("observation_contract")
+    layout_contract = observation_contract or (video or timing or body_reward or height or {}).get("observation_contract")
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
     result = {"schema": SCHEMA, "reason": reason.strip(), "source_checkpoint": str(checkpoint),
             "source_checkpoint_sha256": file_sha(checkpoint), "source_manifest_sha256": file_sha(sidecar),
@@ -1589,6 +1793,8 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
         result["nominal_timing_factor"] = timing
     if body_reward is not None:
         result["body_reward_factor"] = body_reward
+    if height is not None:
+        result["height_recovery_factor"] = height
     return result
 
 
@@ -1615,7 +1821,10 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                                     body_reward_review=None if "body_reward_factor" not in supplied else {
                                         "reason": supplied["body_reward_factor"]["review_reason"],
                                         "nominal_reference_manifest": supplied["body_reward_factor"]["nominal_reference_manifest"],
-                                        "timing_plan": (supplied["body_reward_factor"].get("timing_ancestor") or {}).get("plan_path")})
+                                        "timing_plan": (supplied["body_reward_factor"].get("timing_ancestor") or {}).get("plan_path")},
+                                    height_recovery_review=None if "height_recovery_factor" not in supplied else {
+                                        "reason": supplied["height_recovery_factor"]["review_reason"],
+                                        "reviewed_code_sha256": supplied["height_recovery_factor"]["reviewed_code_sha256"]})
     if supplied != expected:
         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}

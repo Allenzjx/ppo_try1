@@ -27,7 +27,7 @@ from .observation_schema import NonFiniteObservationError, PPOObservationFrame
 from .ppo_env_adapter import AuthoritativeFrame
 from .reward_terms import RewardSignals
 from .termination import TerminationSignals
-from .semantic_nominal_geometry import MODE as NOMINAL_GEOMETRY_MODE, FUNCTIONAL_RR_MODE
+from .semantic_nominal_geometry import MODE as NOMINAL_GEOMETRY_MODE, FUNCTIONAL_RR_MODE, BOUNDED_RR_MODE
 from .semantic_headroom import HEADROOM_MODE, validate_semantic_servo_headroom_config
 
 CONFIG_ROOT = Path(__file__).resolve().parents[3] / "configs" / "ppo_semantic_v2"
@@ -40,7 +40,7 @@ def load_execution_profile(path: Path | str = DEFAULT_EXECUTION_PROFILE) -> dict
         raise ValueError("unexpected semantic execution profile")
     if (profile["physics_hz"], profile["decision_hz"], profile["episode_timeout_s"]) != (120, 15, 200):
         raise ValueError("semantic timing must remain 120/15 Hz and a 200 second task horizon")
-    if profile.get("nominal_geometry_advisory") not in (None, NOMINAL_GEOMETRY_MODE, FUNCTIONAL_RR_MODE):
+    if profile.get("nominal_geometry_advisory") not in (None, NOMINAL_GEOMETRY_MODE, FUNCTIONAL_RR_MODE, BOUNDED_RR_MODE):
         raise ValueError("unknown nominal geometry advisory version")
     if (profile.get("nominal_geometry_advisory") is not None
             and profile["residual"].get("composition") != "independent_post_mapper_residual.v1"):
@@ -131,12 +131,14 @@ class SemanticIsaacBackend(IsaacFSMBackend):
             self._nominal_geometry_margin_m = float(task_spec["geometry"]["airborne_clearance_above_top_m"])
             if not math.isfinite(self._nominal_geometry_margin_m) or self._nominal_geometry_margin_m <= 0.:
                 raise ValueError("nominal geometry requires the existing positive physical clearance margin")
-            if self._nominal_geometry_mode == FUNCTIONAL_RR_MODE:
+            if self._nominal_geometry_mode in (FUNCTIONAL_RR_MODE, BOUNDED_RR_MODE):
                 if task_spec.get("p09_lift_semantics") != "functional_lift_edge_v2":
                     raise ValueError("functional RR geometry requires matching current-lift semantics")
-                self._functional_geometry_parameters = dict(mode=FUNCTIONAL_RR_MODE,
+                self._functional_geometry_parameters = dict(mode=self._nominal_geometry_mode,
                     minimum_lift_gain_m=float(task_spec["history"]["minimum_lift_gain_m"]),
                     workspace_min_m=float(task_spec["geometry"]["workspace_min_m"]))
+                if self._nominal_geometry_mode == BOUNDED_RR_MODE:
+                    self._functional_geometry_parameters["top_gap_min_m"] = float(task_spec["geometry"]["top_gap_min_m"])
         self._semantic_controller_factory = controller_factory
         self._semantic_actuation_plan = None
         self._level_fixed = tuple(float(x) for x in self.execution_profile["level_reference_orientation_wxyz"])
@@ -265,12 +267,16 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                 if ((prefix_mode is None or prefix_mode == "READY")
                         and source.physics_tick != handoff_tick):
                     from .semantic_nominal_geometry import capture_nominal_geometry_context
+                    geometry_options = dict(getattr(self, "_functional_geometry_parameters", {}))
+                    if self._nominal_geometry_mode == BOUNDED_RR_MODE and source.state_id == "P09":
+                        provider = self._reader.geometry_backend.provider
+                        geometry_options["collider_local_points"] = provider._body_local_points.get("rear_right_wheel")
                     geometry = capture_nominal_geometry_context(
                         adapter=adapter, observation=self._raw_observation,
                         source_frame=source, task_snapshot=controller.task_snapshot,
                         clearance_margin_m=self._nominal_geometry_margin_m,
                         physics_tick=physics_tick,
-                        **getattr(self, "_functional_geometry_parameters", {}))
+                        **geometry_options)
             adapter = SemanticActuationDispatch(adapter, plan, nominal_geometry_context=geometry,
                 policy_headroom_mode=getattr(self, "_policy_headroom_mode", None),
                 tracking_reference_mode=getattr(self, "_tracking_reference_mode", None),

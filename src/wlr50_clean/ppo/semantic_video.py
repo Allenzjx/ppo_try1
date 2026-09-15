@@ -435,9 +435,10 @@ def common_post_success_tick(backend, evaluator, *, episode_ticks, post_index):
 
 class EndpointObserver:
     """Common physical metrics first; exact-tick endpoint then native-grid render."""
-    def __init__(self, physical, recorder, backend, *, task_window=False):
+    def __init__(self, physical, recorder, backend, *, task_window=False, height_diagnostics=None):
         self.physical, self.recorder, self.backend = physical, recorder, backend
         self.task_window = task_window
+        self.height_diagnostics = height_diagnostics
         self.last_captured_tick = None
         self.last_frame = None
         self.last_global_tick = 0
@@ -449,6 +450,8 @@ class EndpointObserver:
         self.last_global_tick = (0 if self.task_window else PRE_TICKS) + after.physics_tick
         result = self.physical.evaluator.snapshot
         terminal = result.get("success") is True or result.get("termination_reason") is not None
+        if self.height_diagnostics is not None:
+            self.height_diagnostics.sample(after, terminal=terminal)
         if self.task_window:
             if after.physics_tick % STRIDE == 0 or terminal:
                 capture_task_interval_frame(self.recorder, self.backend, after.physics_tick)
@@ -559,6 +562,8 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
     decisions = None
     recorder_manifest = None
     physical_summary = None
+    height_diagnostics = None
+    height_diagnostic_receipt = None
     load_provenance = None
     check_model = lambda: None
     issued_decisions, completed_decisions, partial_ticks = 0, 0, 0
@@ -624,13 +629,18 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
         physical = PhysicalEvaluationRecorder(root, task_spec_path=configs["task_spec_path"],
                                                quality_score_path=configs["quality_score_path"])
         physical.start(core.frame)  # Prefix ticks cannot grant lift/cross/task credit.
+        if task_window:
+            from .semantic_height_diagnostics import HeightDiagnostics
+            height_diagnostics = HeightDiagnostics(root, backend)
+            height_diagnostics.start(core.frame)
         if policy_loader is not None:
             action, load_provenance, check_model = policy_loader(tuple(observation))
             require(load_provenance.get("checkpoint_loaded_and_verified") is True,
                     "C source lacks actual checkpoint load proof")
         else:
             action = lambda _observation, _decision: ZERO12
-        observer = EndpointObserver(physical, recorder, backend, task_window=task_window)
+        observer = EndpointObserver(physical, recorder, backend, task_window=task_window,
+                                    height_diagnostics=height_diagnostics)
         if role == "A":
             core.tick_callback = observer
         else:
@@ -685,6 +695,9 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"
     finally:
+        if height_diagnostics is not None:
+            height_diagnostic_receipt = height_diagnostics.close(
+                None if observer is None else observer.last_frame)
         if physical is not None:
             if task_window and physical_summary is None:
                 # Preserve measured task outcome even if encoding failed at the
@@ -707,7 +720,8 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
              "viewport_last_frame.png", "physical_video_roll_ticks.jsonl",
              "video_policy_decisions.jsonl", "physical_observations.jsonl",
              "native_tick_audit.jsonl", "stage_transition_evidence.jsonl",
-             "phase_metrics.csv", "physics_quality_metrics.csv")
+             "phase_metrics.csv", "physics_quality_metrics.csv",
+             "height_diagnostics_startup.json", "height_diagnostics.jsonl")
     payload = {"schema": "wlr50_clean.semantic_video_source.v1",
         "semantic_version": semantic_version,
         "evaluation_configuration": {name: file_record(path) for name, path in configs.items()},
@@ -742,6 +756,7 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
         payload["experiment_id"] = experiment_id
     if task_window:
         payload["natural_reset_proof"] = natural_reset_proof
+        payload["height_diagnostics"] = height_diagnostic_receipt
     if task_window and endpoint is not None:
         payload["task_interval_window"] = task_interval_receipt(endpoint.physics_tick)
     write_json(root/"semantic_video_source_manifest.json", payload)
