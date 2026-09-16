@@ -328,7 +328,7 @@ def construct_semantic_runner(env: Any, *, seed: int, device: str,
     return runner, config
 
 
-def audited_ppo_update(runner: Any) -> dict[str, Any]:
+def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None) -> dict[str, Any]:
     """Observe official minibatches and gradients without replacing PPO math."""
     import torch
     alg = runner.alg
@@ -338,6 +338,16 @@ def audited_ppo_update(runner: Any) -> dict[str, Any]:
     kl_method = alg.actor.get_kl_divergence
     active: dict[str, Any] = {}
     gradients, clips, kls = [], [], []
+    likelihood_rows = []
+    sample_lookup = {}
+    if likelihood_audit_path is not None:
+        # Index immutable saved observations/raw samples, never the shuffled
+        # neighbor or global history. No forward pass or RNG draw is added.
+        obs_rows = alg.storage.observations["policy"].flatten(0, 1).detach().cpu()
+        action_rows = alg.storage.actions.flatten(0, 1).detach().cpu()
+        for index, (observation, action) in enumerate(zip(obs_rows, action_rows)):
+            key = (observation.contiguous().numpy().tobytes(), action.contiguous().numpy().tobytes())
+            sample_lookup.setdefault(key, []).append(index)
 
     def batches(*args: Any, **kwargs: Any):
         for batch in generator(*args, **kwargs):
@@ -352,6 +362,27 @@ def audited_ppo_update(runner: Any) -> dict[str, Any]:
         with torch.no_grad():
             ratio = torch.exp(result - batch.old_actions_log_prob.squeeze(-1))
             clips.append(float(((ratio - 1).abs() > alg.clip_param).float().mean()))
+            if likelihood_audit_path is not None:
+                indices = []
+                for observation, action in zip(batch.observations["policy"].detach().cpu(), raw.detach().cpu()):
+                    key = (observation.contiguous().numpy().tobytes(), action.contiguous().numpy().tobytes())
+                    if key not in sample_lookup:
+                        raise RuntimeError("minibatch observation/raw sample differs from saved rollout")
+                    indices.append(sample_lookup[key])
+                advantage = batch.advantages.squeeze(-1)
+                unclipped = -advantage * ratio
+                clipped = -advantage * ratio.clamp(1.0-alg.clip_param, 1.0+alg.clip_param)
+                likelihood_rows.append({
+                    "minibatch_index": len(likelihood_rows),
+                    "rollout_flat_indices": indices,
+                    "old_log_probability": jsonable(batch.old_actions_log_prob.squeeze(-1)),
+                    "optimization_log_probability": jsonable(result),
+                    "ratio": jsonable(ratio), "actual_advantage": jsonable(advantage),
+                    "clipped_branch_strictly_active": jsonable(clipped > unclipped),
+                    "current_conditional_mean": jsonable(alg.actor.output_distribution_params[0]),
+                    "current_conditional_sigma": jsonable(alg.actor.output_distribution_params[1]),
+                    "history_source": "this_saved_observation_195_207_not_shuffled_neighbor",
+                })
         return result
 
     def observed_kl(*args: Any, **kwargs: Any):
@@ -385,6 +416,14 @@ def audited_ppo_update(runner: Any) -> dict[str, Any]:
     values = [*gradients, *clips, *kls, *(float(value) for value in loss.values())]
     if any(not math.isfinite(value) for value in values):
         raise RuntimeError("non-finite PPO diagnostics")
+    if likelihood_audit_path is not None:
+        write_json(likelihood_audit_path, {
+            "schema": "wlr50_clean.task_recovery_minibatch_likelihood.v1",
+            "source": "actual_official_PPO_log_prob_call_before_each_optimizer_step",
+            "extra_model_forwards": 0, "extra_random_draws": 0,
+            "sample_index_basis": "time_major_flattened_saved_rollout",
+            "ambiguous_identical_observation_and_action_indices_retained": True,
+            "clip_param": alg.clip_param, "minibatches": likelihood_rows})
     return {"optimizer_steps": len(gradients), "actor_parameter_sha256_before": before,
             "actor_parameter_sha256_after": after, "actor_parameters_changed": before != after,
             "finite_nonzero_gradient_observed": any(value > 0 for value in gradients),
@@ -555,11 +594,12 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         video_factor = (verified.get("video_instrumentation_factor") or {}).get("observation_contract")
         timing_factor = (verified.get("nominal_timing_factor") or {}).get("observation_contract")
         body_reward_factor = (verified.get("body_reward_factor") or {}).get("observation_contract")
+        task_first_factor = (verified.get("task_first_reward_factor") or {}).get("observation_contract")
         height_factor = (verified.get("height_recovery_factor") or {}).get("observation_contract")
         temperature_factor = None if temperature is None else temperature["observation_contract"]
-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, height_factor, temperature_factor)) > 1:
+        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, height_factor, temperature_factor)) > 1:
             raise RuntimeError("video, nominal timing, body reward, height and temperature migration receipts must be exclusive")
-        reviewed_factor = video_factor or timing_factor or body_reward_factor or height_factor or temperature_factor
+        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or height_factor or temperature_factor
         if reviewed_factor is not None:
             if factor is not None:
                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")
@@ -1140,7 +1180,7 @@ def semantic_curriculum_epoch(config: Mapping[str, Any]) -> dict[str, Any]:
     result = {"reset_sampling": jsonable(config.get("reset_sampling", "P01_only")),
               "prefix_request": request}
     provenance = config.get("prefix_policy_provenance")
-    if isinstance(request, Mapping) and request.get("source") == "frozen_checkpoint_policy":
+    if isinstance(request, Mapping) and request.get("source") in ("frozen_checkpoint_policy", "successful_nominal"):
         if not isinstance(provenance, Mapping) or not provenance:
             raise ValueError("checkpoint-policy curriculum must be installed before training/publication")
     if provenance is not None:
@@ -1433,7 +1473,11 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
             torch.save(snapshot, rollout_dir / f"rollout_{base_updates + iteration + 1:06d}.pt")
             global_step = base_global + (iteration + 1) * batch
             runner.alg.entropy_coef = 0.005 + (0.001 - 0.005) * min(global_step / sum(STAGE_BUDGETS.values()), 1.0)
-            update = audited_ppo_update(runner)
+            if contract.get("experiment_id") == "task_first_recovery_v1":
+                update = audited_ppo_update(runner, likelihood_audit_path=rollout_dir /
+                    f"update_{base_updates + iteration + 1:06d}_likelihood.json")
+            else:
+                update = audited_ppo_update(runner)
             if gpu_probe is not None:
                 gpu_probe.sample("after_official_optimizer_update")
             update.update(ppo_update=base_updates + iteration + 1, global_policy_decisions=global_step)
@@ -1472,9 +1516,15 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                 for key in ("new_mdp_warm_start", "new_mdp_origin_global_policy_decisions", "source_stage_requested_decisions",
                             "new_mdp_initial_action_comparison", "policy_distribution_migration",
                             "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison",
-                            "observation_scale_compensation_evidence", "observation_append_evidence"):
+                            "observation_scale_compensation_evidence", "observation_append_evidence",
+                            "task_recovery_branch"):
                     if key in previous:
                         infos[key] = previous[key]
+                if "task_recovery_branch" in infos:
+                    origin = infos["task_recovery_branch"]["counter_origin"]
+                    infos["task_recovery_branch_counts"] = {
+                        key: int(infos[key]) - int(origin[key])
+                        for key in ("global_policy_decisions", "ppo_updates", "optimizer_steps")}
                 if previous:
                     infos["resume_ancestry"] = {
                         "source_global_policy_decisions": base_global, "source_ppo_updates": base_updates,

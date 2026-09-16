@@ -40,7 +40,7 @@ def version_paths(version: str, *, experiment_id: str | None = None) -> tuple[Pa
     if version == "v2":
         return RUNS_ROOT, OUTPUT_ROOT, PROJECT_ROOT / "configs/ppo_semantic_v2"
     return (PROJECT_ROOT / "runs" / namespace, PROJECT_ROOT / "outputs" / namespace,
-            PROJECT_ROOT / "configs" / (namespace if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2") else "ppo_semantic_v3"))
+            PROJECT_ROOT / "configs" / (namespace if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1") else "ppo_semantic_v3"))
 
 
 def _request_paths(args: argparse.Namespace) -> tuple[Path, Path, Path]:
@@ -65,10 +65,10 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--seed", type=int, default=1001)
     result.add_argument("--num-envs", type=int, choices=(1, 8), default=1)
     result.add_argument("--semantic-version", choices=("v2", "v3"), default="v2")
-    result.add_argument("--experiment-id", choices=("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2"))
+    result.add_argument("--experiment-id", choices=("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1"))
     result.add_argument("--from-phase", choices=("P01", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13"), default="P01")
     result.add_argument("--teacher-offset-decisions", type=int, default=0)
-    result.add_argument("--prefix-source", choices=("frozen_fsm", "checkpoint_policy"), default="frozen_fsm")
+    result.add_argument("--prefix-source", choices=("frozen_fsm", "checkpoint_policy", "successful_nominal"), default="frozen_fsm")
     result.add_argument("--new-mdp-warm-start", action="store_true")
     result.add_argument("--target-policy-version", choices=(HISTORY_POLICY,))
     result.add_argument("--policy-distribution-migration", action="store_true")
@@ -155,7 +155,7 @@ def validate_request(args: argparse.Namespace) -> None:
         raise ValueError("suffix starts and teacher offsets require v3 N1 training; evaluation remains fresh P01")
     if not 0 <= args.teacher_offset_decisions < 1800:
         raise ValueError("teacher offset must be within the 200 second total task budget")
-    if getattr(args, "prefix_source", "frozen_fsm") == "checkpoint_policy" and (
+    if getattr(args, "prefix_source", "frozen_fsm") in ("checkpoint_policy", "successful_nominal") and (
             args.semantic_version != "v3" or args.num_envs != 1 or args.command != "train"
             or args.from_phase == "P01" or args.stage != "phase_suffix" or args.checkpoint is None
             or getattr(args, "policy_distribution_migration", False)):
@@ -198,6 +198,12 @@ def validate_request(args: argparse.Namespace) -> None:
         raise ValueError("training already exists; explicitly resume checkpoint_last instead of reinitializing")
     if args.checkpoint is not None:
         source_root = output_root
+        if (getattr(args, "experiment_id", None) == "task_first_recovery_v1"
+                and args.resume_migration is not None
+                and not args.checkpoint.resolve(strict=True).is_relative_to((output_root / "checkpoints").resolve())):
+            # Only route the explicit old-policy reward migration. Its strict
+            # same-N/config validation still runs before any native launch.
+            source_root = version_paths("v3", experiment_id="fsm_reference_p09_stable_v2")[1]
         if args.new_mdp_warm_start:
             if getattr(args, "experiment_id", None) == "fsm_reference_p09_stable_v2":
                 # A same-experiment nominal boundary remains separately reviewed
@@ -914,7 +920,8 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
             core_options.update(action_config=config_root / "execution_profile.yaml",
                                 reward_config_path=config_root / "reward_config.yaml",
                                 observation_schema_path=config_root / "observation_schema.json")
-        checkpoint_prefix = getattr(args, "prefix_source", "frozen_fsm") == "checkpoint_policy"
+        nominal_prefix = getattr(args, "prefix_source", "frozen_fsm") == "successful_nominal"
+        checkpoint_prefix = getattr(args, "prefix_source", "frozen_fsm") in ("checkpoint_policy", "successful_nominal")
         if args.from_phase != "P01" and not checkpoint_prefix:
             from .semantic_prefix import PrefixRequest, PrefixSemanticIsaacBackend
             backend = PrefixSemanticIsaacBackend(app, prefix_request=PrefixRequest(
@@ -937,7 +944,8 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                 from .semantic_checkpoint_prefix import CheckpointPolicyPrefixRequest, CheckpointPolicyPrefixRslAdapter
                 env = CheckpointPolicyPrefixRslAdapter(core, seed=args.seed, device=args.device,
                     evidence_sink=prefix_evidence, request=CheckpointPolicyPrefixRequest(
-                        target_phase=args.from_phase, teacher_offset_decisions=args.teacher_offset_decisions))
+                        target_phase=args.from_phase, teacher_offset_decisions=args.teacher_offset_decisions,
+                        source="successful_nominal" if nominal_prefix else "frozen_checkpoint_policy"))
             else:
                 env = PrefixRslAdapter(core, seed=args.seed, device=args.device, evidence_sink=prefix_evidence)
         else:
@@ -952,7 +960,20 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                                                 migration=getattr(args, "_migration_record", None),
                                                 warm_start=getattr(args, "_warm_start_record", None),
                                                 policy_migration=getattr(args, "_policy_migration_record", None))
-            if checkpoint_prefix:
+            if nominal_prefix:
+                from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+                # Same N/controller/mapper/history as B and C. Only reset-time
+                # zero residual creates this legal training start; no PPO credit.
+                env.install_prefix_policy(lambda observation: (0.0,)*12, {
+                    "schema": "wlr50_clean.successful_nominal_prefix.v1",
+                    "source": "successful_nominal", "raw_action_full12": [0.0]*12,
+                    "policy_credit": False,
+                    "execution_profile_sha256": sha256_file(config_root / "execution_profile.yaml"),
+                    "stage_task_spec_sha256": sha256_file(config_root / "stage_task_spec.yaml"),
+                    "runtime_content_sha256": contract["runtime_content_sha256"],
+                    "interface_contract": {"observation_dimension": 372,
+                        "observation_layout": ROLE_OBSERVATION_LAYOUT, "action_dimension": 12}})
+            elif checkpoint_prefix:
                 from .semantic_checkpoint_prefix_policy import build_frozen_checkpoint_prefix_policy
                 # The loader already verified this exact immutable checkpoint,
                 # actor and preprocessing. The independent actor is reset-only;

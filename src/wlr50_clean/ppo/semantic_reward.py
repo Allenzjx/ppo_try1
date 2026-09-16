@@ -20,6 +20,30 @@ DEFAULT_REWARD_CONFIG = CONFIG_ROOT / "reward_config.yaml"
 ROLE_TRANSFER_VERSION = "diagonal_transfer_roles_v1"
 
 CARRY_BODY_ALLOWANCE_MODE = "current_functional_carry_and_capture_settle_v1"
+TASK_FIRST_OBJECTIVE = "task_first_recovery_v1"
+
+
+def _validate_task_priority(values: Mapping[str, Any]) -> None:
+    """The recovery profile disables reward preferences, never physical safety.
+
+    We keep the existing five-family arithmetic and measured diagnostics. The
+    explicit epsilon is a versioned assertion about those family weights, not a
+    second hidden multiplier or a phase-dependent quality switch. A later
+    nonzero-quality candidate needs its own explicit objective version.
+    """
+    objective = values.get("objective_profile")
+    if objective is None:
+        if "quality_epsilon" in values:
+            raise ValueError("quality epsilon requires an explicit objective profile")
+        return
+    if objective != TASK_FIRST_OBJECTIVE:
+        raise ValueError("unknown task-priority objective profile")
+    epsilon = values.get("quality_epsilon")
+    if isinstance(epsilon, bool) or finite(epsilon, "quality epsilon") != 0.:
+        raise ValueError("task-first recovery v1 requires quality epsilon zero")
+    if (values["family_weights"]["task_progress"] != 1.
+            or any(values["family_weights"][name] != 0. for name in FAMILIES[1:])):
+        raise ValueError("task-first recovery requires task weight one and all quality weights zero")
 
 
 def _validate_carry_body_allowance(values: Mapping[str, Any]) -> None:
@@ -130,6 +154,9 @@ class SemanticRewardConfig:
         costs = sum(v["family_weights"][name] for name in FAMILIES[1:])
         costs += v["time_cost_per_s"] * v["family_weights"]["task_progress"]
         # Infinite discounted future is an upper bound on the finite task.
+        # This only bounds costs avoidable by ending now. It is NOT a theorem
+        # ordering all successful/failed trajectories of different durations:
+        # delaying a discounted negative terminal event can still improve return.
         return costs / v["decision_hz"] / (1-self.gamma) + v["potential_weight"]
 
 
@@ -161,6 +188,7 @@ def load_semantic_reward_config(path: Path | str = DEFAULT_REWARD_CONFIG) -> Sem
     if type(v["control_regularization_enabled"]) is not bool:
         raise ValueError("regularization switch must be boolean")
     _validate_carry_body_allowance(v)
+    _validate_task_priority(v)
     config = SemanticRewardConfig(v,selected)
     if v["failure_cost"]*v["family_weights"]["task_progress"] <= config.failure_avoidance_bound:
         raise ValueError("failure event must exceed avoidable future costs and potential")
@@ -301,6 +329,8 @@ class SemanticRewardCalculator:
                       **{name:-costs[name] for name in FAMILIES[1:]}}
         families = {name:unweighted[name]*v["family_weights"][name] for name in FAMILIES}
         return {"total":sum(families.values()),"families":families,"unweighted_families":unweighted,
+                "objective_profile":v.get("objective_profile", "legacy_quality_weighted"),
+                "quality_epsilon":v.get("quality_epsilon"),
                 "potential_before":phi_before,"potential_after":phi_after,"potential_shaping":potential,
                 "terminal_event":event,"elapsed_physics_s":total_dt,"cost_components":diagnostics,
                 "discount_convention":"one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",

@@ -65,6 +65,15 @@ HEIGHT_CODE_FILES = HEIGHT_NEW_FILES | {SUPERVISOR} | frozenset(
         "semantic_migration", "semantic_training"))
 HEIGHT_FILES = HEIGHT_CODE_FILES | {TIMING_ONLY_SPEC, HEIGHT_EXECUTION}
 EXPLORATION_TEMPERATURE_SCHEMA = "wlr50_clean.history372_innovation_temperature_continuation.v1"
+TASK_FIRST_REWARD_SCHEMA = "wlr50_clean.task_first_reward_same372_continuation.v1"
+TASK_RECOVERY_BRANCH_SCHEMA = "wlr50_clean.task_recovery_mean_head_branch.v1"
+TASK_FIRST_REVIEW_FILES = frozenset({
+    *(f"src/wlr50_clean/ppo/{name}.py" for name in (
+        "semantic_reward", "semantic_training", "semantic_migration", "semantic_cli", "semantic_video_cli", "semantic_video",
+        "semantic_checkpoint_prefix")),
+    "scripts/run_semantic_ppo.ps1", "scripts/run_semantic_video.ps1",
+    "scripts/initialize_task_recovery_branch.py",
+})
 EXPLORATION_TEMPERATURE_FILES = frozenset(f"src/wlr50_clean/ppo/{name}.py" for name in (
     "semantic_history_actor", "semantic_policy_distribution", "semantic_training",
     "semantic_cli", "semantic_migration"))
@@ -83,7 +92,7 @@ def experiment_namespace(semantic_version: str, experiment_id: str | None = None
         raise ValueError("unsupported semantic runtime version")
     if experiment_id is None:
         return f"ppo_semantic_{semantic_version}"
-    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2") or semantic_version != "v3":
+    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1") or semantic_version != "v3":
         raise ValueError("isolated semantic experiment requires semantic version v3")
     return f"ppo_{experiment_id}"
 
@@ -1856,6 +1865,210 @@ def _build_exploration_temperature_plan(checkpoint, metadata, old, new, *,
         "exploration_temperature_factor": factor}
 
 
+def _build_task_first_reward_plan(checkpoint, metadata, old, new, *,
+        allowed_changed_files, reason, review, project_root):
+    """Reviewed reward-only objective boundary; successful N and physical task stay fixed."""
+    import copy
+    import yaml
+    from .semantic_policy_distribution import CONFIG_NAMES, HISTORY_TEMPERED_POLICY, policy_contract
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    if (not isinstance(review, Mapping) or set(review) != {"reason", "reviewed_code_sha256"}
+            or not isinstance(review["reason"], str) or not review["reason"].strip()
+            or not isinstance(reason, str) or not reason.strip()):
+        raise ValueError("task-first reward requires explicit reason and exact reviewed code hashes")
+    if (old.get("experiment_id") not in ("fsm_reference_p09_stable_v2", "task_first_recovery_v1")
+            or new.get("experiment_id") != "task_first_recovery_v1"
+            or old.get("semantic_version") != "v3" or new.get("semantic_version") != "v3"
+            or source_num_envs(metadata) != 1):
+        raise ValueError("task-first reward requires existing same372 v3 N1 and its isolated namespace")
+    canonical = policy_contract(HISTORY_TEMPERED_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    if metadata.get("policy_contract") != canonical:
+        raise ValueError("task-first recovery preserves the verified tempered HISTORY372 policy")
+    variable = {"files", "runtime_content_sha256", "source_git_commit", "selected_configuration", "experiment_id"}
+    if ({k: v for k, v in old.items() if k not in variable}
+            != {k: v for k, v in new.items() if k not in variable}):
+        raise ValueError("task-first reward cannot change physical/runtime metadata")
+    delta = sorted(p for p in old["files"].keys() | new["files"].keys()
+                   if old["files"].get(p) != new["files"].get(p))
+    if sorted(allowed_changed_files) != delta or len(set(allowed_changed_files)) != len(allowed_changed_files):
+        raise ValueError("task-first migration requires the exact unique changed-file inventory")
+    if old["files"].keys() - new["files"].keys():
+        raise ValueError("task-first migration cannot delete runtime files")
+    source_namespace = f"configs/ppo_{old['experiment_id']}"
+    target_namespace = "configs/ppo_task_first_recovery_v1"
+    targets = {f"{target_namespace}/{n}" for n in CONFIG_NAMES}
+    code_delta = set(delta) - targets
+    if not code_delta <= TASK_FIRST_REVIEW_FILES:
+        raise ValueError(f"task-first migration changed protected N/physics/policy files: {sorted(code_delta - TASK_FIRST_REVIEW_FILES)}")
+    hashes = review["reviewed_code_sha256"]
+    if not isinstance(hashes, Mapping) or dict(hashes) != {p: new["files"][p] for p in sorted(code_delta)}:
+        raise ValueError("task-first reviewed code hashes must bind every changed non-config file")
+    records = {}
+    for side, contract, namespace in (("source", old, source_namespace), ("target", new, target_namespace)):
+        if set(contract.get("selected_configuration", {})) != CONFIG_NAMES:
+            raise ValueError("task-first requires exactly six selected configuration bindings")
+        for name in CONFIG_NAMES:
+            relative = f"{namespace}/{name}"
+            expected = {"path": relative, "sha256": contract["files"].get(relative)}
+            if contract["selected_configuration"][name] != expected or expected["sha256"] is None:
+                raise ValueError("task-first configuration binding differs from runtime inventory")
+            records.setdefault(name, {})[side] = expected
+    for name, row in records.items():
+        before_bytes = _version_bytes(project_root, old, row["source"]["path"], prefer_worktree=True)
+        after_bytes = _version_bytes(project_root, new, row["target"]["path"], prefer_worktree=True)
+        before, after = yaml.safe_load(before_bytes), yaml.safe_load(after_bytes)
+        if name == "reward_config.yaml":
+            expected = copy.deepcopy(before)
+            expected.update(revision="task_first_recovery_epsilon_zero_v1",
+                            objective_profile="task_first_recovery_v1", quality_epsilon=0.0)
+            for family in ("body_stability", "contact_motion_quality", "control_smoothness", "control_regularization"):
+                expected["family_weights"][family] = 0.0
+            if after != expected or before.get("family_weights", {}).get("control_regularization") != 0.0:
+                raise ValueError("task-first permits only explicit epsilon-zero quality weights and profile markers")
+        elif before != after:
+            raise ValueError(f"task-first cannot change non-reward configuration semantics: {name}")
+        row["bytes_identical"] = before_bytes == after_bytes
+        row["semantics_identical"] = before == after
+        row["serialization_only_change"] = before == after and before_bytes != after_bytes
+    for relative in delta:
+        if file_sha(project_root / relative) != new["files"][relative]:
+            raise ValueError("task-first target bytes differ from current inventory")
+    observation = {"source_policy_contract": canonical, "target_policy_contract": dict(canonical),
+        "observation_layout": ROLE_OBSERVATION_LAYOUT, "observation_dimension": 372,
+        "action_dimension": 12, "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"}
+    factor = {"schema": TASK_FIRST_REWARD_SCHEMA, "review_reason": review["reason"].strip(),
+        "reviewed_code_sha256": dict(hashes), "configuration_bindings": records,
+        "reward_changed": records["reward_config.yaml"]["semantics_identical"] is False,
+        "physical_mdp_changed": False, "nominal_control_changed": False, "task_acceptance_changed": False,
+        "physical_actuators_changed": False, "action_ranges_changed": False, "kernel_changed": False,
+        "observation_semantics_changed": [], "observation_contract": observation,
+        "normalizers": "preserve_verified_identity_RSL_state",
+        "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+        "critic": "preserve_parameters_and_Adam_then_refit_only_on_new_objective_on_policy_data; old_values_not_new_objective_truth",
+        "quality_epsilon": 0.0, "old_rollout_inherited": False, "migration_added_updates": 0,
+        "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True}
+    sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
+    return {"schema": SCHEMA, "reason": reason.strip(), "source_checkpoint": str(checkpoint),
+        "source_checkpoint_sha256": file_sha(checkpoint), "source_manifest_sha256": file_sha(sidecar),
+        "source_contract_sha256": digest(old), "target_contract_sha256": digest(new),
+        "source_git_commit": old["source_git_commit"], "target_git_commit": new["source_git_commit"],
+        "allowed_changed_files": delta,
+        "changed_file_hashes": {p: {"before": old["files"].get(p), "after": new["files"][p]} for p in delta},
+        "geometric_factor": None, "observation_dimension": 372, "action_dimension": 12,
+        "preserve_actor_critic_optimizer_normalizer_rng_and_budget": True,
+        "discard_old_rollout_storage": True, "physics_resume": "fresh_legal_P01_reset",
+        "task_first_reward_factor": factor}
+
+
+def apply_task_recovery_mean_head(runner: Any, source_infos: Mapping[str, Any], *,
+        branch_id: str, reason: str) -> dict[str, Any]:
+    """Explicit in-memory branch initialization after verified checkpoint loading.
+
+    Does not save a checkpoint or perform a forward/optimizer/physics step. The
+    caller publishes under a new immutable name, then trains fresh on-policy
+    data. Absolute lifetime counters stay intact; branch counters use the
+    recorded origin. Adam's scalar step belongs to the shared mean/sigma tensor
+    and must remain intact: only mean-row first/second moments are cleared.
+    """
+    import copy
+    import re
+    import torch
+    from .semantic_policy_distribution import HISTORY_TEMPERED_POLICY, policy_contract
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    from .semantic_training import parameter_hash, state_hash
+    if (not isinstance(branch_id, str) or re.fullmatch(r"[a-z][a-z0-9_]{2,63}", branch_id) is None
+            or not isinstance(reason, str) or not reason.strip()):
+        raise ValueError("mean-head branch requires an explicit safe branch id and reason")
+    if source_infos.get("task_recovery_branch") is not None:
+        raise ValueError("mean-head recovery must not silently reinitialize an existing recovery branch")
+    canonical = policy_contract(HISTORY_TEMPERED_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    if (source_infos.get("policy_contract") != canonical
+            or source_infos.get("runtime_contract", {}).get("experiment_id") != "task_first_recovery_v1"
+            or getattr(runner, "_semantic_policy_version", None) != HISTORY_TEMPERED_POLICY
+            or getattr(runner, "_semantic_observation_layout", None) != ROLE_OBSERVATION_LAYOUT
+            or runner.alg.storage.step != 0 or runner.alg.transition.actions is not None):
+        raise ValueError("mean-head recovery requires a loaded task-first HISTORY372 checkpoint and fresh rollout")
+    counters = {key: source_infos.get(key) for key in ("global_policy_decisions", "ppo_updates", "optimizer_steps")}
+    if any(type(value) is not int or value < 1 for value in counters.values()):
+        raise ValueError("mean-head recovery requires explicit positive ancestry counters")
+    source = source_infos.get("resume_source_checkpoint")
+    if not isinstance(source, Mapping) or not source.get("checkpoint_sha256") or not source.get("manifest_sha256"):
+        raise ValueError("mean-head recovery requires the verified immutable source checkpoint binding")
+    actor, critic, optimizer = runner.alg.actor, runner.alg.critic, runner.alg.optimizer
+    if type(optimizer) is not torch.optim.Adam:
+        raise ValueError("mean-head recovery only supports the existing verified Adam")
+    before_actor = parameter_hash(actor)
+    before_critic = parameter_hash(critic)
+    before_optimizer = state_hash(optimizer.state_dict())
+    if (before_actor != source_infos.get("actor_parameter_sha256")
+            or before_critic != source_infos.get("critic_parameter_sha256")
+            or before_optimizer != source_infos.get("optimizer_state_sha256")):
+        raise ValueError("mean-head recovery requires exact source actor/critic/Adam hashes")
+    named = dict(actor.named_parameters())
+    keys = ("mlp.4.weight", "mlp.4.bias")
+    if (any(key not in named for key in keys) or tuple(named[keys[0]].shape) != (24, 256)
+            or tuple(named[keys[1]].shape) != (24,)):
+        raise ValueError("mean-head recovery requires the existing 24-row 256-feature output layer")
+    parameters = [p for group in optimizer.param_groups for p in group["params"]]
+    if len({id(p) for p in parameters}) != len(parameters):
+        raise ValueError("mean-head recovery cannot map duplicate optimizer parameters")
+    old_optimizer = optimizer.state_dict()
+    saved_ids = [p for group in old_optimizer["param_groups"] for p in group["params"]]
+    parameter_ids = {id(p): saved_id for p, saved_id in zip(parameters, saved_ids, strict=True)}
+    mapped_actor = copy.deepcopy(actor.state_dict())
+    mapped_optimizer = copy.deepcopy(old_optimizer)
+    resets = []
+    for key in keys:
+        parameter = named[key]
+        if id(parameter) not in parameter_ids:
+            raise ValueError("mean-head parameter is absent from Adam")
+        saved_id = parameter_ids[id(parameter)]
+        state = mapped_optimizer["state"].get(saved_id)
+        if not isinstance(state, dict) or not {"step", "exp_avg", "exp_avg_sq"} <= set(state):
+            raise ValueError("mean-head recovery requires existing Adam moment state")
+        moment_keys = set(state) - {"step"}
+        if not moment_keys <= {"exp_avg", "exp_avg_sq", "max_exp_avg_sq"}:
+            raise ValueError("mean-head recovery encountered unsupported Adam state")
+        step = state["step"]
+        if (not isinstance(step, torch.Tensor) or step.numel() != 1
+                or not bool(torch.isfinite(step).all()) or float(step) <= 0):
+            raise ValueError("mean-head recovery requires finite positive shared Adam step")
+        if not bool(torch.isfinite(mapped_actor[key]).all()):
+            raise ValueError("mean-head source parameters must be finite")
+        mapped_actor[key][:12].zero_()
+        for moment in sorted(moment_keys):
+            value = state[moment]
+            if not isinstance(value, torch.Tensor) or value.shape != parameter.shape or not bool(torch.isfinite(value).all()):
+                raise ValueError("mean-head Adam moment dimensions/finiteness differ")
+            value[:12].zero_()
+        resets.append({"parameter": key, "mean_rows": [0, 12], "preserved_log_sigma_rows": [12, 24],
+                       "cleared_moment_fields": sorted(moment_keys), "shared_Adam_step_preserved": float(step)})
+    # All checks and both transforms finish before either live object is changed.
+    actor.load_state_dict(mapped_actor, strict=True)
+    optimizer.load_state_dict(mapped_optimizer)
+    if state_hash(actor.state_dict()) != state_hash(mapped_actor) or state_hash(optimizer.state_dict()) != state_hash(mapped_optimizer):
+        raise RuntimeError("mean-head branch failed exact in-memory transformed-state round trip")
+    branch = {"schema": TASK_RECOVERY_BRANCH_SCHEMA, "branch_id": branch_id, "reason": reason.strip(),
+        "source_checkpoint": copy.deepcopy(dict(source)), "counter_origin": counters,
+        "branch_policy_decisions": 0, "branch_ppo_updates": 0, "branch_optimizer_steps": 0,
+        "branch_counter_semantics": "absolute_checkpoint_counters_minus_origin_lifetime_counters",
+        "old_model_and_old_optimizer_preserved_on_disk": True,
+        "actor_feature_parameters": "preserved_exactly", "mean_output_parameters": "zero_first12_rows_only",
+        "log_sigma_parameters": "preserved_exactly_not_exp0", "changed_parameter_rows": resets,
+        "optimizer": "preserve_all_other_states_and_groups; clear_only_mean_row_moments",
+        "Adam_shared_scalar_step": "preserved_for_sigma_and_shared_parameter; mean_moment_bias_correction_uses_existing_age",
+        "critic": "preserve_parameters_and_Adam_then_refit_only_on_new_reward_on_policy_data; source_values_not_ground_truth",
+        "history": "kernel_unchanged; fresh_legal_episode_reset_has_zero_previous_raw",
+        "normalizer": "identity_state_preserved", "training_rng": "preserved_no_sampling_during_initialization",
+        "old_rollout_inherited": False, "all12_channels_remain_learnable": True,
+        "initialization_is_not_PPO_learning_success": True,
+        "actor_parameter_sha256_before": before_actor, "actor_parameter_sha256_after": parameter_hash(actor),
+        "critic_parameter_sha256_before": before_critic, "critic_parameter_sha256_after": parameter_hash(critic),
+        "optimizer_state_sha256_before": before_optimizer, "optimizer_state_sha256_after": state_hash(optimizer.state_dict())}
+    return {**copy.deepcopy(dict(source_infos)), "stage": "initial_task_recovery_mean_head",
+            "task_recovery_branch": branch}
+
+
 def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
                          allowed_changed_files: Sequence[str], reason: str,
                          prior_evidence: Mapping[str, Any] | None = None,
@@ -1867,11 +2080,20 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                          body_reward_review: Mapping[str, Any] | None = None,
                          height_recovery_review: Mapping[str, Any] | None = None,
                          exploration_temperature_review: Mapping[str, Any] | None = None,
+                         task_first_reward_review: Mapping[str, Any] | None = None,
                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Build a reviewed plan after committing the new runtime; does not write."""
     checkpoint = Path(checkpoint).resolve(strict=True)
     metadata = checkpoint_metadata(checkpoint)
     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
+    if task_first_reward_review is not None:
+        if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
+                execution_evidence, video_review, timing_review, body_reward_review,
+                height_recovery_review, exploration_temperature_review)):
+            raise ValueError("task-first reward cannot mix any other migration factor")
+        return _build_task_first_reward_plan(checkpoint, metadata, old, new,
+            allowed_changed_files=allowed_changed_files, reason=reason,
+            review=task_first_reward_review, project_root=Path(project_root))
     if exploration_temperature_review is not None:
         if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
                 execution_evidence, video_review, timing_review, body_reward_review, height_recovery_review)):
@@ -2015,7 +2237,10 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                                         "reviewed_code_sha256": supplied["height_recovery_factor"]["reviewed_code_sha256"]},
                                     exploration_temperature_review=None if "exploration_temperature_factor" not in supplied else {
                                         "reason": supplied["exploration_temperature_factor"]["review_reason"],
-                                        "reviewed_code_sha256": supplied["exploration_temperature_factor"]["reviewed_code_sha256"]})
+                                        "reviewed_code_sha256": supplied["exploration_temperature_factor"]["reviewed_code_sha256"]},
+                                    task_first_reward_review=None if "task_first_reward_factor" not in supplied else {
+                                        "reason": supplied["task_first_reward_factor"]["review_reason"],
+                                        "reviewed_code_sha256": supplied["task_first_reward_factor"]["reviewed_code_sha256"]})
     if supplied != expected:
         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}
@@ -2081,7 +2306,7 @@ def continuation_topology(sampling: str, prefix_request: Mapping[str, Any] | Non
     elif prefix_request.get("schema") == "wlr50_clean.checkpoint_policy_prefix_request.v1":
         from .semantic_checkpoint_prefix import CheckpointPolicyPrefixRequest, sampling_label
         request = CheckpointPolicyPrefixRequest(**{name: prefix_request[name] for name in (
-            "target_phase", "maximum_prefix_decisions", "teacher_offset_decisions")})
+            "target_phase", "maximum_prefix_decisions", "teacher_offset_decisions", "source")})
         if request.as_dict() != dict(prefix_request) or sampling != sampling_label(request):
             raise ValueError("v3 checkpoint-policy prefix sampling metadata is malformed")
     else:

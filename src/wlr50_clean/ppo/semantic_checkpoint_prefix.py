@@ -33,8 +33,11 @@ class CheckpointPolicyPrefixRequest:
     target_phase: str = "P06"
     teacher_offset_decisions: int = 0
     maximum_prefix_decisions: int = 1800
+    source: str = "frozen_checkpoint_policy"
 
     def __post_init__(self):
+        if self.source not in ("frozen_checkpoint_policy", "successful_nominal"):
+            raise ValueError("unsupported reset-only prefix source")
         if self.target_phase not in PREFIX_TARGETS:
             raise ValueError("checkpoint prefix target must be P03-P13")
         if type(self.maximum_prefix_decisions) is not int or not 1 <= self.maximum_prefix_decisions <= 3000:
@@ -45,7 +48,7 @@ class CheckpointPolicyPrefixRequest:
 
     def as_dict(self):
         return {"schema": "wlr50_clean.checkpoint_policy_prefix_request.v1",
-                "source": "frozen_checkpoint_policy", "target_phase": self.target_phase,
+                "source": self.source, "target_phase": self.target_phase,
                 "teacher_offset_decisions": self.teacher_offset_decisions,
                 "maximum_prefix_decisions": self.maximum_prefix_decisions,
                 "fallback": "one_fresh_P01", "task_horizon_includes_prefix": True,
@@ -56,7 +59,9 @@ class CheckpointPolicyPrefixRequest:
 def sampling_label(request: CheckpointPolicyPrefixRequest) -> str:
     if not isinstance(request, CheckpointPolicyPrefixRequest):
         raise ValueError("validated checkpoint prefix request required")
-    return f"{SAMPLING}:{request.target_phase}:offset_{request.teacher_offset_decisions}"
+    name = (SAMPLING if request.source == "frozen_checkpoint_policy" else
+            "natural_P01_successful_nominal_prefix_then_semantic_suffix_N1.v1")
+    return f"{name}:{request.target_phase}:offset_{request.teacher_offset_decisions}"
 
 
 def _json_copy(value):
@@ -79,6 +84,18 @@ def _provenance(value):
     if not isinstance(value, Mapping):
         raise ValueError("checkpoint prefix provenance mapping required")
     result = _json_copy(value)
+    if result.get("source") == "successful_nominal":
+        if result.get("schema") != "wlr50_clean.successful_nominal_prefix.v1":
+            raise ValueError("nominal prefix requires explicit non-policy provenance")
+        for key in ("execution_profile_sha256", "stage_task_spec_sha256", "runtime_content_sha256"):
+            if not isinstance(result.get(key), str) or not re.fullmatch("[0-9a-f]{64}", result[key]):
+                raise ValueError("nominal prefix lacks live configuration binding")
+        if result.get("interface_contract") != {"observation_dimension": ROLE_OBSERVATION_DIM,
+                "observation_layout": ROLE_OBSERVATION_LAYOUT, "action_dimension": 12}:
+            raise ValueError("nominal prefix interface differs from unchanged Full12/372")
+        if result.get("raw_action_full12") != [0.0]*12 or result.get("policy_credit") is not False:
+            raise ValueError("nominal prefix must be zero-residual with no PPO credit")
+        return result
     if not isinstance(result.get("checkpoint_path"), str) or not result["checkpoint_path"].strip():
         raise ValueError("verified source checkpoint_path required")
     for key in ("checkpoint_sha256", "actor_parameter_sha256"):
@@ -171,7 +188,10 @@ class _CheckpointPolicyCreditCore(PrefixCreditCore):
         if not callable(policy_callable):
             raise ValueError("frozen deterministic prefix callable required")
         binding = _provenance(provenance)
-        contract = binding["policy_contract"]
+        nominal = self.request.source == "successful_nominal"
+        if nominal != (binding.get("source") == "successful_nominal"):
+            raise ValueError("prefix source and provenance differ")
+        contract = binding["interface_contract"] if nominal else binding["policy_contract"]
         if ((contract["observation_dimension"], contract.get("observation_layout"))
                 != (self._observation_dimension, self._observation_layout)):
             raise ValueError("checkpoint prefix policy contract differs from the live observation layout")
@@ -231,6 +251,8 @@ class _CheckpointPolicyCreditCore(PrefixCreditCore):
             for index in range(1, self.request.maximum_prefix_decisions+1):
                 before_tick, before_time, before_phase = self.frame.physics_tick, self.frame.sim_time_s, self.frame.state_id
                 raw = vector(self._policy(tuple(self.core.observation)), 12, "frozen checkpoint raw action")
+                if self.request.source == "successful_nominal" and raw != (0.0,)*12:
+                    raise RuntimeError("nominal prefix produced a nonzero residual")
                 before_count = self.prefix_ticks
                 step = self.core.step(raw)
                 self.prefix_decisions += 1
@@ -283,7 +305,9 @@ class _CheckpointPolicyCreditCore(PrefixCreditCore):
             self.start_record = {"mode": "fresh_P01_fallback", "from_P01_current_policy": True,
                                  "prefix_miss": miss}
         else:
-            self.start_record = {"mode": RESULT_SCOPE, "from_P01_current_policy": False,
+            scope = (RESULT_SCOPE if self.request.source == "frozen_checkpoint_policy"
+                     else "successful_nominal_initialized_suffix")
+            self.start_record = {"mode": scope, "from_P01_current_policy": False,
                                  "target_first_observed_decision": target_entry,
                                  "requested_phase_still_active_at_credit": True}
         self.start_record.update(requested_phase=self.request.target_phase, actual_phase=self.frame.state_id,
@@ -304,7 +328,8 @@ class _CheckpointPolicyCreditCore(PrefixCreditCore):
         step = super().step(raw)
         info = dict(step.info)
         info["prefix_checkpoint_policy_data_in_ppo_storage"] = False
-        info["task_result_scope"] = "full_task" if self.start_record["from_P01_current_policy"] else RESULT_SCOPE
+        info["task_result_scope"] = ("full_task" if self.start_record["from_P01_current_policy"]
+                                     else self.start_record["mode"])
         return replace(step, info=info)
 
     def telemetry_summary(self):

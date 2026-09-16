@@ -30,6 +30,7 @@ from .semantic_training import verified_native_effect, write_json
 HZ, FPS, STRIDE = 120, 15, 8
 PRE_TICKS, POST_TICKS, MAX_FRAMES = 64, 184, 3000
 TASK_WINDOW_EXPERIMENT = "fsm_reference_p09_stable_v2"
+TASK_WINDOW_EXPERIMENTS = (TASK_WINDOW_EXPERIMENT, "task_first_recovery_v1")
 CAMERA = {"eye_m": [1.45, -1.25, .8], "target_m": [.45, 0., .12]}
 ROLES = {"A": "legacy_fsm_eval", "B": "semantic_prior_eval",
          "C": "semantic_residual_eval"}
@@ -60,14 +61,15 @@ def frames_for_episode(episode_ticks):
     return 1 + (PRE_TICKS + episode_ticks + POST_TICKS) // STRIDE
 
 
-def task_interval_receipt(episode_ticks):
+def task_interval_receipt(episode_ticks, *, experiment_id=TASK_WINDOW_EXPERIMENT):
     """CFR samples real executed intervals; no extra physics or task deadline."""
     require(type(episode_ticks) is int and 0 < episode_ticks <= 24000,
             "task video endpoint must remain inside the unchanged 200s horizon")
+    require(experiment_id in TASK_WINDOW_EXPERIMENTS, "unknown task interval experiment")
     count = (episode_ticks + STRIDE - 1) // STRIDE
     final_ticks = episode_ticks - STRIDE * (count - 1)
     return {"schema": "wlr50_clean.task_interval_video_window.v1",
-        "experiment_id": TASK_WINDOW_EXPERIMENT, "first_episode_tick": 0,
+        "experiment_id": experiment_id, "first_episode_tick": 0,
         "endpoint_episode_tick": episode_ticks, "frame_count": count,
         "frame_sample": "actual_executed_interval_right_endpoint",
         "first_frame_episode_tick": min(STRIDE, episode_ticks),
@@ -80,8 +82,8 @@ def task_interval_receipt(episode_ticks):
 
 
 def source_frame_count(source):
-    if source.get("experiment_id") == TASK_WINDOW_EXPERIMENT:
-        return task_interval_receipt(source["episode_physics_ticks"])["frame_count"]
+    if source.get("experiment_id") in TASK_WINDOW_EXPERIMENTS:
+        return task_interval_receipt(source["episode_physics_ticks"], experiment_id=source["experiment_id"])["frame_count"]
     return frames_for_episode(source["episode_physics_ticks"])
 
 
@@ -103,10 +105,10 @@ def task_interval_action_window(source, decoded, ledger):
     from wlr50_clean.evaluation.video_timeline import (
         ActionWindow, _sha256_float64, _sha256_text_rows,
     )
-    require(source.get("experiment_id") == TASK_WINDOW_EXPERIMENT
+    require(source.get("experiment_id") in TASK_WINDOW_EXPERIMENTS
             and source.get("semantic_version") == "v3", "wrong task interval experiment")
     endpoint = source["episode_physics_ticks"]
-    receipt = task_interval_receipt(endpoint)
+    receipt = task_interval_receipt(endpoint, experiment_id=source["experiment_id"])
     require(source.get("task_interval_window") == receipt, "task interval manifest mismatch")
     count = receipt["frame_count"]
     require(2 <= count <= MAX_FRAMES and len(decoded) == len(ledger) == count,
@@ -469,7 +471,7 @@ class EndpointObserver:
 def current_video_natural_reset_proof(info, *, role, contract, entry):
     """Current A/B/C share one no-snapshot criterion, with real backend receipts."""
     require(role in ROLES and contract.get("semantic_version") == "v3"
-            and contract.get("experiment_id") == TASK_WINDOW_EXPERIMENT,
+            and contract.get("experiment_id") in TASK_WINDOW_EXPERIMENTS,
             "natural video reset proof has wrong role/runtime")
     require(isinstance(entry, dict) and entry == {
         "state_id": "P01", "physics_tick": 0, "decision_count": 0, "done": False}
@@ -518,7 +520,7 @@ def current_video_natural_reset_proof(info, *, role, contract, entry):
     metadata.update(execution_mode=info.get("execution_mode"),
                     supervisor_schema=info.get("supervisor_schema"))
     return {"schema": "wlr50_clean.current_video_natural_reset.v1",
-            "role": role, "experiment_id": TASK_WINDOW_EXPERIMENT,
+            "role": role, "experiment_id": contract["experiment_id"],
             "semantic_version": "v3", "entry": dict(entry), "reset_metadata": metadata}
 
 
@@ -571,7 +573,7 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
     reset_info = {}
     settle_evidence = None
     natural_reset_proof = None
-    task_window = experiment_id == TASK_WINDOW_EXPERIMENT
+    task_window = experiment_id in TASK_WINDOW_EXPERIMENTS
     require(not task_window or semantic_version == "v3", "current task video requires v3")
     try:
         roll = (root/"physical_video_roll_ticks.jsonl").open("x", encoding="utf-8")
@@ -758,7 +760,7 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
         payload["natural_reset_proof"] = natural_reset_proof
         payload["height_diagnostics"] = height_diagnostic_receipt
     if task_window and endpoint is not None:
-        payload["task_interval_window"] = task_interval_receipt(endpoint.physics_tick)
+        payload["task_interval_window"] = task_interval_receipt(endpoint.physics_tick, experiment_id=experiment_id)
     write_json(root/"semantic_video_source_manifest.json", payload)
     return payload
 
@@ -817,7 +819,7 @@ def validate_semantic_video_source(root, *, expected_role=None):
     require(source["camera"] == {**CAMERA, "resolution": [1280,720], "fps": FPS}, "camera mismatch")
     require(all(source[key] is False for key in ("stitched","frame_interpolation","speed_modified")),
             "source timeline was synthesized")
-    task_window = source.get("experiment_id") == TASK_WINDOW_EXPERIMENT
+    task_window = source.get("experiment_id") in TASK_WINDOW_EXPERIMENTS
     if task_window:
         validate_current_video_natural_reset(source)
         require(source.get("semantic_version") == "v3"
