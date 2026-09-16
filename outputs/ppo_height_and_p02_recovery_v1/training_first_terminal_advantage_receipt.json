@@ -1,0 +1,279 @@
+{
+  "schema": "wlr50_clean.first_real_terminal_GAE_reset_boundary.v1",
+  "scope": {
+    "run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_fsm_reference_p09_stable_v2/train/20260915T0246086426747Z_ga9c52261ba87_56a6fc5cd8bd42bd9d91b7a75f5ce321",
+    "completed_episode_index": 0,
+    "decision_audit_only_three_rows_parsed": [
+      168549,
+      168550,
+      168551
+    ],
+    "only_first_three_complete_advantage_and_optimizer_rows_read": true,
+    "cutoff_completed_update": 1282,
+    "cutoff_completed_global_decisions": 168576,
+    "whole2048_block_not_final": true,
+    "checkpoint_or_rollout_tensor_loaded": false,
+    "production_modified": false,
+    "later_active_data_read": false
+  },
+  "episode": {
+    "episode_index": 0,
+    "policy_decisions": 358,
+    "duration_s": 23.866666666666667,
+    "task_success": false,
+    "termination_reason": "FALL",
+    "phase": "P09",
+    "physics_tick": 2864,
+    "source": "PHYSICAL_SAFETY"
+  },
+  "update": {
+    "optimizer_steps": 20,
+    "actor_parameters_changed": true,
+    "finite_nonzero_gradient_observed": true,
+    "gradient_norm_min": 1.3542345415270798,
+    "gradient_norm_max": 1.4142136004276742,
+    "kl_mean": 0.02873342897476141,
+    "clip_fraction": 0.25625,
+    "entropy": -1.0269402667880059,
+    "value_loss": 52.50464496612549,
+    "surrogate_loss": -0.0321622546762228,
+    "optimizer_learning_rate": 0.00001,
+    "ppo_update": 1282,
+    "global_policy_decisions": 168576
+  },
+  "advantage_terminal": {
+    "global_policy_decision": 168550,
+    "rollout_step": 101,
+    "environment_index": 0,
+    "request_phase": "P09",
+    "end_phase": "P09",
+    "episode_start_tick": 2856,
+    "episode_end_tick": 2864,
+    "executed_physics_ticks": 8,
+    "sim_time_s": 23.866666666666667,
+    "terminal": true,
+    "termination_reason": "FALL",
+    "terminal_bootstrap_allowed": false,
+    "raw_gae_returns_minus_old_values": -10.928190231323242,
+    "stored_advantages": -1.210860252380371,
+    "old_values": -31.32651710510254,
+    "returns": -42.25470733642578,
+    "rewards": -42.25470733642578
+  },
+  "actual_terminal": {
+    "global_policy_decision": 168550,
+    "raw_policy_action_full12": [
+      2.1383934020996094,
+      0.273637980222702,
+      0.17934158444404602,
+      0.6221257448196411,
+      -2.909116506576538,
+      0.3383961319923401,
+      -1.8422207832336426,
+      -0.6267561316490173,
+      -3.5103580951690674,
+      -1.0922282934188843,
+      0.06372227519750595,
+      2.3720338344573975
+    ],
+    "old_value": -31.32651710510254,
+    "reward": -42.25470733642578,
+    "done": true,
+    "time_outs": false,
+    "terminal_bootstrap_allowed": false,
+    "physics_ticks": 8,
+    "discount_convention": "gamma_once_per_issued_policy_action; task_terminal_no_bootstrap",
+    "reward_breakdown": {
+      "total": -42.254709145785796,
+      "families": {
+        "task_progress": -42.251387085878754,
+        "body_stability": -0.0012756796929399893,
+        "contact_motion_quality": -0.0001911869666638667,
+        "control_smoothness": -0.0018551932474385508,
+        "control_regularization": 0
+      },
+      "unweighted_families": {
+        "task_progress": -42.251387085878754,
+        "body_stability": -0.0031891992323499732,
+        "contact_motion_quality": -0.0009559348333193334,
+        "control_smoothness": -0.018551932474385507,
+        "control_regularization": 0
+      },
+      "potential_before": 0.4500107505090838,
+      "potential_after": 0,
+      "potential_shaping": -2.250053752545419,
+      "terminal_event": -40,
+      "elapsed_physics_s": 0.06666666666666667,
+      "cost_components": {
+        "confirmed_post_touchdown_rebound": 0,
+        "contact_chatter_diagnostic": 0,
+        "touchdown_events": 0,
+        "nominal_first_difference": 0.0013888888888888887,
+        "residual_first_difference": 0.020747887347399848,
+        "actual_drive_first_difference": 0.02625651089459927,
+        "actual_drive_second_difference": 0.010847354054171747,
+        "gravity_attitude": 0.007039048639657457,
+        "euler_rate": 0.00008239423182550329,
+        "angular_acceleration": 0.002446154825566959,
+        "contact_quality": 0.0009559348333193334
+      },
+      "discount_convention": "one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",
+      "terminal_bootstrap_allowed": false
+    },
+    "finite_terminal_observation_fallback": false
+  },
+  "neighboring_actual_rows": [
+    {
+      "g": 168549,
+      "phase": "P09",
+      "end_phase": "P09",
+      "episode_end_tick": 2856,
+      "executed_physics_ticks": 8,
+      "done": false,
+      "reward": -0.007808590307831764,
+      "old_value": -31.047895431518555,
+      "reason": null,
+      "bootstrap": true
+    },
+    {
+      "g": 168550,
+      "phase": "P09",
+      "end_phase": "P09",
+      "episode_end_tick": 2864,
+      "executed_physics_ticks": 8,
+      "done": true,
+      "reward": -42.25470733642578,
+      "old_value": -31.32651710510254,
+      "reason": "FALL",
+      "bootstrap": false
+    },
+    {
+      "g": 168551,
+      "phase": "P01",
+      "end_phase": "P01",
+      "episode_end_tick": 8,
+      "executed_physics_ticks": 8,
+      "done": false,
+      "reward": 0.11837992072105408,
+      "old_value": -17.194881439208984,
+      "reason": null,
+      "bootstrap": true
+    }
+  ],
+  "checks": {
+    "terminal_info_matches_completed_episode_exactly": true,
+    "returns_equals_stored_terminal_reward_exactly": true,
+    "rawGAE_equals_stored_terminal_reward_minus_old_value_exactly": true,
+    "done_mask": 1,
+    "next_is_not_terminal": 0,
+    "next_value_bootstrap_coefficient": 0,
+    "gae_future_coefficient": 0,
+    "reset_next_old_value_observed": -17.194881439208984,
+    "reset_value_contribution_to_terminal_return": 0,
+    "terminal_record_is_full8_tick_interval": true,
+    "shorter_than8_terminal_observed": false,
+    "one_discount_unit_per_issued_decision": true,
+    "terminal_oldvalue_is_not_reset_oldvalue": true,
+    "scope": "Terminal returns/rawGAE checked from real preupdate audit against real terminal decision; actual nextreset oldV is logged only as contrast. No additional critic inference or unavailable rollout-tail value reconstruction.",
+    "calculator_double_total_minus_stored_float32_reward": -0.0000018093600147039979,
+    "float32_conversion_note": "The reward calculator emits Python double; SemanticRslAdapter creates torch float32 reward storage. Equality checks use the actual stored reward. Difference≈-1.80936e-6 is retained, not silently equated."
+  },
+  "ordinary_phase_changes": [
+    {
+      "global_policy_decision": 168467,
+      "rollout_step": 18,
+      "environment_index": 0,
+      "request_phase": "P05",
+      "end_phase": "P06",
+      "episode_start_tick": 2192,
+      "episode_end_tick": 2200,
+      "executed_physics_ticks": 8,
+      "sim_time_s": 18.333333333333332,
+      "terminal": false,
+      "termination_reason": null,
+      "terminal_bootstrap_allowed": true
+    },
+    {
+      "global_policy_decision": 168542,
+      "rollout_step": 93,
+      "environment_index": 0,
+      "request_phase": "P06",
+      "end_phase": "P07",
+      "episode_start_tick": 2792,
+      "episode_end_tick": 2800,
+      "executed_physics_ticks": 8,
+      "sim_time_s": 23.333333333333332,
+      "terminal": false,
+      "termination_reason": null,
+      "terminal_bootstrap_allowed": true
+    },
+    {
+      "global_policy_decision": 168543,
+      "rollout_step": 94,
+      "environment_index": 0,
+      "request_phase": "P07",
+      "end_phase": "P08",
+      "episode_start_tick": 2800,
+      "episode_end_tick": 2808,
+      "executed_physics_ticks": 8,
+      "sim_time_s": 23.4,
+      "terminal": false,
+      "termination_reason": null,
+      "terminal_bootstrap_allowed": true
+    },
+    {
+      "global_policy_decision": 168544,
+      "rollout_step": 95,
+      "environment_index": 0,
+      "request_phase": "P08",
+      "end_phase": "P09",
+      "episode_start_tick": 2808,
+      "episode_end_tick": 2816,
+      "executed_physics_ticks": 8,
+      "sim_time_s": 23.466666666666665,
+      "terminal": false,
+      "termination_reason": null,
+      "terminal_bootstrap_allowed": true
+    },
+    {
+      "global_policy_decision": 168552,
+      "rollout_step": 103,
+      "environment_index": 0,
+      "request_phase": "P01",
+      "end_phase": "P02",
+      "episode_start_tick": 8,
+      "episode_end_tick": 16,
+      "executed_physics_ticks": 8,
+      "sim_time_s": 0.13333333333333333,
+      "terminal": false,
+      "termination_reason": null,
+      "terminal_bootstrap_allowed": true
+    }
+  ],
+  "tail_bootstrap": {
+    "terminal_env_indices": [],
+    "nonterminal_env_indices": [
+      0
+    ],
+    "value_source": "existing_official_compute_returns_last_values; not re-evaluated or logged here",
+    "last_values_measured_separately": null
+  },
+  "normalization": {
+    "original_whole_rollout_raw_mean": -6.385059103369713,
+    "original_whole_rollout_raw_std_population": 3.7373008206615035,
+    "terminal_expected_stored_normalized": -1.2108604390380246,
+    "terminal_stored_normalized": -1.210860252380371,
+    "absolute_affine_error": 1.8665765355585506e-7
+  },
+  "code_evidence": {
+    "official_terminal_mask": "rsl_rl/algorithms/ppo.py:199-204 next_is_not_terminal=1-dones; applies to both nextvalue delta and futureGAE",
+    "training_persistence": "semantic_training.py:1314 _terminal_evidence_before_reset; semantic_training.py:245-264 terminal record before ordinary reset",
+    "limitation": "Fullrollout tail is after26 decisions of the next episode and correctly nonterminal; its separate last_values remains unlogged. This does not affect the zero terminal mask or exact terminal-return identity."
+  },
+  "conclusion": {
+    "verified": "First actual terminal return equals that transition's stored reward and rawGAE equals reward-oldV exactly. Done masks both nextvalue and recursive futureGAE. Actual reset nextoldV is different but contributes zero at terminal.",
+    "actual_interval": "This is a full8 physics-tick decision (2856→2864,1/15s), not an observed short-N terminal. The generic discount convention label is not evidence ofN=1.",
+    "ordinary_transitions": "P05→P06, P06→P07, P07→P08, P08→P09 in the same completed rollout remain nonterminal; task phase changes did not masquerade as episode termination.",
+    "scope": "A scoped real terminal audit, not a complete-block report, post-training evaluation, or new optimizer gate. Only3 selected decision rows parsed and first3 completed update/GAE rows used. Wait for completeblock notification before larger aggregate."
+  }
+}

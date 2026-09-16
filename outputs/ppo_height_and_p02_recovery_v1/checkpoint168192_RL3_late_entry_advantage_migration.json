@@ -1,0 +1,295 @@
+{
+  "schema": "wlr50_clean.semantic_checkpoint_migration.v1",
+  "reason": "Height/P02 candidate continuation; preserve learned state and collect fresh on-policy data",
+  "source_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000168192.pt",
+  "source_checkpoint_sha256": "cea6f089e32dc0384c5e1d08c661da40471e3b429ab813ffa29f13250713711a",
+  "source_manifest_sha256": "0141d17719fbba1e9e38c29431aa95b40389f38189b53e98bbdc2cdc6ea44e15",
+  "source_contract_sha256": "1fb9167eef574b0cde1a69f06fbee974febb4bee218da4c8d68ebb3594ae6fa7",
+  "target_contract_sha256": "199e5f4b2679cd7e2d35511fcc3ab25c5c9f3bd3e893e50fa344dffcec3d3ea2",
+  "source_git_commit": "dbc492f25c0a3f9713b8477b9ef4341159625a41",
+  "target_git_commit": "a9c52261ba87f05817bce72d9b6f89311c2c539f",
+  "allowed_changed_files": [
+    "configs/ppo_fsm_reference_p09_stable_v2/execution_profile.yaml",
+    "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml",
+    "src/wlr50_clean/ppo/semantic_backend.py",
+    "src/wlr50_clean/ppo/semantic_height_diagnostics.py",
+    "src/wlr50_clean/ppo/semantic_height_recovery.py",
+    "src/wlr50_clean/ppo/semantic_migration.py",
+    "src/wlr50_clean/ppo/semantic_nominal_geometry.py",
+    "src/wlr50_clean/ppo/semantic_supervisor.py",
+    "src/wlr50_clean/ppo/semantic_training.py",
+    "src/wlr50_clean/ppo/semantic_video.py"
+  ],
+  "changed_file_hashes": {
+    "configs/ppo_fsm_reference_p09_stable_v2/execution_profile.yaml": {
+      "before": "1f9b08220c7d528a7e6e8fec0b76dee627009cf22b77df4924bb96115054d21f",
+      "after": "1650f1b1befa496fc33e1e9aa6489155c33c949ee8748d1b3d8eb59980565d73"
+    },
+    "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml": {
+      "before": "7825de8fe5ae6892e209b3be2f70cc423c50583f2352a43de4bbb90bb568b240",
+      "after": "f3d1ca8546a3a7b2392ca85086a544369887b6a2b1950a78a287650bfb03cd96"
+    },
+    "src/wlr50_clean/ppo/semantic_backend.py": {
+      "before": "a9899aae1a0ddb08cade12e096e05106a3404d73927963827903ebc29ef8706d",
+      "after": "0be1e778bf1902422d0dc0058627f9bcf47786c7e252967657fec83c654a2223"
+    },
+    "src/wlr50_clean/ppo/semantic_height_diagnostics.py": {
+      "before": null,
+      "after": "cd78e0b2cac0dec6ca681973a16caf2340cdb9e45a7b9552ff480b47a31e10d7"
+    },
+    "src/wlr50_clean/ppo/semantic_height_recovery.py": {
+      "before": null,
+      "after": "c941e5cb8d7ce690f2c92add5ffa76106ec3c64c2ce615239ab429e4ab1bfead"
+    },
+    "src/wlr50_clean/ppo/semantic_migration.py": {
+      "before": "26f0ac908e07a40fef03e7e9e943521c1e42ceefa9c9de00af37d46ca66e72d6",
+      "after": "ee22af1c4738bb6949d9610eb178f88defc0118033694a30d346b9ca98947711"
+    },
+    "src/wlr50_clean/ppo/semantic_nominal_geometry.py": {
+      "before": "a60f0cc240d68f7b6f20ec44ead6d1a20ddd7a90abe4df1571d14305477db77a",
+      "after": "799a351ee5b8b4c7a32fbeb19d7ba947de7e930e37bc4314023dc7a00754635b"
+    },
+    "src/wlr50_clean/ppo/semantic_supervisor.py": {
+      "before": "a664a00e823b9276d641fff3013373bc93795f05dc0f64490ec0ac51e7156ec1",
+      "after": "2d016a0dbd46e7a4e61474180e3e44472519a35eb32882fbe0e8c7a290363228"
+    },
+    "src/wlr50_clean/ppo/semantic_training.py": {
+      "before": "915f7dc0ef36a6732eeefa860ca1adec3baaf5a20d00e570208421c0aa394e99",
+      "after": "e4d74312ffed8993e11f6ca43292a0382456a29c5e63e6e48c3f22f6b2d1ab4b"
+    },
+    "src/wlr50_clean/ppo/semantic_video.py": {
+      "before": "3d8b23596c88ac7bc2771ea3725a206c56a523e9659adcc6ace5a5fecc86cc85",
+      "after": "9708a5efffcef95286b0aa7655d3dab2fdf03568da928d0ef2253e86ab7b3fd0"
+    }
+  },
+  "geometric_factor": null,
+  "observation_dimension": 372,
+  "action_dimension": 12,
+  "preserve_actor_critic_optimizer_normalizer_rng_and_budget": true,
+  "discard_old_rollout_storage": true,
+  "physics_resume": "fresh_legal_P01_reset",
+  "height_recovery_factor": {
+    "schema": "wlr50_clean.height_and_p02_recovery_same372_continuation.v1",
+    "review_reason": "Reviewed bounded live-collider RR geometry and source-relative operating envelope; separate RL preparation minus3 FL0 candidate; P09 authored late atomic group waits for current over-platform AIR or verified TOP entry while finite source clock and legal post-stop carry continue, no capture prerequisite; read-only postreturns advantage audit with no forward RNG or optimizer modification. Preserve all372 actor critic Adam normalizer RNG counters and clear old rollout. Physical calls and frozenA unchanged.",
+    "reviewed_code_sha256": {
+      "src/wlr50_clean/ppo/semantic_backend.py": "0be1e778bf1902422d0dc0058627f9bcf47786c7e252967657fec83c654a2223",
+      "src/wlr50_clean/ppo/semantic_height_diagnostics.py": "cd78e0b2cac0dec6ca681973a16caf2340cdb9e45a7b9552ff480b47a31e10d7",
+      "src/wlr50_clean/ppo/semantic_height_recovery.py": "c941e5cb8d7ce690f2c92add5ffa76106ec3c64c2ce615239ab429e4ab1bfead",
+      "src/wlr50_clean/ppo/semantic_migration.py": "ee22af1c4738bb6949d9610eb178f88defc0118033694a30d346b9ca98947711",
+      "src/wlr50_clean/ppo/semantic_nominal_geometry.py": "799a351ee5b8b4c7a32fbeb19d7ba947de7e930e37bc4314023dc7a00754635b",
+      "src/wlr50_clean/ppo/semantic_supervisor.py": "2d016a0dbd46e7a4e61474180e3e44472519a35eb32882fbe0e8c7a290363228",
+      "src/wlr50_clean/ppo/semantic_training.py": "e4d74312ffed8993e11f6ca43292a0382456a29c5e63e6e48c3f22f6b2d1ab4b",
+      "src/wlr50_clean/ppo/semantic_video.py": "9708a5efffcef95286b0aa7655d3dab2fdf03568da928d0ef2253e86ab7b3fd0"
+    },
+    "configuration_bindings": {
+      "action_schema.json": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/action_schema.json",
+        "source_sha256": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7",
+        "target_sha256": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7"
+      },
+      "execution_profile.yaml": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/execution_profile.yaml",
+        "source_sha256": "1f9b08220c7d528a7e6e8fec0b76dee627009cf22b77df4924bb96115054d21f",
+        "target_sha256": "1650f1b1befa496fc33e1e9aa6489155c33c949ee8748d1b3d8eb59980565d73"
+      },
+      "observation_schema.json": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/observation_schema.json",
+        "source_sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b",
+        "target_sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b"
+      },
+      "quality_score.yaml": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/quality_score.yaml",
+        "source_sha256": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6",
+        "target_sha256": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6"
+      },
+      "reward_config.yaml": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/reward_config.yaml",
+        "source_sha256": "9e4f2380b0b4b63363bb626c872a43753c3121eee43b6c7387178186fcea31ca",
+        "target_sha256": "9e4f2380b0b4b63363bb626c872a43753c3121eee43b6c7387178186fcea31ca"
+      },
+      "stage_task_spec.yaml": {
+        "path": "configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml",
+        "source_sha256": "7825de8fe5ae6892e209b3be2f70cc423c50583f2352a43de4bbb90bb568b240",
+        "target_sha256": "f3d1ca8546a3a7b2392ca85086a544369887b6a2b1950a78a287650bfb03cd96"
+      }
+    },
+    "code_scope": {
+      "src/wlr50_clean/ppo/semantic_supervisor.py": {
+        "outside_class_bytes_identical": true,
+        "source_class_sha256": "cad029b64dcb1073adfafb8ccf826cb4cf0b9e9af5e50fcbb21d284647859b53",
+        "target_class_sha256": "8e4788110dc02c94f1458e5474e0db56e745d4251ae9eef03fa208ecc7e75654"
+      },
+      "src/wlr50_clean/ppo/semantic_nominal_geometry.py": {
+        "protected_ast_sha256": "5a3b78798ef3098b2c91cccb06d0e94cb3399bc339e9afb0b78f2c09e256139d",
+        "reviewed_regions": [
+          "_bounded_rr_correction",
+          "capture_nominal_geometry_context",
+          "correct_nominal_geometry"
+        ],
+        "protected_ast_identical": true
+      },
+      "src/wlr50_clean/ppo/semantic_backend.py": {
+        "protected_ast_sha256": "5e64c343652289a1380403b37f0d79ade8445a9abeefc4a7691c27e97de5766b",
+        "reviewed_regions": [
+          "SemanticIsaacBackend.__init__",
+          "SemanticIsaacBackend._atomic_apply",
+          "load_execution_profile"
+        ],
+        "protected_ast_identical": true
+      },
+      "src/wlr50_clean/ppo/semantic_video.py": {
+        "protected_ast_sha256": "2323304b5026fb2319087a503f1486a6ead305cc49f9e290303afcbe0de765b5",
+        "reviewed_regions": [
+          "EndpointObserver.__call__",
+          "EndpointObserver.__init__",
+          "capture_semantic_video"
+        ],
+        "protected_ast_identical": true
+      }
+    },
+    "source_candidate": null,
+    "target_candidate": {
+      "mode": "source_segment_reduction_and_live_recovery_v1",
+      "candidate_id": "RL_preparation_minus3_v1",
+      "preparation_reduction_deg": {
+        "front_left_hip": 0.0,
+        "rear_left_hip": 3.0
+      },
+      "post_lift_recovery_deg": {
+        "front_left_hip": 0.0,
+        "rear_left_hip": 0.0
+      },
+      "recovery_rate_deg_s": 15.0
+    },
+    "physical_mdp_changed": true,
+    "nominal_control_changed": true,
+    "reward_changed": false,
+    "task_acceptance_changed": false,
+    "observation_semantics_changed": [],
+    "physical_actuators_changed": false,
+    "action_ranges_changed": false,
+    "kernel_changed": false,
+    "observation_contract": {
+      "source_policy_contract": {
+        "schema": "wlr50_clean.semantic_policy_distribution.v1",
+        "version": "history_conditioned_heteroscedastic_log_v1",
+        "distribution_class": "HeteroscedasticGaussianDistribution",
+        "std_type": "log",
+        "observation_dimension": 372,
+        "raw_action_dimension": 12,
+        "actor_hidden_dims": [
+          256,
+          256
+        ],
+        "activation": "elu",
+        "state_dependent_std": true,
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+        "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+        "history_feature": "previous_raw_full12",
+        "history_slice": [
+          195,
+          207
+        ],
+        "history_clip": 20.0,
+        "rho": 0.9,
+        "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+        "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+        "history_state": "stored_observation_only; no_actor_mutable_history",
+        "deterministic_output": "conditional_mean",
+        "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+        "observation_layout": "diagonal_transfer_state_v1",
+        "base_observation_dimension": 324,
+        "role_observation_group": "transfer_role_context_full48",
+        "role_observation_slice": [
+          324,
+          372
+        ],
+        "role_observation_leg_order": [
+          "FL",
+          "FR",
+          "RL",
+          "RR"
+        ],
+        "role_observation_fields": [
+          "valid",
+          "workspace_progress",
+          "preparation_progress",
+          "transfer_progress",
+          "motion_fraction",
+          "preparation_ready",
+          "transfer_ready",
+          "fixed_direction_world_x",
+          "fixed_direction_world_y",
+          "short_support_continuity_fraction",
+          "continued_response_fraction",
+          "window_evidence_fraction"
+        ]
+      },
+      "target_policy_contract": {
+        "schema": "wlr50_clean.semantic_policy_distribution.v1",
+        "version": "history_conditioned_heteroscedastic_log_v1",
+        "distribution_class": "HeteroscedasticGaussianDistribution",
+        "std_type": "log",
+        "observation_dimension": 372,
+        "raw_action_dimension": 12,
+        "actor_hidden_dims": [
+          256,
+          256
+        ],
+        "activation": "elu",
+        "state_dependent_std": true,
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+        "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+        "history_feature": "previous_raw_full12",
+        "history_slice": [
+          195,
+          207
+        ],
+        "history_clip": 20.0,
+        "rho": 0.9,
+        "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+        "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+        "history_state": "stored_observation_only; no_actor_mutable_history",
+        "deterministic_output": "conditional_mean",
+        "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+        "observation_layout": "diagonal_transfer_state_v1",
+        "base_observation_dimension": 324,
+        "role_observation_group": "transfer_role_context_full48",
+        "role_observation_slice": [
+          324,
+          372
+        ],
+        "role_observation_leg_order": [
+          "FL",
+          "FR",
+          "RL",
+          "RR"
+        ],
+        "role_observation_fields": [
+          "valid",
+          "workspace_progress",
+          "preparation_progress",
+          "transfer_progress",
+          "motion_fraction",
+          "preparation_ready",
+          "transfer_ready",
+          "fixed_direction_world_x",
+          "fixed_direction_world_y",
+          "short_support_continuity_fraction",
+          "continued_response_fraction",
+          "window_evidence_fraction"
+        ]
+      },
+      "observation_layout": "diagonal_transfer_state_v1",
+      "observation_dimension": 372,
+      "action_dimension": 12,
+      "num_envs": 1,
+      "parameter_mapping": "identity_all_parameters_and_buffers"
+    },
+    "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+    "normalizers": "preserve_verified_identity_RSL_state",
+    "scope_is_reviewer_assertion_not_semantic_equivalence_proof": true
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "schema": "wlr50_clean.half_temperature_implementation_receipt.v1",
+  "source_checkpoint_decisions": 171520,
+  "source_ppo_updates": 1305,
+  "source_optimizer_steps": 26100,
+  "production_head": "4a58c0190ef744a2e40c3668d9042caf85389385",
+  "runtime_content_sha256": "169a0415974a16a762f753fe3b3d6dcd702a783aebf184f4a9ab551a6052d0a9",
+  "migration_plan": "checkpoint171520_temperature_half_migration.json",
+  "policy_version": "history_conditioned_heteroscedastic_log_temperature_v1",
+  "effective_innovation_std": "exp(learned_log_std + log(0.5))",
+  "deterministic_same_weight_same_observation_mean": "bitwise unchanged old forward path",
+  "new_real_training_credit_at_receipt_creation": 0,
+  "new_formal_P02_success_claim": false,
+  "motivation": "Test sampling coverage nearer the failing conditional mean; sigma is not an established unique cause",
+  "preserved": ["372 observation fields", "12 unmasked actions", "HISTORY rho 0.9", "nominal", "reward", "tanh physical caps", "physics", "safety limits", "actor and critic parameter topology", "Adam state and actual LR", "identity normalizer", "training RNG and counters"],
+  "migration_old_unfinished_rollout": "discarded; fresh on-policy collection after legal reset",
+  "cpu_regression": {
+    "passed": 384,
+    "deselected": 1,
+    "skipped": 0,
+    "failures": 0,
+    "excluded_test": "actual_38272 historical checkpoint audit",
+    "includes": ["tempered actor likelihood/cache/entropy/KL", "frozen deterministic bitwise equality", "strict source and target metadata", "actual synthetic CPU Adam update-save-migrate-update-reload", "old policy metadata", "old training", "height recovery", "P13 final stop owner"],
+    "real_Isaac_or_user_checkpoint_training_credit": 0
+  }
+}

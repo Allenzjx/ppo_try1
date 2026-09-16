@@ -1,0 +1,892 @@
+{
+  "schema": "wlr50_clean.first2_completed_real_GAE_visibility.v1",
+  "scope": {
+    "run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_fsm_reference_p09_stable_v2/train/20260915T0246086426747Z_ga9c52261ba87_56a6fc5cd8bd42bd9d91b7a75f5ce321",
+    "cutoff_global_decision": 168448,
+    "cutoff_ppo_update": 1281,
+    "new_decisions": 256,
+    "new_updates": 2,
+    "new_optimizer_steps": 40,
+    "only_complete_updates": true,
+    "partial_following_rollout_not_read": true,
+    "checkpoint_tensor_load": false,
+    "production_change": false,
+    "source_native_or_physical_fullstreams_not_read": true
+  },
+  "source_files": [
+    "optimizer_updates.jsonl:first2complete_rows",
+    "advantage_audit.jsonl:first2complete_rows",
+    "residual_and_projection_audit.jsonl:first256_rows_only",
+    "run_manifest.started.json:selected_arguments_only"
+  ],
+  "launch": {
+    "from_phase": "P01",
+    "num_envs": 1,
+    "requested_decisions": 2048,
+    "stage": "full_episode",
+    "teacher_offset_decisions": 0,
+    "prefix_source_argument": "frozen_fsm",
+    "prefix_source_argument_is_not_evidence_of_teacher_execution": true,
+    "first_actual_decision": {
+      "g": 168193,
+      "end_tick": 8,
+      "executed": 8,
+      "phase": "P01"
+    },
+    "checkpoint_source_decisions": 168192,
+    "no_checkpoint_save_claim_for_168448": "This receipt verifies completed optimizer counters only, not that this intermediate counter has its own saved checkpoint."
+  },
+  "completed_updates": [
+    {
+      "optimizer_steps": 20,
+      "actor_parameters_changed": true,
+      "finite_nonzero_gradient_observed": true,
+      "gradient_norm_min": 1.3539233101128492,
+      "gradient_norm_max": 1.4142135363635602,
+      "kl_mean": 0.016050186779201326,
+      "clip_fraction": 0.196875,
+      "entropy": -8.841928625106812,
+      "value_loss": 0.5918067842721939,
+      "surrogate_loss": -0.03509569577872753,
+      "optimizer_learning_rate": 0.00001,
+      "ppo_update": 1280,
+      "global_policy_decisions": 168320
+    },
+    {
+      "optimizer_steps": 20,
+      "actor_parameters_changed": true,
+      "finite_nonzero_gradient_observed": true,
+      "gradient_norm_min": 0.9999998980102321,
+      "gradient_norm_max": 1.414213540055235,
+      "kl_mean": 0.017202910240314638,
+      "clip_fraction": 0.2484375,
+      "entropy": -2.713627874851227,
+      "value_loss": 1.5310746431350708,
+      "surrogate_loss": -0.03388272877782583,
+      "optimizer_learning_rate": 0.00001,
+      "ppo_update": 1281,
+      "global_policy_decisions": 168448
+    }
+  ],
+  "advantage_checks": [
+    {
+      "ppo_update": 1280,
+      "phase_mapping_count_verified": {
+        "P01": 4,
+        "P02": 100,
+        "P03": 5,
+        "P04": 1,
+        "P05": 18
+      },
+      "aggregate_normalization_affine_max_abs_error": 1.4351950139435132e-7,
+      "expected_population_normalized_std": 0.9960860707699053,
+      "actual_population_normalized_std": 0.9960861225104957,
+      "raw_mean_vs_returns_minus_values_mean": 0,
+      "old_value_and_reward_means_vs_actual_decision_max_abs_error": 0,
+      "terminal_scalar_checks": [],
+      "scope": "aggregate affine moments/minmax and per-phase counts verified from logged audit; no saved tensor loaded; not an independent per-sample recomputation of unavailable tail critic values"
+    },
+    {
+      "ppo_update": 1281,
+      "phase_mapping_count_verified": {
+        "P05": 128
+      },
+      "aggregate_normalization_affine_max_abs_error": 3.221991784485567e-8,
+      "expected_population_normalized_std": 0.9960860687137416,
+      "actual_population_normalized_std": 0.9960860558626122,
+      "raw_mean_vs_returns_minus_values_mean": 0,
+      "old_value_and_reward_means_vs_actual_decision_max_abs_error": 0,
+      "terminal_scalar_checks": [],
+      "scope": "aggregate affine moments/minmax and per-phase counts verified from logged audit; no saved tensor loaded; not an independent per-sample recomputation of unavailable tail critic values"
+    }
+  ],
+  "advantages": [
+    {
+      "ppo_update": 1280,
+      "first": 168193,
+      "last": 168320,
+      "sample_count": 128,
+      "gamma": 0.9985,
+      "lambda": 0.99,
+      "original_preupdate_receipt_requires_completed_optimizer_join": true,
+      "stored_advantage_semantics": "official_whole_rollout_standardized_GAE",
+      "overall": {
+        "raw_gae_returns_minus_old_values": {
+          "n": 128,
+          "min": -1.7021446228027344,
+          "max": 0.1383037567138672,
+          "mean": -0.7055622041225433,
+          "std_population": 0.49891457100181186,
+          "positive": 5,
+          "negative": 123,
+          "zero": 0,
+          "nonfinite": 0
+        },
+        "stored_advantages": {
+          "n": 128,
+          "min": -1.9896830320358276,
+          "max": 1.6847838163375854,
+          "mean": 6.024492904543877e-8,
+          "std_population": 0.9960861225104957,
+          "positive": 71,
+          "negative": 57,
+          "zero": 0,
+          "nonfinite": 0
+        },
+        "old_values": {
+          "n": 128,
+          "min": -24.868911743164062,
+          "max": -17.333171844482422,
+          "mean": -20.77906295657158,
+          "std_population": 1.6179666864059,
+          "positive": 0,
+          "negative": 128,
+          "zero": 0,
+          "nonfinite": 0
+        },
+        "returns": {
+          "n": 128,
+          "min": -24.785598754882812,
+          "max": -18.664527893066406,
+          "mean": -21.484625160694122,
+          "std_population": 1.5989597735286776,
+          "positive": 0,
+          "negative": 128,
+          "zero": 0,
+          "nonfinite": 0
+        },
+        "rewards": {
+          "n": 128,
+          "min": -0.08625669777393341,
+          "max": 0.27171263098716736,
+          "mean": 0.008850308754063008,
+          "std_population": 0.0400173166931597,
+          "positive": 69,
+          "negative": 59,
+          "zero": 0,
+          "nonfinite": 0
+        }
+      },
+      "by_request_phase": {
+        "P01": {
+          "sample_count": 4,
+          "terminal_count": 0,
+          "raw_GAE": {
+            "n": 4,
+            "min": -1.3313560485839844,
+            "max": -0.5724334716796875,
+            "mean": -0.934412956237793,
+            "std_population": 0.3544179985685714,
+            "positive": 0,
+            "negative": 4,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "stored_advantage": {
+            "n": 4,
+            "min": -1.249401330947876,
+            "max": 0.2657924294471741,
+            "mean": -0.4569019228219986,
+            "std_population": 0.7075977934038055,
+            "positive": 2,
+            "negative": 2,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "old_values": {
+            "n": 4,
+            "min": -18.213769912719727,
+            "max": -17.333171844482422,
+            "mean": -17.841106414794922,
+            "std_population": 0.36104314717900554,
+            "positive": 0,
+            "negative": 4,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "returns": {
+            "n": 4,
+            "min": -18.912012100219727,
+            "max": -18.664527893066406,
+            "mean": -18.775519371032715,
+            "std_population": 0.0931433824071391,
+            "positive": 0,
+            "negative": 4,
+            "zero": 0,
+            "nonfinite": 0
+          }
+        },
+        "P02": {
+          "sample_count": 100,
+          "terminal_count": 0,
+          "raw_GAE": {
+            "n": 100,
+            "min": -1.7021446228027344,
+            "max": -0.00251007080078125,
+            "mean": -0.7679397773742676,
+            "std_population": 0.49334222965828073,
+            "positive": 0,
+            "negative": 100,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "stored_advantage": {
+            "n": 100,
+            "min": -1.9896830320358276,
+            "max": 1.4036481380462646,
+            "mean": -0.12453716181218624,
+            "std_population": 0.9849609070585774,
+            "positive": 50,
+            "negative": 50,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "old_values": {
+            "n": 100,
+            "min": -21.39546775817871,
+            "max": -17.76017951965332,
+            "mean": -20.2253777885437,
+            "std_population": 0.7667974232794926,
+            "positive": 0,
+            "negative": 100,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "returns": {
+            "n": 100,
+            "min": -23.01527214050293,
+            "max": -19.07866668701172,
+            "mean": -20.99331756591797,
+            "std_population": 1.0746247499485355,
+            "positive": 0,
+            "negative": 100,
+            "zero": 0,
+            "nonfinite": 0
+          }
+        },
+        "P03": {
+          "sample_count": 5,
+          "terminal_count": 0,
+          "raw_GAE": {
+            "n": 5,
+            "min": -1.3899955749511719,
+            "max": -0.23070907592773438,
+            "mean": -0.8704593658447266,
+            "std_population": 0.40676230993381984,
+            "positive": 0,
+            "negative": 5,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "stored_advantage": {
+            "n": 5,
+            "min": -1.3664755821228027,
+            "max": 0.9480473399162292,
+            "mean": -0.329218190908432,
+            "std_population": 0.8121035544885897,
+            "positive": 2,
+            "negative": 3,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "old_values": {
+            "n": 5,
+            "min": -23.162023544311523,
+            "max": -21.7340145111084,
+            "mean": -22.3313907623291,
+            "std_population": 0.5113235379600407,
+            "positive": 0,
+            "negative": 5,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "returns": {
+            "n": 5,
+            "min": -23.392732620239258,
+            "max": -23.069128036499023,
+            "mean": -23.201850128173827,
+            "std_population": 0.11268888741132103,
+            "positive": 0,
+            "negative": 5,
+            "zero": 0,
+            "nonfinite": 0
+          }
+        },
+        "P04": {
+          "sample_count": 1,
+          "terminal_count": 0,
+          "raw_GAE": {
+            "n": 1,
+            "min": -0.9761943817138672,
+            "max": -0.9761943817138672,
+            "mean": -0.9761943817138672,
+            "std_population": 0,
+            "positive": 0,
+            "negative": 1,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "stored_advantage": {
+            "n": 1,
+            "min": -0.5403187870979309,
+            "max": -0.5403187870979309,
+            "mean": -0.5403187870979309,
+            "std_population": 0,
+            "positive": 0,
+            "negative": 1,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "old_values": {
+            "n": 1,
+            "min": -22.509885787963867,
+            "max": -22.509885787963867,
+            "mean": -22.509885787963867,
+            "std_population": 0,
+            "positive": 0,
+            "negative": 1,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "returns": {
+            "n": 1,
+            "min": -23.486080169677734,
+            "max": -23.486080169677734,
+            "mean": -23.486080169677734,
+            "std_population": 0,
+            "positive": 0,
+            "negative": 1,
+            "zero": 0,
+            "nonfinite": 0
+          }
+        },
+        "P05": {
+          "sample_count": 18,
+          "terminal_count": 0,
+          "raw_GAE": {
+            "n": 18,
+            "min": -0.9505996704101562,
+            "max": 0.1383037567138672,
+            "mean": -0.24732451968722874,
+            "std_population": 0.29864304654210067,
+            "positive": 5,
+            "negative": 13,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "stored_advantage": {
+            "n": 18,
+            "min": -0.4892188012599945,
+            "max": 1.6847838163375854,
+            "mean": 0.9148745180832015,
+            "std_population": 0.5962427494009012,
+            "positive": 17,
+            "negative": 1,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "old_values": {
+            "n": 18,
+            "min": -24.868911743164062,
+            "max": -22.883987426757812,
+            "mean": -23.980611907111275,
+            "std_population": 0.7351514579920864,
+            "positive": 0,
+            "negative": 18,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "returns": {
+            "n": 18,
+            "min": -24.785598754882812,
+            "max": -23.557401657104492,
+            "mean": -24.227936426798504,
+            "std_population": 0.4693344580419734,
+            "positive": 0,
+            "negative": 18,
+            "zero": 0,
+            "nonfinite": 0
+          }
+        }
+      },
+      "tail_bootstrap": {
+        "terminal_env_indices": [],
+        "nonterminal_env_indices": [
+          0
+        ],
+        "value_source": "existing_official_compute_returns_last_values; not re-evaluated or logged here",
+        "last_values_measured_separately": null
+      }
+    },
+    {
+      "ppo_update": 1281,
+      "first": 168321,
+      "last": 168448,
+      "sample_count": 128,
+      "gamma": 0.9985,
+      "lambda": 0.99,
+      "original_preupdate_receipt_requires_completed_optimizer_join": true,
+      "stored_advantage_semantics": "official_whole_rollout_standardized_GAE",
+      "overall": {
+        "raw_gae_returns_minus_old_values": {
+          "n": 128,
+          "min": 0.10038948059082031,
+          "max": 2.482542037963867,
+          "mean": 1.3264823108911514,
+          "std_population": 0.4521640761578687,
+          "positive": 128,
+          "negative": 0,
+          "zero": 0,
+          "nonfinite": 0
+        },
+        "stored_advantages": {
+          "n": 128,
+          "min": -2.7009973526000977,
+          "max": 2.5467193126678467,
+          "mean": 3.154400474159047e-8,
+          "std_population": 0.9960860558626122,
+          "positive": 73,
+          "negative": 55,
+          "zero": 0,
+          "nonfinite": 0
+        },
+        "old_values": {
+          "n": 128,
+          "min": -25.7131290435791,
+          "max": -23.643632888793945,
+          "mean": -24.960568696260452,
+          "std_population": 0.43136000752048254,
+          "positive": 0,
+          "negative": 128,
+          "zero": 0,
+          "nonfinite": 0
+        },
+        "returns": {
+          "n": 128,
+          "min": -24.963468551635742,
+          "max": -22.49203872680664,
+          "mean": -23.6340863853693,
+          "std_population": 0.669995839477195,
+          "positive": 0,
+          "negative": 128,
+          "zero": 0,
+          "nonfinite": 0
+        },
+        "rewards": {
+          "n": 128,
+          "min": -0.48803701996803284,
+          "max": 0.27657511830329895,
+          "mean": -0.0075852479103559745,
+          "std_population": 0.06323440135019107,
+          "positive": 46,
+          "negative": 82,
+          "zero": 0,
+          "nonfinite": 0
+        }
+      },
+      "by_request_phase": {
+        "P05": {
+          "sample_count": 128,
+          "terminal_count": 0,
+          "raw_GAE": {
+            "n": 128,
+            "min": 0.10038948059082031,
+            "max": 2.482542037963867,
+            "mean": 1.3264823108911514,
+            "std_population": 0.4521640761578687,
+            "positive": 128,
+            "negative": 0,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "stored_advantage": {
+            "n": 128,
+            "min": -2.7009973526000977,
+            "max": 2.5467193126678467,
+            "mean": 3.154400474159047e-8,
+            "std_population": 0.9960860558626122,
+            "positive": 73,
+            "negative": 55,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "old_values": {
+            "n": 128,
+            "min": -25.7131290435791,
+            "max": -23.643632888793945,
+            "mean": -24.960568696260452,
+            "std_population": 0.43136000752048254,
+            "positive": 0,
+            "negative": 128,
+            "zero": 0,
+            "nonfinite": 0
+          },
+          "returns": {
+            "n": 128,
+            "min": -24.963468551635742,
+            "max": -22.49203872680664,
+            "mean": -23.6340863853693,
+            "std_population": 0.669995839477195,
+            "positive": 0,
+            "negative": 128,
+            "zero": 0,
+            "nonfinite": 0
+          }
+        }
+      },
+      "tail_bootstrap": {
+        "terminal_env_indices": [],
+        "nonterminal_env_indices": [
+          0
+        ],
+        "value_source": "existing_official_compute_returns_last_values; not re-evaluated or logged here",
+        "last_values_measured_separately": null
+      }
+    }
+  ],
+  "actual_phase_samples": {
+    "P01": 4,
+    "P02": 100,
+    "P03": 5,
+    "P04": 1,
+    "P05": 146,
+    "P06": 0,
+    "P07": 0,
+    "P08": 0,
+    "P09": 0,
+    "P10": 0,
+    "P11": 0,
+    "P12": 0,
+    "P13": 0
+  },
+  "actual_phase_evidence": {
+    "P01": {
+      "samples": 4,
+      "physics_ticks": 32,
+      "terminals": 0,
+      "FR_I": 1,
+      "FR_Q": 0,
+      "FR_C": 0,
+      "FR_P": 0,
+      "FR_Q_air_lateral_clearance15mm": 0,
+      "FR_clearance_bucket_is_not_full_functional_carry_helper": true,
+      "reward": {
+        "n": 4,
+        "min": 0.023040948435664177,
+        "max": 0.12487249076366425,
+        "mean": 0.06591859040781856,
+        "positive": 4,
+        "negative": 0,
+        "zero": 0
+      },
+      "signed_reward_family_sums": {
+        "task_progress": 0.2755818988118728,
+        "body_stability": -0.0019990763891779215,
+        "contact_motion_quality": -0.000007894179313140534,
+        "control_smoothness": -0.009900562367034862,
+        "control_regularization": 0
+      }
+    },
+    "P02": {
+      "samples": 100,
+      "physics_ticks": 800,
+      "terminals": 0,
+      "FR_I": 100,
+      "FR_Q": 100,
+      "FR_C": 0,
+      "FR_P": 0,
+      "FR_Q_air_lateral_clearance15mm": 92,
+      "FR_clearance_bucket_is_not_full_functional_carry_helper": true,
+      "reward": {
+        "n": 100,
+        "min": -0.04834850877523422,
+        "max": 0.11038655042648315,
+        "mean": 0.0007113242038758471,
+        "positive": 50,
+        "negative": 50,
+        "zero": 0
+      },
+      "signed_reward_family_sums": {
+        "task_progress": 0.26092877452009444,
+        "body_stability": -0.023012581237557186,
+        "contact_motion_quality": -0.00013323517898636362,
+        "control_smoothness": -0.16665053859256448,
+        "control_regularization": 0
+      }
+    },
+    "P03": {
+      "samples": 5,
+      "physics_ticks": 40,
+      "terminals": 0,
+      "FR_I": 5,
+      "FR_Q": 5,
+      "FR_C": 5,
+      "FR_P": 1,
+      "FR_Q_air_lateral_clearance15mm": 3,
+      "FR_clearance_bucket_is_not_full_functional_carry_helper": true,
+      "reward": {
+        "n": 5,
+        "min": 0.0024121215101331472,
+        "max": 0.10371377319097519,
+        "mean": 0.03996051331050694,
+        "positive": 5,
+        "negative": 0,
+        "zero": 0
+      },
+      "signed_reward_family_sums": {
+        "task_progress": 0.2117659745493259,
+        "body_stability": -0.002782290124242425,
+        "contact_motion_quality": -0.00012432349119665052,
+        "control_smoothness": -0.009056792031466374,
+        "control_regularization": 0
+      }
+    },
+    "P04": {
+      "samples": 1,
+      "physics_ticks": 8,
+      "terminals": 0,
+      "FR_I": 1,
+      "FR_Q": 1,
+      "FR_C": 1,
+      "FR_P": 1,
+      "FR_Q_air_lateral_clearance15mm": 0,
+      "FR_clearance_bucket_is_not_full_functional_carry_helper": true,
+      "reward": {
+        "n": 1,
+        "min": 0.07610978186130524,
+        "max": 0.07610978186130524,
+        "mean": 0.07610978186130524,
+        "positive": 1,
+        "negative": 0,
+        "zero": 0
+      },
+      "signed_reward_family_sums": {
+        "task_progress": 0.07783336959190963,
+        "body_stability": -0.0000581465998135829,
+        "contact_motion_quality": 0,
+        "control_smoothness": -0.0016654443560421652,
+        "control_regularization": 0
+      }
+    },
+    "P05": {
+      "samples": 146,
+      "physics_ticks": 1168,
+      "terminals": 0,
+      "FR_I": 146,
+      "FR_Q": 146,
+      "FR_C": 146,
+      "FR_P": 146,
+      "FR_Q_air_lateral_clearance15mm": 0,
+      "FR_clearance_bucket_is_not_full_functional_carry_helper": true,
+      "reward": {
+        "n": 146,
+        "min": -0.48803701996803284,
+        "max": 0.27657511830329895,
+        "mean": -0.0030739133043712233,
+        "positive": 55,
+        "negative": 91,
+        "zero": 0
+      },
+      "signed_reward_family_sums": {
+        "task_progress": -0.1846040993480855,
+        "body_stability": -0.017776917274576073,
+        "contact_motion_quality": -0.0005635179865842568,
+        "control_smoothness": -0.24584679790530067,
+        "control_regularization": 0
+      }
+    }
+  },
+  "ordinary_phase_changes": [
+    {
+      "g": 168196,
+      "phase": "P01",
+      "end_phase": "P02",
+      "end_tick": 32,
+      "executed": 8,
+      "done": false,
+      "bootstrap": true
+    },
+    {
+      "g": 168296,
+      "phase": "P02",
+      "end_phase": "P03",
+      "end_tick": 832,
+      "executed": 8,
+      "done": false,
+      "bootstrap": true
+    },
+    {
+      "g": 168301,
+      "phase": "P03",
+      "end_phase": "P04",
+      "end_tick": 872,
+      "executed": 8,
+      "done": false,
+      "bootstrap": true
+    },
+    {
+      "g": 168302,
+      "phase": "P04",
+      "end_phase": "P05",
+      "end_tick": 880,
+      "executed": 8,
+      "done": false,
+      "bootstrap": true
+    }
+  ],
+  "terminal_samples": [],
+  "actual_control": {
+    "sampled_and_applied_raw_equal_rows": 256,
+    "perchannel_raw_nonzero_decisions": [
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256
+    ],
+    "perchannel_projected_nonzero_decisions": [
+      255,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256
+    ],
+    "perchannel_endpoint_direct_target_effect_nonzero_decisions": [
+      255,
+      254,
+      256,
+      252,
+      255,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256,
+      256
+    ],
+    "all12_runtime_mask_endpoint_rows": 256,
+    "mask_observed_rows": 256,
+    "actual_executed_physics_ticks": 2048,
+    "actual_native_effect_ticks": 2048,
+    "own_phase_request_effect_ticks": 2044,
+    "verified_no_state_write_rows": 256
+  },
+  "FR_selected_endpoints": [
+    {
+      "g": 168208,
+      "t": 128,
+      "FR": {
+        "I": true,
+        "Q": true,
+        "C": false,
+        "P": false,
+        "air": true,
+        "gap": 0.06352142882913216,
+        "front": -0.15284290568995829,
+        "active_attempt": true
+      },
+      "reward": 0.0010810393141582608,
+      "old_value": -19.693443298339844
+    },
+    {
+      "g": 168224,
+      "t": 256,
+      "FR": {
+        "I": true,
+        "Q": true,
+        "C": false,
+        "P": false,
+        "air": true,
+        "gap": 0.014027789789173128,
+        "front": -0.15758731620478983,
+        "active_attempt": true
+      },
+      "reward": -0.009176403284072876,
+      "old_value": -19.992029190063477
+    },
+    {
+      "g": 168256,
+      "t": 512,
+      "FR": {
+        "I": true,
+        "Q": true,
+        "C": false,
+        "P": false,
+        "air": true,
+        "gap": 0.03625662000273934,
+        "front": -0.11243909256625528,
+        "active_attempt": true
+      },
+      "reward": 0.008076838217675686,
+      "old_value": -20.39130210876465
+    },
+    {
+      "g": 168288,
+      "t": 768,
+      "FR": {
+        "I": true,
+        "Q": true,
+        "C": false,
+        "P": false,
+        "air": true,
+        "gap": 0.06615354163603146,
+        "front": -0.037309971024278354,
+        "active_attempt": true
+      },
+      "reward": -0.018965234979987144,
+      "old_value": -21.18183708190918
+    }
+  ],
+  "conclusions": {
+    "raw_GAE_visible": "First rollout P02 rawGAE100/100negative with mean-.767939777, yet whole-rollout standardized advantages50positive/50negative. Do not describe all100 P02 actions as negatively weighted in PPO.",
+    "reward_not_advantage": "Second rolloutP05 all128rawGAEpositive mean+1.326482311, although mean immediate reward-.007585248. Oldvalue and bootstrapped continuation determine rawGAE; observed reward sign does not reveal policy objective/motive.",
+    "normalization_verified": "Aggregate raw versus stored standardized min/max/mean overall and byphase agree within1.4352e-7; standard deviation reports population.128sample torch sample-std normalization implies populationstd≈.996086, not exactly1.",
+    "cross_phase_credit": "Four ordinary phase changes donefalse/bootstraptrue; actualP02→P03 at832 andFRplacement history inP03/P04 participate in the same complete first rollout.",
+    "terminal_scope": "No physical/task terminal occurred in these256samples. Real short-terminal scalar check remains unobserved here, not assumed verified; both rollout tails legitimately nonterminal and use existing official lastvalue bootstrap.",
+    "training_not_evaluation": "This sampled on-policy training prefix reachedP05 afterFRplacement but is not a frozen checkpoint P01full traversal evaluation. No completeness or stability superiority claim.",
+    "no_new_gate": "No implementation fault found in this bounded new audit; continue authorized training. Do not treat negative rawGAE alone as reason to change reward/rho/action ranges.",
+    "wait_for_full_block": "No later decision/unfinishedrollouttensor/checkpointread performed. Full aggregate should wait for explicit completedblock notification."
+  },
+  "code_evidence": [
+    {
+      "path": "src/wlr50_clean/ppo/semantic_training.py",
+      "line": 1137,
+      "note": "read-only existing post-compute_returns CPU snapshot helper; rawreturns-oldvalues original dtype"
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_training.py",
+      "line": 1327,
+      "note": "phase mapping records actual current issued decision extras, not requested curriculumphase"
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_training.py",
+      "line": 1350,
+      "note": "officialcompute_returns then existingCPUsnapshot andpreupdateaudit"
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_training.py",
+      "line": 1378,
+      "note": "completedoptimizer line flushed only after actualupdate"
+    },
+    {
+      "path": "C:/Users/kskzz/miniconda3/envs/env_isaaclab/Lib/site-packages/rsl_rl/algorithms/ppo.py",
+      "line": 187,
+      "note": "standard terminalmaskedGAE, returns=GAE+storedvalue, whole-rolloutstdnormalizationat206-209"
+    }
+  ]
+}

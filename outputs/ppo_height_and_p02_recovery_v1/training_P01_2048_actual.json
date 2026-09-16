@@ -1,0 +1,652 @@
+{
+  "schema": "wlr50_clean.height_round_completed_training.v1",
+  "created_at_utc": "2026-09-15T03:33:23.590Z",
+  "purpose": "formal",
+  "fixture_not_current_round": false,
+  "full_task_success_claimed": false,
+  "runs": [
+    {
+      "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\train\\20260915T0246086426747Z_ga9c52261ba87_56a6fc5cd8bd42bd9d91b7a75f5ce321",
+      "lifecycle": "SUCCEEDED",
+      "completed_at_utc": "2026-09-15T03:32:57.249943+00:00",
+      "configuration": {
+        "semantic_version": "v3",
+        "experiment_id": "fsm_reference_p09_stable_v2",
+        "stage": "full_episode",
+        "from_phase": "P01",
+        "prefix_source": "frozen_fsm",
+        "teacher_offset_decisions": 0,
+        "seed": 1001,
+        "num_envs": 1,
+        "device": "cuda:0",
+        "checkpoint_interval_updates": 10,
+        "implemented_sampling": "P01_full_task_only_initial_version",
+        "prefix_request": null,
+        "physics_hz": 120,
+        "decision_hz": 15,
+        "rollout_steps_per_env": 128,
+        "rollout_policy_decisions": 128,
+        "observation_dimension": 372,
+        "action_dimension": 12,
+        "policy_contract": {
+          "activation": "elu",
+          "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+          "actor_hidden_dims": [
+            256,
+            256
+          ],
+          "base_observation_dimension": 324,
+          "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+          "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+          "deterministic_output": "conditional_mean",
+          "distribution_class": "HeteroscedasticGaussianDistribution",
+          "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+          "history_clip": 20,
+          "history_feature": "previous_raw_full12",
+          "history_slice": [
+            195,
+            207
+          ],
+          "history_state": "stored_observation_only; no_actor_mutable_history",
+          "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+          "observation_dimension": 372,
+          "observation_layout": "diagonal_transfer_state_v1",
+          "raw_action_dimension": 12,
+          "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+          "rho": 0.9,
+          "role_observation_fields": [
+            "valid",
+            "workspace_progress",
+            "preparation_progress",
+            "transfer_progress",
+            "motion_fraction",
+            "preparation_ready",
+            "transfer_ready",
+            "fixed_direction_world_x",
+            "fixed_direction_world_y",
+            "short_support_continuity_fraction",
+            "continued_response_fraction",
+            "window_evidence_fraction"
+          ],
+          "role_observation_group": "transfer_role_context_full48",
+          "role_observation_leg_order": [
+            "FL",
+            "FR",
+            "RL",
+            "RR"
+          ],
+          "role_observation_slice": [
+            324,
+            372
+          ],
+          "schema": "wlr50_clean.semantic_policy_distribution.v1",
+          "state_dependent_std": true,
+          "std_type": "log",
+          "version": "history_conditioned_heteroscedastic_log_v1"
+        },
+        "actor": {
+          "class_name": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+          "hidden_dims": [
+            256,
+            256
+          ],
+          "activation": "elu",
+          "obs_normalization": false,
+          "observation_layout": "diagonal_transfer_state_v1",
+          "distribution_cfg": {
+            "class_name": "HeteroscedasticGaussianDistribution",
+            "init_std": 0.15,
+            "std_type": "log"
+          }
+        },
+        "critic": {
+          "class_name": "MLPModel",
+          "hidden_dims": [
+            256,
+            256
+          ],
+          "activation": "elu",
+          "obs_normalization": false
+        },
+        "optimizer": {
+          "optimizer": "adam",
+          "schedule": "adaptive",
+          "learning_rate": 0.00003,
+          "gamma": 0.9985,
+          "lam": 0.99,
+          "num_learning_epochs": 5,
+          "num_mini_batches": 4,
+          "clip_param": 0.2,
+          "max_grad_norm": 1
+        },
+        "initial_learning_rate_is_configured_default_not_restored_effective_lr": true
+      },
+      "request": {
+        "planned": 2048,
+        "consumed": 2048,
+        "unconsumed": 0,
+        "rounding_overrun": 0,
+        "stage_requested_before": {
+          "full_episode": 84352,
+          "phase_suffix": 73728,
+          "smoke": 0
+        },
+        "stage_requested_after": {
+          "full_episode": 86400,
+          "phase_suffix": 73728,
+          "smoke": 0
+        },
+        "stage_requested_delta": {
+          "full_episode": 2048,
+          "phase_suffix": 0,
+          "smoke": 0
+        }
+      },
+      "source": {
+        "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000168192.pt",
+        "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000168192_manifest.json",
+        "global_policy_decisions": 168192,
+        "ppo_updates": 1279,
+        "optimizer_steps": 25580,
+        "effective_learning_rate": 0.00001,
+        "actor_parameter_sha256": "d72212bf402beb50b65405809c729cfe90042111ee607a5202424795165b6707",
+        "checkpoint_sha256": "cea6f089e32dc0384c5e1d08c661da40471e3b429ab813ffa29f13250713711a"
+      },
+      "saved": {
+        "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000170240.pt",
+        "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000170240_manifest.json",
+        "global_policy_decisions": 170240,
+        "ppo_updates": 1295,
+        "optimizer_steps": 25900,
+        "actor_parameter_sha256": "35357026bb0bac581358776f2ebb83b71d48dddca325ab528b3a5b86302b812a",
+        "critic_parameter_sha256": "06792e47e6afd269512abc8481f8dbac77956c5c559b898f2301769fec6aa872",
+        "optimizer_state_sha256": "17814798aef856d13e5e71ff131215f6ac8bcd1f4afb1070e0213dc6b13da530",
+        "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+        "checkpoint_sha256": "cb7644420b257e4d4d01b4851a7cab198d59d2bd22935c922dc2f3177bc5b8c8",
+        "save_load_round_trip": true,
+        "effective_learning_rate": 0.00001,
+        "source_git_commit": "a9c52261ba87f05817bce72d9b6f89311c2c539f",
+        "runtime_content_sha256": "c10acaa8e5df5af5b3bb7f7acb73fd600cb79dbb6543de12b22a0c50016fa9f3"
+      },
+      "increments": {
+        "policy_decisions": 2048,
+        "ppo_updates": 16,
+        "optimizer_steps": 320
+      },
+      "sampling": {
+        "phase_policy_decisions": {
+          "P01": 12,
+          "P02": 516,
+          "P03": 20,
+          "P04": 22,
+          "P05": 1258,
+          "P06": 182,
+          "P07": 2,
+          "P08": 2,
+          "P09": 34,
+          "P10": 0,
+          "P11": 0,
+          "P12": 0,
+          "P13": 0
+        },
+        "phase_assignment": "Applied audit phase_id at the decision request; requested curriculum phase is not a sample count",
+        "credited_rows": 2048,
+        "credited_physics_ticks": 16377,
+        "first_global_policy_decision": 168193,
+        "last_global_policy_decision": 170240,
+        "teacher_storage_flags": {
+          "true": 0,
+          "false": 0,
+          "absent_or_null": 2048
+        },
+        "teacher_prefix_exclusion_verified": true,
+        "teacher_prefix_decisions_excluded": 0,
+        "teacher_prefix_physics_ticks_excluded": 0,
+        "prefix_attempts": [],
+        "all_physical_decisions_including_prefix": 2048,
+        "phase_counts_match_credited_telemetry": true,
+        "terminal_decisions": [
+          {
+            "global_policy_decision": 168550,
+            "phase": "P09",
+            "end_phase": "P09",
+            "physics_tick": 2864,
+            "sim_time_s": 23.866666666666667,
+            "terminal": true,
+            "terminal_bootstrap_allowed": false,
+            "task_result_scope": "unknown_not_recorded",
+            "termination_reason": "FALL",
+            "task_success": false,
+            "full_task_success": false
+          },
+          {
+            "global_policy_decision": 168969,
+            "phase": "P09",
+            "end_phase": "P09",
+            "physics_tick": 3351,
+            "sim_time_s": 27.925,
+            "terminal": true,
+            "terminal_bootstrap_allowed": false,
+            "task_result_scope": "unknown_not_recorded",
+            "termination_reason": "BODY_COLLISION",
+            "task_success": false,
+            "full_task_success": false
+          },
+          {
+            "global_policy_decision": 169576,
+            "phase": "P05",
+            "end_phase": "P05",
+            "physics_tick": 4850,
+            "sim_time_s": 40.416666666666664,
+            "terminal": true,
+            "terminal_bootstrap_allowed": false,
+            "task_result_scope": "unknown_not_recorded",
+            "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+            "task_success": false,
+            "full_task_success": false
+          },
+          {
+            "global_policy_decision": 170176,
+            "phase": "P05",
+            "end_phase": "P05",
+            "physics_tick": 4800,
+            "sim_time_s": 40,
+            "terminal": true,
+            "terminal_bootstrap_allowed": false,
+            "task_result_scope": "unknown_not_recorded",
+            "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+            "task_success": false,
+            "full_task_success": false
+          }
+        ],
+        "last_credited_decision": {
+          "global_policy_decision": 170240,
+          "phase": "P02",
+          "end_phase": "P02",
+          "physics_tick": 512,
+          "sim_time_s": 4.266666666666667,
+          "terminal": false,
+          "terminal_bootstrap_allowed": true,
+          "task_result_scope": "unknown_not_recorded"
+        }
+      },
+      "updates": [
+        {
+          "ppo_update": 1280,
+          "global_policy_decisions": 168320,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.3539233101128492,
+          "gradient_norm_max": 1.4142135363635602,
+          "kl_mean": 0.016050186779201326,
+          "clip_fraction": 0.196875,
+          "entropy": -8.841928625106812,
+          "value_loss": 0.5918067842721939,
+          "surrogate_loss": -0.03509569577872753
+        },
+        {
+          "ppo_update": 1281,
+          "global_policy_decisions": 168448,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 0.9999998980102321,
+          "gradient_norm_max": 1.414213540055235,
+          "kl_mean": 0.017202910240314638,
+          "clip_fraction": 0.2484375,
+          "entropy": -2.713627874851227,
+          "value_loss": 1.5310746431350708,
+          "surrogate_loss": -0.03388272877782583
+        },
+        {
+          "ppo_update": 1282,
+          "global_policy_decisions": 168576,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.3542345415270798,
+          "gradient_norm_max": 1.4142136004276742,
+          "kl_mean": 0.02873342897476141,
+          "clip_fraction": 0.25625,
+          "entropy": -1.0269402667880059,
+          "value_loss": 52.50464496612549,
+          "surrogate_loss": -0.0321622546762228
+        },
+        {
+          "ppo_update": 1283,
+          "global_policy_decisions": 168704,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.414212853694581,
+          "gradient_norm_max": 1.4142135673203378,
+          "kl_mean": 0.013849556191787848,
+          "clip_fraction": 0.190625,
+          "entropy": -7.012838125228882,
+          "value_loss": 0.5781550720334053,
+          "surrogate_loss": -0.030994475726038216
+        },
+        {
+          "ppo_update": 1284,
+          "global_policy_decisions": 168832,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.4142132661680882,
+          "gradient_norm_max": 1.4142135252060741,
+          "kl_mean": 0.014581056302186656,
+          "clip_fraction": 0.196875,
+          "entropy": -6.108690309524536,
+          "value_loss": 0.7937287718057633,
+          "surrogate_loss": -0.03382901726290584
+        },
+        {
+          "ppo_update": 1285,
+          "global_policy_decisions": 168960,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.4142132250323864,
+          "gradient_norm_max": 1.4142135978589188,
+          "kl_mean": 0.014945166958221724,
+          "clip_fraction": 0.20625,
+          "entropy": -2.6290172696113587,
+          "value_loss": 0.47325223982334136,
+          "surrogate_loss": -0.028259900771081446
+        },
+        {
+          "ppo_update": 1286,
+          "global_policy_decisions": 169088,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.414212949147367,
+          "gradient_norm_max": 1.4142135605173805,
+          "kl_mean": 0.01978300920419084,
+          "clip_fraction": 0.23125,
+          "entropy": -4.294465553760529,
+          "value_loss": 6.577342700958252,
+          "surrogate_loss": -0.04064525105059147
+        },
+        {
+          "ppo_update": 1287,
+          "global_policy_decisions": 169216,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 0.9999998410203691,
+          "gradient_norm_max": 1.4142135393138788,
+          "kl_mean": 0.020685898909515176,
+          "clip_fraction": 0.25,
+          "entropy": -4.043547773361206,
+          "value_loss": 1.3238631635904312,
+          "surrogate_loss": -0.030575953796505927
+        },
+        {
+          "ppo_update": 1288,
+          "global_policy_decisions": 169344,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.414213107072296,
+          "gradient_norm_max": 1.4142135925667418,
+          "kl_mean": 0.013272964788314657,
+          "clip_fraction": 0.1875,
+          "entropy": -4.987816917896271,
+          "value_loss": 1.2340564638376237,
+          "surrogate_loss": -0.028015586920082568
+        },
+        {
+          "ppo_update": 1289,
+          "global_policy_decisions": 169472,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.1284163593625602,
+          "gradient_norm_max": 1.4142136280578719,
+          "kl_mean": 0.02090891179015002,
+          "clip_fraction": 0.3046875,
+          "entropy": -3.3254786252975466,
+          "value_loss": 1.752995204925537,
+          "surrogate_loss": -0.05079123135656118
+        },
+        {
+          "ppo_update": 1290,
+          "global_policy_decisions": 169600,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.1027128509841106,
+          "gradient_norm_max": 1.4142134983080172,
+          "kl_mean": 0.024251373270462694,
+          "clip_fraction": 0.246875,
+          "entropy": -7.028058552742005,
+          "value_loss": 75.61651573181152,
+          "surrogate_loss": -0.02386805061250925
+        },
+        {
+          "ppo_update": 1291,
+          "global_policy_decisions": 169728,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.4142131165948537,
+          "gradient_norm_max": 1.414213515623,
+          "kl_mean": 0.019104970031556024,
+          "clip_fraction": 0.26875,
+          "entropy": -7.028908729553223,
+          "value_loss": 0.17163213156163692,
+          "surrogate_loss": -0.031003793235868216
+        },
+        {
+          "ppo_update": 1292,
+          "global_policy_decisions": 169856,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.0140706768905001,
+          "gradient_norm_max": 1.414213602324594,
+          "kl_mean": 0.0169229226303377,
+          "clip_fraction": 0.2625,
+          "entropy": -3.9515862584114076,
+          "value_loss": 1.0996768563985824,
+          "surrogate_loss": -0.02927952855825424
+        },
+        {
+          "ppo_update": 1293,
+          "global_policy_decisions": 169984,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.4142132251469268,
+          "gradient_norm_max": 1.4142135668268245,
+          "kl_mean": 0.016544801193971136,
+          "clip_fraction": 0.2578125,
+          "entropy": -5.62281219959259,
+          "value_loss": 1.9953845262527465,
+          "surrogate_loss": -0.023346318677067757
+        },
+        {
+          "ppo_update": 1294,
+          "global_policy_decisions": 170112,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.4142132645985692,
+          "gradient_norm_max": 1.4142136386296427,
+          "kl_mean": 0.026707240627014527,
+          "clip_fraction": 0.2765625,
+          "entropy": -5.052728295326233,
+          "value_loss": 0.9664954096078873,
+          "surrogate_loss": -0.028416525572538376
+        },
+        {
+          "ppo_update": 1295,
+          "global_policy_decisions": 170240,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.211975822660724,
+          "gradient_norm_max": 1.4142135316129445,
+          "kl_mean": 0.020871319533042876,
+          "clip_fraction": 0.2015625,
+          "entropy": -5.797315406799316,
+          "value_loss": 79.23883037567138,
+          "surrogate_loss": -0.02881205715239048
+        }
+      ],
+      "gradient_summary": {
+        "all_updates_finite_nonzero": true,
+        "all_updates_actor_changed": true,
+        "optimizer_gradient_norm_range": {
+          "min": 0.9999998410203691,
+          "max": 1.4142136386296427
+        },
+        "effective_learning_rate_range": {
+          "min": 0.00001,
+          "max": 0.00001
+        },
+        "gradient_measurement": "Existing optimizer pre-hook norm over all non-null optimizer parameter gradients"
+      },
+      "state_handling": {
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "normalizer_hash_unchanged": true,
+        "actor_obs_normalization": false,
+        "critic_obs_normalization": false,
+        "resume_physics": "legal_reset_not_bitwise_continuation",
+        "physical_env_state_saved": false,
+        "fresh_rollout_required_by_migration": true,
+        "migration_schema": "wlr50_clean.semantic_checkpoint_migration.v1",
+        "historical_warm_start_metadata_is_not_this_run_reset": true,
+        "source_checkpoint_binding_verified": true,
+        "source_optimizer_state_sha256": "62538886d631e10ed9e21b1441d11ddf25930c87862419ecd1bec88518216b53",
+        "saved_optimizer_state_sha256": "17814798aef856d13e5e71ff131215f6ac8bcd1f4afb1070e0213dc6b13da530",
+        "source_rng_state_recorded": true,
+        "saved_rng_state_recorded": true,
+        "rng_equality_across_training_is_not_expected": true,
+        "migration_preserves_all_learned_state": true,
+        "migration_factor_schema": "wlr50_clean.height_and_p02_recovery_same372_continuation.v1",
+        "save_load_round_trip_recorded": true,
+        "evidence_limit": "Recorded immutable sidecars, successful official resume path and completed accounting. No independent tensor/Adam/RNG reload; saved Adam/RNG may legitimately change during learning."
+      },
+      "task_results": {
+        "training_success_is_not_task_success": true,
+        "completed_episodes": [
+          {
+            "episode_index": 0,
+            "seed": 1001,
+            "policy_decisions": 358,
+            "termination_reason": "FALL",
+            "task_success": false,
+            "task_outcome_label": "FALL",
+            "full_task_success": false,
+            "duration_s": 23.866666666666667
+          },
+          {
+            "episode_index": 1,
+            "seed": 1001,
+            "policy_decisions": 419,
+            "termination_reason": "BODY_COLLISION",
+            "task_success": false,
+            "task_outcome_label": "BODY_COLLISION",
+            "full_task_success": false,
+            "duration_s": 27.925
+          },
+          {
+            "episode_index": 2,
+            "seed": 1001,
+            "policy_decisions": 607,
+            "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+            "task_success": false,
+            "task_outcome_label": "INCOMPLETE_CONTROLLER_BLOCKED",
+            "full_task_success": false,
+            "duration_s": 40.416666666666664
+          },
+          {
+            "episode_index": 3,
+            "seed": 1001,
+            "policy_decisions": 600,
+            "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+            "task_success": false,
+            "task_outcome_label": "INCOMPLETE_CONTROLLER_BLOCKED",
+            "full_task_success": false,
+            "duration_s": 40
+          }
+        ],
+        "success_count_scope": "fresh_P01_no_prefix",
+        "current_policy_full_P01_success_count": 0,
+        "teacher_initialized_task_success_count": 0,
+        "nonterminal_tail_is_not_a_completed_episode": true
+      },
+      "stop_after_update": null,
+      "verification": "Metadata plus credited audit/optimizer/episode records only. Recorded save/load proof is not independently rerun; no checkpoint tensor load or byte rehash."
+    }
+  ],
+  "aggregate": {
+    "runs_are_sequential_checkpoint_chain": true,
+    "added_policy_decisions": 2048,
+    "added_ppo_updates": 16,
+    "added_optimizer_steps": 320,
+    "phase_policy_decisions": {
+      "P01": 12,
+      "P02": 516,
+      "P03": 20,
+      "P04": 22,
+      "P05": 1258,
+      "P06": 182,
+      "P07": 2,
+      "P08": 2,
+      "P09": 34,
+      "P10": 0,
+      "P11": 0,
+      "P12": 0,
+      "P13": 0
+    },
+    "teacher_prefix_exclusion_verified": true,
+    "teacher_prefix_decisions_excluded": 0,
+    "source_counts": {
+      "global_policy_decisions": 168192,
+      "ppo_updates": 1279,
+      "optimizer_steps": 25580
+    },
+    "final_counts": {
+      "global_policy_decisions": 170240,
+      "ppo_updates": 1295,
+      "optimizer_steps": 25900
+    }
+  },
+  "latest_checkpoint_in_explicit_completed_chain": {
+    "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000170240.pt",
+    "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000170240_manifest.json",
+    "global_policy_decisions": 170240,
+    "ppo_updates": 1295,
+    "optimizer_steps": 25900,
+    "actor_parameter_sha256": "35357026bb0bac581358776f2ebb83b71d48dddca325ab528b3a5b86302b812a",
+    "critic_parameter_sha256": "06792e47e6afd269512abc8481f8dbac77956c5c559b898f2301769fec6aa872",
+    "optimizer_state_sha256": "17814798aef856d13e5e71ff131215f6ac8bcd1f4afb1070e0213dc6b13da530",
+    "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+    "checkpoint_sha256": "cb7644420b257e4d4d01b4851a7cab198d59d2bd22935c922dc2f3177bc5b8c8",
+    "save_load_round_trip": true,
+    "effective_learning_rate": 0.00001,
+    "source_git_commit": "a9c52261ba87f05817bce72d9b6f89311c2c539f",
+    "runtime_content_sha256": "c10acaa8e5df5af5b3bb7f7acb73fd600cb79dbb6543de12b22a0c50016fa9f3"
+  },
+  "latest_scope": "Latest only within the supplied sequential completed runs; no mutable global pointer read"
+}

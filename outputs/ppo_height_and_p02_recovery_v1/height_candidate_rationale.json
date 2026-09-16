@@ -1,0 +1,51 @@
+{
+  "schema": "wlr50_clean.bounded_height_candidate_rationale.v1",
+  "status": "LOCAL_GEOMETRY_HYPOTHESES_NOT_RUN_NOT_SUCCESS",
+  "evidence": "existing_A_B2_height_window.json",
+  "direction_contract": {
+    "canonical": "degrees relative to standing, not native absolute angle; FL native sign +1, RL native sign -1",
+    "B2_5408_fixed_body_wheel_center_dz_m_per_canonical_hip_deg": {"FL": 0.003046731460418389, "RL": 0.002994866244364381},
+    "negative_3deg_local_direction": "at fixed body/other joints, FL or RL wheel center moves downward about 9 mm; this does NOT directly raise RR hip or body",
+    "single_support_toy_direction": "With exactly that wheel fixed and only free body translation, negative hip change implies upward body translation; multiple contacts, pitch/roll, wheel rolling, friction and dynamics invalidate that simple inversion",
+    "FL": "AIR at B2 5200,5320,5360,5408,5421,5425. Cannot ascribe load-bearing body support to it; reduced positive lift could consume FL clearance or alter later contact.",
+    "RL": "GROUND and measured support at 5360/5408, bearing 15.007/16.170 N and valid load fractions 0.5167/0.5586. This is a functional transfer leg; early reduction may prevent RR unloading."
+  },
+  "height_distinction": {
+    "B2_5360_to_5408": {"body_collider_min_delta_m": -0.03207455616564045, "base_origin_delta_m": -0.029218778014183044, "RR_URDF_mount_delta_m": -0.00801877274896823},
+    "A_6856_to_6912": {"base_origin_delta_m": -0.021363817155361176, "RR_URDF_mount_delta_m": 0.0012185752420908196, "body_collider_min_delta_m": null},
+    "old_mount_evidence": "The URDF-parent-transform estimate matches each logged upper-link origin and axis within 2 micrometres / 2e-6 in all selected rows. Old runs did not log USD joint localPos0; estimate and measured upper origin remain separately labelled.",
+    "A_body_min_unknown_reason": "not retained; base-origin z cannot replace collider minimum",
+    "B2_terminal": {"body_collider_min_z_m": 0.10869434036868275, "base_origin_z_m": 0.10238389670848846, "RR_URDF_mount_z_m": 0.16580883965157736, "RR_knee_margin_deg": -0.000011087842644, "body_collision": false}
+  },
+  "candidates": [
+    {
+      "id": "FL_ONLY_SMALL_POSITIVE_SEGMENT_REDUCTION",
+      "proposed_delta_deg": {"FL": -3.0, "RL": 0.0},
+      "interpretation": "bounded 3-degree subtraction from positive P07 source excursion with smooth entry and original source ownership; do not accumulate every tick or alter authored FR/wheel atomic group/stop",
+      "reason": "FL has real excess positive travel from 24.9 toward 49.2 before follow-through38.6; small reduction tests clearance/return timing, not a bearing assumption",
+      "rejection_evidence": "lost actual FL space condition, collision, worsened RR unloading/crossing or smaller verified RR mount/clearance margin"
+    },
+    {
+      "id": "RL_ONLY_SMALL_TRANSFER_SEGMENT_REDUCTION",
+      "proposed_delta_deg": {"FL": 0.0, "RL": -3.0},
+      "interpretation": "bounded reduction of positive P08 excursion from source6.9 toward31.2, preserving continuity; not an immediate return to6.9",
+      "reason": "RL positive direction geometrically shortens vertical reach and B2 RR-mount fell during the transfer; causality remains unproven",
+      "rejection_evidence": "measured RR unload/current lift lost, longer preparation failure, adverse receiver/support load, or no mount/placement-workspace benefit"
+    },
+    {
+      "id": "COMBINATION_ONLY_AFTER_SINGLE_LEG_EVIDENCE",
+      "proposed_delta_deg": {"FL": -3.0, "RL": -3.0},
+      "interpretation": "compose successful single-leg bounded modifications; never add the toy height predictions or claim6 degrees gives18mm body rise",
+      "reason": "multiple contacts redistribute force and rotation; additive dynamic benefit has not been measured",
+      "rejection_evidence": "same real task/safety rules and preserved partial order; no new similarity gate"
+    },
+    {
+      "id": "UNLOAD_THEN_LIMITED_RECOVERY",
+      "proposed_delta_deg": {"FL": 0.0, "RL": -3.0},
+      "interpretation": "retain early RL transfer, then continuously blend a bounded -3deg modifier only after real RR unloading/current-lift progress; preserve original N evolution and recover modifier toward0 if current lift is lost",
+      "reason": "maintains useful predecessor work while testing later support geometry; current valid state matters, historical Q alone is insufficient",
+      "rejection_evidence": "RR loses maintained clearance or required support/current unload; no abrupt historical pose reset, no feedback integral chasing"
+    }
+  ],
+  "scope": {"production_edits_from_this_analysis": false, "new_simulation": false, "parameter_values_are_experiment_suggestions": true, "unique_solution_claim": false}
+}

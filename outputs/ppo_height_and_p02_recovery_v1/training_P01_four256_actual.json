@@ -1,0 +1,1290 @@
+{
+  "schema": "wlr50_clean.height_round_completed_training.v1",
+  "created_at_utc": "2026-09-15T04:43:12.837Z",
+  "purpose": "formal",
+  "fixture_not_current_round": false,
+  "full_task_success_claimed": false,
+  "runs": [
+    {
+      "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\train\\20260915T0422153608653Z_geec6aaeabe86_8085f012c64e4c27ab7272cc21844801",
+      "lifecycle": "SUCCEEDED",
+      "completed_at_utc": "2026-09-15T04:28:02.532367+00:00",
+      "configuration": {
+        "semantic_version": "v3",
+        "experiment_id": "fsm_reference_p09_stable_v2",
+        "stage": "full_episode",
+        "from_phase": "P01",
+        "prefix_source": "frozen_fsm",
+        "teacher_offset_decisions": 0,
+        "seed": 1001,
+        "num_envs": 1,
+        "device": "cuda:0",
+        "checkpoint_interval_updates": 10,
+        "implemented_sampling": "P01_full_task_only_initial_version",
+        "prefix_request": null,
+        "physics_hz": 120,
+        "decision_hz": 15,
+        "rollout_steps_per_env": 128,
+        "rollout_policy_decisions": 128,
+        "observation_dimension": 372,
+        "action_dimension": 12,
+        "policy_contract": {
+          "activation": "elu",
+          "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+          "actor_hidden_dims": [
+            256,
+            256
+          ],
+          "base_observation_dimension": 324,
+          "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+          "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+          "deterministic_output": "conditional_mean",
+          "distribution_class": "HeteroscedasticGaussianDistribution",
+          "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+          "history_clip": 20,
+          "history_feature": "previous_raw_full12",
+          "history_slice": [
+            195,
+            207
+          ],
+          "history_state": "stored_observation_only; no_actor_mutable_history",
+          "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+          "observation_dimension": 372,
+          "observation_layout": "diagonal_transfer_state_v1",
+          "raw_action_dimension": 12,
+          "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+          "rho": 0.9,
+          "role_observation_fields": [
+            "valid",
+            "workspace_progress",
+            "preparation_progress",
+            "transfer_progress",
+            "motion_fraction",
+            "preparation_ready",
+            "transfer_ready",
+            "fixed_direction_world_x",
+            "fixed_direction_world_y",
+            "short_support_continuity_fraction",
+            "continued_response_fraction",
+            "window_evidence_fraction"
+          ],
+          "role_observation_group": "transfer_role_context_full48",
+          "role_observation_leg_order": [
+            "FL",
+            "FR",
+            "RL",
+            "RR"
+          ],
+          "role_observation_slice": [
+            324,
+            372
+          ],
+          "schema": "wlr50_clean.semantic_policy_distribution.v1",
+          "state_dependent_std": true,
+          "std_type": "log",
+          "version": "history_conditioned_heteroscedastic_log_v1"
+        },
+        "actor": {
+          "class_name": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+          "hidden_dims": [
+            256,
+            256
+          ],
+          "activation": "elu",
+          "obs_normalization": false,
+          "observation_layout": "diagonal_transfer_state_v1",
+          "distribution_cfg": {
+            "class_name": "HeteroscedasticGaussianDistribution",
+            "init_std": 0.15,
+            "std_type": "log"
+          }
+        },
+        "critic": {
+          "class_name": "MLPModel",
+          "hidden_dims": [
+            256,
+            256
+          ],
+          "activation": "elu",
+          "obs_normalization": false
+        },
+        "optimizer": {
+          "optimizer": "adam",
+          "schedule": "adaptive",
+          "learning_rate": 0.00003,
+          "gamma": 0.9985,
+          "lam": 0.99,
+          "num_learning_epochs": 5,
+          "num_mini_batches": 4,
+          "clip_param": 0.2,
+          "max_grad_norm": 1
+        },
+        "initial_learning_rate_is_configured_default_not_restored_effective_lr": true
+      },
+      "request": {
+        "planned": 256,
+        "consumed": 256,
+        "unconsumed": 0,
+        "rounding_overrun": 0,
+        "stage_requested_before": {
+          "full_episode": 86400,
+          "phase_suffix": 73728,
+          "smoke": 0
+        },
+        "stage_requested_after": {
+          "full_episode": 86656,
+          "phase_suffix": 73728,
+          "smoke": 0
+        },
+        "stage_requested_delta": {
+          "full_episode": 256,
+          "phase_suffix": 0,
+          "smoke": 0
+        }
+      },
+      "source": {
+        "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000170240.pt",
+        "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000170240_manifest.json",
+        "global_policy_decisions": 170240,
+        "ppo_updates": 1295,
+        "optimizer_steps": 25900,
+        "effective_learning_rate": 0.00001,
+        "actor_parameter_sha256": "35357026bb0bac581358776f2ebb83b71d48dddca325ab528b3a5b86302b812a",
+        "checkpoint_sha256": "cb7644420b257e4d4d01b4851a7cab198d59d2bd22935c922dc2f3177bc5b8c8"
+      },
+      "saved": {
+        "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000170496.pt",
+        "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000170496_manifest.json",
+        "global_policy_decisions": 170496,
+        "ppo_updates": 1297,
+        "optimizer_steps": 25940,
+        "actor_parameter_sha256": "788e6d558994ce9f407ef60f563acdebceadb4797af5ec5ceec17121c5f04990",
+        "critic_parameter_sha256": "c340c9bd9027a89c5dd3039f96c746636cf7d50ada3391de58538aff67622682",
+        "optimizer_state_sha256": "0598231e1da86a3e86d584e85f05a56b976e76b3ca1ec300662f13b1c7d6a792",
+        "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+        "checkpoint_sha256": "7cb4f1e3fa0ba452a47a7c39d072916e9b8d53b4767c68850b120984742ff73d",
+        "save_load_round_trip": true,
+        "effective_learning_rate": 0.00001,
+        "source_git_commit": "eec6aaeabe8695f885aa914a1f5becbe2cc6abe9",
+        "runtime_content_sha256": "4296fe12340d2ca0091f322cc515f3b5aa429914e9a0623b94eb648a03b04b09"
+      },
+      "increments": {
+        "policy_decisions": 256,
+        "ppo_updates": 2,
+        "optimizer_steps": 40
+      },
+      "sampling": {
+        "phase_policy_decisions": {
+          "P01": 5,
+          "P02": 211,
+          "P03": 16,
+          "P04": 8,
+          "P05": 16,
+          "P06": 0,
+          "P07": 0,
+          "P08": 0,
+          "P09": 0,
+          "P10": 0,
+          "P11": 0,
+          "P12": 0,
+          "P13": 0
+        },
+        "phase_assignment": "Applied audit phase_id at the decision request; requested curriculum phase is not a sample count",
+        "credited_rows": 256,
+        "credited_physics_ticks": 2046,
+        "first_global_policy_decision": 170241,
+        "last_global_policy_decision": 170496,
+        "teacher_storage_flags": {
+          "true": 0,
+          "false": 0,
+          "absent_or_null": 256
+        },
+        "teacher_prefix_exclusion_verified": true,
+        "teacher_prefix_decisions_excluded": 0,
+        "teacher_prefix_physics_ticks_excluded": 0,
+        "prefix_attempts": [],
+        "all_physical_decisions_including_prefix": 256,
+        "phase_counts_match_credited_telemetry": true,
+        "terminal_decisions": [
+          {
+            "global_policy_decision": 170387,
+            "phase": "P05",
+            "end_phase": "P05",
+            "physics_tick": 1174,
+            "sim_time_s": 9.783333333333333,
+            "terminal": true,
+            "terminal_bootstrap_allowed": false,
+            "task_result_scope": "unknown_not_recorded",
+            "termination_reason": "FALL",
+            "task_success": false,
+            "full_task_success": false
+          }
+        ],
+        "last_credited_decision": {
+          "global_policy_decision": 170496,
+          "phase": "P02",
+          "end_phase": "P02",
+          "physics_tick": 872,
+          "sim_time_s": 7.266666666666667,
+          "terminal": false,
+          "terminal_bootstrap_allowed": true,
+          "task_result_scope": "unknown_not_recorded"
+        }
+      },
+      "updates": [
+        {
+          "ppo_update": 1296,
+          "global_policy_decisions": 170368,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.4142129254697058,
+          "gradient_norm_max": 1.4142135063098276,
+          "kl_mean": 0.016249006911682396,
+          "clip_fraction": 0.196875,
+          "entropy": -5.136356234550476,
+          "value_loss": 0.14337230883538724,
+          "surrogate_loss": -0.017308774590492248
+        },
+        {
+          "ppo_update": 1297,
+          "global_policy_decisions": 170496,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.4142132981775644,
+          "gradient_norm_max": 1.4142135599338213,
+          "kl_mean": 0.021845055351157418,
+          "clip_fraction": 0.2890625,
+          "entropy": -6.8350177526474,
+          "value_loss": 42.80610275268555,
+          "surrogate_loss": -0.032128278911113736
+        }
+      ],
+      "gradient_summary": {
+        "all_updates_finite_nonzero": true,
+        "all_updates_actor_changed": true,
+        "optimizer_gradient_norm_range": {
+          "min": 1.4142129254697058,
+          "max": 1.4142135599338213
+        },
+        "effective_learning_rate_range": {
+          "min": 0.00001,
+          "max": 0.00001
+        },
+        "gradient_measurement": "Existing optimizer pre-hook norm over all non-null optimizer parameter gradients"
+      },
+      "state_handling": {
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "normalizer_hash_unchanged": true,
+        "actor_obs_normalization": false,
+        "critic_obs_normalization": false,
+        "resume_physics": "legal_reset_not_bitwise_continuation",
+        "physical_env_state_saved": false,
+        "fresh_rollout_required_by_migration": true,
+        "migration_schema": "wlr50_clean.semantic_checkpoint_migration.v1",
+        "historical_warm_start_metadata_is_not_this_run_reset": true,
+        "source_checkpoint_binding_verified": true,
+        "source_optimizer_state_sha256": "17814798aef856d13e5e71ff131215f6ac8bcd1f4afb1070e0213dc6b13da530",
+        "saved_optimizer_state_sha256": "0598231e1da86a3e86d584e85f05a56b976e76b3ca1ec300662f13b1c7d6a792",
+        "source_rng_state_recorded": true,
+        "saved_rng_state_recorded": true,
+        "rng_equality_across_training_is_not_expected": true,
+        "migration_preserves_all_learned_state": true,
+        "migration_factor_schema": "wlr50_clean.height_and_p02_recovery_same372_continuation.v1",
+        "save_load_round_trip_recorded": true,
+        "evidence_limit": "Recorded immutable sidecars, successful official resume path and completed accounting. No independent tensor/Adam/RNG reload; saved Adam/RNG may legitimately change during learning."
+      },
+      "task_results": {
+        "training_success_is_not_task_success": true,
+        "completed_episodes": [
+          {
+            "episode_index": 0,
+            "seed": 1001,
+            "policy_decisions": 147,
+            "termination_reason": "FALL",
+            "task_success": false,
+            "task_outcome_label": "FALL",
+            "full_task_success": false,
+            "duration_s": 9.783333333333333
+          }
+        ],
+        "success_count_scope": "fresh_P01_no_prefix",
+        "current_policy_full_P01_success_count": 0,
+        "teacher_initialized_task_success_count": 0,
+        "nonterminal_tail_is_not_a_completed_episode": true
+      },
+      "stop_after_update": null,
+      "verification": "Metadata plus credited audit/optimizer/episode records only. Recorded save/load proof is not independently rerun; no checkpoint tensor load or byte rehash."
+    },
+    {
+      "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\train\\20260915T0428037308701Z_geec6aaeabe86_c6c88cf4b8d743528d6535b4da59d339",
+      "lifecycle": "SUCCEEDED",
+      "completed_at_utc": "2026-09-15T04:33:05.206347+00:00",
+      "configuration": {
+        "semantic_version": "v3",
+        "experiment_id": "fsm_reference_p09_stable_v2",
+        "stage": "full_episode",
+        "from_phase": "P01",
+        "prefix_source": "frozen_fsm",
+        "teacher_offset_decisions": 0,
+        "seed": 1001,
+        "num_envs": 1,
+        "device": "cuda:0",
+        "checkpoint_interval_updates": 10,
+        "implemented_sampling": "P01_full_task_only_initial_version",
+        "prefix_request": null,
+        "physics_hz": 120,
+        "decision_hz": 15,
+        "rollout_steps_per_env": 128,
+        "rollout_policy_decisions": 128,
+        "observation_dimension": 372,
+        "action_dimension": 12,
+        "policy_contract": {
+          "activation": "elu",
+          "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+          "actor_hidden_dims": [
+            256,
+            256
+          ],
+          "base_observation_dimension": 324,
+          "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+          "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+          "deterministic_output": "conditional_mean",
+          "distribution_class": "HeteroscedasticGaussianDistribution",
+          "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+          "history_clip": 20,
+          "history_feature": "previous_raw_full12",
+          "history_slice": [
+            195,
+            207
+          ],
+          "history_state": "stored_observation_only; no_actor_mutable_history",
+          "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+          "observation_dimension": 372,
+          "observation_layout": "diagonal_transfer_state_v1",
+          "raw_action_dimension": 12,
+          "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+          "rho": 0.9,
+          "role_observation_fields": [
+            "valid",
+            "workspace_progress",
+            "preparation_progress",
+            "transfer_progress",
+            "motion_fraction",
+            "preparation_ready",
+            "transfer_ready",
+            "fixed_direction_world_x",
+            "fixed_direction_world_y",
+            "short_support_continuity_fraction",
+            "continued_response_fraction",
+            "window_evidence_fraction"
+          ],
+          "role_observation_group": "transfer_role_context_full48",
+          "role_observation_leg_order": [
+            "FL",
+            "FR",
+            "RL",
+            "RR"
+          ],
+          "role_observation_slice": [
+            324,
+            372
+          ],
+          "schema": "wlr50_clean.semantic_policy_distribution.v1",
+          "state_dependent_std": true,
+          "std_type": "log",
+          "version": "history_conditioned_heteroscedastic_log_v1"
+        },
+        "actor": {
+          "class_name": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+          "hidden_dims": [
+            256,
+            256
+          ],
+          "activation": "elu",
+          "obs_normalization": false,
+          "observation_layout": "diagonal_transfer_state_v1",
+          "distribution_cfg": {
+            "class_name": "HeteroscedasticGaussianDistribution",
+            "init_std": 0.15,
+            "std_type": "log"
+          }
+        },
+        "critic": {
+          "class_name": "MLPModel",
+          "hidden_dims": [
+            256,
+            256
+          ],
+          "activation": "elu",
+          "obs_normalization": false
+        },
+        "optimizer": {
+          "optimizer": "adam",
+          "schedule": "adaptive",
+          "learning_rate": 0.00003,
+          "gamma": 0.9985,
+          "lam": 0.99,
+          "num_learning_epochs": 5,
+          "num_mini_batches": 4,
+          "clip_param": 0.2,
+          "max_grad_norm": 1
+        },
+        "initial_learning_rate_is_configured_default_not_restored_effective_lr": true
+      },
+      "request": {
+        "planned": 256,
+        "consumed": 256,
+        "unconsumed": 0,
+        "rounding_overrun": 0,
+        "stage_requested_before": {
+          "full_episode": 86656,
+          "phase_suffix": 73728,
+          "smoke": 0
+        },
+        "stage_requested_after": {
+          "full_episode": 86912,
+          "phase_suffix": 73728,
+          "smoke": 0
+        },
+        "stage_requested_delta": {
+          "full_episode": 256,
+          "phase_suffix": 0,
+          "smoke": 0
+        }
+      },
+      "source": {
+        "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000170496.pt",
+        "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000170496_manifest.json",
+        "global_policy_decisions": 170496,
+        "ppo_updates": 1297,
+        "optimizer_steps": 25940,
+        "effective_learning_rate": 0.00001,
+        "actor_parameter_sha256": "788e6d558994ce9f407ef60f563acdebceadb4797af5ec5ceec17121c5f04990",
+        "checkpoint_sha256": "7cb4f1e3fa0ba452a47a7c39d072916e9b8d53b4767c68850b120984742ff73d"
+      },
+      "saved": {
+        "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000170752.pt",
+        "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000170752_manifest.json",
+        "global_policy_decisions": 170752,
+        "ppo_updates": 1299,
+        "optimizer_steps": 25980,
+        "actor_parameter_sha256": "20c1b68ab3297b35a2f2f201c505a12db377542238ab483542cbae55cab5350a",
+        "critic_parameter_sha256": "0e4d51b6c2b442fbbe7cf300b314d8237ef60f6ef9a09d215d24101bb037e45e",
+        "optimizer_state_sha256": "90d16a4265fdc2410db6ebdc13b41fd533dc09a29998dbbaa10cf85b502a2337",
+        "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+        "checkpoint_sha256": "236ef97afe00896829fc0c6cdbbdf8728afdf9cfdfcefb48ae43d5c4171eff7c",
+        "save_load_round_trip": true,
+        "effective_learning_rate": 0.00001,
+        "source_git_commit": "eec6aaeabe8695f885aa914a1f5becbe2cc6abe9",
+        "runtime_content_sha256": "4296fe12340d2ca0091f322cc515f3b5aa429914e9a0623b94eb648a03b04b09"
+      },
+      "increments": {
+        "policy_decisions": 256,
+        "ppo_updates": 2,
+        "optimizer_steps": 40
+      },
+      "sampling": {
+        "phase_policy_decisions": {
+          "P01": 2,
+          "P02": 162,
+          "P03": 6,
+          "P04": 25,
+          "P05": 61,
+          "P06": 0,
+          "P07": 0,
+          "P08": 0,
+          "P09": 0,
+          "P10": 0,
+          "P11": 0,
+          "P12": 0,
+          "P13": 0
+        },
+        "phase_assignment": "Applied audit phase_id at the decision request; requested curriculum phase is not a sample count",
+        "credited_rows": 256,
+        "credited_physics_ticks": 2048,
+        "first_global_policy_decision": 170497,
+        "last_global_policy_decision": 170752,
+        "teacher_storage_flags": {
+          "true": 0,
+          "false": 0,
+          "absent_or_null": 256
+        },
+        "teacher_prefix_exclusion_verified": true,
+        "teacher_prefix_decisions_excluded": 0,
+        "teacher_prefix_physics_ticks_excluded": 0,
+        "prefix_attempts": [],
+        "all_physical_decisions_including_prefix": 256,
+        "phase_counts_match_credited_telemetry": true,
+        "terminal_decisions": [],
+        "last_credited_decision": {
+          "global_policy_decision": 170752,
+          "phase": "P05",
+          "end_phase": "P05",
+          "physics_tick": 2048,
+          "sim_time_s": 17.066666666666666,
+          "terminal": false,
+          "terminal_bootstrap_allowed": true,
+          "task_result_scope": "unknown_not_recorded"
+        }
+      },
+      "updates": [
+        {
+          "ppo_update": 1298,
+          "global_policy_decisions": 170624,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.4142132082204641,
+          "gradient_norm_max": 1.4142135005461631,
+          "kl_mean": 0.015722142375315117,
+          "clip_fraction": 0.18125,
+          "entropy": -6.8025609970092775,
+          "value_loss": 0.19656776040792465,
+          "surrogate_loss": -0.018117203563451766
+        },
+        {
+          "ppo_update": 1299,
+          "global_policy_decisions": 170752,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.4142133278311353,
+          "gradient_norm_max": 1.4142135469854957,
+          "kl_mean": 0.013591361773441602,
+          "clip_fraction": 0.1890625,
+          "entropy": -6.714817023277282,
+          "value_loss": 0.2597019225358963,
+          "surrogate_loss": -0.028089006058871747
+        }
+      ],
+      "gradient_summary": {
+        "all_updates_finite_nonzero": true,
+        "all_updates_actor_changed": true,
+        "optimizer_gradient_norm_range": {
+          "min": 1.4142132082204641,
+          "max": 1.4142135469854957
+        },
+        "effective_learning_rate_range": {
+          "min": 0.00001,
+          "max": 0.00001
+        },
+        "gradient_measurement": "Existing optimizer pre-hook norm over all non-null optimizer parameter gradients"
+      },
+      "state_handling": {
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "normalizer_hash_unchanged": true,
+        "actor_obs_normalization": false,
+        "critic_obs_normalization": false,
+        "resume_physics": "legal_reset_not_bitwise_continuation",
+        "physical_env_state_saved": false,
+        "fresh_rollout_required_by_migration": null,
+        "migration_schema": null,
+        "historical_warm_start_metadata_is_not_this_run_reset": true,
+        "source_checkpoint_binding_verified": true,
+        "source_optimizer_state_sha256": "0598231e1da86a3e86d584e85f05a56b976e76b3ca1ec300662f13b1c7d6a792",
+        "saved_optimizer_state_sha256": "90d16a4265fdc2410db6ebdc13b41fd533dc09a29998dbbaa10cf85b502a2337",
+        "source_rng_state_recorded": true,
+        "saved_rng_state_recorded": true,
+        "rng_equality_across_training_is_not_expected": true,
+        "migration_preserves_all_learned_state": null,
+        "migration_factor_schema": null,
+        "save_load_round_trip_recorded": true,
+        "evidence_limit": "Recorded immutable sidecars, successful official resume path and completed accounting. No independent tensor/Adam/RNG reload; saved Adam/RNG may legitimately change during learning."
+      },
+      "task_results": {
+        "training_success_is_not_task_success": true,
+        "completed_episodes": [],
+        "success_count_scope": "fresh_P01_no_prefix",
+        "current_policy_full_P01_success_count": 0,
+        "teacher_initialized_task_success_count": 0,
+        "nonterminal_tail_is_not_a_completed_episode": true
+      },
+      "stop_after_update": null,
+      "verification": "Metadata plus credited audit/optimizer/episode records only. Recorded save/load proof is not independently rerun; no checkpoint tensor load or byte rehash."
+    },
+    {
+      "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\train\\20260915T0433063906385Z_geec6aaeabe86_fdd213c35fe14a9583aa4e713605b7ed",
+      "lifecycle": "SUCCEEDED",
+      "completed_at_utc": "2026-09-15T04:37:58.761552+00:00",
+      "configuration": {
+        "semantic_version": "v3",
+        "experiment_id": "fsm_reference_p09_stable_v2",
+        "stage": "full_episode",
+        "from_phase": "P01",
+        "prefix_source": "frozen_fsm",
+        "teacher_offset_decisions": 0,
+        "seed": 1001,
+        "num_envs": 1,
+        "device": "cuda:0",
+        "checkpoint_interval_updates": 10,
+        "implemented_sampling": "P01_full_task_only_initial_version",
+        "prefix_request": null,
+        "physics_hz": 120,
+        "decision_hz": 15,
+        "rollout_steps_per_env": 128,
+        "rollout_policy_decisions": 128,
+        "observation_dimension": 372,
+        "action_dimension": 12,
+        "policy_contract": {
+          "activation": "elu",
+          "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+          "actor_hidden_dims": [
+            256,
+            256
+          ],
+          "base_observation_dimension": 324,
+          "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+          "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+          "deterministic_output": "conditional_mean",
+          "distribution_class": "HeteroscedasticGaussianDistribution",
+          "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+          "history_clip": 20,
+          "history_feature": "previous_raw_full12",
+          "history_slice": [
+            195,
+            207
+          ],
+          "history_state": "stored_observation_only; no_actor_mutable_history",
+          "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+          "observation_dimension": 372,
+          "observation_layout": "diagonal_transfer_state_v1",
+          "raw_action_dimension": 12,
+          "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+          "rho": 0.9,
+          "role_observation_fields": [
+            "valid",
+            "workspace_progress",
+            "preparation_progress",
+            "transfer_progress",
+            "motion_fraction",
+            "preparation_ready",
+            "transfer_ready",
+            "fixed_direction_world_x",
+            "fixed_direction_world_y",
+            "short_support_continuity_fraction",
+            "continued_response_fraction",
+            "window_evidence_fraction"
+          ],
+          "role_observation_group": "transfer_role_context_full48",
+          "role_observation_leg_order": [
+            "FL",
+            "FR",
+            "RL",
+            "RR"
+          ],
+          "role_observation_slice": [
+            324,
+            372
+          ],
+          "schema": "wlr50_clean.semantic_policy_distribution.v1",
+          "state_dependent_std": true,
+          "std_type": "log",
+          "version": "history_conditioned_heteroscedastic_log_v1"
+        },
+        "actor": {
+          "class_name": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+          "hidden_dims": [
+            256,
+            256
+          ],
+          "activation": "elu",
+          "obs_normalization": false,
+          "observation_layout": "diagonal_transfer_state_v1",
+          "distribution_cfg": {
+            "class_name": "HeteroscedasticGaussianDistribution",
+            "init_std": 0.15,
+            "std_type": "log"
+          }
+        },
+        "critic": {
+          "class_name": "MLPModel",
+          "hidden_dims": [
+            256,
+            256
+          ],
+          "activation": "elu",
+          "obs_normalization": false
+        },
+        "optimizer": {
+          "optimizer": "adam",
+          "schedule": "adaptive",
+          "learning_rate": 0.00003,
+          "gamma": 0.9985,
+          "lam": 0.99,
+          "num_learning_epochs": 5,
+          "num_mini_batches": 4,
+          "clip_param": 0.2,
+          "max_grad_norm": 1
+        },
+        "initial_learning_rate_is_configured_default_not_restored_effective_lr": true
+      },
+      "request": {
+        "planned": 256,
+        "consumed": 256,
+        "unconsumed": 0,
+        "rounding_overrun": 0,
+        "stage_requested_before": {
+          "full_episode": 86912,
+          "phase_suffix": 73728,
+          "smoke": 0
+        },
+        "stage_requested_after": {
+          "full_episode": 87168,
+          "phase_suffix": 73728,
+          "smoke": 0
+        },
+        "stage_requested_delta": {
+          "full_episode": 256,
+          "phase_suffix": 0,
+          "smoke": 0
+        }
+      },
+      "source": {
+        "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000170752.pt",
+        "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000170752_manifest.json",
+        "global_policy_decisions": 170752,
+        "ppo_updates": 1299,
+        "optimizer_steps": 25980,
+        "effective_learning_rate": 0.00001,
+        "actor_parameter_sha256": "20c1b68ab3297b35a2f2f201c505a12db377542238ab483542cbae55cab5350a",
+        "checkpoint_sha256": "236ef97afe00896829fc0c6cdbbdf8728afdf9cfdfcefb48ae43d5c4171eff7c"
+      },
+      "saved": {
+        "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000171008.pt",
+        "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000171008_manifest.json",
+        "global_policy_decisions": 171008,
+        "ppo_updates": 1301,
+        "optimizer_steps": 26020,
+        "actor_parameter_sha256": "27598b38a2b0f6c8104f9c3a1500762df092e35b00875b6f9ab6e58ca5646f1f",
+        "critic_parameter_sha256": "6e0fe46971405f0544c913ab83ca9b36e2dd71af62ba8ed3f7715bca89115e77",
+        "optimizer_state_sha256": "47cc14be713010dfaabaecf7956ad8339e6a4aa554d6654429f860216e5efd76",
+        "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+        "checkpoint_sha256": "515c7ea7fea8490d12be834be5cc82c4b16426720036d6965b0f914b956d885d",
+        "save_load_round_trip": true,
+        "effective_learning_rate": 0.00001,
+        "source_git_commit": "eec6aaeabe8695f885aa914a1f5becbe2cc6abe9",
+        "runtime_content_sha256": "4296fe12340d2ca0091f322cc515f3b5aa429914e9a0623b94eb648a03b04b09"
+      },
+      "increments": {
+        "policy_decisions": 256,
+        "ppo_updates": 2,
+        "optimizer_steps": 40
+      },
+      "sampling": {
+        "phase_policy_decisions": {
+          "P01": 4,
+          "P02": 203,
+          "P03": 5,
+          "P04": 1,
+          "P05": 43,
+          "P06": 0,
+          "P07": 0,
+          "P08": 0,
+          "P09": 0,
+          "P10": 0,
+          "P11": 0,
+          "P12": 0,
+          "P13": 0
+        },
+        "phase_assignment": "Applied audit phase_id at the decision request; requested curriculum phase is not a sample count",
+        "credited_rows": 256,
+        "credited_physics_ticks": 2043,
+        "first_global_policy_decision": 170753,
+        "last_global_policy_decision": 171008,
+        "teacher_storage_flags": {
+          "true": 0,
+          "false": 0,
+          "absent_or_null": 256
+        },
+        "teacher_prefix_exclusion_verified": true,
+        "teacher_prefix_decisions_excluded": 0,
+        "teacher_prefix_physics_ticks_excluded": 0,
+        "prefix_attempts": [],
+        "all_physical_decisions_including_prefix": 256,
+        "phase_counts_match_credited_telemetry": true,
+        "terminal_decisions": [
+          {
+            "global_policy_decision": 170922,
+            "phase": "P05",
+            "end_phase": "P05",
+            "physics_tick": 1355,
+            "sim_time_s": 11.291666666666666,
+            "terminal": true,
+            "terminal_bootstrap_allowed": false,
+            "task_result_scope": "unknown_not_recorded",
+            "termination_reason": "FALL",
+            "task_success": false,
+            "full_task_success": false
+          }
+        ],
+        "last_credited_decision": {
+          "global_policy_decision": 171008,
+          "phase": "P02",
+          "end_phase": "P02",
+          "physics_tick": 688,
+          "sim_time_s": 5.733333333333333,
+          "terminal": false,
+          "terminal_bootstrap_allowed": true,
+          "task_result_scope": "unknown_not_recorded"
+        }
+      },
+      "updates": [
+        {
+          "ppo_update": 1300,
+          "global_policy_decisions": 170880,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.41421311545728,
+          "gradient_norm_max": 1.414213446236622,
+          "kl_mean": 0.016179914338871206,
+          "clip_fraction": 0.246875,
+          "entropy": -5.055468654632568,
+          "value_loss": 0.1406348913908005,
+          "surrogate_loss": -0.02786087114363909
+        },
+        {
+          "ppo_update": 1301,
+          "global_policy_decisions": 171008,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.4142128549342803,
+          "gradient_norm_max": 1.4142135420910684,
+          "kl_mean": 0.0337971563189149,
+          "clip_fraction": 0.284375,
+          "entropy": -5.789096355438232,
+          "value_loss": 72.38031558990478,
+          "surrogate_loss": -0.05164425037801266
+        }
+      ],
+      "gradient_summary": {
+        "all_updates_finite_nonzero": true,
+        "all_updates_actor_changed": true,
+        "optimizer_gradient_norm_range": {
+          "min": 1.4142128549342803,
+          "max": 1.4142135420910684
+        },
+        "effective_learning_rate_range": {
+          "min": 0.00001,
+          "max": 0.00001
+        },
+        "gradient_measurement": "Existing optimizer pre-hook norm over all non-null optimizer parameter gradients"
+      },
+      "state_handling": {
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "normalizer_hash_unchanged": true,
+        "actor_obs_normalization": false,
+        "critic_obs_normalization": false,
+        "resume_physics": "legal_reset_not_bitwise_continuation",
+        "physical_env_state_saved": false,
+        "fresh_rollout_required_by_migration": null,
+        "migration_schema": null,
+        "historical_warm_start_metadata_is_not_this_run_reset": true,
+        "source_checkpoint_binding_verified": true,
+        "source_optimizer_state_sha256": "90d16a4265fdc2410db6ebdc13b41fd533dc09a29998dbbaa10cf85b502a2337",
+        "saved_optimizer_state_sha256": "47cc14be713010dfaabaecf7956ad8339e6a4aa554d6654429f860216e5efd76",
+        "source_rng_state_recorded": true,
+        "saved_rng_state_recorded": true,
+        "rng_equality_across_training_is_not_expected": true,
+        "migration_preserves_all_learned_state": null,
+        "migration_factor_schema": null,
+        "save_load_round_trip_recorded": true,
+        "evidence_limit": "Recorded immutable sidecars, successful official resume path and completed accounting. No independent tensor/Adam/RNG reload; saved Adam/RNG may legitimately change during learning."
+      },
+      "task_results": {
+        "training_success_is_not_task_success": true,
+        "completed_episodes": [
+          {
+            "episode_index": 0,
+            "seed": 1001,
+            "policy_decisions": 170,
+            "termination_reason": "FALL",
+            "task_success": false,
+            "task_outcome_label": "FALL",
+            "full_task_success": false,
+            "duration_s": 11.291666666666666
+          }
+        ],
+        "success_count_scope": "fresh_P01_no_prefix",
+        "current_policy_full_P01_success_count": 0,
+        "teacher_initialized_task_success_count": 0,
+        "nonterminal_tail_is_not_a_completed_episode": true
+      },
+      "stop_after_update": null,
+      "verification": "Metadata plus credited audit/optimizer/episode records only. Recorded save/load proof is not independently rerun; no checkpoint tensor load or byte rehash."
+    },
+    {
+      "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\train\\20260915T0437598844140Z_geec6aaeabe86_c42c75c6d12f49e4a01ab1bca8236acd",
+      "lifecycle": "SUCCEEDED",
+      "completed_at_utc": "2026-09-15T04:42:52.825099+00:00",
+      "configuration": {
+        "semantic_version": "v3",
+        "experiment_id": "fsm_reference_p09_stable_v2",
+        "stage": "full_episode",
+        "from_phase": "P01",
+        "prefix_source": "frozen_fsm",
+        "teacher_offset_decisions": 0,
+        "seed": 1001,
+        "num_envs": 1,
+        "device": "cuda:0",
+        "checkpoint_interval_updates": 10,
+        "implemented_sampling": "P01_full_task_only_initial_version",
+        "prefix_request": null,
+        "physics_hz": 120,
+        "decision_hz": 15,
+        "rollout_steps_per_env": 128,
+        "rollout_policy_decisions": 128,
+        "observation_dimension": 372,
+        "action_dimension": 12,
+        "policy_contract": {
+          "activation": "elu",
+          "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+          "actor_hidden_dims": [
+            256,
+            256
+          ],
+          "base_observation_dimension": 324,
+          "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+          "conditional_std": "unchanged_learned_sigma_as_innovation; no_stationary_rescaling",
+          "deterministic_output": "conditional_mean",
+          "distribution_class": "HeteroscedasticGaussianDistribution",
+          "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+          "history_clip": 20,
+          "history_feature": "previous_raw_full12",
+          "history_slice": [
+            195,
+            207
+          ],
+          "history_state": "stored_observation_only; no_actor_mutable_history",
+          "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+          "observation_dimension": 372,
+          "observation_layout": "diagonal_transfer_state_v1",
+          "raw_action_dimension": 12,
+          "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+          "rho": 0.9,
+          "role_observation_fields": [
+            "valid",
+            "workspace_progress",
+            "preparation_progress",
+            "transfer_progress",
+            "motion_fraction",
+            "preparation_ready",
+            "transfer_ready",
+            "fixed_direction_world_x",
+            "fixed_direction_world_y",
+            "short_support_continuity_fraction",
+            "continued_response_fraction",
+            "window_evidence_fraction"
+          ],
+          "role_observation_group": "transfer_role_context_full48",
+          "role_observation_leg_order": [
+            "FL",
+            "FR",
+            "RL",
+            "RR"
+          ],
+          "role_observation_slice": [
+            324,
+            372
+          ],
+          "schema": "wlr50_clean.semantic_policy_distribution.v1",
+          "state_dependent_std": true,
+          "std_type": "log",
+          "version": "history_conditioned_heteroscedastic_log_v1"
+        },
+        "actor": {
+          "class_name": "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel",
+          "hidden_dims": [
+            256,
+            256
+          ],
+          "activation": "elu",
+          "obs_normalization": false,
+          "observation_layout": "diagonal_transfer_state_v1",
+          "distribution_cfg": {
+            "class_name": "HeteroscedasticGaussianDistribution",
+            "init_std": 0.15,
+            "std_type": "log"
+          }
+        },
+        "critic": {
+          "class_name": "MLPModel",
+          "hidden_dims": [
+            256,
+            256
+          ],
+          "activation": "elu",
+          "obs_normalization": false
+        },
+        "optimizer": {
+          "optimizer": "adam",
+          "schedule": "adaptive",
+          "learning_rate": 0.00003,
+          "gamma": 0.9985,
+          "lam": 0.99,
+          "num_learning_epochs": 5,
+          "num_mini_batches": 4,
+          "clip_param": 0.2,
+          "max_grad_norm": 1
+        },
+        "initial_learning_rate_is_configured_default_not_restored_effective_lr": true
+      },
+      "request": {
+        "planned": 256,
+        "consumed": 256,
+        "unconsumed": 0,
+        "rounding_overrun": 0,
+        "stage_requested_before": {
+          "full_episode": 87168,
+          "phase_suffix": 73728,
+          "smoke": 0
+        },
+        "stage_requested_after": {
+          "full_episode": 87424,
+          "phase_suffix": 73728,
+          "smoke": 0
+        },
+        "stage_requested_delta": {
+          "full_episode": 256,
+          "phase_suffix": 0,
+          "smoke": 0
+        }
+      },
+      "source": {
+        "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000171008.pt",
+        "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000171008_manifest.json",
+        "global_policy_decisions": 171008,
+        "ppo_updates": 1301,
+        "optimizer_steps": 26020,
+        "effective_learning_rate": 0.00001,
+        "actor_parameter_sha256": "27598b38a2b0f6c8104f9c3a1500762df092e35b00875b6f9ab6e58ca5646f1f",
+        "checkpoint_sha256": "515c7ea7fea8490d12be834be5cc82c4b16426720036d6965b0f914b956d885d"
+      },
+      "saved": {
+        "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000171264.pt",
+        "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000171264_manifest.json",
+        "global_policy_decisions": 171264,
+        "ppo_updates": 1303,
+        "optimizer_steps": 26060,
+        "actor_parameter_sha256": "31582510ea30acdafc16197b24c689ec4bccc560e4456afc127cb6ab92125a27",
+        "critic_parameter_sha256": "e6e6ed65aea7a5a568c10befab4a0eaf65c71bf7d275edac76c40447a85b5473",
+        "optimizer_state_sha256": "0d04a296cbed4572fcce679c8516108f1fcefa0f35a7d5487fbaac161dc2d168",
+        "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+        "checkpoint_sha256": "c0510b97d607af684f8458712c1c1582a35df4aa63532b6e548c6b651bd9fa56",
+        "save_load_round_trip": true,
+        "effective_learning_rate": 0.00001,
+        "source_git_commit": "eec6aaeabe8695f885aa914a1f5becbe2cc6abe9",
+        "runtime_content_sha256": "4296fe12340d2ca0091f322cc515f3b5aa429914e9a0623b94eb648a03b04b09"
+      },
+      "increments": {
+        "policy_decisions": 256,
+        "ppo_updates": 2,
+        "optimizer_steps": 40
+      },
+      "sampling": {
+        "phase_policy_decisions": {
+          "P01": 4,
+          "P02": 154,
+          "P03": 12,
+          "P04": 8,
+          "P05": 78,
+          "P06": 0,
+          "P07": 0,
+          "P08": 0,
+          "P09": 0,
+          "P10": 0,
+          "P11": 0,
+          "P12": 0,
+          "P13": 0
+        },
+        "phase_assignment": "Applied audit phase_id at the decision request; requested curriculum phase is not a sample count",
+        "credited_rows": 256,
+        "credited_physics_ticks": 2042,
+        "first_global_policy_decision": 171009,
+        "last_global_policy_decision": 171264,
+        "teacher_storage_flags": {
+          "true": 0,
+          "false": 0,
+          "absent_or_null": 256
+        },
+        "teacher_prefix_exclusion_verified": true,
+        "teacher_prefix_decisions_excluded": 0,
+        "teacher_prefix_physics_ticks_excluded": 0,
+        "prefix_attempts": [],
+        "all_physical_decisions_including_prefix": 256,
+        "phase_counts_match_credited_telemetry": true,
+        "terminal_decisions": [
+          {
+            "global_policy_decision": 171225,
+            "phase": "P05",
+            "end_phase": "P05",
+            "physics_tick": 1730,
+            "sim_time_s": 14.416666666666666,
+            "terminal": true,
+            "terminal_bootstrap_allowed": false,
+            "task_result_scope": "unknown_not_recorded",
+            "termination_reason": "FALL",
+            "task_success": false,
+            "full_task_success": false
+          }
+        ],
+        "last_credited_decision": {
+          "global_policy_decision": 171264,
+          "phase": "P02",
+          "end_phase": "P02",
+          "physics_tick": 312,
+          "sim_time_s": 2.6,
+          "terminal": false,
+          "terminal_bootstrap_allowed": true,
+          "task_result_scope": "unknown_not_recorded"
+        }
+      },
+      "updates": [
+        {
+          "ppo_update": 1302,
+          "global_policy_decisions": 171136,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.1910571416143625,
+          "gradient_norm_max": 1.4142135565832474,
+          "kl_mean": 0.0189315603123835,
+          "clip_fraction": 0.20625,
+          "entropy": -4.902408170700073,
+          "value_loss": 0.09091965705156327,
+          "surrogate_loss": -0.03145244577899575
+        },
+        {
+          "ppo_update": 1303,
+          "global_policy_decisions": 171264,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.0770358384904273,
+          "gradient_norm_max": 1.4142135759185577,
+          "kl_mean": 0.015774363088722855,
+          "clip_fraction": 0.2015625,
+          "entropy": -6.328854489326477,
+          "value_loss": 87.31595726013184,
+          "surrogate_loss": -0.039949095249176024
+        }
+      ],
+      "gradient_summary": {
+        "all_updates_finite_nonzero": true,
+        "all_updates_actor_changed": true,
+        "optimizer_gradient_norm_range": {
+          "min": 1.0770358384904273,
+          "max": 1.4142135759185577
+        },
+        "effective_learning_rate_range": {
+          "min": 0.00001,
+          "max": 0.00001
+        },
+        "gradient_measurement": "Existing optimizer pre-hook norm over all non-null optimizer parameter gradients"
+      },
+      "state_handling": {
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "normalizer_hash_unchanged": true,
+        "actor_obs_normalization": false,
+        "critic_obs_normalization": false,
+        "resume_physics": "legal_reset_not_bitwise_continuation",
+        "physical_env_state_saved": false,
+        "fresh_rollout_required_by_migration": null,
+        "migration_schema": null,
+        "historical_warm_start_metadata_is_not_this_run_reset": true,
+        "source_checkpoint_binding_verified": true,
+        "source_optimizer_state_sha256": "47cc14be713010dfaabaecf7956ad8339e6a4aa554d6654429f860216e5efd76",
+        "saved_optimizer_state_sha256": "0d04a296cbed4572fcce679c8516108f1fcefa0f35a7d5487fbaac161dc2d168",
+        "source_rng_state_recorded": true,
+        "saved_rng_state_recorded": true,
+        "rng_equality_across_training_is_not_expected": true,
+        "migration_preserves_all_learned_state": null,
+        "migration_factor_schema": null,
+        "save_load_round_trip_recorded": true,
+        "evidence_limit": "Recorded immutable sidecars, successful official resume path and completed accounting. No independent tensor/Adam/RNG reload; saved Adam/RNG may legitimately change during learning."
+      },
+      "task_results": {
+        "training_success_is_not_task_success": true,
+        "completed_episodes": [
+          {
+            "episode_index": 0,
+            "seed": 1001,
+            "policy_decisions": 217,
+            "termination_reason": "FALL",
+            "task_success": false,
+            "task_outcome_label": "FALL",
+            "full_task_success": false,
+            "duration_s": 14.416666666666666
+          }
+        ],
+        "success_count_scope": "fresh_P01_no_prefix",
+        "current_policy_full_P01_success_count": 0,
+        "teacher_initialized_task_success_count": 0,
+        "nonterminal_tail_is_not_a_completed_episode": true
+      },
+      "stop_after_update": null,
+      "verification": "Metadata plus credited audit/optimizer/episode records only. Recorded save/load proof is not independently rerun; no checkpoint tensor load or byte rehash."
+    }
+  ],
+  "aggregate": {
+    "runs_are_sequential_checkpoint_chain": true,
+    "added_policy_decisions": 1024,
+    "added_ppo_updates": 8,
+    "added_optimizer_steps": 160,
+    "phase_policy_decisions": {
+      "P01": 15,
+      "P02": 730,
+      "P03": 39,
+      "P04": 42,
+      "P05": 198,
+      "P06": 0,
+      "P07": 0,
+      "P08": 0,
+      "P09": 0,
+      "P10": 0,
+      "P11": 0,
+      "P12": 0,
+      "P13": 0
+    },
+    "teacher_prefix_exclusion_verified": true,
+    "teacher_prefix_decisions_excluded": 0,
+    "source_counts": {
+      "global_policy_decisions": 170240,
+      "ppo_updates": 1295,
+      "optimizer_steps": 25900
+    },
+    "final_counts": {
+      "global_policy_decisions": 171264,
+      "ppo_updates": 1303,
+      "optimizer_steps": 26060
+    }
+  },
+  "latest_checkpoint_in_explicit_completed_chain": {
+    "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000171264.pt",
+    "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000171264_manifest.json",
+    "global_policy_decisions": 171264,
+    "ppo_updates": 1303,
+    "optimizer_steps": 26060,
+    "actor_parameter_sha256": "31582510ea30acdafc16197b24c689ec4bccc560e4456afc127cb6ab92125a27",
+    "critic_parameter_sha256": "e6e6ed65aea7a5a568c10befab4a0eaf65c71bf7d275edac76c40447a85b5473",
+    "optimizer_state_sha256": "0d04a296cbed4572fcce679c8516108f1fcefa0f35a7d5487fbaac161dc2d168",
+    "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+    "checkpoint_sha256": "c0510b97d607af684f8458712c1c1582a35df4aa63532b6e548c6b651bd9fa56",
+    "save_load_round_trip": true,
+    "effective_learning_rate": 0.00001,
+    "source_git_commit": "eec6aaeabe8695f885aa914a1f5becbe2cc6abe9",
+    "runtime_content_sha256": "4296fe12340d2ca0091f322cc515f3b5aa429914e9a0623b94eb648a03b04b09"
+  },
+  "latest_scope": "Latest only within the supplied sequential completed runs; no mutable global pointer read"
+}

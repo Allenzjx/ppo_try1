@@ -1,0 +1,119 @@
+*** Begin Patch
+*** Update File: C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_training.py
+@@
+-def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
++def _rollout_advantage_audit(snapshot: Mapping[str, Any], requests: Any, *,
++                             first_global_decision: int, ppo_update: int,
++                             gamma: float, gae_lambda: float,
++                             normalize_advantage_per_mini_batch: bool) -> dict[str, Any]:
++    """Read the existing post-returns CPU snapshot; no forward or storage writes."""
++    import torch
++    names = ("returns", "values", "advantages", "rewards", "dones")
++    data = {key: snapshot[key] for key in names}
++    shape = tuple(data["returns"].shape)
++    if (len(shape) != 3 or shape[-1] != 1 or shape[0] < 1 or shape[1] < 1
++            or any(tuple(value.shape) != shape or value.device.type != "cpu" for value in data.values())):
++        raise ValueError("advantage audit requires the existing [T,N,1] CPU rollout snapshot")
++    steps, environments, _ = shape
++    if len(requests) != steps or any(len(row) != environments for row in requests):
++        raise ValueError("actual decision request mapping differs from rollout topology")
++    flat_requests = [row for tick in requests for row in tick]
++    phases = [row.get("phase_id") for row in flat_requests]
++    if any(phase not in tuple(f"P{i:02d}" for i in range(1, 14)) for phase in phases):
++        raise ValueError("advantage audit requires each actual request phase, not curriculum phase")
++    # Subtract in storage dtype exactly as official PPO does before normalizing.
++    # This is raw GAE reconstructed from saved returns and old values, not a
++    # fresh critic estimate, episode return, or normalized advantage rescaling.
++    metrics = {"raw_gae_returns_minus_old_values": data["returns"]-data["values"],
++               "stored_advantages": data["advantages"], "old_values": data["values"],
++               "returns": data["returns"], "rewards": data["rewards"]}
++    metrics = {key: value.detach().reshape(-1) for key, value in metrics.items()}
++    dones = data["dones"].detach().reshape(-1).bool()
++
++    def stats(value):
++        finite_mask = torch.isfinite(value)
++        finite = value[finite_mask].double()
++        return {"count": value.numel(), "finite_count": finite.numel(),
++                "nonfinite_count": int((~finite_mask).sum()),
++                "minimum": float(finite.min()) if finite.numel() else None,
++                "maximum": float(finite.max()) if finite.numel() else None,
++                "mean": float(finite.mean()) if finite.numel() else None,
++                "std_population": float(finite.std(unbiased=False)) if finite.numel() else None,
++                "positive_count": int((finite > 0).sum()),
++                "negative_count": int((finite < 0).sum()), "zero_count": int((finite == 0).sum())}
++
++    def summary(indices):
++        index = torch.tensor(indices, dtype=torch.long)
++        return {"sample_count": len(indices), "terminal_count": int(dones[index].sum()),
++                **{key: stats(value[index]) for key, value in metrics.items()}}
++
++    terminal_rows, phase_changes = [], []
++    for index, row in enumerate(flat_requests):
++        ending, count = row.get("physics_tick"), row.get("physics_ticks")
++        start = ending-count if type(ending) is int and type(count) is int and 1 <= count <= 8 else None
++        coordinate = {"global_policy_decision": first_global_decision+index,
++                      "rollout_step": index//environments, "environment_index": index%environments,
++                      "request_phase": phases[index], "end_phase": row.get("end_phase_id"),
++                      "episode_start_tick": start, "episode_end_tick": ending,
++                      "executed_physics_ticks": count, "sim_time_s": row.get("sim_time_s"),
++                      "terminal": bool(dones[index]),
++                      "termination_reason": row.get("termination_reason"),
++                      "terminal_bootstrap_allowed": row.get("terminal_bootstrap_allowed")}
++        if dones[index]:
++            terminal_rows.append({**coordinate, **{key: (float(value[index])
++                if torch.isfinite(value[index]) else None) for key, value in metrics.items()}})
++        if not bool(dones[index]) and row.get("end_phase_id") not in (None, phases[index]):
++            phase_changes.append(coordinate)
++    return {"schema": "wlr50_clean.semantic_preupdate_advantage_audit.v1",
++            "ppo_update_intended": ppo_update, "collection_status": "complete_rollout_pre_update",
++            "optimizer_update_completed_by_this_record": False,
++            "first_global_policy_decision": first_global_decision,
++            "last_global_policy_decision": first_global_decision+steps*environments-1,
++            "rollout_steps": steps, "num_envs": environments,
++            "sample_count": steps*environments, "teacher_prefix_samples_included": False,
++            "phase_mapping": "actual_decision_request_phase_in_storage_time_env_order",
++            "gamma": gamma, "lambda": gae_lambda,
++            "discount_clock": "once_per_issued_policy_action_even_for_short_terminal_interval",
++            "stored_advantage_semantics": ("raw_GAE_before_official_minibatch_normalization"
++                if normalize_advantage_per_mini_batch else "official_whole_rollout_standardized_GAE"),
++            "std_statistic": "population_std_for_reporting_only; official_normalization_unchanged",
++            "overall": summary(list(range(steps*environments))),
++            "by_request_phase": {phase: summary([i for i, value in enumerate(phases) if value == phase])
++                                 for phase in sorted(set(phases))},
++            "terminal_samples": terminal_rows, "ordinary_phase_change_samples": phase_changes,
++            "tail_bootstrap": {"terminal_env_indices": [i for i in range(environments) if bool(data["dones"][-1, i, 0])],
++                "nonterminal_env_indices": [i for i in range(environments) if not bool(data["dones"][-1, i, 0])],
++                "value_source": "existing_official_compute_returns_last_values; not re-evaluated or logged here",
++                "last_values_measured_separately": None}}
++
++def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
+@@
+-         (run_dir / "completed_episodes.jsonl").open("x", encoding="utf-8") as episode_stream:
++         (run_dir / "completed_episodes.jsonl").open("x", encoding="utf-8") as episode_stream, \
++         (run_dir / "advantage_audit.jsonl").open("x", encoding="utf-8") as advantage_stream:
+         for iteration in range(iterations):
++            rollout_requests = []
+             with torch.inference_mode():
+@@
+                     if bool(extras["time_outs"].any()):
+                         raise RuntimeError("task finite-horizon termination must not bootstrap")
++                    # Actual requests from this issued step only; teacher roll-in
++                    # and the configured reset/curriculum phase are not PPO rows.
++                    rollout_requests.append([{key: info.get(key) for key in (
++                        "phase_id", "end_phase_id", "physics_tick", "physics_ticks", "sim_time_s",
++                        "termination_reason", "terminal_bootstrap_allowed")}
++                        for info in extras["semantic_decisions"]])
+                     for index, info in enumerate(extras["semantic_decisions"]):
+@@
+             if storage.observations["policy"].shape[-1] in (324, 372):
+                 snapshot["policy_contract"] = _runner_policy_contract(runner)
++            advantage_row = _rollout_advantage_audit(snapshot, rollout_requests,
++                first_global_decision=base_global+iteration*batch+1,
++                ppo_update=base_updates+iteration+1, gamma=runner.alg.gamma,
++                gae_lambda=runner.alg.lam,
++                normalize_advantage_per_mini_batch=runner.alg.normalize_advantage_per_mini_batch)
++            advantage_stream.write(json.dumps(advantage_row, allow_nan=False) + "\n")
++            advantage_stream.flush()
++            os.fsync(advantage_stream.fileno())
+             torch.save(snapshot, rollout_dir / f"rollout_{base_updates + iteration + 1:06d}.pt")
+*** End Patch

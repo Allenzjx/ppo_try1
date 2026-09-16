@@ -1,0 +1,77 @@
+{
+  "scope": "Unapplied output-side candidate; no Isaac, production edit, real checkpoint load, or PPO update",
+  "patch": "temperature_actor_contract.patch",
+  "mirror": "temperature_actor_candidate",
+  "target_files": [
+    "src/wlr50_clean/ppo/semantic_history_actor.py",
+    "src/wlr50_clean/ppo/semantic_policy_distribution.py",
+    "tests/unit/test_semantic_tempered_history_actor.py"
+  ],
+  "interfaces": {
+    "policy_constant": "HISTORY_TEMPERED_POLICY",
+    "policy_version": "history_conditioned_heteroscedastic_log_temperature_v1",
+    "actor_class_constant": "HISTORY_TEMPERED_ACTOR_CLASS",
+    "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticTemperedHistoryMLPModel",
+    "actor_config_key": "exploration_std_temperature",
+    "exact_actor_config_value": 0.5,
+    "required_observation_layout": "diagonal_transfer_state_v1",
+    "observation_dimension": 372,
+    "new_contract_without_layout": "rejected; selection probes must supply explicit role layout",
+    "conditional_std": "0.5*learned_sigma_as_innovation; no_stationary_rescaling",
+    "effective_log_std": "learned_log_std+log(0.5)",
+    "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; deterministic_mean_unchanged"
+  },
+  "source_scope_verified_by_ast": {
+    "semantic_history_actor.py": {
+      "changed_existing_definitions": [],
+      "new_definitions": ["SemanticTemperedHistoryMLPModel"],
+      "entire_original_source_preserved_as_exact_prefix": true
+    },
+    "semantic_policy_distribution.py": {
+      "changed_existing_definitions": [
+        "policy_contract", "configure_policy_distribution",
+        "supported_heteroscedastic_contract_version", "policy_version_from_metadata"
+      ],
+      "new_definitions": [],
+      "new_constants": ["HISTORY_TEMPERED_POLICY", "HISTORY_TEMPERED_ACTOR_CLASS"]
+    }
+  },
+  "cpu_checks": [
+    {
+      "suite": "new tempered actor/metadata plus existing complete history actor tests",
+      "tests": 117, "failures": 0, "errors": 0, "skipped": 0,
+      "junit": "temperature_actor_candidate/actor_tests.xml"
+    },
+    {
+      "suite": "existing policy metadata selected legacy/state-dependent contract/complete-config/mixed-config regressions",
+      "tests": 17, "failures": 0, "errors": 0, "skipped": 0,
+      "junit": "temperature_actor_candidate/old_metadata_tests.xml"
+    }
+  ],
+  "other_checks": {
+    "candidate_metadata_only_fresh_process_did_not_import_torch": true,
+    "python_processes_completed_normally": true,
+    "production_actor_source_not_modified": true,
+    "old_policy_valid_paths_retained": true
+  },
+  "verified_properties": [
+    "Same actor state_dict, named parameters, named buffers and instance attribute keys as original 372 actor",
+    "Synthetic saved/reloaded actor plus Adam moments/LR and identity normalizer restore without shape conversion",
+    "Frozen deterministic output torch.equal; original observation/HISTORY, RNG and distribution cache unchanged",
+    "Effective distribution sampling consumes one official RNG draw and cached logprob/entropy/KL match analytical Normal",
+    "Same pre-update actor likelihood ratio equals one with stored effective mean/std",
+    "Shuffled stored-HISTORY and padded minibatch paths use the same effective distribution",
+    "Learned std-head retains finite nonzero gradients",
+    "Missing/wrong/nonfinite temperature or mixed metadata rejected",
+    "Unrepresentable effective sigma rejected without flooring, clipping or caps changes",
+    "Existing JIT/ONNX rejection preserved"
+  ],
+  "integration_not_in_this_patch": [
+    "semantic_training runner version attachment and manifest helpers",
+    "CLI/version/layout resolution",
+    "strict shape-preserving source-to-target checkpoint migration",
+    "actual training and formal deterministic P01 re-evaluation"
+  ],
+  "numerical_note": "Actual effective sigma is exp(learned_log_std + log(0.5)); floating-point multiplication equivalence is checked with tolerance, while frozen deterministic mean uses bitwise torch.equal.",
+  "causal_limit": "Sampling coverage candidate only; does not establish sigma as cause and cannot change frozen deterministic mean control by itself."
+}

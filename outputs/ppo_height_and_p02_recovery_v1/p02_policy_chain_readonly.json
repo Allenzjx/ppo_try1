@@ -1,0 +1,1075 @@
+{
+  "schema": "wlr50_clean.p02_policy_chain_readonly_diagnosis.v1",
+  "inspected_head": "17acbcc",
+  "scope": {
+    "production_readonly": true,
+    "new_simulation": false,
+    "checkpoint_tensor_loaded": false,
+    "active_runs_read": false,
+    "new_hashes": false,
+    "physical_native_ticks": "Exact episode ticks1..887 plus initial0; C168192 and B2 share N. Native adapter tick is not used as episode time.",
+    "no_causal_overclaim": "Closed-loop trajectories diverge from first physical tick. Later paired differences are descriptive; same-prestate native effect alone is current-policy command effect, not mechanical torque or trajectory causality."
+  },
+  "sources": {
+    "B2_source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\prior_B\\20260914T2310036230645Z_g4db24eabd129_332256dc4c39442d8d4f8b257a0df053\\source",
+    "C168192_source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\validation\\20260915T0011185025896Z_gdbc492f25c0a_ccb65744dd8f48dd94fbf44d3a1285b8\\source",
+    "old_RR_OFF_receipt": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_rr_video_diagnosis_v1/rr_off_intervention_result.json",
+    "completed_learning_receipts": [
+      "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_timing_task_priority_v1/P01_credited_actual_control.json",
+      "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_timing_task_priority_v1/Rear_credited_actual_control.json"
+    ],
+    "configuration_receipt": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_timing_task_priority_v1/training_configuration_verified.json"
+  },
+  "current_failure": {
+    "checkpoint": 168192,
+    "end_tick": 887,
+    "sim_time_s": 7.391666666666667,
+    "phase": "P02",
+    "termination": "HARD_JOINT_LIMIT:rear_right_knee",
+    "task_complete": false,
+    "RR_target_deg": -5.433995117424676,
+    "RR_actual_deg": -60.017311957010286,
+    "FR_lift_history_event_tick": 26,
+    "FR_crossed": false,
+    "FR_placed": false,
+    "FR_terminal_gap_m": -0.015815104030330575,
+    "FR_terminal_front_distance_m": -0.15005477922129984,
+    "RR_ground_normal_force_n": 16.158306121826318,
+    "latest_P02_evidence_obtained": false
+  },
+  "initial_pair": {
+    "joint_position_canonical_deg": {
+      "ppo_minus_zero": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "maximum_absolute_difference": 0,
+      "exact_equal": true
+    },
+    "joint_velocity_canonical_deg_s": {
+      "ppo_minus_zero": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "maximum_absolute_difference": 0,
+      "exact_equal": true
+    },
+    "joint_position_native_pre_first_step_rad": {
+      "ppo_minus_zero": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "maximum_absolute_difference": 0,
+      "exact_equal": true
+    },
+    "standing_pose_deg": {
+      "ppo_minus_zero": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "maximum_absolute_difference": 0,
+      "exact_equal": true
+    },
+    "wheel_velocity_rad_s": {
+      "ppo_minus_zero": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "maximum_absolute_difference": 0,
+      "exact_equal": true
+    },
+    "root_position_world_m": {
+      "ppo_minus_zero": [
+        0,
+        0,
+        0
+      ],
+      "maximum_absolute_difference": 0,
+      "exact_equal": true
+    },
+    "root_quaternion_wxyz": {
+      "ppo_minus_zero": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "maximum_absolute_difference": 0,
+      "exact_equal": true
+    },
+    "root_linear_velocity_world_m_s": {
+      "ppo_minus_zero": [
+        0,
+        0,
+        0
+      ],
+      "maximum_absolute_difference": 0,
+      "exact_equal": true
+    },
+    "root_angular_velocity_world_rad_s": {
+      "ppo_minus_zero": [
+        0,
+        0,
+        0
+      ],
+      "maximum_absolute_difference": 0,
+      "exact_equal": true
+    },
+    "com_position_world_m": {
+      "ppo_minus_zero": [
+        0,
+        0,
+        0
+      ],
+      "maximum_absolute_difference": 0,
+      "exact_equal": true
+    },
+    "com_velocity_world_m_s": {
+      "ppo_minus_zero": [
+        0,
+        0,
+        0
+      ],
+      "maximum_absolute_difference": 0,
+      "exact_equal": true
+    },
+    "com_valid": {
+      "zero": true,
+      "ppo": true
+    },
+    "contact_pairs_exact_equal": true,
+    "interpretation": "Measured initial components; no seed-only pairing claim, no contact-history restoration claim. Quaternion component differences are not an angular distance."
+  },
+  "chain": {
+    "canonical_order": [
+      "front_left_hip",
+      "front_left_knee",
+      "front_right_hip",
+      "front_right_knee",
+      "rear_left_hip",
+      "rear_left_knee",
+      "rear_right_hip",
+      "rear_right_knee",
+      "front_left_ankle",
+      "front_right_ankle",
+      "rear_left_ankle",
+      "rear_right_ankle"
+    ],
+    "nominal_equal_tick_count": 887,
+    "native_verified_tick_count": 887,
+    "nominal_geometry_present_tick_count": 0,
+    "nominal_geometry_nonzero_tick_count": 0,
+    "headroom_clipped_channel_ticks": 0,
+    "firsts": {
+      "target_delta_deg_or_rad_s": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "actual_difference_0_1deg_or_0_02rad_s": [
+        5,
+        3,
+        2,
+        4,
+        2,
+        8,
+        4,
+        3,
+        1,
+        1,
+        1,
+        1
+      ],
+      "mapped_difference": [
+        null,
+        null,
+        null,
+        105,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    "peaks": {
+      "RR_final": {
+        "value": -5.769676807703674,
+        "tick": 569
+      },
+      "RR_actual": {
+        "value": -60.017311957010286,
+        "tick": 887
+      },
+      "RR_tracking": {
+        "value": -54.583316839585606,
+        "tick": 887
+      },
+      "RR_direct_policy_target_delta": {
+        "value": -1.6217681206557613,
+        "tick": 25
+      },
+      "B_RR_tracking": {
+        "value": -0.8651487126644419,
+        "tick": 43
+      }
+    },
+    "tracking_onset_diagnostic_thresholds_persist12": {
+      "1": {
+        "start_tick": 35,
+        "confirm_tick": 46
+      },
+      "2": {
+        "start_tick": 47,
+        "confirm_tick": 58
+      },
+      "5": {
+        "start_tick": 152,
+        "confirm_tick": 163
+      }
+    },
+    "conclusion": "N/source agrees; actual target writes diverge at1 and other-leg/wheel physical response also differs before sustained RR tracking loss. RR native target never approaches -60. No duplicate residual, unit/sign/standing mismatch or geometry action was found in this bounded P01-P02 chain. Verified dispatch does not prove sufficient implicit-drive authority under changed load."
+  },
+  "snapshots": {
+    "1": {
+      "B": {
+        "RR_knee_target": 0,
+        "RR_knee_actual": -0.3894967934639869,
+        "RR_knee_velocity": 1.7325960507888574,
+        "FL_knee_target": 0,
+        "FL_knee_actual": -0.37665107192999076,
+        "RL_hip_target": 1.25,
+        "RL_hip_actual": 0.2608228730303299,
+        "wheels_final": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "RR_direct_policy_effect": 0,
+        "base_origin_z": 0.09897966682910919,
+        "com_world": [
+          -0.02743660186338643,
+          -0.1220721448807373,
+          0.15460535930386635
+        ],
+        "ground_normal_forces_FL_FR_RL_RR": [
+          10.062915802002044,
+          3.410940647125275,
+          3.8719959259033554,
+          10.44848728179941
+        ],
+        "contact_classes_FL_FR_RL_RR": [
+          "GROUND",
+          "GROUND",
+          "GROUND",
+          "GROUND"
+        ],
+        "FR_gap": -0.05083354638865678,
+        "FR_front": -0.268515345026735
+      },
+      "C": {
+        "RR_knee_target": -0.5,
+        "RR_knee_actual": -0.41786048801378706,
+        "RR_knee_velocity": -3.367392116956183,
+        "FL_knee_target": 0.5,
+        "FL_knee_actual": -0.3633197432893159,
+        "RL_hip_target": 0.75,
+        "RL_hip_actual": 0.22641808960306495,
+        "wheels_final": [
+          -0.015,
+          -0.015,
+          -0.015,
+          0.015
+        ],
+        "RR_direct_policy_effect": -0.5000000494876695,
+        "base_origin_z": 0.09897284209728241,
+        "com_world": [
+          -0.027493189222808644,
+          -0.12209667391263891,
+          0.15459388998575768
+        ],
+        "ground_normal_forces_FL_FR_RL_RR": [
+          11.694355964660751,
+          2.4547946453094704,
+          2.0564219951629825,
+          10.655838966369725
+        ],
+        "contact_classes_FL_FR_RL_RR": [
+          "GROUND",
+          "GROUND",
+          "GROUND",
+          "GROUND"
+        ],
+        "FR_gap": -0.05083374292827964,
+        "FR_front": -0.26855229990649576
+      }
+    },
+    "35": {
+      "B": {
+        "RR_knee_target": 0,
+        "RR_knee_actual": -0.8306763210365644,
+        "RR_knee_velocity": 7.720533356627886,
+        "FL_knee_target": 0,
+        "FL_knee_actual": -0.5522295155599253,
+        "RL_hip_target": 37.15,
+        "RL_hip_actual": 26.378348696136573,
+        "wheels_final": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "RR_direct_policy_effect": 0,
+        "base_origin_z": 0.09376723319292068,
+        "com_world": [
+          -0.03409055506285668,
+          -0.11514328609816242,
+          0.16188508943340524
+        ],
+        "ground_normal_forces_FL_FR_RL_RR": [
+          14.311031341552864,
+          0,
+          0,
+          15.006800651550428
+        ],
+        "contact_classes_FL_FR_RL_RR": [
+          "GROUND",
+          "AIR",
+          "AIR",
+          "GROUND"
+        ],
+        "FR_gap": -0.033417151141775944,
+        "FR_front": -0.24067371742892618
+      },
+      "C": {
+        "RR_knee_target": -2.2736357296632654,
+        "RR_knee_actual": -3.3154976469833226,
+        "RR_knee_velocity": -3.0004688052143975,
+        "FL_knee_target": 7.294366151547811,
+        "FL_knee_actual": 3.1812992674447287,
+        "RL_hip_target": 30.8463475927531,
+        "RL_hip_actual": 21.713711983611386,
+        "wheels_final": [
+          -0.216551931597872,
+          -0.09765846125900751,
+          -0.08295465891426923,
+          0.2801385802793522
+        ],
+        "RR_direct_policy_effect": -1.249999963636615,
+        "base_origin_z": 0.09543202817440033,
+        "com_world": [
+          -0.044903567447387265,
+          -0.11669606958835588,
+          0.16173903538213563
+        ],
+        "ground_normal_forces_FL_FR_RL_RR": [
+          15.065557479858533,
+          0,
+          0,
+          14.704778671264782
+        ],
+        "contact_classes_FL_FR_RL_RR": [
+          "GROUND",
+          "AIR",
+          "AIR",
+          "GROUND"
+        ],
+        "FR_gap": -0.03393245808353602,
+        "FR_front": -0.2537882591979539
+      }
+    },
+    "168": {
+      "B": {
+        "RR_knee_target": 0,
+        "RR_knee_actual": -0.7875647006039728,
+        "RR_knee_velocity": 7.5913300831933395,
+        "FL_knee_target": 0,
+        "FL_knee_actual": -0.3621461513712637,
+        "RL_hip_target": 38.85,
+        "RL_hip_actual": 38.79542257890277,
+        "wheels_final": [
+          0.3,
+          0.3,
+          0.3,
+          0.3
+        ],
+        "RR_direct_policy_effect": 0,
+        "base_origin_z": 0.07321779429912567,
+        "com_world": [
+          -0.03950263691606795,
+          -0.08261986975404312,
+          0.1650182831226797
+        ],
+        "ground_normal_forces_FL_FR_RL_RR": [
+          14.017239570617802,
+          0,
+          2.292307138443014,
+          12.43560314178478
+        ],
+        "contact_classes_FL_FR_RL_RR": [
+          "GROUND",
+          "AIR",
+          "GROUND",
+          "GROUND"
+        ],
+        "FR_gap": 0.10059252472579007,
+        "FR_front": -0.1631345416801011
+      },
+      "C": {
+        "RR_knee_target": -5.013006416137433,
+        "RR_knee_actual": -10.889229747780123,
+        "RR_knee_velocity": -11.536470399681154,
+        "FL_knee_target": 17.930527044842446,
+        "FL_knee_actual": 16.30563923876575,
+        "RL_hip_target": 28.374498182754134,
+        "RL_hip_actual": 28.261956067327887,
+        "wheels_final": [
+          -0.07402528514506512,
+          0.07318056533970016,
+          0.13314386824771157,
+          0.7781898987260499
+        ],
+        "RR_direct_policy_effect": -1.2499997501932036,
+        "base_origin_z": 0.0713445395231247,
+        "com_world": [
+          -0.07112357494390156,
+          -0.091506611539505,
+          0.15911013646433464
+        ],
+        "ground_normal_forces_FL_FR_RL_RR": [
+          12.350473403930776,
+          0,
+          3.064287662506131,
+          13.060281753540156
+        ],
+        "contact_classes_FL_FR_RL_RR": [
+          "GROUND",
+          "AIR",
+          "GROUND",
+          "GROUND"
+        ],
+        "FR_gap": 0.081022678253395,
+        "FR_front": -0.19101714747119303
+      }
+    },
+    "887": {
+      "B": {
+        "RR_knee_target": 0,
+        "RR_knee_actual": -0.5427331547102807,
+        "RR_knee_velocity": 5.182349683686522,
+        "FL_knee_target": 0,
+        "FL_knee_actual": -0.14384343373987143,
+        "RL_hip_target": 38.85,
+        "RL_hip_actual": 38.834453694914814,
+        "wheels_final": [
+          0.3,
+          0.3,
+          0.3,
+          0.3
+        ],
+        "RR_direct_policy_effect": 0,
+        "base_origin_z": 0.07231134921312332,
+        "com_world": [
+          0.045903183750604135,
+          -0.08325100293860847,
+          0.16447591930427
+        ],
+        "ground_normal_forces_FL_FR_RL_RR": [
+          13.738425254821902,
+          0,
+          2.53923583030703,
+          12.210053443908802
+        ],
+        "contact_classes_FL_FR_RL_RR": [
+          "GROUND",
+          "AIR",
+          "GROUND",
+          "GROUND"
+        ],
+        "FR_gap": 0.1005029229337464,
+        "FR_front": -0.07784953372645731
+      },
+      "C": {
+        "RR_knee_target": -5.433995117424676,
+        "RR_knee_actual": -60.017311957010286,
+        "RR_knee_velocity": -5.96740650424591,
+        "FL_knee_target": 19.003437842667534,
+        "FL_knee_actual": 18.038601665170557,
+        "RL_hip_target": 28.17449940514366,
+        "RL_hip_actual": 28.454087581133052,
+        "wheels_final": [
+          -0.09078751291862175,
+          0.05447831954114363,
+          0.12926632967278398,
+          0.7830678017382358
+        ],
+        "RR_direct_policy_effect": -1.2500001770800266,
+        "base_origin_z": 0.04900623857975006,
+        "com_world": [
+          -0.029330733145691536,
+          -0.12486359357523946,
+          0.11601310506826866
+        ],
+        "ground_normal_forces_FL_FR_RL_RR": [
+          11.574672698974714,
+          0,
+          3.7469005584717134,
+          16.158306121826318
+        ],
+        "contact_classes_FL_FR_RL_RR": [
+          "GROUND",
+          "AIR",
+          "GROUND",
+          "GROUND"
+        ],
+        "FR_gap": -0.015815104030330575,
+        "FR_front": -0.15005477922129984
+      }
+    }
+  },
+  "history_and_sigma": {
+    "decisions": 111,
+    "RR_raw_positive": 0,
+    "RR_raw_negative": 111,
+    "implied_base_positive_while_raw_negative": 0,
+    "raw_max_abs": 1.4619719982147217,
+    "per_channel_raw_min": [
+      0.04020456597208977,
+      0.055101919919252396,
+      0.02979537658393383,
+      -0.10427124053239822,
+      -1.4619719982147217,
+      -0.10934270173311234,
+      -0.3561522364616394,
+      -0.33224615454673767,
+      -0.8210855722427368,
+      -0.44377124309539795,
+      -0.30666300654411316,
+      0.12936441600322723
+    ],
+    "per_channel_raw_max": [
+      0.22751261293888092,
+      1.0876643657684326,
+      0.5602554082870483,
+      -0.026768704876303673,
+      -0.14577321708202362,
+      -0.01266336441040039,
+      -0.0270556453615427,
+      -0.0321735218167305,
+      -0.11312534660100937,
+      -0.04401319473981857,
+      -0.03695624694228172,
+      1.1527891159057617
+    ],
+    "implied_base_min_RR": -0.34322214126586925,
+    "implied_base_max_RR": -0.2948869615793227,
+    "selected": [
+      {
+        "start_tick": 0,
+        "end_tick": 8,
+        "phase": "P01",
+        "raw_RR_knee": -0.0321735218167305,
+        "implied_network_RR_knee": -0.321735218167305,
+        "rawmax": 0.14577321708202362
+      },
+      {
+        "start_tick": 8,
+        "end_tick": 16,
+        "phase": "P01",
+        "raw_RR_knee": -0.06201694905757904,
+        "implied_network_RR_knee": -0.33060779422521586,
+        "rawmax": 0.272057443857193
+      },
+      {
+        "start_tick": 16,
+        "end_tick": 24,
+        "phase": "P02",
+        "raw_RR_knee": -0.08639945089817047,
+        "implied_network_RR_knee": -0.3058419674634933,
+        "rawmax": 0.38245949149131775
+      },
+      {
+        "start_tick": 32,
+        "end_tick": 40,
+        "phase": "P02",
+        "raw_RR_knee": -0.1269913762807846,
+        "implied_network_RR_knee": -0.3046799451112747,
+        "rawmax": 0.5836377143859863
+      },
+      {
+        "start_tick": 72,
+        "end_tick": 80,
+        "phase": "P02",
+        "raw_RR_knee": -0.20239399373531342,
+        "implied_network_RR_knee": -0.3029980212450026,
+        "rawmax": 0.9586116075515747
+      },
+      {
+        "start_tick": 160,
+        "end_tick": 168,
+        "phase": "P02",
+        "raw_RR_knee": -0.2860555946826935,
+        "implied_network_RR_knee": -0.328780233860016,
+        "rawmax": 1.3453803062438965
+      },
+      {
+        "start_tick": 400,
+        "end_tick": 408,
+        "phase": "P02",
+        "raw_RR_knee": -0.3289916515350342,
+        "implied_network_RR_knee": -0.3315654993057249,
+        "rawmax": 1.4544038772583008
+      },
+      {
+        "start_tick": 872,
+        "end_tick": 880,
+        "phase": "P02",
+        "raw_RR_knee": -0.31180670857429504,
+        "implied_network_RR_knee": -0.3092508316040038,
+        "rawmax": 1.4212747812271118
+      },
+      {
+        "start_tick": 880,
+        "end_tick": 887,
+        "phase": "P02",
+        "raw_RR_knee": -0.3115963041782379,
+        "implied_network_RR_knee": -0.30970266461372353,
+        "rawmax": 1.4201252460479736
+      }
+    ],
+    "inference_scope": "Algebra implied base=(deterministic raw-.9 preceding dispatched raw)/.1; no actual actor head/sigma tensor recorded or loaded. HISTORY input is declared observation state; this inverse is diagnostic, not independent runtime proof.",
+    "tanh_of_max_abs_raw": 0.8980349220167861,
+    "actual_inference_head_or_sigma_recorded": false,
+    "interpretation": "RR deterministic output and algebra-implied network mean remain negative throughout. No observed reversal request suppressed by HISTORY; do not prioritize lowering rho as a proven fix. Tanh compresses the largest raw to about0.898 of scale, but no HISTORY clip at20 or post-mapper headroom clipping was observed.",
+    "training_sigma_scope": "Measured old conditional std from the last768 credited training rows, not sigma at C168192 inference states. Deterministic inference uses mean, so that frozen rollout failure is not a random sigma sample.",
+    "training_RR_sigma_by_phase": {
+      "P01": {
+        "n": 4,
+        "negativeRRraw": 0,
+        "negativeRRmean": 2,
+        "rrSigma": {
+          "min": 0.10211075097322464,
+          "max": 0.15105172991752625,
+          "mean": 0.1294193621724844
+        },
+        "rrConditionalMean": {
+          "min": -0.033567484468221664,
+          "max": 0.15145747363567352,
+          "mean": 0.044354766607284546
+        }
+      },
+      "P02": {
+        "n": 219,
+        "negativeRRraw": 156,
+        "negativeRRmean": 163,
+        "rrSigma": {
+          "min": 0.08051284402608871,
+          "max": 0.4984227418899536,
+          "mean": 0.14985199565212476
+        },
+        "rrConditionalMean": {
+          "min": -0.995183527469635,
+          "max": 0.6813244223594666,
+          "mean": -0.17773946611844343
+        }
+      },
+      "P03": {
+        "n": 19,
+        "negativeRRraw": 19,
+        "negativeRRmean": 18,
+        "rrSigma": {
+          "min": 0.13781267404556274,
+          "max": 0.26007726788520813,
+          "mean": 0.18402478647859474
+        },
+        "rrConditionalMean": {
+          "min": -0.8068701028823853,
+          "max": 0.10276415944099426,
+          "mean": -0.4599393170915152
+        }
+      },
+      "P04": {
+        "n": 43,
+        "negativeRRraw": 34,
+        "negativeRRmean": 37,
+        "rrSigma": {
+          "min": 0.09836968034505844,
+          "max": 0.2882603406906128,
+          "mean": 0.15278813138950703
+        },
+        "rrConditionalMean": {
+          "min": -0.5482456684112549,
+          "max": 0.14091655611991882,
+          "mean": -0.17806712871547356
+        }
+      },
+      "P05": {
+        "n": 139,
+        "negativeRRraw": 134,
+        "negativeRRmean": 137,
+        "rrSigma": {
+          "min": 0.09000394493341446,
+          "max": 0.3229314982891083,
+          "mean": 0.153027691161461
+        },
+        "rrConditionalMean": {
+          "min": -1.3430193662643433,
+          "max": 0.08993833512067795,
+          "mean": -0.5674395182525083
+        }
+      },
+      "P06": {
+        "n": 323,
+        "negativeRRraw": 262,
+        "negativeRRmean": 264,
+        "rrSigma": {
+          "min": 0.07695494592189789,
+          "max": 0.7831693887710571,
+          "mean": 0.17095533569254004
+        },
+        "rrConditionalMean": {
+          "min": -1.9991791248321533,
+          "max": 1.6296459436416626,
+          "mean": -0.2520419205207343
+        }
+      },
+      "P07": {
+        "n": 2,
+        "negativeRRraw": 0,
+        "negativeRRmean": 0,
+        "rrSigma": {
+          "min": 0.07911920547485352,
+          "max": 0.10305775701999664,
+          "mean": 0.09108848124742508
+        },
+        "rrConditionalMean": {
+          "min": 0.14495237171649933,
+          "max": 0.6524013876914978,
+          "mean": 0.39867687970399857
+        }
+      },
+      "P08": {
+        "n": 2,
+        "negativeRRraw": 1,
+        "negativeRRmean": 0,
+        "rrSigma": {
+          "min": 0.08635538816452026,
+          "max": 0.10302673280239105,
+          "mean": 0.09469106048345566
+        },
+        "rrConditionalMean": {
+          "min": 0.04146324843168259,
+          "max": 0.49664661288261414,
+          "mean": 0.26905493065714836
+        }
+      },
+      "P09": {
+        "n": 17,
+        "negativeRRraw": 0,
+        "negativeRRmean": 0,
+        "rrSigma": {
+          "min": 0.08363272249698639,
+          "max": 0.122048519551754,
+          "mean": 0.09723456423072253
+        },
+        "rrConditionalMean": {
+          "min": 0.03331465274095535,
+          "max": 0.5508605241775513,
+          "mean": 0.3306792303919792
+        }
+      }
+    }
+  },
+  "learning_review": {
+    "credited_phase_counts": {
+      "P01": 4,
+      "P02": 219,
+      "P03": 19,
+      "P04": 43,
+      "P05": 139,
+      "P06": 323,
+      "P07": 2,
+      "P08": 2,
+      "P09": 17
+    },
+    "new_decisions": 768,
+    "new_updates": 6,
+    "actual_update_metrics": [
+      {
+        "ppo_update": 1274,
+        "global_policy_decisions": 167552,
+        "optimizer_learning_rate": 0.00001,
+        "kl_mean": 0.018620659524466253,
+        "clip_fraction": 0.259375,
+        "entropy": -6.025132656097412,
+        "value_loss": 0.18609775155782698,
+        "surrogate_loss": -0.02828446701169014,
+        "optimizer_steps": 20
+      },
+      {
+        "ppo_update": 1275,
+        "global_policy_decisions": 167680,
+        "optimizer_learning_rate": 0.00001,
+        "kl_mean": 0.015227347487248433,
+        "clip_fraction": 0.1796875,
+        "entropy": -3.357758581638336,
+        "value_loss": 0.5078659012913704,
+        "surrogate_loss": -0.034041936974972486,
+        "optimizer_steps": 20
+      },
+      {
+        "ppo_update": 1276,
+        "global_policy_decisions": 167808,
+        "optimizer_learning_rate": 0.00001,
+        "kl_mean": 0.01349923717499687,
+        "clip_fraction": 0.2265625,
+        "entropy": -2.736354833841324,
+        "value_loss": 0.1276403684169054,
+        "surrogate_loss": -0.02200550138950348,
+        "optimizer_steps": 20
+      },
+      {
+        "ppo_update": 1277,
+        "global_policy_decisions": 167936,
+        "optimizer_learning_rate": 0.00001,
+        "kl_mean": 0.014600837694532942,
+        "clip_fraction": 0.1625,
+        "entropy": -4.082714915275574,
+        "value_loss": 21.819953393936157,
+        "surrogate_loss": -0.040482206456363204,
+        "optimizer_steps": 20
+      },
+      {
+        "ppo_update": 1278,
+        "global_policy_decisions": 168064,
+        "optimizer_learning_rate": 0.00001,
+        "kl_mean": 0.01726187382265788,
+        "clip_fraction": 0.2234375,
+        "entropy": -7.665588688850403,
+        "value_loss": 0.6850550085306167,
+        "surrogate_loss": -0.04440557900816202,
+        "optimizer_steps": 20
+      },
+      {
+        "ppo_update": 1279,
+        "global_policy_decisions": 168192,
+        "optimizer_learning_rate": 0.00001,
+        "kl_mean": 0.019028133128461255,
+        "clip_fraction": 0.25625,
+        "entropy": -5.178575396537781,
+        "value_loss": 57.43433017730713,
+        "surrogate_loss": -0.03491247817873955,
+        "optimizer_steps": 20
+      }
+    ],
+    "advantage_distribution": null,
+    "advantage_reason": "Rollout tensor files not loaded in this bounded read; value loss and other optimizer metrics are logged.",
+    "credited_terminal_rows": [
+      {
+        "run": "20260914T2332031251091Z_gdbc492f25c0a_5f07ea0fc12a4428b87ec5191c70d209",
+        "global": 167829,
+        "phase": "P06",
+        "ticks": 8,
+        "reason": "BODY_COLLISION",
+        "reward": -42.24715042114258,
+        "bootstrap": false,
+        "terminal_observation_present": true,
+        "history_raw_dimension": 12
+      },
+      {
+        "run": "20260914T2342209306682Z_gdbc492f25c0a_686f2c92ebb74ee0befbb8d111ab2d41",
+        "global": 168087,
+        "phase": "P09",
+        "ticks": 5,
+        "reason": "BODY_COLLISION",
+        "reward": -42.760833740234375,
+        "bootstrap": false,
+        "terminal_observation_present": true,
+        "history_raw_dimension": 12
+      },
+      {
+        "run": "20260914T2342209306682Z_gdbc492f25c0a_686f2c92ebb74ee0befbb8d111ab2d41",
+        "global": 168156,
+        "phase": "P09",
+        "ticks": 7,
+        "reason": "BODY_COLLISION",
+        "reward": -42.64802932739258,
+        "bootstrap": false,
+        "terminal_observation_present": true,
+        "history_raw_dimension": 12
+      }
+    ],
+    "recorded_terminal_scope": "Training recorded 8-,5-,7-tick body-collision terminal intervals with final observations and bootstrap=false; last C video has separate unreturned7-tick interval880..887, not a training sample and not forward-filled.",
+    "normal_phase_transition_done": false,
+    "raw_log_probability_scope": "semantic_training.py:1191 captures old raw distribution/logprob before env.step; :1252 asserts storage.actions matches sampled raw, not projected command; complete rollout optimize/save follows.",
+    "optimization_caution": "1279 total updates do not establish convergence; newest6 updates include only4 P01 and19 P03 decisions, P06 dominates323/768. Large final value loss57.43 is observed, not a uniquely identified cause of tracking failure."
+  },
+  "reward_window": {
+    "scope": "Returned decisions end<=880 only. B2 has pre-carry-patch reward and C has post-patch reward; these sums are descriptive and not a same-reward causal comparison. Final video7 ticks lack returned reward.",
+    "B2": {
+      "P01": {
+        "n": 2,
+        "reward_total": 0.20629384150645513,
+        "families": {
+          "task_progress": 0.20707328387994467,
+          "body_stability": -0.00013708126237842508,
+          "contact_motion_quality": 0,
+          "control_smoothness": -0.0006423611111111111,
+          "control_regularization": 0
+        }
+      },
+      "P02": {
+        "n": 108,
+        "reward_total": 0.11516069899192269,
+        "families": {
+          "task_progress": 0.17974502962502695,
+          "body_stability": -0.04058836472515552,
+          "contact_motion_quality": -0.000011567142035333508,
+          "control_smoothness": -0.02398439876591288,
+          "control_regularization": 0
+        }
+      }
+    },
+    "C168192": {
+      "P01": {
+        "n": 2,
+        "reward_total": 0.1247067446015851,
+        "families": {
+          "task_progress": 0.1278464444506608,
+          "body_stability": -0.00006123639161161664,
+          "contact_motion_quality": 0,
+          "control_smoothness": -0.003078463457464083,
+          "control_regularization": 0
+        }
+      },
+      "P02": {
+        "n": 108,
+        "reward_total": -0.030616183709777638,
+        "families": {
+          "task_progress": 0.015399143506140333,
+          "body_stability": -0.013732275205198565,
+          "contact_motion_quality": -0.000018879968798537236,
+          "control_smoothness": -0.03226417204192093,
+          "control_regularization": 0
+        }
+      }
+    },
+    "C168192_P02_motion_fraction": {
+      "n": 108,
+      "missing": 0,
+      "min": 1,
+      "max": 1
+    },
+    "conclusion": "Current C already has FR motion_fraction1 at every108 returned P02 endpoint. Its smaller body cost coexists with lower task progress and collapsing FR clearance; current total P02 reward is lower than B2. This does not prove a reward motive and does not support repeating carry discount patch."
+  },
+  "actuators": {
+    "configured_mode": "ImplicitActuatorCfg position-target PD; all8 hip/knee600/60/2.7Nm andarmature.005",
+    "actual_C168192_or_B2_PhysX_getter_snapshot": null,
+    "current_snapshot_reason": "No same-run runtime getter snapshot retained; factory/runtime source identity is not substituted for actual getters.",
+    "old_RR_OFF_actual_getter": {
+      "scope": "Earlier independent RR_OFF experiment only, not C168192 or B2 live torque.",
+      "stiffness": 600,
+      "damping": 60,
+      "max_force_nm": 2.700000048,
+      "max_velocity_rad_s": 4.999999523,
+      "servo_count": 8
+    },
+    "measured_instantaneous_PhysX_drive_torque": null,
+    "approximate_PD_torque": null,
+    "torque_reason": "No independently measured drive torque in current logs; installed ImplicitActuator computes K*position_error+D*velocity_error+feedforward and clips an approximation, returned targets are unchanged. data.computed_torque/applied_torque copy these estimates, not measured drive torque.",
+    "contact_force": "Actual exact ContactSensor force_matrix_w and normalforce are recorded. They are not joint motor torque; no causal wrench decomposition done.",
+    "hook": "After semantic_backend.reset settle and verify_authoritative_servo_limits_adopted at181, read root_physx_view gains/armature/friction/limits/maxspeed/maxforce keyed by jointnames. Never setter/update/step. Any per-tick approximate actuator effort must carry explicit estimator label and pre/post tick coordinate."
+  },
+  "proposed_diagnostics": [
+    {
+      "id": "WHEELS_RESIDUAL_OFF_DIAGNOSTIC",
+      "priority": 1,
+      "intervention": "For one independent natural-P01 frozen168192 run, set only raw channels8..11 to0 before normal projection; retain other8 learned channels and sameN. HISTORY updates from actually dispatched masked raw. Restore all channels afterwards.",
+      "information": "Tests contribution of observed early wheel motion/differential: wheels diverge atfirsttick and terminal canonical targets[-.0908,.0545,.1293,.7831] versus nominal[.3,.3,.3,.3]. Earlier RR_OFF already demonstrated directRR residual not necessary, so repeating it has little incremental value.",
+      "bounds": "One approximately16s diagnostic or real terminal; no checkpoint updates, no physics changes, no permanentmask, no PPO-success label."
+    },
+    {
+      "id": "FL_KNEE_RESIDUAL_OFF_DIAGNOSTIC",
+      "priority": 2,
+      "intervention": "Only if useful after first result, fresh same-reset independent run with raw FLknee channel1 disabled; other11 and currentN unchanged; same dispatched-raw HISTORY rule. Restore afterward.",
+      "information": "Separates large support-leg FLknee positive command (+19deg vsN0) from wheel-group influence. RLhip suppression remains; result cannot isolate every support/load mechanism.",
+      "bounds": "One approximately16s diagnostic or real terminal. If a fix is selected, version it transparently and use identical train/eval path; do not deliver diagnostic masking as formal P02 success."
+    }
+  ],
+  "source_locations": [
+    {
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_history_actor.py",
+      "line": 61,
+      "meaning": "Stateless mean=.1network+.9rawhistory; log_sigma untouched."
+    },
+    {
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_history_actor.py",
+      "line": 112,
+      "meaning": "Stochastic train samples; deterministic inference returnsmean."
+    },
+    {
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_env.py",
+      "line": 120,
+      "meaning": "Natural reset zeroes raw/residual history; updates continuous, phase change notdone."
+    },
+    {
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/action_projection.py",
+      "line": 515,
+      "meaning": "Tanh then physical scale/mask/symmetric residual slew; metadata stages exist internally but not all saved in decision log."
+    },
+    {
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_residual_adapter.py",
+      "line": 146,
+      "meaning": "Current residual composed once after N/geometry with headroom."
+    },
+    {
+      "path": "C:/robotics_sim/IsaacLab/source/isaaclab/isaaclab/actuators/actuator_pd.py",
+      "line": 117,
+      "meaning": "Implicit effort fields are approximate PD estimate; unchanged input targets."
+    },
+    {
+      "path": "C:/robotics_sim/IsaacLab/source/isaaclab/isaaclab/assets/articulation/articulation.py",
+      "line": 1900,
+      "meaning": "computed/applied torque buffers populated from approximate actuator outputs."
+    }
+  ]
+}

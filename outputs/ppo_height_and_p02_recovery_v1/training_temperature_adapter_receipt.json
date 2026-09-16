@@ -1,0 +1,37 @@
+{
+  "script": "analyze_training_temperature_distribution.mjs",
+  "scope": "Output-only parameterized adapter of the previously sealed analyze_training_action_distribution.mjs; old script unchanged",
+  "input": "--receipt path to finalized summarize_training.mjs JSON",
+  "output": "--output new JSON path inside outputs/ppo_height_and_p02_recovery_v1; existing files rejected",
+  "execution_status": "Synthetic two-decision self-test passed; not run against real audits",
+  "real_audits_read_this_task": 0,
+  "checkpoint_tensor_loads": 0,
+  "model_forwards": 0,
+  "simulations": 0,
+  "production_changes": false,
+  "contract_handling": {
+    "source": "Saved checkpoint manifest policy_contract, matched to completed receipt configuration",
+    "old_history_temperature": 1,
+    "new_history_temperature": 0.5,
+    "full_contract_validation": "Exact supported HISTORY or tempered HISTORY contract; unknown/mixed versions rejected",
+    "new_contract_requires_372_role_layout": true
+  },
+  "analysis": {
+    "audit_passes": "One streaming decision-audit pass per explicitly supplied sealed run",
+    "memory": "Online per-phase/per-channel population moments; no raw trajectory retention or quantile sort",
+    "phases": "P01-P13 actual request phase; terminal end phase counted separately",
+    "recorded": ["conditional mean", "effective sigma", "raw", "projected endpoint residual", "same-prestate endpoint native effect"],
+    "derived": ["learned sigma = recorded effective sigma / exact contract temperature", "z = (raw - conditional mean) / recorded effective sigma"],
+    "derived_learned_sigma_limit": "Not independent head readout; floating-point exp(log_sigma+log(tau)) rounding remains",
+    "all12": "Enabled-mask proof and all-tick native audit verification, plus separate actual endpoint nonzero counts per channel",
+    "terminal": "Actual recorded row.terminal only with no bootstrap; nonterminal budget tails not counted as episodes",
+    "teacher": "Reject credited teacher flag; prefix runs require explicit false per row and sealed receipt exclusion proof"
+  },
+  "self_test": {
+    "command_suffix": "analyze_training_temperature_distribution.mjs --self-test",
+    "synthetic_rows": 2,
+    "checks": ["old/new temperature contracts", "derived learned sigma", "z", "P02 terminal counts", "masked-channel rejection", "teacher rejection"],
+    "result": "passed"
+  },
+  "causal_limit": "This adapter distinguishes sampling scale from learned scale; neither sigma statistics nor enabled masks establish physical success, torque saturation, beneficial learning, or the cause of P02 failure."
+}

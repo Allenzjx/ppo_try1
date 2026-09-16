@@ -1,0 +1,106 @@
+*** Begin Patch
+*** Add File: C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/tests/unit/test_semantic_training_advantage_audit.py
++"""Read-only post-returns statistics; no Isaac, actor or optimizer update."""
++from copy import deepcopy
++import json
++from types import SimpleNamespace
++
++import pytest
++import torch
++
++from wlr50_clean.ppo.semantic_training import _rollout_advantage_audit
++
++
++def example():
++    values = torch.arange(1, 7, dtype=torch.float32).reshape(3, 2, 1)
++    raw = torch.tensor((-2., 3., 0., 2., -45., 4.)).reshape(3, 2, 1)
++    snapshot = dict(values=values, returns=values+raw,
++                    advantages=(raw-raw.mean())/(raw.std()+1e-8),
++                    rewards=torch.tensor((.2, -.3, .1, .4, -40., .5)).reshape(3, 2, 1),
++                    dones=torch.tensor((0, 0, 0, 0, 1, 0), dtype=torch.uint8).reshape(3, 2, 1))
++    phases = (("P01", "P01"), ("P02", "P03"), ("P02", "P02"))
++    requests = [[dict(phase_id=phase, end_phase_id=phase,
++                      physics_tick=8*(t+1), physics_ticks=8, sim_time_s=8*(t+1)/120.,
++                      termination_reason=None, terminal_bootstrap_allowed=True)
++                 for phase in row] for t, row in enumerate(phases)]
++    requests[1][0]["end_phase_id"] = "P03"  # Ordinary transition is not done.
++    requests[2][0].update(physics_tick=19, physics_ticks=3, sim_time_s=19/120.,
++                          termination_reason="HARD_JOINT_LIMIT", terminal_bootstrap_allowed=False)
++    return snapshot, requests
++
++
++def audit(snapshot, requests, **overrides):
++    kwargs = dict(first_global_decision=168193, ppo_update=1280,
++                  gamma=.9985, gae_lambda=.99, normalize_advantage_per_mini_batch=False)
++    kwargs.update(overrides)
++    return _rollout_advantage_audit(snapshot, requests, **kwargs)
++
++
++def test_raw_and_normalized_are_distinct_grouped_by_actual_request_without_mutation_or_rng_use():
++    snapshot, requests = example()
++    before = {key: value.clone() for key, value in snapshot.items()}
++    request_before = deepcopy(requests)
++    rng = torch.get_rng_state().clone()
++    row = audit(snapshot, requests)
++    assert row["sample_count"] == 6
++    assert {p: r["sample_count"] for p, r in row["by_request_phase"].items()} == {"P01": 2, "P02": 3, "P03": 1}
++    assert row["overall"]["raw_gae_returns_minus_old_values"]["minimum"] == -45.
++    assert row["overall"]["raw_gae_returns_minus_old_values"]["positive_count"] == 3
++    assert row["overall"]["stored_advantages"]["mean"] == pytest.approx(0., abs=1e-7)
++    assert row["by_request_phase"]["P02"]["old_values"]["mean"] == pytest.approx(14/3)
++    assert row["overall"]["returns"]["minimum"] == -40.
++    assert row["stored_advantage_semantics"] == "official_whole_rollout_standardized_GAE"
++    assert all(torch.equal(before[key], value) for key, value in snapshot.items())
++    assert requests == request_before and torch.equal(rng, torch.get_rng_state())
++    json.dumps(row, allow_nan=False)
++
++
++def test_short_terminal_is_one_policy_sample_actual_three_ticks_and_no_bootstrap():
++    snapshot, requests = example()
++    row = audit(snapshot, requests)
++    terminal, = row["terminal_samples"]
++    assert terminal["global_policy_decision"] == 168197
++    assert terminal["request_phase"] == "P02"
++    assert terminal["episode_start_tick"] == 16 and terminal["episode_end_tick"] == 19
++    assert terminal["executed_physics_ticks"] == 3
++    assert terminal["terminal"] and terminal["terminal_bootstrap_allowed"] is False
++    assert terminal["returns"] == -40. and terminal["old_values"] == 5.
++    assert terminal["raw_gae_returns_minus_old_values"] == -45.
++    ordinary, = row["ordinary_phase_change_samples"]
++    assert ordinary["request_phase"] == "P02" and ordinary["end_phase"] == "P03"
++    assert ordinary["terminal"] is False
++    assert row["tail_bootstrap"]["terminal_env_indices"] == [0]
++    assert row["tail_bootstrap"]["nonterminal_env_indices"] == [1]
++    assert row["optimizer_update_completed_by_this_record"] is False
++
++
++def test_nonfinite_is_reported_without_json_nan_or_storage_repair():
++    snapshot, requests = example()
++    snapshot["advantages"][0, 0, 0] = float("nan")
++    row = audit(snapshot, requests)
++    assert row["overall"]["stored_advantages"]["nonfinite_count"] == 1
++    assert row["overall"]["stored_advantages"]["finite_count"] == 5
++    assert torch.isnan(snapshot["advantages"][0, 0, 0])
++    json.dumps(row, allow_nan=False)
++
++
++@pytest.mark.parametrize("bad", ["length", "phase", "tensor_shape"])
++def test_missing_actual_request_mapping_or_wrong_snapshot_shape_is_not_replaced_with_curriculum(bad):
++    snapshot, requests = example()
++    if bad == "length":
++        requests.pop()
++    elif bad == "phase":
++        requests[0][0].pop("phase_id")
++    else:
++        snapshot["returns"] = snapshot["returns"].reshape(6)
++    with pytest.raises(ValueError):
++        audit(snapshot, requests)
++
++
++def test_nondefault_per_minibatch_mode_is_labelled_not_falsely_called_standardized():
++    snapshot, requests = example()
++    row = audit(snapshot, requests, normalize_advantage_per_mini_batch=True)
++    assert row["stored_advantage_semantics"] == "raw_GAE_before_official_minibatch_normalization"
++
+*** End Patch
+

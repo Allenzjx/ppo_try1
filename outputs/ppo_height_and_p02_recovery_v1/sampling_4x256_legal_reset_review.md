@@ -1,0 +1,20 @@
+# 4×256 自然 P01：预算边界与恢复审查
+
+只读当前 HEAD `eec6aaeabe8695f885aa914a1f5becbe2cc6abe9` 的生产路径及已安装 RSL 源码。没有启动 Isaac、加载 checkpoint/tensor、重复 GAE 日志统计或修改生产。以下是代码支持性核验，不声称四个新 run 已完成。
+
+结论：现有 N1、rollout128 路径支持此安排。每个256决策 run 正好2个完整rollout/update；四块预计1024决策、8次update。预算结束不会伪造done，也不会抛弃已采集的完整rollout。
+
+- [预算及完整采集循环](<C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_training.py:1243>)：batch=128×N1，iterations=ceil(decisions/batch)=2。固定采满128后才 [compute_returns](<C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_training.py:1350>)、保存snapshot、[执行update](<C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_training.py:1374>)。末iteration无条件进入 [checkpoint保存分支](<C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_training.py:1386>)，不依赖checkpoint_interval刚好整除。官方 [update后clear](<C:/Users/kskzz/miniconda3/envs/env_isaaclab/Lib/site-packages/rsl_rl/algorithms/ppo.py:403>) 只清已完成更新的storage。
+- [真实done来源](<C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_training.py:241>) 是core.step.terminated，不读取run的256预算；ordinary phase切换不因此done。官方 [尾值与GAE](<C:/Users/kskzz/miniconda3/envs/env_isaaclab/Lib/site-packages/rsl_rl/algorithms/ppo.py:187>) 使用当时物理尾obs的critic value，非终止尾保留γV(s_next)，真正终止则done mask为0。下一run的P01 reset observation不会被塞入上一个尾return。
+- [保存与round-trip](<C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_training.py:407>) 保存actor/critic/Adam/normalizer摘要、实际LR和完整training RNG；metadata明确physical_env_state_saved=false、legal_reset_not_bitwise_continuation。保存后验证实际重新加载状态，并恢复保存时RNG。
+- 下一run按 [入口顺序](<C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_cli.py:898>) 先seed构建环境、自然P01 reset，再构建runner；有checkpoint时 [initialize_actor=false及strict恢复](<C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_cli.py:937>)。加载前 [拒绝非空旧rollout](<C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_training.py:482>)，随后验证actor/critic/optimizer/normalizer并 [恢复RNG](<C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_training.py:532>)。官方 [load默认包含optimizer](<C:/Users/kskzz/miniconda3/envs/env_isaaclab/Lib/site-packages/rsl_rl/algorithms/ppo.py:444>)；[LR同步](<C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/rl_library_wrapper.py:1060>) 把独立adaptive-LR标量设回Adam实际LR，避免每run跳回constructor默认。
+- [RNG capture/restore](<C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/rl_library_wrapper.py:409>) 覆盖Python、NumPy、Torch CPU、全部CUDA设备，seed/device topology不符则拒绝；restore发生在构造消耗随机数之后，所以下块不是重新从同一seed的首个Gaussian噪声开始。
+- [合法物理reset](<C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_backend.py:146>) 只接受自然P01，reset/settle后建立新controller，并排除settle信用；[HISTORY reset](<C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_env.py:112>) 清raw/residual历史，previous_applied取实际resetdrive、previous_nominal取resetnominal。这是新episode的合法reset，不是阶段切换清历史。Actor的 [HISTORY kernel](<C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_history_actor.py:61>) 是观察条件的stateless核，没有需要跨物理reset继承的私有动作历史。
+
+必须保留的操作边界与风险：
+
+1. 每块显式续接刚完成块的最新checkpoint、相同seed与N1/config；不能四次重复同一旧checkpoint，否则重复RNG段并可能撞immutable计数路径。不要传new-MDP warm-start/actor重初始化标志。
+2. 每块256是2个rollout，不是保证1个完整episode；无提前真实terminal时约17.07 s，预算退出后尚未发生的后续结果只有critic bootstrap估计，没有实测后腿结局。此安排增加自然入口覆盖，同时提高对尾value准确性的依赖；不是四条完整成功证据。
+3. 四块是同一checkpoint/RNG链下的四次自然入口，不是四个独立seed，也不是上一物理episode的bitwise续跑。现场reset仍按实际合法状态核验，不假定仅靠seed等同。
+4. 普通运行结束不标任务失败/成功，不在256步强制terminal、不把新P01接到旧trajectory。真正恰在rollout尾终止时，现有deferred-reset路径先保存完整update，只有下一rollout需要时才reset；不会为结束预算额外跑未计入的prefix。
+5. 中断/权限/运行错误若发生在完整update前，未完成rollout不可恢复；应保留上个已验证checkpoint，不能把计划256写成实际完成。当前代码没有把这种异常伪装成正常预算结束。
