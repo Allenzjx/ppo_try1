@@ -108,11 +108,11 @@ def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_versio
                            observation_layout: str | None = None) -> dict[str, Any]:
     if semantic_version not in ("v2", "v3"):
         raise ValueError("unsupported semantic runtime version")
-    from .semantic_policy_distribution import HISTORY_POLICY, HISTORY_TEMPERED_POLICY
+    from .semantic_policy_distribution import HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY
     from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
-    if policy_version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY) and semantic_version != "v3":
+    if policy_version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY) and semantic_version != "v3":
         raise ValueError("history-conditioned policy requires the v3 semantic runtime")
-    if policy_version == HISTORY_TEMPERED_POLICY and observation_layout != ROLE_OBSERVATION_LAYOUT:
+    if policy_version in (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY) and observation_layout != ROLE_OBSERVATION_LAYOUT:
         raise ValueError("tempered history policy requires the explicit role372 observation layout")
     if return_profile is None:
         from .semantic_reward import load_semantic_reward_config
@@ -491,20 +491,29 @@ def _validated_exploration_temperature_factor(metadata: Mapping[str, Any], recor
     if factor is None:
         return None
     from .semantic_migration import source_num_envs
-    from .semantic_policy_distribution import HISTORY_POLICY, HISTORY_TEMPERED_POLICY, policy_version_from_metadata
+    from .semantic_policy_distribution import (HISTORY_POLICY, HISTORY_TEMPERED_POLICY,
+        HISTORY_QUARTER_TEMPERED_POLICY, policy_version_from_metadata)
     from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
     exclusive = ("execution_factor", "instrumentation_observation_contract", "video_instrumentation_factor",
-        "nominal_timing_factor", "body_reward_factor", "height_recovery_factor", "execution_composition_factor", "final_stop_handoff_factor")
+        "nominal_timing_factor", "body_reward_factor", "task_first_reward_factor", "height_recovery_factor",
+        "execution_composition_factor", "final_stop_handoff_factor")
     if any(record.get(key) is not None for key in exclusive):
         raise RuntimeError("exploration temperature migration cannot mix other migration factors")
     if (not isinstance(factor, Mapping) or semantic_version != "v3"
             or metadata.get("semantic_version") != "v3" or seed != metadata.get("seed")
             or observation_layout != ROLE_OBSERVATION_LAYOUT or source_num_envs(metadata) != 1
-            or metadata.get("runner_config", {}).get("device") != device
-            or policy_version_from_metadata(metadata) != HISTORY_POLICY):
+            or metadata.get("runner_config", {}).get("device") != device):
         raise RuntimeError("exploration temperature migration requires the exact v3 role372 N1 source")
-    source_policy = policy_contract(HISTORY_POLICY, observation_layout=observation_layout)
-    target_policy = policy_contract(HISTORY_TEMPERED_POLICY, observation_layout=observation_layout)
+    source_version = policy_version_from_metadata(metadata)
+    if source_version == HISTORY_POLICY:
+        target_version = HISTORY_TEMPERED_POLICY
+    elif (source_version == HISTORY_TEMPERED_POLICY
+            and metadata.get("runtime_contract", {}).get("experiment_id") == "task_first_recovery_v1"):
+        target_version = HISTORY_QUARTER_TEMPERED_POLICY
+    else:
+        raise RuntimeError("exploration temperature migration has no reviewed source/target version pair")
+    source_policy = policy_contract(source_version, observation_layout=observation_layout)
+    target_policy = policy_contract(target_version, observation_layout=observation_layout)
     observation = {"source_policy_contract": source_policy, "target_policy_contract": target_policy,
         "observation_layout": observation_layout, "observation_dimension": 372, "action_dimension": 12,
         "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"}
@@ -518,10 +527,10 @@ def _validated_exploration_temperature_factor(metadata: Mapping[str, Any], recor
     horizon = runner_return_profile(metadata["runner_config"], semantic_version="v3")["version"]
     configs = {version: semantic_runner_config(seed=seed, device=device, semantic_version="v3",
         policy_version=version, observation_layout=observation_layout, return_profile=horizon)
-        for version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY)}
-    if (metadata["runner_config"] != configs[HISTORY_POLICY]
-            or factor.get("source_runner_config") != configs[HISTORY_POLICY]
-            or factor.get("target_runner_config") != configs[HISTORY_TEMPERED_POLICY]):
+        for version in (source_version, target_version)}
+    if (metadata["runner_config"] != configs[source_version]
+            or factor.get("source_runner_config") != configs[source_version]
+            or factor.get("target_runner_config") != configs[target_version]):
         raise RuntimeError("exploration temperature migration runner configuration differs from its exact contracts")
     return factor
 

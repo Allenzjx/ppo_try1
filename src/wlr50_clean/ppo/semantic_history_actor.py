@@ -170,3 +170,34 @@ class SemanticTemperedHistoryMLPModel(SemanticHistoryMLPModel):
         effective_head = torch.stack((head[..., 0, :], effective_log_std), dim=-2)
         self.distribution.update(effective_head)
         return self.distribution.sample()
+
+
+class SemanticQuarterTemperedHistoryMLPModel(SemanticTemperedHistoryMLPModel):
+    """Explicit quarter-temperature version, sharing the existing Gaussian path.
+
+    State-dict topology, conditional mean, history rho and learned sigma head
+    remain unchanged. Only effective innovation sigma is halved relative to the
+    half-temperature version; this is not a deterministic-control improvement.
+    """
+
+    def __init__(
+        self, obs: TensorDict, obs_groups: dict[str, list[str]], obs_set: str,
+        output_dim: int, hidden_dims: tuple[int, ...] | list[int] = (256, 256),
+        activation: str = "elu", obs_normalization: bool = False,
+        distribution_cfg: dict | None = None,
+        observation_layout: str | None = None,
+        exploration_std_temperature: float | None = None,
+    ) -> None:
+        if (type(exploration_std_temperature) is not float
+                or exploration_std_temperature != 0.25
+                or observation_layout != ROLE_OBSERVATION_LAYOUT):
+            raise ValueError("quarter-tempered history requires explicit temperature 0.25 and the 372 role layout")
+        # Bypass only the immutable 0.5 constructor gate. Inherit its common
+        # forward path so sampling and all PPO likelihoods use the same sigma.
+        SemanticHistoryMLPModel.__init__(
+            self, obs, obs_groups, obs_set, output_dim, hidden_dims,
+            activation, obs_normalization, distribution_cfg, observation_layout)
+
+    @property
+    def exploration_std_temperature(self) -> float:
+        return 0.25

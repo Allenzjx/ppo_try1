@@ -29,6 +29,8 @@ HISTORY_POLICY = "history_conditioned_heteroscedastic_log_v1"
 HISTORY_ACTOR_CLASS = "wlr50_clean.ppo.semantic_history_actor:SemanticHistoryMLPModel"
 HISTORY_TEMPERED_POLICY = "history_conditioned_heteroscedastic_log_temperature_v1"
 HISTORY_TEMPERED_ACTOR_CLASS = "wlr50_clean.ppo.semantic_history_actor:SemanticTemperedHistoryMLPModel"
+HISTORY_QUARTER_TEMPERED_POLICY = "history_conditioned_heteroscedastic_log_temperature_quarter_v1"
+HISTORY_QUARTER_TEMPERED_ACTOR_CLASS = "wlr50_clean.ppo.semantic_history_actor:SemanticQuarterTemperedHistoryMLPModel"
 POLICY_SCHEMA = "wlr50_clean.semantic_policy_distribution.v1"
 MIGRATION_SCHEMA = "wlr50_clean.semantic_policy_distribution_migration.v1"
 MODULE_PATH = "src/wlr50_clean/ppo/semantic_policy_distribution.py"
@@ -47,13 +49,15 @@ NORMALIZATION = "fixed_versioned_observation_schema; identity_RSL_normalizer"
 
 
 def policy_contract(version: str, *, observation_layout: str | None = None) -> dict[str, Any]:
-    if version not in (LEGACY_POLICY, STATE_DEPENDENT_POLICY, HISTORY_POLICY, HISTORY_TEMPERED_POLICY):
+    if version not in (LEGACY_POLICY, STATE_DEPENDENT_POLICY, HISTORY_POLICY,
+                       HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY):
         raise ValueError("unsupported semantic policy distribution version")
-    if version == HISTORY_TEMPERED_POLICY and observation_layout != ROLE_OBSERVATION_LAYOUT:
+    if (version in (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY)
+            and observation_layout != ROLE_OBSERVATION_LAYOUT):
         raise ValueError("tempered history policy requires the explicit 372 role layout")
     if observation_layout is not None and (
             type(observation_layout) is not str or observation_layout != ROLE_OBSERVATION_LAYOUT
-            or version not in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY)):
+            or version not in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY)):
         raise ValueError("appended role observation layout requires the exact history policy")
     dependent = version != LEGACY_POLICY
     contract = {
@@ -65,7 +69,7 @@ def policy_contract(version: str, *, observation_layout: str | None = None) -> d
         "state_dependent_std": dependent, "normalization": NORMALIZATION,
         "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
     }
-    if version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY):
+    if version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY):
         contract.update({
             "actor_class": HISTORY_ACTOR_CLASS,
             "history_feature": "previous_raw_full12",
@@ -82,6 +86,14 @@ def policy_contract(version: str, *, observation_layout: str | None = None) -> d
             "exploration_std_temperature": 0.5,
             "conditional_std": "0.5*learned_sigma_as_innovation; no_stationary_rescaling",
             "effective_log_std": "learned_log_std+log(0.5)",
+            "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; deterministic_mean_unchanged",
+        })
+    if version == HISTORY_QUARTER_TEMPERED_POLICY:
+        contract.update({
+            "actor_class": HISTORY_QUARTER_TEMPERED_ACTOR_CLASS,
+            "exploration_std_temperature": 0.25,
+            "conditional_std": "0.25*learned_sigma_as_innovation; no_stationary_rescaling",
+            "effective_log_std": "learned_log_std+log(0.25)",
             "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; deterministic_mean_unchanged",
         })
     if observation_layout is not None:
@@ -115,6 +127,9 @@ def configure_policy_distribution(config: dict[str, Any], version: str, *,
     if version == HISTORY_TEMPERED_POLICY:
         config["actor"]["class_name"] = HISTORY_TEMPERED_ACTOR_CLASS
         config["actor"]["exploration_std_temperature"] = contract["exploration_std_temperature"]
+    if version == HISTORY_QUARTER_TEMPERED_POLICY:
+        config["actor"]["class_name"] = HISTORY_QUARTER_TEMPERED_ACTOR_CLASS
+        config["actor"]["exploration_std_temperature"] = contract["exploration_std_temperature"]
     if observation_layout is not None:
         config["actor"]["observation_layout"] = observation_layout
 
@@ -136,8 +151,10 @@ def _same_json(left: Any, right: Any) -> bool:
 def supported_heteroscedastic_contract_version(contract: Mapping[str, Any]) -> str:
     """Accept only a complete, exact supported heteroscedastic policy contract."""
     if isinstance(contract, Mapping):
-        for version in (STATE_DEPENDENT_POLICY, HISTORY_POLICY, HISTORY_TEMPERED_POLICY):
-            layouts = ((ROLE_OBSERVATION_LAYOUT,) if version == HISTORY_TEMPERED_POLICY else
+        for version in (STATE_DEPENDENT_POLICY, HISTORY_POLICY, HISTORY_TEMPERED_POLICY,
+                        HISTORY_QUARTER_TEMPERED_POLICY):
+            layouts = ((ROLE_OBSERVATION_LAYOUT,) if version in
+                       (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY) else
                        (None, ROLE_OBSERVATION_LAYOUT) if version == HISTORY_POLICY else (None,))
             for layout in layouts:
                 if _same_json(dict(contract), policy_contract(version, observation_layout=layout)):
@@ -167,10 +184,12 @@ def policy_version_from_metadata(metadata: Mapping[str, Any]) -> str:
             ("MLPModel", "HeteroscedasticGaussianDistribution", "log"): STATE_DEPENDENT_POLICY,
             (HISTORY_ACTOR_CLASS, "HeteroscedasticGaussianDistribution", "log"): HISTORY_POLICY,
             (HISTORY_TEMPERED_ACTOR_CLASS, "HeteroscedasticGaussianDistribution", "log"): HISTORY_TEMPERED_POLICY,
+            (HISTORY_QUARTER_TEMPERED_ACTOR_CLASS, "HeteroscedasticGaussianDistribution", "log"):
+                HISTORY_QUARTER_TEMPERED_POLICY,
         }[pair]
     except (KeyError, TypeError) as error:
         raise ValueError("checkpoint has an unsupported policy distribution") from error
-    if version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY) and semantic_version != "v3":
+    if version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY) and semantic_version != "v3":
         raise ValueError("history-conditioned policy requires semantic v3")
     declared = metadata.get("policy_contract")
     if declared is None:

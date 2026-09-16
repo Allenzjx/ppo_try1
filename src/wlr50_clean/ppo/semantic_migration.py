@@ -1774,7 +1774,8 @@ def _temperature_protected_scope(before, after, *, functions=(), classes=(), con
 def _build_exploration_temperature_plan(checkpoint, metadata, old, new, *,
         allowed_changed_files, reason, review, project_root):
     from .semantic_policy_distribution import (CONFIG_NAMES, HISTORY_POLICY,
-        HISTORY_TEMPERED_POLICY, policy_contract, policy_version_from_metadata, _same_json)
+        HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
+        policy_contract, policy_version_from_metadata, _same_json)
     from .semantic_training import semantic_runner_config
     from .semantic_return_profile import runner_return_profile
     from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
@@ -1783,12 +1784,18 @@ def _build_exploration_temperature_plan(checkpoint, metadata, old, new, *,
             or not isinstance(review["reviewed_code_sha256"], Mapping)
             or not isinstance(reason, str) or not reason.strip()):
         raise ValueError("temperature continuation requires an explicit exact-code review")
-    source_policy = policy_contract(HISTORY_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
-    target_policy = policy_contract(HISTORY_TEMPERED_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
-    if (policy_version_from_metadata(metadata) != HISTORY_POLICY
-            or not _same_json(metadata.get("policy_contract"), source_policy)
+    source_version = policy_version_from_metadata(metadata)
+    quarter = (source_version == HISTORY_TEMPERED_POLICY
+        and old.get("experiment_id") == "task_first_recovery_v1")
+    namespace = "task_first_recovery_v1" if quarter else "fsm_reference_p09_stable_v2"
+    expected_source = HISTORY_TEMPERED_POLICY if quarter else HISTORY_POLICY
+    target_version = HISTORY_QUARTER_TEMPERED_POLICY if quarter else HISTORY_TEMPERED_POLICY
+    source_temperature, target_temperature = (.5, .25) if quarter else (1., .5)
+    source_policy = policy_contract(expected_source, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    target_policy = policy_contract(target_version, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    if (source_version != expected_source or not _same_json(metadata.get("policy_contract"), source_policy)
             or metadata.get("semantic_version") != "v3" or source_num_envs(metadata) != 1
-            or any(c.get("semantic_version") != "v3" or c.get("experiment_id") != "fsm_reference_p09_stable_v2"
+            or any(c.get("semantic_version") != "v3" or c.get("experiment_id") != namespace
                    for c in (old, new))):
         raise ValueError("temperature continuation requires existing same-experiment N1 HISTORY372")
     variable = {"files", "runtime_content_sha256", "source_git_commit"}
@@ -1802,12 +1809,19 @@ def _build_exploration_temperature_plan(checkpoint, metadata, old, new, *,
             or not EXPLORATION_TEMPERATURE_FILES <= set(new["files"])
             or not set(delta) <= EXPLORATION_TEMPERATURE_FILES):
         raise ValueError("temperature continuation delta exceeds its exact five-file sampling boundary")
+    if quarter:
+        # The existing CLI already selects the verified target contract. This
+        # continuation needs no routing, nominal, evaluator or learner-loop edit.
+        core = {"src/wlr50_clean/ppo/semantic_history_actor.py",
+                "src/wlr50_clean/ppo/semantic_policy_distribution.py"}
+        if not core <= set(delta) or "src/wlr50_clean/ppo/semantic_cli.py" in delta:
+            raise ValueError("quarter temperature requires its two kernel files and unchanged CLI")
     hashes = {p: new["files"][p] for p in sorted(EXPLORATION_TEMPERATURE_FILES)}
     if dict(review["reviewed_code_sha256"]) != hashes:
         raise ValueError("temperature review hashes do not bind the exact current code")
     records = {}
     for name in sorted(CONFIG_NAMES):
-        path = f"configs/ppo_fsm_reference_p09_stable_v2/{name}"
+        path = f"configs/ppo_{namespace}/{name}"
         for c in (old, new):
             selected = c.get("selected_configuration", {})
             if set(selected) != CONFIG_NAMES or selected[name] != {"path": path, "sha256": c["files"].get(path)}:
@@ -1826,6 +1840,13 @@ def _build_exploration_temperature_plan(checkpoint, metadata, old, new, *,
         "semantic_training": {"functions": ("semantic_runner_config", "load_semantic_checkpoint", "_validated_exploration_temperature_factor")},
         "semantic_cli": {"functions": ("_preflight_checkpoint", "_resolved_policy_version")},
     }
+    if quarter:
+        allowed["semantic_history_actor"] = {"classes": ("SemanticQuarterTemperedHistoryMLPModel",)}
+        allowed["semantic_policy_distribution"]["constants"] = (
+            "HISTORY_QUARTER_TEMPERED_POLICY", "HISTORY_QUARTER_TEMPERED_ACTOR_CLASS")
+        allowed["semantic_training"] = {"functions": (
+            "semantic_runner_config", "_validated_exploration_temperature_factor")}
+        allowed["semantic_cli"] = {}
     for name, options in allowed.items():
         path = f"src/wlr50_clean/ppo/{name}.py"
         before = _version_bytes(project_root, old, path, prefer_worktree=True).decode("utf-8")
@@ -1835,8 +1856,8 @@ def _build_exploration_temperature_plan(checkpoint, metadata, old, new, *,
     horizon = runner_return_profile(metadata["runner_config"], semantic_version="v3")
     options = {"seed": metadata["seed"], "device": metadata["runner_config"]["device"],
         "semantic_version": "v3", "return_profile": horizon["version"], "observation_layout": ROLE_OBSERVATION_LAYOUT}
-    source_config = semantic_runner_config(policy_version=HISTORY_POLICY, **options)
-    target_config = semantic_runner_config(policy_version=HISTORY_TEMPERED_POLICY, **options)
+    source_config = semantic_runner_config(policy_version=source_version, **options)
+    target_config = semantic_runner_config(policy_version=target_version, **options)
     if not _same_json(metadata["runner_config"], source_config):
         raise ValueError("temperature source runner configuration is not canonical")
     # The actor selector/explicit innovation scale are the only configuration changes.
@@ -1844,17 +1865,19 @@ def _build_exploration_temperature_plan(checkpoint, metadata, old, new, *,
     target_rest = json.loads(json.dumps(target_config))
     source_rest["actor"].pop("class_name")
     target_rest["actor"].pop("class_name")
-    if target_rest["actor"].pop("exploration_std_temperature", None) != 0.5 or source_rest != target_rest:
-        raise ValueError("temperature continuation may change only actor selection and its fixed0.5 innovation scale")
+    source_scale = source_rest["actor"].pop("exploration_std_temperature", 1.)
+    target_scale = target_rest["actor"].pop("exploration_std_temperature", None)
+    if source_scale != source_temperature or target_scale != target_temperature or source_rest != target_rest:
+        raise ValueError("temperature continuation may change only actor selection and its reviewed fixed innovation scale")
     observation = {"source_policy_contract": source_policy, "target_policy_contract": target_policy,
         "observation_layout": ROLE_OBSERVATION_LAYOUT, "observation_dimension": 372,
         "action_dimension": 12, "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"}
     factor = {"schema": EXPLORATION_TEMPERATURE_SCHEMA, "review_reason": review["reason"].strip(),
         "reviewed_code_sha256": hashes, "configuration_bindings": records, "code_scope": scopes,
-        "source_policy_version": HISTORY_POLICY, "target_policy_version": HISTORY_TEMPERED_POLICY,
+        "source_policy_version": source_version, "target_policy_version": target_version,
         "source_policy_contract": source_policy, "target_policy_contract": target_policy,
         "source_runner_config": source_config, "target_runner_config": target_config,
-        "source_exploration_std_temperature": 1.0, "target_exploration_std_temperature": 0.5,
+        "source_exploration_std_temperature": source_temperature, "target_exploration_std_temperature": target_temperature,
         "kernel_changed": True, "physical_mdp_changed": False, "nominal_control_changed": False,
         "reward_changed": False, "task_acceptance_changed": False, "action_ranges_changed": False,
         "observation_semantics_changed": [], "observation_contract": observation,
