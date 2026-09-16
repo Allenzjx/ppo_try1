@@ -219,3 +219,57 @@ def test_invalid_mean_branch_leaves_live_state_unchanged(mean_case, bad):
     with pytest.raises(ValueError):
         m.apply_task_recovery_mean_head(f.runner, f.infos, branch_id="mean_head_recovery_v1", reason="explicit")
     assert before == (state_hash(f.runner.alg.actor.state_dict()), state_hash(f.runner.alg.optimizer.state_dict()))
+
+
+def test_offline_initializer_actual_official_save_load_without_physics(tmp_path, monkeypatch):
+    import importlib.util
+    import torch
+    from wlr50_clean.ppo import semantic_cli
+    from wlr50_clean.ppo.semantic_training import (SemanticRslAdapter, construct_semantic_runner,
+        save_semantic_checkpoint, seed_training_rngs)
+    script = m.PROJECT_ROOT / "outputs/ppo_task_first_recovery_v1/initialize_mean_head_recovery.py"
+    spec = importlib.util.spec_from_file_location("offline_mean_initializer_test", script)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    monkeypatch.setattr(module, "ROOT", tmp_path)
+    contract = {"experiment_id": "task_first_recovery_v1", "synthetic_fixture": True}
+    monkeypatch.setattr(semantic_cli, "runtime_contract", lambda **kwargs: contract)
+    class NoPhysics:
+        def reset(self, *, seed): return (0.,) * 372
+        def step(self, raw): raise AssertionError("offline migration must never collect physics")
+    prior_threads, rng = torch.get_num_threads(), torch.get_rng_state()
+    try:
+        torch.set_num_threads(1)
+        seed_training_rngs(1001)
+        env = SemanticRslAdapter(NoPhysics(), seed=1001, device="cpu")
+        env.cfg["semantic_version"] = "v3"
+        runner, _ = construct_semantic_runner(env, seed=1001, device="cpu",
+            policy_version=HISTORY_TEMPERED_POLICY, initialize_actor=False,
+            observation_layout=ROLE_OBSERVATION_LAYOUT)
+        for group in runner.alg.optimizer.param_groups:
+            for p in group["params"]: p.grad = torch.ones_like(p)
+        runner.alg.optimizer.step()
+        runner.alg.optimizer.zero_grad(set_to_none=True)
+        cp = tmp_path / "outputs/ppo_task_first_recovery_v1/checkpoints/history/synthetic_source.pt"
+        infos = {"seed": 1001, "runtime_contract": contract, "semantic_version": "v3",
+            "global_policy_decisions": 128, "ppo_updates": 1, "optimizer_steps": 1,
+            "sampling": "P01_full_task_only_initial_version",
+            "execution_topology": m.continuation_topology("P01_full_task_only_initial_version", None,
+                observation_layout=ROLE_OBSERVATION_LAYOUT),
+            "stage_requested_decisions": {"smoke": 128, "phase_suffix": 0, "full_episode": 0}}
+        save_semantic_checkpoint(runner, cp, infos)
+        before = m.file_sha(cp)
+        result = module.initialize(cp, expected_head="a"*40, branch_id="cpu_fixture_branch",
+                                   reason="synthetic fixture only; not physical success")
+        assert result["actual_save_load_round_trip"] and result["source_checkpoint_unchanged"]
+        assert result["offline_initialization"]["physics_steps"] == 0
+        assert m.file_sha(cp) == before
+        new_meta = m.checkpoint_metadata(__import__("pathlib").Path(result["candidate_checkpoint"]))
+        assert new_meta["global_policy_decisions"] == 128
+        assert new_meta["task_recovery_branch_counts"] == {"global_policy_decisions": 0, "ppo_updates": 0, "optimizer_steps": 0}
+        assert not (cp.parents[1] / "checkpoint_last_pointer.json").exists()
+        with pytest.raises(FileExistsError):
+            module.initialize(cp, expected_head="a"*40, branch_id="cpu_fixture_branch", reason="cannot overwrite")
+    finally:
+        torch.set_rng_state(rng)
+        torch.set_num_threads(prior_threads)

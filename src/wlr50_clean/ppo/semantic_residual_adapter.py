@@ -21,6 +21,70 @@ from wlr50_clean.infrastructure.robot_adapter import (
 from wlr50_clean.infrastructure.servo_target_mapper import ServoTargetMapperError
 
 
+NOMINAL_HISTORY_SEMANTICS = "same_actual_state_nominal_command_history_excludes_policy_v1"
+
+
+def _nominal_previous(adapter):
+    """Read a command trace, initialized only before the first policy dispatch.
+
+    This is not a second mapper, observation, or simulated trajectory. The
+    trace uses the one live mapper result and current measured geometry. It
+    excludes the additive policy offset so a geometry hold cannot integrate it.
+    Its eight values are controller-internal command memory, logged in ACKs,
+    not new/reinterpreted features in the existing 372-dimensional observation.
+    Existing observations are not claimed to expose the full controller state.
+    """
+    trace = getattr(adapter, "_semantic_nominal_command_history", None)
+    writes = adapter.write_count
+    if trace is None:
+        ack = getattr(adapter, "last_ack", None)
+        actual = tuple(float(adapter._final_drive_servo_deg[name]) for name in SERVO_ORDER)
+        fresh = writes == 0 and ack is None and not any(actual)
+        settled = (isinstance(ack, Mapping) and
+            "semantic_residual_composition" not in ack and
+            ack.get("write_count") == writes and
+            ack.get("physics_tick") == adapter._last_physics_tick and
+            not any(actual) and
+            all(tuple(ack.get(key, ())) == (0.,)*12 for key in
+                ("requested_full12", "applied_full12", "drive_target_full12",
+                 "native_drive_target_full12", "drive_feedback_bias_requested_full12")))
+        if not (fresh or settled):
+            raise RobotAdapterError("nominal command history missing outside fresh/settled zero reset")
+        return actual, "fresh_adapter_zero" if fresh else "settled_original_zero_ack"
+    if (not isinstance(trace, Mapping) or trace.get("write_count") != writes or
+            trace.get("physics_tick") != adapter._last_physics_tick):
+        raise RobotAdapterError("nominal command history is not adjacent to the actual dispatch")
+    try:
+        previous = tuple(float(value) for value in trace["servo_deg"])
+    except (TypeError, ValueError, KeyError) as exc:
+        raise RobotAdapterError("invalid nominal command history") from exc
+    if len(previous) != 8 or any(not math.isfinite(value) for value in previous):
+        raise RobotAdapterError("invalid nominal command history")
+    return previous, "previous_semantic_nominal_command"
+
+
+def _nominal_step(adapter, previous, native, controller):
+    result = []
+    for name, before, target, bias in zip(SERVO_ORDER, previous, native[:8], controller[:8], strict=True):
+        lower, upper = servo_limits_deg(name)
+        result.append(bounded_drive_feedback_step(previous_deg=before, native_deg=target,
+            bias_deg=bias, maximum_delta_deg=adapter.servo_target_mapper.maximum_delta_deg,
+            lower_deg=lower, upper_deg=upper))
+    return result
+
+
+def _store_nominal_history(adapter, ack, previous, nominal, source):
+    adapter._semantic_nominal_command_history = {
+        "servo_deg": tuple(nominal), "write_count": adapter.write_count,
+        "physics_tick": adapter._last_physics_tick,
+    }
+    ack.update(nominal_history_semantics=NOMINAL_HISTORY_SEMANTICS,
+        nominal_history_initialization=source,
+        nominal_command_history_added_to_policy_observation=False,
+        previous_nominal_command_servo_deg=list(previous),
+        nominal_command_servo_deg=list(nominal))
+
+
 def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
                             physics_tick: int, tracking_servo_names: Sequence[str],
                             controller_bias_full12: Sequence[float],
@@ -38,6 +102,7 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
     combined = tuple(a + b for a, b in zip(controller, residual, strict=True))
     if any(not math.isfinite(value) for value in combined):
         raise RobotAdapterError("combined PPO target offset is non-finite")
+    nominal_previous, nominal_history_source = _nominal_previous(adapter)
     if policy_headroom_mode is not None:
         from .semantic_headroom import HEADROOM_MODE, project_semantic_servo_headroom
         if policy_headroom_mode != HEADROOM_MODE:
@@ -87,6 +152,9 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
             evidence.update(policy_headroom_mode=policy_headroom_mode,
                             policy_headroom_evidence=headroom)
         ack.update(evidence)
+        nominal_servo = _nominal_step(adapter, nominal_previous,
+            ack["native_drive_target_full12"], controller)
+        _store_nominal_history(adapter, ack, nominal_previous, nominal_servo, nominal_history_source)
         adapter.last_ack = dict(ack)
         return ack
 
@@ -123,7 +191,8 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
         # controller correction, never this tick's raw/projected PPO action.
         corrected, geometry_evidence = correct_nominal_geometry(
             adapter=adapter, native_full12=native_drive.to_full12(),
-            controller_bias_full12=controller, context=nominal_geometry_context)
+            controller_bias_full12=controller, context=nominal_geometry_context,
+            nominal_previous_servo_deg=nominal_previous)
         corrected_native = tuple(float(value) for value in corrected)
         if len(corrected_native) != 12 or any(not math.isfinite(value) for value in corrected_native):
             raise RobotAdapterError("nominal geometry must return twelve finite native targets")
@@ -149,6 +218,7 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
         effective_combined = tuple(headroom["effective_combined_post_mapper_bias_full12"])
         evidence.update(policy_headroom_mode=policy_headroom_mode,
                         policy_headroom_evidence=headroom)
+    nominal_servo = _nominal_step(adapter, nominal_previous, corrected_native, controller)
     final_servo = []
     for name, target, bias in zip(SERVO_ORDER, corrected_native[:8], effective_combined[:8], strict=True):
         lower, upper = servo_limits_deg(name)
@@ -170,8 +240,9 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
     adapter.robot.set_joint_position_target(positions, joint_ids=list(adapter.joint_map.servo_ids))
     adapter.robot.set_joint_velocity_target(velocities, joint_ids=list(adapter.joint_map.wheel_ids))
     adapter.robot.write_data_to_sim()
-    # This is the one actual final-drive history, also used by the read-only
-    # same-tick counterfactual. No second zero-trajectory history is introduced.
+    # Only actual targets enter the actuator slew/history and counterfactual
+    # audit. The separate nominal command trace is never sent to the robot and
+    # never substitutes for actual state or advances a second mapper.
     adapter._final_drive_servo_deg.update(zip(SERVO_ORDER, final_servo, strict=True))
     adapter.write_count += 1
     adapter._last_physics_tick = tick
@@ -201,6 +272,7 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
         "wheel_target_physical_rad_s": list(physical.wheel_target_rad_s),
         "motion_start_skew_s": 0.0, **evidence,
     }
+    _store_nominal_history(adapter, ack, nominal_previous, nominal_servo, nominal_history_source)
     adapter.last_ack = dict(ack)
     return ack
 

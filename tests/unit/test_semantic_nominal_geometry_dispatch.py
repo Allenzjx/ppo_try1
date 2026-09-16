@@ -74,7 +74,7 @@ def test_active_inverse_composition_one_advance_write_and_three_targets(monkeypa
     previous = tuple(adapter._final_drive_servo_deg.values())
     calls = []
 
-    def geometry(*, adapter, native_full12, controller_bias_full12, context):
+    def geometry(*, adapter, native_full12, controller_bias_full12, context, nominal_previous_servo_deg):
         calls.append((tuple(native_full12), tuple(controller_bias_full12), context))
         adjusted = list(native_full12)
         # Desired no-current-policy final=0. Invert the full raw nominal+c,
@@ -127,7 +127,7 @@ def test_active_inverse_composition_one_advance_write_and_three_targets(monkeypa
 def test_identity_and_degraded_keep_raw_native_and_old_residual_mapping(monkeypatch, status, residual):
     adapter, reference = saturated_history(), saturated_history()
 
-    def geometry(*, adapter, native_full12, controller_bias_full12, context):
+    def geometry(*, adapter, native_full12, controller_bias_full12, context, nominal_previous_servo_deg):
         return native_full12, {"status": status}
 
     install_helper(monkeypatch, geometry)
@@ -239,7 +239,13 @@ def test_real_geometry_projection_mapper_dispatch_and_three_branch_audit(control
     # separate coverage in test_semantic_nominal_geometry_context.py.
     from wlr50_clean.ppo.semantic_nominal_geometry import CONTEXT_SCHEMA, MODE
 
-    adapter, zero_policy, raw_reference = (saturated_history() for _ in range(3))
+    # Start with true zero nominal history, not a cancelled +20 nominal whose
+    # previous final=0 used to leak the policy back into geometry. That distinct
+    # history case is covered by the policy-excluded-history regression tests.
+    adapter, zero_policy, raw_reference = (_adapter() for _ in range(3))
+    for item in (adapter, zero_policy, raw_reference):
+        for tick in range(1, 21):
+            dispatch(item, plan(ZERO), tick)
     nominal = (3., -2., .25, -.25, .4, -.4, 20., .5, .1, -.2, .3, -.4)
     policy = (residual*.2, 0., 0., 0., 0., 0., residual, 0., residual*.1, 0., 0., 0.)
     controller_bias = full(controller)
@@ -268,11 +274,11 @@ def test_real_geometry_projection_mapper_dispatch_and_three_branch_audit(control
     assert adapter.robot.events == ["position.setter", "velocity.setter", "dispatch"]*21
     assert ack["native_drive_target_full12"] == raw_ack["native_drive_target_full12"]
     assert ack["servo_native_drive_command_deg"] == raw_ack["servo_native_drive_command_deg"]
-    assert ack["native_drive_target_full12"][RR_HIP] == 20.
+    assert ack["native_drive_target_full12"][RR_HIP] == 1.25
     assert ack["nominal_geometry_adjustment_full12"] == zero_ack["nominal_geometry_adjustment_full12"]
     assert ack["geometry_adjusted_native_full12"] == zero_ack["geometry_adjusted_native_full12"]
     assert ack["geometry_adjusted_native_full12"][RR_HIP] == pytest.approx(-controller, abs=1.e-10)
-    assert ack["nominal_geometry_adjustment_full12"][RR_HIP] == pytest.approx(-20.-controller, abs=1.e-10)
+    assert ack["nominal_geometry_adjustment_full12"][RR_HIP] == pytest.approx(-1.25-controller, abs=1.e-10)
     assert zero_ack["drive_target_full12"][RR_HIP] == pytest.approx(0., abs=1.e-10)
     assert ack["drive_target_full12"][RR_HIP] == pytest.approx(max(-1.25, min(1.25, residual)), abs=1.e-10)
     assert ack["drive_feedback_bias_requested_full12"] == list(actuation.combined_post_mapper_bias_full12)

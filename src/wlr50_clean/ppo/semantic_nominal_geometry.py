@@ -270,7 +270,8 @@ def capture_nominal_geometry_context(*, adapter, observation, source_frame,
     }
 
 
-def correct_nominal_geometry(*, adapter, native_full12, controller_bias_full12, context):
+def correct_nominal_geometry(*, adapter, native_full12, controller_bias_full12, context,
+                             nominal_previous_servo_deg=None):
     """Return adjusted native nominal and evidence; never consume current r."""
     native = _finite(native_full12, 12, "raw native nominal")
     bias = _finite(controller_bias_full12, 12, "bounded controller bias")
@@ -282,10 +283,14 @@ def correct_nominal_geometry(*, adapter, native_full12, controller_bias_full12, 
     indices = ACTIVE[phase][1]
     if context.get("place_xy") is not False or context.get("ground_contact") is not False:
         raise NominalGeometryError("ineligible context must bypass before mapper dispatch")
+    # Production dispatch always supplies its policy-excluded command trace.
+    # The default retains direct, zero-policy geometry-replay compatibility.
+    previous = _finite(nominal_previous_servo_deg if nominal_previous_servo_deg is not None else
+        tuple(adapter._final_drive_servo_deg[name] for name in SERVO_ORDER), 8, "previous nominal command")
     if context["mode"] == BOUNDED_RR_MODE and phase == "P09":
-        return _bounded_rr_correction(adapter=adapter, native=native, bias=bias, context=context)
+        return _bounded_rr_correction(adapter=adapter, native=native, bias=bias, context=context,
+                                      nominal_previous_servo_deg=previous)
     q = _finite(context["physical_q_rad"], 2, "current physical q")
-    previous = tuple(float(adapter._final_drive_servo_deg[name]) for name in SERVO_ORDER)
     maximum_delta = float(adapter.servo_target_mapper.maximum_delta_deg)
     if not math.isfinite(maximum_delta) or maximum_delta <= 0.:
         raise NominalGeometryError("invalid frozen final slew")
@@ -334,6 +339,7 @@ def correct_nominal_geometry(*, adapter, native_full12, controller_bias_full12, 
     evidence = {
         "schema": EVIDENCE_SCHEMA, "mode": context["mode"], "status": status,
         "context": dict(context), "projection": dict(result.proof),
+        "nominal_previous_servo_deg": list(previous),
         "old_zero_policy_physical_target_rad": old_targets,
         "desired_zero_policy_canonical_target_deg": desired,
         "nominal_geometry_adjustment_full12": [a-b for a,b in zip(adjusted,native)],
@@ -343,7 +349,7 @@ def correct_nominal_geometry(*, adapter, native_full12, controller_bias_full12, 
     return tuple(adjusted), evidence
 
 
-def _bounded_rr_correction(*, adapter, native, bias, context):
+def _bounded_rr_correction(*, adapter, native, bias, context, nominal_previous_servo_deg=None):
     """Non-integrating local model, existing reserve, explicit infeasibility.
 
     No assertion of whole-body feasibility: body/support candidates must supply
@@ -354,6 +360,8 @@ def _bounded_rr_correction(*, adapter, native, bias, context):
     from wlr50_clean.infrastructure.servo_target_mapper import SERVO_TRACKING_COMPENSATION_MAX_DEG
     indices = ACTIVE["P09"][1]
     q = _finite(context["physical_q_rad"], 2, "physical q")
+    nominal_previous = _finite(nominal_previous_servo_deg if nominal_previous_servo_deg is not None else
+        tuple(adapter._final_drive_servo_deg[name] for name in SERVO_ORDER), 8, "previous nominal command")
     slew = float(adapter.servo_target_mapper.maximum_delta_deg)
     if not math.isfinite(slew) or slew <= 0.:
         raise NominalGeometryError("invalid frozen final slew")
@@ -367,7 +375,7 @@ def _bounded_rr_correction(*, adapter, native, bias, context):
     bands, recovering = [], []
     for i, actual in zip(indices, q):
         name = SERVO_ORDER[i]
-        previous = float(adapter._final_drive_servo_deg[name])
+        previous = nominal_previous[i]
         if not math.isfinite(previous):
             raise NominalGeometryError("nonfinite previous final target")
         hard_lo, hard_hi = servo_limits_deg(name)
@@ -419,13 +427,14 @@ def _bounded_rr_correction(*, adapter, native, bias, context):
         adjusted[i] = value-bias[i]
         desired.append(value)
         lo, hi = servo_limits_deg(name)
-        reconstructed = bounded_drive_feedback_step(previous_deg=float(adapter._final_drive_servo_deg[name]),
+        reconstructed = bounded_drive_feedback_step(previous_deg=nominal_previous[i],
             native_deg=adjusted[i], bias_deg=bias[i], maximum_delta_deg=slew,
             lower_deg=lo, upper_deg=hi)
         _close((value,), (reconstructed,), 1e-9, "bounded adjusted zero-policy final nominal")
     at_envelope = any(min(value-lo, hi-value) <= 1e-6 for value,(lo,hi) in zip(desired,bands))
     return tuple(adjusted), {"schema": EVIDENCE_SCHEMA, "mode": context["mode"], "status": status,
         "context": dict(context), "projection": dict(result.proof) if result is not None else None,
+        "nominal_previous_servo_deg": list(nominal_previous),
         "desired_zero_policy_canonical_target_deg": desired,
         "nominal_geometry_adjustment_full12": [a-b for a,b in zip(adjusted,native)],
         "operating_reserve_deg": SERVO_RESERVE_DEG, "mapped_source_correction_envelope_deg": cap,
