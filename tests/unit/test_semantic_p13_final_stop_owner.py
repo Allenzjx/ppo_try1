@@ -58,9 +58,11 @@ def at_first_source_stop(contract, *, enabled=True):
     s['ticks'] = s['motion']._tick_index = p._source_motion._tick_index = tick
     prior = p.nominal_full12
     assert any(prior[8:])
-    stopped = issue(p, contract, 101)
+    # The real successful-zero window starts only after this issued stop is
+    # physically observed; a merely authored stop does not fabricate it.
+    stopped = issue(p, contract, 101, started=False)
     assert stopped[8:] == (0.,)*4
-    assert p._final_stop_owner is None  # Previously issued N was still rolling.
+    assert p._final_stop_owner is None  # The physical post window has not begun.
     return p
 
 
@@ -100,8 +102,8 @@ def test_true_issued_stop_with_FL_air_retires_future_home_pulse_not_current_N(co
 
 
 @pytest.mark.parametrize('field,value', [
-    ('final_region_valid',False), ('final_controlled',False), ('final_support_available',False),
-    ('task_completed_controlled',False), ('post_completion_observation_started',False),
+    ('final_region_valid',False), ('final_support_available',False),
+    ('post_completion_observation_started',False),
     ('post_completion_observation_complete',True), ('post_completion_loss_observed',True),
     ('physical_evidence_status','CONTACT_BEARING_UNVERIFIED'),
     ('post_completion_elapsed_s',1.), ('post_completion_elapsed_s',-.01),
@@ -183,3 +185,47 @@ def test_raw_residual_bridge_remains_independent_of_nominal_stop_owner(contract)
     assert projection.raw_residual_full12==raw and projection.effective_action_mask_full12==(1,)*12
     assert all(x!=0. for x in projection.safe_projected_residual_full12)
     assert all(x!=0. for x in projection.applied_action_full12[8:])
+
+
+@pytest.mark.parametrize('currently_controlled', [True, False])
+def test_real_started_window_can_stop_first_P13_before_any_P13_source_sample(contract, currently_controlled):
+    spec = yaml.safe_load((ROOT/'configs/ppo_fsm_reference_p09_stable_v2/stage_task_spec.yaml').read_text())
+    prior = tuple(contract.phase('P12').end_full12[:8]) + (0.,)*4
+    p = NominalMotionProvider.from_handoff(contract, spec=spec, stage_id='P12',
+        nominal_full12=prior, tracking_servo_names=('rear_left_knee',))
+    assert p.state_id == 'P12'
+    assert not any(s['stage']=='P13' for s in p._continuous_layers)
+    before = p.nominal_full12[:8]
+    def changed(t, raw):
+        t['physical_evaluator'].update(final_controlled=currently_controlled,
+            task_completed_controlled=currently_controlled)
+    result = issue(p, contract, 6064, change=changed)
+    assert result == before+(0.,)*4
+    assert layer(p,'P13')['sample'].full12[8:] == (.3,)*4
+    d=p.nominal_suggestion_diagnostics['final_stop_owner']
+    assert d['active'] and not d['preceding_issued_nominal_wheels_stopped']
+    assert d['current_post_window_takeover_eligibility']
+    assert d['current_entry_eligibility'] is currently_controlled
+    assert d['acquisition_semantics']=='post_window_triggered_nominal_stop_takeover_v2'
+    assert d['entry']['held_nominal_servo_deg']==before
+    assert d['entry']['held_tracking_servo_names']==('rear_left_knee',)
+    assert not d['task_success_awarded']
+
+
+def test_all_placed_and_currently_slow_without_started_window_cannot_skip_source(contract):
+    p=provider(contract)
+    result=issue(p,contract,6064,started=False)
+    assert result[8:]==(.3,)*4
+    assert p._final_stop_owner is None
+    assert not p.nominal_suggestion_diagnostics['final_stop_owner']['current_post_window_takeover_eligibility']
+
+
+@pytest.mark.parametrize('terminal_at', ['task','evaluator'])
+def test_first_P13_started_window_cannot_override_a_terminal_or_hard_failure(contract, terminal_at):
+    p=provider(contract)
+    def changed(t,raw):
+        destination=t if terminal_at=='task' else t['physical_evaluator']
+        destination['termination_reason']='TASK_FAILURE_BODY_COLLISION'
+    issue(p,contract,6064,change=changed)
+    assert p._final_stop_owner is None
+    assert not p.nominal_suggestion_diagnostics['final_stop_owner']['active']

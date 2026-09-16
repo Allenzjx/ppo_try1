@@ -67,6 +67,10 @@ HEIGHT_FILES = HEIGHT_CODE_FILES | {TIMING_ONLY_SPEC, HEIGHT_EXECUTION}
 EXPLORATION_TEMPERATURE_SCHEMA = "wlr50_clean.history372_innovation_temperature_continuation.v1"
 TASK_FIRST_REWARD_SCHEMA = "wlr50_clean.task_first_reward_same372_continuation.v1"
 TASK_RECOVERY_BRANCH_SCHEMA = "wlr50_clean.task_recovery_mean_head_branch.v1"
+FINAL_STOP_HANDOFF_SCHEMA = "wlr50_clean.final_stop_handoff_same372_fix.v1"
+FINAL_STOP_HANDOFF_FILES = frozenset({SUPERVISOR, "src/wlr50_clean/ppo/semantic_migration.py",
+    "src/wlr50_clean/ppo/semantic_training.py"})
+FINAL_STOP_HANDOFF_CORE_FILES = frozenset({SUPERVISOR})
 EXECUTION_COMPOSITION_SCHEMA = "wlr50_clean.independent_post_mapper_residual_same372_fix.v1"
 EXECUTION_COMPOSITION_FILES = frozenset(f"src/wlr50_clean/ppo/{name}.py" for name in (
     "semantic_residual_adapter", "semantic_nominal_geometry", "semantic_migration",
@@ -2052,6 +2056,131 @@ def _build_execution_composition_plan(checkpoint, metadata, old, new, *,
         "execution_composition_factor": factor}
 
 
+def _final_stop_owner_scope(before: bytes, after: bytes) -> dict[str, Any]:
+    """AST-locate exactly one owner method; keep evaluator/other source identical."""
+    import ast
+
+    def split(raw):
+        text = raw.decode("utf-8").replace("\r\n", "\n")
+        tree = ast.parse(text)
+        classes = [n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == "NominalMotionProvider"]
+        if len(classes) != 1:
+            raise ValueError("final stop handoff requires one NominalMotionProvider")
+        methods = [n for n in classes[0].body if isinstance(n, ast.FunctionDef)
+                   and n.name == "_observe_final_stop_owner"]
+        if len(methods) != 1 or methods[0].decorator_list:
+            raise ValueError("final stop handoff requires one undecorated stop-owner method")
+        method = methods[0]
+        lines = text.splitlines(keepends=True)
+        outside = "".join(lines[:method.lineno-1]) + "<reviewed stop-owner method>\n" + "".join(lines[method.end_lineno:])
+        body = "".join(lines[method.lineno-1:method.end_lineno])
+        signature = (ast.dump(method.args), ast.dump(method.returns) if method.returns else None)
+        return outside, body, signature
+
+    old_outside, old_method, old_signature = split(before)
+    new_outside, new_method, new_signature = split(after)
+    if old_outside != new_outside or old_signature != new_signature:
+        raise ValueError("final stop handoff changed evaluator or code outside the exact stop-owner method")
+    if old_method == new_method:
+        raise ValueError("final stop handoff requires an actual owner-method change")
+    sha = lambda s: hashlib.sha256(s.encode("utf-8")).hexdigest()
+    return {"method": "NominalMotionProvider._observe_final_stop_owner",
+        "unchanged_outside_method_sha256": sha(old_outside),
+        "source_method_sha256": sha(old_method), "target_method_sha256": sha(new_method),
+        "method_signature_unchanged": True, "evaluator_and_other_methods_unchanged": True}
+
+
+def _build_final_stop_handoff_plan(checkpoint, metadata, old, new, *,
+        allowed_changed_files, reason, review, project_root):
+    """Repair final-stop ownership, not the evaluator or task success criteria."""
+    import yaml
+    from .semantic_policy_distribution import CONFIG_NAMES, HISTORY_TEMPERED_POLICY, policy_contract
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    if (not isinstance(review, Mapping) or set(review) != {"reason", "reviewed_code_sha256"}
+            or not isinstance(review["reason"], str) or not review["reason"].strip()
+            or not isinstance(reason, str) or not reason.strip()):
+        raise ValueError("final stop handoff requires explicit reason and exact reviewed hashes")
+    if (old.get("experiment_id") != "task_first_recovery_v1"
+            or new.get("experiment_id") != old.get("experiment_id")
+            or old.get("semantic_version") != "v3" or new.get("semantic_version") != "v3"
+            or source_num_envs(metadata) != 1):
+        raise ValueError("final stop handoff requires same task-first v3 N1")
+    canonical = policy_contract(HISTORY_TEMPERED_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    if metadata.get("policy_contract") != canonical:
+        raise ValueError("final stop handoff preserves canonical tempered HISTORY372/12")
+    variable = {"files", "runtime_content_sha256", "source_git_commit"}
+    if ({k: v for k, v in old.items() if k not in variable}
+            != {k: v for k, v in new.items() if k not in variable}):
+        raise ValueError("final stop handoff cannot change physical metadata or configuration bindings")
+    if old["files"].keys() != new["files"].keys():
+        raise ValueError("final stop handoff cannot add or remove runtime files")
+    delta = sorted(p for p in old["files"] if old["files"][p] != new["files"][p])
+    if sorted(allowed_changed_files) != delta or len(set(allowed_changed_files)) != len(allowed_changed_files):
+        raise ValueError("final stop handoff requires the exact unique changed-file inventory")
+    if not set(delta) <= FINAL_STOP_HANDOFF_FILES or not FINAL_STOP_HANDOFF_CORE_FILES <= set(delta):
+        raise ValueError("final stop handoff requires its reviewed core fix and cannot change protected files")
+    hashes = review["reviewed_code_sha256"]
+    if not isinstance(hashes, Mapping) or dict(hashes) != {p: new["files"][p] for p in delta}:
+        raise ValueError("final stop handoff hashes must bind every changed runtime file")
+    bindings = old.get("selected_configuration", {})
+    if set(bindings) != CONFIG_NAMES:
+        raise ValueError("final stop handoff requires all six unchanged configuration bindings")
+    for name, row in bindings.items():
+        relative = f"configs/ppo_task_first_recovery_v1/{name}"
+        if row != {"path": relative, "sha256": old["files"].get(relative)} or row["sha256"] is None:
+            raise ValueError("final stop handoff configuration binding differs from inventory")
+        if (_version_bytes(project_root, old, relative, prefer_worktree=True)
+                != _version_bytes(project_root, new, relative, prefer_worktree=True)):
+            raise ValueError("final stop handoff requires byte-identical configurations")
+    for relative in delta:
+        _version_bytes(project_root, old, relative, prefer_worktree=True)
+        if file_sha(project_root / relative) != new["files"][relative]:
+            raise ValueError("final stop handoff target bytes differ from current inventory")
+    scope = _final_stop_owner_scope(
+        _version_bytes(project_root, old, SUPERVISOR, prefer_worktree=True),
+        _version_bytes(project_root, new, SUPERVISOR, prefer_worktree=True))
+    reward = yaml.safe_load(_version_bytes(project_root, new,
+        bindings["reward_config.yaml"]["path"], prefer_worktree=True))
+    if (reward.get("objective_profile") != "task_first_recovery_v1" or reward.get("quality_epsilon") != 0.0
+            or any(reward.get("family_weights", {}).get(name) != 0.0 for name in (
+                "body_stability", "contact_motion_quality", "control_smoothness", "control_regularization"))):
+        raise ValueError("final stop handoff requires the unchanged task-first epsilon-zero objective")
+    observation = {"source_policy_contract": canonical, "target_policy_contract": dict(canonical),
+        "observation_layout": ROLE_OBSERVATION_LAYOUT, "observation_dimension": 372,
+        "action_dimension": 12, "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"}
+    factor = {"schema": FINAL_STOP_HANDOFF_SCHEMA, "review_reason": review["reason"].strip(),
+        "reviewed_code_sha256": dict(hashes), "configuration_bindings": dict(bindings),
+        "action_execution_changed": True, "transition_execution_semantics_changed": True,
+        "stop_owner_acquisition_semantics": "post_window_triggered_nominal_stop_takeover_v2",
+        "supervisor_scope": scope, "task_evaluator_changed": False,
+        "fixed_post_completion_window_changed": False,
+        "residual_composition_changed": False, "controller_history_reset_on_phase_transition": False,
+        "physical_scene_changed": False, "actuator_capability_changed": False,
+        "recorded_FSM_source_changed": False, "task_acceptance_changed": False,
+        "reward_changed": False, "quality_epsilon": 0.0, "action_ranges_changed": False,
+        "kernel_changed": False, "observation_semantics_changed": [], "observation_contract": observation,
+        "normalizers": "preserve_verified_identity_RSL_state",
+        "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+        "critic": "preserve_parameters_and_Adam_then_refit_on_corrected_execution_on_policy_data",
+        "training_rng": "preserve_verified_training_rng", "lifetime_counters_preserved": True,
+        "old_rollout_inherited": False, "migration_added_updates": 0,
+        "trajectory_equivalence_claimed": False,
+        "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True}
+    sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
+    return {"schema": SCHEMA, "reason": reason.strip(), "source_checkpoint": str(checkpoint),
+        "source_checkpoint_sha256": file_sha(checkpoint), "source_manifest_sha256": file_sha(sidecar),
+        "source_contract_sha256": digest(old), "target_contract_sha256": digest(new),
+        "source_git_commit": old["source_git_commit"], "target_git_commit": new["source_git_commit"],
+        "source_runtime_content_sha256": old["runtime_content_sha256"],
+        "target_runtime_content_sha256": new["runtime_content_sha256"],
+        "allowed_changed_files": delta,
+        "changed_file_hashes": {p: {"before": old["files"][p], "after": new["files"][p]} for p in delta},
+        "geometric_factor": None, "observation_dimension": 372, "action_dimension": 12,
+        "preserve_actor_critic_optimizer_normalizer_rng_and_budget": True,
+        "discard_old_rollout_storage": True, "physics_resume": "fresh_legal_P01_reset",
+        "final_stop_handoff_factor": factor}
+
+
 def apply_task_recovery_mean_head(runner: Any, source_infos: Mapping[str, Any], *,
         branch_id: str, reason: str) -> dict[str, Any]:
     """Explicit in-memory branch initialization after verified checkpoint loading.
@@ -2174,11 +2303,21 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                          exploration_temperature_review: Mapping[str, Any] | None = None,
                          task_first_reward_review: Mapping[str, Any] | None = None,
                          execution_composition_review: Mapping[str, Any] | None = None,
+                         final_stop_handoff_review: Mapping[str, Any] | None = None,
                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Build a reviewed plan after committing the new runtime; does not write."""
     checkpoint = Path(checkpoint).resolve(strict=True)
     metadata = checkpoint_metadata(checkpoint)
     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
+    if final_stop_handoff_review is not None:
+        if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
+                execution_evidence, video_review, timing_review, body_reward_review,
+                height_recovery_review, exploration_temperature_review, task_first_reward_review,
+                execution_composition_review)):
+            raise ValueError("final stop handoff cannot mix any other migration factor")
+        return _build_final_stop_handoff_plan(checkpoint, metadata, old, new,
+            allowed_changed_files=allowed_changed_files, reason=reason,
+            review=final_stop_handoff_review, project_root=Path(project_root))
     if execution_composition_review is not None:
         if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
                 execution_evidence, video_review, timing_review, body_reward_review,
@@ -2344,7 +2483,10 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                                         "reviewed_code_sha256": supplied["task_first_reward_factor"]["reviewed_code_sha256"]},
                                     execution_composition_review=None if "execution_composition_factor" not in supplied else {
                                         "reason": supplied["execution_composition_factor"]["review_reason"],
-                                        "reviewed_code_sha256": supplied["execution_composition_factor"]["reviewed_code_sha256"]})
+                                        "reviewed_code_sha256": supplied["execution_composition_factor"]["reviewed_code_sha256"]},
+                                    final_stop_handoff_review=None if "final_stop_handoff_factor" not in supplied else {
+                                        "reason": supplied["final_stop_handoff_factor"]["review_reason"],
+                                        "reviewed_code_sha256": supplied["final_stop_handoff_factor"]["reviewed_code_sha256"]})
     if supplied != expected:
         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}

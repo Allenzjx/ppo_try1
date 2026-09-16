@@ -494,7 +494,7 @@ def _validated_exploration_temperature_factor(metadata: Mapping[str, Any], recor
     from .semantic_policy_distribution import HISTORY_POLICY, HISTORY_TEMPERED_POLICY, policy_version_from_metadata
     from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
     exclusive = ("execution_factor", "instrumentation_observation_contract", "video_instrumentation_factor",
-        "nominal_timing_factor", "body_reward_factor", "height_recovery_factor", "execution_composition_factor")
+        "nominal_timing_factor", "body_reward_factor", "height_recovery_factor", "execution_composition_factor", "final_stop_handoff_factor")
     if any(record.get(key) is not None for key in exclusive):
         raise RuntimeError("exploration temperature migration cannot mix other migration factors")
     if (not isinstance(factor, Mapping) or semantic_version != "v3"
@@ -596,11 +596,12 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         body_reward_factor = (verified.get("body_reward_factor") or {}).get("observation_contract")
         task_first_factor = (verified.get("task_first_reward_factor") or {}).get("observation_contract")
         composition_factor = (verified.get("execution_composition_factor") or {}).get("observation_contract")
+        stop_handoff_factor = (verified.get("final_stop_handoff_factor") or {}).get("observation_contract")
         height_factor = (verified.get("height_recovery_factor") or {}).get("observation_contract")
         temperature_factor = None if temperature is None else temperature["observation_contract"]
-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, height_factor, temperature_factor)) > 1:
+        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, height_factor, temperature_factor)) > 1:
             raise RuntimeError("reviewed same-layout migration receipts must be exclusive")
-        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or height_factor or temperature_factor
+        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or height_factor or temperature_factor
         if reviewed_factor is not None:
             if factor is not None:
                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")

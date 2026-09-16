@@ -2078,11 +2078,14 @@ class NominalMotionProvider:
             and _number(current.get("front_distance_m"),"current FR front distance") < geometry["approach_min_m"])
 
     def _observe_final_stop_owner(self, task: Mapping[str, Any], observation: Any) -> bool:
-        """Retire obsolete P13 suggestions after a real, already-issued stop.
+        """Continue stopping once a real completion observation has started.
 
         Capture the preceding nominal request, never actual q/final drive or
-        this tick's future home pulse. The evaluator still owns the fixed post
-        window and every failure; transient control loss cannot replay a pulse.
+        this tick's future forward/home pulse. A P12 physical completion may
+        precede the first P13 source sample; do not restart forward advice just
+        because that source has not issued its historical stop yet. The live
+        evaluator still owns the unchanged window and every failure. Current
+        speed loss is diagnostic, not a reason to postpone nominal stopping.
         """
         if self._final_stop_mode is None:
             return False
@@ -2115,23 +2118,25 @@ class NominalMotionProvider:
             "final_controlled", "final_support_available", "task_completed_controlled",
             "post_completion_observation_started", "post_completion_observation_complete",
             "post_completion_loss_observed")}
-        current_valid = bool(fresh and leg_evidence and ev.get("valid") is True and not terminal
+        takeover_valid = bool(fresh and leg_evidence and ev.get("valid") is True and not terminal
             and ev.get("physical_evidence_status") == "VERIFIED"
             and all(placed.get(leg) is True for leg in LEG_ORDER)
             and top_supports >= self.spec["support"]["minimum_other_supports"]
-            and all(ev.get(key) is True for key in ("final_region_valid", "final_controlled",
-                "final_support_available", "task_completed_controlled", "post_completion_observation_started"))
+            and all(ev.get(key) is True for key in ("final_region_valid",
+                "final_support_available", "post_completion_observation_started"))
             and ev.get("post_completion_observation_complete") is False
             and ev.get("post_completion_loss_observed") is False
             and finite(elapsed) and 0. <= elapsed < self.spec["final"]["post_completion_observation_s"]
             and elapsed <= now)
+        current_valid = bool(takeover_valid and ev.get("final_controlled") is True
+            and ev.get("task_completed_controlled") is True)
         issued_stop = bool(self.state_id == "P13" and any(layer["stage"] == "P13"
             and layer.get("sample") is not None for layer in self._continuous_layers)
             and max(map(abs, self.nominal_full12[8:])) <= self.spec["final"]["maximum_commanded_wheel_speed_rad_s"])
         if self._final_stop_owner is not None and (terminal or not in_phase):
             self._final_stop_owner_retired = True
         if (self._final_stop_owner is None and not self._final_stop_owner_retired
-                and in_phase and current_valid and issued_stop):
+                and in_phase and takeover_valid):
             self._final_stop_owner = {"entry_observation_tick": tick,
                 "entry_sim_time_s": now, "post_window_start_s": now-elapsed,
                 "entry_post_elapsed_s": elapsed, "issued_nominal_full12": self.nominal_full12,
@@ -2142,10 +2147,13 @@ class NominalMotionProvider:
         active = bool(self._final_stop_owner is not None and not self._final_stop_owner_retired
                       and in_phase and not terminal)
         self._final_stop_diagnostic = {"mode": self._final_stop_mode, "active": active,
+            "acquisition_semantics": "post_window_triggered_nominal_stop_takeover_v2",
             "status": ("holding_currently_eligible" if current_valid else "holding_live_eligibility_lost") if active
                 else "retired_episode_or_phase" if self._final_stop_owner_retired else "not_acquired",
             "entry": self._final_stop_owner, "current_observation_tick": tick,
             "current_evidence_fresh": fresh, "current_entry_eligibility": current_valid,
+            "current_post_window_takeover_eligibility": takeover_valid,
+            "current_entry_eligibility_semantics": "strict_current_measured_control_not_takeover_gate",
             "current_evidence": current, "current_top_bearing_support_count": top_supports,
             "current_four_leg_evidence_valid": leg_evidence,
             "preceding_issued_nominal_wheels_stopped": issued_stop,
