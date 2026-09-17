@@ -103,7 +103,7 @@ def experiment_namespace(semantic_version: str, experiment_id: str | None = None
         raise ValueError("unsupported semantic runtime version")
     if experiment_id is None:
         return f"ppo_semantic_{semantic_version}"
-    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1") or semantic_version != "v3":
+    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1") or semantic_version != "v3":
         raise ValueError("isolated semantic experiment requires semantic version v3")
     return f"ppo_{experiment_id}"
 

@@ -30,8 +30,10 @@ from .semantic_training import verified_native_effect, write_json
 HZ, FPS, STRIDE = 120, 15, 8
 PRE_TICKS, POST_TICKS, MAX_FRAMES = 64, 184, 3000
 TASK_WINDOW_EXPERIMENT = "fsm_reference_p09_stable_v2"
-TASK_WINDOW_EXPERIMENTS = (TASK_WINDOW_EXPERIMENT, "task_first_recovery_v1")
+TASK_WINDOW_EXPERIMENTS = (TASK_WINDOW_EXPERIMENT, "task_first_recovery_v1", "non_residual_refine_v1")
 CAMERA = {"eye_m": [1.45, -1.25, .8], "target_m": [.45, 0., .12]}
+REVIEW_CAMERA_EXPERIMENTS = ("non_residual_refine_v1", "residual_rr_fix_v1")
+REVIEW_CAMERA = {"eye_m": [1.85, -1.65, 1.15], "target_m": [.70, -.15, .15]}
 ROLES = {"A": "legacy_fsm_eval", "B": "semantic_prior_eval",
          "C": "semantic_residual_eval"}
 ZERO12 = (0.,) * 12
@@ -48,6 +50,12 @@ class _PhysicalEndpoint(Exception):
 def require(condition, message):
     if not condition:
         raise SemanticVideoError(message)
+
+
+def camera_for_experiment(experiment_id=None):
+    """Fixed shared B/C review view; historical captures retain their camera."""
+    selected = REVIEW_CAMERA if experiment_id in REVIEW_CAMERA_EXPERIMENTS else CAMERA
+    return {key: list(value) for key, value in selected.items()}
 
 
 def jsonl(stream, row):
@@ -558,6 +566,9 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
     root.mkdir(parents=True, exist_ok=False)
     recorder = recorder_factory(root)
     backend = core.backend
+    selected_camera = camera_for_experiment(experiment_id)
+    if experiment_id in REVIEW_CAMERA_EXPERIMENTS:
+        backend.configure_video_camera(**selected_camera)
     physical = None
     observer = None
     roll = None
@@ -596,7 +607,7 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
                     and reset_info.get("training_phase_snapshot") is None,
                     "video must own the first natural reset of a fresh process")
         camera = reset_info["locked_scene_snapshot"]["camera"]
-        require(all(list(camera[key]) == value for key,value in CAMERA.items()),
+        require(all(list(camera[key]) == value for key,value in selected_camera.items()),
                 "camera differs from common A/B/C view")
         legacy_controller = backend._controller if role == "A" else None
         if task_window:
@@ -741,7 +752,7 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
         "issued_policy_decisions": issued_decisions,
         "completed_environment_steps": completed_decisions,
         "interrupted_final_decision_ticks": partial_ticks,
-        "camera": {**CAMERA, "resolution": [1280,720], "fps": FPS},
+        "camera": {**selected_camera, "resolution": [1280,720], "fps": FPS},
         "reset_evidence": {key: reset_info.get(key) for key in
             ("reset_count", "reset_options", "training_phase_snapshot",
              "video_pre_action_refresh", "semantic_video_initialization")},
@@ -816,7 +827,8 @@ def validate_semantic_video_source(root, *, expected_role=None):
             "capture cannot establish PPO improvement or update weights")
     require(source["seed"] == 4001 and source["episode_count"] == 1
             and source["fresh_process_single_episode"] is True, "not fresh paired video source")
-    require(source["camera"] == {**CAMERA, "resolution": [1280,720], "fps": FPS}, "camera mismatch")
+    require(source["camera"] == {**camera_for_experiment(source.get("experiment_id")),
+                                 "resolution": [1280,720], "fps": FPS}, "camera mismatch")
     require(all(source[key] is False for key in ("stitched","frame_interpolation","speed_modified")),
             "source timeline was synthesized")
     task_window = source.get("experiment_id") in TASK_WINDOW_EXPERIMENTS

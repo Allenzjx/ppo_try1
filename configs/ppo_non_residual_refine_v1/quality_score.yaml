@@ -1,0 +1,30 @@
+schema: wlr50_clean.semantic_quality_score.v1
+defined_before_first_optimizer_update: true
+lower_is_better: true
+comparison_window: first_P01_action_to_real_task_completion_no_postroll
+missing_phase_policy: score_unavailable_not_zero
+phase_weights:
+  P01: 0.05
+  P02: 0.12
+  P03: 0.12
+  P04: 0.05
+  P05: 0.05
+  P06: 0.05
+  P07: 0.05
+  P08: 0.12
+  P09: 0.05
+  P10: 0.05
+  P11: 0.05
+  P12: 0.12
+  P13: 0.12
+components:
+  pitch_rate_rms_rad_s: {weight: 0.25, scale: 0.5}
+  roll_rate_rms_rad_s: {weight: 0.25, scale: 0.5}
+  angular_acceleration_rms_rad_s2: {weight: 0.20, scale: 10.0}
+  applied_servo_acceleration_rms_deg_s2: {weight: 0.15, scale: 3000.0}
+  applied_wheel_acceleration_rms_rad_s3: {weight: 0.15, scale: 60.0}
+interpretation: initial_engineering_quality_score_not_reward_and_not_task_failure
+engineering_improvement_target_fraction: 0.05
+attribution: require_independent_A_to_C_and_B_to_C_comparisons_with_raw_metrics
+transfer_reporting: split_TRANSFER_and_CAPTURE_EXEUTION_no_penalty_for_required_tilt
+repetition: five_fixed_conditions_no_randomization_is_repeatability_not_robustness

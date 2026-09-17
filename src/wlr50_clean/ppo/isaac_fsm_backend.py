@@ -381,6 +381,7 @@ class IsaacFSMBackend:
         )
         self._phase_snapshot_integrity_failed = False
         self._scene: Any | None = None
+        self._video_camera_override: dict[str, list[float]] | None = None
         self._adapter: Any | None = None
         self._reader: Any | None = None
         self._controller: Any | None = None
@@ -2318,6 +2319,36 @@ class IsaacFSMBackend:
             "root_state_write_count": 0,
         }
 
+    def configure_video_camera(self, *, eye_m: Sequence[float], target_m: Sequence[float]) -> None:
+        """Configure a fresh capture only; no scene, controller or state writes."""
+        if self._scene is not None or self._reset_count != 0:
+            raise IsaacFSMBackendError("video camera must be selected before the first reset")
+        vectors = {}
+        for name, values in (("eye_m", eye_m), ("target_m", target_m)):
+            try:
+                raw = tuple(values)
+                valid = len(raw) == 3 and all(not isinstance(v, bool) for v in raw)
+                vector = [float(value) for value in raw]
+            except (TypeError, ValueError, OverflowError) as error:
+                raise IsaacFSMBackendError("video camera requires finite three-vectors") from error
+            if not valid or not all(math.isfinite(value) for value in vector):
+                raise IsaacFSMBackendError("video camera requires finite three-vectors")
+            vectors[name] = vector
+        if vectors["eye_m"] == vectors["target_m"]:
+            raise IsaacFSMBackendError("video camera eye and target must differ")
+        self._video_camera_override = vectors
+
+    def _apply_video_camera_override(self, scene_snapshot: Mapping[str, Any]) -> dict[str, Any]:
+        """Apply only a viewport pose; preserve every physical snapshot field."""
+        snapshot = dict(scene_snapshot)
+        camera = self._video_camera_override
+        if camera is not None:
+            if self._scene is None:
+                raise IsaacFSMBackendError("video camera requires the created scene")
+            self._scene.sim.set_camera_view(eye=list(camera["eye_m"]), target=list(camera["target_m"]))
+            snapshot["camera"] = {key: list(value) for key, value in camera.items()}
+        return snapshot
+
     def render_video_frame(self) -> None:
         """Render the current live scene once for the active viewport recorder."""
 
@@ -2659,7 +2690,7 @@ class IsaacFSMBackend:
         reset_writes: Mapping[str, int],
     ) -> dict[str, Any]:
         assert self._dependencies is not None
-        scene_snapshot = dict(self._dependencies.locked_scene_snapshot())
+        scene_snapshot = self._apply_video_camera_override(self._dependencies.locked_scene_snapshot())
         base = _member(observation, "base")
         root_state = (
             tuple(float(value) for value in _member(base, "position_w_m", ()))

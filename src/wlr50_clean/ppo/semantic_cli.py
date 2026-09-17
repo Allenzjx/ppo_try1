@@ -40,7 +40,7 @@ def version_paths(version: str, *, experiment_id: str | None = None) -> tuple[Pa
     if version == "v2":
         return RUNS_ROOT, OUTPUT_ROOT, PROJECT_ROOT / "configs/ppo_semantic_v2"
     return (PROJECT_ROOT / "runs" / namespace, PROJECT_ROOT / "outputs" / namespace,
-            PROJECT_ROOT / "configs" / (namespace if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1") else "ppo_semantic_v3"))
+            PROJECT_ROOT / "configs" / (namespace if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1") else "ppo_semantic_v3"))
 
 
 def _request_paths(args: argparse.Namespace) -> tuple[Path, Path, Path]:
@@ -65,7 +65,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--seed", type=int, default=1001)
     result.add_argument("--num-envs", type=int, choices=(1, 8), default=1)
     result.add_argument("--semantic-version", choices=("v2", "v3"), default="v2")
-    result.add_argument("--experiment-id", choices=("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1"))
+    result.add_argument("--experiment-id", choices=("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1"))
     result.add_argument("--from-phase", choices=("P01", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13"), default="P01")
     result.add_argument("--teacher-offset-decisions", type=int, default=0)
     result.add_argument("--prefix-source", choices=("frozen_fsm", "checkpoint_policy", "successful_nominal"), default="frozen_fsm")
@@ -145,6 +145,13 @@ def _resolved_checkpoint(path: Path, *, output_root: Path | None = None) -> Path
 def validate_request(args: argparse.Namespace) -> None:
     _validate_target_policy_request(args)
     runs_root, output_root, _ = _request_paths(args)
+    if getattr(args, "experiment_id", None) == "non_residual_refine_v1":
+        if (args.command not in ("preflight", "eval") or args.mode != "semantic_prior_eval"
+                or args.checkpoint is not None or args.resume_migration is not None
+                or args.new_mdp_warm_start or getattr(args, "policy_distribution_migration", False)
+                or args.num_envs != 1 or args.from_phase != "P01" or args.teacher_offset_decisions
+                or getattr(args, "prefix_source", "frozen_fsm") != "frozen_fsm"):
+            raise ValueError("non-residual refinement is isolated natural-P01 prior-only, without a checkpoint or PPO training")
     directory = args.run_dir.resolve()
     if not directory.is_relative_to(runs_root.resolve()) or directory == runs_root.resolve():
         raise ValueError(f"semantic run directory must be strictly inside {runs_root}")

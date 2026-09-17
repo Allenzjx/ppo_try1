@@ -1399,7 +1399,8 @@ class NominalMotionProvider:
         self._reference_nominal = reference_mode is not None
         self._sequence_mode = nominal.get("sequence_semantics")
         self._final_stop_mode = nominal.get("final_stop_owner")
-        if self._final_stop_mode not in (None, "current_physical_stop_nominal_owner_v1"):
+        if self._final_stop_mode not in (None, "current_physical_stop_nominal_owner_v1",
+                                         "source_home_after_physical_stop_v1"):
             raise ValueError("unknown nominal final stop ownership")
         if self._final_stop_mode and (not self._reference_nominal
                 or nominal.get("continuous_channel_inheritance") is not True
@@ -1408,6 +1409,7 @@ class NominalMotionProvider:
         self._final_stop_owner = None
         self._final_stop_owner_retired = False
         self._final_stop_diagnostic = {}
+        self._final_home_recovery = None
         from .semantic_height_recovery import validate_height_candidate
         self._height_candidate = validate_height_candidate(nominal.get("height_recovery"))
         self._height_recovery_offsets = {"front_left_hip": 0., "rear_left_hip": 0.}
@@ -2161,6 +2163,45 @@ class NominalMotionProvider:
             "raw_residual_mapper_or_evaluator_reset": False, "task_success_awarded": False}
         return active
 
+    def _final_stop_request(self):
+        """Stop first, then issue the source's home-like servo request once.
+
+        The opt-in refinement retires the historical differential wheel pulse,
+        not the home intent. This is a nominal request through the SAME mature
+        mapper: no actual-q write, mapper reset, residual mask, or new success
+        predicate. The old mode continues to hold its preceding nominal pose.
+        """
+        owner = self._final_stop_owner
+        diagnostic = self._final_stop_diagnostic
+        refine = self._final_stop_mode == "source_home_after_physical_stop_v1"
+        if (refine and self._final_home_recovery is None
+                and diagnostic["current_entry_eligibility"]):
+            target = _vector(self.contract.phase("P13").end_full12, 12, "source P13 home")
+            self._final_home_recovery = {
+                "entry_observation_tick": diagnostic["current_observation_tick"],
+                "target_servo_deg": target[:8],
+                "source": "recording_motion_contract.P13.end_full12.servo8",
+                "source_wheel_pulse_replayed": False,
+            }
+        if refine:
+            diagnostic["home_recovery"] = {
+                "enabled": True, "active": self._final_home_recovery is not None,
+                "entry": self._final_home_recovery,
+                "status": "source_home_request_then_measured_settle" if self._final_home_recovery
+                    else "stopped_waiting_current_physical_control",
+                "home_pose_is_success_gate": False,
+                "physical_observation_window_changed": False,
+                "mapper_history_reset": False, "residual_channels_restricted": False,
+            }
+        if self._final_home_recovery is not None:
+            # The reference home group explicitly owns all eight servos. Its
+            # preceding carry tracking/bias owners no longer apply, while the
+            # mapper's physical slew and previous applied-command state remain.
+            return self._final_home_recovery["target_servo_deg"]+(0.,)*4, (), (0.,)*12
+        return (owner["held_nominal_servo_deg"]+(0.,)*4,
+                owner["held_tracking_servo_names"],
+                owner["held_normal_servo_bias_deg"]+(0.,)*4)
+
     def evaluate(self, stage: str | Mapping[str,Any], observation: Any=None) -> tuple[float,...]:
         stage_id=stage if isinstance(stage,str) else str(stage["stage_id"])
         # Validate before any layer/source clock, ownership or nominal mutation.
@@ -2223,10 +2264,7 @@ class NominalMotionProvider:
         if stage_id=="P13" and self.endpoint_issued and not final_stop:
             proposed=tuple(self.spec["final"]["home_servo_pose_deg"])+(0.,)*4
         if final_stop:
-            owner = self._final_stop_owner
-            proposed = owner["held_nominal_servo_deg"]+(0.,)*4
-            proposed_tracking = owner["held_tracking_servo_names"]
-            self.normal_drive_bias_full12 = owner["held_normal_servo_bias_deg"]+(0.,)*4
+            proposed, proposed_tracking, self.normal_drive_bias_full12 = self._final_stop_request()
             self._final_stop_diagnostic.update(source_elapsed_s=self.elapsed_s,
                 source_endpoint_issued=self.endpoint_issued,
                 source_layer_ticks={layer["stage"]: layer["ticks"] for layer in self._continuous_layers})

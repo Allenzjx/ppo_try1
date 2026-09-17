@@ -79,6 +79,8 @@ def validate_video_args(args):
 
 def build_video_core(app, *, role, semantic_version, experiment_id=None):
     """Select the same existing A/B/C evaluation recipe; no new control/physics."""
+    if experiment_id == "non_residual_refine_v1":
+        require(role == "B", "non-residual refinement video requires prior-only role B")
     configs = (video_configuration(semantic_version) if experiment_id is None else
                video_configuration(semantic_version, experiment_id=experiment_id))
     if role == "A":

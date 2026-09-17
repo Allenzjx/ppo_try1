@@ -2,7 +2,7 @@
 param(
     [ValidateSet('eval')][string]$Command = 'eval',
     [ValidateSet('v2','v3')][string]$SemanticVersion = 'v2',
-    [ValidateSet('transfer_roles_v1','all_stage_acceptance_v1','fsm_reference_p09_stable_v2','task_first_recovery_v1')][string]$ExperimentId,
+    [ValidateSet('transfer_roles_v1','all_stage_acceptance_v1','fsm_reference_p09_stable_v2','task_first_recovery_v1','non_residual_refine_v1')][string]$ExperimentId,
     [Parameter(Mandatory = $true)][ValidatePattern('^[0-9a-f]{40}$')][string]$ExpectedHead,
     [ValidateSet('smoke','phase_suffix','full_episode')][string]$Stage = 'smoke',
     [ValidateRange(1,100000)][int]$Decisions,
