@@ -1,0 +1,141 @@
+{
+  "run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_task_first_recovery_v1/video_eval/validation/20260916T0417200243144Z_gb0438f66ec63_288f6005a8cf41019a7cd2420445b800",
+  "lifecycle": "DIAGNOSTIC_FAILURE",
+  "completed_at_utc": "2026-09-16T04:20:22.483609+00:00",
+  "checkpoint_load_provenance": {
+    "checkpoint_loaded_and_verified": true,
+    "migration": null,
+    "observation_dimension": 372,
+    "observation_layout": "diagonal_transfer_state_v1",
+    "official_load_semantic_checkpoint": true,
+    "optimizer_updates": 0,
+    "parameter_hashes": {
+      "actor_parameter_sha256": "570caf101cc40bb104990138347b7734b9adf59bc00acc924002aaf624f3bce2",
+      "critic_parameter_sha256": "ed861cde9ce9d211f5f37eed9ba97ab4af9e6615b2d1cd3f7aeab0cb6c8a9279",
+      "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+      "optimizer_state_sha256": "8952d58aa37b2886d096bd3e52d82ce8ba608bf5c00205cf1dcf32d88857740b"
+    },
+    "policy_contract": {
+      "activation": "elu",
+      "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticTemperedHistoryMLPModel",
+      "actor_hidden_dims": [
+        256,
+        256
+      ],
+      "base_observation_dimension": 324,
+      "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+      "conditional_std": "0.5*learned_sigma_as_innovation; no_stationary_rescaling",
+      "deterministic_output": "conditional_mean",
+      "distribution_class": "HeteroscedasticGaussianDistribution",
+      "effective_log_std": "learned_log_std+log(0.5)",
+      "exploration_std_temperature": 0.5,
+      "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+      "history_clip": 20,
+      "history_feature": "previous_raw_full12",
+      "history_slice": [
+        195,
+        207
+      ],
+      "history_state": "stored_observation_only; no_actor_mutable_history",
+      "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+      "observation_dimension": 372,
+      "observation_layout": "diagonal_transfer_state_v1",
+      "raw_action_dimension": 12,
+      "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+      "rho": 0.9,
+      "role_observation_fields": [
+        "valid",
+        "workspace_progress",
+        "preparation_progress",
+        "transfer_progress",
+        "motion_fraction",
+        "preparation_ready",
+        "transfer_ready",
+        "fixed_direction_world_x",
+        "fixed_direction_world_y",
+        "short_support_continuity_fraction",
+        "continued_response_fraction",
+        "window_evidence_fraction"
+      ],
+      "role_observation_group": "transfer_role_context_full48",
+      "role_observation_leg_order": [
+        "FL",
+        "FR",
+        "RL",
+        "RR"
+      ],
+      "role_observation_slice": [
+        324,
+        372
+      ],
+      "schema": "wlr50_clean.semantic_policy_distribution.v1",
+      "state_dependent_std": true,
+      "std_type": "log",
+      "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; deterministic_mean_unchanged",
+      "version": "history_conditioned_heteroscedastic_log_temperature_v1"
+    },
+    "policy_version": "history_conditioned_heteroscedastic_log_temperature_v1",
+    "saved_global_policy_decisions": 176640,
+    "source": {
+      "checkpoint": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/checkpoints/history/checkpoint_step_000176640.pt",
+      "checkpoint_sha256": "a7e04ee3083c84303153a5fba38c26853c6a97fbe71602e2762997068aa3a875",
+      "manifest": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/checkpoints/history/checkpoint_step_000176640_manifest.json",
+      "manifest_sha256": "be33c0caa1f8917536e7645d2bb65683e6efc62dd793bacf4d86fc0e925c6c23"
+    },
+    "training_seed": 1001,
+    "video_seed": 4001
+  },
+  "seed": 4001,
+  "role": "C",
+  "mode": "semantic_residual_eval",
+  "from_phase": "P01",
+  "episode_count": 1,
+  "optimizer_updates": 0,
+  "natural_entry": {
+    "decision_count": 0,
+    "done": false,
+    "physics_tick": 0,
+    "state_id": "P01"
+  },
+  "pre_action_ticks": 0,
+  "extra_pre_action_physics_ticks": 0,
+  "task_success": false,
+  "ticks": 817,
+  "duration_s": 6.808333333333334,
+  "termination_reason": "SAFETY_ABORT",
+  "reason": "hard joint limit: rear_right_knee",
+  "full12_permission_ticks": 817,
+  "native_verified_ticks": 817,
+  "learning_effect_ticks": 817,
+  "all_zero_raw_ticks": 0,
+  "forbidden_state_write_counter_sum": 0,
+  "FR_event_ticks": {
+    "active_lift": {
+      "FR": 23
+    },
+    "front_edge_crossed": {},
+    "placed": {}
+  },
+  "final_wheel_target_canonical": [
+    -0.2242382575263055,
+    0.0024497383562833708,
+    0.029582698078106262,
+    0.7976504962296286
+  ],
+  "final_RR_knee": {
+    "name": "rear_right_knee",
+    "position_deg": -60.02443584431461,
+    "velocity_deg_s": -8.665078509401656,
+    "command_deg": -3.729629657871961,
+    "error_deg": 56.29480618644265
+  },
+  "M1": false,
+  "M2": false,
+  "M3": false,
+  "first_incomplete": "P02 FR approach/front-edge crossing/capture",
+  "source_video": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_task_first_recovery_v1/video_eval/validation/20260916T0417200243144Z_gb0438f66ec63_288f6005a8cf41019a7cd2420445b800/source/actual_viewport_video.mp4",
+  "formal_success_denominator_this_checkpoint": 1,
+  "formal_success_count_this_checkpoint": 0,
+  "teacher_prefix_decisions": 0,
+  "teacher_evidence": "Natural entry tick0/reset_count1, no pre-action physics, official deterministic residual eval, all817 ticks native policy requests/nonzero raw and no forbidden state writes. No teacher/fallback diagnostics enabled."
+}

@@ -1,0 +1,178 @@
+{
+  "schema": "wlr50_clean.task_first_completed_reward_signal.v1",
+  "run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_task_first_recovery_v1/train/20260916T0426012963516Z_gb0438f66ec63_0e70fe7e93a64b768d439966436da7b7",
+  "objective_runtime": {
+    "decisions": 128,
+    "epsilon0_task_only_decisions": 128,
+    "full12_permission_decisions": 128,
+    "actual_physics_ticks": 1024,
+    "verified_native_dispatch_ticks": 1024,
+    "actual_native_effect_ticks": 1024
+  },
+  "by_request_phase": {
+    "P01": {
+      "count": 2,
+      "total": 0.2263278699270348,
+      "potential": 0.22899453659370145,
+      "time": -0.0026666666666666666,
+      "terminal": 0,
+      "positive": 1,
+      "negative": 1
+    },
+    "P02": {
+      "count": 126,
+      "total": 0.20196124128816803,
+      "potential": 0.3699612412881675,
+      "time": -0.16799999999999998,
+      "terminal": 0,
+      "positive": 66,
+      "negative": 60
+    }
+  },
+  "episodes": [
+    {
+      "decisions": 128,
+      "first_global_decision": 176641,
+      "last_global_decision": 176768,
+      "duration_s": 8.533333333333323,
+      "terminal": false,
+      "end_tick": 1024,
+      "end_phase": "P02",
+      "reason": null,
+      "bootstrap_allowed": true,
+      "real_event_ticks": {
+        "active_lift": {
+          "FR": 20
+        },
+        "front_edge_crossed": {},
+        "placed": {}
+      },
+      "discounted_observed_reward": 0.41176513351800825,
+      "is_complete_return": false,
+      "nonterminal_caution": "Observed prefix only; no terminal or critic bootstrap fabricated."
+    }
+  ],
+  "original_GAE_summary": {
+    "P01": {
+      "raw_gae_returns_minus_old_values": {
+        "count": 2,
+        "positive_count": 2,
+        "negative_count": 0,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": 0.4652976989746094,
+        "maximum": 0.7209568023681641,
+        "mean": 0.5931272506713867
+      },
+      "stored_advantages": {
+        "count": 2,
+        "positive_count": 2,
+        "negative_count": 0,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": 0.07486052066087723,
+        "maximum": 0.8929211497306824,
+        "mean": 0.4838908351957798
+      },
+      "old_values": {
+        "count": 2,
+        "positive_count": 0,
+        "negative_count": 2,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -14.333393096923828,
+        "maximum": -13.83477783203125,
+        "mean": -14.084085464477539
+      },
+      "returns": {
+        "count": 2,
+        "positive_count": 0,
+        "negative_count": 2,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -13.612436294555664,
+        "maximum": -13.36948013305664,
+        "mean": -13.490958213806152
+      }
+    },
+    "P02": {
+      "raw_gae_returns_minus_old_values": {
+        "count": 126,
+        "positive_count": 121,
+        "negative_count": 5,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -0.1185312271118164,
+        "maximum": 1.3003244400024414,
+        "mean": 0.43950198945545016
+      },
+      "stored_advantages": {
+        "count": 126,
+        "positive_count": 58,
+        "negative_count": 68,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -1.7932811975479126,
+        "maximum": 2.7467875480651855,
+        "mean": -0.007680855868827729
+      },
+      "old_values": {
+        "count": 126,
+        "positive_count": 0,
+        "negative_count": 126,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -16.069211959838867,
+        "maximum": -14.073949813842773,
+        "mean": -15.173526506575326
+      },
+      "returns": {
+        "count": 126,
+        "positive_count": 0,
+        "negative_count": 126,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -16.033920288085938,
+        "maximum": -13.616450309753418,
+        "mean": -14.734024517119877
+      }
+    }
+  },
+  "phase_handoffs": {
+    "ordinary_phase_changes": 1,
+    "incorrect_done_observed": 0,
+    "real_terminal_samples": 0
+  },
+  "p02_positive_nominal_final_targets": {
+    "FL": {
+      "nominal_positive_samples": 123,
+      "final_reversed": 1,
+      "final_near_zero": 8,
+      "final_enhanced": 22,
+      "final_mean": 0.21450718849833192
+    },
+    "FR": {
+      "nominal_positive_samples": 123,
+      "final_reversed": 0,
+      "final_near_zero": 0,
+      "final_enhanced": 56,
+      "final_mean": 0.30821629043131205
+    },
+    "RL": {
+      "nominal_positive_samples": 123,
+      "final_reversed": 7,
+      "final_near_zero": 8,
+      "final_enhanced": 57,
+      "final_mean": 0.2807429568800984
+    },
+    "RR": {
+      "nominal_positive_samples": 123,
+      "final_reversed": 0,
+      "final_near_zero": 0,
+      "final_enhanced": 73,
+      "final_mean": 0.32143382273624904
+    }
+  },
+  "diagnostic_thresholds": "N>.05, |final|<.05 rad/s are descriptive bins, not a new controller/reward gate; wheel final vectors are canonical forward-positive. This is sampled closed-loop training, not formal deterministic behavior.",
+  "evidence_limits": "Supplementary pass after complete receipt. No recalculated critic/GAE, no model forward/update, no formal milestone or stability claim."
+}

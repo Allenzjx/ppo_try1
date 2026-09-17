@@ -1,0 +1,581 @@
+{
+  "schema": "wlr50_clean.task_first_actual_trajectory_returns.v1",
+  "convention": "G=sum(gamma**t*r_t), one gamma per issued policy decision; actual physical dt costs; all real task/safety terminals zero Phi_next/no bootstrap; ordinary nonterminal tails retain Phi_next and are NOT completed returns.",
+  "new_objective_revaluation": "Same actually observed trajectory, existing task_progress family retained, four quality family weights zero. This is offline objective accounting, not a new on-policy rollout/critic/GAE or a simulated counterfactual trajectory.",
+  "gamma": 0.9985,
+  "potential_weight": 5,
+  "time_cost_per_s": 0.02,
+  "sources": [
+    {
+      "name": "successful_zero",
+      "source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\prior_B\\20260915T0525295619176Z_g4a58c0190ef7_615f8fe3cfc64cff81f73ac6a0d302e6\\source\\video_policy_decisions.jsonl",
+      "episodes": [
+        {
+          "decisions": 1108,
+          "duration_s": 73.80833333333428,
+          "start_tick": 0,
+          "end_tick": 8857,
+          "first_global_decision": null,
+          "last_global_decision": null,
+          "policy_update_range_before_sampling": null,
+          "terminal": true,
+          "termination_reason": "SUCCESS",
+          "terminal_bootstrap_allowed": false,
+          "phase_counts": {
+            "P01": 2,
+            "P02": 182,
+            "P03": 4,
+            "P04": 1,
+            "P05": 146,
+            "P06": 310,
+            "P07": 1,
+            "P08": 1,
+            "P09": 123,
+            "P10": 1,
+            "P11": 1,
+            "P12": 69,
+            "P13": 267
+          },
+          "discounted_old_total": null,
+          "discounted_old_total_bounds": [
+            6.509013079492192,
+            6.510120287978472
+          ],
+          "discounted_task_first_total": 6.646374040521452,
+          "discounted_old_quality": null,
+          "discounted_old_quality_bounds": [
+            -0.1373609610292602,
+            -0.1362537525429799
+          ],
+          "undiscounted_old_quality": null,
+          "discounted_families": {
+            "task_progress": 6.646374040521452,
+            "body_stability": -0.07742733850413011,
+            "contact_motion_quality": -0.0001564288419848473,
+            "control_smoothness": -0.0586699851968651,
+            "control_regularization": 0
+          },
+          "discounted_potential": -0.22570968275018544,
+          "discounted_time": -0.7202030397934246,
+          "discounted_terminal_event": 7.592286763065063,
+          "terminal_event_undiscounted": 40,
+          "terminal_event_discount": 0.1898071690766266,
+          "potential_initial": 0.04514193655003739,
+          "potential_final": 0,
+          "potential_telescoping_expected": -0.22570968275018696,
+          "potential_telescoping_abs_error": 1.5265566588595902e-15,
+          "max_reward_formula_abs_error": 0,
+          "max_potential_continuity_error": 0,
+          "FR_capture_prefix": {
+            "through_decision": 188,
+            "end_tick": 1504,
+            "elapsed_s": 12.533333333333308,
+            "global_policy_decision": null,
+            "discounted_old_prefix": 0.4336126284877635,
+            "discounted_task_first_prefix": 0.53026513161979,
+            "phi_after": 0.25845962803774164,
+            "terminal": false,
+            "bootstrap_value": "not recomputed; this prefix is not a completed-episode return"
+          },
+          "observed_task_event_ticks": {
+            "active_lift": {
+              "FL": 1559,
+              "FR": 24,
+              "RL": 6251,
+              "RR": 5434
+            },
+            "front_edge_crossed": {
+              "FL": 2468,
+              "FR": 1486,
+              "RL": 6658,
+              "RR": 6155
+            },
+            "placed": {
+              "FL": 2677,
+              "FR": 1502,
+              "RL": 6727,
+              "RR": 6155
+            }
+          },
+          "derived_video_terminal_accounting": {
+            "source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\prior_B\\20260915T0525295619176Z_g4a58c0190ef7_615f8fe3cfc64cff81f73ac6a0d302e6\\source\\semantic_video_source_manifest.json",
+            "actual_stop_reason": "SUCCESS",
+            "actual_final_tick": 8857,
+            "stored_reward": false,
+            "explanation": "Observer exited before env reward returned. Only task terminal contribution revalued exactly from actual physical terminal, previous stored Phi, and actual partial dt. Missing old quality integral is bounded, not invented.",
+            "missing_quality_undiscounted_bounds": [
+              -0.005833333333333333,
+              0
+            ],
+            "task_first_terminal_reward": 35.000458333333334
+          },
+          "nonterminal_tail_caution": null
+        }
+      ]
+    },
+    {
+      "name": "C174592_early_hard_limit",
+      "source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\validation\\20260915T0710472104000Z_g4a58c0190ef7_253ae24ad12c4830ad3e3ae5316ac659\\source\\video_policy_decisions.jsonl",
+      "episodes": [
+        {
+          "decisions": 102,
+          "duration_s": 6.766666666666662,
+          "start_tick": 0,
+          "end_tick": 812,
+          "first_global_decision": null,
+          "last_global_decision": null,
+          "policy_update_range_before_sampling": null,
+          "terminal": true,
+          "termination_reason": "SAFETY_ABORT",
+          "terminal_bootstrap_allowed": false,
+          "phase_counts": {
+            "P01": 2,
+            "P02": 100
+          },
+          "discounted_old_total": null,
+          "discounted_old_total_bounds": [
+            -34.789542533608326,
+            -34.769491730371676
+          ],
+          "discounted_task_first_total": -34.724136876968025,
+          "discounted_old_quality": null,
+          "discounted_old_quality_bounds": [
+            -0.06540565664029817,
+            -0.04535485340365142
+          ],
+          "undiscounted_old_quality": null,
+          "discounted_families": {
+            "task_progress": -34.724136876968025,
+            "body_stability": -0.013489693497698964,
+            "contact_motion_quality": -0.0000164333522192953,
+            "control_smoothness": -0.03184872655373845,
+            "control_regularization": 0
+          },
+          "discounted_potential": -0.22570968275018627,
+          "discounted_time": -0.1256216456805402,
+          "discounted_terminal_event": -34.37280554853729,
+          "terminal_event_undiscounted": -40,
+          "terminal_event_discount": 0.8593201387134324,
+          "potential_initial": 0.04514193655003739,
+          "potential_final": 0,
+          "potential_telescoping_expected": -0.22570968275018696,
+          "potential_telescoping_abs_error": 6.938893903907228e-16,
+          "max_reward_formula_abs_error": 0,
+          "max_potential_continuity_error": 0,
+          "FR_capture_prefix": null,
+          "observed_task_event_ticks": {
+            "active_lift": {
+              "FR": 24
+            },
+            "front_edge_crossed": {},
+            "placed": {}
+          },
+          "derived_video_terminal_accounting": {
+            "source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\video_eval\\validation\\20260915T0710472104000Z_g4a58c0190ef7_253ae24ad12c4830ad3e3ae5316ac659\\source\\semantic_video_source_manifest.json",
+            "actual_stop_reason": "SAFETY_ABORT",
+            "actual_final_tick": 812,
+            "stored_reward": false,
+            "explanation": "Observer exited before env reward returned. Only task terminal contribution revalued exactly from actual physical terminal, previous stored Phi, and actual partial dt. Missing old quality integral is bounded, not invented.",
+            "missing_quality_undiscounted_bounds": [
+              -0.02333333333333333,
+              0
+            ],
+            "task_first_terminal_reward": -40.649414807903746
+          },
+          "nonterminal_tail_caution": null
+        }
+      ]
+    },
+    {
+      "name": "sampled_training_172544_to_174592",
+      "source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fsm_reference_p09_stable_v2\\train\\20260915T0633266376940Z_g4a58c0190ef7_d19a81607e6044a281a010de29469635\\residual_and_projection_audit.jsonl",
+      "episodes": [
+        {
+          "decisions": 247,
+          "duration_s": 16.458333333333297,
+          "start_tick": 0,
+          "end_tick": 1975,
+          "first_global_decision": 172545,
+          "last_global_decision": 172791,
+          "policy_update_range_before_sampling": [
+            1313,
+            1314
+          ],
+          "terminal": true,
+          "termination_reason": "FALL",
+          "terminal_bootstrap_allowed": false,
+          "phase_counts": {
+            "P01": 2,
+            "P02": 147,
+            "P03": 8,
+            "P04": 10,
+            "P05": 80
+          },
+          "discounted_old_total": -28.48272617202206,
+          "discounted_old_total_bounds": [
+            -28.48272617202206,
+            -28.48272617202206
+          ],
+          "discounted_task_first_total": -28.150330620864125,
+          "discounted_old_quality": -0.3323955511579335,
+          "discounted_old_quality_bounds": [
+            -0.3323955511579335,
+            -0.3323955511579335
+          ],
+          "undiscounted_old_quality": -0.39963892791699246,
+          "discounted_families": {
+            "task_progress": -28.150330620864125,
+            "body_stability": -0.04843080365606968,
+            "contact_motion_quality": -0.0004134109325530376,
+            "control_smoothness": -0.28355133656931286,
+            "control_regularization": 0
+          },
+          "discounted_potential": -0.22570968275018632,
+          "discounted_time": -0.2752652009384444,
+          "discounted_terminal_event": -27.64935573717549,
+          "terminal_event_undiscounted": -40,
+          "terminal_event_discount": 0.6912338934293872,
+          "potential_initial": 0.04514193655003739,
+          "potential_final": 0,
+          "potential_telescoping_expected": -0.22570968275018696,
+          "potential_telescoping_abs_error": 6.38378239159465e-16,
+          "max_reward_formula_abs_error": 0,
+          "max_potential_continuity_error": 0,
+          "FR_capture_prefix": {
+            "through_decision": 157,
+            "end_tick": 1256,
+            "elapsed_s": 10.466666666666649,
+            "global_policy_decision": 172701,
+            "discounted_old_prefix": 0.38651629121529846,
+            "discounted_task_first_prefix": 0.5976148701438668,
+            "phi_after": 0.25567424338016737,
+            "terminal": false,
+            "bootstrap_value": "not recomputed; this prefix is not a completed-episode return"
+          },
+          "observed_task_event_ticks": {
+            "active_lift": {
+              "FR": 19,
+              "FL": 1395
+            },
+            "front_edge_crossed": {
+              "FR": 1202
+            },
+            "placed": {
+              "FR": 1254
+            }
+          },
+          "derived_video_terminal_accounting": null,
+          "nonterminal_tail_caution": null
+        },
+        {
+          "decisions": 608,
+          "duration_s": 40.533333333333665,
+          "start_tick": 0,
+          "end_tick": 4864,
+          "first_global_decision": 172792,
+          "last_global_decision": 173399,
+          "policy_update_range_before_sampling": [
+            1314,
+            1319
+          ],
+          "terminal": true,
+          "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+          "terminal_bootstrap_allowed": false,
+          "phase_counts": {
+            "P01": 2,
+            "P02": 123,
+            "P03": 6,
+            "P04": 27,
+            "P05": 450
+          },
+          "discounted_old_total": -17.460526137044102,
+          "discounted_old_total_bounds": [
+            -17.460526137044102,
+            -17.460526137044102
+          ],
+          "discounted_task_first_total": -16.83968234458657,
+          "discounted_old_quality": -0.6208437924575314,
+          "discounted_old_quality_bounds": [
+            -0.6208437924575314,
+            -0.6208437924575314
+          ],
+          "undiscounted_old_quality": -0.9532403247355815,
+          "discounted_families": {
+            "task_progress": -16.83968234458657,
+            "body_stability": -0.09001192746937112,
+            "contact_motion_quality": -0.0020955460136745487,
+            "control_smoothness": -0.5287363189744838,
+            "control_regularization": 0
+          },
+          "discounted_potential": -0.22570968275018669,
+          "discounted_time": -0.532048868723957,
+          "discounted_terminal_event": -16.081923793112427,
+          "terminal_event_undiscounted": -40,
+          "terminal_event_discount": 0.4020480948278107,
+          "potential_initial": 0.04514193655003739,
+          "potential_final": 0,
+          "potential_telescoping_expected": -0.22570968275018696,
+          "potential_telescoping_abs_error": 2.7755575615628914e-16,
+          "max_reward_formula_abs_error": 0,
+          "max_potential_continuity_error": 0,
+          "FR_capture_prefix": {
+            "through_decision": 131,
+            "end_tick": 1048,
+            "elapsed_s": 8.733333333333322,
+            "global_policy_decision": 172922,
+            "discounted_old_prefix": 0.48023448664090146,
+            "discounted_task_first_prefix": 0.6622883577725276,
+            "phi_after": 0.25482840527717665,
+            "terminal": false,
+            "bootstrap_value": "not recomputed; this prefix is not a completed-episode return"
+          },
+          "observed_task_event_ticks": {
+            "active_lift": {
+              "FR": 18,
+              "FL": 1334
+            },
+            "front_edge_crossed": {
+              "FR": 1006
+            },
+            "placed": {
+              "FR": 1046
+            }
+          },
+          "derived_video_terminal_accounting": null,
+          "nonterminal_tail_caution": null
+        },
+        {
+          "decisions": 619,
+          "duration_s": 41.2333333333337,
+          "start_tick": 0,
+          "end_tick": 4948,
+          "first_global_decision": 173400,
+          "last_global_decision": 174018,
+          "policy_update_range_before_sampling": [
+            1319,
+            1324
+          ],
+          "terminal": true,
+          "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+          "terminal_bootstrap_allowed": false,
+          "phase_counts": {
+            "P01": 2,
+            "P02": 146,
+            "P03": 7,
+            "P04": 6,
+            "P05": 458
+          },
+          "discounted_old_total": -17.226401137012815,
+          "discounted_old_total_bounds": [
+            -17.226401137012815,
+            -17.226401137012815
+          ],
+          "discounted_task_first_total": -16.58189206820513,
+          "discounted_old_quality": -0.644509068807686,
+          "discounted_old_quality_bounds": [
+            -0.644509068807686,
+            -0.644509068807686
+          ],
+          "undiscounted_old_quality": -0.9917697415903874,
+          "discounted_families": {
+            "task_progress": -16.58189206820513,
+            "body_stability": -0.08657797804404721,
+            "contact_motion_quality": -0.0013077090771422884,
+            "control_smoothness": -0.5566233816865005,
+            "control_regularization": 0
+          },
+          "discounted_potential": -0.22570968275018438,
+          "discounted_time": -0.5376291256702441,
+          "discounted_terminal_event": -15.818553259784697,
+          "terminal_event_undiscounted": -40,
+          "terminal_event_discount": 0.3954638314946174,
+          "potential_initial": 0.04514193655003739,
+          "potential_final": 0,
+          "potential_telescoping_expected": -0.22570968275018696,
+          "potential_telescoping_abs_error": 2.581268532253489e-15,
+          "max_reward_formula_abs_error": 0,
+          "max_potential_continuity_error": 0,
+          "FR_capture_prefix": {
+            "through_decision": 155,
+            "end_tick": 1240,
+            "elapsed_s": 10.333333333333316,
+            "global_policy_decision": 173554,
+            "discounted_old_prefix": 0.3851215345890735,
+            "discounted_task_first_prefix": 0.6099395768531174,
+            "phi_after": 0.2574855463432017,
+            "terminal": false,
+            "bootstrap_value": "not recomputed; this prefix is not a completed-episode return"
+          },
+          "observed_task_event_ticks": {
+            "active_lift": {
+              "FR": 31,
+              "FL": 1348
+            },
+            "front_edge_crossed": {
+              "FR": 1195
+            },
+            "placed": {
+              "FR": 1234
+            }
+          },
+          "derived_video_terminal_accounting": null,
+          "nonterminal_tail_caution": null
+        },
+        {
+          "decisions": 201,
+          "duration_s": 13.341666666666638,
+          "start_tick": 0,
+          "end_tick": 1601,
+          "first_global_decision": 174019,
+          "last_global_decision": 174219,
+          "policy_update_range_before_sampling": [
+            1324,
+            1326
+          ],
+          "terminal": true,
+          "termination_reason": "FALL",
+          "terminal_bootstrap_allowed": false,
+          "phase_counts": {
+            "P01": 2,
+            "P02": 121,
+            "P03": 8,
+            "P04": 5,
+            "P05": 65
+          },
+          "discounted_old_total": -30.368557378672303,
+          "discounted_old_total_bounds": [
+            -30.368557378672303,
+            -30.368557378672303
+          ],
+          "discounted_task_first_total": -30.0824207636946,
+          "discounted_old_quality": -0.2861366149777034,
+          "discounted_old_quality_bounds": [
+            -0.2861366149777034,
+            -0.2861366149777034
+          ],
+          "undiscounted_old_quality": -0.3314026850945702,
+          "discounted_families": {
+            "task_progress": -30.0824207636946,
+            "body_stability": -0.03665343292880496,
+            "contact_motion_quality": -0.0003545354459754582,
+            "control_smoothness": -0.24912864660292214,
+            "control_regularization": 0
+          },
+          "discounted_potential": -0.22570968275018732,
+          "discounted_time": -0.23065554101067498,
+          "discounted_terminal_event": -29.62605553993374,
+          "terminal_event_undiscounted": -40,
+          "terminal_event_discount": 0.7406513884983436,
+          "potential_initial": 0.04514193655003739,
+          "potential_final": 0,
+          "potential_telescoping_expected": -0.22570968275018696,
+          "potential_telescoping_abs_error": 3.608224830031759e-16,
+          "max_reward_formula_abs_error": 0,
+          "max_potential_continuity_error": 0,
+          "FR_capture_prefix": {
+            "through_decision": 131,
+            "end_tick": 1048,
+            "elapsed_s": 8.733333333333322,
+            "global_policy_decision": 174149,
+            "discounted_old_prefix": 0.457240300589065,
+            "discounted_task_first_prefix": 0.6535907039278201,
+            "phi_after": 0.2527108485722384,
+            "terminal": false,
+            "bootstrap_value": "not recomputed; this prefix is not a completed-episode return"
+          },
+          "observed_task_event_ticks": {
+            "active_lift": {
+              "FR": 17,
+              "FL": 1136
+            },
+            "front_edge_crossed": {
+              "FR": 997
+            },
+            "placed": {
+              "FR": 1048
+            }
+          },
+          "derived_video_terminal_accounting": null,
+          "nonterminal_tail_caution": null
+        },
+        {
+          "decisions": 373,
+          "duration_s": 24.8666666666666,
+          "start_tick": 0,
+          "end_tick": 2984,
+          "first_global_decision": 174220,
+          "last_global_decision": 174592,
+          "policy_update_range_before_sampling": [
+            1326,
+            1328
+          ],
+          "terminal": false,
+          "termination_reason": null,
+          "terminal_bootstrap_allowed": true,
+          "phase_counts": {
+            "P01": 2,
+            "P02": 189,
+            "P03": 6,
+            "P04": 11,
+            "P05": 165
+          },
+          "discounted_old_total": -0.07836877741948119,
+          "discounted_old_total_bounds": [
+            -0.07836877741948119,
+            -0.07836877741948119
+          ],
+          "discounted_task_first_total": 0.34975036524011505,
+          "discounted_old_quality": -0.4281191426595962,
+          "discounted_old_quality_bounds": [
+            -0.4281191426595962,
+            -0.4281191426595962
+          ],
+          "undiscounted_old_quality": -0.5576852769347458,
+          "discounted_families": {
+            "task_progress": 0.34975036524011505,
+            "body_stability": -0.057070214315606084,
+            "contact_motion_quality": -0.000745223988823038,
+            "control_smoothness": -0.37030370435516735,
+            "control_regularization": 0
+          },
+          "discounted_potential": 0.7308572660049214,
+          "discounted_time": -0.38110690076480647,
+          "discounted_terminal_event": 0,
+          "terminal_event_undiscounted": 0,
+          "terminal_event_discount": 0.5721129059986059,
+          "potential_initial": 0.04514193655003739,
+          "potential_final": 0.3349003123832602,
+          "potential_telescoping_expected": 0.7308572660049217,
+          "potential_telescoping_abs_error": 3.3306690738754696e-16,
+          "max_reward_formula_abs_error": 0,
+          "max_potential_continuity_error": 0,
+          "FR_capture_prefix": {
+            "through_decision": 197,
+            "end_tick": 1576,
+            "elapsed_s": 13.133333333333306,
+            "global_policy_decision": 174416,
+            "discounted_old_prefix": 0.25610035864133734,
+            "discounted_task_first_prefix": 0.5074376792657934,
+            "phi_after": 0.25825678750400677,
+            "terminal": false,
+            "bootstrap_value": "not recomputed; this prefix is not a completed-episode return"
+          },
+          "observed_task_event_ticks": {
+            "active_lift": {
+              "FR": 18,
+              "FL": 1724
+            },
+            "front_edge_crossed": {
+              "FR": 1538
+            },
+            "placed": {
+              "FR": 1572
+            }
+          },
+          "derived_video_terminal_accounting": null,
+          "nonterminal_tail_caution": "Observed finite prefix only. No bootstrap/value or terminal event fabricated; not a full-episode return."
+        }
+      ]
+    }
+  ]
+}

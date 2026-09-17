@@ -1,0 +1,1067 @@
+{
+  "candidate_fix_is_only_offline_proxy_not_implemented": "Exclude independently recorded previous post-projection policy offset from nominal geometry history; keep actual final history for final safety slew. Need tests for effective-vs-requested offset, headroom clipping, phase handoff and residual removal before production.",
+  "confirmed_composition_path": "previous combined final -> nominal geometry hold/recovery -> add current policy offset -> final slew -> persist combined final",
+  "directed_cases": {
+    "candidate_previous_policy_exclusion_negative": [
+      {
+        "final": [
+          0.0,
+          -18.75
+        ],
+        "geometry": [
+          -0.0,
+          -16.964
+        ],
+        "previous": [
+          0.0,
+          -20.0
+        ],
+        "residual": [
+          0.0,
+          -1.786
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 1
+      },
+      {
+        "final": [
+          0.0,
+          -17.5
+        ],
+        "geometry": [
+          -0.0,
+          -15.713999999999999
+        ],
+        "previous": [
+          0.0,
+          -18.75
+        ],
+        "residual": [
+          0.0,
+          -1.786
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 2
+      },
+      {
+        "final": [
+          0.0,
+          -16.25
+        ],
+        "geometry": [
+          -0.0,
+          -14.464
+        ],
+        "previous": [
+          0.0,
+          -17.5
+        ],
+        "residual": [
+          0.0,
+          -1.786
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 3
+      },
+      {
+        "final": [
+          0.0,
+          -15.0
+        ],
+        "geometry": [
+          -0.0,
+          -13.214
+        ],
+        "previous": [
+          0.0,
+          -16.25
+        ],
+        "residual": [
+          0.0,
+          -1.786
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 4
+      },
+      {
+        "final": [
+          0.0,
+          -13.75
+        ],
+        "geometry": [
+          -0.0,
+          -11.964
+        ],
+        "previous": [
+          0.0,
+          -15.0
+        ],
+        "residual": [
+          0.0,
+          -1.786
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 5
+      },
+      {
+        "final": [
+          0.0,
+          -12.5
+        ],
+        "geometry": [
+          -0.0,
+          -10.714
+        ],
+        "previous": [
+          0.0,
+          -13.75
+        ],
+        "residual": [
+          0.0,
+          -1.786
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 6
+      },
+      {
+        "final": [
+          0.0,
+          -11.786
+        ],
+        "geometry": [
+          -0.0,
+          -10.0
+        ],
+        "previous": [
+          0.0,
+          -12.5
+        ],
+        "residual": [
+          0.0,
+          -1.786
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 7
+      },
+      {
+        "final": [
+          0.0,
+          -11.786
+        ],
+        "geometry": [
+          -0.0,
+          -10.0
+        ],
+        "previous": [
+          0.0,
+          -11.786
+        ],
+        "residual": [
+          0.0,
+          -1.786
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 8
+      }
+    ],
+    "candidate_previous_policy_exclusion_positive": [
+      {
+        "final": [
+          18.75,
+          0.0
+        ],
+        "geometry": [
+          16.19,
+          -0.0
+        ],
+        "previous": [
+          20.0,
+          0.0
+        ],
+        "residual": [
+          2.56,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 1
+      },
+      {
+        "final": [
+          17.500000000000004,
+          0.0
+        ],
+        "geometry": [
+          14.940000000000003,
+          -0.0
+        ],
+        "previous": [
+          18.75,
+          0.0
+        ],
+        "residual": [
+          2.56,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 2
+      },
+      {
+        "final": [
+          16.250000000000004,
+          0.0
+        ],
+        "geometry": [
+          13.690000000000005,
+          -0.0
+        ],
+        "previous": [
+          17.500000000000004,
+          0.0
+        ],
+        "residual": [
+          2.56,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 3
+      },
+      {
+        "final": [
+          15.000000000000004,
+          0.0
+        ],
+        "geometry": [
+          12.440000000000003,
+          -0.0
+        ],
+        "previous": [
+          16.250000000000004,
+          0.0
+        ],
+        "residual": [
+          2.56,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 4
+      },
+      {
+        "final": [
+          13.750000000000004,
+          0.0
+        ],
+        "geometry": [
+          11.190000000000003,
+          -0.0
+        ],
+        "previous": [
+          15.000000000000004,
+          0.0
+        ],
+        "residual": [
+          2.56,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 5
+      },
+      {
+        "final": [
+          12.56,
+          0.0
+        ],
+        "geometry": [
+          10.0,
+          -0.0
+        ],
+        "previous": [
+          13.750000000000004,
+          0.0
+        ],
+        "residual": [
+          2.56,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 6
+      },
+      {
+        "final": [
+          12.56,
+          0.0
+        ],
+        "geometry": [
+          10.0,
+          -0.0
+        ],
+        "previous": [
+          12.56,
+          0.0
+        ],
+        "residual": [
+          2.56,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 7
+      },
+      {
+        "final": [
+          12.56,
+          0.0
+        ],
+        "geometry": [
+          10.0,
+          -0.0
+        ],
+        "previous": [
+          12.56,
+          0.0
+        ],
+        "residual": [
+          2.56,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 8
+      }
+    ],
+    "candidate_zero_identity": [
+      {
+        "final": [
+          18.75,
+          -18.75
+        ],
+        "geometry": [
+          18.75,
+          -18.75
+        ],
+        "previous": [
+          20.0,
+          -20.0
+        ],
+        "residual": [
+          0.0,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 1
+      },
+      {
+        "final": [
+          17.5,
+          -17.5
+        ],
+        "geometry": [
+          17.5,
+          -17.5
+        ],
+        "previous": [
+          18.75,
+          -18.75
+        ],
+        "residual": [
+          0.0,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 2
+      },
+      {
+        "final": [
+          16.25,
+          -16.25
+        ],
+        "geometry": [
+          16.25,
+          -16.25
+        ],
+        "previous": [
+          17.5,
+          -17.5
+        ],
+        "residual": [
+          0.0,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 3
+      },
+      {
+        "final": [
+          15.0,
+          -15.0
+        ],
+        "geometry": [
+          14.999999999999998,
+          -14.999999999999998
+        ],
+        "previous": [
+          16.25,
+          -16.25
+        ],
+        "residual": [
+          0.0,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 4
+      },
+      {
+        "final": [
+          13.75,
+          -13.75
+        ],
+        "geometry": [
+          13.75,
+          -13.75
+        ],
+        "previous": [
+          15.0,
+          -15.0
+        ],
+        "residual": [
+          0.0,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 5
+      },
+      {
+        "final": [
+          12.5,
+          -12.5
+        ],
+        "geometry": [
+          12.5,
+          -12.5
+        ],
+        "previous": [
+          13.75,
+          -13.75
+        ],
+        "residual": [
+          0.0,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 6
+      },
+      {
+        "final": [
+          11.25,
+          -11.25
+        ],
+        "geometry": [
+          11.25,
+          -11.25
+        ],
+        "previous": [
+          12.5,
+          -12.5
+        ],
+        "residual": [
+          0.0,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 7
+      },
+      {
+        "final": [
+          10.0,
+          -10.0
+        ],
+        "geometry": [
+          10.0,
+          -10.0
+        ],
+        "previous": [
+          11.25,
+          -11.25
+        ],
+        "residual": [
+          0.0,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 8
+      }
+    ],
+    "constant_negative_RRknee_residual": [
+      {
+        "final": [
+          0.0,
+          -20.536
+        ],
+        "geometry": [
+          -0.0,
+          -18.75
+        ],
+        "previous": [
+          0.0,
+          -20.0
+        ],
+        "residual": [
+          0.0,
+          -1.786
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 1
+      },
+      {
+        "final": [
+          0.0,
+          -21.072000000000006
+        ],
+        "geometry": [
+          -0.0,
+          -19.286000000000005
+        ],
+        "previous": [
+          0.0,
+          -20.536
+        ],
+        "residual": [
+          0.0,
+          -1.786
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 2
+      },
+      {
+        "final": [
+          0.0,
+          -21.608000000000008
+        ],
+        "geometry": [
+          -0.0,
+          -19.822000000000006
+        ],
+        "previous": [
+          0.0,
+          -21.072000000000006
+        ],
+        "residual": [
+          0.0,
+          -1.786
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 3
+      },
+      {
+        "final": [
+          0.0,
+          -22.14400000000001
+        ],
+        "geometry": [
+          -0.0,
+          -20.358000000000008
+        ],
+        "previous": [
+          0.0,
+          -21.608000000000008
+        ],
+        "residual": [
+          0.0,
+          -1.786
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 4
+      },
+      {
+        "final": [
+          0.0,
+          -22.68000000000001
+        ],
+        "geometry": [
+          -0.0,
+          -20.89400000000001
+        ],
+        "previous": [
+          0.0,
+          -22.14400000000001
+        ],
+        "residual": [
+          0.0,
+          -1.786
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 5
+      },
+      {
+        "final": [
+          0.0,
+          -23.21600000000001
+        ],
+        "geometry": [
+          -0.0,
+          -21.43000000000001
+        ],
+        "previous": [
+          0.0,
+          -22.68000000000001
+        ],
+        "residual": [
+          0.0,
+          -1.786
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 6
+      },
+      {
+        "final": [
+          0.0,
+          -23.752000000000013
+        ],
+        "geometry": [
+          -0.0,
+          -21.96600000000001
+        ],
+        "previous": [
+          0.0,
+          -23.21600000000001
+        ],
+        "residual": [
+          0.0,
+          -1.786
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 7
+      },
+      {
+        "final": [
+          0.0,
+          -24.288000000000014
+        ],
+        "geometry": [
+          -0.0,
+          -22.502000000000013
+        ],
+        "previous": [
+          0.0,
+          -23.752000000000013
+        ],
+        "residual": [
+          0.0,
+          -1.786
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 8
+      }
+    ],
+    "constant_positive_RRhip_residual": [
+      {
+        "final": [
+          21.25,
+          0.0
+        ],
+        "geometry": [
+          18.75,
+          -0.0
+        ],
+        "previous": [
+          20.0,
+          0.0
+        ],
+        "residual": [
+          2.56,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 1
+      },
+      {
+        "final": [
+          22.5,
+          0.0
+        ],
+        "geometry": [
+          20.0,
+          -0.0
+        ],
+        "previous": [
+          21.25,
+          0.0
+        ],
+        "residual": [
+          2.56,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 2
+      },
+      {
+        "final": [
+          23.75,
+          0.0
+        ],
+        "geometry": [
+          21.25,
+          -0.0
+        ],
+        "previous": [
+          22.5,
+          0.0
+        ],
+        "residual": [
+          2.56,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 3
+      },
+      {
+        "final": [
+          25.0,
+          0.0
+        ],
+        "geometry": [
+          22.5,
+          -0.0
+        ],
+        "previous": [
+          23.75,
+          0.0
+        ],
+        "residual": [
+          2.56,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 4
+      },
+      {
+        "final": [
+          26.25,
+          0.0
+        ],
+        "geometry": [
+          23.75,
+          -0.0
+        ],
+        "previous": [
+          25.0,
+          0.0
+        ],
+        "residual": [
+          2.56,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 5
+      },
+      {
+        "final": [
+          27.5,
+          0.0
+        ],
+        "geometry": [
+          25.0,
+          -0.0
+        ],
+        "previous": [
+          26.25,
+          0.0
+        ],
+        "residual": [
+          2.56,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 6
+      },
+      {
+        "final": [
+          28.75,
+          0.0
+        ],
+        "geometry": [
+          26.250000000000004,
+          -0.0
+        ],
+        "previous": [
+          27.5,
+          0.0
+        ],
+        "residual": [
+          2.56,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 7
+      },
+      {
+        "final": [
+          30.0,
+          0.0
+        ],
+        "geometry": [
+          27.5,
+          -0.0
+        ],
+        "previous": [
+          28.75,
+          0.0
+        ],
+        "residual": [
+          2.56,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 8
+      }
+    ],
+    "zero_residual_recovery": [
+      {
+        "final": [
+          18.75,
+          -18.75
+        ],
+        "geometry": [
+          18.75,
+          -18.75
+        ],
+        "previous": [
+          20.0,
+          -20.0
+        ],
+        "residual": [
+          0.0,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 1
+      },
+      {
+        "final": [
+          17.5,
+          -17.5
+        ],
+        "geometry": [
+          17.5,
+          -17.5
+        ],
+        "previous": [
+          18.75,
+          -18.75
+        ],
+        "residual": [
+          0.0,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 2
+      },
+      {
+        "final": [
+          16.25,
+          -16.25
+        ],
+        "geometry": [
+          16.25,
+          -16.25
+        ],
+        "previous": [
+          17.5,
+          -17.5
+        ],
+        "residual": [
+          0.0,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 3
+      },
+      {
+        "final": [
+          15.0,
+          -15.0
+        ],
+        "geometry": [
+          14.999999999999998,
+          -14.999999999999998
+        ],
+        "previous": [
+          16.25,
+          -16.25
+        ],
+        "residual": [
+          0.0,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 4
+      },
+      {
+        "final": [
+          13.75,
+          -13.75
+        ],
+        "geometry": [
+          13.75,
+          -13.75
+        ],
+        "previous": [
+          15.0,
+          -15.0
+        ],
+        "residual": [
+          0.0,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 5
+      },
+      {
+        "final": [
+          12.5,
+          -12.5
+        ],
+        "geometry": [
+          12.5,
+          -12.5
+        ],
+        "previous": [
+          13.75,
+          -13.75
+        ],
+        "residual": [
+          0.0,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 6
+      },
+      {
+        "final": [
+          11.25,
+          -11.25
+        ],
+        "geometry": [
+          11.25,
+          -11.25
+        ],
+        "previous": [
+          12.5,
+          -12.5
+        ],
+        "residual": [
+          0.0,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 7
+      },
+      {
+        "final": [
+          10.0,
+          -10.0
+        ],
+        "geometry": [
+          10.0,
+          -10.0
+        ],
+        "previous": [
+          11.25,
+          -11.25
+        ],
+        "residual": [
+          0.0,
+          0.0
+        ],
+        "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+        "step": 8
+      }
+    ]
+  },
+  "first_recorded_slew_recovery_in_window": {
+    "effective_policy_RR_deg": [
+      2.5592836468248352,
+      -1.777312298575916
+    ],
+    "geometry_RR_deg": [
+      10.054918318676805,
+      -9.071679928560565
+    ],
+    "mapped_N_RR_deg": [
+      0.0,
+      0.0
+    ],
+    "previous_final_RR_deg": [
+      11.304918318676805,
+      -9.071679928560563
+    ],
+    "recovery_flags": [
+      true,
+      false
+    ],
+    "replayed_final_RR_deg": [
+      12.554918318676805,
+      -10.321679928560563
+    ],
+    "source_N_RR_deg": [
+      0.0,
+      0.0
+    ],
+    "source_bands": [
+      [
+        -10.0,
+        10.0
+      ],
+      [
+        -10.0,
+        10.0
+      ]
+    ],
+    "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+    "tick": 6219
+  },
+  "last_recorded": {
+    "effective_policy_RR_deg": [
+      2.558928140535464,
+      -1.7863710726605926
+    ],
+    "geometry_RR_deg": [
+      86.30456156093442,
+      -33.65899408564878
+    ],
+    "mapped_N_RR_deg": [
+      54.35,
+      0.0
+    ],
+    "previous_final_RR_deg": [
+      87.55456156093442,
+      -34.90899408564878
+    ],
+    "recovery_flags": [
+      true,
+      true
+    ],
+    "replayed_final_RR_deg": [
+      88.80456156093442,
+      -35.44536515830937
+    ],
+    "source_N_RR_deg": [
+      55.6,
+      0.0
+    ],
+    "source_bands": [
+      [
+        44.35,
+        64.35
+      ],
+      [
+        -10.0,
+        10.0
+      ]
+    ],
+    "status": "bounded_hold_or_inward_recovery_tracking_exceeds_linear_trust",
+    "tick": 6311
+  },
+  "no_physics_or_optimizer_steps": true,
+  "not_complete_collision_causal_proof": true,
+  "schema": "wlr50_clean.rr_geometry_residual_recurrence_repro.v1",
+  "source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_first_recovery_v1\\video_eval\\validation\\20260916T0428416958414Z_gb0438f66ec63_292464ef72094ece8a8e494452b8aa23\\source\\native_tick_audit.jsonl",
+  "tests_passed": 6
+}

@@ -1,0 +1,1998 @@
+{
+  "schema": "wlr50_clean.task_first_recovery_evaluation_results.v1",
+  "updated_at_utc": "2026-09-16T06:28:24Z",
+  "pending_execution_fix_evaluation": {
+    "status": "FINALIZED_SUCCESS",
+    "source_checkpoint_global_policy_decisions": 177024,
+    "production_commit": "00050a2b14521f41f3194ae7d4513ac1d32a1f8b",
+    "runtime_content_sha256": "775d959e4bfcd431529d9eca374626d3fcf6ed56ba06f52f7e2136d3a117f74e",
+    "factor_schema": "wlr50_clean.final_stop_handoff_same372_fix.v1",
+    "natural_P01": true,
+    "full12_expected_not_yet_verified": false,
+    "new_formal_task_success_claimed": true,
+    "prior_CP177024_result_preserved": true,
+    "checkpoint_global_policy_decisions": 177152,
+    "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152.pt",
+    "checkpoint_sha256": "8ffb446aeabd973057a8240e99f5ce6d7ba91610de79affe3ca552b6826fc30e",
+    "completed_training_receipt": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/training_final_stop_fix_177152_actual.json",
+    "result": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/evaluation_CP177152_actual.json",
+    "full12_actual_verified_ticks": 6116
+  },
+  "formal_evaluations": [
+    {
+      "branch_id": "preserved_mean_reward_only",
+      "run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_task_first_recovery_v1/video_eval/validation/20260916T0417200243144Z_gb0438f66ec63_288f6005a8cf41019a7cd2420445b800",
+      "lifecycle": "DIAGNOSTIC_FAILURE",
+      "completed_at_utc": "2026-09-16T04:20:22.483609+00:00",
+      "checkpoint_load_provenance": {
+        "checkpoint_loaded_and_verified": true,
+        "migration": null,
+        "observation_dimension": 372,
+        "observation_layout": "diagonal_transfer_state_v1",
+        "official_load_semantic_checkpoint": true,
+        "optimizer_updates": 0,
+        "parameter_hashes": {
+          "actor_parameter_sha256": "570caf101cc40bb104990138347b7734b9adf59bc00acc924002aaf624f3bce2",
+          "critic_parameter_sha256": "ed861cde9ce9d211f5f37eed9ba97ab4af9e6615b2d1cd3f7aeab0cb6c8a9279",
+          "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+          "optimizer_state_sha256": "8952d58aa37b2886d096bd3e52d82ce8ba608bf5c00205cf1dcf32d88857740b"
+        },
+        "policy_contract": {
+          "activation": "elu",
+          "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticTemperedHistoryMLPModel",
+          "actor_hidden_dims": [
+            256,
+            256
+          ],
+          "base_observation_dimension": 324,
+          "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+          "conditional_std": "0.5*learned_sigma_as_innovation; no_stationary_rescaling",
+          "deterministic_output": "conditional_mean",
+          "distribution_class": "HeteroscedasticGaussianDistribution",
+          "effective_log_std": "learned_log_std+log(0.5)",
+          "exploration_std_temperature": 0.5,
+          "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+          "history_clip": 20,
+          "history_feature": "previous_raw_full12",
+          "history_slice": [
+            195,
+            207
+          ],
+          "history_state": "stored_observation_only; no_actor_mutable_history",
+          "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+          "observation_dimension": 372,
+          "observation_layout": "diagonal_transfer_state_v1",
+          "raw_action_dimension": 12,
+          "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+          "rho": 0.9,
+          "role_observation_fields": [
+            "valid",
+            "workspace_progress",
+            "preparation_progress",
+            "transfer_progress",
+            "motion_fraction",
+            "preparation_ready",
+            "transfer_ready",
+            "fixed_direction_world_x",
+            "fixed_direction_world_y",
+            "short_support_continuity_fraction",
+            "continued_response_fraction",
+            "window_evidence_fraction"
+          ],
+          "role_observation_group": "transfer_role_context_full48",
+          "role_observation_leg_order": [
+            "FL",
+            "FR",
+            "RL",
+            "RR"
+          ],
+          "role_observation_slice": [
+            324,
+            372
+          ],
+          "schema": "wlr50_clean.semantic_policy_distribution.v1",
+          "state_dependent_std": true,
+          "std_type": "log",
+          "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; deterministic_mean_unchanged",
+          "version": "history_conditioned_heteroscedastic_log_temperature_v1"
+        },
+        "policy_version": "history_conditioned_heteroscedastic_log_temperature_v1",
+        "saved_global_policy_decisions": 176640,
+        "source": {
+          "checkpoint": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/checkpoints/history/checkpoint_step_000176640.pt",
+          "checkpoint_sha256": "a7e04ee3083c84303153a5fba38c26853c6a97fbe71602e2762997068aa3a875",
+          "manifest": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/checkpoints/history/checkpoint_step_000176640_manifest.json",
+          "manifest_sha256": "be33c0caa1f8917536e7645d2bb65683e6efc62dd793bacf4d86fc0e925c6c23"
+        },
+        "training_seed": 1001,
+        "video_seed": 4001
+      },
+      "seed": 4001,
+      "role": "C",
+      "mode": "semantic_residual_eval",
+      "from_phase": "P01",
+      "episode_count": 1,
+      "optimizer_updates": 0,
+      "natural_entry": {
+        "decision_count": 0,
+        "done": false,
+        "physics_tick": 0,
+        "state_id": "P01"
+      },
+      "pre_action_ticks": 0,
+      "extra_pre_action_physics_ticks": 0,
+      "task_success": false,
+      "ticks": 817,
+      "duration_s": 6.808333333333334,
+      "termination_reason": "SAFETY_ABORT",
+      "reason": "hard joint limit: rear_right_knee",
+      "full12_permission_ticks": 817,
+      "native_verified_ticks": 817,
+      "learning_effect_ticks": 817,
+      "all_zero_raw_ticks": 0,
+      "forbidden_state_write_counter_sum": 0,
+      "FR_event_ticks": {
+        "active_lift": {
+          "FR": 23
+        },
+        "front_edge_crossed": {},
+        "placed": {}
+      },
+      "final_wheel_target_canonical": [
+        -0.2242382575263055,
+        0.0024497383562833708,
+        0.029582698078106262,
+        0.7976504962296286
+      ],
+      "final_RR_knee": {
+        "name": "rear_right_knee",
+        "position_deg": -60.02443584431461,
+        "velocity_deg_s": -8.665078509401656,
+        "command_deg": -3.729629657871961,
+        "error_deg": 56.29480618644265
+      },
+      "M1": false,
+      "M2": false,
+      "M3": false,
+      "first_incomplete": "P02 FR approach/front-edge crossing/capture",
+      "source_video": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_task_first_recovery_v1/video_eval/validation/20260916T0417200243144Z_gb0438f66ec63_288f6005a8cf41019a7cd2420445b800/source/actual_viewport_video.mp4",
+      "formal_success_denominator_this_checkpoint": 1,
+      "formal_success_count_this_checkpoint": 0,
+      "teacher_prefix_decisions": 0,
+      "teacher_evidence": "Natural entry tick0/reset_count1, no pre-action physics, official deterministic residual eval, all817 ticks native policy requests/nonzero raw and no forbidden state writes. No teacher/fallback diagnostics enabled."
+    },
+    {
+      "schema": "wlr50_clean.finalized_task_recovery_evaluation.v1",
+      "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_first_recovery_v1\\video_eval\\validation\\20260916T0428416958414Z_gb0438f66ec63_292464ef72094ece8a8e494452b8aa23",
+      "lifecycle": "DIAGNOSTIC_FAILURE",
+      "completed_at_utc": "2026-09-16T04:46:49.347418+00:00",
+      "checkpoint_load_provenance": {
+        "checkpoint_loaded_and_verified": true,
+        "migration": null,
+        "observation_dimension": 372,
+        "observation_layout": "diagonal_transfer_state_v1",
+        "official_load_semantic_checkpoint": true,
+        "optimizer_updates": 0,
+        "parameter_hashes": {
+          "actor_parameter_sha256": "36b32507adc1fe0742d789d058ea60186d2b5f9eda60e34878c71fe21af00719",
+          "critic_parameter_sha256": "d099cca28718a92ddc92decedfece0622d67ad912e0979f7a695370c90692890",
+          "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+          "optimizer_state_sha256": "eb4c7afbbaa07b7ab6722505402203ad48957591a0147e6fad2b370fa21cf259"
+        },
+        "policy_contract": {
+          "activation": "elu",
+          "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticTemperedHistoryMLPModel",
+          "actor_hidden_dims": [
+            256,
+            256
+          ],
+          "base_observation_dimension": 324,
+          "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+          "conditional_std": "0.5*learned_sigma_as_innovation; no_stationary_rescaling",
+          "deterministic_output": "conditional_mean",
+          "distribution_class": "HeteroscedasticGaussianDistribution",
+          "effective_log_std": "learned_log_std+log(0.5)",
+          "exploration_std_temperature": 0.5,
+          "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+          "history_clip": 20,
+          "history_feature": "previous_raw_full12",
+          "history_slice": [
+            195,
+            207
+          ],
+          "history_state": "stored_observation_only; no_actor_mutable_history",
+          "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+          "observation_dimension": 372,
+          "observation_layout": "diagonal_transfer_state_v1",
+          "raw_action_dimension": 12,
+          "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+          "rho": 0.9,
+          "role_observation_fields": [
+            "valid",
+            "workspace_progress",
+            "preparation_progress",
+            "transfer_progress",
+            "motion_fraction",
+            "preparation_ready",
+            "transfer_ready",
+            "fixed_direction_world_x",
+            "fixed_direction_world_y",
+            "short_support_continuity_fraction",
+            "continued_response_fraction",
+            "window_evidence_fraction"
+          ],
+          "role_observation_group": "transfer_role_context_full48",
+          "role_observation_leg_order": [
+            "FL",
+            "FR",
+            "RL",
+            "RR"
+          ],
+          "role_observation_slice": [
+            324,
+            372
+          ],
+          "schema": "wlr50_clean.semantic_policy_distribution.v1",
+          "state_dependent_std": true,
+          "std_type": "log",
+          "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; deterministic_mean_unchanged",
+          "version": "history_conditioned_heteroscedastic_log_temperature_v1"
+        },
+        "policy_version": "history_conditioned_heteroscedastic_log_temperature_v1",
+        "saved_global_policy_decisions": 176768,
+        "source": {
+          "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000176768.pt",
+          "checkpoint_sha256": "b0ddafde9fed9d11b419388af4afd5a274e6efb998c856b125341de94751202f",
+          "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000176768_manifest.json",
+          "manifest_sha256": "6c05bb749833df2d90c92822e190d4391b23c64f867b0f018e7dd492ccc17336"
+        },
+        "training_seed": 1001,
+        "video_seed": 4001
+      },
+      "seed": 4001,
+      "role": "C",
+      "mode": "semantic_residual_eval",
+      "from_phase": "P01",
+      "episode_count": 1,
+      "optimizer_updates": 0,
+      "natural_entry": {
+        "entry": {
+          "decision_count": 0,
+          "done": false,
+          "physics_tick": 0,
+          "state_id": "P01"
+        },
+        "experiment_id": "task_first_recovery_v1",
+        "reset_metadata": {
+          "execution_mode": "semantic_B_or_C",
+          "fsm_and_episode_clock_at_effective_entry": 0,
+          "phase_snapshot_restoration": {
+            "historical_state_equality_required": false,
+            "mode": "semantic_natural_P01",
+            "policy_credit_excludes_settle": true,
+            "requested_phase": "P01",
+            "reset_only_state_writes": {
+              "global_simulation_resets": 1,
+              "joint_state_writes": 0,
+              "physics_lifecycle_reset": "scene_factory_reset_before_limit_authoring",
+              "pre_limit_native_state_instance_count": 1,
+              "pre_limit_native_state_observed_sha256": "ed85365bcdbbe1576f5cb4b4014fe0abba0d9c404122f1528ae45fd2884e9ab2",
+              "pre_physics_composed_limit_state_sha256": "0d6a1476ee3d88ce739d2efc13ad4d74c7c12ebb9235780164f91c6acd405875",
+              "pre_physics_session_limit_state_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "removed_session_limit_state_sha256": null,
+              "reset_contact_sensor_count": 13,
+              "reset_initialization_order": "physics_reset_without_session_limits_then_author_limits_then_settle",
+              "root_pose_writes": 0,
+              "root_velocity_writes": 0,
+              "session_limit_specs_present_during_physics_reset": 0,
+              "session_limit_specs_removed_before_reset": 0,
+              "simulation_forward_syncs": 0
+            }
+          },
+          "reset_count": 1,
+          "reset_options": {},
+          "reset_prime_tick_count": 0,
+          "seed": 4001,
+          "sensor_clock_semantics": "episode_relative_tick",
+          "sensor_tick_at_effective_entry": 0,
+          "supervisor_schema": "task_semantic_v2",
+          "training_phase_snapshot": "P01"
+        },
+        "role": "C",
+        "schema": "wlr50_clean.current_video_natural_reset.v1",
+        "semantic_version": "v3"
+      },
+      "pre_action_ticks": 0,
+      "extra_pre_action_physics_ticks": 0,
+      "task_success": false,
+      "physical_evaluation_valid": true,
+      "ticks": 6311,
+      "duration_s": 52.59166666666667,
+      "termination_reason": "TASK_FAILURE_BODY_COLLISION",
+      "reason": "central body/obstacle collision",
+      "full12_permission_ticks": 6311,
+      "native_verified_ticks": 6311,
+      "learning_effect_ticks": 6311,
+      "all_zero_raw_ticks": 0,
+      "forbidden_state_write_counter_sum": 0,
+      "issued_policy_decisions": 789,
+      "returned_environment_steps": 788,
+      "epsilon0_task_only_reward_records": 788,
+      "phase_requested_decisions": {
+        "P01": 2,
+        "P02": 179,
+        "P03": 5,
+        "P04": 13,
+        "P05": 95,
+        "P06": 454,
+        "P07": 1,
+        "P08": 1,
+        "P09": 39
+      },
+      "actual_event_ticks": {
+        "active_lift": {
+          "FL": 1651,
+          "FR": 23,
+          "RR": 6272
+        },
+        "front_edge_crossed": {
+          "FL": 2350,
+          "FR": 1461
+        },
+        "placed": {
+          "FL": 2351,
+          "FR": 1484
+        }
+      },
+      "final_body_traversal_geometry": {
+        "maximum_w_m": [
+          0.7680325344505038,
+          0.029142047178306874,
+          0.26024306254716556
+        ],
+        "minimum_w_m": [
+          0.45106635712724497,
+          -0.3456867192688533,
+          0.04999223048323003
+        ],
+        "outside_platform_distance_m": 0.0652458166462857,
+        "valid": true,
+        "whole_body_in_platform_region": false
+      },
+      "last_decision": {
+        "decision": 789,
+        "request_phase": "P09",
+        "start_tick": 6304,
+        "end_tick": 6311,
+        "environment_step_returned": false
+      },
+      "source_video": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_first_recovery_v1\\video_eval\\validation\\20260916T0428416958414Z_gb0438f66ec63_292464ef72094ece8a8e494452b8aa23\\source\\actual_viewport_video.mp4",
+      "teacher_prefix_decisions": 0,
+      "teacher_evidence": "Natural entry at P01/tick0; pre-action ticks0; official deterministic checkpoint load; every actual tick full12/native verified/nonzero raw, no forbidden state writes.",
+      "M1": true,
+      "M2": true,
+      "M3": false,
+      "M4": false,
+      "milestone_scope": "M1/M2 physically achieved within this single continuous natural-P01 episode; terminal body collision means no complete task/safety success.",
+      "formal_success_denominator_this_checkpoint": 1,
+      "formal_success_count_this_checkpoint": 0,
+      "first_incomplete": "P09 RR controlled carry/front-edge crossing/top placement; RR initial lift qualified but never crossed or placed.",
+      "safety_pass": false,
+      "deployable": false,
+      "development_designation": "DEVELOPMENT_PARTIAL_M1_M2",
+      "final_wheel_target_canonical": [
+        -0.035952608195133295,
+        -0.06904417577930316,
+        -0.12703954168502424,
+        0.014510023300030317
+      ],
+      "final_RR_knee": {
+        "name": "rear_right_knee",
+        "position_deg": -29.455275345951396,
+        "velocity_deg_s": -59.03402167571555,
+        "command_deg": -35.44536515830937,
+        "error_deg": -5.990089812357976
+      },
+      "evidence_receipt": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/evaluation_CP176768_actual.json",
+      "current_legs_summary": {
+        "FL": {
+          "support": false,
+          "bearing_verified": true,
+          "bearing_force_n": 0,
+          "air": true,
+          "top_contact": false,
+          "ground_contact": false,
+          "current_lift_valid": null
+        },
+        "FR": {
+          "support": false,
+          "bearing_verified": true,
+          "bearing_force_n": 0,
+          "air": true,
+          "top_contact": false,
+          "ground_contact": false,
+          "current_lift_valid": null
+        },
+        "RL": {
+          "support": false,
+          "bearing_verified": true,
+          "bearing_force_n": 0,
+          "air": true,
+          "top_contact": false,
+          "ground_contact": false,
+          "current_lift_valid": null
+        },
+        "RR": {
+          "support": false,
+          "bearing_verified": true,
+          "bearing_force_n": 0,
+          "air": true,
+          "top_contact": false,
+          "ground_contact": false,
+          "current_lift_valid": false
+        }
+      }
+    },
+    {
+      "schema": "wlr50_clean.finalized_task_recovery_evaluation.v1",
+      "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_first_recovery_v1\\video_eval\\validation\\20260916T0510507849173Z_gad0c1328f177_2bdf12ef355f483cb214a6112220df2b",
+      "lifecycle": "DIAGNOSTIC_FAILURE",
+      "completed_at_utc": "2026-09-16T05:29:10.350610+00:00",
+      "checkpoint_load_provenance": {
+        "checkpoint_loaded_and_verified": true,
+        "migration": null,
+        "observation_dimension": 372,
+        "observation_layout": "diagonal_transfer_state_v1",
+        "official_load_semantic_checkpoint": true,
+        "optimizer_updates": 0,
+        "parameter_hashes": {
+          "actor_parameter_sha256": "e036d051b544a957cfb3de2526b2538acec23d5d233f530cf07c5db1515b3a2b",
+          "critic_parameter_sha256": "e20fc83f7c64133ce23eeb86243861b4ca3f92f37036963432af657583b0dc4d",
+          "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+          "optimizer_state_sha256": "07b3df00acac277869e83419c4143a3253ee03afe48e6ae61a0d44c791ac650f"
+        },
+        "policy_contract": {
+          "activation": "elu",
+          "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticTemperedHistoryMLPModel",
+          "actor_hidden_dims": [
+            256,
+            256
+          ],
+          "base_observation_dimension": 324,
+          "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+          "conditional_std": "0.5*learned_sigma_as_innovation; no_stationary_rescaling",
+          "deterministic_output": "conditional_mean",
+          "distribution_class": "HeteroscedasticGaussianDistribution",
+          "effective_log_std": "learned_log_std+log(0.5)",
+          "exploration_std_temperature": 0.5,
+          "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+          "history_clip": 20,
+          "history_feature": "previous_raw_full12",
+          "history_slice": [
+            195,
+            207
+          ],
+          "history_state": "stored_observation_only; no_actor_mutable_history",
+          "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+          "observation_dimension": 372,
+          "observation_layout": "diagonal_transfer_state_v1",
+          "raw_action_dimension": 12,
+          "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+          "rho": 0.9,
+          "role_observation_fields": [
+            "valid",
+            "workspace_progress",
+            "preparation_progress",
+            "transfer_progress",
+            "motion_fraction",
+            "preparation_ready",
+            "transfer_ready",
+            "fixed_direction_world_x",
+            "fixed_direction_world_y",
+            "short_support_continuity_fraction",
+            "continued_response_fraction",
+            "window_evidence_fraction"
+          ],
+          "role_observation_group": "transfer_role_context_full48",
+          "role_observation_leg_order": [
+            "FL",
+            "FR",
+            "RL",
+            "RR"
+          ],
+          "role_observation_slice": [
+            324,
+            372
+          ],
+          "schema": "wlr50_clean.semantic_policy_distribution.v1",
+          "state_dependent_std": true,
+          "std_type": "log",
+          "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; deterministic_mean_unchanged",
+          "version": "history_conditioned_heteroscedastic_log_temperature_v1"
+        },
+        "policy_version": "history_conditioned_heteroscedastic_log_temperature_v1",
+        "saved_global_policy_decisions": 177024,
+        "source": {
+          "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177024.pt",
+          "checkpoint_sha256": "c4deb9c40a54bfb6dc3a832371f2f5154cfea42244a7188499d045d28e919dcd",
+          "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177024_manifest.json",
+          "manifest_sha256": "a0bb1251b4aeafd2d83954f0e53127e458ffba41bff7fc141506c0c75c3204f7"
+        },
+        "training_seed": 1001,
+        "video_seed": 4001
+      },
+      "seed": 4001,
+      "role": "C",
+      "mode": "semantic_residual_eval",
+      "from_phase": "P01",
+      "episode_count": 1,
+      "optimizer_updates": 0,
+      "natural_entry": {
+        "entry": {
+          "decision_count": 0,
+          "done": false,
+          "physics_tick": 0,
+          "state_id": "P01"
+        },
+        "experiment_id": "task_first_recovery_v1",
+        "reset_metadata": {
+          "execution_mode": "semantic_B_or_C",
+          "fsm_and_episode_clock_at_effective_entry": 0,
+          "phase_snapshot_restoration": {
+            "historical_state_equality_required": false,
+            "mode": "semantic_natural_P01",
+            "policy_credit_excludes_settle": true,
+            "requested_phase": "P01",
+            "reset_only_state_writes": {
+              "global_simulation_resets": 1,
+              "joint_state_writes": 0,
+              "physics_lifecycle_reset": "scene_factory_reset_before_limit_authoring",
+              "pre_limit_native_state_instance_count": 1,
+              "pre_limit_native_state_observed_sha256": "ed85365bcdbbe1576f5cb4b4014fe0abba0d9c404122f1528ae45fd2884e9ab2",
+              "pre_physics_composed_limit_state_sha256": "0d6a1476ee3d88ce739d2efc13ad4d74c7c12ebb9235780164f91c6acd405875",
+              "pre_physics_session_limit_state_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "removed_session_limit_state_sha256": null,
+              "reset_contact_sensor_count": 13,
+              "reset_initialization_order": "physics_reset_without_session_limits_then_author_limits_then_settle",
+              "root_pose_writes": 0,
+              "root_velocity_writes": 0,
+              "session_limit_specs_present_during_physics_reset": 0,
+              "session_limit_specs_removed_before_reset": 0,
+              "simulation_forward_syncs": 0
+            }
+          },
+          "reset_count": 1,
+          "reset_options": {},
+          "reset_prime_tick_count": 0,
+          "seed": 4001,
+          "sensor_clock_semantics": "episode_relative_tick",
+          "sensor_tick_at_effective_entry": 0,
+          "supervisor_schema": "task_semantic_v2",
+          "training_phase_snapshot": "P01"
+        },
+        "role": "C",
+        "schema": "wlr50_clean.current_video_natural_reset.v1",
+        "semantic_version": "v3"
+      },
+      "pre_action_ticks": 0,
+      "extra_pre_action_physics_ticks": 0,
+      "task_success": false,
+      "physical_evaluation_valid": true,
+      "ticks": 6177,
+      "duration_s": 51.475,
+      "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+      "reason": "not currently controlled at fixed post-completion observation end",
+      "full12_permission_ticks": 6177,
+      "native_verified_ticks": 6177,
+      "learning_effect_ticks": 6177,
+      "all_zero_raw_ticks": 0,
+      "forbidden_state_write_counter_sum": 0,
+      "issued_policy_decisions": 773,
+      "returned_environment_steps": 772,
+      "epsilon0_task_only_reward_records": 772,
+      "phase_requested_decisions": {
+        "P01": 2,
+        "P02": 164,
+        "P03": 5,
+        "P04": 11,
+        "P05": 146,
+        "P06": 243,
+        "P07": 2,
+        "P08": 1,
+        "P09": 113,
+        "P10": 1,
+        "P11": 1,
+        "P12": 69,
+        "P13": 15
+      },
+      "actual_event_ticks": {
+        "active_lift": {
+          "FL": 1516,
+          "FR": 22,
+          "RL": 5576,
+          "RR": 4833
+        },
+        "front_edge_crossed": {
+          "FL": 1854,
+          "FR": 1341,
+          "RL": 5986,
+          "RR": 5490
+        },
+        "placed": {
+          "FL": 2624,
+          "FR": 1363,
+          "RL": 6057,
+          "RR": 5490
+        }
+      },
+      "final_body_traversal_geometry": {
+        "maximum_w_m": [
+          0.9857378561848347,
+          0.04022898168548056,
+          0.2602005109311475
+        ],
+        "minimum_w_m": [
+          0.6084321453018672,
+          -0.3663067622586926,
+          0.16759725606920603
+        ],
+        "outside_platform_distance_m": 0,
+        "valid": true,
+        "whole_body_in_platform_region": true
+      },
+      "last_decision": {
+        "decision": 773,
+        "request_phase": "P13",
+        "start_tick": 6176,
+        "end_tick": 6177,
+        "environment_step_returned": false
+      },
+      "source_video": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_first_recovery_v1\\video_eval\\validation\\20260916T0510507849173Z_gad0c1328f177_2bdf12ef355f483cb214a6112220df2b\\source\\actual_viewport_video.mp4",
+      "teacher_prefix_decisions": 0,
+      "teacher_evidence": "Natural entry at P01/tick0; pre-action ticks0; official deterministic checkpoint load; every actual tick full12/native verified/nonzero raw, no forbidden state writes.",
+      "M1": true,
+      "M2": true,
+      "M3": false,
+      "M4": false,
+      "all_four_legs_historically_placed": true,
+      "whole_body_entered_platform_region": true,
+      "final_stop": {
+        "termination_source": "POST_COMPLETION_LOSS",
+        "final_controlled": false,
+        "final_region_valid": true,
+        "final_support_available": true,
+        "final_stable_for_s": 1,
+        "home_maximum_servo_error_deg": 32.08441200234056,
+        "maximum_commanded_wheel_speed_rad_s": 0.4096207445315438,
+        "post_completion_elapsed_s": 1,
+        "post_completion_loss_observed": false,
+        "post_completion_observation_complete": true,
+        "post_completion_observation_s": 1,
+        "post_completion_observation_started": true,
+        "strict_recovery_quality": {
+          "commanded_wheels_within_tolerance": false,
+          "controlled_stop": false,
+          "home_error_deg": 32.08441200234056,
+          "passed": false,
+          "stable_for_s": 0
+        },
+        "task_completed_controlled": false,
+        "traversal_event_observed": true,
+        "traversal_event_time_s": 50.475,
+        "traversal_task_complete": false
+      },
+      "full_trajectory_hard_safety_readback": {
+        "rows": 6178,
+        "collision_detected_ticks": 0,
+        "exact_body_obstacle_pair_active_ticks": 0,
+        "nonfinite_observation_ticks": 0,
+        "hard_joint_limit_violating_ticks": 0,
+        "minimum_actual_joint_limit_margin_deg": 19.10517890755817,
+        "per_joint": {
+          "front_left_hip": {
+            "minimum_deg": -21.780380566305595,
+            "maximum_deg": 50.757667881597406,
+            "limit_deg": [
+              -135,
+              135
+            ]
+          },
+          "front_left_knee": {
+            "minimum_deg": -40.543270025226605,
+            "maximum_deg": -0.3618920736702245,
+            "limit_deg": [
+              -60,
+              210
+            ]
+          },
+          "front_right_hip": {
+            "minimum_deg": -0.03583589982394768,
+            "maximum_deg": 15.982959302798418,
+            "limit_deg": [
+              -135,
+              135
+            ]
+          },
+          "front_right_knee": {
+            "minimum_deg": -0.32087366942945716,
+            "maximum_deg": 46.417749221148185,
+            "limit_deg": [
+              -60,
+              210
+            ]
+          },
+          "rear_left_hip": {
+            "minimum_deg": -4.7302080626818315,
+            "maximum_deg": 39.43208500200717,
+            "limit_deg": [
+              -135,
+              135
+            ]
+          },
+          "rear_left_knee": {
+            "minimum_deg": -14.902480270444268,
+            "maximum_deg": 41.50374906551394,
+            "limit_deg": [
+              -60,
+              210
+            ]
+          },
+          "rear_right_hip": {
+            "minimum_deg": -7.252436293660126,
+            "maximum_deg": 52.077290738208305,
+            "limit_deg": [
+              -135,
+              135
+            ]
+          },
+          "rear_right_knee": {
+            "minimum_deg": -40.89482109244183,
+            "maximum_deg": 1.6750131538152866,
+            "limit_deg": [
+              -60,
+              210
+            ]
+          }
+        }
+      },
+      "hard_safety_abort_observed": false,
+      "deployable": false,
+      "development_designation": "DEVELOPMENT_PARTIAL_ALL_FOUR_PLACED_P13_STOP_INCOMPLETE",
+      "first_incomplete": "P13 currently controlled final stop: final commanded wheels remain forward; controlled-stop condition is false.",
+      "formal_success_denominator_this_checkpoint": 1,
+      "formal_success_count_this_checkpoint": 0,
+      "milestone_scope": "All-four active lift/crossing/placement is actual progress but not M3 without final controlled stop.",
+      "phase_physics_ticks": {
+        "P01": 16,
+        "P02": 1312,
+        "P03": 40,
+        "P04": 88,
+        "P05": 1168,
+        "P06": 1944,
+        "P07": 16,
+        "P08": 8,
+        "P09": 904,
+        "P10": 8,
+        "P11": 8,
+        "P12": 552,
+        "P13": 113
+      },
+      "final_wheel_target_canonical": [
+        0.3304263012868523,
+        0.27436348517992426,
+        0.4096207445315438,
+        0.30071164874050577
+      ],
+      "final_wheel_velocity_canonical": [
+        0.32914549112319946,
+        0.06985791027545929,
+        0.49173253774642944,
+        0.2580641508102417
+      ],
+      "evidence_receipt": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/evaluation_CP177024_actual.json",
+      "current_legs_summary": {
+        "FL": {
+          "support": false,
+          "bearing_verified": true,
+          "bearing_force_n": 0,
+          "air": true,
+          "top_contact": false,
+          "ground_contact": false,
+          "current_lift_valid": null
+        },
+        "FR": {
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 11.097064971923828,
+          "air": false,
+          "top_contact": true,
+          "ground_contact": false,
+          "current_lift_valid": null
+        },
+        "RL": {
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 13.897104263305664,
+          "air": false,
+          "top_contact": true,
+          "ground_contact": false,
+          "current_lift_valid": null
+        },
+        "RR": {
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 3.197850465774536,
+          "air": false,
+          "top_contact": true,
+          "ground_contact": false,
+          "current_lift_valid": true
+        }
+      }
+    },
+    {
+      "schema": "wlr50_clean.finalized_task_recovery_evaluation.v1",
+      "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_first_recovery_v1\\video_eval\\validation\\20260916T0550249947408Z_g00050a2b1452_086805789a6e491392ef4656c7708c2c",
+      "lifecycle": "SUCCEEDED",
+      "completed_at_utc": "2026-09-16T06:09:16.673853+00:00",
+      "checkpoint_load_provenance": {
+        "checkpoint_loaded_and_verified": true,
+        "migration": null,
+        "observation_dimension": 372,
+        "observation_layout": "diagonal_transfer_state_v1",
+        "official_load_semantic_checkpoint": true,
+        "optimizer_updates": 0,
+        "parameter_hashes": {
+          "actor_parameter_sha256": "a163f2c96446db3590d84e3d6e21595ab9a85746e1a4a9422c89642f68311563",
+          "critic_parameter_sha256": "e2c90833948f6fcf756c41e42a468a2c5ea7a664e38694a3b8b7899ec43a3cdc",
+          "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+          "optimizer_state_sha256": "825ea64a1fd5f491acfcd069a5c1ca89e7bd8c88f6605f979866eb4a554754d7"
+        },
+        "policy_contract": {
+          "activation": "elu",
+          "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticTemperedHistoryMLPModel",
+          "actor_hidden_dims": [
+            256,
+            256
+          ],
+          "base_observation_dimension": 324,
+          "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+          "conditional_std": "0.5*learned_sigma_as_innovation; no_stationary_rescaling",
+          "deterministic_output": "conditional_mean",
+          "distribution_class": "HeteroscedasticGaussianDistribution",
+          "effective_log_std": "learned_log_std+log(0.5)",
+          "exploration_std_temperature": 0.5,
+          "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+          "history_clip": 20,
+          "history_feature": "previous_raw_full12",
+          "history_slice": [
+            195,
+            207
+          ],
+          "history_state": "stored_observation_only; no_actor_mutable_history",
+          "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+          "observation_dimension": 372,
+          "observation_layout": "diagonal_transfer_state_v1",
+          "raw_action_dimension": 12,
+          "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+          "rho": 0.9,
+          "role_observation_fields": [
+            "valid",
+            "workspace_progress",
+            "preparation_progress",
+            "transfer_progress",
+            "motion_fraction",
+            "preparation_ready",
+            "transfer_ready",
+            "fixed_direction_world_x",
+            "fixed_direction_world_y",
+            "short_support_continuity_fraction",
+            "continued_response_fraction",
+            "window_evidence_fraction"
+          ],
+          "role_observation_group": "transfer_role_context_full48",
+          "role_observation_leg_order": [
+            "FL",
+            "FR",
+            "RL",
+            "RR"
+          ],
+          "role_observation_slice": [
+            324,
+            372
+          ],
+          "schema": "wlr50_clean.semantic_policy_distribution.v1",
+          "state_dependent_std": true,
+          "std_type": "log",
+          "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; deterministic_mean_unchanged",
+          "version": "history_conditioned_heteroscedastic_log_temperature_v1"
+        },
+        "policy_version": "history_conditioned_heteroscedastic_log_temperature_v1",
+        "saved_global_policy_decisions": 177152,
+        "source": {
+          "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152.pt",
+          "checkpoint_sha256": "8ffb446aeabd973057a8240e99f5ce6d7ba91610de79affe3ca552b6826fc30e",
+          "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152_manifest.json",
+          "manifest_sha256": "95c1b7a264c885bd4863c4d94cb76790bfe0303b6d0f4dc09c2359fbfb781d05"
+        },
+        "training_seed": 1001,
+        "video_seed": 4001
+      },
+      "seed": 4001,
+      "role": "C",
+      "mode": "semantic_residual_eval",
+      "from_phase": "P01",
+      "episode_count": 1,
+      "optimizer_updates": 0,
+      "natural_entry": {
+        "entry": {
+          "decision_count": 0,
+          "done": false,
+          "physics_tick": 0,
+          "state_id": "P01"
+        },
+        "experiment_id": "task_first_recovery_v1",
+        "reset_metadata": {
+          "execution_mode": "semantic_B_or_C",
+          "fsm_and_episode_clock_at_effective_entry": 0,
+          "phase_snapshot_restoration": {
+            "historical_state_equality_required": false,
+            "mode": "semantic_natural_P01",
+            "policy_credit_excludes_settle": true,
+            "requested_phase": "P01",
+            "reset_only_state_writes": {
+              "global_simulation_resets": 1,
+              "joint_state_writes": 0,
+              "physics_lifecycle_reset": "scene_factory_reset_before_limit_authoring",
+              "pre_limit_native_state_instance_count": 1,
+              "pre_limit_native_state_observed_sha256": "ed85365bcdbbe1576f5cb4b4014fe0abba0d9c404122f1528ae45fd2884e9ab2",
+              "pre_physics_composed_limit_state_sha256": "0d6a1476ee3d88ce739d2efc13ad4d74c7c12ebb9235780164f91c6acd405875",
+              "pre_physics_session_limit_state_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+              "removed_session_limit_state_sha256": null,
+              "reset_contact_sensor_count": 13,
+              "reset_initialization_order": "physics_reset_without_session_limits_then_author_limits_then_settle",
+              "root_pose_writes": 0,
+              "root_velocity_writes": 0,
+              "session_limit_specs_present_during_physics_reset": 0,
+              "session_limit_specs_removed_before_reset": 0,
+              "simulation_forward_syncs": 0
+            }
+          },
+          "reset_count": 1,
+          "reset_options": {},
+          "reset_prime_tick_count": 0,
+          "seed": 4001,
+          "sensor_clock_semantics": "episode_relative_tick",
+          "sensor_tick_at_effective_entry": 0,
+          "supervisor_schema": "task_semantic_v2",
+          "training_phase_snapshot": "P01"
+        },
+        "role": "C",
+        "schema": "wlr50_clean.current_video_natural_reset.v1",
+        "semantic_version": "v3"
+      },
+      "pre_action_ticks": 0,
+      "extra_pre_action_physics_ticks": 0,
+      "task_success": true,
+      "physical_evaluation_valid": true,
+      "ticks": 6116,
+      "duration_s": 50.96666666666667,
+      "termination_reason": null,
+      "reason": "",
+      "full12_permission_ticks": 6116,
+      "native_verified_ticks": 6116,
+      "learning_effect_ticks": 6116,
+      "all_zero_raw_ticks": 0,
+      "forbidden_state_write_counter_sum": 0,
+      "issued_policy_decisions": 765,
+      "returned_environment_steps": 764,
+      "epsilon0_task_only_reward_records": 764,
+      "phase_requested_decisions": {
+        "P01": 2,
+        "P02": 168,
+        "P03": 5,
+        "P04": 10,
+        "P05": 146,
+        "P06": 213,
+        "P07": 4,
+        "P08": 1,
+        "P09": 130,
+        "P10": 1,
+        "P11": 1,
+        "P12": 69,
+        "P13": 15
+      },
+      "actual_event_ticks": {
+        "active_lift": {
+          "FL": 1538,
+          "FR": 22,
+          "RL": 3277,
+          "RR": 4633
+        },
+        "front_edge_crossed": {
+          "FL": 1842,
+          "FR": 1374,
+          "RL": 5878,
+          "RR": 5428
+        },
+        "placed": {
+          "FL": 2648,
+          "FR": 1397,
+          "RL": 5994,
+          "RR": 5428
+        }
+      },
+      "current_legs": {
+        "FL": {
+          "active_attempt": true,
+          "air": true,
+          "bearing_force_n": 0,
+          "bearing_verified": true,
+          "clearance_m": 0.0021989617161167554,
+          "consecutive_air_samples": 78,
+          "consecutive_top_samples": 0,
+          "contact_reaction": false,
+          "contact_reaction_force_n": 0,
+          "contact_surface": "NONE",
+          "crossing_evidence_status": "VERIFIED",
+          "crossing_geometry_pending": false,
+          "front_distance_m": 0.4884634648067916,
+          "ground_contact": false,
+          "initial_clearance": true,
+          "load_fraction": 0,
+          "load_fraction_valid": true,
+          "obstacle_pair_active": false,
+          "recent_clearance_gain_m": 0.002352214804856166,
+          "recent_joint_motion_deg": 0.07048242959265494,
+          "recent_whole_body_joint_motion_deg": 3.1956201164063396,
+          "soft_air_actuation_earned": false,
+          "soft_air_earned_tick": null,
+          "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+          "support": false,
+          "top_contact": false,
+          "top_geometry": true,
+          "top_surface_contact": false,
+          "top_xy_outside_distance_m": 0,
+          "whole_body_actuation_evidence": true,
+          "within_lateral_span": true,
+          "within_top_xy": true
+        },
+        "FR": {
+          "active_attempt": true,
+          "air": false,
+          "bearing_force_n": 10.32016658782959,
+          "bearing_verified": true,
+          "clearance_m": -0.0007663089492786768,
+          "consecutive_air_samples": 0,
+          "consecutive_top_samples": 287,
+          "contact_reaction": true,
+          "contact_reaction_force_n": 10.320176974980258,
+          "contact_surface": "TOP",
+          "crossing_evidence_status": "VERIFIED",
+          "crossing_geometry_pending": false,
+          "front_distance_m": 0.6383923922283614,
+          "ground_contact": false,
+          "initial_clearance": true,
+          "load_fraction": 0.36262190741202427,
+          "load_fraction_valid": true,
+          "obstacle_pair_active": true,
+          "recent_clearance_gain_m": 0,
+          "recent_joint_motion_deg": 1.0913045736961822,
+          "recent_whole_body_joint_motion_deg": 3.1956201164063396,
+          "soft_air_actuation_earned": false,
+          "soft_air_earned_tick": null,
+          "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+          "support": true,
+          "top_contact": true,
+          "top_geometry": true,
+          "top_surface_contact": true,
+          "top_xy_outside_distance_m": 0,
+          "whole_body_actuation_evidence": true,
+          "within_lateral_span": true,
+          "within_top_xy": true
+        },
+        "RL": {
+          "active_attempt": true,
+          "air": false,
+          "bearing_force_n": 13.784955024719238,
+          "bearing_verified": true,
+          "clearance_m": -0.001494274683359477,
+          "consecutive_air_samples": 0,
+          "consecutive_top_samples": 124,
+          "contact_reaction": true,
+          "contact_reaction_force_n": 13.785339991678306,
+          "contact_surface": "TOP",
+          "crossing_evidence_status": "VERIFIED",
+          "crossing_geometry_pending": false,
+          "front_distance_m": 0.1227572594387496,
+          "ground_contact": false,
+          "initial_clearance": true,
+          "load_fraction": 0.48436492203019066,
+          "load_fraction_valid": true,
+          "obstacle_pair_active": true,
+          "recent_clearance_gain_m": 0.00005501618878851755,
+          "recent_joint_motion_deg": 1.4685495819343322,
+          "recent_whole_body_joint_motion_deg": 3.1956201164063396,
+          "soft_air_actuation_earned": false,
+          "soft_air_earned_tick": null,
+          "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+          "support": true,
+          "top_contact": true,
+          "top_geometry": true,
+          "top_surface_contact": true,
+          "top_xy_outside_distance_m": 0,
+          "whole_body_actuation_evidence": true,
+          "within_lateral_span": true,
+          "within_top_xy": true
+        },
+        "RR": {
+          "active_attempt": true,
+          "air": false,
+          "air_duration_s": 0,
+          "bearing_force_n": 4.354732513427734,
+          "bearing_verified": true,
+          "body_control_evidence": true,
+          "body_control_evidence_semantics": "unchanged_live_safety_and_short_verified_other_supports_not_static_stability_proof",
+          "clearance_m": -0.0006830163136571712,
+          "consecutive_air_samples": 0,
+          "consecutive_top_samples": 576,
+          "contact_mode": "TOP",
+          "contact_reaction": true,
+          "contact_reaction_force_n": 4.355420835653258,
+          "contact_surface": "TOP",
+          "crossing_evidence_status": "VERIFIED",
+          "crossing_geometry_pending": false,
+          "current_lift_valid": true,
+          "durations_are_diagnostic_only": true,
+          "edge_adjustment_response_observed": null,
+          "edge_contact_duration_s": 0,
+          "front_distance_m": 0.07688719374966269,
+          "front_edge_crossed": true,
+          "ground_contact": false,
+          "ground_relative_lift_m": 0.05021126548472941,
+          "initial_clearance": true,
+          "initial_lift_observed": true,
+          "initial_now": true,
+          "lift_established": true,
+          "lift_established_now": true,
+          "load_fraction": 0.15301317055778504,
+          "load_fraction_valid": true,
+          "motion_continuation_allowed": true,
+          "motion_continuation_reason": "current_functional_lift",
+          "observed_other_support_contacts": [
+            "FR",
+            "RL"
+          ],
+          "obstacle_pair_active": true,
+          "placed_on_top": true,
+          "recent_clearance_gain_m": 0.00012937468060423424,
+          "recent_joint_motion_deg": 0.5652835311831703,
+          "recent_wheel_displacement_m": 0.0009166300127215333,
+          "recent_whole_body_joint_motion_deg": 3.1956201164063396,
+          "soft_air_actuation_earned": false,
+          "soft_air_earned_tick": null,
+          "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+          "support": true,
+          "top_contact": true,
+          "top_geometry": true,
+          "top_surface_contact": true,
+          "top_xy_outside_distance_m": 0,
+          "whole_body_actuation_evidence": true,
+          "within_lateral_span": true,
+          "within_top_xy": true
+        }
+      },
+      "final_body_traversal_geometry": {
+        "maximum_w_m": [
+          1.0138203383099609,
+          0.027691359270511376,
+          0.2595191682451878
+        ],
+        "minimum_w_m": [
+          0.6327345424662834,
+          -0.38143504308058734,
+          0.16421562721480984
+        ],
+        "outside_platform_distance_m": 0,
+        "valid": true,
+        "whole_body_in_platform_region": true
+      },
+      "last_decision": {
+        "decision": 765,
+        "request_phase": "P13",
+        "start_tick": 6112,
+        "end_tick": 6116,
+        "environment_step_returned": false
+      },
+      "source_video": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_first_recovery_v1\\video_eval\\validation\\20260916T0550249947408Z_g00050a2b1452_086805789a6e491392ef4656c7708c2c\\source\\actual_viewport_video.mp4",
+      "teacher_prefix_decisions": 0,
+      "teacher_evidence": "Natural entry at P01/tick0; pre-action ticks0; official deterministic checkpoint load; every actual tick full12/native verified/nonzero raw, no forbidden state writes.",
+      "physical_safety_audit": {
+        "observations_including_tick0": 6117,
+        "body_collision_observations": 0,
+        "exact_body_obstacle_pair_active_observations": 0,
+        "nonfinite_observations": 0,
+        "actual_joint_hard_limit_violations": 0,
+        "minimum_actual_joint_limit_margin_deg": 7.48775795960767,
+        "scope": "All saved physical observations; no deployment certification."
+      },
+      "placement_actual_physical_evidence": {
+        "FL": {
+          "tick": 2648,
+          "simulation_time_s": 22.066666666666666,
+          "leg": {
+            "center_w_m": [
+              0.6620379686355591,
+              0.07184115052223206,
+              0.10077269375324249
+            ],
+            "bottom_w_m": [
+              0.6620379686355591,
+              0.07184115052223206,
+              0.050012326682362024
+            ],
+            "clearance_above_top_m": 0.000012326682362021057,
+            "center_front_offset_m": 0.1407257948620284,
+            "command_rad_s": 0.09731646515517374,
+            "velocity_rad_s": -0.0740334689617157,
+            "contact_class": "OBSTACLE",
+            "obstacle_contact": {
+              "active": true,
+              "pair_verified": true,
+              "normal_force_n": 12.041788101197396,
+              "force_w_n": [
+                -0.0000022780448034609435,
+                0.00000463218793811393,
+                12.041788101196289
+              ],
+              "contact_point_w_m": [
+                0.658685028553009,
+                0.07654516398906708,
+                0.05217043682932854
+              ]
+            },
+            "ground_contact": {
+              "active": false,
+              "normal_force_n": 0
+            }
+          },
+          "body_collision": {
+            "detected": false,
+            "real_pair_active": false,
+            "persistent": false,
+            "geometry_penetration_m": 0,
+            "reason": "no exact base_link/obstacle contact"
+          }
+        },
+        "FR": {
+          "tick": 1397,
+          "simulation_time_s": 11.641666666666666,
+          "leg": {
+            "center_w_m": [
+              0.5537309050559998,
+              -0.3175138533115387,
+              0.09955771267414093
+            ],
+            "bottom_w_m": [
+              0.5537309050559998,
+              -0.3175138533115387,
+              0.049967409427669626
+            ],
+            "clearance_above_top_m": -0.000032590572330376544,
+            "center_front_offset_m": 0.03241873128246908,
+            "command_rad_s": 0.34484577992689214,
+            "velocity_rad_s": 0.47410932183265686,
+            "contact_class": "OBSTACLE",
+            "obstacle_contact": {
+              "active": true,
+              "pair_verified": true,
+              "normal_force_n": 6.552161216735849,
+              "force_w_n": [
+                -3.3476283078925917e-7,
+                3.1942448686095304e-8,
+                6.55216121673584
+              ],
+              "contact_point_w_m": [
+                0.5564499497413635,
+                -0.33542191982269287,
+                0.05223829671740532
+              ]
+            },
+            "ground_contact": {
+              "active": false,
+              "normal_force_n": 0
+            }
+          },
+          "body_collision": {
+            "detected": false,
+            "real_pair_active": false,
+            "persistent": false,
+            "geometry_penetration_m": 0,
+            "reason": "no exact base_link/obstacle contact"
+          }
+        },
+        "RL": {
+          "tick": 5994,
+          "simulation_time_s": 49.95,
+          "leg": {
+            "center_w_m": [
+              0.6366560459136963,
+              0.07017918676137924,
+              0.0996786579489708
+            ],
+            "bottom_w_m": [
+              0.6366560459136963,
+              0.07017918676137924,
+              0.0497781247568598
+            ],
+            "clearance_above_top_m": -0.00022187524314020574,
+            "center_front_offset_m": 0.11534387214016562,
+            "command_rad_s": 0.09420348729320804,
+            "velocity_rad_s": -0.20771478116512299,
+            "contact_class": "OBSTACLE",
+            "obstacle_contact": {
+              "active": true,
+              "pair_verified": true,
+              "normal_force_n": 11.066640853881859,
+              "force_w_n": [
+                5.054232019574556e-7,
+                5.243679197519668e-7,
+                11.066640853881836
+              ],
+              "contact_point_w_m": [
+                0.6427940726280212,
+                0.08413466811180115,
+                0.05149158462882042
+              ]
+            },
+            "ground_contact": {
+              "active": false,
+              "normal_force_n": 0
+            }
+          },
+          "body_collision": {
+            "detected": false,
+            "real_pair_active": false,
+            "persistent": false,
+            "geometry_penetration_m": 0,
+            "reason": "no exact base_link/obstacle contact"
+          }
+        },
+        "RR": {
+          "tick": 5428,
+          "simulation_time_s": 45.233333333333334,
+          "leg": {
+            "center_w_m": [
+              0.5214248299598694,
+              -0.3222324252128601,
+              0.09849588572978973
+            ],
+            "bottom_w_m": [
+              0.5214248299598694,
+              -0.3222324252128601,
+              0.04947906967919893
+            ],
+            "clearance_above_top_m": -0.000520930320801076,
+            "center_front_offset_m": 0.000112656186338711,
+            "command_rad_s": 0.2811565213356465,
+            "velocity_rad_s": 0.2399788349866867,
+            "contact_class": "OBSTACLE",
+            "obstacle_contact": {
+              "active": true,
+              "pair_verified": true,
+              "normal_force_n": 13.475083351136169,
+              "force_w_n": [
+                7.161707458180899e-7,
+                -0.0000049160216804011725,
+                13.475083351135254
+              ],
+              "contact_point_w_m": [
+                0.5232765674591064,
+                -0.33598053455352783,
+                0.050895918160676956
+              ]
+            },
+            "ground_contact": {
+              "active": false,
+              "normal_force_n": 0
+            }
+          },
+          "body_collision": {
+            "detected": false,
+            "real_pair_active": false,
+            "persistent": false,
+            "geometry_penetration_m": 0,
+            "reason": "no exact base_link/obstacle contact"
+          }
+        }
+      },
+      "final_actual_physical_observation": {
+        "tick": 6116,
+        "time_s": 50.96666666666667,
+        "base_position_w_m": [
+          0.8681533932685852,
+          -0.05731663852930069,
+          0.13297083973884583
+        ],
+        "base_velocity_w_m_s": [
+          0.004672206472605467,
+          -0.005303426645696163,
+          0.023983821272850037
+        ],
+        "body_collision": {
+          "detected": false,
+          "real_pair_active": false,
+          "persistent": false,
+          "geometry_penetration_m": 0,
+          "reason": "no exact base_link/obstacle contact"
+        },
+        "body_collider_bounds": {
+          "minimum_m": [
+            0.6327345424662834,
+            -0.38143504308058734,
+            0.16421562721480984
+          ],
+          "maximum_m": [
+            1.0138203383099609,
+            0.027691359270511376,
+            0.2595191682451878
+          ]
+        },
+        "legs": {
+          "FL": {
+            "center_w_m": [
+              1.0097756385803223,
+              -0.00363164022564888,
+              0.10202374309301376
+            ],
+            "bottom_w_m": [
+              1.0097756385803223,
+              -0.00363164022564888,
+              0.05219896171611676
+            ],
+            "clearance_above_top_m": 0.0021989617161167554,
+            "center_front_offset_m": 0.4884634648067916,
+            "command_rad_s": 0.14565026549485516,
+            "velocity_rad_s": 0.14510315656661987,
+            "contact_class": "AIR",
+            "obstacle_contact": {
+              "active": false,
+              "pair_verified": true,
+              "normal_force_n": 0,
+              "force_w_n": [
+                0,
+                0,
+                0
+              ],
+              "contact_point_w_m": [
+                1.0088781118392944,
+                0.005981606896966696,
+                0.05360361561179161
+              ]
+            },
+            "ground_contact": {
+              "active": false,
+              "normal_force_n": 0
+            }
+          },
+          "FR": {
+            "center_w_m": [
+              1.159704566001892,
+              -0.4419111907482147,
+              0.10008684545755386
+            ],
+            "bottom_w_m": [
+              1.159704566001892,
+              -0.4419111907482147,
+              0.049233691050721326
+            ],
+            "clearance_above_top_m": -0.0007663089492786768,
+            "center_front_offset_m": 0.6383923922283614,
+            "command_rad_s": -0.029877018966151095,
+            "velocity_rad_s": -0.18108299374580383,
+            "contact_class": "OBSTACLE",
+            "obstacle_contact": {
+              "active": true,
+              "pair_verified": true,
+              "normal_force_n": 10.320176974980258,
+              "force_w_n": [
+                -0.014484732411801815,
+                0.0021417015232145786,
+                10.32016658782959
+              ],
+              "contact_point_w_m": [
+                1.154942274093628,
+                -0.4513862133026123,
+                0.050701647996902466
+              ]
+            },
+            "ground_contact": {
+              "active": false,
+              "normal_force_n": 0
+            }
+          },
+          "RL": {
+            "center_w_m": [
+              0.6440694332122803,
+              0.06750863045454025,
+              0.09836648404598236
+            ],
+            "bottom_w_m": [
+              0.6440694332122803,
+              0.06750863045454025,
+              0.048505725316640526
+            ],
+            "clearance_above_top_m": -0.001494274683359477,
+            "center_front_offset_m": 0.1227572594387496,
+            "command_rad_s": 0.097413858345757,
+            "velocity_rad_s": 0.13198649883270264,
+            "contact_class": "OBSTACLE",
+            "obstacle_contact": {
+              "active": true,
+              "pair_verified": true,
+              "normal_force_n": 13.785339991678306,
+              "force_w_n": [
+                0.09840179979801178,
+                -0.030508005991578102,
+                13.784955024719238
+              ],
+              "contact_point_w_m": [
+                0.6496792435646057,
+                0.07857733964920044,
+                0.05023985356092453
+              ]
+            },
+            "ground_contact": {
+              "active": false,
+              "normal_force_n": 0
+            }
+          },
+          "RR": {
+            "center_w_m": [
+              0.5981993675231934,
+              -0.32829710841178894,
+              0.10017970204353333
+            ],
+            "bottom_w_m": [
+              0.5981993675231934,
+              -0.32829710841178894,
+              0.04931698368634283
+            ],
+            "clearance_above_top_m": -0.0006830163136571712,
+            "center_front_offset_m": 0.07688719374966269,
+            "command_rad_s": -0.017324188050299963,
+            "velocity_rad_s": -0.06091545894742012,
+            "contact_class": "OBSTACLE",
+            "obstacle_contact": {
+              "active": true,
+              "pair_verified": true,
+              "normal_force_n": 4.355420835653258,
+              "force_w_n": [
+                -0.07710353285074234,
+                0.007101926486939192,
+                4.354732513427734
+              ],
+              "contact_point_w_m": [
+                0.5986174941062927,
+                -0.3363794684410095,
+                0.05086623504757881
+              ]
+            },
+            "ground_contact": {
+              "active": false,
+              "normal_force_n": 0
+            }
+          }
+        },
+        "RR_knee": {
+          "name": "rear_right_knee",
+          "position_deg": -31.50712905942034,
+          "velocity_deg_s": 1.7171634518026253,
+          "command_deg": -31.256883865341837,
+          "error_deg": 0.2502451940785022
+        }
+      },
+      "stop_owner_and_control": {
+        "owner_acquisition_tick": 6000,
+        "owner_acquisition_s": 50,
+        "post_window_start_s": 49.96666666666667,
+        "entry_final_controlled": false,
+        "entry_top_bearing_support_count": 4,
+        "acquisition_semantics": "post_window_triggered_nominal_stop_takeover_v2",
+        "first_P13_zero_nominal_tick": 6001,
+        "raw_residual_mapper_or_evaluator_reset": false,
+        "nominal_wheels_final": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "phase_mask_final": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "canonical_wheel_order": [
+          "FL",
+          "FR",
+          "RL",
+          "RR"
+        ],
+        "final_target_rad_s": [
+          0.14565026549485516,
+          -0.029877018966151095,
+          0.097413858345757,
+          -0.017324188050299963
+        ],
+        "final_actual_rad_s": [
+          0.14510315656661987,
+          -0.18108299374580383,
+          0.13198649883270264,
+          -0.06091545894742012
+        ],
+        "body_linear_speed_m_s": 0.025003590349326844,
+        "body_angular_speed_rad_s": 0.06209097106766535,
+        "final_controlled": true,
+        "task_completed_controlled": true,
+        "traversal_task_complete": true,
+        "fixed_observation_complete": true,
+        "fixed_observation_s": 1,
+        "post_completion_loss_observed": false,
+        "strict_recovery_quality": {
+          "commanded_wheels_within_tolerance": false,
+          "controlled_stop": false,
+          "home_error_deg": 35.09414935091329,
+          "passed": false,
+          "stable_for_s": 0
+        },
+        "home_maximum_servo_error_deg": 35.09414935091329,
+        "scope": "Task controlled completion is not historical-home recovery or exact-zero wheel rotation; policy remains full12."
+      },
+      "phase_physical_ticks": {
+        "P01": 16,
+        "P02": 1344,
+        "P03": 40,
+        "P04": 80,
+        "P05": 1168,
+        "P06": 1704,
+        "P07": 32,
+        "P08": 8,
+        "P09": 1040,
+        "P10": 8,
+        "P11": 8,
+        "P12": 552,
+        "P13": 116
+      },
+      "lift_revocation_and_requalification_events": [
+        {
+          "airborne_clearance_above_top_m": -0.04245796641707403,
+          "event": "qualified_measured_upward_lift",
+          "joint_motion_deg": 2.2661171612788555,
+          "leg": "FR",
+          "physics_tick": 22,
+          "simulation_time_s": 0.18333333333333332,
+          "upward_excursion_m": 0.008374368665048412
+        },
+        {
+          "airborne_clearance_above_top_m": -0.04221102511952013,
+          "event": "qualified_measured_upward_lift",
+          "joint_motion_deg": 13.426239241834054,
+          "leg": "FL",
+          "physics_tick": 1538,
+          "simulation_time_s": 12.816666666666666,
+          "upward_excursion_m": 0.008422576257375969
+        },
+        {
+          "airborne_clearance_above_top_m": -0.04244592424317384,
+          "event": "qualified_measured_upward_lift",
+          "joint_motion_deg": 0.07762766123813591,
+          "leg": "RL",
+          "physics_tick": 3277,
+          "simulation_time_s": 27.308333333333334,
+          "upward_excursion_m": 0.008327760844470844
+        },
+        {
+          "event": "qualification_revoked_ground_before_cross",
+          "leg": "RL",
+          "physics_tick": 3347,
+          "simulation_time_s": 27.891666666666666
+        },
+        {
+          "airborne_clearance_above_top_m": -0.042351440969832545,
+          "event": "qualified_measured_upward_lift",
+          "joint_motion_deg": 0.12146082712351358,
+          "leg": "RL",
+          "physics_tick": 3626,
+          "simulation_time_s": 30.216666666666665,
+          "upward_excursion_m": 0.008513779237683157
+        },
+        {
+          "event": "qualification_revoked_ground_before_cross",
+          "leg": "RL",
+          "physics_tick": 3677,
+          "simulation_time_s": 30.641666666666666
+        },
+        {
+          "airborne_clearance_above_top_m": -0.042158713499630976,
+          "event": "qualified_measured_upward_lift",
+          "joint_motion_deg": 0.07757259283794848,
+          "leg": "RL",
+          "physics_tick": 3915,
+          "simulation_time_s": 32.625,
+          "upward_excursion_m": 0.008380729192102185
+        },
+        {
+          "event": "qualification_revoked_ground_before_cross",
+          "leg": "RL",
+          "physics_tick": 3994,
+          "simulation_time_s": 33.28333333333333
+        },
+        {
+          "airborne_clearance_above_top_m": -0.041905311595205205,
+          "event": "qualified_measured_upward_lift",
+          "joint_motion_deg": 0.1100416046049002,
+          "leg": "RL",
+          "physics_tick": 4206,
+          "simulation_time_s": 35.05,
+          "upward_excursion_m": 0.008415151317576003
+        },
+        {
+          "event": "qualification_revoked_ground_before_cross",
+          "leg": "RL",
+          "physics_tick": 4364,
+          "simulation_time_s": 36.36666666666667
+        },
+        {
+          "airborne_clearance_above_top_m": -0.04264804525608163,
+          "event": "qualified_measured_upward_lift",
+          "joint_motion_deg": 7.84729312988686,
+          "leg": "RR",
+          "physics_tick": 4633,
+          "simulation_time_s": 38.608333333333334,
+          "upward_excursion_m": 0.008346718438966158
+        },
+        {
+          "event": "qualification_revoked_ground_before_cross",
+          "leg": "RR",
+          "physics_tick": 4731,
+          "simulation_time_s": 39.425
+        },
+        {
+          "completed_crossing_history_retained": false,
+          "event": "current_lift_revoked_ground",
+          "leg": "RR",
+          "physics_tick": 4731,
+          "simulation_time_s": 39.425
+        },
+        {
+          "airborne_clearance_above_top_m": -0.04276434177338247,
+          "event": "qualified_measured_upward_lift",
+          "joint_motion_deg": 8.096415421961494,
+          "leg": "RR",
+          "physics_tick": 4940,
+          "simulation_time_s": 41.166666666666664,
+          "upward_excursion_m": 0.007485672821975653
+        },
+        {
+          "airborne_clearance_above_top_m": -0.04181911192414631,
+          "event": "qualified_measured_upward_lift",
+          "joint_motion_deg": 4.513421340221275,
+          "leg": "RL",
+          "physics_tick": 5517,
+          "simulation_time_s": 45.975,
+          "upward_excursion_m": 0.008193061831317183
+        }
+      ],
+      "milestones": {
+        "M1": true,
+        "M2": true,
+        "M3": true,
+        "M4": false,
+        "formal_trials_this_checkpoint": 1,
+        "full_task_successes_this_checkpoint": 1,
+        "stability_superiority_claimed": false,
+        "generalization_claimed": false
+      },
+      "first_incomplete_task": null,
+      "branch_id": "mean_head_recovery_v1"
+    }
+  ],
+  "current_round_denominator": 4,
+  "current_round_M1_successes": 3,
+  "current_round_M2_successes": 3,
+  "current_round_M3_successes": 1,
+  "best_task_checkpoint": {
+    "schema": "wlr50_clean.formal_best_task_pointer.v1",
+    "updated_at_utc": "2026-09-16T06:14:30Z",
+    "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152.pt",
+    "checkpoint_sha256": "8ffb446aeabd973057a8240e99f5ce6d7ba91610de79affe3ca552b6826fc30e",
+    "checkpoint_manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152_manifest.json",
+    "manifest_sha256": "95c1b7a264c885bd4863c4d94cb76790bfe0303b6d0f4dc09c2359fbfb781d05",
+    "branch_id": "mean_head_recovery_v1",
+    "designation": "FORMAL_FULL_TASK_SUCCESS_SINGLE_SEED",
+    "evidence": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/evaluation_CP177152_actual.json",
+    "formal_run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_first_recovery_v1\\video_eval\\validation\\20260916T0550249947408Z_g00050a2b1452_086805789a6e491392ef4656c7708c2c",
+    "M1": true,
+    "M2": true,
+    "M3": true,
+    "M4": false,
+    "all_four_legs_placed": true,
+    "full_task_success": true,
+    "observed_hard_safety_checks_passed": true,
+    "safety_pass": true,
+    "safety_scope": "This single valid natural-P01 physical episode: no collision/nonfinite/hard-limit violation and current controlled completion. Not deployment certification.",
+    "deployable": false,
+    "terminal_failure": null,
+    "termination_source": "POST_COMPLETION_OBSERVATION",
+    "current_repaired_execution_evaluated": true,
+    "formal_trials_this_checkpoint": 1,
+    "full_task_successes_this_checkpoint": 1,
+    "seed": 4001,
+    "first_incomplete_task": null,
+    "stability_superiority_claimed": false,
+    "generalization_claimed": false,
+    "strict_home_recovery_quality_passed": false,
+    "selection_basis": "Official saved/reloaded natural-P01 full12, all four real active crossing/placement events, full body platform entry and unchanged evaluator controlled completion after fixed real observation window. Task-first selection, not reward.",
+    "previous_development_checkpoint": "checkpoint_step_000177024.pt",
+    "physical_duration_s": 50.96666666666667,
+    "video": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/videos/ppo_task_recovery_cp177152_full_success.mp4",
+    "video_wheel_qd": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/videos/ppo_task_recovery_cp177152_full_success_wheel_qd.mp4"
+  },
+  "selection_rule": {
+    "order": [
+      "valid execution and physical safety",
+      "complete task result",
+      "continuous physically completed task chain",
+      "quality only at equal task ability"
+    ],
+    "reward_is_not_promotion_criterion": true,
+    "best_task_requires_saved_reloaded_formal_P01_evaluation": true,
+    "development_partial_pointer_is_not_deployable": true,
+    "complete_task_best": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152.pt"
+  },
+  "protected_zero_reference": {
+    "run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_fsm_reference_p09_stable_v2/video_eval/prior_B/20260915T0525295619176Z_g4a58c0190ef7_615f8fe3cfc64cff81f73ac6a0d302e6",
+    "task_success": true,
+    "duration_s": 73.80833333333332,
+    "physics_ticks": 8857,
+    "reused_not_rerun": true,
+    "original_data_unchanged": true,
+    "video": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_height_and_p02_recovery_v1/videos/zero_RLminus3_final_stop_latest.mp4"
+  },
+  "ancestral_failure_reference": {
+    "checkpoint": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_fsm_reference_p09_stable_v2/checkpoints/history/checkpoint_step_000174592.pt",
+    "manifest": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_fsm_reference_p09_stable_v2/checkpoints/history/checkpoint_step_000174592_manifest.json",
+    "global_policy_decisions": 174592,
+    "ppo_updates": 1329,
+    "optimizer_steps": 26580,
+    "prior_deterministic_full_task_success": false,
+    "prior_first_incomplete": "P02 FR front-edge crossing/capture",
+    "prior_end_tick": 812,
+    "prior_end_reason": "SAFETY_ABORT: HARD_JOINT_LIMIT rear_right_knee"
+  },
+  "pending_candidates": [
+    {
+      "branch_id": "p06_quarter_temperature_v1",
+      "status": "REAL_TRAINING_COMPLETE_P06_NONTERMINAL_NOT_TASK_SUCCESS",
+      "source_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152.pt",
+      "source_success_is_not_candidate_result": true,
+      "quality_epsilon": 0,
+      "target_exploration_std_temperature": 0.25,
+      "planned_policy_decisions": 128,
+      "actual_completed_policy_decisions": 128,
+      "formal_evaluation_count": 0,
+      "actual_completed_ppo_updates": 1,
+      "actual_completed_optimizer_steps": 20,
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177280.pt",
+      "continued_512_requested_not_credited": true
+    }
+  ],
+  "claim_limits": [
+    "Existing zero success is not current PPO success.",
+    "Sampled training episodes and teacher-prefix suffixes are not deterministic natural-P01 evaluation.",
+    "No planned decisions/updates receive achieved credit.",
+    "No cross-checkpoint aggregate success rate.",
+    "CP176768 M1/M2 within-episode attainment is not a safe full-task pass; terminal body collision retained.",
+    "FL historical placement does not imply continuing support; terminal four legs AIR.",
+    "Unequal-duration failed-PPO versus successful-zero quality numbers are descriptive only.",
+    "CP176768 physical results remain preserved under b043 runtime; they are not a formal evaluation of the corrected action-composition runtime.",
+    "CP176896 P06 suffix included two excluded successful-N prefixes; prefix FR/FL events do not count as new PPO milestones.",
+    "CP177024 all-four placement and whole-body platform entry are not M3; final controlled stop is false.",
+    "CP177024 has no recorded hard safety abort, but no deployable safety qualification or stability superiority.",
+    "CP177152 is a single seed4001 official natural-P01 success, 1/1 for this checkpoint only; no robustness, deployment or stability superiority claim.",
+    "CP177152 current controlled completion passed; exact-zero wheels and historical-home strict recovery diagnostics did not. These are distinct existing diagnostics, not changed acceptance.",
+    "RR/RL initial lift event timestamps include revoked early attempts; later qualified lift before crossing is recorded separately.",
+    "All P07-P13 PPO training sample counts remain zero in this turn; formal physical coverage is not credited as training."
+  ],
+  "pending_recovery_initialization": {
+    "candidate_intent": "single_explicit_mean_head_recovery",
+    "source_checkpoint": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/checkpoints/history/checkpoint_step_000176640.pt",
+    "trigger": "After real epsilon0 continuation and official reload, same nonfunctional wheel bias and P02 RR collapse remain.",
+    "status": "CORRECTED_OFFLINE_INITIALIZATION_VERIFIED_SAME_SINGLE_BRANCH",
+    "valid_for_training": true,
+    "checkpoint_created_by_initial_attempt": true,
+    "checkpoint_must_not_be_used_until_verified": false,
+    "physics_launched": true,
+    "new_policy_decisions": 0,
+    "new_ppo_updates": 0,
+    "new_optimizer_steps": 0,
+    "evidence_source": "corrected initialization receipt + new run_manifest.started.json",
+    "corrected_checkpoint": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/checkpoints/history/checkpoint_initial_mean_head_recovery_v1_from_000176640_rng_corrected.pt",
+    "receipt": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/mean_head_recovery_v1_initialization_rng_corrected.json",
+    "rejected_original_retained": {
+      "all_non_infos_checkpoint_payload_exactly_equal": true,
+      "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/checkpoints/history/checkpoint_initial_mean_head_recovery_v1_from_000176640.pt",
+      "physical_or_optimizer_steps_performed": 0,
+      "preserved_untouched": true,
+      "reason": "CPU-only lazy CUDA seed callbacks overwrote queued restored Philox offset on first RNG capture",
+      "same_recovery_strategy_not_an_additional_mean_reset_search": true,
+      "sha256": "0875dbacab9ec0db3ca343dcd5f5fd3d36caa5b571c11142df12857cffcfc09e",
+      "status": "REJECTED_OFFLINE_SERIALIZATION_NOT_FOR_TRAINING"
+    },
+    "initialization_itself_added_learning_counts": 0
+  },
+  "current_round_count_semantics": "Inventory across distinct checkpoint trials only; not a checkpoint success-rate estimate.",
+  "quality_comparison": {
+    "receipt": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/zero_vs_CP177152_descriptive_quality.json",
+    "both_recorded_tasks_succeeded": true,
+    "strict_pair_conditions_matched": false,
+    "control_code_identical": false,
+    "stability_superiority_claimed": false,
+    "scope": "Successful historical zero versus new repaired-execution PPO; distinct build and episode duration, descriptive only."
+  },
+  "checkpoint_latest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177280.pt",
+  "execution_change": {
+    "cause": "nominal_geometry read previous combined final target; adapter then added policy residual again, causing repeated residual accumulation.",
+    "production_files": [
+      "src/wlr50_clean/ppo/semantic_migration.py",
+      "src/wlr50_clean/ppo/semantic_nominal_geometry.py",
+      "src/wlr50_clean/ppo/semantic_residual_adapter.py",
+      "src/wlr50_clean/ppo/semantic_training.py"
+    ],
+    "zero_source_preserved": true,
+    "offline_zero_replay": {
+      "receipt": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/retained_zero_geometry_replay_receipt.json",
+      "P09_rows": 717,
+      "P12_rows": 431,
+      "exact_target_equality": true,
+      "no_new_physics": true
+    },
+    "physical_scene_and_actuator_capability_unchanged": true,
+    "action_execution_changed": true,
+    "transition_execution_semantics_changed": true
+  },
+  "production_commit": "fc14a68c037abd69e24f49b1524457fd6854543a",
+  "runtime_content_sha256": "bfa1e1471cc0e645ae33e873439a242142dde5adceb70a87bcc419152815c48c",
+  "final_stop_handoff_change": {
+    "status": "REAL_TRAINING_COMPLETE_OFFICIAL_RELOAD_RUNNING",
+    "source_checkpoint_global_policy_decisions": 177024,
+    "planned_policy_decisions": 128,
+    "actual_completed_added_policy_decisions": 128,
+    "migration": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/checkpoint177024_final_stop_handoff_migration.json",
+    "factor_schema": "wlr50_clean.final_stop_handoff_same372_fix.v1",
+    "only_changed_supervisor_method": "NominalMotionProvider._observe_final_stop_owner",
+    "task_evaluator_changed": false,
+    "fixed_post_completion_window_changed": false,
+    "quality_epsilon": 0,
+    "six_configuration_files_changed": false,
+    "action_execution_changed": true,
+    "physical_MDP_equivalence_claimed": false,
+    "fresh_rollout": true,
+    "mean_head_reset_repeated": false,
+    "model_optimizer_identity_rng_and_lifetime_counts_preserved": true,
+    "migration_regression_tests_passed": 58,
+    "new_formal_task_success_claimed": false,
+    "actual_completed_added_ppo_updates": 1,
+    "actual_completed_added_optimizer_steps": 20,
+    "latest_checkpoint_global_policy_decisions": 177152,
+    "completed_receipt": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/training_final_stop_fix_177152_actual.json"
+  }
+}

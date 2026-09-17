@@ -1,0 +1,3050 @@
+{
+  "schema": "wlr50_clean.finalized_task_recovery_evaluation.v1",
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_first_recovery_v1\\video_eval\\validation\\20260916T0428416958414Z_gb0438f66ec63_292464ef72094ece8a8e494452b8aa23",
+  "lifecycle": "DIAGNOSTIC_FAILURE",
+  "completed_at_utc": "2026-09-16T04:46:49.347418+00:00",
+  "checkpoint_load_provenance": {
+    "checkpoint_loaded_and_verified": true,
+    "migration": null,
+    "observation_dimension": 372,
+    "observation_layout": "diagonal_transfer_state_v1",
+    "official_load_semantic_checkpoint": true,
+    "optimizer_updates": 0,
+    "parameter_hashes": {
+      "actor_parameter_sha256": "36b32507adc1fe0742d789d058ea60186d2b5f9eda60e34878c71fe21af00719",
+      "critic_parameter_sha256": "d099cca28718a92ddc92decedfece0622d67ad912e0979f7a695370c90692890",
+      "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+      "optimizer_state_sha256": "eb4c7afbbaa07b7ab6722505402203ad48957591a0147e6fad2b370fa21cf259"
+    },
+    "policy_contract": {
+      "activation": "elu",
+      "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticTemperedHistoryMLPModel",
+      "actor_hidden_dims": [
+        256,
+        256
+      ],
+      "base_observation_dimension": 324,
+      "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+      "conditional_std": "0.5*learned_sigma_as_innovation; no_stationary_rescaling",
+      "deterministic_output": "conditional_mean",
+      "distribution_class": "HeteroscedasticGaussianDistribution",
+      "effective_log_std": "learned_log_std+log(0.5)",
+      "exploration_std_temperature": 0.5,
+      "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+      "history_clip": 20,
+      "history_feature": "previous_raw_full12",
+      "history_slice": [
+        195,
+        207
+      ],
+      "history_state": "stored_observation_only; no_actor_mutable_history",
+      "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+      "observation_dimension": 372,
+      "observation_layout": "diagonal_transfer_state_v1",
+      "raw_action_dimension": 12,
+      "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+      "rho": 0.9,
+      "role_observation_fields": [
+        "valid",
+        "workspace_progress",
+        "preparation_progress",
+        "transfer_progress",
+        "motion_fraction",
+        "preparation_ready",
+        "transfer_ready",
+        "fixed_direction_world_x",
+        "fixed_direction_world_y",
+        "short_support_continuity_fraction",
+        "continued_response_fraction",
+        "window_evidence_fraction"
+      ],
+      "role_observation_group": "transfer_role_context_full48",
+      "role_observation_leg_order": [
+        "FL",
+        "FR",
+        "RL",
+        "RR"
+      ],
+      "role_observation_slice": [
+        324,
+        372
+      ],
+      "schema": "wlr50_clean.semantic_policy_distribution.v1",
+      "state_dependent_std": true,
+      "std_type": "log",
+      "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; deterministic_mean_unchanged",
+      "version": "history_conditioned_heteroscedastic_log_temperature_v1"
+    },
+    "policy_version": "history_conditioned_heteroscedastic_log_temperature_v1",
+    "saved_global_policy_decisions": 176768,
+    "source": {
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000176768.pt",
+      "checkpoint_sha256": "b0ddafde9fed9d11b419388af4afd5a274e6efb998c856b125341de94751202f",
+      "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000176768_manifest.json",
+      "manifest_sha256": "6c05bb749833df2d90c92822e190d4391b23c64f867b0f018e7dd492ccc17336"
+    },
+    "training_seed": 1001,
+    "video_seed": 4001
+  },
+  "seed": 4001,
+  "role": "C",
+  "mode": "semantic_residual_eval",
+  "from_phase": "P01",
+  "episode_count": 1,
+  "optimizer_updates": 0,
+  "natural_entry": {
+    "entry": {
+      "decision_count": 0,
+      "done": false,
+      "physics_tick": 0,
+      "state_id": "P01"
+    },
+    "experiment_id": "task_first_recovery_v1",
+    "reset_metadata": {
+      "execution_mode": "semantic_B_or_C",
+      "fsm_and_episode_clock_at_effective_entry": 0,
+      "phase_snapshot_restoration": {
+        "historical_state_equality_required": false,
+        "mode": "semantic_natural_P01",
+        "policy_credit_excludes_settle": true,
+        "requested_phase": "P01",
+        "reset_only_state_writes": {
+          "global_simulation_resets": 1,
+          "joint_state_writes": 0,
+          "physics_lifecycle_reset": "scene_factory_reset_before_limit_authoring",
+          "pre_limit_native_state_instance_count": 1,
+          "pre_limit_native_state_observed_sha256": "ed85365bcdbbe1576f5cb4b4014fe0abba0d9c404122f1528ae45fd2884e9ab2",
+          "pre_physics_composed_limit_state_sha256": "0d6a1476ee3d88ce739d2efc13ad4d74c7c12ebb9235780164f91c6acd405875",
+          "pre_physics_session_limit_state_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "removed_session_limit_state_sha256": null,
+          "reset_contact_sensor_count": 13,
+          "reset_initialization_order": "physics_reset_without_session_limits_then_author_limits_then_settle",
+          "root_pose_writes": 0,
+          "root_velocity_writes": 0,
+          "session_limit_specs_present_during_physics_reset": 0,
+          "session_limit_specs_removed_before_reset": 0,
+          "simulation_forward_syncs": 0
+        }
+      },
+      "reset_count": 1,
+      "reset_options": {},
+      "reset_prime_tick_count": 0,
+      "seed": 4001,
+      "sensor_clock_semantics": "episode_relative_tick",
+      "sensor_tick_at_effective_entry": 0,
+      "supervisor_schema": "task_semantic_v2",
+      "training_phase_snapshot": "P01"
+    },
+    "role": "C",
+    "schema": "wlr50_clean.current_video_natural_reset.v1",
+    "semantic_version": "v3"
+  },
+  "pre_action_ticks": 0,
+  "extra_pre_action_physics_ticks": 0,
+  "task_success": false,
+  "physical_evaluation_valid": true,
+  "ticks": 6311,
+  "duration_s": 52.59166666666667,
+  "termination_reason": "TASK_FAILURE_BODY_COLLISION",
+  "reason": "central body/obstacle collision",
+  "full12_permission_ticks": 6311,
+  "native_verified_ticks": 6311,
+  "learning_effect_ticks": 6311,
+  "all_zero_raw_ticks": 0,
+  "forbidden_state_write_counter_sum": 0,
+  "issued_policy_decisions": 789,
+  "returned_environment_steps": 788,
+  "epsilon0_task_only_reward_records": 788,
+  "phase_requested_decisions": {
+    "P01": 2,
+    "P02": 179,
+    "P03": 5,
+    "P04": 13,
+    "P05": 95,
+    "P06": 454,
+    "P07": 1,
+    "P08": 1,
+    "P09": 39
+  },
+  "actual_event_ticks": {
+    "active_lift": {
+      "FL": 1651,
+      "FR": 23,
+      "RR": 6272
+    },
+    "front_edge_crossed": {
+      "FL": 2350,
+      "FR": 1461
+    },
+    "placed": {
+      "FL": 2351,
+      "FR": 1484
+    }
+  },
+  "current_legs": {
+    "FL": {
+      "active_attempt": true,
+      "air": true,
+      "bearing_force_n": 0,
+      "bearing_verified": true,
+      "clearance_m": 0.11710654528195448,
+      "consecutive_air_samples": 251,
+      "consecutive_top_samples": 0,
+      "contact_reaction": false,
+      "contact_reaction_force_n": 0,
+      "contact_surface": "NONE",
+      "crossing_evidence_status": "VERIFIED",
+      "crossing_geometry_pending": false,
+      "front_distance_m": 0.3440460596783126,
+      "ground_contact": false,
+      "initial_clearance": true,
+      "load_fraction": 0,
+      "load_fraction_valid": false,
+      "obstacle_pair_active": false,
+      "recent_clearance_gain_m": 0.08324270120093227,
+      "recent_joint_motion_deg": 0.06291970263416147,
+      "recent_whole_body_joint_motion_deg": 79.51049866557864,
+      "soft_air_actuation_earned": false,
+      "soft_air_earned_tick": null,
+      "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+      "support": false,
+      "top_contact": false,
+      "top_geometry": false,
+      "top_surface_contact": false,
+      "top_xy_outside_distance_m": 0,
+      "whole_body_actuation_evidence": true,
+      "within_lateral_span": true,
+      "within_top_xy": true
+    },
+    "FR": {
+      "active_attempt": true,
+      "air": true,
+      "bearing_force_n": 0,
+      "bearing_verified": true,
+      "clearance_m": -0.00030688488766702354,
+      "consecutive_air_samples": 2,
+      "consecutive_top_samples": 0,
+      "contact_reaction": false,
+      "contact_reaction_force_n": 0,
+      "contact_surface": "NONE",
+      "crossing_evidence_status": "VERIFIED",
+      "crossing_geometry_pending": false,
+      "front_distance_m": 0.49026602847408896,
+      "ground_contact": false,
+      "initial_clearance": true,
+      "load_fraction": 0,
+      "load_fraction_valid": false,
+      "obstacle_pair_active": false,
+      "recent_clearance_gain_m": 0.0014899260225354066,
+      "recent_joint_motion_deg": 1.344520550322049,
+      "recent_whole_body_joint_motion_deg": 79.51049866557864,
+      "soft_air_actuation_earned": false,
+      "soft_air_earned_tick": null,
+      "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+      "support": false,
+      "top_contact": false,
+      "top_geometry": true,
+      "top_surface_contact": false,
+      "top_xy_outside_distance_m": 0,
+      "whole_body_actuation_evidence": true,
+      "within_lateral_span": true,
+      "within_top_xy": true
+    },
+    "RL": {
+      "active_attempt": false,
+      "air": true,
+      "bearing_force_n": 0,
+      "bearing_verified": true,
+      "clearance_m": -0.04931656481528831,
+      "consecutive_air_samples": 2,
+      "consecutive_top_samples": 0,
+      "contact_reaction": false,
+      "contact_reaction_force_n": 0,
+      "contact_surface": "NONE",
+      "crossing_evidence_status": "PENDING",
+      "crossing_geometry_pending": false,
+      "front_distance_m": -0.22864400999713297,
+      "ground_contact": false,
+      "initial_clearance": false,
+      "load_fraction": 0,
+      "load_fraction_valid": false,
+      "obstacle_pair_active": false,
+      "recent_clearance_gain_m": 0.0009371002969768213,
+      "recent_joint_motion_deg": 0.32358576145805573,
+      "recent_whole_body_joint_motion_deg": 4.02521457283099,
+      "soft_air_actuation_earned": false,
+      "soft_air_earned_tick": null,
+      "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+      "support": false,
+      "top_contact": false,
+      "top_geometry": false,
+      "top_surface_contact": false,
+      "top_xy_outside_distance_m": 0.22364400999713296,
+      "whole_body_actuation_evidence": true,
+      "within_lateral_span": true,
+      "within_top_xy": false
+    },
+    "RR": {
+      "active_attempt": true,
+      "air": true,
+      "air_duration_s": 0.45,
+      "bearing_force_n": 0,
+      "bearing_verified": true,
+      "body_control_evidence": false,
+      "body_control_evidence_semantics": "unchanged_live_safety_and_short_verified_other_supports_not_static_stability_proof",
+      "clearance_m": -0.04206310258754828,
+      "consecutive_air_samples": 54,
+      "consecutive_top_samples": 0,
+      "contact_mode": "AIR",
+      "contact_reaction": false,
+      "contact_reaction_force_n": 0,
+      "contact_surface": "NONE",
+      "crossing_evidence_status": "PENDING",
+      "crossing_geometry_pending": false,
+      "current_lift_valid": false,
+      "durations_are_diagnostic_only": true,
+      "edge_adjustment_response_observed": null,
+      "edge_contact_duration_s": 0,
+      "front_distance_m": -0.19112708823848124,
+      "front_edge_crossed": false,
+      "ground_contact": false,
+      "ground_relative_lift_m": 0.008077833364321427,
+      "initial_clearance": true,
+      "initial_lift_observed": true,
+      "initial_now": false,
+      "lift_established": true,
+      "lift_established_now": false,
+      "load_fraction": 0,
+      "load_fraction_valid": false,
+      "motion_continuation_allowed": false,
+      "motion_continuation_reason": "physical_safety_abort",
+      "observed_other_support_contacts": [],
+      "obstacle_pair_active": false,
+      "placed_on_top": false,
+      "recent_clearance_gain_m": 0.023031171796660123,
+      "recent_joint_motion_deg": 69.66776817091092,
+      "recent_wheel_displacement_m": 0.02623964701892531,
+      "recent_whole_body_joint_motion_deg": 73.0325042514145,
+      "soft_air_actuation_earned": false,
+      "soft_air_earned_tick": null,
+      "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+      "support": false,
+      "top_contact": false,
+      "top_geometry": false,
+      "top_surface_contact": false,
+      "top_xy_outside_distance_m": 0.18612708823848123,
+      "whole_body_actuation_evidence": true,
+      "within_lateral_span": true,
+      "within_top_xy": false
+    }
+  },
+  "final_body_traversal_geometry": {
+    "maximum_w_m": [
+      0.7680325344505038,
+      0.029142047178306874,
+      0.26024306254716556
+    ],
+    "minimum_w_m": [
+      0.45106635712724497,
+      -0.3456867192688533,
+      0.04999223048323003
+    ],
+    "outside_platform_distance_m": 0.0652458166462857,
+    "valid": true,
+    "whole_body_in_platform_region": false
+  },
+  "selected_actual_physical_observations": [
+    {
+      "tick": 0,
+      "time_s": 0,
+      "base_position_w_m": [
+        -0.003959653899073601,
+        -0.0009929761290550232,
+        0.09901974350214005
+      ],
+      "base_velocity_w_m_s": [
+        -0.0014548313338309526,
+        -0.0007606043945997953,
+        0.006369663868099451
+      ],
+      "body_collision": {
+        "detected": false,
+        "real_pair_active": false,
+        "persistent": false,
+        "geometry_penetration_m": 0,
+        "reason": "no exact base_link/obstacle contact"
+      },
+      "body_collider_bounds": {
+        "minimum_m": [
+          -0.19061557426175507,
+          -0.3072366576166212,
+          0.14243893018174042
+        ],
+        "maximum_m": [
+          0.13620221085838258,
+          0.0634325040697149,
+          0.22210597158695605
+        ]
+      },
+      "legs": {
+        "FL": {
+          "center_w_m": [
+            0.2492280751466751,
+            0.07948555052280426,
+            0.04895150661468506
+          ],
+          "bottom_w_m": [
+            0.2492280751466751,
+            0.07948555052280426,
+            -0.0010487655084872316
+          ],
+          "clearance_above_top_m": -0.051048765508487234,
+          "center_front_offset_m": -0.27208409862685556,
+          "command_rad_s": 0,
+          "velocity_rad_s": 0.01831049472093582,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 7.402416706085272
+          }
+        },
+        "FR": {
+          "center_w_m": [
+            0.25276610255241394,
+            -0.3188057243824005,
+            0.049158256500959396
+          ],
+          "bottom_w_m": [
+            0.25276610255241394,
+            -0.3188057243824005,
+            -0.0008364635197940784
+          ],
+          "clearance_above_top_m": -0.05083646351979408,
+          "center_front_offset_m": -0.26854607122111673,
+          "command_rad_s": 0,
+          "velocity_rad_s": 0.029033124446868896,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 6.822399616241516
+          }
+        },
+        "RL": {
+          "center_w_m": [
+            -0.30398789048194885,
+            0.07299862802028656,
+            0.04986870661377907
+          ],
+          "bottom_w_m": [
+            -0.30398789048194885,
+            0.07299862802028656,
+            -0.0001302721508025101
+          ],
+          "clearance_above_top_m": -0.05013027215080251,
+          "center_front_offset_m": -0.8253000642554795,
+          "command_rad_s": 0,
+          "velocity_rad_s": -0.014638260938227177,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 6.985431194305483
+          }
+        },
+        "RR": {
+          "center_w_m": [
+            -0.30666816234588623,
+            -0.32331135869026184,
+            0.049816250801086426
+          ],
+          "bottom_w_m": [
+            -0.30666816234588623,
+            -0.32331135869026184,
+            -0.00017395201755136813
+          ],
+          "clearance_above_top_m": -0.05017395201755137,
+          "center_front_offset_m": -0.8279803361194169,
+          "command_rad_s": 0,
+          "velocity_rad_s": -0.023966750130057335,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 7.539117813110419
+          }
+        }
+      },
+      "RR_knee": {
+        "name": "rear_right_knee",
+        "position_deg": -0.3810284261102289,
+        "velocity_deg_s": 2.2963678690096434,
+        "command_deg": 0,
+        "error_deg": 0.3810284261102289
+      }
+    },
+    {
+      "tick": 23,
+      "time_s": 0.19166666666666665,
+      "base_position_w_m": [
+        -0.00505451112985611,
+        0.0011295229196548462,
+        0.09609091281890869
+      ],
+      "base_velocity_w_m_s": [
+        -0.017113666981458664,
+        0.02085726521909237,
+        -0.004556532949209213
+      ],
+      "body_collision": {
+        "detected": false,
+        "real_pair_active": false,
+        "persistent": false,
+        "geometry_penetration_m": 0,
+        "reason": "no exact base_link/obstacle contact"
+      },
+      "body_collider_bounds": {
+        "minimum_m": [
+          -0.19382962695930211,
+          -0.3032515438129492,
+          0.13703063484372213
+        ],
+        "maximum_m": [
+          0.13287343631610307,
+          0.06769419362176642,
+          0.22807033677493488
+        ]
+      },
+      "legs": {
+        "FL": {
+          "center_w_m": [
+            0.2483386993408203,
+            0.08055656403303146,
+            0.04916609451174736
+          ],
+          "bottom_w_m": [
+            0.2483386993408203,
+            0.08055656403303146,
+            -0.0012343351352838011
+          ],
+          "clearance_above_top_m": -0.051234335135283804,
+          "center_front_offset_m": -0.27297347443271036,
+          "command_rad_s": -0.002827842642873296,
+          "velocity_rad_s": -0.0019726050086319447,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 14.232040405273567
+          }
+        },
+        "FR": {
+          "center_w_m": [
+            0.2597518861293793,
+            -0.31762102246284485,
+            0.05770007148385048
+          ],
+          "bottom_w_m": [
+            0.2597518861293793,
+            -0.31762102246284485,
+            0.007762492815630621
+          ],
+          "clearance_above_top_m": -0.04223750718436938,
+          "center_front_offset_m": -0.2615602876441514,
+          "command_rad_s": 0.0041301538733618075,
+          "velocity_rad_s": 0.004269705154001713,
+          "contact_class": "AIR",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "RL": {
+          "center_w_m": [
+            -0.34159770607948303,
+            0.07465562969446182,
+            0.07649196684360504
+          ],
+          "bottom_w_m": [
+            -0.34159770607948303,
+            0.07465562969446182,
+            0.02613228567947777
+          ],
+          "clearance_above_top_m": -0.023867714320522232,
+          "center_front_offset_m": -0.8629098798530137,
+          "command_rad_s": -0.0003979104336936195,
+          "velocity_rad_s": -0.0003537391312420368,
+          "contact_class": "AIR",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "RR": {
+          "center_w_m": [
+            -0.30757904052734375,
+            -0.32223594188690186,
+            0.04952666908502579
+          ],
+          "bottom_w_m": [
+            -0.30757904052734375,
+            -0.32223594188690186,
+            -0.00031755440192846734
+          ],
+          "clearance_above_top_m": -0.05031755440192847,
+          "center_front_offset_m": -0.8288912143008744,
+          "command_rad_s": 0.0012120841346526337,
+          "velocity_rad_s": 0.0027724001556634903,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 14.97130966186537
+          }
+        }
+      },
+      "RR_knee": {
+        "name": "rear_right_knee",
+        "position_deg": -0.7176989090273239,
+        "velocity_deg_s": 7.531656427962231,
+        "command_deg": -0.021085124597609924,
+        "error_deg": 0.696613784429714
+      }
+    },
+    {
+      "tick": 1461,
+      "time_s": 12.175,
+      "base_position_w_m": [
+        0.1517140418291092,
+        0.014622963964939117,
+        0.07339421659708023
+      ],
+      "base_velocity_w_m_s": [
+        0.1405101716518402,
+        -0.051899999380111694,
+        -0.04782550781965256
+      ],
+      "body_collision": {
+        "detected": false,
+        "real_pair_active": false,
+        "persistent": false,
+        "geometry_penetration_m": 0,
+        "reason": "no exact base_link/obstacle contact"
+      },
+      "body_collider_bounds": {
+        "minimum_m": [
+          -0.05262478841122742,
+          -0.26979449955231943,
+          0.09778093248689373
+        ],
+        "maximum_m": [
+          0.27423043751613063,
+          0.09838717128864774,
+          0.2703317080067584
+        ]
+      },
+      "legs": {
+        "FL": {
+          "center_w_m": [
+            0.401957631111145,
+            0.08781222999095917,
+            0.05273067206144333
+          ],
+          "bottom_w_m": [
+            0.401957631111145,
+            0.08781222999095917,
+            -0.00007657084626846306
+          ],
+          "clearance_above_top_m": -0.050076570846268466,
+          "center_front_offset_m": -0.11935454266238565,
+          "command_rad_s": -0.811132697556849,
+          "velocity_rad_s": -0.863754391670227,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 11.773159027099716
+          }
+        },
+        "FR": {
+          "center_w_m": [
+            0.5217497944831848,
+            -0.29378682374954224,
+            0.1836284101009369
+          ],
+          "bottom_w_m": [
+            0.5217497944831848,
+            -0.29378682374954224,
+            0.1350206423894692
+          ],
+          "clearance_above_top_m": 0.0850206423894692,
+          "center_front_offset_m": 0.0004376207096541407,
+          "command_rad_s": 0.31279900010623746,
+          "velocity_rad_s": 0.30942419171333313,
+          "contact_class": "AIR",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "RL": {
+          "center_w_m": [
+            -0.21913297474384308,
+            0.09268343448638916,
+            0.05267615616321564
+          ],
+          "bottom_w_m": [
+            -0.21913297474384308,
+            0.09268343448638916,
+            -0.00003977809674456795
+          ],
+          "clearance_above_top_m": -0.05003977809674457,
+          "center_front_offset_m": -0.7404451485173738,
+          "command_rad_s": 0.5037454875378922,
+          "velocity_rad_s": -1.2818284034729004,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 0.3450871706008942
+          }
+        },
+        "RR": {
+          "center_w_m": [
+            -0.14757941663265228,
+            -0.31399664282798767,
+            0.048671968281269073
+          ],
+          "bottom_w_m": [
+            -0.14757941663265228,
+            -0.31399664282798767,
+            0.000011078371375129736
+          ],
+          "clearance_above_top_m": -0.04998892162862487,
+          "center_front_offset_m": -0.668891590406183,
+          "command_rad_s": 0.3064017636158381,
+          "velocity_rad_s": 0.2679670751094818,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 11.951601982116808
+          }
+        }
+      },
+      "RR_knee": {
+        "name": "rear_right_knee",
+        "position_deg": -0.6475173279232678,
+        "velocity_deg_s": 3.005217067348026,
+        "command_deg": -0.15830654950118195,
+        "error_deg": 0.4892107784220858
+      }
+    },
+    {
+      "tick": 1484,
+      "time_s": 12.366666666666667,
+      "base_position_w_m": [
+        0.17742592096328735,
+        0.004507094621658325,
+        0.066548191010952
+      ],
+      "base_velocity_w_m_s": [
+        0.12072768807411194,
+        -0.01942693069577217,
+        0.015676219016313553
+      ],
+      "body_collision": {
+        "detected": false,
+        "real_pair_active": false,
+        "persistent": false,
+        "geometry_penetration_m": 0,
+        "reason": "no exact base_link/obstacle contact"
+      },
+      "body_collider_bounds": {
+        "minimum_m": [
+          -0.012879182562886088,
+          -0.29140879833356387,
+          0.10729460974498242
+        ],
+        "maximum_m": [
+          0.3143185032874557,
+          0.07799548639542765,
+          0.22105911429357258
+        ]
+      },
+      "legs": {
+        "FL": {
+          "center_w_m": [
+            0.40351051092147827,
+            0.08192186057567596,
+            0.05132613703608513
+          ],
+          "bottom_w_m": [
+            0.40351051092147827,
+            0.08192186057567596,
+            -0.0002630893128490394
+          ],
+          "clearance_above_top_m": -0.05026308931284904,
+          "center_front_offset_m": -0.1178016628520524,
+          "command_rad_s": -0.8111129790838771,
+          "velocity_rad_s": -0.7365961074829102,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 11.340488433837994
+          }
+        },
+        "FR": {
+          "center_w_m": [
+            0.5535225868225098,
+            -0.3144104778766632,
+            0.0987517312169075
+          ],
+          "bottom_w_m": [
+            0.5535225868225098,
+            -0.3144104778766632,
+            0.0491646696998884
+          ],
+          "clearance_above_top_m": -0.0008353303001116044,
+          "center_front_offset_m": 0.03221041304897909,
+          "command_rad_s": 0.311524224677482,
+          "velocity_rad_s": 0.5904026627540588,
+          "contact_class": "OBSTACLE",
+          "obstacle_contact": {
+            "active": true,
+            "pair_verified": true,
+            "normal_force_n": 7.822025299072274,
+            "force_w_n": [
+              -3.256241711824259e-7,
+              -1.4284761107319355e-7,
+              7.822025299072266
+            ],
+            "contact_point_w_m": [
+              0.5466101765632629,
+              -0.32551756501197815,
+              0.05161074921488762
+            ]
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "RL": {
+          "center_w_m": [
+            -0.17072957754135132,
+            0.08004453033208847,
+            0.05098243057727814
+          ],
+          "bottom_w_m": [
+            -0.17072957754135132,
+            0.08004453033208847,
+            -0.0005967509466680218
+          ],
+          "clearance_above_top_m": -0.050596750946668025,
+          "center_front_offset_m": -0.692041751314882,
+          "command_rad_s": 0.5001958874676571,
+          "velocity_rad_s": 0.9906584620475769,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 7.962283611297679
+          }
+        },
+        "RR": {
+          "center_w_m": [
+            -0.13504469394683838,
+            -0.3186958432197571,
+            0.04803173616528511
+          ],
+          "bottom_w_m": [
+            -0.13504469394683838,
+            -0.3186958432197571,
+            -0.001516057918246022
+          ],
+          "clearance_above_top_m": -0.051516057918246025,
+          "center_front_offset_m": -0.656356867720369,
+          "command_rad_s": 0.3063960735096407,
+          "velocity_rad_s": -0.20635277032852173,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 10.499797821045016
+          }
+        }
+      },
+      "RR_knee": {
+        "name": "rear_right_knee",
+        "position_deg": 0.17599423806576564,
+        "velocity_deg_s": -8.652999319854489,
+        "command_deg": -0.17918798883205714,
+        "error_deg": -0.35518222689782275
+      }
+    },
+    {
+      "tick": 1488,
+      "time_s": 12.4,
+      "base_position_w_m": [
+        0.1799316108226776,
+        0.0038369223475456238,
+        0.06803009659051895
+      ],
+      "base_velocity_w_m_s": [
+        0.0760449692606926,
+        -0.03180243819952011,
+        0.031203079968690872
+      ],
+      "body_collision": {
+        "detected": false,
+        "real_pair_active": false,
+        "persistent": false,
+        "geometry_penetration_m": 0,
+        "reason": "no exact base_link/obstacle contact"
+      },
+      "body_collider_bounds": {
+        "minimum_m": [
+          -0.01097562532714616,
+          -0.2927832773993945,
+          0.10891536411797337
+        ],
+        "maximum_m": [
+          0.31703242352343186,
+          0.07740476948069441,
+          0.22131980244431967
+        ]
+      },
+      "legs": {
+        "FL": {
+          "center_w_m": [
+            0.39937660098075867,
+            0.08052884042263031,
+            0.05116600543260574
+          ],
+          "bottom_w_m": [
+            0.39937660098075867,
+            0.08052884042263031,
+            -0.0003304124163568678
+          ],
+          "clearance_above_top_m": -0.05033041241635687,
+          "center_front_offset_m": -0.121935572792772,
+          "command_rad_s": -0.8111129790838771,
+          "velocity_rad_s": -0.7017340064048767,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 12.556555747985954
+          }
+        },
+        "FR": {
+          "center_w_m": [
+            0.5552785992622375,
+            -0.31629276275634766,
+            0.09891463816165924
+          ],
+          "bottom_w_m": [
+            0.5552785992622375,
+            -0.31629276275634766,
+            0.04932285813468059
+          ],
+          "clearance_above_top_m": -0.0006771418653194125,
+          "center_front_offset_m": 0.033966425488706875,
+          "command_rad_s": 0.311524224677482,
+          "velocity_rad_s": 0.29814496636390686,
+          "contact_class": "OBSTACLE",
+          "obstacle_contact": {
+            "active": true,
+            "pair_verified": true,
+            "normal_force_n": 1.8267982006072998,
+            "force_w_n": [
+              -6.057435886219764e-9,
+              -7.714714977957726e-10,
+              1.8267982006072998
+            ],
+            "contact_point_w_m": [
+              0.54837965965271,
+              -0.3271731734275818,
+              0.05169602110981941
+            ]
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "RL": {
+          "center_w_m": [
+            -0.16662004590034485,
+            0.08024974912405014,
+            0.05093632638454437
+          ],
+          "bottom_w_m": [
+            -0.16662004590034485,
+            0.08024974912405014,
+            -0.0006182465785908448
+          ],
+          "clearance_above_top_m": -0.05061824657859085,
+          "center_front_offset_m": -0.6879322196738755,
+          "command_rad_s": 0.5001958874676571,
+          "velocity_rad_s": 0.0037109851837158203,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 2.6496248245239498
+          }
+        },
+        "RR": {
+          "center_w_m": [
+            -0.1333577036857605,
+            -0.31840354204177856,
+            0.04816195368766785
+          ],
+          "bottom_w_m": [
+            -0.1333577036857605,
+            -0.31840354204177856,
+            -0.0013690953463508931
+          ],
+          "clearance_above_top_m": -0.051369095346350896,
+          "center_front_offset_m": -0.6546698774592912,
+          "command_rad_s": 0.3063960735096407,
+          "velocity_rad_s": 0.49437934160232544,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 10.98509407043467
+          }
+        }
+      },
+      "RR_knee": {
+        "name": "rear_right_knee",
+        "position_deg": 0.29020363210633393,
+        "velocity_deg_s": 5.392049297810607,
+        "command_deg": -0.17918798883205714,
+        "error_deg": -0.46939162093839104
+      }
+    },
+    {
+      "tick": 1651,
+      "time_s": 13.758333333333333,
+      "base_position_w_m": [
+        0.23237244784832,
+        0.0031453371047973633,
+        0.059711262583732605
+      ],
+      "base_velocity_w_m_s": [
+        0.021160339936614037,
+        -0.0038733910769224167,
+        0.015905819833278656
+      ],
+      "body_collision": {
+        "detected": false,
+        "real_pair_active": false,
+        "persistent": false,
+        "geometry_penetration_m": 0,
+        "reason": "no exact base_link/obstacle contact"
+      },
+      "body_collider_bounds": {
+        "minimum_m": [
+          0.04062239633037454,
+          -0.2914182814481608,
+          0.10248394094768135
+        ],
+        "maximum_m": [
+          0.37137172443855226,
+          0.08027709362853025,
+          0.2182642691155627
+        ]
+      },
+      "legs": {
+        "FL": {
+          "center_w_m": [
+            0.4280109405517578,
+            0.08005595207214355,
+            0.06048880144953728
+          ],
+          "bottom_w_m": [
+            0.4280109405517578,
+            0.08005595207214355,
+            0.008579630619102857
+          ],
+          "clearance_above_top_m": -0.041420369380897146,
+          "center_front_offset_m": -0.09330123322177286,
+          "command_rad_s": 0.27662639796068067,
+          "velocity_rad_s": 0.2756057679653168,
+          "contact_class": "AIR",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "FR": {
+          "center_w_m": [
+            0.607276976108551,
+            -0.3198534846305847,
+            0.09805037081241608
+          ],
+          "bottom_w_m": [
+            0.607276976108551,
+            -0.3198534846305847,
+            0.04869530592558299
+          ],
+          "clearance_above_top_m": -0.0013046940744170094,
+          "center_front_offset_m": 0.08596480233502035,
+          "command_rad_s": 0.29862993113402886,
+          "velocity_rad_s": 0.04902692139148712,
+          "contact_class": "OBSTACLE",
+          "obstacle_contact": {
+            "active": true,
+            "pair_verified": true,
+            "normal_force_n": 12.426623440363517,
+            "force_w_n": [
+              0.16446083784103394,
+              0.03113512508571148,
+              12.425496101379395
+            ],
+            "contact_point_w_m": [
+              0.606478214263916,
+              -0.3307786285877228,
+              0.05029202997684479
+            ]
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "RL": {
+          "center_w_m": [
+            -0.11370072513818741,
+            0.08376416563987732,
+            0.05139854550361633
+          ],
+          "bottom_w_m": [
+            -0.11370072513818741,
+            0.08376416563987732,
+            -0.0004073191544405816
+          ],
+          "clearance_above_top_m": -0.050407319154440584,
+          "center_front_offset_m": -0.6350128989117181,
+          "command_rad_s": 0.24715269155585268,
+          "velocity_rad_s": 0.2382975071668625,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 15.026622772216932
+          }
+        },
+        "RR": {
+          "center_w_m": [
+            -0.08039643615484238,
+            -0.3163314163684845,
+            0.04917844757437706
+          ],
+          "bottom_w_m": [
+            -0.08039643615484238,
+            -0.3163314163684845,
+            -0.00023725998261431291
+          ],
+          "clearance_above_top_m": -0.050237259982614316,
+          "center_front_offset_m": -0.601708609928373,
+          "command_rad_s": 0.30874257401539984,
+          "velocity_rad_s": 0.30827510356903076,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 1.094494819641123
+          }
+        }
+      },
+      "RR_knee": {
+        "name": "rear_right_knee",
+        "position_deg": -0.014419062946425837,
+        "velocity_deg_s": -2.782054296596199,
+        "command_deg": -0.395609386033154,
+        "error_deg": -0.3811903230867282
+      }
+    },
+    {
+      "tick": 2350,
+      "time_s": 19.583333333333332,
+      "base_position_w_m": [
+        0.27936577796936035,
+        -0.0008130595088005066,
+        0.05978751182556152
+      ],
+      "base_velocity_w_m_s": [
+        0.007057846989482641,
+        -0.0008672443218529224,
+        0.0056808446533977985
+      ],
+      "body_collision": {
+        "detected": false,
+        "real_pair_active": false,
+        "persistent": false,
+        "geometry_penetration_m": 0,
+        "reason": "no exact base_link/obstacle contact"
+      },
+      "body_collider_bounds": {
+        "minimum_m": [
+          0.09647406770962011,
+          -0.30313896493204456,
+          0.10012168881190742
+        ],
+        "maximum_m": [
+          0.4264879146926144,
+          0.07080568017141772,
+          0.20516620352939202
+        ]
+      },
+      "legs": {
+        "FL": {
+          "center_w_m": [
+            0.5215430855751038,
+            0.0774858370423317,
+            0.10045687109231949
+          ],
+          "bottom_w_m": [
+            0.5215430855751038,
+            0.0774858370423317,
+            0.04949220703310946
+          ],
+          "clearance_above_top_m": -0.0005077929668905398,
+          "center_front_offset_m": 0.000230911801573086,
+          "command_rad_s": 0.27351486816946197,
+          "velocity_rad_s": 0.25027433037757874,
+          "contact_class": "OBSTACLE",
+          "obstacle_contact": {
+            "active": true,
+            "pair_verified": true,
+            "normal_force_n": 0.25100621581077576,
+            "force_w_n": [
+              -1.6565566696158385e-9,
+              -1.0264936678439085e-9,
+              0.25100621581077576
+            ],
+            "contact_point_w_m": [
+              0.5238471627235413,
+              0.09162618964910507,
+              0.0504409484565258
+            ]
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "FR": {
+          "center_w_m": [
+            0.6759480834007263,
+            -0.3238959312438965,
+            0.09984304010868073
+          ],
+          "bottom_w_m": [
+            0.6759480834007263,
+            -0.3238959312438965,
+            0.05000175772815605
+          ],
+          "clearance_above_top_m": 0.0000017577281560474112,
+          "center_front_offset_m": 0.15463590962719564,
+          "command_rad_s": 0.28902436343779847,
+          "velocity_rad_s": 0.25637346506118774,
+          "contact_class": "OBSTACLE",
+          "obstacle_contact": {
+            "active": true,
+            "pair_verified": true,
+            "normal_force_n": 12.186925888061523,
+            "force_w_n": [
+              4.897281513649432e-8,
+              2.4205997206649954e-8,
+              12.186925888061523
+            ],
+            "contact_point_w_m": [
+              0.677065372467041,
+              -0.3374631702899933,
+              0.050593238323926926
+            ]
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "RL": {
+          "center_w_m": [
+            -0.0490952730178833,
+            0.07884272933006287,
+            0.05096574127674103
+          ],
+          "bottom_w_m": [
+            -0.0490952730178833,
+            0.07884272933006287,
+            0.000006162900170893215
+          ],
+          "clearance_above_top_m": -0.04999383709982911,
+          "center_front_offset_m": -0.570407446791414,
+          "command_rad_s": 0.21967322325291816,
+          "velocity_rad_s": 0.37178218364715576,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 13.897255897522099
+          }
+        },
+        "RR": {
+          "center_w_m": [
+            -0.031851790845394135,
+            -0.31843483448028564,
+            0.049748849123716354
+          ],
+          "bottom_w_m": [
+            -0.031851790845394135,
+            -0.31843483448028564,
+            0.0000037383315599631706
+          ],
+          "clearance_above_top_m": -0.04999626166844004,
+          "center_front_offset_m": -0.5531639646189248,
+          "command_rad_s": 0.3109126569035649,
+          "velocity_rad_s": 0.22756052017211914,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 2.3654668331146453
+          }
+        }
+      },
+      "RR_knee": {
+        "name": "rear_right_knee",
+        "position_deg": -0.7521914710575941,
+        "velocity_deg_s": -3.193097215281682,
+        "command_deg": -0.5956138818763362,
+        "error_deg": 0.15657758918125786
+      }
+    },
+    {
+      "tick": 2351,
+      "time_s": 19.591666666666665,
+      "base_position_w_m": [
+        0.27948319911956787,
+        -0.0008148625493049622,
+        0.059794604778289795
+      ],
+      "base_velocity_w_m_s": [
+        0.006765791680663824,
+        -0.0016113636083900928,
+        0.005227467976510525
+      ],
+      "body_collision": {
+        "detected": false,
+        "real_pair_active": false,
+        "persistent": false,
+        "geometry_penetration_m": 0,
+        "reason": "no exact base_link/obstacle contact"
+      },
+      "body_collider_bounds": {
+        "minimum_m": [
+          0.09658792110926345,
+          -0.30314405837596453,
+          0.10013123123267202
+        ],
+        "maximum_m": [
+          0.426602250963244,
+          0.07080034631890844,
+          0.20515844378698644
+        ]
+      },
+      "legs": {
+        "FL": {
+          "center_w_m": [
+            0.521655797958374,
+            0.07748281210660934,
+            0.10047248005867004
+          ],
+          "bottom_w_m": [
+            0.521655797958374,
+            0.07748281210660934,
+            0.04950871494426715
+          ],
+          "clearance_above_top_m": -0.0004912850557328499,
+          "center_front_offset_m": 0.00034362418484334967,
+          "command_rad_s": 0.27351486816946197,
+          "velocity_rad_s": 0.2538035809993744,
+          "contact_class": "OBSTACLE",
+          "obstacle_contact": {
+            "active": true,
+            "pair_verified": true,
+            "normal_force_n": 0.24987725913524872,
+            "force_w_n": [
+              1.288358220108421e-8,
+              3.249211744105196e-8,
+              0.24987725913524628
+            ],
+            "contact_point_w_m": [
+              0.5238468050956726,
+              0.09162584692239761,
+              0.05045171082019806
+            ]
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "FR": {
+          "center_w_m": [
+            0.6760621070861816,
+            -0.32389917969703674,
+            0.09984221309423447
+          ],
+          "bottom_w_m": [
+            0.6760621070861816,
+            -0.32389917969703674,
+            0.05000185349895439
+          ],
+          "clearance_above_top_m": 0.0000018534989543878,
+          "center_front_offset_m": 0.15474993331265097,
+          "command_rad_s": 0.28902436343779847,
+          "velocity_rad_s": 0.2541516125202179,
+          "contact_class": "OBSTACLE",
+          "obstacle_contact": {
+            "active": true,
+            "pair_verified": true,
+            "normal_force_n": 12.239461898803775,
+            "force_w_n": [
+              0.000001123906031352817,
+              -5.494890729096369e-7,
+              12.239461898803711
+            ],
+            "contact_point_w_m": [
+              0.6770646572113037,
+              -0.3374638259410858,
+              0.05058920755982399
+            ]
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "RL": {
+          "center_w_m": [
+            -0.04898322373628616,
+            0.07884108275175095,
+            0.05096821486949921
+          ],
+          "bottom_w_m": [
+            -0.04898322373628616,
+            0.07884108275175095,
+            0.000007702825197263008
+          ],
+          "clearance_above_top_m": -0.04999229717480274,
+          "center_front_offset_m": -0.5702953975098168,
+          "command_rad_s": 0.21967322325291816,
+          "velocity_rad_s": 0.37037456035614014,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 13.865862846374636
+          }
+        },
+        "RR": {
+          "center_w_m": [
+            -0.03173393756151199,
+            -0.31843650341033936,
+            0.04973839968442917
+          ],
+          "bottom_w_m": [
+            -0.03173393756151199,
+            -0.31843650341033936,
+            4.516889948041891e-7
+          ],
+          "clearance_above_top_m": -0.0499995483110052,
+          "center_front_offset_m": -0.5530461113350427,
+          "command_rad_s": 0.3109126569035649,
+          "velocity_rad_s": 0.23555822670459747,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 2.4767930507660134
+          }
+        }
+      },
+      "RR_knee": {
+        "name": "rear_right_knee",
+        "position_deg": -0.753011413923113,
+        "velocity_deg_s": -2.7712100906283346,
+        "command_deg": -0.5956138818763362,
+        "error_deg": 0.15739753204677676
+      }
+    },
+    {
+      "tick": 2352,
+      "time_s": 19.6,
+      "base_position_w_m": [
+        0.27959901094436646,
+        -0.0008178651332855225,
+        0.05980228632688522
+      ],
+      "base_velocity_w_m_s": [
+        0.00665281992405653,
+        -0.0011259443126618862,
+        0.005248104687780142
+      ],
+      "body_collision": {
+        "detected": false,
+        "real_pair_active": false,
+        "persistent": false,
+        "geometry_penetration_m": 0,
+        "reason": "no exact base_link/obstacle contact"
+      },
+      "body_collider_bounds": {
+        "minimum_m": [
+          0.09670092798266913,
+          -0.3031498841773328,
+          0.10014118929014174
+        ],
+        "maximum_m": [
+          0.4267151516639471,
+          0.0707938687844928,
+          0.20515249866403604
+        ]
+      },
+      "legs": {
+        "FL": {
+          "center_w_m": [
+            0.5217673778533936,
+            0.07747922092676163,
+            0.10048788040876389
+          ],
+          "bottom_w_m": [
+            0.5217673778533936,
+            0.07747922092676163,
+            0.04952522588683356
+          ],
+          "clearance_above_top_m": -0.0004747741131664457,
+          "center_front_offset_m": 0.0004552040798628809,
+          "command_rad_s": 0.27351486816946197,
+          "velocity_rad_s": 0.24923835694789886,
+          "contact_class": "OBSTACLE",
+          "obstacle_contact": {
+            "active": true,
+            "pair_verified": true,
+            "normal_force_n": 0.19399967789651187,
+            "force_w_n": [
+              2.832475765046638e-8,
+              6.279459086044881e-8,
+              0.19399967789649963
+            ],
+            "contact_point_w_m": [
+              0.5238468050956726,
+              0.09162566065788269,
+              0.05046327784657478
+            ]
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "FR": {
+          "center_w_m": [
+            0.6761751770973206,
+            -0.3239027261734009,
+            0.09984056651592255
+          ],
+          "bottom_w_m": [
+            0.6761751770973206,
+            -0.3239027261734009,
+            0.05000139400316164
+          ],
+          "clearance_above_top_m": 0.000001394003161639401,
+          "center_front_offset_m": 0.15486300332378988,
+          "command_rad_s": 0.28902436343779847,
+          "velocity_rad_s": 0.25842827558517456,
+          "contact_class": "OBSTACLE",
+          "obstacle_contact": {
+            "active": true,
+            "pair_verified": true,
+            "normal_force_n": 12.237390518188482,
+            "force_w_n": [
+              1.834211182938361e-8,
+              -3.594417137264827e-7,
+              12.237390518188477
+            ],
+            "contact_point_w_m": [
+              0.6770654320716858,
+              -0.33746373653411865,
+              0.050585027784109116
+            ]
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "RL": {
+          "center_w_m": [
+            -0.048870671540498734,
+            0.07883737236261368,
+            0.05096931383013725
+          ],
+          "bottom_w_m": [
+            -0.048870671540498734,
+            0.07883737236261368,
+            0.0000080810948631313
+          ],
+          "clearance_above_top_m": -0.04999191890513687,
+          "center_front_offset_m": -0.5701828453140294,
+          "command_rad_s": 0.21967322325291816,
+          "velocity_rad_s": 0.3722265660762787,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 13.88491821289075
+          }
+        },
+        "RR": {
+          "center_w_m": [
+            -0.03161995857954025,
+            -0.31843993067741394,
+            0.049730539321899414
+          ],
+          "bottom_w_m": [
+            -0.03161995857954025,
+            -0.31843993067741394,
+            1.347558292036366e-7
+          ],
+          "clearance_above_top_m": -0.0499998652441708,
+          "center_front_offset_m": -0.5529321323530709,
+          "command_rad_s": 0.3109126569035649,
+          "velocity_rad_s": 0.24134953320026398,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 2.414568185806296
+          }
+        }
+      },
+      "RR_knee": {
+        "name": "rear_right_knee",
+        "position_deg": -0.7529990342052424,
+        "velocity_deg_s": -2.699900781259286,
+        "command_deg": -0.5956138818763362,
+        "error_deg": 0.15738515232890615
+      }
+    },
+    {
+      "tick": 2512,
+      "time_s": 20.933333333333334,
+      "base_position_w_m": [
+        0.29957908391952515,
+        -0.0010131001472473145,
+        0.0674901008605957
+      ],
+      "base_velocity_w_m_s": [
+        0.007995950058102608,
+        -0.0033591040410101414,
+        0.014604784548282623
+      ],
+      "body_collision": {
+        "detected": false,
+        "real_pair_active": false,
+        "persistent": false,
+        "geometry_penetration_m": 0,
+        "reason": "no exact base_link/obstacle contact"
+      },
+      "body_collider_bounds": {
+        "minimum_m": [
+          0.11327092618565823,
+          -0.3037039090082418,
+          0.11052496699163394
+        ],
+        "maximum_m": [
+          0.44338133191105233,
+          0.06983491893352738,
+          0.2061191528148392
+        ]
+      },
+      "legs": {
+        "FL": {
+          "center_w_m": [
+            0.5391048192977905,
+            0.07744596153497696,
+            0.11420489847660065
+          ],
+          "bottom_w_m": [
+            0.5391048192977905,
+            0.07744596153497696,
+            0.0633369921506163
+          ],
+          "clearance_above_top_m": 0.013336992150616303,
+          "center_front_offset_m": 0.017792645524259854,
+          "command_rad_s": 0.2664853009100956,
+          "velocity_rad_s": 0.26647868752479553,
+          "contact_class": "AIR",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "FR": {
+          "center_w_m": [
+            0.693912148475647,
+            -0.32447826862335205,
+            0.09886611998081207
+          ],
+          "bottom_w_m": [
+            0.693912148475647,
+            -0.32447826862335205,
+            0.04900948706566694
+          ],
+          "clearance_above_top_m": -0.0009905129343330613,
+          "center_front_offset_m": 0.1725999747021163,
+          "command_rad_s": 0.2589982812970963,
+          "velocity_rad_s": 0.17488861083984375,
+          "contact_class": "OBSTACLE",
+          "obstacle_contact": {
+            "active": true,
+            "pair_verified": true,
+            "normal_force_n": 12.356012296300303,
+            "force_w_n": [
+              0.7459701895713806,
+              -0.018970858305692673,
+              12.33345890045166
+            ],
+            "contact_point_w_m": [
+              0.6859614849090576,
+              -0.33108097314834595,
+              0.0510365255177021
+            ]
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "RL": {
+          "center_w_m": [
+            -0.03479650616645813,
+            0.07825984805822372,
+            0.05087639018893242
+          ],
+          "bottom_w_m": [
+            -0.03479650616645813,
+            0.07825984805822372,
+            0.000007927231739701668
+          ],
+          "clearance_above_top_m": -0.0499920727682603,
+          "center_front_offset_m": -0.5561086799399888,
+          "command_rad_s": 0.2004863388664999,
+          "velocity_rad_s": 0.36576545238494873,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 14.024957656860478
+          }
+        },
+        "RR": {
+          "center_w_m": [
+            -0.011998852714896202,
+            -0.3189724087715149,
+            0.0495179146528244
+          ],
+          "bottom_w_m": [
+            -0.011998852714896202,
+            -0.3189724087715149,
+            -0.00027703659124560936
+          ],
+          "clearance_above_top_m": -0.05027703659124561,
+          "center_front_offset_m": -0.5333110264884269,
+          "command_rad_s": 0.31263245500108616,
+          "velocity_rad_s": 0.21526652574539185,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 2.3672344684601043
+          }
+        }
+      },
+      "RR_knee": {
+        "name": "rear_right_knee",
+        "position_deg": -1.464751169662586,
+        "velocity_deg_s": -5.5149231203186675,
+        "command_deg": -1.4015698044456009,
+        "error_deg": 0.06318136521698503
+      }
+    },
+    {
+      "tick": 5984,
+      "time_s": 49.86666666666667,
+      "base_position_w_m": [
+        0.6333973407745361,
+        -0.006022736430168152,
+        0.06557539105415344
+      ],
+      "base_velocity_w_m_s": [
+        0.008035668171942234,
+        -0.003324391320347786,
+        0.008436096832156181
+      ],
+      "body_collision": {
+        "detected": false,
+        "real_pair_active": false,
+        "persistent": false,
+        "geometry_penetration_m": 0,
+        "reason": "no exact base_link/obstacle contact"
+      },
+      "body_collider_bounds": {
+        "minimum_m": [
+          0.44795626648094944,
+          -0.30855008635424175,
+          0.1083856805928226
+        ],
+        "maximum_m": [
+          0.7774235050983093,
+          0.06452133449950677,
+          0.20456436483311866
+        ]
+      },
+      "legs": {
+        "FL": {
+          "center_w_m": [
+            0.873380184173584,
+            0.07295913994312286,
+            0.11206726729869843
+          ],
+          "bottom_w_m": [
+            0.873380184173584,
+            0.07295913994312286,
+            0.061321616093460554
+          ],
+          "clearance_above_top_m": 0.011321616093460551,
+          "center_front_offset_m": 0.3520680104000533,
+          "command_rad_s": 0.2651216455355809,
+          "velocity_rad_s": 0.2654191553592682,
+          "contact_class": "AIR",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "FR": {
+          "center_w_m": [
+            1.029828667640686,
+            -0.32847532629966736,
+            0.09947414696216583
+          ],
+          "bottom_w_m": [
+            1.029828667640686,
+            -0.32847532629966736,
+            0.04961504592258682
+          ],
+          "clearance_above_top_m": -0.0003849540774131799,
+          "center_front_offset_m": 0.5085164938671554,
+          "command_rad_s": 0.24423319632717708,
+          "velocity_rad_s": 0.19863027334213257,
+          "contact_class": "OBSTACLE",
+          "obstacle_contact": {
+            "active": true,
+            "pair_verified": true,
+            "normal_force_n": 12.551463127136373,
+            "force_w_n": [
+              2.0324550575878675e-7,
+              -0.0000018732445141722565,
+              12.55146312713623
+            ],
+            "contact_point_w_m": [
+              1.0292986631393433,
+              -0.33686092495918274,
+              0.05053411051630974
+            ]
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "RL": {
+          "center_w_m": [
+            0.29638898372650146,
+            0.0726015567779541,
+            0.05077805370092392
+          ],
+          "bottom_w_m": [
+            0.29638898372650146,
+            0.0726015567779541,
+            -0.00008691630781716697
+          ],
+          "clearance_above_top_m": -0.05008691630781717,
+          "center_front_offset_m": -0.2249231900470292,
+          "command_rad_s": 0.18596316406841285,
+          "velocity_rad_s": 0.3671096861362457,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 14.053814888000614
+          }
+        },
+        "RR": {
+          "center_w_m": [
+            0.32299354672431946,
+            -0.32465121150016785,
+            0.04857388138771057
+          ],
+          "bottom_w_m": [
+            0.32299354672431946,
+            -0.32465121150016785,
+            -0.001243115837118905
+          ],
+          "clearance_above_top_m": -0.05124311583711891,
+          "center_front_offset_m": -0.19831862704921122,
+          "command_rad_s": 0.31348080445399507,
+          "velocity_rad_s": 0.22345471382141113,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 2.093775510787983
+          }
+        }
+      },
+      "RR_knee": {
+        "name": "rear_right_knee",
+        "position_deg": -1.742777861809363,
+        "velocity_deg_s": -3.489810878110791,
+        "command_deg": -1.569668200085409,
+        "error_deg": 0.17310966172395403
+      }
+    },
+    {
+      "tick": 6000,
+      "time_s": 50,
+      "base_position_w_m": [
+        0.6363785862922668,
+        -0.006022319197654724,
+        0.06677045673131943
+      ],
+      "base_velocity_w_m_s": [
+        0.041187454015016556,
+        -0.0037093344144523144,
+        0.0503167062997818
+      ],
+      "body_collision": {
+        "detected": false,
+        "real_pair_active": false,
+        "persistent": false,
+        "geometry_penetration_m": 0,
+        "reason": "no exact base_link/obstacle contact"
+      },
+      "body_collider_bounds": {
+        "minimum_m": [
+          0.4503659778883061,
+          -0.3085502381922556,
+          0.11004561978405861
+        ],
+        "maximum_m": [
+          0.7798214181481018,
+          0.06445278557851764,
+          0.20478092194868122
+        ]
+      },
+      "legs": {
+        "FL": {
+          "center_w_m": [
+            0.8682113885879517,
+            0.0724540427327156,
+            0.10067755728960037
+          ],
+          "bottom_w_m": [
+            0.8682113885879517,
+            0.0724540427327156,
+            0.04982846060110104
+          ],
+          "clearance_above_top_m": -0.0001715393988989608,
+          "center_front_offset_m": 0.346899214814421,
+          "command_rad_s": 0.2649493192149676,
+          "velocity_rad_s": 0.15896697342395782,
+          "contact_class": "OBSTACLE",
+          "obstacle_contact": {
+            "active": true,
+            "pair_verified": true,
+            "normal_force_n": 4.739802837372187,
+            "force_w_n": [
+              -7.632719416506006e-7,
+              0.0000016846133803483099,
+              4.739802837371826
+            ],
+            "contact_point_w_m": [
+              0.8726968169212341,
+              0.08270448446273804,
+              0.051494281738996506
+            ]
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "FR": {
+          "center_w_m": [
+            1.031693935394287,
+            -0.32851001620292664,
+            0.09921477735042572
+          ],
+          "bottom_w_m": [
+            1.031693935394287,
+            -0.32851001620292664,
+            0.04935481007961201
+          ],
+          "clearance_above_top_m": -0.0006451899203879924,
+          "center_front_offset_m": 0.5103817616207564,
+          "command_rad_s": 0.24329397813985867,
+          "velocity_rad_s": -0.09847339987754822,
+          "contact_class": "OBSTACLE",
+          "obstacle_contact": {
+            "active": true,
+            "pair_verified": true,
+            "normal_force_n": 9.27310276031525,
+            "force_w_n": [
+              4.0041692273007357e-7,
+              -0.0000023625887024536496,
+              9.273102760314941
+            ],
+            "contact_point_w_m": [
+              1.0293048620224,
+              -0.33685818314552307,
+              0.050323735922575
+            ]
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "RL": {
+          "center_w_m": [
+            0.29852670431137085,
+            0.07252757251262665,
+            0.05061054974794388
+          ],
+          "bottom_w_m": [
+            0.29852670431137085,
+            0.07252757251262665,
+            -0.00021267346895788297
+          ],
+          "clearance_above_top_m": -0.050212673468957886,
+          "center_front_offset_m": -0.22278546946215982,
+          "command_rad_s": 0.18510250043422638,
+          "velocity_rad_s": 0.33195868134498596,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 8.529692649841385
+          }
+        },
+        "RR": {
+          "center_w_m": [
+            0.3249853253364563,
+            -0.3246951103210449,
+            0.04878770932555199
+          ],
+          "bottom_w_m": [
+            0.3249853253364563,
+            -0.3246951103210449,
+            -0.0010812842351370436
+          ],
+          "clearance_above_top_m": -0.051081284235137046,
+          "center_front_offset_m": -0.19632684843707437,
+          "command_rad_s": 0.3136297251155867,
+          "velocity_rad_s": 0.3695986568927765,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 5.190604686737108
+          }
+        }
+      },
+      "RR_knee": {
+        "name": "rear_right_knee",
+        "position_deg": -1.6048814651086831,
+        "velocity_deg_s": 3.1876934684311444,
+        "command_deg": -1.5853587085827723,
+        "error_deg": 0.019522756525910845
+      }
+    },
+    {
+      "tick": 6272,
+      "time_s": 52.266666666666666,
+      "base_position_w_m": [
+        0.6724051237106323,
+        -0.00911588966846466,
+        0.06634750962257385
+      ],
+      "base_velocity_w_m_s": [
+        -0.0093753756955266,
+        -0.006998969241976738,
+        0.04577687382698059
+      ],
+      "body_collision": {
+        "detected": false,
+        "real_pair_active": false,
+        "persistent": false,
+        "geometry_penetration_m": 0,
+        "reason": "no exact base_link/obstacle contact"
+      },
+      "body_collider_bounds": {
+        "minimum_m": [
+          0.46768411811921795,
+          -0.3133218654594921,
+          0.09035749362276077
+        ],
+        "maximum_m": [
+          0.7947405432809991,
+          0.05938224839196725,
+          0.21498023613516123
+        ]
+      },
+      "legs": {
+        "FL": {
+          "center_w_m": [
+            0.8907224535942078,
+            0.06894077360630035,
+            0.1361977905035019
+          ],
+          "bottom_w_m": [
+            0.8907224535942078,
+            0.06894077360630035,
+            0.08571196678821624
+          ],
+          "clearance_above_top_m": 0.03571196678821624,
+          "center_front_offset_m": 0.3694102798206771,
+          "command_rad_s": -0.03539681194285567,
+          "velocity_rad_s": -0.0349566787481308,
+          "contact_class": "AIR",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "FR": {
+          "center_w_m": [
+            1.0183409452438354,
+            -0.332670658826828,
+            0.09871222078800201
+          ],
+          "bottom_w_m": [
+            1.0183409452438354,
+            -0.332670658826828,
+            0.04879019915855229
+          ],
+          "clearance_above_top_m": -0.001209800841447714,
+          "center_front_offset_m": 0.4970287714703048,
+          "command_rad_s": -0.06838821808401023,
+          "velocity_rad_s": -0.007209853269159794,
+          "contact_class": "OBSTACLE",
+          "obstacle_contact": {
+            "active": true,
+            "pair_verified": true,
+            "normal_force_n": 13.140336036682344,
+            "force_w_n": [
+              0.0000013152986184650217,
+              -0.0000019805247575277463,
+              13.140336036682129
+            ],
+            "contact_point_w_m": [
+              1.0222365856170654,
+              -0.3408859670162201,
+              0.05017372965812683
+            ]
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "RL": {
+          "center_w_m": [
+            0.3015705645084381,
+            0.07147123664617538,
+            0.04984303563833237
+          ],
+          "bottom_w_m": [
+            0.3015705645084381,
+            0.07147123664617538,
+            -0.0005908069687277084
+          ],
+          "clearance_above_top_m": -0.05059080696872771,
+          "center_front_offset_m": -0.21974160926509256,
+          "command_rad_s": -0.1263891838001781,
+          "velocity_rad_s": -0.1796073168516159,
+          "contact_class": "GROUND",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": true,
+            "normal_force_n": 16.015680313110494
+          }
+        },
+        "RR": {
+          "center_w_m": [
+            0.3298755884170532,
+            -0.3252691328525543,
+            0.05808021500706673
+          ],
+          "bottom_w_m": [
+            0.3298755884170532,
+            -0.3252691328525543,
+            0.008263884644817747
+          ],
+          "clearance_above_top_m": -0.041736115355182256,
+          "center_front_offset_m": -0.19143658535647745,
+          "command_rad_s": 0.014415052316718987,
+          "velocity_rad_s": 0.014819170348346233,
+          "contact_class": "AIR",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        }
+      },
+      "RR_knee": {
+        "name": "rear_right_knee",
+        "position_deg": -12.004697823212524,
+        "velocity_deg_s": -28.740568593389064,
+        "command_deg": -14.913065162898311,
+        "error_deg": -2.908367339685787
+      }
+    },
+    {
+      "tick": 6311,
+      "time_s": 52.59166666666667,
+      "base_position_w_m": [
+        0.6617321968078613,
+        -0.022178441286087036,
+        0.09795598685741425
+      ],
+      "base_velocity_w_m_s": [
+        0.002570096403360367,
+        -0.024835526943206787,
+        0.17421290278434753
+      ],
+      "body_collision": {
+        "detected": true,
+        "real_pair_active": true,
+        "persistent": true,
+        "geometry_penetration_m": 0.000007769516769971785,
+        "reason": "exact base_link/obstacle pair persisted"
+      },
+      "body_collider_bounds": {
+        "minimum_m": [
+          0.45106635712724497,
+          -0.3456867192688533,
+          0.04999223048323003
+        ],
+        "maximum_m": [
+          0.7680325344505038,
+          0.029142047178306874,
+          0.26024306254716556
+        ]
+      },
+      "legs": {
+        "FL": {
+          "center_w_m": [
+            0.8653582334518433,
+            0.035923127084970474,
+            0.2154407948255539
+          ],
+          "bottom_w_m": [
+            0.8653582334518433,
+            0.035923127084970474,
+            0.16710654528195448
+          ],
+          "clearance_above_top_m": 0.11710654528195448,
+          "center_front_offset_m": 0.3440460596783126,
+          "command_rad_s": -0.035952608195133295,
+          "velocity_rad_s": -0.037631239742040634,
+          "contact_class": "AIR",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "FR": {
+          "center_w_m": [
+            1.0115782022476196,
+            -0.3449927568435669,
+            0.10259588807821274
+          ],
+          "bottom_w_m": [
+            1.0115782022476196,
+            -0.3449927568435669,
+            0.04969311511233298
+          ],
+          "clearance_above_top_m": -0.00030688488766702354,
+          "center_front_offset_m": 0.49026602847408896,
+          "command_rad_s": -0.06904417577930316,
+          "velocity_rad_s": -0.0708116888999939,
+          "contact_class": "AIR",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": [
+              1.0142604112625122,
+              -0.3468557298183441,
+              0.0518629364669323
+            ]
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "RL": {
+          "center_w_m": [
+            0.2926681637763977,
+            0.06053245812654495,
+            0.04907747730612755
+          ],
+          "bottom_w_m": [
+            0.2926681637763977,
+            0.06053245812654495,
+            0.0006834351847116935
+          ],
+          "clearance_above_top_m": -0.04931656481528831,
+          "center_front_offset_m": -0.22864400999713297,
+          "command_rad_s": -0.12703954168502424,
+          "velocity_rad_s": -0.12754257023334503,
+          "contact_class": "AIR",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "RR": {
+          "center_w_m": [
+            0.33018508553504944,
+            -0.3478088974952698,
+            0.060871779918670654
+          ],
+          "bottom_w_m": [
+            0.33018508553504944,
+            -0.3478088974952698,
+            0.007936897412451724
+          ],
+          "clearance_above_top_m": -0.04206310258754828,
+          "center_front_offset_m": -0.19112708823848124,
+          "command_rad_s": 0.014510023300030317,
+          "velocity_rad_s": 0.01606493815779686,
+          "contact_class": "AIR",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        }
+      },
+      "RR_knee": {
+        "name": "rear_right_knee",
+        "position_deg": -29.455275345951396,
+        "velocity_deg_s": -59.03402167571555,
+        "command_deg": -35.44536515830937,
+        "error_deg": -5.990089812357976
+      }
+    }
+  ],
+  "last_decision": {
+    "decision": 789,
+    "request_phase": "P09",
+    "start_tick": 6304,
+    "end_tick": 6311,
+    "environment_step_returned": false
+  },
+  "source_video": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_first_recovery_v1\\video_eval\\validation\\20260916T0428416958414Z_gb0438f66ec63_292464ef72094ece8a8e494452b8aa23\\source\\actual_viewport_video.mp4",
+  "teacher_prefix_decisions": 0,
+  "teacher_evidence": "Natural entry at P01/tick0; pre-action ticks0; official deterministic checkpoint load; every actual tick full12/native verified/nonzero raw, no forbidden state writes.",
+  "M1": true,
+  "M2": true,
+  "M3": false,
+  "M4": false,
+  "milestone_scope": "M1/M2 physically achieved within this single continuous natural-P01 episode; terminal body collision means no complete task/safety success.",
+  "formal_success_denominator_this_checkpoint": 1,
+  "formal_success_count_this_checkpoint": 0,
+  "first_incomplete": "P09 RR controlled carry/front-edge crossing/top placement; RR initial lift qualified but never crossed or placed.",
+  "safety_pass": false,
+  "deployable": false,
+  "development_designation": "DEVELOPMENT_PARTIAL_M1_M2",
+  "final_wheel_target_canonical": [
+    -0.035952608195133295,
+    -0.06904417577930316,
+    -0.12703954168502424,
+    0.014510023300030317
+  ],
+  "final_RR_knee": {
+    "name": "rear_right_knee",
+    "position_deg": -29.455275345951396,
+    "velocity_deg_s": -59.03402167571555,
+    "command_deg": -35.44536515830937,
+    "error_deg": -5.990089812357976
+  },
+  "milestone_physical_checks": {
+    "M1": {
+      "tick": 1484,
+      "FR": {
+        "center_w_m": [
+          0.5535225868225098,
+          -0.3144104778766632,
+          0.0987517312169075
+        ],
+        "bottom_w_m": [
+          0.5535225868225098,
+          -0.3144104778766632,
+          0.0491646696998884
+        ],
+        "clearance_above_top_m": -0.0008353303001116044,
+        "center_front_offset_m": 0.03221041304897909,
+        "command_rad_s": 0.311524224677482,
+        "velocity_rad_s": 0.5904026627540588,
+        "contact_class": "OBSTACLE",
+        "obstacle_contact": {
+          "active": true,
+          "pair_verified": true,
+          "normal_force_n": 7.822025299072274,
+          "force_w_n": [
+            -3.256241711824259e-7,
+            -1.4284761107319355e-7,
+            7.822025299072266
+          ],
+          "contact_point_w_m": [
+            0.5466101765632629,
+            -0.32551756501197815,
+            0.05161074921488762
+          ]
+        },
+        "ground_contact": {
+          "active": false,
+          "normal_force_n": 0
+        }
+      },
+      "body_collision": {
+        "detected": false,
+        "real_pair_active": false,
+        "persistent": false,
+        "geometry_penetration_m": 0,
+        "reason": "no exact base_link/obstacle contact"
+      }
+    },
+    "M2": {
+      "tick": 2351,
+      "FL": {
+        "center_w_m": [
+          0.521655797958374,
+          0.07748281210660934,
+          0.10047248005867004
+        ],
+        "bottom_w_m": [
+          0.521655797958374,
+          0.07748281210660934,
+          0.04950871494426715
+        ],
+        "clearance_above_top_m": -0.0004912850557328499,
+        "center_front_offset_m": 0.00034362418484334967,
+        "command_rad_s": 0.27351486816946197,
+        "velocity_rad_s": 0.2538035809993744,
+        "contact_class": "OBSTACLE",
+        "obstacle_contact": {
+          "active": true,
+          "pair_verified": true,
+          "normal_force_n": 0.24987725913524872,
+          "force_w_n": [
+            1.288358220108421e-8,
+            3.249211744105196e-8,
+            0.24987725913524628
+          ],
+          "contact_point_w_m": [
+            0.5238468050956726,
+            0.09162584692239761,
+            0.05045171082019806
+          ]
+        },
+        "ground_contact": {
+          "active": false,
+          "normal_force_n": 0
+        }
+      },
+      "FR": {
+        "center_w_m": [
+          0.6760621070861816,
+          -0.32389917969703674,
+          0.09984221309423447
+        ],
+        "bottom_w_m": [
+          0.6760621070861816,
+          -0.32389917969703674,
+          0.05000185349895439
+        ],
+        "clearance_above_top_m": 0.0000018534989543878,
+        "center_front_offset_m": 0.15474993331265097,
+        "command_rad_s": 0.28902436343779847,
+        "velocity_rad_s": 0.2541516125202179,
+        "contact_class": "OBSTACLE",
+        "obstacle_contact": {
+          "active": true,
+          "pair_verified": true,
+          "normal_force_n": 12.239461898803775,
+          "force_w_n": [
+            0.000001123906031352817,
+            -5.494890729096369e-7,
+            12.239461898803711
+          ],
+          "contact_point_w_m": [
+            0.6770646572113037,
+            -0.3374638259410858,
+            0.05058920755982399
+          ]
+        },
+        "ground_contact": {
+          "active": false,
+          "normal_force_n": 0
+        }
+      },
+      "body_collision": {
+        "detected": false,
+        "real_pair_active": false,
+        "persistent": false,
+        "geometry_penetration_m": 0,
+        "reason": "no exact base_link/obstacle contact"
+      },
+      "front_continuation": {
+        "from_tick": 2352,
+        "to_tick": 5984,
+        "base_x_start_m": 0.27959901094436646,
+        "base_x_end_m": 0.6333973407745361,
+        "base_x_advance_m": 0.3537983298301697,
+        "FL_AIR_at_tick2512": {
+          "center_w_m": [
+            0.5391048192977905,
+            0.07744596153497696,
+            0.11420489847660065
+          ],
+          "bottom_w_m": [
+            0.5391048192977905,
+            0.07744596153497696,
+            0.0633369921506163
+          ],
+          "clearance_above_top_m": 0.013336992150616303,
+          "center_front_offset_m": 0.017792645524259854,
+          "command_rad_s": 0.2664853009100956,
+          "velocity_rad_s": 0.26647868752479553,
+          "contact_class": "AIR",
+          "obstacle_contact": {
+            "active": false,
+            "pair_verified": true,
+            "normal_force_n": 0,
+            "force_w_n": [
+              0,
+              0,
+              0
+            ],
+            "contact_point_w_m": null
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        },
+        "FL_recontact_at_tick6000": {
+          "center_w_m": [
+            0.8682113885879517,
+            0.0724540427327156,
+            0.10067755728960037
+          ],
+          "bottom_w_m": [
+            0.8682113885879517,
+            0.0724540427327156,
+            0.04982846060110104
+          ],
+          "clearance_above_top_m": -0.0001715393988989608,
+          "center_front_offset_m": 0.346899214814421,
+          "command_rad_s": 0.2649493192149676,
+          "velocity_rad_s": 0.15896697342395782,
+          "contact_class": "OBSTACLE",
+          "obstacle_contact": {
+            "active": true,
+            "pair_verified": true,
+            "normal_force_n": 4.739802837372187,
+            "force_w_n": [
+              -7.632719416506006e-7,
+              0.0000016846133803483099,
+              4.739802837371826
+            ],
+            "contact_point_w_m": [
+              0.8726968169212341,
+              0.08270448446273804,
+              0.051494281738996506
+            ]
+          },
+          "ground_contact": {
+            "active": false,
+            "normal_force_n": 0
+          }
+        }
+      },
+      "caveat": "FL placement at2351 was real but lightly loaded; FL was subsequently intermittently AIR. Historical placed flags do not imply ongoing bearing."
+    },
+    "terminal": {
+      "tick": 6311,
+      "body_collision": {
+        "detected": true,
+        "real_pair_active": true,
+        "persistent": true,
+        "geometry_penetration_m": 0.000007769516769971785,
+        "reason": "exact base_link/obstacle pair persisted"
+      },
+      "all_four_current_legs_air": true,
+      "RR_current_lift_valid": false
+    }
+  }
+}

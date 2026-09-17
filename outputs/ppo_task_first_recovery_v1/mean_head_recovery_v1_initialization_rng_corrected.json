@@ -1,0 +1,112 @@
+{
+  "actual_save_load_round_trip": true,
+  "all_old_non_mean_states_preserved_except_recorded_mean_moments": true,
+  "candidate_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_initial_mean_head_recovery_v1_from_000176640_rng_corrected.pt",
+  "candidate_manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_initial_mean_head_recovery_v1_from_000176640_rng_corrected_manifest.json",
+  "candidate_sha256": "de414de8e11a568281813093af3f5328c0cbaba8a3df42981ded389eb9f90559",
+  "initialization_is_not_PPO_learning_or_task_success": true,
+  "offline_initialization": {
+    "all_rng_exact_after_restore_and_before_save": true,
+    "cuda_generator_materialized_before_checkpoint_rng_restore": true,
+    "does_not_update_last_or_best_checkpoint_pointer": true,
+    "execution_device": "cpu",
+    "optimizer_steps": 0,
+    "physics_steps": 0,
+    "policy_forwards": 0,
+    "source_training_device": "cuda:0",
+    "source_training_runner_config_preserved": true,
+    "synthetic_zero_observation_used_for_model_construction_only": true
+  },
+  "offline_serialization_correction": {
+    "all_non_infos_checkpoint_payload_exactly_equal": true,
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_initial_mean_head_recovery_v1_from_000176640.pt",
+    "physical_or_optimizer_steps_performed": 0,
+    "preserved_untouched": true,
+    "reason": "CPU-only lazy CUDA seed callbacks overwrote queued restored Philox offset on first RNG capture",
+    "same_recovery_strategy_not_an_additional_mean_reset_search": true,
+    "sha256": "0875dbacab9ec0db3ca343dcd5f5fd3d36caa5b571c11142df12857cffcfc09e",
+    "status": "REJECTED_OFFLINE_SERIALIZATION_NOT_FOR_TRAINING"
+  },
+  "schema": "wlr50_clean.offline_mean_head_initialization_receipt.v1",
+  "source_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000176640.pt",
+  "source_checkpoint_unchanged": true,
+  "source_sha256": "a7e04ee3083c84303153a5fba38c26853c6a97fbe71602e2762997068aa3a875",
+  "task_recovery_branch": {
+    "Adam_shared_scalar_step": "preserved_for_sigma_and_shared_parameter; mean_moment_bias_correction_uses_existing_age",
+    "actor_feature_parameters": "preserved_exactly",
+    "actor_parameter_sha256_after": "67ca847d3c1535a973bc3a7b7d717cdd45c55346bd59eb4a407d97a2d17d312f",
+    "actor_parameter_sha256_before": "570caf101cc40bb104990138347b7734b9adf59bc00acc924002aaf624f3bce2",
+    "all12_channels_remain_learnable": true,
+    "branch_counter_semantics": "absolute_checkpoint_counters_minus_origin_lifetime_counters",
+    "branch_id": "mean_head_recovery_v1",
+    "branch_optimizer_steps": 0,
+    "branch_policy_decisions": 0,
+    "branch_ppo_updates": 0,
+    "changed_parameter_rows": [
+      {
+        "cleared_moment_fields": [
+          "exp_avg",
+          "exp_avg_sq"
+        ],
+        "mean_rows": [
+          0,
+          12
+        ],
+        "parameter": "mlp.4.weight",
+        "preserved_log_sigma_rows": [
+          12,
+          24
+        ],
+        "shared_Adam_step_preserved": 3820.0
+      },
+      {
+        "cleared_moment_fields": [
+          "exp_avg",
+          "exp_avg_sq"
+        ],
+        "mean_rows": [
+          0,
+          12
+        ],
+        "parameter": "mlp.4.bias",
+        "preserved_log_sigma_rows": [
+          12,
+          24
+        ],
+        "shared_Adam_step_preserved": 3820.0
+      }
+    ],
+    "counter_origin": {
+      "global_policy_decisions": 176640,
+      "optimizer_steps": 26900,
+      "ppo_updates": 1345
+    },
+    "critic": "preserve_parameters_and_Adam_then_refit_only_on_new_reward_on_policy_data; source_values_not_ground_truth",
+    "critic_parameter_sha256_after": "ed861cde9ce9d211f5f37eed9ba97ab4af9e6615b2d1cd3f7aeab0cb6c8a9279",
+    "critic_parameter_sha256_before": "ed861cde9ce9d211f5f37eed9ba97ab4af9e6615b2d1cd3f7aeab0cb6c8a9279",
+    "history": "kernel_unchanged; fresh_legal_episode_reset_has_zero_previous_raw",
+    "initialization_is_not_PPO_learning_success": true,
+    "log_sigma_parameters": "preserved_exactly_not_exp0",
+    "mean_output_parameters": "zero_first12_rows_only",
+    "normalizer": "identity_state_preserved",
+    "old_model_and_old_optimizer_preserved_on_disk": true,
+    "old_rollout_inherited": false,
+    "optimizer": "preserve_all_other_states_and_groups; clear_only_mean_row_moments",
+    "optimizer_state_sha256_after": "c7e288cdfa04e2d9d719bd0e4b737f6c54d6c091100f6e45af5ef668294e9732",
+    "optimizer_state_sha256_before": "8952d58aa37b2886d096bd3e52d82ce8ba608bf5c00205cf1dcf32d88857740b",
+    "reason": "Saved/reloaded natural P01 evaluation 20260916T0417200243144Z: 817 ticks, P02 RR knee hard limit, FR not crossed or placed; final FL/FR/RL/RR targets -0.224238/0.002450/0.029583/0.797650 rad_s still adverse after 2048 task-first decisions and 16 updates.",
+    "schema": "wlr50_clean.task_recovery_mean_head_branch.v1",
+    "source_checkpoint": {
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000176640.pt",
+      "checkpoint_sha256": "a7e04ee3083c84303153a5fba38c26853c6a97fbe71602e2762997068aa3a875",
+      "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000176640_manifest.json",
+      "manifest_sha256": "be33c0caa1f8917536e7645d2bb65683e6efc62dd793bacf4d86fc0e925c6c23"
+    },
+    "training_rng": "preserved_no_sampling_during_initialization"
+  },
+  "task_recovery_branch_counts": {
+    "global_policy_decisions": 0,
+    "optimizer_steps": 0,
+    "ppo_updates": 0
+  }
+}

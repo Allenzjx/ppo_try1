@@ -1,0 +1,593 @@
+{
+  "schema": "wlr50_clean.task_first_completed_training_receipt.v1",
+  "created_at_utc": "2026-09-16T04:17:50.277Z",
+  "branch_id": "preserved_mean_reward_only",
+  "branch_added_counts": {
+    "policy_decisions": 2048,
+    "ppo_updates": 16,
+    "optimizer_steps": 320
+  },
+  "ancestry_source_counts": {
+    "global_policy_decisions": 174592,
+    "ppo_updates": 1329,
+    "optimizer_steps": 26580
+  },
+  "latest_checkpoint_counts": {
+    "global_policy_decisions": 176640,
+    "ppo_updates": 1345,
+    "optimizer_steps": 26900
+  },
+  "reward_objective": "task_first_recovery_v1",
+  "quality_epsilon": 0,
+  "preservation": {
+    "successful_N_unchanged": true,
+    "physics_unchanged": true,
+    "full12_capacity_unchanged": true,
+    "old_rollout_not_inherited": true,
+    "verified_state_evidence": "sidecars and completed run receipts; no new checkpoint tensor load or hash pass"
+  },
+  "training_is_not_deterministic_M1_M2_M3_proof": true,
+  "receipt": {
+    "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_first_recovery_v1\\train\\20260916T0342024652780Z_gb0438f66ec63_a11da4badf6f4422b0af0decfc19053c",
+    "lifecycle": "SUCCEEDED",
+    "completed_at_utc": "2026-09-16T04:17:04.964209+00:00",
+    "configuration": {
+      "semantic_version": "v3",
+      "experiment_id": "task_first_recovery_v1",
+      "stage": "full_episode",
+      "from_phase": "P01",
+      "prefix_source": "frozen_fsm",
+      "teacher_offset_decisions": 0,
+      "seed": 1001,
+      "num_envs": 1,
+      "device": "cuda:0",
+      "checkpoint_interval_updates": 1,
+      "implemented_sampling": "P01_full_task_only_initial_version",
+      "prefix_request": null,
+      "physics_hz": 120,
+      "decision_hz": 15,
+      "rollout_steps_per_env": 128,
+      "rollout_policy_decisions": 128,
+      "observation_dimension": 372,
+      "action_dimension": 12,
+      "policy_contract": {
+        "activation": "elu",
+        "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticTemperedHistoryMLPModel",
+        "actor_hidden_dims": [
+          256,
+          256
+        ],
+        "base_observation_dimension": 324,
+        "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+        "conditional_std": "0.5*learned_sigma_as_innovation; no_stationary_rescaling",
+        "deterministic_output": "conditional_mean",
+        "distribution_class": "HeteroscedasticGaussianDistribution",
+        "effective_log_std": "learned_log_std+log(0.5)",
+        "exploration_std_temperature": 0.5,
+        "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+        "history_clip": 20,
+        "history_feature": "previous_raw_full12",
+        "history_slice": [
+          195,
+          207
+        ],
+        "history_state": "stored_observation_only; no_actor_mutable_history",
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "observation_dimension": 372,
+        "observation_layout": "diagonal_transfer_state_v1",
+        "raw_action_dimension": 12,
+        "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+        "rho": 0.9,
+        "role_observation_fields": [
+          "valid",
+          "workspace_progress",
+          "preparation_progress",
+          "transfer_progress",
+          "motion_fraction",
+          "preparation_ready",
+          "transfer_ready",
+          "fixed_direction_world_x",
+          "fixed_direction_world_y",
+          "short_support_continuity_fraction",
+          "continued_response_fraction",
+          "window_evidence_fraction"
+        ],
+        "role_observation_group": "transfer_role_context_full48",
+        "role_observation_leg_order": [
+          "FL",
+          "FR",
+          "RL",
+          "RR"
+        ],
+        "role_observation_slice": [
+          324,
+          372
+        ],
+        "schema": "wlr50_clean.semantic_policy_distribution.v1",
+        "state_dependent_std": true,
+        "std_type": "log",
+        "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; deterministic_mean_unchanged",
+        "version": "history_conditioned_heteroscedastic_log_temperature_v1"
+      },
+      "actor": {
+        "class_name": "wlr50_clean.ppo.semantic_history_actor:SemanticTemperedHistoryMLPModel",
+        "hidden_dims": [
+          256,
+          256
+        ],
+        "activation": "elu",
+        "obs_normalization": false,
+        "observation_layout": "diagonal_transfer_state_v1",
+        "distribution_cfg": {
+          "class_name": "HeteroscedasticGaussianDistribution",
+          "init_std": 0.15,
+          "std_type": "log"
+        }
+      },
+      "critic": {
+        "class_name": "MLPModel",
+        "hidden_dims": [
+          256,
+          256
+        ],
+        "activation": "elu",
+        "obs_normalization": false
+      },
+      "optimizer": {
+        "optimizer": "adam",
+        "schedule": "adaptive",
+        "learning_rate": 0.00003,
+        "gamma": 0.9985,
+        "lam": 0.99,
+        "num_learning_epochs": 5,
+        "num_mini_batches": 4,
+        "clip_param": 0.2,
+        "max_grad_norm": 1
+      },
+      "initial_learning_rate_is_configured_default_not_restored_effective_lr": true
+    },
+    "request": {
+      "planned": 2048,
+      "consumed": 2048,
+      "unconsumed": 0,
+      "rounding_overrun": 0,
+      "stage_requested_before": {
+        "full_episode": 90496,
+        "phase_suffix": 73984,
+        "smoke": 0
+      },
+      "stage_requested_after": {
+        "full_episode": 92544,
+        "phase_suffix": 73984,
+        "smoke": 0
+      },
+      "stage_requested_delta": {
+        "full_episode": 2048,
+        "phase_suffix": 0,
+        "smoke": 0
+      }
+    },
+    "source": {
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000174592.pt",
+      "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fsm_reference_p09_stable_v2\\checkpoints\\history\\checkpoint_step_000174592_manifest.json",
+      "global_policy_decisions": 174592,
+      "ppo_updates": 1329,
+      "optimizer_steps": 26580,
+      "effective_learning_rate": 0.00001,
+      "actor_parameter_sha256": "75b6e4db20d5c7fbb1389a693468dd84db829f59ba0e92f9d402ed14fbf773d1",
+      "checkpoint_sha256": "1da3e970d4be999efe5d26a9bb09f52126ea85bbafdab0ad59b9bb6dcecf1881"
+    },
+    "saved": {
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000176640.pt",
+      "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000176640_manifest.json",
+      "global_policy_decisions": 176640,
+      "ppo_updates": 1345,
+      "optimizer_steps": 26900,
+      "actor_parameter_sha256": "570caf101cc40bb104990138347b7734b9adf59bc00acc924002aaf624f3bce2",
+      "critic_parameter_sha256": "ed861cde9ce9d211f5f37eed9ba97ab4af9e6615b2d1cd3f7aeab0cb6c8a9279",
+      "optimizer_state_sha256": "8952d58aa37b2886d096bd3e52d82ce8ba608bf5c00205cf1dcf32d88857740b",
+      "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+      "checkpoint_sha256": "a7e04ee3083c84303153a5fba38c26853c6a97fbe71602e2762997068aa3a875",
+      "save_load_round_trip": true,
+      "effective_learning_rate": 0.00001,
+      "source_git_commit": "b0438f66ec635c31ea6afaf3b475d0ca19bd9604",
+      "runtime_content_sha256": "e9b6bf320b0d4ea3c560fe4861ae001d087017822206f52419d6c5f501763b5c"
+    },
+    "increments": {
+      "policy_decisions": 2048,
+      "ppo_updates": 16,
+      "optimizer_steps": 320
+    },
+    "sampling": {
+      "phase_policy_decisions": {
+        "P01": 8,
+        "P02": 613,
+        "P03": 21,
+        "P04": 18,
+        "P05": 1388,
+        "P06": 0,
+        "P07": 0,
+        "P08": 0,
+        "P09": 0,
+        "P10": 0,
+        "P11": 0,
+        "P12": 0,
+        "P13": 0
+      },
+      "phase_assignment": "Applied audit phase_id at the decision request; requested curriculum phase is not a sample count",
+      "credited_rows": 2048,
+      "credited_physics_ticks": 16374,
+      "first_global_policy_decision": 174593,
+      "last_global_policy_decision": 176640,
+      "teacher_storage_flags": {
+        "true": 0,
+        "false": 0,
+        "absent_or_null": 2048
+      },
+      "teacher_prefix_exclusion_verified": true,
+      "teacher_prefix_decisions_excluded": 0,
+      "teacher_prefix_physics_ticks_excluded": 0,
+      "prefix_attempts": [],
+      "all_physical_decisions_including_prefix": 2048,
+      "phase_counts_match_credited_telemetry": true,
+      "terminal_decisions": [
+        {
+          "global_policy_decision": 175219,
+          "phase": "P05",
+          "end_phase": "P05",
+          "physics_tick": 5011,
+          "sim_time_s": 41.75833333333333,
+          "terminal": true,
+          "terminal_bootstrap_allowed": false,
+          "task_result_scope": "unknown_not_recorded",
+          "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+          "task_success": false,
+          "full_task_success": false
+        },
+        {
+          "global_policy_decision": 175836,
+          "phase": "P05",
+          "end_phase": "P05",
+          "physics_tick": 4936,
+          "sim_time_s": 41.13333333333333,
+          "terminal": true,
+          "terminal_bootstrap_allowed": false,
+          "task_result_scope": "unknown_not_recorded",
+          "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+          "task_success": false,
+          "full_task_success": false
+        },
+        {
+          "global_policy_decision": 176502,
+          "phase": "P05",
+          "end_phase": "P05",
+          "physics_tick": 5323,
+          "sim_time_s": 44.358333333333334,
+          "terminal": true,
+          "terminal_bootstrap_allowed": false,
+          "task_result_scope": "unknown_not_recorded",
+          "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+          "task_success": false,
+          "full_task_success": false
+        }
+      ],
+      "last_credited_decision": {
+        "global_policy_decision": 176640,
+        "phase": "P02",
+        "end_phase": "P02",
+        "physics_tick": 1104,
+        "sim_time_s": 9.2,
+        "terminal": false,
+        "terminal_bootstrap_allowed": true,
+        "task_result_scope": "unknown_not_recorded"
+      }
+    },
+    "updates": [
+      {
+        "ppo_update": 1330,
+        "global_policy_decisions": 174720,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 1.1091805440696143,
+        "gradient_norm_max": 1.4142135285160198,
+        "kl_mean": 0.014513289127724227,
+        "clip_fraction": 0.225,
+        "entropy": -14.677488946914673,
+        "value_loss": 0.18960505351424217,
+        "surrogate_loss": -0.024659492820501328
+      },
+      {
+        "ppo_update": 1331,
+        "global_policy_decisions": 174848,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 1.4142130125195533,
+        "gradient_norm_max": 1.4142135375510374,
+        "kl_mean": 0.016925371408218225,
+        "clip_fraction": 0.25,
+        "entropy": -10.899607276916504,
+        "value_loss": 0.6225086882710457,
+        "surrogate_loss": -0.035174816846847534
+      },
+      {
+        "ppo_update": 1332,
+        "global_policy_decisions": 174976,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 0.9999998251381671,
+        "gradient_norm_max": 1.4142136357317485,
+        "kl_mean": 0.01878771427328806,
+        "clip_fraction": 0.228125,
+        "entropy": -11.567377805709839,
+        "value_loss": 1.417870569229126,
+        "surrogate_loss": -0.03168907314538956
+      },
+      {
+        "ppo_update": 1333,
+        "global_policy_decisions": 175104,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 1.4142132965136298,
+        "gradient_norm_max": 1.4142135954071273,
+        "kl_mean": 0.017284581940126654,
+        "clip_fraction": 0.24375,
+        "entropy": -8.285109305381775,
+        "value_loss": 0.9376563370227814,
+        "surrogate_loss": -0.02733287513256073
+      },
+      {
+        "ppo_update": 1334,
+        "global_policy_decisions": 175232,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 1.3577051237141713,
+        "gradient_norm_max": 1.4142135016234898,
+        "kl_mean": 0.02177099301553659,
+        "clip_fraction": 0.2625,
+        "entropy": -11.394298076629639,
+        "value_loss": 125.37448387145996,
+        "surrogate_loss": -0.03222624659538269
+      },
+      {
+        "ppo_update": 1335,
+        "global_policy_decisions": 175360,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 1.4142128564040322,
+        "gradient_norm_max": 1.4142134979887444,
+        "kl_mean": 0.016378961351446442,
+        "clip_fraction": 0.259375,
+        "entropy": -13.255284690856934,
+        "value_loss": 0.17893730625510215,
+        "surrogate_loss": -0.016559511050581933
+      },
+      {
+        "ppo_update": 1336,
+        "global_policy_decisions": 175488,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 1.4142133312954643,
+        "gradient_norm_max": 1.414213591568218,
+        "kl_mean": 0.015361693249736574,
+        "clip_fraction": 0.215625,
+        "entropy": -9.55286111831665,
+        "value_loss": 0.7524531692266464,
+        "surrogate_loss": -0.03315582983195782
+      },
+      {
+        "ppo_update": 1337,
+        "global_policy_decisions": 175616,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 0.9999997993652746,
+        "gradient_norm_max": 1.41421352521909,
+        "kl_mean": 0.01400079651213113,
+        "clip_fraction": 0.19375,
+        "entropy": -9.436360931396484,
+        "value_loss": 1.6252819418907165,
+        "surrogate_loss": -0.02566852606832981
+      },
+      {
+        "ppo_update": 1338,
+        "global_policy_decisions": 175744,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 1.4142128392079376,
+        "gradient_norm_max": 1.4142135804242562,
+        "kl_mean": 0.017742005331834197,
+        "clip_fraction": 0.2109375,
+        "entropy": -8.889261054992676,
+        "value_loss": 1.867584902048111,
+        "surrogate_loss": -0.02539568431675434
+      },
+      {
+        "ppo_update": 1339,
+        "global_policy_decisions": 175872,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 1.414213252159698,
+        "gradient_norm_max": 1.4142135395422135,
+        "kl_mean": 0.013197628616772972,
+        "clip_fraction": 0.2234375,
+        "entropy": -11.3773184299469,
+        "value_loss": 128.99934120178222,
+        "surrogate_loss": -0.027304485067725183
+      },
+      {
+        "ppo_update": 1340,
+        "global_policy_decisions": 176000,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 1.230544826112862,
+        "gradient_norm_max": 1.4142135226265664,
+        "kl_mean": 0.014779982075567766,
+        "clip_fraction": 0.1890625,
+        "entropy": -15.065376281738281,
+        "value_loss": 0.33154418915510175,
+        "surrogate_loss": -0.018933982029557227
+      },
+      {
+        "ppo_update": 1341,
+        "global_policy_decisions": 176128,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 1.4142133056167197,
+        "gradient_norm_max": 1.4142135583357742,
+        "kl_mean": 0.016082919053962596,
+        "clip_fraction": 0.2125,
+        "entropy": -9.819029808044434,
+        "value_loss": 1.0716872721910478,
+        "surrogate_loss": -0.021002304181456564
+      },
+      {
+        "ppo_update": 1342,
+        "global_policy_decisions": 176256,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 0.9999998782804344,
+        "gradient_norm_max": 1.4142135708476866,
+        "kl_mean": 0.020922328269092638,
+        "clip_fraction": 0.2796875,
+        "entropy": -10.21438708305359,
+        "value_loss": 1.0456475228071214,
+        "surrogate_loss": -0.026364052295684816
+      },
+      {
+        "ppo_update": 1343,
+        "global_policy_decisions": 176384,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 1.2962504830680301,
+        "gradient_norm_max": 1.4142135430553302,
+        "kl_mean": 0.01554468899559459,
+        "clip_fraction": 0.19375,
+        "entropy": -9.705776500701905,
+        "value_loss": 1.1455094426870347,
+        "surrogate_loss": -0.026447534933686255
+      },
+      {
+        "ppo_update": 1344,
+        "global_policy_decisions": 176512,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 0.9999998259224492,
+        "gradient_norm_max": 1.4142136006763877,
+        "kl_mean": 0.029928095389561826,
+        "clip_fraction": 0.353125,
+        "entropy": -10.11285924911499,
+        "value_loss": 145.80325508117676,
+        "surrogate_loss": -0.032163546234369275
+      },
+      {
+        "ppo_update": 1345,
+        "global_policy_decisions": 176640,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 1.4142131696668445,
+        "gradient_norm_max": 1.4142135575744446,
+        "kl_mean": 0.02483654443058956,
+        "clip_fraction": 0.2953125,
+        "entropy": -13.671512842178345,
+        "value_loss": 0.058359529636800286,
+        "surrogate_loss": -0.03030325993895531
+      }
+    ],
+    "gradient_summary": {
+      "all_updates_finite_nonzero": true,
+      "all_updates_actor_changed": true,
+      "optimizer_gradient_norm_range": {
+        "min": 0.9999997993652746,
+        "max": 1.4142136357317485
+      },
+      "effective_learning_rate_range": {
+        "min": 0.00001,
+        "max": 0.00001
+      },
+      "gradient_measurement": "Existing optimizer pre-hook norm over all non-null optimizer parameter gradients"
+    },
+    "state_handling": {
+      "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+      "normalizer_hash_unchanged": true,
+      "actor_obs_normalization": false,
+      "critic_obs_normalization": false,
+      "resume_physics": "legal_reset_not_bitwise_continuation",
+      "physical_env_state_saved": false,
+      "fresh_rollout_required_by_migration": true,
+      "migration_schema": "wlr50_clean.semantic_checkpoint_migration.v1",
+      "historical_warm_start_metadata_is_not_this_run_reset": true
+    },
+    "task_results": {
+      "training_success_is_not_task_success": true,
+      "completed_episodes": [
+        {
+          "episode_index": 0,
+          "seed": 1001,
+          "policy_decisions": 627,
+          "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+          "task_success": false,
+          "task_outcome_label": "INCOMPLETE_CONTROLLER_BLOCKED",
+          "full_task_success": false,
+          "duration_s": 41.75833333333333
+        },
+        {
+          "episode_index": 1,
+          "seed": 1001,
+          "policy_decisions": 617,
+          "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+          "task_success": false,
+          "task_outcome_label": "INCOMPLETE_CONTROLLER_BLOCKED",
+          "full_task_success": false,
+          "duration_s": 41.13333333333333
+        },
+        {
+          "episode_index": 2,
+          "seed": 1001,
+          "policy_decisions": 666,
+          "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+          "task_success": false,
+          "task_outcome_label": "INCOMPLETE_CONTROLLER_BLOCKED",
+          "full_task_success": false,
+          "duration_s": 44.358333333333334
+        }
+      ],
+      "success_count_scope": "fresh_P01_no_prefix",
+      "current_policy_full_P01_success_count": 0,
+      "teacher_initialized_task_success_count": 0,
+      "nonterminal_tail_is_not_a_completed_episode": true
+    },
+    "stop_after_update": null,
+    "verification": "Metadata plus credited audit/optimizer/episode records only. Recorded save/load proof is not independently rerun; no checkpoint tensor load or byte rehash."
+  }
+}
