@@ -496,7 +496,7 @@ def _validated_exploration_temperature_factor(metadata: Mapping[str, Any], recor
     from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
     exclusive = ("execution_factor", "instrumentation_observation_contract", "video_instrumentation_factor",
         "nominal_timing_factor", "body_reward_factor", "task_first_reward_factor", "height_recovery_factor",
-        "execution_composition_factor", "final_stop_handoff_factor")
+        "execution_composition_factor", "final_stop_handoff_factor", "rr_physical_acceptance_same372_factor")
     if any(record.get(key) is not None for key in exclusive):
         raise RuntimeError("exploration temperature migration cannot mix other migration factors")
     if (not isinstance(factor, Mapping) or semantic_version != "v3"
@@ -606,11 +606,12 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         task_first_factor = (verified.get("task_first_reward_factor") or {}).get("observation_contract")
         composition_factor = (verified.get("execution_composition_factor") or {}).get("observation_contract")
         stop_handoff_factor = (verified.get("final_stop_handoff_factor") or {}).get("observation_contract")
+        rr_acceptance_factor = (verified.get("rr_physical_acceptance_same372_factor") or {}).get("observation_contract")
         height_factor = (verified.get("height_recovery_factor") or {}).get("observation_contract")
         temperature_factor = None if temperature is None else temperature["observation_contract"]
-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, height_factor, temperature_factor)) > 1:
+        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, height_factor, temperature_factor)) > 1:
             raise RuntimeError("reviewed same-layout migration receipts must be exclusive")
-        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or height_factor or temperature_factor
+        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or height_factor or temperature_factor
         if reviewed_factor is not None:
             if factor is not None:
                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")
@@ -655,6 +656,17 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
     assert_semantic_return_consistency(runner, runner.env)
     if migration is not None:
         infos = {**infos, "resume_migration": dict(migration)}
+        rr_factor = verified.get("rr_physical_acceptance_same372_factor")
+        if rr_factor is not None:
+            if optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate"):
+                raise RuntimeError("RR continuation changed the source effective Adam learning rate")
+            infos["rr_task_branch"] = {
+                "schema": "wlr50_clean.rr_task_continuation_branch.v1",
+                "branch_id": rr_factor["branch_id"], "counter_origin": dict(rr_factor["counter_origin"]),
+                "source_checkpoint_sha256": verified["source_checkpoint_sha256"],
+                "source_manifest_sha256": verified["source_manifest_sha256"],
+                "migration_added_updates": 0,
+            }
     infos = {**infos, "resume_source_checkpoint": {
         "checkpoint": str(checkpoint.resolve()), "checkpoint_sha256": sha256_file(checkpoint),
         "manifest": str(sidecar.resolve()), "manifest_sha256": sha256_file(sidecar)}}
@@ -1484,7 +1496,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
             torch.save(snapshot, rollout_dir / f"rollout_{base_updates + iteration + 1:06d}.pt")
             global_step = base_global + (iteration + 1) * batch
             runner.alg.entropy_coef = 0.005 + (0.001 - 0.005) * min(global_step / sum(STAGE_BUDGETS.values()), 1.0)
-            if contract.get("experiment_id") == "task_first_recovery_v1":
+            if contract.get("experiment_id") in ("task_first_recovery_v1", "residual_rr_fix_v1"):
                 update = audited_ppo_update(runner, likelihood_audit_path=rollout_dir /
                     f"update_{base_updates + iteration + 1:06d}_likelihood.json")
             else:
@@ -1528,12 +1540,17 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             "new_mdp_initial_action_comparison", "policy_distribution_migration",
                             "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison",
                             "observation_scale_compensation_evidence", "observation_append_evidence",
-                            "task_recovery_branch"):
+                            "task_recovery_branch", "rr_task_branch"):
                     if key in previous:
                         infos[key] = previous[key]
                 if "task_recovery_branch" in infos:
                     origin = infos["task_recovery_branch"]["counter_origin"]
                     infos["task_recovery_branch_counts"] = {
+                        key: int(infos[key]) - int(origin[key])
+                        for key in ("global_policy_decisions", "ppo_updates", "optimizer_steps")}
+                if "rr_task_branch" in infos:
+                    origin = infos["rr_task_branch"]["counter_origin"]
+                    infos["rr_task_branch_counts"] = {
                         key: int(infos[key]) - int(origin[key])
                         for key in ("global_policy_decisions", "ppo_updates", "optimizer_steps")}
                 if previous:

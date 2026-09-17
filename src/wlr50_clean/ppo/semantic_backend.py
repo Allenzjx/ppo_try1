@@ -132,7 +132,8 @@ class SemanticIsaacBackend(IsaacFSMBackend):
             if not math.isfinite(self._nominal_geometry_margin_m) or self._nominal_geometry_margin_m <= 0.:
                 raise ValueError("nominal geometry requires the existing positive physical clearance margin")
             if self._nominal_geometry_mode in (FUNCTIONAL_RR_MODE, BOUNDED_RR_MODE):
-                if task_spec.get("p09_lift_semantics") != "functional_lift_edge_v2":
+                if task_spec.get("p09_lift_semantics") not in (
+                        "functional_lift_edge_v2", "functional_free_air_lift_v3"):
                     raise ValueError("functional RR geometry requires matching current-lift semantics")
                 self._functional_geometry_parameters = dict(mode=self._nominal_geometry_mode,
                     minimum_lift_gain_m=float(task_spec["history"]["minimum_lift_gain_m"]),

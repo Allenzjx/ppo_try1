@@ -97,7 +97,8 @@ class TransferRoleTracker:
         self.transfer_response_since = dict.fromkeys(LEGS, None)
         self._separate_transfer_response = (
             spec.get("physical_acceptance_version") == ALL_STAGE_ACCEPTANCE_VERSION)
-        self._independent_validity = spec.get("p09_lift_semantics") == "functional_lift_edge_v2"
+        self._independent_validity = spec.get("p09_lift_semantics") in (
+            "functional_lift_edge_v2", "functional_free_air_lift_v3")
 
     def observe(self, raw, evaluation):
         current, hist = evaluation["current_legs"], evaluation["history"]

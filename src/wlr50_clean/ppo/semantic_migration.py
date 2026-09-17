@@ -67,6 +67,14 @@ HEIGHT_FILES = HEIGHT_CODE_FILES | {TIMING_ONLY_SPEC, HEIGHT_EXECUTION}
 EXPLORATION_TEMPERATURE_SCHEMA = "wlr50_clean.history372_innovation_temperature_continuation.v1"
 TASK_FIRST_REWARD_SCHEMA = "wlr50_clean.task_first_reward_same372_continuation.v1"
 TASK_RECOVERY_BRANCH_SCHEMA = "wlr50_clean.task_recovery_mean_head_branch.v1"
+RR_PHYSICAL_ACCEPTANCE_SCHEMA = "wlr50_clean.rr_physical_acceptance_same372_continuation.v1"
+RR_PHYSICAL_ACCEPTANCE_FILES = frozenset({
+    *(f"src/wlr50_clean/ppo/{name}.py" for name in (
+        "semantic_supervisor", "semantic_transfer_roles", "semantic_backend",
+        "semantic_migration", "semantic_training", "semantic_cli", "semantic_video_cli",
+        "semantic_video", "isaac_fsm_backend")),
+    "scripts/run_semantic_ppo.ps1", "scripts/run_semantic_video.ps1",
+})
 FINAL_STOP_HANDOFF_SCHEMA = "wlr50_clean.final_stop_handoff_same372_fix.v1"
 FINAL_STOP_HANDOFF_FILES = frozenset({SUPERVISOR, "src/wlr50_clean/ppo/semantic_migration.py",
     "src/wlr50_clean/ppo/semantic_training.py"})
@@ -103,7 +111,7 @@ def experiment_namespace(semantic_version: str, experiment_id: str | None = None
         raise ValueError("unsupported semantic runtime version")
     if experiment_id is None:
         return f"ppo_semantic_{semantic_version}"
-    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1") or semantic_version != "v3":
+    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1") or semantic_version != "v3":
         raise ValueError("isolated semantic experiment requires semantic version v3")
     return f"ppo_{experiment_id}"
 
@@ -2313,6 +2321,159 @@ def apply_task_recovery_mean_head(runner: Any, source_infos: Mapping[str, Any], 
             "task_recovery_branch": branch}
 
 
+def _build_rr_physical_acceptance_plan(checkpoint, metadata, old, new, *,
+        allowed_changed_files, reason, review, project_root):
+    """One reviewed task/nominal semantic boundary; no tensor or kernel change.
+
+    Exact file receipts express the reviewer's scope, not a claim that differing
+    source code is equivalent. Old migration factors retain their own rules.
+    """
+    import copy
+    import yaml
+    from .semantic_policy_distribution import CONFIG_NAMES, HISTORY_QUARTER_TEMPERED_POLICY, policy_contract
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    from .semantic_training import semantic_runner_config
+    from .semantic_return_profile import runner_return_profile
+    if (not isinstance(review, Mapping) or set(review) != {"reason", "reviewed_code_sha256"}
+            or not isinstance(review["reason"], str) or not review["reason"].strip()
+            or not isinstance(reason, str) or not reason.strip()):
+        raise ValueError("RR acceptance requires an explicit reason and exact reviewed hashes")
+    if (old.get("experiment_id") != "task_first_recovery_v1"
+            or new.get("experiment_id") != "residual_rr_fix_v1"
+            or old.get("semantic_version") != "v3" or new.get("semantic_version") != "v3"
+            or source_num_envs(metadata) != 1):
+        raise ValueError("RR acceptance requires task-first to isolated RR-fix v3 N1")
+    canonical = policy_contract(HISTORY_QUARTER_TEMPERED_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    if metadata.get("policy_contract") != canonical:
+        raise ValueError("RR acceptance preserves the complete quarter HISTORY372 full12 policy")
+    horizon = runner_return_profile(metadata["runner_config"], semantic_version="v3")["version"]
+    config = semantic_runner_config(seed=metadata["seed"], device=metadata["runner_config"]["device"],
+        semantic_version="v3", policy_version=HISTORY_QUARTER_TEMPERED_POLICY,
+        observation_layout=ROLE_OBSERVATION_LAYOUT, return_profile=horizon)
+    if metadata["runner_config"] != config:
+        raise ValueError("RR acceptance cannot change PPO hyperparameters or normalization")
+    variable = {"files", "runtime_content_sha256", "source_git_commit", "selected_configuration", "experiment_id"}
+    if ({k: v for k, v in old.items() if k not in variable}
+            != {k: v for k, v in new.items() if k not in variable}):
+        raise ValueError("RR acceptance cannot change frozen physical/runtime metadata")
+    delta = sorted(p for p in old["files"].keys() | new["files"].keys()
+                   if old["files"].get(p) != new["files"].get(p))
+    if sorted(allowed_changed_files) != delta or len(set(allowed_changed_files)) != len(allowed_changed_files):
+        raise ValueError("RR acceptance requires the exact unique changed-file inventory")
+    if old["files"].keys() - new["files"].keys():
+        raise ValueError("RR acceptance cannot delete runtime files")
+    source_namespace, target_namespace = "configs/ppo_task_first_recovery_v1", "configs/ppo_residual_rr_fix_v1"
+    zero_namespace = "configs/ppo_non_residual_refine_v1"
+    targets = {f"{target_namespace}/{name}" for name in CONFIG_NAMES}
+    zero_configs = {f"{zero_namespace}/{name}" for name in CONFIG_NAMES}
+    code_delta = set(delta) - targets - zero_configs
+    if not code_delta <= RR_PHYSICAL_ACCEPTANCE_FILES or SUPERVISOR not in code_delta:
+        raise ValueError(f"RR acceptance changed protected files or lacks core fix: {sorted(code_delta - RR_PHYSICAL_ACCEPTANCE_FILES)}")
+    hashes = review["reviewed_code_sha256"]
+    if not isinstance(hashes, Mapping) or dict(hashes) != {p: new["files"][p] for p in sorted(code_delta)}:
+        raise ValueError("RR acceptance reviewed hashes must bind every changed code file")
+    records = {}
+    for side, contract, namespace in (("source", old, source_namespace), ("target", new, target_namespace)):
+        if set(contract.get("selected_configuration", {})) != CONFIG_NAMES:
+            raise ValueError("RR acceptance requires exactly six selected configuration bindings")
+        for name in CONFIG_NAMES:
+            relative = f"{namespace}/{name}"
+            expected = {"path": relative, "sha256": contract["files"].get(relative)}
+            if contract["selected_configuration"][name] != expected or expected["sha256"] is None:
+                raise ValueError("RR acceptance configuration binding differs from inventory")
+            records.setdefault(name, {})[side] = expected
+    zero_records = {}
+    if zero_configs & new["files"].keys() and not zero_configs <= new["files"].keys():
+        raise ValueError("RR acceptance cannot inherit a partial zero configuration")
+    for name, row in records.items():
+        before_bytes = _version_bytes(project_root, old, row["source"]["path"], prefer_worktree=True)
+        after_bytes = _version_bytes(project_root, new, row["target"]["path"], prefer_worktree=True)
+        before, after = yaml.safe_load(before_bytes), yaml.safe_load(after_bytes)
+        if name == "stage_task_spec.yaml":
+            if (before.get("p09_lift_semantics") != "functional_lift_edge_v2"
+                    or before.get("physical_acceptance_version") != "all_stage_v1"
+                    or before["nominal"].get("final_stop_owner") != "current_physical_stop_nominal_owner_v1"
+                    or "rr_carry_source_semantics" in before["nominal"]):
+                raise ValueError("RR acceptance requires the declared original lift/source/stop semantics")
+            expected = copy.deepcopy(before)
+            expected.update(revision="residual_rr_fix_v1", p09_lift_semantics="functional_free_air_lift_v3")
+            expected["nominal"].update(rr_carry_source_semantics="current_free_lift_before_pending_knee_and_roll_v1",
+                final_stop_owner="source_home_after_physical_stop_v2")
+            if after != expected:
+                raise ValueError("RR acceptance permits only the four declared stage-spec fields")
+        elif before_bytes != after_bytes:
+            raise ValueError(f"RR acceptance requires byte-identical non-stage configuration: {name}")
+        row.update(bytes_identical=before_bytes == after_bytes, semantics_identical=before == after)
+        # These six public zero files were introduced after the source checkpoint.
+        # Bind their narrow existing home-mode delta instead of ignoring all new configs.
+        relative = f"{zero_namespace}/{name}"
+        if relative in new["files"]:
+            zero_bytes = _version_bytes(project_root, new, relative, prefer_worktree=True)
+            expected_zero = copy.deepcopy(before)
+            if name == "stage_task_spec.yaml":
+                expected_zero["nominal"]["final_stop_owner"] = "source_home_after_physical_stop_v2"
+                if yaml.safe_load(zero_bytes) != expected_zero:
+                    raise ValueError("RR acceptance inherited zero profile changed beyond home mode")
+            elif zero_bytes != before_bytes:
+                raise ValueError("RR acceptance inherited zero non-stage config must remain identical")
+            zero_records[name] = {"path": relative, "sha256": new["files"][relative]}
+    for relative in delta:
+        if relative in old["files"]:
+            _version_bytes(project_root, old, relative, prefer_worktree=True)
+        if file_sha(project_root / relative) != new["files"][relative]:
+            raise ValueError("RR acceptance target bytes differ from current inventory")
+    reward = yaml.safe_load(_version_bytes(project_root, new, records["reward_config.yaml"]["target"]["path"], prefer_worktree=True))
+    if (reward.get("objective_profile") != "task_first_recovery_v1" or reward.get("quality_epsilon") != 0.0
+            or any(reward.get("family_weights", {}).get(name) != 0.0 for name in (
+                "body_stability", "contact_motion_quality", "control_smoothness", "control_regularization"))):
+        raise ValueError("RR acceptance retains the unchanged task-first epsilon-zero reward")
+    origin = {key: metadata[key] for key in ("global_policy_decisions", "ppo_updates", "optimizer_steps")}
+    observation = {"source_policy_contract": canonical, "target_policy_contract": dict(canonical),
+        "observation_layout": ROLE_OBSERVATION_LAYOUT, "observation_dimension": 372,
+        "action_dimension": 12, "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"}
+    factor = {"schema": RR_PHYSICAL_ACCEPTANCE_SCHEMA, "review_reason": review["reason"].strip(),
+        "branch_id": "residual_rr_fix_v1", "counter_origin": origin,
+        "reviewed_code_sha256": dict(hashes), "configuration_bindings": records,
+        "inherited_zero_configuration_bindings": zero_records,
+        "source_runner_config": config, "target_runner_config": copy.deepcopy(config),
+        "p09_lift_semantics": "functional_free_air_lift_v3",
+        "rr_carry_source_semantics": "current_free_lift_before_pending_knee_and_roll_v1",
+        "final_stop_owner": "source_home_after_physical_stop_v2",
+        "task_acceptance_changed": True, "nominal_control_changed": True,
+        "action_execution_changed": True, "physical_mdp_changed": True,
+        "physical_scene_changed": False, "actuator_capability_changed": False,
+        "recorded_FSM_source_changed": False, "nominal_geometry_changed": False,
+        "action_ranges_changed": False, "kernel_changed": False,
+        "reward_code_and_weights_changed": False, "task_reward_event_semantics_changed": True,
+        "quality_epsilon": 0.0, "observation_layout_changed": False,
+        "observation_semantics_changed": ["RR_current_free_air_lift_and_qualified_history",
+            "task_goal_and_completed_stage_derived_values", "transfer_role_current_lift_readiness",
+            "nominal_source_carry_and_terminal_action_values"],
+        "observation_contract": observation,
+        "controller_history_reset_on_phase_transition": False,
+        "normalizers": "preserve_verified_identity_RSL_state",
+        "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+        "critic": "preserve_parameters_and_Adam_then_refit_on_new_task_semantics_on_policy_data",
+        "training_rng": "preserve_verified_training_rng", "lifetime_counters_preserved": True,
+        "old_rollout_inherited": False, "migration_added_updates": 0,
+        "video_camera_scope": "viewport_only_same_review_camera_as_isolated_zero",
+        "trajectory_equivalence_claimed": False,
+        "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True}
+    sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
+    return {"schema": SCHEMA, "reason": reason.strip(), "source_checkpoint": str(checkpoint),
+        "source_checkpoint_sha256": file_sha(checkpoint), "source_manifest_sha256": file_sha(sidecar),
+        "source_contract_sha256": digest(old), "target_contract_sha256": digest(new),
+        "source_git_commit": old["source_git_commit"], "target_git_commit": new["source_git_commit"],
+        "source_runtime_content_sha256": old["runtime_content_sha256"],
+        "target_runtime_content_sha256": new["runtime_content_sha256"],
+        "allowed_changed_files": delta,
+        "changed_file_hashes": {p: {"before": old["files"].get(p), "after": new["files"][p]} for p in delta},
+        "geometric_factor": None, "observation_dimension": 372, "action_dimension": 12,
+        "preserve_actor_critic_optimizer_normalizer_rng_and_budget": True,
+        "discard_old_rollout_storage": True, "physics_resume": "fresh_legal_P01_reset",
+        "rr_physical_acceptance_same372_factor": factor}
+
+
 def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
                          allowed_changed_files: Sequence[str], reason: str,
                          prior_evidence: Mapping[str, Any] | None = None,
@@ -2327,11 +2488,21 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                          task_first_reward_review: Mapping[str, Any] | None = None,
                          execution_composition_review: Mapping[str, Any] | None = None,
                          final_stop_handoff_review: Mapping[str, Any] | None = None,
+                         rr_physical_acceptance_review: Mapping[str, Any] | None = None,
                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Build a reviewed plan after committing the new runtime; does not write."""
     checkpoint = Path(checkpoint).resolve(strict=True)
     metadata = checkpoint_metadata(checkpoint)
     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
+    if rr_physical_acceptance_review is not None:
+        if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
+                execution_evidence, video_review, timing_review, body_reward_review,
+                height_recovery_review, exploration_temperature_review, task_first_reward_review,
+                execution_composition_review, final_stop_handoff_review)):
+            raise ValueError("RR acceptance cannot mix any other migration factor")
+        return _build_rr_physical_acceptance_plan(checkpoint, metadata, old, new,
+            allowed_changed_files=allowed_changed_files, reason=reason,
+            review=rr_physical_acceptance_review, project_root=Path(project_root))
     if final_stop_handoff_review is not None:
         if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
                 execution_evidence, video_review, timing_review, body_reward_review,
@@ -2509,7 +2680,10 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                                         "reviewed_code_sha256": supplied["execution_composition_factor"]["reviewed_code_sha256"]},
                                     final_stop_handoff_review=None if "final_stop_handoff_factor" not in supplied else {
                                         "reason": supplied["final_stop_handoff_factor"]["review_reason"],
-                                        "reviewed_code_sha256": supplied["final_stop_handoff_factor"]["reviewed_code_sha256"]})
+                                        "reviewed_code_sha256": supplied["final_stop_handoff_factor"]["reviewed_code_sha256"]},
+                                    rr_physical_acceptance_review=None if "rr_physical_acceptance_same372_factor" not in supplied else {
+                                        "reason": supplied["rr_physical_acceptance_same372_factor"]["review_reason"],
+                                        "reviewed_code_sha256": supplied["rr_physical_acceptance_same372_factor"]["reviewed_code_sha256"]})
     if supplied != expected:
         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}

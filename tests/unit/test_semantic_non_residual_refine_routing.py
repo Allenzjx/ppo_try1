@@ -48,7 +48,7 @@ def test_six_configs_change_only_explicit_terminal_nominal_mode():
         assert (TARGET / name).read_bytes() == (SOURCE / name).read_bytes()
     before = yaml.safe_load((SOURCE / "stage_task_spec.yaml").read_text(encoding="utf-8"))
     expected = deepcopy(before)
-    expected["nominal"]["final_stop_owner"] = "source_home_after_physical_stop_v1"
+    expected["nominal"]["final_stop_owner"] = "source_home_after_physical_stop_v2"
     actual = yaml.safe_load((TARGET / "stage_task_spec.yaml").read_text(encoding="utf-8"))
     assert actual == expected
     assert before["nominal"]["final_stop_owner"] == "current_physical_stop_nominal_owner_v1"

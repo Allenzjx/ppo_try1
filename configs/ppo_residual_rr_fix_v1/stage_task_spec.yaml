@@ -3,8 +3,8 @@ rear_leg_order: RR_FIRST
 physics_hz: 120.0
 decision_hz: 15.0
 episode_maximum_duration_s: 200.0
-revision: fsm_reference_p09_stable_v2
-p09_lift_semantics: functional_lift_edge_v2
+revision: residual_rr_fix_v1
+p09_lift_semantics: functional_free_air_lift_v3
 reference_nominal_semantics: successful_fsm_derived_v2
 physical_acceptance_version: all_stage_v1
 # P13 phase_progress acceptance bands: 0 no event; .25 event/no timer;
@@ -99,12 +99,11 @@ final:
   maximum_body_angular_speed_rad_s: 0.30
   stable_duration_s: 0.5
 nominal:
-  # Isolated refinement: acquire the existing physical stop, then issue the
-  # reference's home-like servo request once current control is verified.
-  # v2 uses a finite quintic nominal ramp; measured stop rules stay unchanged.
-  # Do not replay its old wheel pulse. Mapper history, residual permission and
-  # the fixed physical observation window remain unchanged; home is not a gate.
+  # Restore the source home suggestion after physical stopping, with zero nominal wheels.
+  # RR carry advice requires current qualified free-air lift, not a stale event latch.
+  # All policy residuals, fixed physical completion rules and safety checks remain.
   final_stop_owner: source_home_after_physical_stop_v2
+  rr_carry_source_semantics: current_free_lift_before_pending_knee_and_roll_v1
   height_recovery:
     mode: source_segment_reduction_and_live_recovery_v1
     candidate_id: RL_preparation_minus3_v1

@@ -87,7 +87,7 @@ def build_video_core(app, *, role, semantic_version, experiment_id=None):
         from .isaac_fsm_backend import IsaacFSMBackend, _load_live_dependencies
         from .residual_direct_env import ResidualEpisodeEnv
         options = {"audit_actuator_target_effect": True}
-        if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1"):
+        if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "residual_rr_fix_v1"):
             from dataclasses import replace
             from .semantic_supervisor import load_task_spec
             from .semantic_physical_sensing import SemanticSensorReader

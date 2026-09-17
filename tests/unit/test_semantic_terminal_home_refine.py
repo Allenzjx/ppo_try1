@@ -93,3 +93,43 @@ def test_home_refinement_does_not_mask_nonzero_residual(contract):
     assert r.effective_action_mask_full12 == (1,)*12
     assert all(x != 0. for x in r.safe_projected_residual_full12)
     assert all(x != 0. for x in r.applied_action_full12[8:])
+
+
+def test_v2_smooth_home_changes_nominal_not_fixed_physical_window(contract):
+    spec = deepcopy(provider(contract).spec)
+    spec['nominal']['final_stop_owner'] = 'source_home_after_physical_stop_v2'
+    p = NominalMotionProvider.from_handoff(contract, spec=spec, stage_id='P13',
+        nominal_full12=contract.phase('P13').start_full12, tracking_servo_names=())
+    start = p.nominal_full12[:8]
+    target = tuple(contract.phase('P13').end_full12[:8])
+    assert issue(p, contract, 100) == start+(0.,)*4
+    rows = [issue(p, contract, tick) for tick in range(101, 161)]
+    middle = rows[29][:8]
+    assert middle == pytest.approx(tuple((a+b)/2 for a, b in zip(start, target)))
+    assert rows[-1] == target+(0.,)*4
+    assert issue(p, contract, 170) == target+(0.,)*4
+    assert all(row[8:] == (0.,)*4 for row in rows)
+    for i, (a, b) in enumerate(zip(start, target)):
+        values = [start[i]]+[row[i] for row in rows]
+        assert all(min(a,b)-1e-12 <= v <= max(a,b)+1e-12 for v in values)
+        assert all((y-x)*(b-a) >= -1e-12 for x,y in zip(values,values[1:]))
+    d = p.nominal_suggestion_diagnostics['final_stop_owner']['home_recovery']
+    assert d['nominal_ramp_complete']
+    assert not d['physical_observation_window_changed']
+    assert not d['mapper_history_reset'] and not d['residual_channels_restricted']
+    assert p.spec['final']['post_completion_observation_s'] == 1.
+
+
+def test_v2_ramp_does_not_restart_when_current_control_transiently_lost(contract):
+    spec = deepcopy(provider(contract).spec)
+    spec['nominal']['final_stop_owner'] = 'source_home_after_physical_stop_v2'
+    p = NominalMotionProvider.from_handoff(contract, spec=spec, stage_id='P13',
+        nominal_full12=contract.phase('P13').start_full12, tracking_servo_names=())
+    issue(p, contract, 100)
+    def uncontrolled(t, _):
+        t['physical_evaluator'].update(final_controlled=False, task_completed_controlled=False)
+    issue(p, contract, 130, change=uncontrolled)
+    assert p._final_home_recovery['entry_observation_tick'] == 100
+    assert p.nominal_suggestion_diagnostics['final_stop_owner']['home_recovery'][
+        'nominal_ramp_fraction'] == pytest.approx(.5)
+    assert issue(p, contract, 160) == tuple(contract.phase('P13').end_full12[:8])+(0.,)*4
