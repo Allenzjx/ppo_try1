@@ -69,13 +69,18 @@ class FrozenCheckpointPrefixPolicy:
         import torch
         from rsl_rl.models import MLPModel
         from rsl_rl.modules.distribution import HeteroscedasticGaussianDistribution
-        from .semantic_history_actor import SemanticHistoryMLPModel
+        from .semantic_history_actor import (SemanticHistoryMLPModel,
+            SemanticTemperedHistoryMLPModel, SemanticQuarterTemperedHistoryMLPModel)
+        from .semantic_policy_distribution import HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY
 
         record = _source_record(source_checkpoint)
         version = supported_heteroscedastic_contract_version(record["policy_contract"])
         dimension = record["policy_contract"]["observation_dimension"]
         layout = record["policy_contract"].get("observation_layout")
-        expected_class = SemanticHistoryMLPModel if version == HISTORY_POLICY else MLPModel
+        history_classes = {HISTORY_POLICY: SemanticHistoryMLPModel,
+            HISTORY_TEMPERED_POLICY: SemanticTemperedHistoryMLPModel,
+            HISTORY_QUARTER_TEMPERED_POLICY: SemanticQuarterTemperedHistoryMLPModel}
+        expected_class = history_classes.get(version, MLPModel)
         if not isinstance(actor, torch.nn.Module) or getattr(actor, "is_recurrent", False):
             raise ValueError("checkpoint prefix requires a nonrecurrent torch actor")
         # At the same input layout both kernels have identical learned tensors.
@@ -96,7 +101,7 @@ class FrozenCheckpointPrefixPolicy:
                 or list(getattr(actor, "obs_groups", ())) != ["policy"]
                 or not isinstance(getattr(actor, "obs_normalizer", None), torch.nn.Module)):
             raise ValueError("actor does not implement its declared observation layout and Full12 heteroscedastic RSL interface")
-        if version == HISTORY_POLICY and (
+        if version in history_classes and (
                 actor.obs_normalization is not False
                 or type(actor.obs_normalizer) is not torch.nn.Identity):
             raise ValueError("history prefix requires the identity-normalized stored raw-history kernel")

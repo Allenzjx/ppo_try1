@@ -72,7 +72,7 @@ FL_CAPTURE_QUALITY_SCHEMA = "wlr50_clean.fl_capture_quality_same372_continuation
 FL_CAPTURE_QUALITY_FILES = frozenset({
     *(f"src/wlr50_clean/ppo/{name}.py" for name in (
         "semantic_reward", "semantic_supervisor", "semantic_migration", "semantic_training",
-        "semantic_cli", "semantic_video_cli", "semantic_video")),
+        "semantic_cli", "semantic_video_cli", "semantic_video", "semantic_checkpoint_prefix_policy")),
     "scripts/run_semantic_ppo.ps1", "scripts/run_semantic_video.ps1",
 })
 RR_PHYSICAL_ACCEPTANCE_FILES = frozenset({
@@ -2573,6 +2573,13 @@ def _build_fl_capture_quality_plan(checkpoint, metadata, old, new, *,
         without_mode_constants(_version_text(project_root, new, SUPERVISOR, prefer_worktree=True)),
         functions=("_capture_approach_enabled",),
         methods=("TaskStageSupervisor.physical_potential", "TaskStageSupervisor._current_capture_progress"))
+    prefix_path = "src/wlr50_clean/ppo/semantic_checkpoint_prefix_policy.py"
+    prefix_scope = None
+    if prefix_path in code_delta:
+        prefix_scope = _height_source_scope(
+            _version_text(project_root, old, prefix_path, prefer_worktree=True),
+            _version_text(project_root, new, prefix_path, prefer_worktree=True),
+            methods=("FrozenCheckpointPrefixPolicy.__init__",))
     for relative in delta:
         if relative in old["files"]:
             _version_bytes(project_root, old, relative, prefer_worktree=True)
@@ -2586,6 +2593,10 @@ def _build_fl_capture_quality_plan(checkpoint, metadata, old, new, *,
         "task_acceptance_changed": False, "nominal_control_changed": False, "action_execution_changed": False,
         "physical_scene_changed": False, "actuator_capability_changed": False, "action_ranges_changed": False,
         "kernel_changed": False, "reward_changed": True, "same_mdp_claimed": False,
+        "reset_prefix_class_acceptance_changed": prefix_scope is not None,
+        "checkpoint_prefix_scope": prefix_scope,
+        "reset_prefix_class_acceptance_semantics": "exact_declared_history_half_quarter_classes_same_deterministic_forward",
+        "prefix_policy_kernel_changed": False, "prefix_samples_have_optimizer_credit": False,
         "observation_layout_changed": False,
         "observation_semantics_changed": ["existing_global_physical_potential_feature_FL_capture_soft_progress"],
         "observation_contract": {"source_policy_contract": canonical, "target_policy_contract": dict(canonical),
