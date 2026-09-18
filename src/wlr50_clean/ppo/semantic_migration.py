@@ -68,6 +68,13 @@ EXPLORATION_TEMPERATURE_SCHEMA = "wlr50_clean.history372_innovation_temperature_
 TASK_FIRST_REWARD_SCHEMA = "wlr50_clean.task_first_reward_same372_continuation.v1"
 TASK_RECOVERY_BRANCH_SCHEMA = "wlr50_clean.task_recovery_mean_head_branch.v1"
 RR_PHYSICAL_ACCEPTANCE_SCHEMA = "wlr50_clean.rr_physical_acceptance_same372_continuation.v1"
+FL_CAPTURE_QUALITY_SCHEMA = "wlr50_clean.fl_capture_quality_same372_continuation.v1"
+FL_CAPTURE_QUALITY_FILES = frozenset({
+    *(f"src/wlr50_clean/ppo/{name}.py" for name in (
+        "semantic_reward", "semantic_supervisor", "semantic_migration", "semantic_training",
+        "semantic_cli", "semantic_video_cli", "semantic_video")),
+    "scripts/run_semantic_ppo.ps1", "scripts/run_semantic_video.ps1",
+})
 RR_PHYSICAL_ACCEPTANCE_FILES = frozenset({
     *(f"src/wlr50_clean/ppo/{name}.py" for name in (
         "semantic_supervisor", "semantic_transfer_roles", "semantic_backend",
@@ -111,7 +118,7 @@ def experiment_namespace(semantic_version: str, experiment_id: str | None = None
         raise ValueError("unsupported semantic runtime version")
     if experiment_id is None:
         return f"ppo_semantic_{semantic_version}"
-    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1") or semantic_version != "v3":
+    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1") or semantic_version != "v3":
         raise ValueError("isolated semantic experiment requires semantic version v3")
     return f"ppo_{experiment_id}"
 
@@ -2474,6 +2481,136 @@ def _build_rr_physical_acceptance_plan(checkpoint, metadata, old, new, *,
         "rr_physical_acceptance_same372_factor": factor}
 
 
+def _build_fl_capture_quality_plan(checkpoint, metadata, old, new, *,
+        allowed_changed_files, reason, review, project_root):
+    """Explicit reward/potential-feature boundary; preserve the learned kernel."""
+    import ast
+    import copy
+    import yaml
+    from .semantic_policy_distribution import CONFIG_NAMES, HISTORY_QUARTER_TEMPERED_POLICY, policy_contract
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    from .semantic_training import semantic_runner_config
+    from .semantic_return_profile import runner_return_profile
+    if (not isinstance(review, Mapping) or set(review) != {"reason", "reviewed_code_sha256"}
+            or not isinstance(review["reason"], str) or not review["reason"].strip()
+            or not isinstance(reason, str) or not reason.strip()):
+        raise ValueError("FL capture requires an explicit reason and exact reviewed hashes")
+    if (old.get("experiment_id") != "residual_rr_fix_v1"
+            or new.get("experiment_id") != "fl_capture_quality_v1"
+            or old.get("semantic_version") != "v3" or new.get("semantic_version") != "v3"
+            or source_num_envs(metadata) != 1):
+        raise ValueError("FL capture requires isolated RR-fix to FL-quality v3 N1")
+    canonical = policy_contract(HISTORY_QUARTER_TEMPERED_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    horizon = runner_return_profile(metadata["runner_config"], semantic_version="v3")["version"]
+    config = semantic_runner_config(seed=metadata["seed"], device=metadata["runner_config"]["device"],
+        semantic_version="v3", policy_version=HISTORY_QUARTER_TEMPERED_POLICY,
+        observation_layout=ROLE_OBSERVATION_LAYOUT, return_profile=horizon)
+    if metadata.get("policy_contract") != canonical or metadata["runner_config"] != config:
+        raise ValueError("FL capture preserves quarter HISTORY372 full12 PPO and normalization")
+    variable = {"files", "runtime_content_sha256", "source_git_commit", "selected_configuration", "experiment_id"}
+    if ({k: v for k, v in old.items() if k not in variable}
+            != {k: v for k, v in new.items() if k not in variable}):
+        raise ValueError("FL capture cannot change frozen physical/runtime metadata")
+    delta = sorted(p for p in old["files"].keys() | new["files"].keys()
+                   if old["files"].get(p) != new["files"].get(p))
+    if sorted(allowed_changed_files) != delta or len(set(allowed_changed_files)) != len(allowed_changed_files):
+        raise ValueError("FL capture requires the exact unique changed-file inventory")
+    if old["files"].keys() - new["files"].keys():
+        raise ValueError("FL capture cannot delete runtime files")
+    source_ns, target_ns = "configs/ppo_residual_rr_fix_v1", "configs/ppo_fl_capture_quality_v1"
+    targets = {f"{target_ns}/{name}" for name in CONFIG_NAMES}
+    code_delta = set(delta) - targets
+    if not code_delta <= FL_CAPTURE_QUALITY_FILES or not {SUPERVISOR, BODY_REWARD_CODE} <= code_delta:
+        raise ValueError("FL capture changed protected files or lacks the reviewed reward/potential change")
+    hashes = review["reviewed_code_sha256"]
+    if not isinstance(hashes, Mapping) or dict(hashes) != {p: new["files"][p] for p in sorted(code_delta)}:
+        raise ValueError("FL capture reviewed hashes must bind every changed code file")
+    records = {}
+    for side, contract, namespace in (("source", old, source_ns), ("target", new, target_ns)):
+        if set(contract.get("selected_configuration", {})) != CONFIG_NAMES:
+            raise ValueError("FL capture requires all six selected configuration bindings")
+        for name in CONFIG_NAMES:
+            relative = f"{namespace}/{name}"
+            expected = {"path": relative, "sha256": contract["files"].get(relative)}
+            if expected["sha256"] is None or contract["selected_configuration"][name] != expected:
+                raise ValueError("FL capture selected configuration differs from inventory")
+            records.setdefault(name, {})[side] = expected
+    for name, row in records.items():
+        before_bytes = _version_bytes(project_root, old, row["source"]["path"], prefer_worktree=True)
+        after_bytes = _version_bytes(project_root, new, row["target"]["path"], prefer_worktree=True)
+        before, after = yaml.safe_load(before_bytes), yaml.safe_load(after_bytes)
+        expected = copy.deepcopy(before)
+        if name == "stage_task_spec.yaml":
+            if (before.get("p09_lift_semantics") != "functional_free_air_lift_v3"
+                    or before.get("capture_approach_semantics") != "post_cross_current_surface_proximity_plus_real_contact_v1"
+                    or before["nominal"].get("final_stop_owner") != "source_home_after_physical_stop_v2"):
+                raise ValueError("FL capture source lacks the preserved current RR/home/capture semantics")
+            expected.update(revision="fl_capture_quality_v1",
+                capture_approach_semantics="post_cross_FL_multiscale_positive_gap_plus_real_contact_v1",
+                fl_capture_potential={"coarse_gap_scale_m": .025, "fine_gap_scale_m": .003, "fine_fraction": .5})
+        elif name == "reward_config.yaml":
+            if before.get("objective_profile") != "task_first_recovery_v1" or before.get("quality_epsilon") != 0.:
+                raise ValueError("FL capture source is not the preserved task-first reward")
+            expected.update(revision="fl_capture_front_body_quality_v1", objective_profile="fl_capture_front_body_quality_v1",
+                quality_epsilon=.03, euler_rate_scale_rad_s=.5,
+                front_body_quality={"phases": ["P01", "P02"], "transfer_weight_floor": .5,
+                    "attitude_fraction": .5, "rate_fraction": .5, "sample_audit": True})
+            expected["family_weights"]["body_stability"] = .03
+            expected["signal_ownership"]["body_stability"] = ["gravity_attitude", "euler_roll_pitch_derivative"]
+        elif before_bytes != after_bytes:
+            raise ValueError(f"FL capture requires byte-identical non-reward/task configuration: {name}")
+        if after != expected:
+            raise ValueError(f"FL capture configuration exceeds reviewed changes: {name}")
+        row.update(bytes_identical=before_bytes == after_bytes, semantics_identical=before == after)
+    # Protect the actual task evaluator and nominal controller, not just a flag.
+    def without_mode_constants(text):
+        tree = ast.parse(text)
+        tree.body = [n for n in tree.body if not (isinstance(n, ast.Assign) and len(n.targets) == 1
+            and isinstance(n.targets[0], ast.Name) and n.targets[0].id in {"FL_CAPTURE_APPROACH_MODE", "CAPTURE_APPROACH_MODES"})]
+        return ast.unparse(tree)
+    scope = _height_source_scope(
+        without_mode_constants(_version_text(project_root, old, SUPERVISOR, prefer_worktree=True)),
+        without_mode_constants(_version_text(project_root, new, SUPERVISOR, prefer_worktree=True)),
+        functions=("_capture_approach_enabled",),
+        methods=("TaskStageSupervisor.physical_potential", "TaskStageSupervisor._current_capture_progress"))
+    for relative in delta:
+        if relative in old["files"]:
+            _version_bytes(project_root, old, relative, prefer_worktree=True)
+        if file_sha(project_root / relative) != new["files"][relative]:
+            raise ValueError("FL capture target bytes differ from current inventory")
+    origin = {key: metadata[key] for key in ("global_policy_decisions", "ppo_updates", "optimizer_steps")}
+    factor = {"schema": FL_CAPTURE_QUALITY_SCHEMA, "review_reason": review["reason"].strip(),
+        "branch_id": "fl_capture_quality_v1", "counter_origin": origin,
+        "reviewed_code_sha256": dict(hashes), "configuration_bindings": records,
+        "supervisor_scope": scope, "source_runner_config": config, "target_runner_config": copy.deepcopy(config),
+        "task_acceptance_changed": False, "nominal_control_changed": False, "action_execution_changed": False,
+        "physical_scene_changed": False, "actuator_capability_changed": False, "action_ranges_changed": False,
+        "kernel_changed": False, "reward_changed": True, "same_mdp_claimed": False,
+        "observation_layout_changed": False,
+        "observation_semantics_changed": ["existing_global_physical_potential_feature_FL_capture_soft_progress"],
+        "observation_contract": {"source_policy_contract": canonical, "target_policy_contract": dict(canonical),
+            "observation_layout": ROLE_OBSERVATION_LAYOUT, "observation_dimension": 372,
+            "action_dimension": 12, "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"},
+        "normalizers": "preserve_verified_identity_RSL_state",
+        "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+        "critic": "preserve_then_refit_on_fresh_reward_data", "training_rng": "preserve_verified_training_rng",
+        "lifetime_counters_preserved": True, "old_rollout_inherited": False, "migration_added_updates": 0,
+        "policy_evaluation_modes": ["deterministic_conditional_mean", "training_style_conditional_gaussian"],
+        "trajectory_equivalence_claimed": False}
+    return {"schema": SCHEMA, "reason": reason.strip(), "source_checkpoint": str(checkpoint),
+        "source_checkpoint_sha256": file_sha(checkpoint),
+        "source_manifest_sha256": file_sha(checkpoint.with_name(checkpoint.stem + "_manifest.json")),
+        "source_contract_sha256": digest(old), "target_contract_sha256": digest(new),
+        "source_git_commit": old["source_git_commit"], "target_git_commit": new["source_git_commit"],
+        "source_runtime_content_sha256": old["runtime_content_sha256"],
+        "target_runtime_content_sha256": new["runtime_content_sha256"], "allowed_changed_files": delta,
+        "changed_file_hashes": {p: {"before": old["files"].get(p), "after": new["files"][p]} for p in delta},
+        "geometric_factor": None, "observation_dimension": 372, "action_dimension": 12,
+        "preserve_actor_critic_optimizer_normalizer_rng_and_budget": True,
+        "discard_old_rollout_storage": True, "physics_resume": "fresh_legal_P01_reset",
+        "fl_capture_quality_same372_factor": factor}
+
+
 def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
                          allowed_changed_files: Sequence[str], reason: str,
                          prior_evidence: Mapping[str, Any] | None = None,
@@ -2489,11 +2626,21 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                          execution_composition_review: Mapping[str, Any] | None = None,
                          final_stop_handoff_review: Mapping[str, Any] | None = None,
                          rr_physical_acceptance_review: Mapping[str, Any] | None = None,
+                         fl_capture_quality_review: Mapping[str, Any] | None = None,
                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Build a reviewed plan after committing the new runtime; does not write."""
     checkpoint = Path(checkpoint).resolve(strict=True)
     metadata = checkpoint_metadata(checkpoint)
     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
+    if fl_capture_quality_review is not None:
+        if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
+                execution_evidence, video_review, timing_review, body_reward_review,
+                height_recovery_review, exploration_temperature_review, task_first_reward_review,
+                execution_composition_review, final_stop_handoff_review, rr_physical_acceptance_review)):
+            raise ValueError("FL capture cannot mix any other migration factor")
+        return _build_fl_capture_quality_plan(checkpoint, metadata, old, new,
+            allowed_changed_files=allowed_changed_files, reason=reason,
+            review=fl_capture_quality_review, project_root=Path(project_root))
     if rr_physical_acceptance_review is not None:
         if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
                 execution_evidence, video_review, timing_review, body_reward_review,
@@ -2683,7 +2830,10 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                                         "reviewed_code_sha256": supplied["final_stop_handoff_factor"]["reviewed_code_sha256"]},
                                     rr_physical_acceptance_review=None if "rr_physical_acceptance_same372_factor" not in supplied else {
                                         "reason": supplied["rr_physical_acceptance_same372_factor"]["review_reason"],
-                                        "reviewed_code_sha256": supplied["rr_physical_acceptance_same372_factor"]["reviewed_code_sha256"]})
+                                        "reviewed_code_sha256": supplied["rr_physical_acceptance_same372_factor"]["reviewed_code_sha256"]},
+                                    fl_capture_quality_review=None if "fl_capture_quality_same372_factor" not in supplied else {
+                                        "reason": supplied["fl_capture_quality_same372_factor"]["review_reason"],
+                                        "reviewed_code_sha256": supplied["fl_capture_quality_same372_factor"]["reviewed_code_sha256"]})
     if supplied != expected:
         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}

@@ -21,6 +21,26 @@ ROLE_TRANSFER_VERSION = "diagonal_transfer_roles_v1"
 
 CARRY_BODY_ALLOWANCE_MODE = "current_functional_carry_and_capture_settle_v1"
 TASK_FIRST_OBJECTIVE = "task_first_recovery_v1"
+FRONT_QUALITY_OBJECTIVE = "fl_capture_front_body_quality_v1"
+
+
+def _front_quality_substate(task: Mapping[str, Any]) -> str:
+    """Audit labels only: none can disable or zero the front quality cost."""
+    # This is the production semantic-task envelope, not the inner evaluator
+    # snapshot. Historical capture is distinct from current support/load.
+    evaluation = task.get("physical_evaluator", {})
+    history = evaluation.get("history", {})
+    if history.get("placed", {}).get("FR") is True:
+        return "CAPTURED"
+    if history.get("front_edge_crossed", {}).get("FR") is True:
+        return "POST_CROSS_CAPTURE"
+    current = evaluation.get("current_legs", {}).get("FR", {})
+    if history.get("active_lift", {}).get("FR") is True:
+        if (current.get("air") is True and not current.get("ground_contact")
+                and current.get("clearance_m", -1.) >= .015):
+            return "FUNCTIONAL_CARRY"
+        return "QUALIFIED_LIFT_OR_TRANSFER"
+    return "UNQUALIFIED_PREPARATION"
 
 
 def _validate_task_priority(values: Mapping[str, Any]) -> None:
@@ -32,6 +52,20 @@ def _validate_task_priority(values: Mapping[str, Any]) -> None:
     nonzero-quality candidate needs its own explicit objective version.
     """
     objective = values.get("objective_profile")
+    if objective == FRONT_QUALITY_OBJECTIVE:
+        expected = {"phases": ["P01", "P02"], "transfer_weight_floor": .5,
+                    "attitude_fraction": .5, "rate_fraction": .5, "sample_audit": True}
+        if values.get("front_body_quality") != expected:
+            raise ValueError("front quality v1 requires explicit P01/P02 positive-floor body-only contract")
+        if (isinstance(values.get("quality_epsilon"), bool)
+                or finite(values.get("quality_epsilon"), "front quality epsilon") != .03
+                or values["family_weights"] != dict(zip(FAMILIES, (1., .03, 0., 0., 0.), strict=True))
+                or values["attitude_scale_rad"] != .5 or values["euler_rate_scale_rad_s"] != .5
+                or values["control_regularization_enabled"] is not False):
+            raise ValueError("front quality v1 binds only .03 body coefficient and declared physical scales")
+        return
+    if "front_body_quality" in values:
+        raise ValueError("front quality settings require their explicit objective version")
     if objective is None:
         if "quality_epsilon" in values:
             raise ValueError("quality epsilon requires an explicit objective profile")
@@ -235,6 +269,8 @@ class SemanticRewardCalculator:
         v = self.config.values
         costs = {name:0.0 for name in FAMILIES[1:]}
         diagnostics: dict[str,float] = {}
+        front_quality = v.get("objective_profile") == FRONT_QUALITY_OBJECTIVE
+        front_sample_audit = []
         total_dt = 0.0
         for sample in samples:
             dt = finite(sample.dt_s,"reward dt")
@@ -269,6 +305,38 @@ class SemanticRewardCalculator:
                 rates *= motion_weight
                 acceleration *= motion_weight
             body = (attitude+rates+acceleration)/3
+            if front_quality:
+                # Small positive cost during preparation AND carry. Never gate
+                # on success, AIR, lift loss, or a zero-cost transfer substage.
+                # Do not reuse the old carry exemption or acceleration cost.
+                cfg = v["front_body_quality"]
+                phase = sample.current.task["stage_id"]
+                eligible = phase in cfg["phases"]
+                weight = 1.-(1.-cfg["transfer_weight_floor"])*transfer_fraction
+                tilt_raw = _square_cost(metrics["rpy"][:2], (v["attitude_scale_rad"],)*2)
+                rate_raw = _square_cost(metrics["euler_roll_pitch_rate"], (v["euler_rate_scale_rad_s"],)*2)
+                body = (weight*(cfg["attitude_fraction"]*tilt_raw+cfg["rate_fraction"]*rate_raw)
+                        if eligible else 0.)
+                attitude = weight*tilt_raw if eligible else 0.
+                rates = weight*rate_raw if eligible else 0.
+                acceleration = 0.  # Measured elsewhere; not this objective.
+                if eligible:
+                    beta = v["family_weights"]["body_stability"]*weight
+                    front_sample_audit.append({
+                        "sim_time_s": metrics["sim_time_s"], "dt_s": dt, "phase": phase,
+                        "substate": _front_quality_substate(sample.current.task),
+                        "physical_transfer_fraction": transfer_fraction, "effective_beta_per_s": beta,
+                        "roll_pitch_rad": tuple(metrics["rpy"][:2]),
+                        "roll_pitch_rate_rad_s": tuple(metrics["euler_roll_pitch_rate"]),
+                        "raw_tilt_cost": tilt_raw, "raw_rate_cost": rate_raw,
+                        "weighted_quality_cost": v["family_weights"]["body_stability"]*body*dt,
+                    })
+                    for key, value in (("front_beta_time_integral", beta),
+                                       ("front_raw_tilt_cost", tilt_raw),
+                                       ("front_raw_rate_cost", rate_raw),
+                                       ("front_weighted_tilt_cost", beta*cfg["attitude_fraction"]*tilt_raw),
+                                       ("front_weighted_rate_cost", beta*cfg["rate_fraction"]*rate_raw)):
+                        diagnostics[key] = diagnostics.get(key, 0.)+value*dt
             contact_terms = []
             for index,(before,after) in enumerate(zip(sample.previous.metrics["wheels"],metrics["wheels"],strict=True)):
                 touchdown = after["contact"] and not before["contact"]
@@ -328,10 +396,14 @@ class SemanticRewardCalculator:
         unweighted = {"task_progress":potential+event-v["time_cost_per_s"]*total_dt,
                       **{name:-costs[name] for name in FAMILIES[1:]}}
         families = {name:unweighted[name]*v["family_weights"][name] for name in FAMILIES}
-        return {"total":sum(families.values()),"families":families,"unweighted_families":unweighted,
+        result = {"total":sum(families.values()),"families":families,"unweighted_families":unweighted,
                 "objective_profile":v.get("objective_profile", "legacy_quality_weighted"),
                 "quality_epsilon":v.get("quality_epsilon"),
                 "potential_before":phi_before,"potential_after":phi_after,"potential_shaping":potential,
                 "terminal_event":event,"elapsed_physics_s":total_dt,"cost_components":diagnostics,
                 "discount_convention":"one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",
                 "terminal_bootstrap_allowed":False if termination_reason else True}
+        if front_quality:
+            result["front_quality_sample_audit"] = front_sample_audit
+            result["front_quality_semantics"] = "P01_P02_tilt_rate_only_positive_transfer_floor_v1"
+        return result

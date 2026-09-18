@@ -1,0 +1,269 @@
+schema: wlr50_clean.semantic_stage_task_spec.v2
+rear_leg_order: RR_FIRST
+physics_hz: 120.0
+decision_hz: 15.0
+episode_maximum_duration_s: 200.0
+revision: fl_capture_quality_v1
+p09_lift_semantics: functional_free_air_lift_v3
+reference_nominal_semantics: successful_fsm_derived_v2
+physical_acceptance_version: all_stage_v1
+# P13 phase_progress acceptance bands: 0 no event; .25 event/no timer;
+# .50+.25*t healthy post; .80+.19*t latched region loss; 1 true success.
+# t is the full clipped1s timer; physical Phi uses a separate current-body /
+# measured-rate finish share, with no commanded-stop or home target.
+# An already-started fixed post window may finish past a local deadline,
+# but never past the global200s task deadline or a safety termination.
+local_timeout_policy:
+  mode: bounded_current_progress_allowance_v1
+  maximum_extension_s: 10.0
+  fraction_of_original_limit: 0.5
+  # Derived from observable stage id, current goal progress and stage elapsed.
+  # No renewable hidden deadline; incomplete runs remain finite task terminals.
+transfer_roles:
+  mode: diagonal_transfer_roles_v1
+  window_s: 0.5
+  minimum_evidence_s: 0.06666666666666667
+  motion_scale_m: 0.001
+  velocity_scale_m_s: 0.005
+  load_change_scale: 0.02
+  # Preferences and measured workspace proxies; not fixed support templates,
+  # joint targets, static balance certificates, or action-enabling conditions.
+  mapping:
+    FR: {diagonal_receiving_side: RL, preferred_bridge_contacts: [FL, RR]}
+    FL: {diagonal_receiving_side: RR, preferred_bridge_contacts: [FR, RL]}
+    RR: {diagonal_receiving_side: FL, preferred_bridge_contacts: [FR, RL]}
+    RL: {diagonal_receiving_side: FR, preferred_bridge_contacts: [FL, RR]}
+potential_definition: global_physical_progress_v3
+# Existing workspace credit only; later lift/carry/capture remain ordered.
+preparation_credit_semantics: current_workspace_before_predecessor_placement
+# Soft potential only: retain the existing .1 workspace share and .25 m scale,
+# but retain distance sensitivity beyond the old clipped preparation range.
+# Public entry/completion predicates, nominal scheduling and Q/C/P do not use it.
+workspace_potential_semantics: workspace_interval_reciprocal_potential_v1
+# Reuse capture credit for current region, without forcing contact or a pose.
+capture_retention_semantics: current_platform_region_after_placement
+# Reuse half the existing first-capture share for post-cross surface approach;
+# the other half still requires real contact. No change to hard placement.
+# Keep earned unload progress after qualified crossing so capture may load.
+capture_approach_semantics: post_cross_FL_multiscale_positive_gap_plus_real_contact_v1
+# Soft FL-only last-millimetre refinement; no nominal or placed predicate change.
+fl_capture_potential:
+  coarse_gap_scale_m: 0.025
+  fine_gap_scale_m: 0.003
+  fine_fraction: 0.5
+# Soft progress only; hard initial/qualified/cross/placed semantics are unchanged.
+lift_credit_semantics: measured_air_process_current_top_gap
+history:
+  crossing_evidence_semantics: qualified_air_pending_geometry
+  lift_motion_evidence: whole_body_actuation
+  minimum_initial_clearance_gain_m: 0.003
+  minimum_command_motion_deg: 0.1
+  minimum_gravity_direction_change: 0.02
+  window_s: 0.5
+  minimum_lift_gain_m: 0.008
+  minimum_joint_motion_deg: 2.0
+  minimum_air_samples: 2
+  minimum_top_samples: 2
+  near_front_min_m: -0.40
+  near_front_max_m: 0.15
+geometry:
+  # Legacy key spelling retained for existing nominal retirement. These bounds
+  # describe edge proximity ONLY; receiver workspace is separately measured.
+  workspace_min_m: -0.22
+  workspace_max_m: 0.06
+  approach_min_m: -0.005
+  approach_max_m: 0.10
+  airborne_clearance_above_top_m: 0.015
+  top_gap_min_m: -0.015
+  top_gap_max_m: 0.025
+  xy_measurement_tolerance_m: 0.005
+support:
+  minimum_other_supports: 2
+  force_noise_floor_n: 0.2
+  unloaded_leg_maximum_load_fraction: 0.20
+final:
+  post_completion_observation_s: 1.0
+  # Home remains a finite nominal suggestion and diagnostic, not a unique
+  # terminal joint configuration. Physical stop/region/support gates remain.
+  stop_pose_semantics: physical_stable_pose
+  # Explicit new-MDP progress/observation-scalar revision; no hard gate change.
+  # Replaces the whole stop aggregation with four continuous physical types.
+  stop_progress_semantics: per_wheel_four_type_threshold_ratio_v1
+  # Legacy fallback only when the above mode is absent, never counted twice.
+  stop_command_progress: reciprocal_physical_stop_tolerance
+  region: obstacle_top_after_front_plane
+  minimum_rear_wheel_forward_m: 0.02
+  minimum_body_forward_m: 0.15
+  home_servo_pose_deg: [0, 0, 0, 0, 0, 0, 0, 0]
+  home_tolerance_deg: 8.0
+  maximum_wheel_speed_rad_s: 0.25
+  # About 1 mm/s circumferential speed for the frozen 50 mm-radius wheels;
+  # this is a physical stop tolerance, not an exact-zero actor requirement.
+  maximum_commanded_wheel_speed_rad_s: 0.02
+  maximum_body_linear_speed_m_s: 0.05
+  maximum_body_angular_speed_rad_s: 0.30
+  stable_duration_s: 0.5
+nominal:
+  # Restore the source home suggestion after physical stopping, with zero nominal wheels.
+  # RR carry advice requires current qualified free-air lift, not a stale event latch.
+  # All policy residuals, fixed physical completion rules and safety checks remain.
+  final_stop_owner: source_home_after_physical_stop_v2
+  rr_carry_source_semantics: current_free_lift_before_pending_knee_and_roll_v1
+  height_recovery:
+    mode: source_segment_reduction_and_live_recovery_v1
+    candidate_id: RL_preparation_minus3_v1
+    preparation_reduction_deg: {front_left_hip: 0.0, rear_left_hip: 3.0}
+    post_lift_recovery_deg: {front_left_hip: 0.0, rear_left_hip: 0.0}
+    recovery_rate_deg_s: 15.0
+  sequence_semantics: source_partial_order_physical_ready_v1
+  p05_pending_capture: current_FL_capture_wheel_continuation_to_handoff_v2
+  continuous_channel_inheritance: true
+  # Retire only P06's rolling contribution inside the existing workspace margin.
+  p06_rolling_retirement: measured_workspace_interior_peak
+  # Continue only the existing P06-owned rolling suggestion after its finite
+  # source ends; measured retirement and newer channel owners still take priority.
+  p06_wheel_tail_semantics: measured_workspace_retirement_after_finite_source
+  rear_advisory_semantics: finite_continuous_suggestion_no_joint_sign_or_front_arrival_dispatch_gate
+  source: configs/recording_motion_contract.json
+  ownership: advisory_only_no_reference_entry_or_completion_veto
+  handoff: persistent_nominal_slew_toward_advisory_targets_without_anchor_reset
+  servo_handoff_rate_deg_s: 150.0
+  # Advisory-only FL hip timing: let the unchanged 60 deg/s residual oppose
+  # receiver-opening suggestions. Other servos and all physical limits stay unchanged.
+  phase_servo_rate_overrides_deg_s:
+    P06: {front_left_hip: 60.0}
+    P07: {front_left_hip: 60.0}
+    P08: {front_left_hip: 60.0}
+    P09: {front_left_hip: 60.0}
+    P10: {front_left_hip: 60.0}
+    P11: {front_left_hip: 60.0}
+    P12: {front_left_hip: 60.0}
+    P13: {front_left_hip: 60.0}
+  wheel_handoff_rate_rad_s2: 3.0
+  approach_wheel_prior_rad_s: [0.3, 0.3, 0.3, 0.3]
+  approach_wheel_prior_source: P01
+  approach_wheel_prior_scope: P02_current_physical_goal_feedback_only
+  nominal_tail: finite_home_advisory_with_residual_enabled_until_task_deadline
+stage_defaults: &stage_defaults
+  allowed_action_channels: [front_left_hip, front_left_knee, front_right_hip, front_right_knee, rear_left_hip, rear_left_knee, rear_right_hip, rear_right_knee, front_left_ankle, front_right_ankle, rear_left_ankle, rear_right_ankle]
+  physical_limits: frozen_full12_hard_limits_and_authoritative_live_safety
+  stall_diagnostic: {window_s: 6.0, minimum_potential_change: 0.01, terminates: false}
+  progress_potential: mean_of_current_physical_goal_features
+stages:
+  P01:
+    <<: *stage_defaults
+    purpose: Prepare FR support and load transfer
+    valid_start_conditions: [physical_valid]
+    goal_features: [transfer_ready_FR]
+    completion_predicates: [transfer_ready_FR]
+    active_leg: FR
+    maximum_task_duration: 30.0
+    next_phase: P02
+  P02:
+    <<: *stage_defaults
+    purpose: Lift FR with clearance and approach
+    valid_start_conditions: [physical_valid]
+    goal_features: [lifted_FR, clear_FR, approach_FR]
+    completion_predicates: [lifted_FR, clear_FR, approach_FR]
+    active_leg: FR
+    maximum_task_duration: 15.0
+    next_phase: P03
+  P03:
+    <<: *stage_defaults
+    purpose: Actively cross and place FR
+    valid_start_conditions: [physical_valid, lifted_FR]
+    goal_features: [placed_FR]
+    completion_predicates: [placed_FR]
+    active_leg: FR
+    maximum_task_duration: 20.0
+    next_phase: P04
+  P04:
+    <<: *stage_defaults
+    purpose: Reconfigure current FR support toward RR side for first FL swing
+    valid_start_conditions: [physical_valid, placed_FR]
+    goal_features: [edge_proximity_FL, role_prepared_FL]
+    completion_predicates: [edge_proximity_FL, role_prepared_FL]
+    active_leg: FL
+    maximum_task_duration: 20.0
+    next_phase: P05
+  P05:
+    <<: *stage_defaults
+    purpose: First FL swing and continuous pending capture including wheel cooperation
+    valid_start_conditions: [physical_valid, placed_FR]
+    goal_features: [placed_FL]
+    completion_predicates: [placed_FL]
+    active_leg: FL
+    maximum_task_duration: 30.0
+    next_phase: P06
+  P06:
+    <<: *stage_defaults
+    purpose: Rear approach overlapping FL receiving space and bridge shaping
+    valid_start_conditions: [physical_valid, placed_FR, placed_FL]
+    goal_features: [rear_approach]
+    completion_predicates: [rear_approach]
+    active_leg: RR
+    maximum_task_duration: 40.0
+    next_phase: P07
+  P07:
+    <<: *stage_defaults
+    purpose: Create FL receiving space and measured RR preparation with live bridges
+    valid_start_conditions: [physical_valid, placed_FR, placed_FL]
+    goal_features: [edge_proximity_RR, edge_proximity_RL, role_prepared_RR]
+    completion_predicates: [edge_proximity_RR, edge_proximity_RL, role_prepared_RR]
+    active_leg: RR
+    maximum_task_duration: 15.0
+    next_phase: P08
+  P08:
+    <<: *stage_defaults
+    purpose: Transfer load to permit RR lift
+    valid_start_conditions: [physical_valid, placed_FR, placed_FL]
+    goal_features: [edge_proximity_RR, transfer_ready_RR]
+    completion_predicates: [edge_proximity_RR, transfer_ready_RR]
+    active_leg: RR
+    maximum_task_duration: 20.0
+    next_phase: P09
+  P09:
+    <<: *stage_defaults
+    purpose: Actively lift cross and place RR first
+    valid_start_conditions: [physical_valid, placed_FR, placed_FL]
+    goal_features: [placed_RR]
+    completion_predicates: [placed_RR]
+    active_leg: RR
+    maximum_task_duration: 30.0
+    next_phase: P10
+  P10:
+    <<: *stage_defaults
+    purpose: Check current RR support and open FR receiving space for RL
+    valid_start_conditions: [physical_valid, placed_FR, placed_FL, placed_RR]
+    goal_features: [edge_proximity_RL, role_prepared_RL]
+    completion_predicates: [edge_proximity_RL, role_prepared_RL]
+    active_leg: RL
+    maximum_task_duration: 20.0
+    next_phase: P11
+  P11:
+    <<: *stage_defaults
+    purpose: Transfer load to permit RL lift
+    valid_start_conditions: [physical_valid, placed_FR, placed_FL, placed_RR]
+    goal_features: [edge_proximity_RL, transfer_ready_RL]
+    completion_predicates: [edge_proximity_RL, transfer_ready_RL]
+    active_leg: RL
+    maximum_task_duration: 20.0
+    next_phase: P12
+  P12:
+    <<: *stage_defaults
+    purpose: Actively lift cross and place RL second
+    valid_start_conditions: [physical_valid, placed_RR]
+    goal_features: [placed_RL]
+    completion_predicates: [placed_RL]
+    active_leg: RL
+    maximum_task_duration: 30.0
+    next_phase: P13
+  P13:
+    <<: *stage_defaults
+    purpose: Complete whole-body traversal and controlled physical stop
+    valid_start_conditions: [physical_valid, placed_FR, placed_FL, placed_RR, placed_RL]
+    goal_features: [whole_task_success]
+    completion_predicates: [whole_task_success]
+    active_leg: RL
+    maximum_task_duration: 60.0
+    next_phase: SUCCESS

@@ -496,7 +496,8 @@ def _validated_exploration_temperature_factor(metadata: Mapping[str, Any], recor
     from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
     exclusive = ("execution_factor", "instrumentation_observation_contract", "video_instrumentation_factor",
         "nominal_timing_factor", "body_reward_factor", "task_first_reward_factor", "height_recovery_factor",
-        "execution_composition_factor", "final_stop_handoff_factor", "rr_physical_acceptance_same372_factor")
+        "execution_composition_factor", "final_stop_handoff_factor", "rr_physical_acceptance_same372_factor",
+        "fl_capture_quality_same372_factor")
     if any(record.get(key) is not None for key in exclusive):
         raise RuntimeError("exploration temperature migration cannot mix other migration factors")
     if (not isinstance(factor, Mapping) or semantic_version != "v3"
@@ -607,11 +608,12 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         composition_factor = (verified.get("execution_composition_factor") or {}).get("observation_contract")
         stop_handoff_factor = (verified.get("final_stop_handoff_factor") or {}).get("observation_contract")
         rr_acceptance_factor = (verified.get("rr_physical_acceptance_same372_factor") or {}).get("observation_contract")
+        fl_quality_factor = (verified.get("fl_capture_quality_same372_factor") or {}).get("observation_contract")
         height_factor = (verified.get("height_recovery_factor") or {}).get("observation_contract")
         temperature_factor = None if temperature is None else temperature["observation_contract"]
-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, height_factor, temperature_factor)) > 1:
+        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor)) > 1:
             raise RuntimeError("reviewed same-layout migration receipts must be exclusive")
-        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or height_factor or temperature_factor
+        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor
         if reviewed_factor is not None:
             if factor is not None:
                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")
@@ -656,6 +658,15 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
     assert_semantic_return_consistency(runner, runner.env)
     if migration is not None:
         infos = {**infos, "resume_migration": dict(migration)}
+        fl_factor = verified.get("fl_capture_quality_same372_factor")
+        if fl_factor is not None:
+            if optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate"):
+                raise RuntimeError("FL quality continuation changed the source effective Adam learning rate")
+            infos["fl_capture_quality_branch"] = {
+                "schema": "wlr50_clean.fl_capture_quality_branch.v1",
+                "branch_id": fl_factor["branch_id"], "counter_origin": dict(fl_factor["counter_origin"]),
+                "source_checkpoint_sha256": verified["source_checkpoint_sha256"],
+                "source_manifest_sha256": verified["source_manifest_sha256"], "migration_added_updates": 0}
         rr_factor = verified.get("rr_physical_acceptance_same372_factor")
         if rr_factor is not None:
             if optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate"):
@@ -1247,6 +1258,52 @@ def _supports_deferred_terminal_reset(runner: Any, env: Any) -> bool:
                for model in (runner.alg.actor, runner.alg.critic))
 
 
+def audited_history_policy_request(actor, observation, action_call, *, stochastic: bool):
+    """Observe the one real actor MLP call; add neither a forward nor a draw.
+
+    Request tanh is dimensionless. Per-phase physical scaling, mapper/slew and
+    actual actuator response belong to the same decision's applied/native audit.
+    """
+    import torch
+    from .semantic_history_actor import (SemanticQuarterTemperedHistoryMLPModel,
+        history_conditioned_head, HISTORY_START, HISTORY_STOP, HISTORY_RHO)
+    if type(actor) is not SemanticQuarterTemperedHistoryMLPModel:
+        raise ValueError("request audit requires the unchanged quarter HISTORY actor")
+    heads = []
+    handle = actor.mlp.register_forward_hook(lambda _module, _inputs, output: heads.append(output.detach().clone()))
+    try:
+        raw = action_call()
+    finally:
+        handle.remove()
+    if len(heads) != 1 or tuple(heads[0].shape) != (1, 2, 12):
+        raise RuntimeError("request audit did not observe exactly one actual N1 actor head")
+    head = heads[0]
+    history = observation["policy"][..., HISTORY_START:HISTORY_STOP]
+    conditional = history_conditioned_head(head, history, HISTORY_RHO)
+    effective_std = (head[..., 1, :] + math.log(actor.exploration_std_temperature)).exp()
+    if stochastic:
+        mean, std = actor.output_distribution_params
+        if not torch.equal(mean, conditional[..., 0, :]) or not torch.equal(std, effective_std):
+            raise RuntimeError("sampled distribution disagrees with the actual head and current history")
+    elif not torch.equal(raw, conditional[..., 0, :]):
+        raise RuntimeError("deterministic action differs from the actual conditional mean")
+    vector = lambda value: value[0].detach().cpu().tolist()
+    record = {"schema": "wlr50_clean.actual_history_policy_request.v1",
+        "mode": "training_style_conditional_gaussian" if stochastic else "deterministic_conditional_mean",
+        "base_mean_full12": vector(head[..., 0, :]),
+        "conditional_mean_full12": vector(conditional[..., 0, :]),
+        "previous_raw_from_current_observation_full12": vector(history),
+        "learned_sigma_full12": vector(head[..., 1, :].exp()),
+        "effective_sigma_full12": vector(effective_std), "rho": HISTORY_RHO,
+        "exploration_std_temperature": actor.exploration_std_temperature,
+        "selected_raw_full12": vector(raw), "selected_tanh_full12": vector(raw.tanh()),
+        "sampling_draws": 1 if stochastic else 0, "extra_model_forwards": 0, "extra_random_draws": 0,
+        "physical_scale_and_execution_source": "same_decision_applied_audit_and_native_tick_audit"}
+    if stochastic:
+        record["selected_raw_log_probability"] = float(actor.get_output_log_prob(raw)[0])
+    return raw, record
+
+
 def _semantic_decision_audit_row(*, global_decision: int, index: int,
                                  sampled_raw: Any, old_mean: Any, old_std: Any,
                                  old_log_prob: Any, old_value: Any,
@@ -1398,7 +1455,12 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                     if semantic_curriculum_epoch(env.cfg) != curriculum:
                         raise RuntimeError("curriculum must remain fixed throughout this on-policy epoch")
                     assert_semantic_return_consistency(runner, env)
-                    raw = runner.alg.act(obs)
+                    policy_request = None
+                    if contract.get("experiment_id") == "fl_capture_quality_v1":
+                        raw, policy_request = audited_history_policy_request(
+                            runner.alg.actor, obs, lambda: runner.alg.act(obs), stochastic=True)
+                    else:
+                        raw = runner.alg.act(obs)
                     sampled_raw = raw.detach().clone()
                     old_log_prob = runner.alg.transition.actions_log_prob.detach().clone()
                     old_value = runner.alg.transition.values.detach().clone()
@@ -1422,6 +1484,8 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             sampled_raw=sampled_raw, old_mean=old_mean, old_std=old_std,
                             old_log_prob=old_log_prob, old_value=old_value,
                             reward=terminal_reward[0], terminal=True, info=summary["terminal_info"])
+                        if policy_request is not None:
+                            row["policy_request"] = policy_request
                         row["terminal_observation"] = {
                             key: jsonable(value) for key, value in final_observation.items()}
                         # Serialize both before either write; fsync both before
@@ -1461,6 +1525,8 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             index=index, sampled_raw=sampled_raw, old_mean=old_mean, old_std=old_std,
                             old_log_prob=old_log_prob, old_value=old_value,
                             reward=rewards[index], terminal=bool(dones[index]), info=info)
+                        if policy_request is not None:
+                            row["policy_request"] = policy_request
                         audit_stream.write(json.dumps(row, allow_nan=False) + "\n")
                     for episode in extras["episode_summaries"]:
                         if not terminal_persisted:
@@ -1496,7 +1562,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
             torch.save(snapshot, rollout_dir / f"rollout_{base_updates + iteration + 1:06d}.pt")
             global_step = base_global + (iteration + 1) * batch
             runner.alg.entropy_coef = 0.005 + (0.001 - 0.005) * min(global_step / sum(STAGE_BUDGETS.values()), 1.0)
-            if contract.get("experiment_id") in ("task_first_recovery_v1", "residual_rr_fix_v1"):
+            if contract.get("experiment_id") in ("task_first_recovery_v1", "residual_rr_fix_v1", "fl_capture_quality_v1"):
                 update = audited_ppo_update(runner, likelihood_audit_path=rollout_dir /
                     f"update_{base_updates + iteration + 1:06d}_likelihood.json")
             else:
@@ -1540,7 +1606,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             "new_mdp_initial_action_comparison", "policy_distribution_migration",
                             "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison",
                             "observation_scale_compensation_evidence", "observation_append_evidence",
-                            "task_recovery_branch", "rr_task_branch"):
+                            "task_recovery_branch", "rr_task_branch", "fl_capture_quality_branch"):
                     if key in previous:
                         infos[key] = previous[key]
                 if "task_recovery_branch" in infos:
@@ -1551,6 +1617,11 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                 if "rr_task_branch" in infos:
                     origin = infos["rr_task_branch"]["counter_origin"]
                     infos["rr_task_branch_counts"] = {
+                        key: int(infos[key]) - int(origin[key])
+                        for key in ("global_policy_decisions", "ppo_updates", "optimizer_steps")}
+                if "fl_capture_quality_branch" in infos:
+                    origin = infos["fl_capture_quality_branch"]["counter_origin"]
+                    infos["fl_capture_quality_branch_counts"] = {
                         key: int(infos[key]) - int(origin[key])
                         for key in ("global_policy_decisions", "ppo_updates", "optimizer_steps")}
                 if previous:

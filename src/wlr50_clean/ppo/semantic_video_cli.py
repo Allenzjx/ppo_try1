@@ -9,7 +9,7 @@ from .semantic_cli import (parser, validate_request, runtime_contract,
                            _preflight_checkpoint, _resolved_policy_version, _observation_layout_options,
                            _resolved_observation_layout, _resolved_policy_contract, jsonable)
 from .semantic_training import (construct_semantic_runner, load_semantic_checkpoint,
-    seed_training_rngs, parameter_hash, state_hash, _normalizers, write_json)
+    seed_training_rngs, parameter_hash, state_hash, _normalizers, write_json, audited_history_policy_request)
 from .semantic_video import (ROLES, require, capture_semantic_video,
                              validate_semantic_video_source, video_configuration)
 
@@ -40,12 +40,25 @@ def checkpoint_loader(args, contract):
                     "optimizer_state_sha256": state_hash(runner.alg.optimizer.state_dict()),
                     "normalizer_state_sha256": state_hash(_normalizers(runner))}
         initial_hashes = hashes()
+        stochastic = bool(getattr(args, "stochastic_policy", False))
+        policy_seed = getattr(args, "policy_seed", None)
+        if stochastic:
+            # The scene/reset seed remains4001. This is an explicit independent
+            # policy-sampling stream, not a mutation of saved training RNG state.
+            torch.manual_seed(policy_seed)
+            if torch.cuda.is_available():
+                torch.cuda.manual_seed_all(policy_seed)
         def action(current, _decision):
             tensor = torch.tensor([current], dtype=torch.float32, device=args.device)
             inputs = TensorDict({"policy":tensor,"critic":tensor.clone()},
                                 batch_size=[1], device=args.device)
             with torch.inference_mode():
-                return tuple(runner.alg.actor(inputs,stochastic_output=False)[0].cpu().tolist())
+                if getattr(args, "experiment_id", None) == "fl_capture_quality_v1":
+                    selected, action.last_request = audited_history_policy_request(runner.alg.actor, inputs,
+                        lambda: runner.alg.actor(inputs, stochastic_output=stochastic), stochastic=stochastic)
+                else:
+                    selected = runner.alg.actor(inputs, stochastic_output=False)
+                return tuple(selected[0].cpu().tolist())
         def unchanged():
             require(hashes()==initial_hashes, "video evaluation changed learned state")
         proof = {"checkpoint_loaded_and_verified":True,
@@ -53,6 +66,10 @@ def checkpoint_loader(args, contract):
                  "source":infos["resume_source_checkpoint"],
                  "saved_global_policy_decisions":infos["global_policy_decisions"],
                  "training_seed":training_seed, "video_seed":args.seed,
+                 "policy_sampling_mode": ("training_style_conditional_gaussian" if stochastic
+                                          else "deterministic_conditional_mean"),
+                 "stochastic_policy": stochastic, "policy_seed": policy_seed,
+                 "evaluation_sampling_changes_checkpoint_training_rng": False,
                  "policy_version": _resolved_policy_version(args),
                  "parameter_hashes":initial_hashes, "optimizer_updates":0,
                  "migration":getattr(args,"_migration_record",None)}
@@ -67,6 +84,13 @@ def validate_video_args(args):
     require(not getattr(args, "policy_distribution_migration", False),
             "video evaluation cannot convert the policy distribution")
     validate_request(args)
+    stochastic = bool(getattr(args, "stochastic_policy", False))
+    policy_seed = getattr(args, "policy_seed", None)
+    require((not stochastic and policy_seed is None) or (
+        stochastic and getattr(args, "experiment_id", None) == "fl_capture_quality_v1"
+        and args.mode == "semantic_residual_eval" and args.checkpoint is not None
+        and type(policy_seed) is int and 0 <= policy_seed <= 2147483647),
+        "stochastic video requires explicit FL-quality C and --policy-seed; deterministic video has no policy seed")
     require(args.command=="eval" and args.seed==4001 and not args.headless,
             "video requires eval, locked seed 4001 and --no-headless")
     require(args.max_decisions==3000 and args.decisions is None,
@@ -87,7 +111,7 @@ def build_video_core(app, *, role, semantic_version, experiment_id=None):
         from .isaac_fsm_backend import IsaacFSMBackend, _load_live_dependencies
         from .residual_direct_env import ResidualEpisodeEnv
         options = {"audit_actuator_target_effect": True}
-        if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "residual_rr_fix_v1"):
+        if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "residual_rr_fix_v1", "fl_capture_quality_v1"):
             from dataclasses import replace
             from .semantic_supervisor import load_task_spec
             from .semantic_physical_sensing import SemanticSensorReader
@@ -112,8 +136,17 @@ def build_video_core(app, *, role, semantic_version, experiment_id=None):
     return SemanticEpisodeEnv(SemanticIsaacBackend(app, **backend_options), **core_options)
 
 
+def video_parser():
+    result = parser()
+    result.add_argument("--stochastic-policy", action="store_true",
+        help="Explicit training-style Gaussian sampling; no optimizer or extra noise")
+    result.add_argument("--policy-seed", type=int,
+        help="Independent explicit torch sampling seed; physical reset seed stays4001")
+    return result
+
+
 def main(argv=None):
-    args=parser().parse_args(argv)
+    args=video_parser().parse_args(argv)
     role=validate_video_args(args)
     contract_options = {"expected_head": args.expected_head,
                         "semantic_version": args.semantic_version}

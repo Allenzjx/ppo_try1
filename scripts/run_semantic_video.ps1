@@ -2,7 +2,7 @@
 param(
     [ValidateSet('eval')][string]$Command = 'eval',
     [ValidateSet('v2','v3')][string]$SemanticVersion = 'v2',
-    [ValidateSet('transfer_roles_v1','all_stage_acceptance_v1','fsm_reference_p09_stable_v2','task_first_recovery_v1','non_residual_refine_v1','residual_rr_fix_v1')][string]$ExperimentId,
+    [ValidateSet('transfer_roles_v1','all_stage_acceptance_v1','fsm_reference_p09_stable_v2','task_first_recovery_v1','non_residual_refine_v1','residual_rr_fix_v1','fl_capture_quality_v1')][string]$ExperimentId,
     [Parameter(Mandatory = $true)][ValidatePattern('^[0-9a-f]{40}$')][string]$ExpectedHead,
     [ValidateSet('smoke','phase_suffix','full_episode')][string]$Stage = 'smoke',
     [ValidateRange(1,100000)][int]$Decisions,
@@ -10,6 +10,8 @@ param(
     [ValidateSet(4001)][int]$Seed = 4001,
     [string]$Checkpoint,
     [string]$ResumeMigration,
+    [switch]$StochasticPolicy,
+    [ValidateRange(0,2147483647)][int]$PolicySeed,
     [ValidateSet('legacy_fsm_eval','semantic_prior_eval','semantic_residual_eval')][string]$Mode = 'semantic_prior_eval',
     [ValidateSet('cpu','cuda:0')][string]$Device = 'cuda:0',
     [ValidateRange(1,100)][int]$CheckpointIntervalUpdates = 10
@@ -53,6 +55,8 @@ try {
         '--max-decisions',[string]$MaxDecisions,'--mode',$Mode,'--device',$Device,
         '--checkpoint-interval-updates',[string]$CheckpointIntervalUpdates,'--no-headless')
     if (-not [string]::IsNullOrWhiteSpace($ExperimentId)) { $arguments += @('--experiment-id',$ExperimentId) }
+    if ($StochasticPolicy) { $arguments += '--stochastic-policy' }
+    if ($PSBoundParameters.ContainsKey('PolicySeed')) { $arguments += @('--policy-seed',[string]$PolicySeed) }
     if ($PSBoundParameters.ContainsKey('Decisions')) { $arguments += @('--decisions',[string]$Decisions) }
     if (-not [string]::IsNullOrWhiteSpace($Checkpoint)) {
         $checkpointPath = if ([IO.Path]::IsPathRooted($Checkpoint)) { $Checkpoint } else { Join-Path $project $Checkpoint }

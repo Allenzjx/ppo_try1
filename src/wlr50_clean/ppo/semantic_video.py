@@ -30,9 +30,9 @@ from .semantic_training import verified_native_effect, write_json
 HZ, FPS, STRIDE = 120, 15, 8
 PRE_TICKS, POST_TICKS, MAX_FRAMES = 64, 184, 3000
 TASK_WINDOW_EXPERIMENT = "fsm_reference_p09_stable_v2"
-TASK_WINDOW_EXPERIMENTS = (TASK_WINDOW_EXPERIMENT, "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1")
+TASK_WINDOW_EXPERIMENTS = (TASK_WINDOW_EXPERIMENT, "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1")
 CAMERA = {"eye_m": [1.45, -1.25, .8], "target_m": [.45, 0., .12]}
-REVIEW_CAMERA_EXPERIMENTS = ("non_residual_refine_v1", "residual_rr_fix_v1")
+REVIEW_CAMERA_EXPERIMENTS = ("non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1")
 REVIEW_CAMERA = {"eye_m": [1.85, -1.65, 1.15], "target_m": [.70, -.15, .15]}
 ROLES = {"A": "legacy_fsm_eval", "B": "semantic_prior_eval",
          "C": "semantic_residual_eval"}
@@ -551,7 +551,7 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
                            semantic_version="v2", experiment_id=None):
     """Capture one fresh P01 episode in one live process.
 
-    policy_loader(refreshed_observation) returns (deterministic_action_callable,
+    policy_loader(refreshed_observation) returns (explicit_mode_action_callable,
     load_provenance, unchanged_model_assertion). It must use the official
     load_semantic_checkpoint; C without that loader is rejected. A/B use zero.
     """
@@ -662,6 +662,7 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
             before_tick = backend._episode_tick
             phase = core.frame.state_id
             raw = tuple(float(value) for value in action(observation, issued_decisions))
+            request_evidence = getattr(action, "last_request", None)
             require(len(raw) == 12 and all(math.isfinite(value) for value in raw),
                     "policy did not return finite Full12")
             if role in ("A", "B"):
@@ -675,6 +676,7 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
             except _PhysicalEndpoint:
                 partial_ticks = backend._episode_tick-before_tick
                 jsonl(decisions, {"decision": issued_decisions, "request_phase": phase,
+                    "policy_request": request_evidence,
                     "raw_policy_action_full12": raw, "start_tick": before_tick,
                     "end_tick": backend._episode_tick, "physics_ticks": partial_ticks,
                     "environment_step_returned": False, "stop_reason": observer.reason})
@@ -682,6 +684,7 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
             completed_decisions += 1
             observation = tuple(step.observation)
             jsonl(decisions, {"decision": issued_decisions, "request_phase": phase,
+                "policy_request": request_evidence,
                 "raw_policy_action_full12": raw, "start_tick": before_tick,
                 "end_tick": backend._episode_tick,
                 "physics_ticks": backend._episode_tick-before_tick,
@@ -757,6 +760,9 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
             ("reset_count", "reset_options", "training_phase_snapshot",
              "video_pre_action_refresh", "semantic_video_initialization")},
         "checkpoint_load_provenance": load_provenance,
+        "policy_sampling_mode": ((load_provenance or {}).get("policy_sampling_mode", "deterministic_conditional_mean")
+                                 if role == "C" else "nominal_without_learned_residual"),
+        "policy_seed": (load_provenance or {}).get("policy_seed"),
         "physical_episode": physical_summary, "optimizer_updates": 0,
         "physical_task_success": (None if physical_summary is None else
                                   bool(physical_summary["task_success"])),
