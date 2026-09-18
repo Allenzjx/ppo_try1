@@ -1,0 +1,749 @@
+{
+  "schema": "wlr50_clean.task_first_completed_training_receipt.v1",
+  "created_at_utc": "2026-09-17T05:11:13.250Z",
+  "branch_id": "residual_rr_fix_v1",
+  "branch_added_counts": {
+    "policy_decisions": 512,
+    "ppo_updates": 4,
+    "optimizer_steps": 80
+  },
+  "ancestry_source_counts": {
+    "global_policy_decisions": 177920,
+    "ppo_updates": 1355,
+    "optimizer_steps": 27100
+  },
+  "latest_checkpoint_counts": {
+    "global_policy_decisions": 178432,
+    "ppo_updates": 1359,
+    "optimizer_steps": 27180
+  },
+  "rr_branch_origin": {
+    "global_policy_decisions": 177792,
+    "optimizer_steps": 27080,
+    "ppo_updates": 1354
+  },
+  "rr_branch_total_added_counts": {
+    "global_policy_decisions": 640,
+    "optimizer_steps": 100,
+    "ppo_updates": 5
+  },
+  "reward_objective": "task_first_recovery_v1",
+  "quality_epsilon": 0,
+  "preservation": {
+    "successful_N_source_unchanged": false,
+    "recorded_FSM_source_unchanged": true,
+    "physical_scene_and_actuator_capability_unchanged": true,
+    "action_execution_changed_at_migration_boundary": false,
+    "stochastic_kernel_changed_at_migration_boundary": false,
+    "reviewed_execution_boundary": "wlr50_clean.rr_physical_acceptance_same372_continuation.v1",
+    "exploration_std_temperature": 0.25,
+    "same_weights_deterministic_mean_changed_at_temperature_boundary": null,
+    "physical_MDP_unchanged_claimed": false,
+    "full12_capacity_unchanged": true,
+    "old_rollout_not_inherited": null,
+    "verified_state_evidence": "sidecars and completed run receipts; no new checkpoint tensor load or hash pass"
+  },
+  "training_is_not_deterministic_M1_M2_M3_proof": true,
+  "receipt": {
+    "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_residual_rr_fix_v1\\train\\20260917T0454003203604Z_g6c2121b68654_7079dc3b6d4f471d8d3dfe5404d49924",
+    "lifecycle": "SUCCEEDED",
+    "completed_at_utc": "2026-09-17T05:10:23.323174+00:00",
+    "configuration": {
+      "semantic_version": "v3",
+      "experiment_id": "residual_rr_fix_v1",
+      "stage": "phase_suffix",
+      "from_phase": "P06",
+      "prefix_source": "successful_nominal",
+      "teacher_offset_decisions": 0,
+      "seed": 1001,
+      "num_envs": 1,
+      "device": "cuda:0",
+      "checkpoint_interval_updates": 1,
+      "implemented_sampling": "natural_P01_successful_nominal_prefix_then_semantic_suffix_N1.v1:P06:offset_0",
+      "prefix_request": {
+        "entry_is_exact_historical_snapshot": false,
+        "fallback": "one_fresh_P01",
+        "maximum_prefix_decisions": 1800,
+        "ordinary_phase_transitions_end_episode": false,
+        "schema": "wlr50_clean.checkpoint_policy_prefix_request.v1",
+        "source": "successful_nominal",
+        "target_phase": "P06",
+        "task_horizon_includes_prefix": true,
+        "teacher_offset_decisions": 0
+      },
+      "physics_hz": 120,
+      "decision_hz": 15,
+      "rollout_steps_per_env": 128,
+      "rollout_policy_decisions": 128,
+      "observation_dimension": 372,
+      "action_dimension": 12,
+      "policy_contract": {
+        "activation": "elu",
+        "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticQuarterTemperedHistoryMLPModel",
+        "actor_hidden_dims": [
+          256,
+          256
+        ],
+        "base_observation_dimension": 324,
+        "conditional_mean": "(1-rho)*base_mean+rho*clipped_previous_raw",
+        "conditional_std": "0.25*learned_sigma_as_innovation; no_stationary_rescaling",
+        "deterministic_output": "conditional_mean",
+        "distribution_class": "HeteroscedasticGaussianDistribution",
+        "effective_log_std": "learned_log_std+log(0.25)",
+        "exploration_std_temperature": 0.25,
+        "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+        "history_clip": 20,
+        "history_feature": "previous_raw_full12",
+        "history_slice": [
+          195,
+          207
+        ],
+        "history_state": "stored_observation_only; no_actor_mutable_history",
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "observation_dimension": 372,
+        "observation_layout": "diagonal_transfer_state_v1",
+        "raw_action_dimension": 12,
+        "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+        "rho": 0.9,
+        "role_observation_fields": [
+          "valid",
+          "workspace_progress",
+          "preparation_progress",
+          "transfer_progress",
+          "motion_fraction",
+          "preparation_ready",
+          "transfer_ready",
+          "fixed_direction_world_x",
+          "fixed_direction_world_y",
+          "short_support_continuity_fraction",
+          "continued_response_fraction",
+          "window_evidence_fraction"
+        ],
+        "role_observation_group": "transfer_role_context_full48",
+        "role_observation_leg_order": [
+          "FL",
+          "FR",
+          "RL",
+          "RR"
+        ],
+        "role_observation_slice": [
+          324,
+          372
+        ],
+        "schema": "wlr50_clean.semantic_policy_distribution.v1",
+        "state_dependent_std": true,
+        "std_type": "log",
+        "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; deterministic_mean_unchanged",
+        "version": "history_conditioned_heteroscedastic_log_temperature_quarter_v1"
+      },
+      "actor": {
+        "class_name": "wlr50_clean.ppo.semantic_history_actor:SemanticQuarterTemperedHistoryMLPModel",
+        "hidden_dims": [
+          256,
+          256
+        ],
+        "activation": "elu",
+        "obs_normalization": false,
+        "observation_layout": "diagonal_transfer_state_v1",
+        "distribution_cfg": {
+          "class_name": "HeteroscedasticGaussianDistribution",
+          "init_std": 0.15,
+          "std_type": "log"
+        }
+      },
+      "critic": {
+        "class_name": "MLPModel",
+        "hidden_dims": [
+          256,
+          256
+        ],
+        "activation": "elu",
+        "obs_normalization": false
+      },
+      "optimizer": {
+        "optimizer": "adam",
+        "schedule": "adaptive",
+        "learning_rate": 0.00003,
+        "gamma": 0.9985,
+        "lam": 0.99,
+        "num_learning_epochs": 5,
+        "num_mini_batches": 4,
+        "clip_param": 0.2,
+        "max_grad_norm": 1
+      },
+      "initial_learning_rate_is_configured_default_not_restored_effective_lr": true
+    },
+    "request": {
+      "planned": 512,
+      "consumed": 512,
+      "unconsumed": 0,
+      "rounding_overrun": 0,
+      "stage_requested_before": {
+        "full_episode": 93056,
+        "phase_suffix": 74752,
+        "smoke": 0
+      },
+      "stage_requested_after": {
+        "full_episode": 93056,
+        "phase_suffix": 75264,
+        "smoke": 0
+      },
+      "stage_requested_delta": {
+        "full_episode": 0,
+        "phase_suffix": 512,
+        "smoke": 0
+      }
+    },
+    "source": {
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_residual_rr_fix_v1\\checkpoints\\history\\checkpoint_step_000177920.pt",
+      "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_residual_rr_fix_v1\\checkpoints\\history\\checkpoint_step_000177920_manifest.json",
+      "global_policy_decisions": 177920,
+      "ppo_updates": 1355,
+      "optimizer_steps": 27100,
+      "effective_learning_rate": 0.00001,
+      "actor_parameter_sha256": "a2e12959dbb257b3906d5d7a4f2aa564ea56d45991412b731c6dabcb7b3699f0",
+      "checkpoint_sha256": "ee44b541719449e6ee2fe79af79dbedcc7a43d2c2bca56190c65945cf2f91ab6"
+    },
+    "saved": {
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_residual_rr_fix_v1\\checkpoints\\history\\checkpoint_step_000178432.pt",
+      "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_residual_rr_fix_v1\\checkpoints\\history\\checkpoint_step_000178432_manifest.json",
+      "global_policy_decisions": 178432,
+      "ppo_updates": 1359,
+      "optimizer_steps": 27180,
+      "actor_parameter_sha256": "5a2e63c55331f68d9cb5f282851d87f86825b5c6d25923942201a7788954c561",
+      "critic_parameter_sha256": "da97dad7e23889a0a9c8dc8a71a7f96c89ec522f74d7a0d3620e79c47b648797",
+      "optimizer_state_sha256": "859562fb03a0e82c1429ae0587991fc36854e26a1fe1ef9f2ff23b4b08cee7e5",
+      "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+      "checkpoint_sha256": "19acb91f64a2b728e54f02d50dcaf187e11fd432ff68901ba91ff0af58f6a665",
+      "save_load_round_trip": true,
+      "effective_learning_rate": 0.00001,
+      "source_git_commit": "6c2121b68654eaaa2afa7c19e9d02ae770493d2f",
+      "runtime_content_sha256": "cfad9c3664f4e479fd16a9902178cc4e84327ab06aa03dd3db83e3d96a89aed1",
+      "manifest_sha256": "78dc71b80f897fa843f365c0ae3ba7150ade970eaf5ff57325141e465a91453a"
+    },
+    "increments": {
+      "policy_decisions": 512,
+      "ppo_updates": 4,
+      "optimizer_steps": 80
+    },
+    "sampling": {
+      "phase_policy_decisions": {
+        "P01": 0,
+        "P02": 0,
+        "P03": 0,
+        "P04": 0,
+        "P05": 0,
+        "P06": 166,
+        "P07": 1,
+        "P08": 1,
+        "P09": 214,
+        "P10": 1,
+        "P11": 19,
+        "P12": 110,
+        "P13": 0
+      },
+      "phase_assignment": "Applied audit phase_id at the decision request; requested curriculum phase is not a sample count",
+      "credited_rows": 512,
+      "credited_physics_ticks": 4096,
+      "first_global_policy_decision": 177921,
+      "last_global_policy_decision": 178432,
+      "teacher_storage_flags": {
+        "true": 0,
+        "false": 512,
+        "absent_or_null": 0
+      },
+      "teacher_prefix_exclusion_verified": true,
+      "teacher_prefix_decisions_excluded": 335,
+      "teacher_prefix_physics_ticks_excluded": 2680,
+      "prefix_attempts": [
+        {
+          "accepted": true,
+          "miss": null,
+          "prefix_decisions": 335,
+          "prefix_physics_ticks": 2680,
+          "request": {
+            "entry_is_exact_historical_snapshot": false,
+            "fallback": "one_fresh_P01",
+            "maximum_prefix_decisions": 1800,
+            "ordinary_phase_transitions_end_episode": false,
+            "schema": "wlr50_clean.checkpoint_policy_prefix_request.v1",
+            "source": "successful_nominal",
+            "target_phase": "P06",
+            "task_horizon_includes_prefix": true,
+            "teacher_offset_decisions": 0
+          },
+          "target_first_observed_decision": 335
+        }
+      ],
+      "all_physical_decisions_including_prefix": 847,
+      "phase_counts_match_credited_telemetry": true,
+      "terminal_decisions": [],
+      "last_credited_decision": {
+        "global_policy_decision": 178432,
+        "phase": "P12",
+        "end_phase": "P12",
+        "physics_tick": 6776,
+        "sim_time_s": 56.46666666666667,
+        "terminal": false,
+        "terminal_bootstrap_allowed": true,
+        "task_result_scope": "successful_nominal_initialized_suffix"
+      }
+    },
+    "updates": [
+      {
+        "ppo_update": 1356,
+        "global_policy_decisions": 178048,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 1.0419021603065148,
+        "gradient_norm_max": 1.4142135385814436,
+        "kl_mean": 0.024875963952228963,
+        "clip_fraction": 0.2703125,
+        "entropy": -18.52593231201172,
+        "value_loss": 0.541666342318058,
+        "surrogate_loss": -0.017325776629149914
+      },
+      {
+        "ppo_update": 1357,
+        "global_policy_decisions": 178176,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 1.4142133602149798,
+        "gradient_norm_max": 1.4142136385577186,
+        "kl_mean": 0.026013806623827018,
+        "clip_fraction": 0.36875,
+        "entropy": -18.331234550476076,
+        "value_loss": 0.9402048110961914,
+        "surrogate_loss": -0.03292685626074672
+      },
+      {
+        "ppo_update": 1358,
+        "global_policy_decisions": 178304,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 0.9999997850893965,
+        "gradient_norm_max": 1.414213668005151,
+        "kl_mean": 0.017906491958288952,
+        "clip_fraction": 0.2515625,
+        "entropy": -17.0235155582428,
+        "value_loss": 7.451954126358032,
+        "surrogate_loss": -0.03200732450932264
+      },
+      {
+        "ppo_update": 1359,
+        "global_policy_decisions": 178432,
+        "optimizer_steps": 20,
+        "optimizer_learning_rate": 0.00001,
+        "actor_parameters_changed": true,
+        "finite_nonzero_gradient_observed": true,
+        "gradient_norm_min": 1.0879953330529069,
+        "gradient_norm_max": 1.4142135698641787,
+        "kl_mean": 0.022732398217716256,
+        "clip_fraction": 0.246875,
+        "entropy": -19.042807388305665,
+        "value_loss": 1.1958667278289794,
+        "surrogate_loss": -0.027464580815285446
+      }
+    ],
+    "gradient_summary": {
+      "all_updates_finite_nonzero": true,
+      "all_updates_actor_changed": true,
+      "optimizer_gradient_norm_range": {
+        "min": 0.9999997850893965,
+        "max": 1.414213668005151
+      },
+      "effective_learning_rate_range": {
+        "min": 0.00001,
+        "max": 0.00001
+      },
+      "gradient_measurement": "Existing optimizer pre-hook norm over all non-null optimizer parameter gradients"
+    },
+    "state_handling": {
+      "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+      "normalizer_hash_unchanged": true,
+      "actor_obs_normalization": false,
+      "critic_obs_normalization": false,
+      "resume_physics": "legal_reset_not_bitwise_continuation",
+      "physical_env_state_saved": false,
+      "fresh_rollout_required_by_migration": null,
+      "migration_schema": null,
+      "historical_warm_start_metadata_is_not_this_run_reset": true
+    },
+    "task_results": {
+      "training_success_is_not_task_success": true,
+      "completed_episodes": [],
+      "success_count_scope": "fresh_P01_current_policy_only",
+      "current_policy_full_P01_success_count": 0,
+      "teacher_initialized_task_success_count": 0,
+      "nonterminal_tail_is_not_a_completed_episode": true
+    },
+    "stop_after_update": null,
+    "verification": "Metadata plus credited audit/optimizer/episode records only. Recorded save/load proof is not independently rerun; no checkpoint tensor load or byte rehash."
+  },
+  "additional_state_evidence": {
+    "checkpoint_manifest_sha256": "78dc71b80f897fa843f365c0ae3ba7150ade970eaf5ff57325141e465a91453a",
+    "latest_pointer_matches_saved_checkpoint_and_manifest": true,
+    "first_update_actor_before_equals_source_actor": true,
+    "first_update_actor_before_sha256": "a2e12959dbb257b3906d5d7a4f2aa564ea56d45991412b731c6dabcb7b3699f0",
+    "source_optimizer_state_sha256": "13c25694ca9f0920f02726e111bb58e5bffd14127ed80e6bb043c3fa3b111e5b",
+    "source_and_saved_effective_learning_rate": 0.00001,
+    "source_and_saved_rng_seed": 1001,
+    "source_and_saved_rng_schema": "wlr50_clean.training_rng_state.v1",
+    "verified_initial_state_scope": "Same-runtime official exact-resume from CP177920. Committed loader must verify actor/critic/Adam/Identity hashes and restore source RNG before fresh collection; completed run passed that path. No second migration or independent pre-sampling state snapshot invented.",
+    "fresh_rollout_scope": "The same-runtime run uses fresh rollout storage and a new legal reset/prefix. Null direct-migration fields in the generic receipt mean migration was not repeated, not that old rollout was inherited.",
+    "after_training_state_scope": "Actor/critic/Adam and RNG evolve under genuine sampling and updates; Identity remains unchanged; saved checkpoint records successful official save/load round-trip."
+  },
+  "last_observed_physical_task_state": {
+    "tick": 6776,
+    "phase": "P12",
+    "terminal": false,
+    "entry_valid": false,
+    "entry_reasons": [
+      "placed_RR"
+    ],
+    "goals": {
+      "FL_clearance_m": 0.009504603341841222,
+      "FL_front_distance_m": 0.2883420024616683,
+      "FL_load_fraction": 0,
+      "FR_clearance_m": -0.0003908008859548062,
+      "FR_front_distance_m": 0.3516308103306258,
+      "FR_load_fraction": 0.34780770741376116,
+      "RL_clearance_m": -0.05015651993173806,
+      "RL_front_distance_m": -0.06597035782504435,
+      "RL_load_fraction": 0.5161192925475736,
+      "RR_clearance_m": -0.050347265552289015,
+      "RR_front_distance_m": -0.13072940366435404,
+      "RR_load_fraction": 0.13607300003866526,
+      "support_count": 3,
+      "body_forward_m": 0.11393177850079184,
+      "body_linear_speed_m_s": 0.08641549506339202,
+      "body_angular_speed_rad_s": 0.22370859765548504,
+      "maximum_wheel_speed_rad_s": 0.4440056085586548
+    },
+    "active_lift_history": {
+      "FL": true,
+      "FR": true,
+      "RL": false,
+      "RR": false
+    },
+    "crossed": {
+      "FL": true,
+      "FR": true,
+      "RL": false,
+      "RR": true
+    },
+    "placed": {
+      "FL": true,
+      "FR": true,
+      "RL": false,
+      "RR": true
+    },
+    "rr_placed_currently_usable": false,
+    "rr_events": [
+      {
+        "leg": "RR",
+        "event": "whole_body_initial_clearance",
+        "physics_tick": 2988,
+        "simulation_time_s": 24.9,
+        "upward_excursion_m": 0.003312328263397668,
+        "whole_body_joint_motion_deg": 14.14597800286526,
+        "command_motion_deg": 23.903884040056788,
+        "evidence": "continuous_unsupported_AIR_free_rise_v3",
+        "unsupported_free_lift_m": 0.003312328263397668
+      },
+      {
+        "leg": "RR",
+        "event": "whole_body_initial_clearance",
+        "physics_tick": 3829,
+        "simulation_time_s": 31.90833333333333,
+        "upward_excursion_m": 0.003054914533449235,
+        "whole_body_joint_motion_deg": 14.282913584048785,
+        "command_motion_deg": 23.46011815052584,
+        "evidence": "continuous_unsupported_AIR_free_rise_v3",
+        "unsupported_free_lift_m": 0.003054914533449235
+      },
+      {
+        "leg": "RR",
+        "event": "whole_body_initial_clearance",
+        "physics_tick": 3976,
+        "simulation_time_s": 33.13333333333333,
+        "upward_excursion_m": 0.0033179261817056355,
+        "whole_body_joint_motion_deg": 6.713399551951294,
+        "command_motion_deg": 12.302516702188157,
+        "evidence": "continuous_unsupported_AIR_free_rise_v3",
+        "unsupported_free_lift_m": 0.0033179261817056355
+      },
+      {
+        "leg": "RR",
+        "event": "qualified_measured_upward_lift",
+        "physics_tick": 4001,
+        "simulation_time_s": 33.34166666666667,
+        "upward_excursion_m": 0.008057632511354447,
+        "joint_motion_deg": 6.499163625001259,
+        "airborne_clearance_above_top_m": -0.04332530642318938,
+        "qualification_evidence": "continuous_unsupported_AIR_free_rise_v3",
+        "unsupported_free_lift_m": 0.008057632511354447
+      },
+      {
+        "leg": "RR",
+        "event": "qualification_revoked_ground_before_cross",
+        "physics_tick": 4376,
+        "simulation_time_s": 36.46666666666667
+      },
+      {
+        "leg": "RR",
+        "event": "current_lift_revoked_ground",
+        "physics_tick": 4376,
+        "simulation_time_s": 36.46666666666667,
+        "completed_crossing_history_retained": false
+      },
+      {
+        "leg": "RR",
+        "event": "whole_body_initial_clearance",
+        "physics_tick": 4454,
+        "simulation_time_s": 37.11666666666667,
+        "upward_excursion_m": 0.0030546191333213207,
+        "whole_body_joint_motion_deg": 13.39882606415681,
+        "command_motion_deg": 18.478797773349243,
+        "evidence": "continuous_unsupported_AIR_free_rise_v3",
+        "unsupported_free_lift_m": 0.0030546191333213207
+      },
+      {
+        "leg": "RR",
+        "event": "whole_body_initial_clearance",
+        "physics_tick": 4632,
+        "simulation_time_s": 38.6,
+        "upward_excursion_m": 0.005707684306975637,
+        "whole_body_joint_motion_deg": 13.58271407324229,
+        "command_motion_deg": 26.7781639058396,
+        "evidence": "continuous_unsupported_AIR_free_rise_v3",
+        "unsupported_free_lift_m": 0.0030232703832963614
+      },
+      {
+        "leg": "RR",
+        "event": "qualified_measured_upward_lift",
+        "physics_tick": 4640,
+        "simulation_time_s": 38.666666666666664,
+        "upward_excursion_m": 0.010858595683508283,
+        "joint_motion_deg": 4.607598656540061,
+        "airborne_clearance_above_top_m": -0.03919160103337502,
+        "qualification_evidence": "continuous_unsupported_AIR_free_rise_v3",
+        "unsupported_free_lift_m": 0.008174181759829008
+      },
+      {
+        "leg": "RR",
+        "event": "qualification_revoked_ground_before_cross",
+        "physics_tick": 4668,
+        "simulation_time_s": 38.9
+      },
+      {
+        "leg": "RR",
+        "event": "current_lift_revoked_ground",
+        "physics_tick": 4668,
+        "simulation_time_s": 38.9,
+        "completed_crossing_history_retained": false
+      },
+      {
+        "leg": "RR",
+        "event": "whole_body_initial_clearance",
+        "physics_tick": 5103,
+        "simulation_time_s": 42.525,
+        "upward_excursion_m": 0.005488046608460986,
+        "whole_body_joint_motion_deg": 24.727267377914675,
+        "command_motion_deg": 41.59099432570467,
+        "evidence": "continuous_unsupported_AIR_free_rise_v3",
+        "unsupported_free_lift_m": 0.0033851815457495646
+      },
+      {
+        "leg": "RR",
+        "event": "qualified_measured_upward_lift",
+        "physics_tick": 5108,
+        "simulation_time_s": 42.56666666666666,
+        "upward_excursion_m": 0.01061982661946892,
+        "joint_motion_deg": 3.5208899463816348,
+        "airborne_clearance_above_top_m": -0.040498697147012305,
+        "qualification_evidence": "continuous_unsupported_AIR_free_rise_v3",
+        "unsupported_free_lift_m": 0.008516961556757498
+      },
+      {
+        "leg": "RR",
+        "event": "qualification_revoked_ground_before_cross",
+        "physics_tick": 5259,
+        "simulation_time_s": 43.825
+      },
+      {
+        "leg": "RR",
+        "event": "current_lift_revoked_ground",
+        "physics_tick": 5259,
+        "simulation_time_s": 43.825,
+        "completed_crossing_history_retained": false
+      },
+      {
+        "leg": "RR",
+        "event": "whole_body_initial_clearance",
+        "physics_tick": 5419,
+        "simulation_time_s": 45.15833333333333,
+        "upward_excursion_m": 0.0032436394599586124,
+        "whole_body_joint_motion_deg": 23.36230157678691,
+        "command_motion_deg": 26.83916727205517,
+        "evidence": "continuous_unsupported_AIR_free_rise_v3",
+        "unsupported_free_lift_m": 0.0032436394599586124
+      },
+      {
+        "leg": "RR",
+        "event": "qualified_measured_upward_lift",
+        "physics_tick": 5434,
+        "simulation_time_s": 45.28333333333333,
+        "upward_excursion_m": 0.008359861221640313,
+        "joint_motion_deg": 2.8829285066744674,
+        "airborne_clearance_above_top_m": -0.04189106631654656,
+        "qualification_evidence": "continuous_unsupported_AIR_free_rise_v3",
+        "unsupported_free_lift_m": 0.008359861221640313
+      },
+      {
+        "leg": "RR",
+        "event": "current_lift_revoked_ground",
+        "physics_tick": 6053,
+        "simulation_time_s": 50.44166666666666,
+        "completed_crossing_history_retained": true
+      },
+      {
+        "leg": "RR",
+        "event": "whole_body_initial_clearance",
+        "physics_tick": 6073,
+        "simulation_time_s": 50.608333333333334,
+        "upward_excursion_m": 0.003267846744251783,
+        "whole_body_joint_motion_deg": 5.650661604128441,
+        "command_motion_deg": 15.44923184338053,
+        "evidence": "continuous_unsupported_AIR_free_rise_v3",
+        "unsupported_free_lift_m": 0.003267846744251783
+      }
+    ],
+    "current_physical": {
+      "RR": {
+        "front_distance_m": -0.13072940366435404,
+        "clearance_m": -0.050347265552289015,
+        "top_geometry": false,
+        "top_contact": false,
+        "air": false,
+        "crossing_geometry_pending": false,
+        "recent_joint_motion_deg": 0,
+        "recent_clearance_gain_m": 0,
+        "recent_whole_body_joint_motion_deg": 0,
+        "whole_body_actuation_evidence": false,
+        "initial_clearance": false,
+        "ground_contact": true,
+        "obstacle_pair_active": false,
+        "consecutive_air_samples": 0,
+        "consecutive_top_samples": 0,
+        "within_top_xy": false,
+        "within_lateral_span": true,
+        "support": true,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "contact_reaction": true,
+        "contact_reaction_force_n": 3.985516071319616,
+        "bearing_force_n": 3.98551607131958,
+        "bearing_verified": true,
+        "active_attempt": false,
+        "crossing_evidence_status": "VERIFIED",
+        "initial_now": false,
+        "lift_established_now": false,
+        "current_lift_valid": false,
+        "contact_mode": "GROUND",
+        "motion_continuation_allowed": true,
+        "motion_continuation_reason": "bounded_adjustment_to_acquire_measured_response",
+        "ground_relative_lift_m": 0,
+        "recent_wheel_displacement_m": 0,
+        "edge_adjustment_response_observed": null,
+        "body_control_evidence": true,
+        "body_control_evidence_semantics": "unchanged_live_safety_and_short_verified_other_supports_not_static_stability_proof",
+        "observed_other_support_contacts": [
+          "FR",
+          "RL"
+        ],
+        "air_duration_s": 0,
+        "edge_contact_duration_s": 0,
+        "durations_are_diagnostic_only": true,
+        "unsupported_free_lift_m": null,
+        "free_air_reference_tick": 6776,
+        "free_air_reference_bottom_z_m": -0.0003472655522890125,
+        "consecutive_free_air_samples": 0,
+        "free_lift_evidence_semantics": "current_continuous_AIR_rise_from_last_actual_contact",
+        "wheel_bottom_vz_m_s": -0.004991176875882581,
+        "wheel_bottom_vz_observation_tick": 6776,
+        "wheel_bottom_vz_interval_s": 0.00833333333333286,
+        "wheel_bottom_vz_semantics": "adjacent_measured_collider_bottom_world_z_finite_difference",
+        "lift_established": false,
+        "initial_lift_observed": false,
+        "front_edge_crossed": true,
+        "placed_on_top": true,
+        "top_xy_outside_distance_m": 0.12572940366435403,
+        "load_fraction": 0.13607300003866526,
+        "load_fraction_valid": true,
+        "soft_air_actuation_earned": false,
+        "soft_air_earned_tick": null,
+        "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+      },
+      "RL": {
+        "front_distance_m": -0.06597035782504435,
+        "clearance_m": -0.05015651993173806,
+        "top_geometry": false,
+        "top_contact": false,
+        "air": false,
+        "crossing_geometry_pending": false,
+        "recent_joint_motion_deg": 0,
+        "recent_clearance_gain_m": 0,
+        "recent_whole_body_joint_motion_deg": 0,
+        "whole_body_actuation_evidence": false,
+        "initial_clearance": false,
+        "ground_contact": true,
+        "obstacle_pair_active": false,
+        "consecutive_air_samples": 0,
+        "consecutive_top_samples": 0,
+        "within_top_xy": false,
+        "within_lateral_span": true,
+        "support": true,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "contact_reaction": true,
+        "contact_reaction_force_n": 15.116898536682266,
+        "bearing_force_n": 15.116898536682129,
+        "bearing_verified": true,
+        "active_attempt": false,
+        "crossing_evidence_status": "PENDING",
+        "top_xy_outside_distance_m": 0.06097035782504434,
+        "load_fraction": 0.5161192925475736,
+        "load_fraction_valid": true,
+        "soft_air_actuation_earned": false,
+        "soft_air_earned_tick": null,
+        "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+      },
+      "valid": true,
+      "success": false,
+      "termination_reason": null,
+      "physical_evidence_status": "VERIFIED",
+      "task_completed_controlled": false
+    }
+  },
+  "event_credit_scope": {
+    "teacher_prefix_until_tick": 2680,
+    "teacher_FR_FL_events_excluded": true,
+    "PPO_RR_RL_events_after_prefix": true,
+    "history_is_not_current_support": true,
+    "RR_initial_qualification_tick": 4001,
+    "RR_final_successful_pre_cross_qualification_tick": 5434,
+    "RR_cross_tick": 5726,
+    "RR_place_tick": 5731,
+    "RR_current_lift_revoked_ground_after_cross_tick": 6053,
+    "RR_placed_currently_usable_at_end": false,
+    "RL_cross_or_place_observed": false,
+    "no_completed_episode": true
+  }
+}

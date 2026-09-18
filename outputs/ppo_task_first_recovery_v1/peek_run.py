@@ -29,10 +29,13 @@ update = last_record(run / "optimizer_updates.jsonl") or {}
 episode = last_record(run / "completed_episodes.jsonl") or {}
 manifest_path = run / "run_manifest.json"
 manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
+rr = info.get("semantic_task", {}).get("physical_evaluator", {}).get("current_legs", {}).get("RR", {})
 print(json.dumps({"run": str(run), "lifecycle": manifest.get("lifecycle", "running_or_not_finalized"),
     "decision": decision.get("global_policy_decision"),
     "phase": info.get("phase_id"), "tick": info.get("physics_tick"),
     "placed_history": info.get("semantic_task", {}).get("placed_history"),
+    "RR": {key: rr.get(key) for key in ("contact_mode", "air", "current_lift_valid",
+        "unsupported_free_lift_m", "clearance_m", "front_distance_m", "wheel_bottom_vz_m_s")},
     "reward": decision.get("reward"), "reward_families": (info.get("reward") or {}).get("families"),
     "last_update": {key: update.get(key) for key in ("ppo_update", "global_policy_decisions",
         "optimizer_steps", "kl_mean", "value_loss", "optimizer_learning_rate")},

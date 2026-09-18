@@ -1,8 +1,10 @@
-# Task-first recovery：CP177152 已从自然P01完成真实越障与受控完成
+# 历史成功记录保留，RR验收待复核；最新训练CP177792
+
+最新指令变更：优先保住并改进zero的末端settle/home与全程镜头，然后重新核对residual RR的真实减载、离地及是否wheel-only爬沿。旧CP177152的既有评价器成功记录不删除、不篡改，但best描述已标记RR_ACCEPTANCE_UNDER_REVIEW，不能作为新严格RR验收成功证据；既有抬升资格与较长沿面接触不足以单独排除wheel辅助爬沿。epsilon=.05质量候选暂不实施。新工作按non_residual_refine_v1/residual_rr_fix_v1/video_review_v1/diagnostics_v1隔离；其中zero按现有工程前缀使用outputs/ppo_non_residual_refine_v1。[当前checkpoint与保护引用](C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/diagnostics_v1/checkpoint_and_protected_baseline_references.json)只保存路径、配置绑定和计数，没有复制巨大历史。
 
 最新状态：CP177152已正式保存后重载，从自然P01真实连续完成6116 ticks /50.966667s，四腿抬升、越沿和放置、全身进入平台及固定1s窗口后的当前受控完成均通过，结果SUCCEEDED。此checkpoint seed4001仅试验1次，M1/M2/M3=1/1，M4未取得，不宣称泛化或稳定性优于zero。
 
-当前最新训练累计177280 decisions /1350 PPO updates /27000 optimizer steps。本轮实际新增2688/21/420；mean-head分支自己新增512/4/80，独立quarter分支新增128/1/20。完整评估不增加训练信用，P07–P13本轮训练样本仍0。最新训练checkpoint为CP177280，但正式best-task仍保留[CP177152](C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/checkpoints/history/checkpoint_step_000177152.pt)；新候选没有正式任务评估，不能覆盖成功best。祖先、旧失败候选及成功zero均保留。
+当前最新训练累计177792 decisions /1354 PPO updates /27080 optimizer steps。本轮实际新增3200/25/500；mean-head分支自己新增512/4/80，独立quarter分支新增640/5/100。最新训练checkpoint为CP177792，但正式best-task仍保留[CP177152](C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/checkpoints/history/checkpoint_step_000177152.pt)；CP177792尚未正式自然P01评估，不能覆盖成功best。祖先、旧失败候选及成功zero均保留。
 
 此前已封存的CP177024回合为6177 ticks /51.475s，四腿均真实主动抬升、越沿和放置，机身进入平台；但P13固定观察窗口结束时没有完成受控停车，结果INCOMPLETE_CONTROLLER_BLOCKED / POST_COMPLETION_LOSS，M3失败。其封存数据中没有机身碰撞、非有限或关节硬限违规。这条旧development partial证据继续保留，未改判为成功。
 
@@ -12,7 +14,20 @@
 
 独立p06_quarter_temperature_v1首块已实际完成128 decisions /1 update /20 optimizer steps，全部P06、1024个policy物理ticks；此前成功N前缀335decisions/2680ticks全部排除。全回合末尾tick3704/30.866667s，PPO后缀8.533333s、非终态并保留bootstrap，无完整episode，更不是从P01的PPO任务成功。FR/FL捕获事件属于teacher历史；RL在PPO段有初始Q3230但未越沿/放置，不授予后腿成功。128/128 epsilon0/full12、1024/1024 native核验且policy真实有效。update1350 KL=.038766、clip=.368750、value loss=.285358、有效LR1e−5，actor确实更新至df018f65…并保存/重载核验通过。[CP177280](C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/checkpoints/history/checkpoint_step_000177280.pt) SHA8c93f9b5…；[实际receipt](C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/training_quarter_P06_177280_actual.json) · [reward/GAE信号](C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/training_quarter_P06_177280_signal.json)。
 
-本分支只将真实随机innovation temperature从.5变.25，保留mean/sigma权重、rho=.9、全12容量、Adam有效LR、Identity、RNG、成功N、六配置与epsilon0，不同时增加质量reward。保持相同权重与相同observation时deterministic mean不变，不把温度迁移本身当成新的任务改进。后续同设置512条已请求，未完成前不计信用。CP177152正式best不动，新候选不能仅因更新更多、reward更高或后缀进展替换它；[明确迁移计划](C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/checkpoint177152_quarter_temperature_migration.json)绑定实际source checkpoint和新提交。本轮累计PPO阶段量P01=14/P02=991/P03=21/P04=18/P05=1388/P06=256/P07–P13=0。
+本分支只将真实随机innovation temperature从.5变.25，保留mean/sigma权重、rho=.9、全12容量、Adam有效LR、Identity、RNG、成功N、六配置与epsilon0，不同时增加质量reward。保持相同权重与相同observation时deterministic mean不变，不把温度迁移本身当成新的任务改进。CP177152正式best不动，新候选不能仅因更新更多、reward更高或后缀进展替换它；[明确迁移计划](C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/checkpoint177152_quarter_temperature_migration.json)绑定实际source checkpoint和新提交。
+
+同设置512条续块现已封存：实际+512 decisions/+4 updates/+80 optimizer steps，P06=439/P07=2/P08=2/P09=69，4090个policy物理ticks，512/512 epsilon0/full12及4090/4090 native有效。4次成功N前缀各335decisions/2680ticks，共1340/10720全部排除；FR/FL历史事件不计PPO能力。记录中的SUCCEEDED仅表示训练操作完成，三条完整回合均失败：
+
+| PPO后缀decisions | 实际终态 | 完整episode末tick | PPO后缀时长 |
+|---:|---|---:|---:|
+| 33 | P09 FALL | 2944 | 2.200000s |
+| 156 | P09 FALL | 3925 | 10.375000s |
+| 94 | P06 BODY_COLLISION | 3429 | 6.241667s |
+| 229 | P06非终态尾，bootstrap保留 | 4512 | 15.266667s |
+
+后腿样本终于进入P09但没有RR越沿/放置成功，69条P09原GAE及标准化advantage全部负；不能把“样本已覆盖”写成RR逻辑修复。4次实际update1351–1354均actor变化、梯度有限非零、有效LR1e−5；KL=.024407/.023733/.027728/.031309，value loss=52.537338/60.834190/49.814427/.474117。最新[CP177792](C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/checkpoints/history/checkpoint_step_000177792.pt) SHAe4552bb1…，累计177792/1354/27080，保存/重载核验通过；[实际receipt](C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/training_quarter_P06_177792_actual.json) · [reward/GAE信号](C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/training_quarter_P06_177792_signal.json)。
+
+本轮PPO总阶段量P01=14/P02=991/P03=21/P04=18/P05=1388/P06=695/P07=2/P08=2/P09=69/P10–P13=0，总3200；teacher总2345decisions/18760ticks另列排除。当前没有为CP177792补造自然P01成功，也未实施质量恢复。
 
 P13已确认是名义stop所有权的取得条件形成闭环依赖：真实post-completion窗口已开始，但先前条件仍等待名义P13/已停车状态，未及时取得stop所有权。新版本只改NominalMotionProvider._observe_final_stop_owner，在真实窗口触发且当前几何/支撑/物理证据满足时取得现有stop；不延长窗口、不放宽评价器，不要求先前已经停车。其余成功N、residual组合、六配置、epsilon0/HISTORY均未改。
 

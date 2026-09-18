@@ -1,0 +1,1173 @@
+{
+  "schema": "wlr50_clean.front_quality_baseline_review.v1",
+  "created_at_utc": "2026-09-17T04:34:18.516Z",
+  "scope": "Two named historical sealed trajectories; no current zero-v2/live run, no CP177792 evaluation, no optimizer updates.",
+  "methods": {
+    "physical_hz": 120,
+    "decision_hz": 15,
+    "quaternion": "Existing fixed chassis-to-body identity; normalize measured wxyz, standard roll/pitch; no episode levelling.",
+    "stats": "Finite values only; abs_p95 uses nearest-rank. Inclusive endpoint samples; derivative samples exclude first endpoint.",
+    "windows": "Same initial 1s and same first-front-pair-placement +1s. Full FR-to-placement windows have unequal durations and are descriptive only.",
+    "placement_vs_support": "Window starts at historical physical placement events, but contemporaneous bearing is independently counted. Historical placed is not current TOP contact.",
+    "top_bearing": "Existing measured TOP contact test: verified active obstacle pair; actual contact point within top rectangle ±.005m and |z-top|<=.005m; upward reaction>=.2N and greater than horizontal reaction.",
+    "wheel_center_vs_contact": "Wheel centers, pose-aware collider bottoms and actual contact points are separate recorded quantities. A center-z mismatch is not a top-plane-height mismatch; common obstacle top remains z=.05m.",
+    "com": "Mass-weighted measured CoM; window-start fixed geometric RL direction and recorded local transfer diagnostics are motion correlations, not proof RL was loaded or of an optimal/causal CoM target.",
+    "transfer_load_field": "Existing FR-role load_fraction_change means FR load fraction at local-window start minus current FR load fraction, not an increase in RL loading. RL bearing force/load are reported independently."
+  },
+  "claims": {
+    "quality_reward_changed": false,
+    "training_added_decisions": 0,
+    "stability_superiority": false,
+    "optimal_com_inferred": false,
+    "RR_task_validity_solved": false,
+    "quality_tuning_deferred_until_RR_task_valid": true
+  },
+  "runs": [
+    {
+      "label": "zero_refine_v1_sealed",
+      "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_non_residual_refine_v1\\video_eval\\prior_B\\20260917T0343245466199Z_g3d231897c91c_0e58ddffca37441089dd17f34f4ed5d8",
+      "source_git_commit": "3d231897c91cb17cbc63b2b9ef6e8d4502e1b8ae",
+      "runtime_content_sha256": "f84661cdadf4c715e5be225eace7318848d788cac40d8618a18cd1293af0da40",
+      "completed_at_utc": "2026-09-17T04:08:53.583913+00:00",
+      "historical_run_result": {
+        "lifecycle": "DIAGNOSTIC_FAILURE",
+        "success": false,
+        "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+        "interpretation": "Final one-second controlled-stop check failed; not the protected older successful zero."
+      },
+      "recorded_event_ticks": {
+        "FR": {
+          "qualified": 24,
+          "crossed": 1486,
+          "placed": 1502
+        },
+        "FL": {
+          "qualified": 1559,
+          "crossed": 2468,
+          "placed": 2677
+        }
+      },
+      "physical_prefix_rows_read": 2798,
+      "recorded_decision_prefix_rows_read": 349,
+      "windows": {
+        "FR_initial_1s": {
+          "start_tick": 0,
+          "end_tick": 120,
+          "start_s": 0,
+          "end_s": 1,
+          "duration_s": 1,
+          "physical_observations": 121,
+          "attitude": {
+            "roll_rad": {
+              "n": 121,
+              "min": -0.24059446427300993,
+              "max": -0.00003884937598026426,
+              "mean": -0.1045591079345582,
+              "rms": 0.13354895446676382,
+              "abs_p95": 0.2401796788814443,
+              "peak_to_peak": 0.24055561489702967
+            },
+            "pitch_rad": {
+              "n": 121,
+              "min": -0.18908522062739744,
+              "max": -0.012019878918690498,
+              "mean": -0.09084566158043791,
+              "rms": 0.10934624753433893,
+              "abs_p95": 0.1890053025004212,
+              "peak_to_peak": 0.17706534170870694
+            },
+            "roll_rate_rad_s": {
+              "n": 120,
+              "min": -0.9467260156960086,
+              "max": 0.020076263164597676,
+              "mean": -0.23922945652748887,
+              "rms": 0.32462660325883913,
+              "abs_p95": 0.742152700708109,
+              "peak_to_peak": 0.9668022788606062
+            },
+            "pitch_rate_rad_s": {
+              "n": 120,
+              "min": -0.6630515942686611,
+              "max": 0.016064218100055715,
+              "mean": -0.17706534170870689,
+              "rms": 0.2340875683966138,
+              "abs_p95": 0.5230749191972603,
+              "peak_to_peak": 0.6791158123687169
+            },
+            "body_angular_speed_rad_s": {
+              "n": 121,
+              "min": 0.00792916502813818,
+              "max": 1.0972088424700044,
+              "mean": 0.28705152984655613,
+              "rms": 0.3809081397140893,
+              "abs_p95": 0.8646122830023204,
+              "peak_to_peak": 1.0892796774418663
+            }
+          },
+          "com_to_RL": {
+            "fixed_direction_xy_at_window_start": [
+              -0.8171256989304023,
+              0.5764595320987427
+            ],
+            "com_world_displacement_m": [
+              -0.01739923245800094,
+              0.03986615761436285,
+              0.010108060521237194
+            ],
+            "RL_world_displacement_m": [
+              -0.08242836594581604,
+              0.02501913160085678,
+              0.002615462988615036
+            ],
+            "com_toward_initial_RL_direction_m": {
+              "n": 121,
+              "min": -0.000012505122052277854,
+              "max": 0.03887377136040041,
+              "mean": 0.016918303298495425,
+              "rms": 0.021075326758061865,
+              "abs_p95": 0.03849466169162798,
+              "peak_to_peak": 0.03888627648245269
+            },
+            "end_projection_m": 0.0371985865480469,
+            "instantaneous_com_to_RL_xy_distance_m": {
+              "n": 121,
+              "min": 0.3384206055505782,
+              "max": 0.39757150222406035,
+              "mean": 0.3820277970150076,
+              "rms": 0.3824458371325782,
+              "abs_p95": 0.39747814567662515,
+              "peak_to_peak": 0.05915089667348217
+            },
+            "distance_change_m": 0.04777900154420578
+          },
+          "front_geometry": {
+            "signed_FR_minus_FL_wheel_center_z_m": {
+              "n": 121,
+              "min": 0.00020589679479599,
+              "max": 0.14858591184020042,
+              "mean": 0.06524780444985578,
+              "rms": 0.0849015889302369,
+              "abs_p95": 0.1469244882464409,
+              "peak_to_peak": 0.14838001504540443
+            },
+            "FR_bottom_minus_obstacle_top_m": {
+              "n": 121,
+              "min": -0.05083646351979408,
+              "max": 0.10200269444525702,
+              "mean": 0.01612583345823152,
+              "rms": 0.058257649056637766,
+              "abs_p95": 0.1006893664851317,
+              "peak_to_peak": 0.1528391579650511
+            },
+            "FL_bottom_minus_obstacle_top_m": {
+              "n": 121,
+              "min": -0.051506164907690014,
+              "max": -0.051029002561980924,
+              "mean": -0.05125504186453212,
+              "rms": 0.05125520101669724,
+              "abs_p95": 0.05147296406807177,
+              "peak_to_peak": 0.00047716234570908955
+            },
+            "simultaneous_measured_top_bearing_rows": 0,
+            "total_rows": 121,
+            "signed_FR_minus_FL_actual_top_contact_point_z_m": null,
+            "both_top_bearing_wheel_center_z_difference_m": null
+          },
+          "quality_flags": {
+            "all_physical_rows_finite": true,
+            "all_com_valid": true,
+            "all_front_wheel_geometry_verified": true,
+            "body_collision_rows": 0
+          },
+          "recorded": {
+            "returned_decision_samples": 15,
+            "first_tick": 8,
+            "last_tick": 120,
+            "scope": "Existing recorded evaluator/transfer diagnostics at returned decision endpoints; not interpolated physics or causal proof.",
+            "FR_air_samples": 15,
+            "RL_current_bearing_support_samples": 3,
+            "RL_air_samples": 12,
+            "RL_bearing_force_n": {
+              "n": 15,
+              "min": 0,
+              "max": 2.4010400772094727,
+              "mean": 0.4038559436798096,
+              "rms": 0.9162139399937562,
+              "abs_p95": 2.4010400772094727,
+              "peak_to_peak": 2.4010400772094727
+            },
+            "RL_load_fraction": {
+              "n": 15,
+              "min": 0,
+              "max": 0.08393483050779933,
+              "mean": 0.014016628213833872,
+              "rms": 0.03185719395756871,
+              "abs_p95": 0.08393483050779933,
+              "peak_to_peak": 0.08393483050779933
+            },
+            "both_front_recorded_TOP_bearing_samples": 0,
+            "recorded_FR_role_local_window_com_toward_RL_m": {
+              "n": 15,
+              "min": 0.0008391389609309218,
+              "max": 0.025781192683391692,
+              "mean": 0.013572058947751976,
+              "rms": 0.015385208048820351,
+              "abs_p95": 0.025781192683391692,
+              "peak_to_peak": 0.02494205372246077
+            },
+            "recorded_FR_role_local_window_FR_load_drop": {
+              "n": 15,
+              "min": 0,
+              "max": 0.23730609486475845,
+              "mean": 0.11074284427022062,
+              "rms": 0.1621109247027545,
+              "abs_p95": 0.23730609486475845,
+              "peak_to_peak": 0.23730609486475845
+            }
+          }
+        },
+        "FR_task_until_first_placement": {
+          "start_tick": 0,
+          "end_tick": 1502,
+          "start_s": 0,
+          "end_s": 12.516666666666666,
+          "duration_s": 12.516666666666666,
+          "physical_observations": 1503,
+          "attitude": {
+            "roll_rad": {
+              "n": 1503,
+              "min": -0.24337851366511262,
+              "max": -0.00003884937598026426,
+              "mean": -0.22754883156134134,
+              "rms": 0.23185131352862193,
+              "abs_p95": 0.24224836513132125,
+              "peak_to_peak": 0.24333966428913237
+            },
+            "pitch_rad": {
+              "n": 1503,
+              "min": -0.19162604211523546,
+              "max": -0.012019878918690498,
+              "mean": -0.18031789079012095,
+              "rms": 0.18346122556065703,
+              "abs_p95": 0.19135733000488925,
+              "peak_to_peak": 0.17960616319654496
+            },
+            "roll_rate_rad_s": {
+              "n": 1502,
+              "min": -0.9467260156960086,
+              "max": 0.7385000848383303,
+              "mean": -0.008949196686337415,
+              "rms": 0.12202471343911181,
+              "abs_p95": 0.20788245545277353,
+              "peak_to_peak": 1.6852261005343387
+            },
+            "pitch_rate_rad_s": {
+              "n": 1502,
+              "min": -0.6630515942686611,
+              "max": 0.9379970935614135,
+              "mean": -0.002355014431327978,
+              "rms": 0.11360365400381292,
+              "abs_p95": 0.15474389371076758,
+              "peak_to_peak": 1.6010486878300747
+            },
+            "body_angular_speed_rad_s": {
+              "n": 1503,
+              "min": 0.0020928472910751563,
+              "max": 1.2393260277394267,
+              "mean": 0.06808363457540417,
+              "rms": 0.17033912733611256,
+              "abs_p95": 0.23932598787752943,
+              "peak_to_peak": 1.2372331804483516
+            }
+          },
+          "com_to_RL": {
+            "fixed_direction_xy_at_window_start": [
+              -0.8171256989304023,
+              0.5764595320987427
+            ],
+            "com_world_displacement_m": [
+              0.17913696974120769,
+              0.015245678204329316,
+              -0.007446457874567908
+            ],
+            "RL_world_displacement_m": [
+              0.1323672980070114,
+              0.009096972644329071,
+              0.0019607320427894592
+            ],
+            "com_toward_initial_RL_direction_m": {
+              "n": 1503,
+              "min": -0.137588905079863,
+              "max": 0.03887377136040041,
+              "mean": -0.02675021062031267,
+              "rms": 0.0484666414543492,
+              "abs_p95": 0.09016664017143318,
+              "peak_to_peak": 0.1764626764402634
+            },
+            "end_projection_m": -0.137588905079863,
+            "instantaneous_com_to_RL_xy_distance_m": {
+              "n": 1503,
+              "min": 0.3384206055505782,
+              "max": 0.39757150222406035,
+              "mean": 0.386226197255565,
+              "rms": 0.3862624940165601,
+              "abs_p95": 0.38706474584876815,
+              "peak_to_peak": 0.05915089667348217
+            },
+            "distance_change_m": 0.03604074483946296
+          },
+          "front_geometry": {
+            "signed_FR_minus_FL_wheel_center_z_m": {
+              "n": 1503,
+              "min": 0.00020589679479599,
+              "max": 0.14858591184020042,
+              "mean": 0.13823079875982053,
+              "rms": 0.14097008416984486,
+              "abs_p95": 0.14687617868185043,
+              "peak_to_peak": 0.14838001504540443
+            },
+            "FR_bottom_minus_obstacle_top_m": {
+              "n": 1503,
+              "min": -0.05083646351979408,
+              "max": 0.1021320302866399,
+              "mean": 0.09232324407563908,
+              "rms": 0.09669307680724895,
+              "abs_p95": 0.1013463580584706,
+              "peak_to_peak": 0.15296849380643399
+            },
+            "FL_bottom_minus_obstacle_top_m": {
+              "n": 1503,
+              "min": -0.051506164907690014,
+              "max": -0.049979626610600236,
+              "mean": -0.0504510888842253,
+              "rms": 0.05045313796663793,
+              "abs_p95": 0.05128809260560769,
+              "peak_to_peak": 0.0015265382970897773
+            },
+            "simultaneous_measured_top_bearing_rows": 0,
+            "total_rows": 1503,
+            "signed_FR_minus_FL_actual_top_contact_point_z_m": null,
+            "both_top_bearing_wheel_center_z_difference_m": null
+          },
+          "quality_flags": {
+            "all_physical_rows_finite": true,
+            "all_com_valid": true,
+            "all_front_wheel_geometry_verified": true,
+            "body_collision_rows": 0
+          },
+          "recorded": {
+            "returned_decision_samples": 187,
+            "first_tick": 8,
+            "last_tick": 1496,
+            "scope": "Existing recorded evaluator/transfer diagnostics at returned decision endpoints; not interpolated physics or causal proof.",
+            "FR_air_samples": 187,
+            "RL_current_bearing_support_samples": 174,
+            "RL_air_samples": 13,
+            "RL_bearing_force_n": {
+              "n": 187,
+              "min": 0,
+              "max": 6.216135501861572,
+              "mean": 2.35534542129639,
+              "rms": 2.4735992737316836,
+              "abs_p95": 3.048004150390625,
+              "peak_to_peak": 6.216135501861572
+            },
+            "RL_load_fraction": {
+              "n": 187,
+              "min": 0,
+              "max": 0.24351795166213358,
+              "mean": 0.08214443573799612,
+              "rms": 0.08650783633995113,
+              "abs_p95": 0.10397553815470442,
+              "peak_to_peak": 0.24351795166213358
+            },
+            "both_front_recorded_TOP_bearing_samples": 0,
+            "recorded_FR_role_local_window_com_toward_RL_m": {
+              "n": 187,
+              "min": -0.0367178981964378,
+              "max": 0.025781192683391692,
+              "mean": -0.004546645114317006,
+              "rms": 0.008316481365579187,
+              "abs_p95": 0.01402657378616637,
+              "peak_to_peak": 0.062499090879829494
+            },
+            "recorded_FR_role_local_window_FR_load_drop": {
+              "n": 187,
+              "min": 0,
+              "max": 0.23730609486475845,
+              "mean": 0.008883115850552457,
+              "rms": 0.04591315206698229,
+              "abs_p95": 0,
+              "peak_to_peak": 0.23730609486475845
+            }
+          }
+        },
+        "front_pair_first_placement_plus_1s": {
+          "start_tick": 2677,
+          "end_tick": 2797,
+          "start_s": 22.308333333333334,
+          "end_s": 23.308333333333334,
+          "duration_s": 1,
+          "physical_observations": 121,
+          "attitude": {
+            "roll_rad": {
+              "n": 121,
+              "min": -0.04708128667294605,
+              "max": -0.03964280312713303,
+              "mean": -0.041275912943381454,
+              "rms": 0.041294356551432175,
+              "abs_p95": 0.04403973287456305,
+              "peak_to_peak": 0.0074384835458130225
+            },
+            "pitch_rad": {
+              "n": 121,
+              "min": -0.03136356658322995,
+              "max": 0.003485911546976099,
+              "mean": -0.027756489287164694,
+              "rms": 0.02866699838291995,
+              "abs_p95": 0.031335678253435036,
+              "peak_to_peak": 0.03484947813020605
+            },
+            "roll_rate_rad_s": {
+              "n": 120,
+              "min": -0.010905163741788746,
+              "max": 0.07024283738359044,
+              "mean": 0.007438483545813054,
+              "rms": 0.017337394994660235,
+              "abs_p95": 0.04914474074540905,
+              "peak_to_peak": 0.08114800112537919
+            },
+            "pitch_rate_rad_s": {
+              "n": 120,
+              "min": -0.3220588250345082,
+              "max": 0.00430961092854853,
+              "mean": -0.034090612937917014,
+              "rms": 0.07882555898623637,
+              "abs_p95": 0.20466581805634715,
+              "peak_to_peak": 0.32636843596305676
+            },
+            "body_angular_speed_rad_s": {
+              "n": 121,
+              "min": 0.007432662559270648,
+              "max": 0.3255404158032083,
+              "mean": 0.05083249535863568,
+              "rms": 0.08502230414320024,
+              "abs_p95": 0.2232622688544585,
+              "peak_to_peak": 0.31810775324393764
+            }
+          },
+          "com_to_RL": {
+            "fixed_direction_xy_at_window_start": [
+              -0.837765741469278,
+              0.5460298182521086
+            ],
+            "com_world_displacement_m": [
+              0.018804230422515222,
+              -0.0014115300094265926,
+              0.005692357773355916
+            ],
+            "RL_world_displacement_m": [
+              0.02359864581376314,
+              -0.0009881183505058289,
+              -0.000012017786502838135
+            ],
+            "com_toward_initial_RL_direction_m": {
+              "n": 121,
+              "min": -0.016524277517182218,
+              "max": 0,
+              "mean": -0.009728786605815254,
+              "rms": 0.010620713985939615,
+              "abs_p95": 0.01585546274367506,
+              "peak_to_peak": 0.016524277517182218
+            },
+            "end_projection_m": -0.016524277517182218,
+            "instantaneous_com_to_RL_xy_distance_m": {
+              "n": 121,
+              "min": 0.3588685135970644,
+              "max": 0.36264160344330293,
+              "mean": 0.3601859942239527,
+              "rms": 0.36018752256941605,
+              "abs_p95": 0.36227148419658645,
+              "peak_to_peak": 0.003773089846238531
+            },
+            "distance_change_m": -0.003773089846238531
+          },
+          "front_geometry": {
+            "signed_FR_minus_FL_wheel_center_z_m": {
+              "n": 121,
+              "min": -0.0011888369917869568,
+              "max": -0.0002307891845703125,
+              "mean": -0.0005649302986042559,
+              "rms": 0.0006111682532351976,
+              "abs_p95": 0.0010152459144592285,
+              "peak_to_peak": 0.0009580478072166443
+            },
+            "FR_bottom_minus_obstacle_top_m": {
+              "n": 121,
+              "min": -0.0007456008110045889,
+              "max": 0.000016229856422911304,
+              "mean": -0.00015019332003177573,
+              "rms": 0.0002666502290630101,
+              "abs_p95": 0.0006410727883051706,
+              "peak_to_peak": 0.0007618306674275002
+            },
+            "FL_bottom_minus_obstacle_top_m": {
+              "n": 121,
+              "min": -0.000738814680009553,
+              "max": 0.000012320621141530264,
+              "mean": -0.0004257869316827212,
+              "rms": 0.0005012375761371224,
+              "abs_p95": 0.0007133841826852394,
+              "peak_to_peak": 0.0007511353011510832
+            },
+            "simultaneous_measured_top_bearing_rows": 121,
+            "total_rows": 121,
+            "signed_FR_minus_FL_actual_top_contact_point_z_m": {
+              "n": 121,
+              "min": -0.001284528523683548,
+              "max": 0.00043756142258644104,
+              "mean": -0.0003195268309806004,
+              "rms": 0.0005902997753077354,
+              "abs_p95": 0.0012205317616462708,
+              "peak_to_peak": 0.001722089946269989
+            },
+            "both_top_bearing_wheel_center_z_difference_m": {
+              "n": 121,
+              "min": -0.0011888369917869568,
+              "max": -0.0002307891845703125,
+              "mean": -0.0005649302986042559,
+              "rms": 0.0006111682532351976,
+              "abs_p95": 0.0010152459144592285,
+              "peak_to_peak": 0.0009580478072166443
+            }
+          },
+          "quality_flags": {
+            "all_physical_rows_finite": true,
+            "all_com_valid": true,
+            "all_front_wheel_geometry_verified": true,
+            "body_collision_rows": 0
+          },
+          "recorded": {
+            "returned_decision_samples": 15,
+            "first_tick": 2680,
+            "last_tick": 2792,
+            "scope": "Existing recorded evaluator/transfer diagnostics at returned decision endpoints; not interpolated physics or causal proof.",
+            "FR_air_samples": 0,
+            "RL_current_bearing_support_samples": 15,
+            "RL_air_samples": 0,
+            "RL_bearing_force_n": {
+              "n": 15,
+              "min": 4.328099727630615,
+              "max": 7.165038585662842,
+              "mean": 6.389435227711996,
+              "rms": 6.426178703526356,
+              "abs_p95": 7.165038585662842,
+              "peak_to_peak": 2.8369388580322266
+            },
+            "RL_load_fraction": {
+              "n": 15,
+              "min": 0.15700488698885834,
+              "max": 0.2491031619735405,
+              "mean": 0.22368631388510204,
+              "rms": 0.22479797755836575,
+              "abs_p95": 0.2491031619735405,
+              "peak_to_peak": 0.09209827498468215
+            },
+            "both_front_recorded_TOP_bearing_samples": 15,
+            "recorded_FR_role_local_window_com_toward_RL_m": {
+              "n": 15,
+              "min": -0.010891609110276127,
+              "max": -0.006313581242334969,
+              "mean": -0.00879470620647234,
+              "rms": 0.008996731700954124,
+              "abs_p95": 0.010891609110276127,
+              "peak_to_peak": 0.0045780278679411575
+            },
+            "recorded_FR_role_local_window_FR_load_drop": {
+              "n": 15,
+              "min": -0.04050266347312595,
+              "max": 0.2345394944077701,
+              "mean": 0.09972799329179892,
+              "rms": 0.15241132634709315,
+              "abs_p95": 0.2345394944077701,
+              "peak_to_peak": 0.27504215788089603
+            }
+          }
+        }
+      }
+    },
+    {
+      "label": "historical_CP177152",
+      "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_first_recovery_v1\\video_eval\\validation\\20260916T0550249947408Z_g00050a2b1452_086805789a6e491392ef4656c7708c2c",
+      "source_git_commit": "00050a2b14521f41f3194ae7d4513ac1d32a1f8b",
+      "runtime_content_sha256": "775d959e4bfcd431529d9eca374626d3fcf6ed56ba06f52f7e2136d3a117f74e",
+      "completed_at_utc": "2026-09-16T06:09:16.673853+00:00",
+      "historical_run_result": {
+        "lifecycle": "SUCCEEDED",
+        "success": true,
+        "termination_reason": null,
+        "interpretation": "Historical evaluator success retained; RR_ACCEPTANCE_UNDER_REVIEW, not latest CP177792 or new strict RR success."
+      },
+      "recorded_event_ticks": {
+        "FR": {
+          "qualified": 22,
+          "crossed": 1374,
+          "placed": 1397
+        },
+        "FL": {
+          "qualified": 1538,
+          "crossed": 1842,
+          "placed": 2648
+        }
+      },
+      "physical_prefix_rows_read": 2769,
+      "recorded_decision_prefix_rows_read": 346,
+      "windows": {
+        "FR_initial_1s": {
+          "start_tick": 0,
+          "end_tick": 120,
+          "start_s": 0,
+          "end_s": 1,
+          "duration_s": 1,
+          "physical_observations": 121,
+          "attitude": {
+            "roll_rad": {
+              "n": 121,
+              "min": -0.24228527853221454,
+              "max": -0.00002538617582200287,
+              "mean": -0.0991731953599902,
+              "rms": 0.12707232813366484,
+              "abs_p95": 0.24198140913692406,
+              "peak_to_peak": 0.24225989235639253
+            },
+            "pitch_rad": {
+              "n": 121,
+              "min": -0.19773409918210313,
+              "max": -0.012019878918690498,
+              "mean": -0.09087384440818777,
+              "rms": 0.1091545970014423,
+              "abs_p95": 0.19747992836657238,
+              "peak_to_peak": 0.18571422026341264
+            },
+            "roll_rate_rad_s": {
+              "n": 120,
+              "min": -0.9058780006078782,
+              "max": 0.01549101010771442,
+              "mean": -0.24169812172388483,
+              "rms": 0.32037180114373065,
+              "abs_p95": 0.7243740272340673,
+              "peak_to_peak": 0.9213690107155925
+            },
+            "pitch_rate_rad_s": {
+              "n": 120,
+              "min": -0.6403884206222676,
+              "max": 0.005833272118741537,
+              "mean": -0.18571422026341258,
+              "rms": 0.2367769379494719,
+              "abs_p95": 0.5156680789994468,
+              "peak_to_peak": 0.6462216927410092
+            },
+            "body_angular_speed_rad_s": {
+              "n": 121,
+              "min": 0.00792916502813818,
+              "max": 1.0707361885455702,
+              "mean": 0.2936195652235219,
+              "rms": 0.37970403347162895,
+              "abs_p95": 0.8238890576200373,
+              "peak_to_peak": 1.062807023517432
+            }
+          },
+          "com_to_RL": {
+            "fixed_direction_xy_at_window_start": [
+              -0.8171256989304023,
+              0.5764595320987427
+            ],
+            "com_world_displacement_m": [
+              -0.01571608611628896,
+              0.04064697100307528,
+              0.012270254430546523
+            ],
+            "RL_world_displacement_m": [
+              -0.08239778876304626,
+              0.02548956871032715,
+              0.002966027706861496
+            ],
+            "com_toward_initial_RL_direction_m": {
+              "n": 121,
+              "min": -0.000025754733835265433,
+              "max": 0.03757203591548898,
+              "mean": 0.01506568342598555,
+              "rms": 0.01896740406381484,
+              "abs_p95": 0.03702991323969579,
+              "peak_to_peak": 0.037597790649324246
+            },
+            "end_projection_m": 0.03627335173788694,
+            "instantaneous_com_to_RL_xy_distance_m": {
+              "n": 121,
+              "min": 0.3384206055505782,
+              "max": 0.39928645710443955,
+              "mean": 0.3835596143623343,
+              "rms": 0.3840097941037887,
+              "abs_p95": 0.39920380910116426,
+              "peak_to_peak": 0.06086585155386137
+            },
+            "distance_change_m": 0.04909711989314569
+          },
+          "front_geometry": {
+            "signed_FR_minus_FL_wheel_center_z_m": {
+              "n": 121,
+              "min": 0.00020584836602210999,
+              "max": 0.15963417291641235,
+              "mean": 0.06875871094174621,
+              "rms": 0.08890748288506115,
+              "abs_p95": 0.15948746353387833,
+              "peak_to_peak": 0.15942832455039024
+            },
+            "FR_bottom_minus_obstacle_top_m": {
+              "n": 121,
+              "min": -0.05083646351979408,
+              "max": 0.1132965784083272,
+              "mean": 0.01949919296557257,
+              "rms": 0.061113079274296093,
+              "abs_p95": 0.11302891607014194,
+              "peak_to_peak": 0.16413304192812128
+            },
+            "FL_bottom_minus_obstacle_top_m": {
+              "n": 121,
+              "min": -0.05152366757416117,
+              "max": -0.05104333448435816,
+              "mean": -0.051278091194522396,
+              "rms": 0.05127824410888104,
+              "abs_p95": 0.051490317434186084,
+              "peak_to_peak": 0.0004803330898030117
+            },
+            "simultaneous_measured_top_bearing_rows": 0,
+            "total_rows": 121,
+            "signed_FR_minus_FL_actual_top_contact_point_z_m": null,
+            "both_top_bearing_wheel_center_z_difference_m": null
+          },
+          "quality_flags": {
+            "all_physical_rows_finite": true,
+            "all_com_valid": true,
+            "all_front_wheel_geometry_verified": true,
+            "body_collision_rows": 0
+          },
+          "recorded": {
+            "returned_decision_samples": 15,
+            "first_tick": 8,
+            "last_tick": 120,
+            "scope": "Existing recorded evaluator/transfer diagnostics at returned decision endpoints; not interpolated physics or causal proof.",
+            "FR_air_samples": 15,
+            "RL_current_bearing_support_samples": 2,
+            "RL_air_samples": 13,
+            "RL_bearing_force_n": {
+              "n": 15,
+              "min": 0,
+              "max": 3.0310773849487305,
+              "mean": 0.33484658400217693,
+              "rms": 0.9364466817083541,
+              "abs_p95": 3.0310773849487305,
+              "peak_to_peak": 3.0310773849487305
+            },
+            "RL_load_fraction": {
+              "n": 15,
+              "min": 0,
+              "max": 0.10300923750253609,
+              "mean": 0.011577823607606636,
+              "rms": 0.03225262000101406,
+              "abs_p95": 0.10300923750253609,
+              "peak_to_peak": 0.10300923750253609
+            },
+            "both_front_recorded_TOP_bearing_samples": 0,
+            "recorded_FR_role_local_window_com_toward_RL_m": {
+              "n": 15,
+              "min": 0.0007535715817862706,
+              "max": 0.024386334023266724,
+              "mean": 0.012027233868207246,
+              "rms": 0.013828455773586894,
+              "abs_p95": 0.024386334023266724,
+              "peak_to_peak": 0.023632762441480454
+            },
+            "recorded_FR_role_local_window_FR_load_drop": {
+              "n": 15,
+              "min": 0,
+              "max": 0.23730609486475845,
+              "mean": 0.11074284427022062,
+              "rms": 0.1621109247027545,
+              "abs_p95": 0.23730609486475845,
+              "peak_to_peak": 0.23730609486475845
+            }
+          }
+        },
+        "FR_task_until_first_placement": {
+          "start_tick": 0,
+          "end_tick": 1397,
+          "start_s": 0,
+          "end_s": 11.641666666666666,
+          "duration_s": 11.641666666666666,
+          "physical_observations": 1398,
+          "attitude": {
+            "roll_rad": {
+              "n": 1398,
+              "min": -0.24614195678557033,
+              "max": -0.00002538617582200287,
+              "mean": -0.22838367357761843,
+              "rms": 0.2333526399727389,
+              "abs_p95": 0.24540724776198772,
+              "peak_to_peak": 0.24611657060974831
+            },
+            "pitch_rad": {
+              "n": 1398,
+              "min": -0.20447924005171225,
+              "max": -0.012019878918690498,
+              "mean": -0.19060166977948403,
+              "rms": 0.1945572623981984,
+              "abs_p95": 0.2040944955602392,
+              "peak_to_peak": 0.19245936113302176
+            },
+            "roll_rate_rad_s": {
+              "n": 1397,
+              "min": -0.9058780006078782,
+              "max": 0.6750728635461256,
+              "mean": -0.008416804420387494,
+              "rms": 0.12451416448860785,
+              "abs_p95": 0.22269811236048812,
+              "peak_to_peak": 1.5809508641540038
+            },
+            "pitch_rate_rad_s": {
+              "n": 1397,
+              "min": -0.6403884206222676,
+              "max": 0.7865247902796371,
+              "mean": -0.0018809526508331799,
+              "rms": 0.11889867584125784,
+              "abs_p95": 0.1735592603715414,
+              "peak_to_peak": 1.4269132109019047
+            },
+            "body_angular_speed_rad_s": {
+              "n": 1398,
+              "min": 0.0023067058358497775,
+              "max": 1.0707361885455702,
+              "mean": 0.07447449315778751,
+              "rms": 0.17063980183395436,
+              "abs_p95": 0.26856786907355257,
+              "peak_to_peak": 1.0684294827097205
+            }
+          },
+          "com_to_RL": {
+            "fixed_direction_xy_at_window_start": [
+              -0.8171256989304023,
+              0.5764595320987427
+            ],
+            "com_world_displacement_m": [
+              0.18442711061388217,
+              0.01226658253296406,
+              -0.007832201235371983
+            ],
+            "RL_world_displacement_m": [
+              0.13664989173412323,
+              0.008347414433956146,
+              0.0011313483119010925
+            ],
+            "com_toward_initial_RL_direction_m": {
+              "n": 1398,
+              "min": -0.14362894323468003,
+              "max": 0.03757203591548898,
+              "mean": -0.026557177783853726,
+              "rms": 0.04818899156309338,
+              "abs_p95": 0.0890482244351579,
+              "peak_to_peak": 0.18120097915016903
+            },
+            "end_projection_m": -0.14362894323468003,
+            "instantaneous_com_to_RL_xy_distance_m": {
+              "n": 1398,
+              "min": 0.3384206055505782,
+              "max": 0.39928645710443955,
+              "mean": 0.38753260606530265,
+              "rms": 0.3875739966565572,
+              "abs_p95": 0.38844679308255947,
+              "peak_to_peak": 0.06086585155386137
+            },
+            "distance_change_m": 0.038038233123441234
+          },
+          "front_geometry": {
+            "signed_FR_minus_FL_wheel_center_z_m": {
+              "n": 1398,
+              "min": 0.00020584836602210999,
+              "max": 0.16567552834749222,
+              "mean": 0.15438272165819383,
+              "rms": 0.15787143648401133,
+              "abs_p95": 0.16531098261475563,
+              "peak_to_peak": 0.1654696799814701
+            },
+            "FR_bottom_minus_obstacle_top_m": {
+              "n": 1398,
+              "min": -0.05083646351979408,
+              "max": 0.1205458584981191,
+              "mean": 0.10850747488013349,
+              "rms": 0.11375343000915271,
+              "abs_p95": 0.12001559561549889,
+              "peak_to_peak": 0.17138232201791317
+            },
+            "FL_bottom_minus_obstacle_top_m": {
+              "n": 1398,
+              "min": -0.05152366757416117,
+              "max": -0.04998729645339967,
+              "mean": -0.05042397993283165,
+              "rms": 0.05042596416126434,
+              "abs_p95": 0.05128558195029741,
+              "peak_to_peak": 0.0015363711207614997
+            },
+            "simultaneous_measured_top_bearing_rows": 0,
+            "total_rows": 1398,
+            "signed_FR_minus_FL_actual_top_contact_point_z_m": null,
+            "both_top_bearing_wheel_center_z_difference_m": null
+          },
+          "quality_flags": {
+            "all_physical_rows_finite": true,
+            "all_com_valid": true,
+            "all_front_wheel_geometry_verified": true,
+            "body_collision_rows": 0
+          },
+          "recorded": {
+            "returned_decision_samples": 174,
+            "first_tick": 8,
+            "last_tick": 1392,
+            "scope": "Existing recorded evaluator/transfer diagnostics at returned decision endpoints; not interpolated physics or causal proof.",
+            "FR_air_samples": 174,
+            "RL_current_bearing_support_samples": 160,
+            "RL_air_samples": 14,
+            "RL_bearing_force_n": {
+              "n": 174,
+              "min": 0,
+              "max": 6.615671634674072,
+              "mean": 2.351665799302616,
+              "rms": 2.5221371423869496,
+              "abs_p95": 3.396575927734375,
+              "peak_to_peak": 6.615671634674072
+            },
+            "RL_load_fraction": {
+              "n": 174,
+              "min": 0,
+              "max": 0.25553117537586095,
+              "mean": 0.08159401881236289,
+              "rms": 0.08760979487095076,
+              "abs_p95": 0.11565976343313061,
+              "peak_to_peak": 0.25553117537586095
+            },
+            "both_front_recorded_TOP_bearing_samples": 0,
+            "recorded_FR_role_local_window_com_toward_RL_m": {
+              "n": 174,
+              "min": -0.046520831656228424,
+              "max": 0.024386334023266724,
+              "mean": -0.00501160816972212,
+              "rms": 0.00916448113644704,
+              "abs_p95": 0.015703520321128324,
+              "peak_to_peak": 0.07090716567949515
+            },
+            "recorded_FR_role_local_window_FR_load_drop": {
+              "n": 174,
+              "min": 0,
+              "max": 0.23730609486475845,
+              "mean": 0.009546796919846605,
+              "rms": 0.04759740639484154,
+              "abs_p95": 0,
+              "peak_to_peak": 0.23730609486475845
+            }
+          }
+        },
+        "front_pair_first_placement_plus_1s": {
+          "start_tick": 2648,
+          "end_tick": 2768,
+          "start_s": 22.066666666666666,
+          "end_s": 23.066666666666666,
+          "duration_s": 1,
+          "physical_observations": 121,
+          "attitude": {
+            "roll_rad": {
+              "n": 121,
+              "min": -0.045104266481410214,
+              "max": -0.021617574100331115,
+              "mean": -0.025453454783092067,
+              "rms": 0.025902449496564443,
+              "abs_p95": 0.03747704435828499,
+              "peak_to_peak": 0.0234866923810791
+            },
+            "pitch_rad": {
+              "n": 121,
+              "min": -0.02883578670033291,
+              "max": -0.012867417484020448,
+              "mean": -0.02307285269999923,
+              "rms": 0.023325599151638014,
+              "abs_p95": 0.028281847618345637,
+              "peak_to_peak": 0.01596836921631246
+            },
+            "roll_rate_rad_s": {
+              "n": 120,
+              "min": -0.02369139374951197,
+              "max": 0.16664423633440648,
+              "mean": 0.02088480584443529,
+              "rms": 0.04958222850545585,
+              "abs_p95": 0.13596058625848975,
+              "peak_to_peak": 0.19033563008391846
+            },
+            "pitch_rate_rad_s": {
+              "n": 120,
+              "min": -0.13856650188305528,
+              "max": -0.0009669659041753356,
+              "mean": -0.015968369216312516,
+              "rms": 0.02452505830437051,
+              "abs_p95": 0.040651025535591946,
+              "peak_to_peak": 0.13759953597887994
+            },
+            "body_angular_speed_rad_s": {
+              "n": 121,
+              "min": 0.029263139814654705,
+              "max": 0.1525300089783085,
+              "mean": 0.07286834831676385,
+              "rms": 0.07634526551278821,
+              "abs_p95": 0.12338382889768797,
+              "peak_to_peak": 0.12326686916365381
+            }
+          },
+          "com_to_RL": {
+            "fixed_direction_xy_at_window_start": [
+              -0.8382059498338854,
+              0.5453538169510449
+            ],
+            "com_world_displacement_m": [
+              0.021044489404043243,
+              -0.0031864777600948274,
+              0.0024817072721117772
+            ],
+            "RL_world_displacement_m": [
+              0.01836276799440384,
+              -0.0017266422510147095,
+              0.0006548725068569183
+            ],
+            "com_toward_initial_RL_direction_m": {
+              "n": 121,
+              "min": -0.019377374038782536,
+              "max": 0,
+              "mean": -0.011742616828004085,
+              "rms": 0.012798250472774088,
+              "abs_p95": 0.018749216168940815,
+              "peak_to_peak": 0.019377374038782536
+            },
+            "end_projection_m": -0.019377374038782536,
+            "instantaneous_com_to_RL_xy_distance_m": {
+              "n": 121,
+              "min": 0.3639796964315574,
+              "max": 0.3682182030771994,
+              "mean": 0.36740812555843844,
+              "rms": 0.3674094069076363,
+              "abs_p95": 0.3682032759839897,
+              "peak_to_peak": 0.0042385066456419596
+            },
+            "distance_change_m": 0.003044039419727529
+          },
+          "front_geometry": {
+            "signed_FR_minus_FL_wheel_center_z_m": {
+              "n": 121,
+              "min": -0.0017232969403266907,
+              "max": 0.003500118851661682,
+              "mean": 0.0005511525125542948,
+              "rms": 0.0016464725127796679,
+              "abs_p95": 0.003148317337036133,
+              "peak_to_peak": 0.005223415791988373
+            },
+            "FR_bottom_minus_obstacle_top_m": {
+              "n": 121,
+              "min": -0.0008177314463313767,
+              "max": 0.003622772494798976,
+              "mean": 0.0006541909961362113,
+              "rms": 0.0014158414954894766,
+              "abs_p95": 0.003138914242891644,
+              "peak_to_peak": 0.004440503941130353
+            },
+            "FL_bottom_minus_obstacle_top_m": {
+              "n": 121,
+              "min": -0.0010825083457230017,
+              "max": 0.000014030681481466689,
+              "mean": -0.00042248743019602283,
+              "rms": 0.0005486980134991158,
+              "abs_p95": 0.0010049276128586415,
+              "peak_to_peak": 0.0010965390272044684
+            },
+            "simultaneous_measured_top_bearing_rows": 42,
+            "total_rows": 121,
+            "signed_FR_minus_FL_actual_top_contact_point_z_m": {
+              "n": 42,
+              "min": -0.0016396939754486084,
+              "max": -0.00010329112410545349,
+              "mean": -0.0006411158967585791,
+              "rms": 0.0008049924605151687,
+              "abs_p95": 0.0015633739531040192,
+              "peak_to_peak": 0.001536402851343155
+            },
+            "both_top_bearing_wheel_center_z_difference_m": {
+              "n": 42,
+              "min": -0.0017232969403266907,
+              "max": -0.00011813640594482422,
+              "mean": -0.0007329020826589494,
+              "rms": 0.0008490157402416956,
+              "abs_p95": 0.0015827566385269165,
+              "peak_to_peak": 0.0016051605343818665
+            }
+          },
+          "quality_flags": {
+            "all_physical_rows_finite": true,
+            "all_com_valid": true,
+            "all_front_wheel_geometry_verified": true,
+            "body_collision_rows": 0
+          },
+          "recorded": {
+            "returned_decision_samples": 16,
+            "first_tick": 2648,
+            "last_tick": 2768,
+            "scope": "Existing recorded evaluator/transfer diagnostics at returned decision endpoints; not interpolated physics or causal proof.",
+            "FR_air_samples": 10,
+            "RL_current_bearing_support_samples": 3,
+            "RL_air_samples": 13,
+            "RL_bearing_force_n": {
+              "n": 16,
+              "min": 0,
+              "max": 0.8035725355148315,
+              "mean": 0.1006094478070736,
+              "rms": 0.24662511019301392,
+              "abs_p95": 0.8035725355148315,
+              "peak_to_peak": 0.8035725355148315
+            },
+            "RL_load_fraction": {
+              "n": 15,
+              "min": 0,
+              "max": 0.030726509297714207,
+              "mean": 0.0038833029336766117,
+              "rms": 0.009402084307001322,
+              "abs_p95": 0.030726509297714207,
+              "peak_to_peak": 0.030726509297714207
+            },
+            "both_front_recorded_TOP_bearing_samples": 5,
+            "recorded_FR_role_local_window_com_toward_RL_m": {
+              "n": 16,
+              "min": -0.012362892887337969,
+              "max": -0.004135955521725705,
+              "mean": -0.008501316533250636,
+              "rms": 0.008738598350953905,
+              "abs_p95": 0.012362892887337969,
+              "peak_to_peak": 0.008226937365612263
+            },
+            "recorded_FR_role_local_window_FR_load_drop": {
+              "n": 15,
+              "min": 0,
+              "max": 0.43738249159243064,
+              "mean": 0.1997635037648661,
+              "rms": 0.2846924403307377,
+              "abs_p95": 0.43738249159243064,
+              "peak_to_peak": 0.43738249159243064
+            }
+          }
+        }
+      }
+    }
+  ]
+}

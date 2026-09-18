@@ -1,0 +1,194 @@
+{
+  "schema": "wlr50_clean.residual_rr_fix_evaluation_results.v1",
+  "updated_at_utc": "2026-09-17T05:30:48.549Z",
+  "experiment_id": "residual_rr_fix_v1",
+  "training_counts_unchanged": {
+    "branch_decisions": 640,
+    "branch_PPO_updates": 5,
+    "branch_optimizer_steps": 100,
+    "latest_decisions": 178432,
+    "latest_PPO_updates": 1359,
+    "latest_optimizer_steps": 27180
+  },
+  "latest_formal_checkpoint": {
+    "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_residual_rr_fix_v1\\checkpoints\\history\\checkpoint_step_000178432.pt",
+    "checkpoint_sha256": "19acb91f64a2b728e54f02d50dcaf187e11fd432ff68901ba91ff0af58f6a665",
+    "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_residual_rr_fix_v1\\checkpoints\\history\\checkpoint_step_000178432_manifest.json",
+    "manifest_sha256": "78dc71b80f897fa843f365c0ae3ba7150ade970eaf5ff57325141e465a91453a"
+  },
+  "successful_checkpoint_pointer_created": false,
+  "new_strict_full_P01_success_count": 0,
+  "new_strict_full_P01_evaluation_count": 1,
+  "candidates": [
+    {
+      "checkpoint_global_decisions": 178432,
+      "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_residual_rr_fix_v1\\video_eval\\validation\\20260917T0510347247858Z_g6c2121b68654_35383f247031424e9b890de765bc2b13",
+      "status": "FORMAL_TASK_INCOMPLETE_P05",
+      "lifecycle": "DIAGNOSTIC_FAILURE",
+      "completed_at_utc": "2026-09-17T05:27:37.554665+00:00",
+      "checkpoint_loaded_and_verified": true,
+      "full12": true,
+      "teacher_prefix_decisions": 0,
+      "diagnostic_residual_mask_intervention": false,
+      "seed": 4001,
+      "role": "C",
+      "mode": "semantic_residual_eval",
+      "episode_count": 1,
+      "task_success": false,
+      "ticks": 5907,
+      "duration_s": 49.225,
+      "issued_policy_decisions": 739,
+      "evaluation_optimizer_updates": 0,
+      "training_credit": 0,
+      "first_uncompleted_task": "P05: FL controlled placement after crossing; later RR stages were not reached.",
+      "semantic_terminal": {
+        "stage_id": "P05",
+        "purpose": "First FL swing and continuous pending capture including wheel cooperation",
+        "success": false,
+        "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+        "termination_source": "LOCAL_BOUNDED_RECOVERY_EXHAUSTED",
+        "entry_valid": true,
+        "entry_reasons": [],
+        "stage_age_s": 37.225,
+        "remaining_task_time_s": 150.775,
+        "local_timeout": {
+          "nominal_limit_s": 30,
+          "current_progress_allowance_s": 7.225,
+          "fixed_post_window_allowance_s": 0,
+          "effective_limit_s": 37.225,
+          "nominal_limit_exceeded": true,
+          "classification": "finite_task_terminal_not_external_truncation",
+          "timer_inputs_observable_in_existing372": true
+        },
+        "completion_values": {
+          "placed_FL": 0.85
+        }
+      },
+      "physical_evaluator_summary": {
+        "valid": true,
+        "success": false,
+        "termination_reason": null,
+        "reason": "",
+        "physical_evidence_status": "VERIFIED"
+      },
+      "safety": {
+        "observations_including_tick0": 5908,
+        "body_collision_observations": 0,
+        "exact_body_obstacle_pair_active_observations": 0,
+        "nonfinite_observations": 0,
+        "actual_joint_hard_limit_violations": 0,
+        "minimum_actual_joint_limit_margin_deg": 21.47384193102907
+      },
+      "actual_event_ticks": {
+        "active_lift": {
+          "FL": 1484,
+          "FR": 23
+        },
+        "front_edge_crossed": {
+          "FL": 2106,
+          "FR": 1406
+        },
+        "placed": {
+          "FR": 1425
+        }
+      },
+      "final_FL": {
+        "active_attempt": true,
+        "air": true,
+        "bearing_force_n": 0,
+        "bearing_verified": true,
+        "clearance_m": 0.0034701283946961467,
+        "consecutive_air_samples": 4439,
+        "consecutive_top_samples": 0,
+        "contact_reaction": false,
+        "contact_reaction_force_n": 0,
+        "contact_surface": "NONE",
+        "crossing_evidence_status": "VERIFIED",
+        "crossing_geometry_pending": false,
+        "front_distance_m": 0.1979382668240035,
+        "ground_contact": false,
+        "initial_clearance": true,
+        "load_fraction": 0,
+        "load_fraction_valid": true,
+        "obstacle_pair_active": false,
+        "recent_clearance_gain_m": 0.0016010514492410255,
+        "recent_joint_motion_deg": 3.585594035936454,
+        "recent_whole_body_joint_motion_deg": 4.299746982887069,
+        "soft_air_actuation_earned": true,
+        "soft_air_earned_tick": 1476,
+        "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+        "support": false,
+        "top_contact": false,
+        "top_geometry": true,
+        "top_surface_contact": false,
+        "top_xy_outside_distance_m": 0,
+        "whole_body_actuation_evidence": true,
+        "within_lateral_span": true,
+        "within_top_xy": true
+      },
+      "phase_requested_decisions": {
+        "P01": 2,
+        "P02": 172,
+        "P03": 5,
+        "P04": 1,
+        "P05": 559
+      },
+      "full12_permission_ticks": 5907,
+      "native_verified_ticks": 5907,
+      "actual_native_effect_ticks": 5907,
+      "epsilon0_task_only_reward_records": 739,
+      "forbidden_state_write_counter_sum": 0,
+      "quality_summary": {
+        "comparison_window": "actual_physics_ticks_excluding_video_padding",
+        "global": {
+          "duration_s": 49.225,
+          "physics_ticks": 5907,
+          "roll_rms_rad": 0.1213768601450942,
+          "pitch_rms_rad": 0.10034841576802749,
+          "roll_rate_p95_rad_s": 0.018861592117202303,
+          "pitch_rate_p95_rad_s": 0.017191572655449235,
+          "body_x_omega_p95_rad_s": 0.09543176446273538,
+          "body_y_omega_p95_rad_s": 0.04179721357944187,
+          "angular_acceleration_p95_rad_s2": 7.258781334020159,
+          "roll_rms_deg": 6.954381816863546,
+          "pitch_rms_deg": 5.749540704332016
+        },
+        "fixed_quality_score": null,
+        "all_phases_sampled": false,
+        "comparison_or_improvement_claimed": false,
+        "reason": "P01-P05 incomplete49.225s versus successful zero73.808333s; P06-P13 absent, longP05 occupancy; global small-rate metrics do not establish better stability."
+      },
+      "wrapper_failure": {
+        "category": "TASK_INCOMPLETE_LOCAL_BOUNDED_RECOVERY",
+        "physical_safety_abort": false,
+        "physx_crash": false,
+        "video_wrapper_exit_code": 1,
+        "wrapper_exit_code_source": "Root verified execution result: rejected DIAGNOSTIC_FAILURE after natural episode finalization.",
+        "wrapper_message": "SemanticVideoError: episode did not meet common physical task",
+        "media_corruption_evidence": false,
+        "strict_RR_task_reached": false
+      },
+      "actual_receipt": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/residual_rr_fix_v1/evaluation_CP178432_actual.json",
+      "safety_receipt": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/residual_rr_fix_v1/evaluation_CP178432_safety.json",
+      "source_video": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_residual_rr_fix_v1\\video_eval\\validation\\20260917T0510347247858Z_g6c2121b68654_35383f247031424e9b890de765bc2b13\\source\\actual_viewport_video.mp4",
+      "publish_media_status": "Separate media task; this receipt does not claim final diagnostic exports already exist."
+    }
+  ],
+  "protected_zero": {
+    "run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_non_residual_refine_v1/video_eval/prior_B/20260917T0424208857504Z_g6c2121b68654_13804a86a302480ab61ad2af0dcb8dcd",
+    "nominal_only": true,
+    "physical_task_success": true,
+    "duration_s": 73.80833333333334
+  },
+  "protected_historical_CP177152": {
+    "original_manifest_preserved": true,
+    "status": "RR_ACCEPTANCE_UNDER_REVIEW",
+    "valid_as_strict_new_RR_success": false
+  },
+  "next_task_priority": [
+    "Recover P05 FL controlled placement capability with real whole-body cooperation.",
+    "Then train/verify RR carry and retained current placement after entry; do not substitute teacher-initialized suffix for formal P01.",
+    "Keep quality epsilon0; no quality .05 branch activated."
+  ],
+  "scope": "One sealed full-P01 deterministic evaluation of CP178432. No robustness/deployment/generalization or stability-superiority claim."
+}

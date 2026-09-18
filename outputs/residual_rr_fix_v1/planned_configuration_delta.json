@@ -1,0 +1,89 @@
+{
+  "schema": "wlr50_clean.pending_rr_configuration_design.v1",
+  "status": "TRAINING_640_SEALED_FORMAL_CP178432_INCOMPLETE_P05",
+  "production_written": true,
+  "target_git_commit": "6c2121b68654eaaa2afa7c19e9d02ae770493d2f",
+  "target_runtime_content_sha256": "cfad9c3664f4e479fd16a9902178cc4e84327ab06aa03dd3db83e3d96a89aed1",
+  "verified_migration_receipt": "outputs/residual_rr_fix_v1/checkpoint177792_rr_physical_acceptance_migration.json",
+  "verified_migration_receipt_sha256": "962d4a7a10cf8c44cc38bebd83ebc853adaa52453bca5915c059d321d4125a9c",
+  "requested_not_completed_training_decisions": 0,
+  "source_checkpoint_decisions": 177792,
+  "source_checkpoint_updates": 1354,
+  "source_checkpoint_optimizer_steps": 27080,
+  "source_config_root": "configs/ppo_task_first_recovery_v1",
+  "proposed_target_config_root": "configs/ppo_residual_rr_fix_v1",
+  "configuration_files": {
+    "action_schema.json": {
+      "source_sha256": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7",
+      "target_operation": "copy_exact_bytes"
+    },
+    "execution_profile.yaml": {
+      "source_sha256": "1650f1b1befa496fc33e1e9aa6489155c33c949ee8748d1b3d8eb59980565d73",
+      "target_operation": "copy_exact_bytes",
+      "geometry_mode": "contact_aware_bounded_rr_nominal_v3",
+      "geometry_v4_authorized": false,
+      "residual_caps_and_full12_unchanged": true
+    },
+    "observation_schema.json": {
+      "source_sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b",
+      "target_operation": "copy_exact_bytes",
+      "shape": 372,
+      "task_derived_observation_meaning_changes_declared_separately": true
+    },
+    "quality_score.yaml": {
+      "source_sha256": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6",
+      "target_operation": "copy_exact_bytes"
+    },
+    "reward_config.yaml": {
+      "source_sha256": "315b1573bade4b2457587d12be3ae235b841d5ce664353772c11333506113dcb",
+      "target_operation": "copy_exact_bytes",
+      "quality_epsilon": 0,
+      "objective_profile": "task_first_recovery_v1",
+      "gamma": 0.9985
+    },
+    "stage_task_spec.yaml": {
+      "source_sha256": "5e5638e203b76b163f28e5f9deeaf72cf9cb7e7586e8633928b0e717931f420a",
+      "target_operation": "copy_then_only_explicit_semantic_diff_and_matching_comments",
+      "semantic_changes": {
+        "revision": {
+          "before": "fsm_reference_p09_stable_v2",
+          "after": "residual_rr_fix_v1"
+        },
+        "p09_lift_semantics": {
+          "before": "functional_lift_edge_v2",
+          "after": "functional_free_air_lift_v3"
+        },
+        "nominal.rr_carry_source_semantics": {
+          "before": null,
+          "before_key_absent": true,
+          "after": "current_free_lift_before_pending_knee_and_roll_v1"
+        },
+        "nominal.final_stop_owner": {
+          "before": "current_physical_stop_nominal_owner_v1",
+          "after": "source_home_after_physical_stop_v2"
+        }
+      },
+      "physical_acceptance_version_unchanged": "all_stage_v1",
+      "all_unlisted_values_unchanged": true,
+      "target_sha256": "66ca2990a6f581621c7f1f865456bfe1cc323ee2306e5485abc13aa369146785",
+      "target_sha256_note": "Verified against the actual committed runtime migration receipt; this configuration summary is not itself the executable receipt."
+    }
+  },
+  "policy_temperature": 0.25,
+  "policy_rho": 0.9,
+  "new_isaac_decisions": 640,
+  "new_ppo_updates": 5,
+  "new_optimizer_steps": 100,
+  "completed_training_runs": [
+    "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_residual_rr_fix_v1\\train\\20260917T0450450693297Z_g6c2121b68654_8996bc65765a494c877b12dae8792f81",
+    "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_residual_rr_fix_v1\\train\\20260917T0454003203604Z_g6c2121b68654_7079dc3b6d4f471d8d3dfe5404d49924"
+  ],
+  "latest_checkpoint_decisions": 178432,
+  "latest_checkpoint_updates": 1359,
+  "latest_checkpoint_optimizer_steps": 27180,
+  "next_running_evaluation": null,
+  "updated_at_utc": "2026-09-17T05:32:01.669Z",
+  "latest_evaluation_status": "SEALED_TASK_INCOMPLETE_P05",
+  "latest_evaluation_results": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/residual_rr_fix_v1/evaluation_results.json",
+  "quality_recovery_activated": false
+}

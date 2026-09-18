@@ -1,7 +1,7 @@
 {
   "schema": "wlr50_clean.task_first_recovery_branch_training_manifest.v1",
-  "updated_at_utc": "2026-09-16T06:28:24Z",
-  "status": "QUARTER_CANDIDATE_P06_BLOCK_COMPLETE_BEST_CP177152_RETAINED",
+  "updated_at_utc": "2026-09-17T03:39:12Z",
+  "status": "USER_PRIORITY_ZERO_HOME_CAMERA_RR_AUDIT_LATEST177792_NOT_FORMALLY_EVALUATED",
   "experiment_id": "task_first_recovery_v1",
   "production_commit": "fc14a68c037abd69e24f49b1524457fd6854543a",
   "runtime_content_sha256": "bfa1e1471cc0e645ae33e873439a242142dde5adceb70a87bcc419152815c48c",
@@ -451,13 +451,13 @@
       "checkpoint_latest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152.pt",
       "checkpoint_best_task": {
         "schema": "wlr50_clean.formal_best_task_pointer.v1",
-        "updated_at_utc": "2026-09-16T06:14:30Z",
+        "updated_at_utc": "2026-09-17T03:39:12Z",
         "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152.pt",
         "checkpoint_sha256": "8ffb446aeabd973057a8240e99f5ce6d7ba91610de79affe3ca552b6826fc30e",
         "checkpoint_manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152_manifest.json",
         "manifest_sha256": "95c1b7a264c885bd4863c4d94cb76790bfe0303b6d0f4dc09c2359fbfb781d05",
         "branch_id": "mean_head_recovery_v1",
-        "designation": "FORMAL_FULL_TASK_SUCCESS_SINGLE_SEED",
+        "designation": "HISTORICAL_EVALUATOR_SUCCESS_RR_ACCEPTANCE_UNDER_REVIEW",
         "evidence": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/evaluation_CP177152_actual.json",
         "formal_run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_first_recovery_v1\\video_eval\\validation\\20260916T0550249947408Z_g00050a2b1452_086805789a6e491392ef4656c7708c2c",
         "M1": true,
@@ -484,7 +484,14 @@
         "previous_development_checkpoint": "checkpoint_step_000177024.pt",
         "physical_duration_s": 50.96666666666667,
         "video": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/videos/ppo_task_recovery_cp177152_full_success.mp4",
-        "video_wheel_qd": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/videos/ppo_task_recovery_cp177152_full_success_wheel_qd.mp4"
+        "video_wheel_qd": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/videos/ppo_task_recovery_cp177152_full_success_wheel_qd.mp4",
+        "historical_designation": "FORMAL_FULL_TASK_SUCCESS_SINGLE_SEED",
+        "result_scope": "Preserved historical evaluator outcome; not new strict RR unloading/non-wheel-climb success evidence.",
+        "RR_acceptance_status": "RR_ACCEPTANCE_UNDER_REVIEW",
+        "valid_as_new_strict_RR_success_evidence": false,
+        "new_strict_RR_full_task_success": null,
+        "historical_full_task_success": true,
+        "new_user_RR_review_reason": "Existing RR lift qualification and prolonged obstacle edge contact do not alone exclude wheel-assisted edge ascent; require current load-transfer and non-wheel-climb review."
       },
       "latest_cumulative_counts": {
         "global_policy_decisions": 177152,
@@ -878,7 +885,7 @@
     },
     {
       "branch_id": "p06_quarter_temperature_v1",
-      "status": "REAL_TRAINING_COMPLETE_P06_NONTERMINAL_NOT_TASK_SUCCESS",
+      "status": "640_REAL_QUARTER_DECISIONS_COMPLETED_THREE_FAILURES_NO_FORMAL_P01_EVAL",
       "source_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152.pt",
       "source_checkpoint_sha256": "8ffb446aeabd973057a8240e99f5ce6d7ba91610de79affe3ca552b6826fc30e",
       "source_counts": {
@@ -889,9 +896,9 @@
       "source_formal_task_success_retained_separately": true,
       "branch_counter_semantics": "new branch increments start at CP177152/1349/26980; excluded successful-N prefix is never PPO credit",
       "actual_added_counts": {
-        "policy_decisions": 128,
-        "ppo_updates": 1,
-        "optimizer_steps": 20
+        "policy_decisions": 640,
+        "ppo_updates": 5,
+        "optimizer_steps": 100
       },
       "planned_policy_decisions": 128,
       "request_phase": "P06",
@@ -919,10 +926,10 @@
         "P03": 0,
         "P04": 0,
         "P05": 0,
-        "P06": 128,
-        "P07": 0,
-        "P08": 0,
-        "P09": 0,
+        "P06": 567,
+        "P07": 2,
+        "P08": 2,
+        "P09": 69,
         "P10": 0,
         "P11": 0,
         "P12": 0,
@@ -941,36 +948,143 @@
           "from_phase": "P06",
           "teacher_prefix_decisions_excluded": 335,
           "teacher_prefix_physics_ticks_excluded": 2680
+        },
+        {
+          "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_first_recovery_v1\\train\\20260916T0628168580885Z_gfc14a68c037a_fe364dae15434293be866a2fe834d015",
+          "status": "SUCCEEDED_TRAINING_NOT_TASK",
+          "planned_policy_decisions": 512,
+          "actual_added_policy_decisions": 512,
+          "actual_added_ppo_updates": 4,
+          "actual_added_optimizer_steps": 80,
+          "completed_receipt": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/training_quarter_P06_177792_actual.json",
+          "reward_signal_receipt": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/training_quarter_P06_177792_signal.json",
+          "from_phase": "P06",
+          "teacher_prefix_decisions_excluded": 1340,
+          "teacher_prefix_physics_ticks_excluded": 10720
         }
       ],
       "formal_task_evaluation": null,
       "formal_task_success_claimed": false,
       "best_task_promotion_rule": "Do not replace successful CP177152 by update count, reward, or teacher-prefix suffix progress.",
       "latest_cumulative_counts": {
-        "global_policy_decisions": 177280,
-        "ppo_updates": 1350,
-        "optimizer_steps": 27000
+        "global_policy_decisions": 177792,
+        "ppo_updates": 1354,
+        "optimizer_steps": 27080
       },
-      "checkpoint_latest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177280.pt",
-      "checkpoint_latest_manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177280_manifest.json",
+      "checkpoint_latest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177792.pt",
+      "checkpoint_latest_manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177792_manifest.json",
       "actual_runtime_signal": {
-        "decisions": 128,
-        "epsilon0_task_only_decisions": 128,
-        "full12_permission_decisions": 128,
-        "actual_physics_ticks": 1024,
-        "verified_native_dispatch_ticks": 1024,
-        "actual_native_effect_ticks": 1024
+        "decisions": 640,
+        "epsilon0_task_only_decisions": 640,
+        "full12_permission_decisions": 640,
+        "actual_physics_ticks": 5114,
+        "verified_native_dispatch_ticks": 5114,
+        "actual_native_effect_ticks": 5114
       },
-      "teacher_prefix_decisions_excluded": 335,
-      "teacher_prefix_physics_ticks_excluded": 2680,
-      "complete_training_episodes": [],
+      "teacher_prefix_decisions_excluded": 1675,
+      "teacher_prefix_physics_ticks_excluded": 13400,
+      "complete_training_episodes": [
+        {
+          "decisions": 33,
+          "first_global_decision": 177281,
+          "last_global_decision": 177313,
+          "duration_s": 2.2,
+          "terminal": true,
+          "end_tick": 2944,
+          "end_phase": "P09",
+          "reason": "FALL",
+          "bootstrap_allowed": false,
+          "real_event_ticks": {
+            "active_lift": {
+              "FR": 24,
+              "FL": 1559,
+              "RR": 2768
+            },
+            "front_edge_crossed": {
+              "FR": 1486,
+              "FL": 2468
+            },
+            "placed": {
+              "FR": 1502,
+              "FL": 2677
+            }
+          },
+          "discounted_observed_reward": -40.516685542008524,
+          "is_complete_return": true,
+          "nonterminal_caution": null,
+          "event_scope": "FR/FL Q/C/P belong to each excluded successful-N prefix. Later RR/RL initial lift is PPO suffix evidence only, with no rear crossing/placement success.",
+          "duration_scope": "Credited PPO suffix only; complete physical episode includes2680 excluded teacher ticks."
+        },
+        {
+          "decisions": 156,
+          "first_global_decision": 177314,
+          "last_global_decision": 177469,
+          "duration_s": 10.374999999999982,
+          "terminal": true,
+          "end_tick": 3925,
+          "end_phase": "P09",
+          "reason": "FALL",
+          "bootstrap_allowed": false,
+          "real_event_ticks": {
+            "active_lift": {
+              "FR": 24,
+              "FL": 1559,
+              "RR": 3518
+            },
+            "front_edge_crossed": {
+              "FR": 1486,
+              "FL": 2468
+            },
+            "placed": {
+              "FR": 1502,
+              "FL": 2677
+            }
+          },
+          "discounted_observed_reward": -34.23138814655459,
+          "is_complete_return": true,
+          "nonterminal_caution": null,
+          "event_scope": "FR/FL Q/C/P belong to each excluded successful-N prefix. Later RR/RL initial lift is PPO suffix evidence only, with no rear crossing/placement success.",
+          "duration_scope": "Credited PPO suffix only; complete physical episode includes2680 excluded teacher ticks."
+        },
+        {
+          "decisions": 94,
+          "first_global_decision": 177470,
+          "last_global_decision": 177563,
+          "duration_s": 6.2416666666666645,
+          "terminal": true,
+          "end_tick": 3429,
+          "end_phase": "P06",
+          "reason": "BODY_COLLISION",
+          "bootstrap_allowed": false,
+          "real_event_ticks": {
+            "active_lift": {
+              "FR": 24,
+              "FL": 1559,
+              "RL": 3332
+            },
+            "front_edge_crossed": {
+              "FR": 1486,
+              "FL": 2468
+            },
+            "placed": {
+              "FR": 1502,
+              "FL": 2677
+            }
+          },
+          "discounted_observed_reward": -37.254370380436654,
+          "is_complete_return": true,
+          "nonterminal_caution": null,
+          "event_scope": "FR/FL Q/C/P belong to each excluded successful-N prefix. Later RR/RL initial lift is PPO suffix evidence only, with no rear crossing/placement success.",
+          "duration_scope": "Credited PPO suffix only; complete physical episode includes2680 excluded teacher ticks."
+        }
+      ],
       "nonterminal_training_tail": {
-        "decisions": 128,
-        "first_global_decision": 177153,
-        "last_global_decision": 177280,
-        "duration_s": 8.533333333333323,
+        "decisions": 229,
+        "first_global_decision": 177564,
+        "last_global_decision": 177792,
+        "duration_s": 15.266666666666632,
         "terminal": false,
-        "end_tick": 3704,
+        "end_tick": 4512,
         "end_phase": "P06",
         "reason": null,
         "bootstrap_allowed": true,
@@ -978,7 +1092,7 @@
           "active_lift": {
             "FR": 24,
             "FL": 1559,
-            "RL": 3230
+            "RL": 3704
           },
           "front_edge_crossed": {
             "FR": 1486,
@@ -989,40 +1103,102 @@
             "FL": 2677
           }
         },
-        "discounted_observed_reward": -0.5922515535493975,
+        "discounted_observed_reward": -0.9934128987088126,
         "is_complete_return": false,
         "nonterminal_caution": "Observed prefix only; no terminal or critic bootstrap fabricated.",
-        "event_scope": "FR/FL Q/C/P are excluded successful-N prefix history. RL initial Q3230 occurs during PPO suffix but has no crossing/placement; not rear task success.",
-        "duration_scope": "8.533333s credited PPO suffix; full real episode through tick3704 is30.866667s including excluded prefix."
+        "event_scope": "FR/FL Q/C/P belong to each excluded successful-N prefix. Later RR/RL initial lift is PPO suffix evidence only, with no rear crossing/placement success.",
+        "duration_scope": "Credited PPO suffix only; complete physical episode includes2680 excluded teacher ticks."
       },
       "latest_update": {
-        "ppo_update": 1350,
-        "global_policy_decisions": 177280,
+        "ppo_update": 1354,
+        "global_policy_decisions": 177792,
         "optimizer_steps": 20,
         "optimizer_learning_rate": 0.00001,
         "actor_parameters_changed": true,
         "finite_nonzero_gradient_observed": true,
-        "gradient_norm_min": 1.4142131448681625,
-        "gradient_norm_max": 1.4142135607220718,
-        "kl_mean": 0.038765600408090184,
-        "clip_fraction": 0.36875,
-        "entropy": -15.760469102859497,
-        "value_loss": 0.28535847514867785,
-        "surrogate_loss": -0.04148607347160578
+        "gradient_norm_min": 1.4142133752749002,
+        "gradient_norm_max": 1.4142136308816262,
+        "kl_mean": 0.031308852868469475,
+        "clip_fraction": 0.4109375,
+        "entropy": -20.687366199493407,
+        "value_loss": 0.47411724776029585,
+        "surrogate_loss": -0.04668563455343246
       },
       "pending_continuation": {
-        "source_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177280.pt",
-        "planned_policy_decisions": 512,
-        "actual_completed_policy_decisions": 0,
-        "status": "REQUESTED_NOT_YET_COMPLETED_NO_CREDIT"
-      }
+        "source_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177792.pt",
+        "status": "NO_ACTIVE_CONTINUATION_NEW_USER_PRIORITY",
+        "planned_policy_decisions": 0,
+        "actual_completed_policy_decisions": 0
+      },
+      "latest_block_updates": [
+        {
+          "ppo_update": 1351,
+          "global_policy_decisions": 177408,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.414213403895392,
+          "gradient_norm_max": 1.4142136055159966,
+          "kl_mean": 0.024406715863021254,
+          "clip_fraction": 0.2859375,
+          "entropy": -13.284686756134032,
+          "value_loss": 52.53733758926391,
+          "surrogate_loss": -0.04021832868456841
+        },
+        {
+          "ppo_update": 1352,
+          "global_policy_decisions": 177536,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.4142134179312065,
+          "gradient_norm_max": 1.4142135790412085,
+          "kl_mean": 0.023733070828911084,
+          "clip_fraction": 0.29375,
+          "entropy": -16.32270441055298,
+          "value_loss": 60.83419017791748,
+          "surrogate_loss": -0.04284386038780212
+        },
+        {
+          "ppo_update": 1353,
+          "global_policy_decisions": 177664,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.4142134016060548,
+          "gradient_norm_max": 1.4142135843626094,
+          "kl_mean": 0.02772811356263648,
+          "clip_fraction": 0.371875,
+          "entropy": -17.70575895309448,
+          "value_loss": 49.81442670822143,
+          "surrogate_loss": -0.04082361161708832
+        },
+        {
+          "ppo_update": 1354,
+          "global_policy_decisions": 177792,
+          "optimizer_steps": 20,
+          "optimizer_learning_rate": 0.00001,
+          "actor_parameters_changed": true,
+          "finite_nonzero_gradient_observed": true,
+          "gradient_norm_min": 1.4142133752749002,
+          "gradient_norm_max": 1.4142136308816262,
+          "kl_mean": 0.031308852868469475,
+          "clip_fraction": 0.4109375,
+          "entropy": -20.687366199493407,
+          "value_loss": 0.47411724776029585,
+          "surrogate_loss": -0.04668563455343246
+        }
+      ]
     }
   ],
   "aggregate_completed_new_counts": {
-    "policy_decisions": 2688,
-    "ppo_updates": 21,
-    "optimizer_steps": 420,
-    "scope": "2048 preserved-mean reward-only +512 mean-head branch +128 independent quarter-temperature branch. Teacher prefix1005 decisions/8040ticks, initialization, migration and formal evaluations excluded."
+    "policy_decisions": 3200,
+    "ppo_updates": 25,
+    "optimizer_steps": 500,
+    "scope": "2048 preserved-mean reward-only +512 mean-head +640 quarter-temperature; excluded teacher2345decisions/18760ticks, initialization, migration and formal evaluations receive no PPO credit."
   },
   "model_selection": {
     "order": [
@@ -1034,14 +1210,15 @@
     "reward_is_not_promotion_criterion": true,
     "best_task_requires_saved_reloaded_formal_P01_evaluation": true,
     "development_partial_pointer_is_not_safe_or_complete_task_best": true,
-    "complete_task_best": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152.pt"
+    "complete_task_best": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152.pt",
+    "current_RR_acceptance_status": "RR_ACCEPTANCE_UNDER_REVIEW"
   },
   "milestones_current_round": {
     "M1": true,
     "M2": true,
     "M3": true,
     "M4": false,
-    "scope": "CP177152 only: one official natural-P01 full12 complete traversal and controlled completion.",
+    "scope": "Historical CP177152 evaluator result preserved. New strict RR unloading/non-wheel-climb acceptance is under review.",
     "full_task_count_this_checkpoint": 1,
     "formal_denominator_this_checkpoint": 1,
     "generalization_claimed": false
@@ -1074,17 +1251,17 @@
     },
     "initialization_itself_added_learning_counts": 0
   },
-  "checkpoint_latest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177280.pt",
-  "checkpoint_latest_manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177280_manifest.json",
+  "checkpoint_latest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177792.pt",
+  "checkpoint_latest_manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177792_manifest.json",
   "checkpoint_best_task": {
     "schema": "wlr50_clean.formal_best_task_pointer.v1",
-    "updated_at_utc": "2026-09-16T06:14:30Z",
+    "updated_at_utc": "2026-09-17T03:39:12Z",
     "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152.pt",
     "checkpoint_sha256": "8ffb446aeabd973057a8240e99f5ce6d7ba91610de79affe3ca552b6826fc30e",
     "checkpoint_manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152_manifest.json",
     "manifest_sha256": "95c1b7a264c885bd4863c4d94cb76790bfe0303b6d0f4dc09c2359fbfb781d05",
     "branch_id": "mean_head_recovery_v1",
-    "designation": "FORMAL_FULL_TASK_SUCCESS_SINGLE_SEED",
+    "designation": "HISTORICAL_EVALUATOR_SUCCESS_RR_ACCEPTANCE_UNDER_REVIEW",
     "evidence": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/evaluation_CP177152_actual.json",
     "formal_run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_first_recovery_v1\\video_eval\\validation\\20260916T0550249947408Z_g00050a2b1452_086805789a6e491392ef4656c7708c2c",
     "M1": true,
@@ -1111,7 +1288,14 @@
     "previous_development_checkpoint": "checkpoint_step_000177024.pt",
     "physical_duration_s": 50.96666666666667,
     "video": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/videos/ppo_task_recovery_cp177152_full_success.mp4",
-    "video_wheel_qd": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/videos/ppo_task_recovery_cp177152_full_success_wheel_qd.mp4"
+    "video_wheel_qd": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/videos/ppo_task_recovery_cp177152_full_success_wheel_qd.mp4",
+    "historical_designation": "FORMAL_FULL_TASK_SUCCESS_SINGLE_SEED",
+    "result_scope": "Preserved historical evaluator outcome; not new strict RR unloading/non-wheel-climb success evidence.",
+    "RR_acceptance_status": "RR_ACCEPTANCE_UNDER_REVIEW",
+    "valid_as_new_strict_RR_success_evidence": false,
+    "new_strict_RR_full_task_success": null,
+    "historical_full_task_success": true,
+    "new_user_RR_review_reason": "Existing RR lift qualification and prolonged obstacle edge contact do not alone exclude wheel-assisted edge ascent; require current load-transfer and non-wheel-climb review."
   },
   "quality_comparison": {
     "receipt": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_first_recovery_v1/zero_vs_CP177152_descriptive_quality.json",
@@ -1132,10 +1316,10 @@
     "P03": 21,
     "P04": 18,
     "P05": 1388,
-    "P06": 256,
-    "P07": 0,
-    "P08": 0,
-    "P09": 0,
+    "P06": 695,
+    "P07": 2,
+    "P08": 2,
+    "P09": 69,
     "P10": 0,
     "P11": 0,
     "P12": 0,
@@ -1194,12 +1378,17 @@
     }
   },
   "next_diagnostic": {
-    "scope": "Continue the independent quarter-temperature P06 candidate with same settings, then official saved natural-P01 evaluation",
-    "status": "512_REQUESTED_NO_ADDED_CREDIT_YET",
-    "branch_id": "p06_quarter_temperature_v1",
-    "planned_policy_decisions": 512,
-    "completed_policy_decisions": 0,
-    "protected_formal_best": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152.pt"
+    "scope": "Latest user priority: preserve/refine zero terminal home, improved camera, then physically audit residual RR load-transfer/lift versus wheel climb.",
+    "status": "QUALITY_E005_NOT_IMPLEMENTED_PRIORITY_SUPERSEDED",
+    "latest_user_instructions": "C:/Users/kskzz/.codex/attachments/ac2365d6-5d54-45ec-9083-619b8d521970/pasted-text.txt",
+    "new_outputs": [
+      "outputs/non_residual_refine_v1",
+      "outputs/residual_rr_fix_v1",
+      "outputs/video_review_v1",
+      "outputs/diagnostics_v1"
+    ],
+    "historical_CP177152_result_preserved": true,
+    "new_RR_specific_validation_still_required": true
   },
   "best_task_protection": {
     "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000177152.pt",

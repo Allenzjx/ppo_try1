@@ -1,0 +1,389 @@
+{
+  "schema": "wlr50_clean.task_first_completed_reward_signal.v1",
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_first_recovery_v1\\train\\20260916T0628168580885Z_gfc14a68c037a_fe364dae15434293be866a2fe834d015",
+  "objective_runtime": {
+    "decisions": 512,
+    "epsilon0_task_only_decisions": 512,
+    "full12_permission_decisions": 512,
+    "actual_physics_ticks": 4090,
+    "verified_native_dispatch_ticks": 4090,
+    "actual_native_effect_ticks": 4090
+  },
+  "by_request_phase": {
+    "P06": {
+      "count": 439,
+      "total": -44.28122360644512,
+      "potential": -3.696390273111827,
+      "time": -0.5848333333333342,
+      "terminal": -40,
+      "positive": 116,
+      "negative": 323
+    },
+    "P07": {
+      "count": 2,
+      "total": -0.003480020288028367,
+      "potential": -0.000813353621361701,
+      "time": -0.0026666666666666666,
+      "terminal": 0,
+      "positive": 0,
+      "negative": 2
+    },
+    "P08": {
+      "count": 2,
+      "total": -0.013272869231286972,
+      "potential": -0.010606202564620304,
+      "time": -0.0026666666666666666,
+      "terminal": 0,
+      "positive": 0,
+      "negative": 2
+    },
+    "P09": {
+      "count": 69,
+      "total": -85.28601370846638,
+      "potential": -5.1945137084663955,
+      "time": -0.0915000000000001,
+      "terminal": -80,
+      "positive": 13,
+      "negative": 56
+    }
+  },
+  "episodes": [
+    {
+      "decisions": 33,
+      "first_global_decision": 177281,
+      "last_global_decision": 177313,
+      "duration_s": 2.2,
+      "terminal": true,
+      "end_tick": 2944,
+      "end_phase": "P09",
+      "reason": "FALL",
+      "bootstrap_allowed": false,
+      "real_event_ticks": {
+        "active_lift": {
+          "FR": 24,
+          "FL": 1559,
+          "RR": 2768
+        },
+        "front_edge_crossed": {
+          "FR": 1486,
+          "FL": 2468
+        },
+        "placed": {
+          "FR": 1502,
+          "FL": 2677
+        }
+      },
+      "discounted_observed_reward": -40.516685542008524,
+      "is_complete_return": true,
+      "nonterminal_caution": null,
+      "event_scope": "FR/FL Q/C/P belong to each excluded successful-N prefix. Later RR/RL initial lift is PPO suffix evidence only, with no rear crossing/placement success.",
+      "duration_scope": "Credited PPO suffix only; complete physical episode includes2680 excluded teacher ticks."
+    },
+    {
+      "decisions": 156,
+      "first_global_decision": 177314,
+      "last_global_decision": 177469,
+      "duration_s": 10.374999999999982,
+      "terminal": true,
+      "end_tick": 3925,
+      "end_phase": "P09",
+      "reason": "FALL",
+      "bootstrap_allowed": false,
+      "real_event_ticks": {
+        "active_lift": {
+          "FR": 24,
+          "FL": 1559,
+          "RR": 3518
+        },
+        "front_edge_crossed": {
+          "FR": 1486,
+          "FL": 2468
+        },
+        "placed": {
+          "FR": 1502,
+          "FL": 2677
+        }
+      },
+      "discounted_observed_reward": -34.23138814655459,
+      "is_complete_return": true,
+      "nonterminal_caution": null,
+      "event_scope": "FR/FL Q/C/P belong to each excluded successful-N prefix. Later RR/RL initial lift is PPO suffix evidence only, with no rear crossing/placement success.",
+      "duration_scope": "Credited PPO suffix only; complete physical episode includes2680 excluded teacher ticks."
+    },
+    {
+      "decisions": 94,
+      "first_global_decision": 177470,
+      "last_global_decision": 177563,
+      "duration_s": 6.2416666666666645,
+      "terminal": true,
+      "end_tick": 3429,
+      "end_phase": "P06",
+      "reason": "BODY_COLLISION",
+      "bootstrap_allowed": false,
+      "real_event_ticks": {
+        "active_lift": {
+          "FR": 24,
+          "FL": 1559,
+          "RL": 3332
+        },
+        "front_edge_crossed": {
+          "FR": 1486,
+          "FL": 2468
+        },
+        "placed": {
+          "FR": 1502,
+          "FL": 2677
+        }
+      },
+      "discounted_observed_reward": -37.254370380436654,
+      "is_complete_return": true,
+      "nonterminal_caution": null,
+      "event_scope": "FR/FL Q/C/P belong to each excluded successful-N prefix. Later RR/RL initial lift is PPO suffix evidence only, with no rear crossing/placement success.",
+      "duration_scope": "Credited PPO suffix only; complete physical episode includes2680 excluded teacher ticks."
+    },
+    {
+      "decisions": 229,
+      "first_global_decision": 177564,
+      "last_global_decision": 177792,
+      "duration_s": 15.266666666666632,
+      "terminal": false,
+      "end_tick": 4512,
+      "end_phase": "P06",
+      "reason": null,
+      "bootstrap_allowed": true,
+      "real_event_ticks": {
+        "active_lift": {
+          "FR": 24,
+          "FL": 1559,
+          "RL": 3704
+        },
+        "front_edge_crossed": {
+          "FR": 1486,
+          "FL": 2468
+        },
+        "placed": {
+          "FR": 1502,
+          "FL": 2677
+        }
+      },
+      "discounted_observed_reward": -0.9934128987088126,
+      "is_complete_return": false,
+      "nonterminal_caution": "Observed prefix only; no terminal or critic bootstrap fabricated.",
+      "event_scope": "FR/FL Q/C/P belong to each excluded successful-N prefix. Later RR/RL initial lift is PPO suffix evidence only, with no rear crossing/placement success.",
+      "duration_scope": "Credited PPO suffix only; complete physical episode includes2680 excluded teacher ticks."
+    }
+  ],
+  "original_GAE_summary": {
+    "P06": {
+      "raw_gae_returns_minus_old_values": {
+        "count": 439,
+        "positive_count": 371,
+        "negative_count": 68,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -18.26087760925293,
+        "maximum": 1.5698070526123047,
+        "mean": -0.9304905589457797
+      },
+      "stored_advantages": {
+        "count": 439,
+        "positive_count": 335,
+        "negative_count": 104,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -2.3588171005249023,
+        "maximum": 1.5983214378356934,
+        "mean": 0.20677801048073383
+      },
+      "old_values": {
+        "count": 439,
+        "positive_count": 0,
+        "negative_count": 439,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -26.582794189453125,
+        "maximum": -22.47968292236328,
+        "mean": -23.86428069199408
+      },
+      "returns": {
+        "count": 439,
+        "positive_count": 0,
+        "negative_count": 439,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -42.33530807495117,
+        "maximum": -21.38029670715332,
+        "mean": -24.794771250939856
+      }
+    },
+    "P07": {
+      "raw_gae_returns_minus_old_values": {
+        "count": 2,
+        "positive_count": 0,
+        "negative_count": 2,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -13.971315383911133,
+        "maximum": -9.185338973999023,
+        "mean": -11.578327178955078
+      },
+      "stored_advantages": {
+        "count": 2,
+        "positive_count": 0,
+        "negative_count": 2,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -1.6358939409255981,
+        "maximum": -0.6815831661224365,
+        "mean": -1.1587385535240173
+      },
+      "old_values": {
+        "count": 2,
+        "positive_count": 0,
+        "negative_count": 2,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -25.003000259399414,
+        "maximum": -24.310476303100586,
+        "mean": -24.65673828125
+      },
+      "returns": {
+        "count": 2,
+        "positive_count": 0,
+        "negative_count": 2,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -38.28179168701172,
+        "maximum": -34.18833923339844,
+        "mean": -36.23506546020508
+      }
+    },
+    "P08": {
+      "raw_gae_returns_minus_old_values": {
+        "count": 2,
+        "positive_count": 0,
+        "negative_count": 2,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -13.642589569091797,
+        "maximum": -8.663095474243164,
+        "mean": -11.15284252166748
+      },
+      "stored_advantages": {
+        "count": 2,
+        "positive_count": 0,
+        "negative_count": 2,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -1.58660888671875,
+        "maximum": -0.5941590070724487,
+        "mean": -1.0903839468955994
+      },
+      "old_values": {
+        "count": 2,
+        "positive_count": 0,
+        "negative_count": 2,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -25.660245895385742,
+        "maximum": -24.832637786865234,
+        "mean": -25.24644184112549
+      },
+      "returns": {
+        "count": 2,
+        "positive_count": 0,
+        "negative_count": 2,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -38.47522735595703,
+        "maximum": -34.323341369628906,
+        "mean": -36.39928436279297
+      }
+    },
+    "P09": {
+      "raw_gae_returns_minus_old_values": {
+        "count": 69,
+        "positive_count": 0,
+        "negative_count": 69,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -16.478628158569336,
+        "maximum": -8.0235595703125,
+        "mean": -12.33068623750106
+      },
+      "stored_advantages": {
+        "count": 69,
+        "positive_count": 0,
+        "negative_count": 69,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -1.924212098121643,
+        "maximum": -0.48709991574287415,
+        "mean": -1.250395524760951
+      },
+      "old_values": {
+        "count": 69,
+        "positive_count": 0,
+        "negative_count": 69,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -27.196557998657227,
+        "maximum": -25.594282150268555,
+        "mean": -26.367912209552266
+      },
+      "returns": {
+        "count": 69,
+        "positive_count": 0,
+        "negative_count": 69,
+        "zero_count": 0,
+        "nonfinite_count": 0,
+        "minimum": -42.60085678100586,
+        "maximum": -34.44672393798828,
+        "mean": -38.69859844705333
+      }
+    }
+  },
+  "phase_handoffs": {
+    "ordinary_phase_changes": 6,
+    "incorrect_done_observed": 0,
+    "real_terminal_samples": 3
+  },
+  "p02_positive_nominal_final_targets": {
+    "FL": {
+      "nominal_positive_samples": 0,
+      "final_reversed": 0,
+      "final_near_zero": 0,
+      "final_enhanced": 0,
+      "final_mean": null
+    },
+    "FR": {
+      "nominal_positive_samples": 0,
+      "final_reversed": 0,
+      "final_near_zero": 0,
+      "final_enhanced": 0,
+      "final_mean": null
+    },
+    "RL": {
+      "nominal_positive_samples": 0,
+      "final_reversed": 0,
+      "final_near_zero": 0,
+      "final_enhanced": 0,
+      "final_mean": null
+    },
+    "RR": {
+      "nominal_positive_samples": 0,
+      "final_reversed": 0,
+      "final_near_zero": 0,
+      "final_enhanced": 0,
+      "final_mean": null
+    }
+  },
+  "diagnostic_thresholds": "N>.05, |final|<.05 rad/s are descriptive bins, not a new controller/reward gate; wheel final vectors are canonical forward-positive. This is sampled closed-loop training, not formal deterministic behavior.",
+  "evidence_limits": "Supplementary pass after complete receipt. No recalculated critic/GAE, no model forward/update, no formal milestone or stability claim.",
+  "teacher_prefix_context": {
+    "decisions_excluded": 1340,
+    "physics_ticks_excluded": 10720,
+    "successful_prefix_attempts": 4,
+    "prefix_success_not_PPO_task_credit": true
+  }
+}
