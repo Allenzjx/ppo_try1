@@ -55,6 +55,44 @@ def _source_record(source: Mapping[str, Any]) -> dict[str, Any]:
         not isinstance(runtime_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", runtime_hash)
     ):
         raise ValueError("source_runtime_content_sha256 must be a lowercase SHA256")
+    from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+        HISTORY_QUARTER_TEMPERED_POLICY)
+    if record["policy_contract"]["version"] == HISTORY_REQUEST_CAP_TRANSITION_POLICY:
+        target = record["policy_contract"]
+        source = record.get("source_policy_contract")
+        source_version = supported_heteroscedastic_contract_version(source)
+        effective_hash = record.get("effective_runtime_content_sha256")
+        if (record.get("effective_policy_contract") != target
+                or not isinstance(effective_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", effective_hash)
+                or runtime_hash is None):
+            raise ValueError("request-history prefix requires explicit effective kernel/runtime provenance")
+        migration = record.get("request_history_kernel_migration")
+        if source_version == HISTORY_QUARTER_TEMPERED_POLICY:
+            from pathlib import Path
+            expected_keys = {"plan_path", "plan_sha256", "source_checkpoint_sha256",
+                "source_runtime_content_sha256", "target_runtime_content_sha256"}
+            if not isinstance(migration, dict) or set(migration) != expected_keys:
+                raise ValueError("old checkpoint/new prefix kernel requires its exact verified plan binding")
+            path = Path(migration["plan_path"]).resolve(strict=True)
+            raw = path.read_bytes()
+            if (hashlib.sha256(raw).hexdigest() != migration["plan_sha256"]
+                    or migration["source_checkpoint_sha256"] != record["checkpoint_sha256"]
+                    or migration["source_runtime_content_sha256"] != runtime_hash
+                    or migration["target_runtime_content_sha256"] != effective_hash):
+                raise ValueError("request-history prefix migration hash/runtime provenance differs")
+            plan = json.loads(raw)
+            factor = plan.get("request_history_kernel_factor", {})
+            if (plan.get("source_checkpoint") != record["checkpoint_path"]
+                    or plan.get("source_checkpoint_sha256") != record["checkpoint_sha256"]
+                    or plan.get("source_runtime_content_sha256") != runtime_hash
+                    or plan.get("target_runtime_content_sha256") != effective_hash
+                    or factor.get("schema") != "wlr50_clean.cap_transition_request_history_same372.v1"
+                    or factor.get("source_policy_contract") != source
+                    or factor.get("target_policy_contract") != target):
+                raise ValueError("request-history prefix does not match source weights and target plan kernel")
+        elif (source_version != HISTORY_REQUEST_CAP_TRANSITION_POLICY or source != target
+                or migration is not None or effective_hash != runtime_hash):
+            raise ValueError("request-history prefix exact resume contract differs")
     return record
 
 
@@ -70,8 +108,10 @@ class FrozenCheckpointPrefixPolicy:
         from rsl_rl.models import MLPModel
         from rsl_rl.modules.distribution import HeteroscedasticGaussianDistribution
         from .semantic_history_actor import (SemanticHistoryMLPModel,
-            SemanticTemperedHistoryMLPModel, SemanticQuarterTemperedHistoryMLPModel)
-        from .semantic_policy_distribution import HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY
+            SemanticTemperedHistoryMLPModel, SemanticQuarterTemperedHistoryMLPModel,
+            SemanticCapTransitionQuarterHistoryMLPModel)
+        from .semantic_policy_distribution import (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
+            HISTORY_REQUEST_CAP_TRANSITION_POLICY)
 
         record = _source_record(source_checkpoint)
         version = supported_heteroscedastic_contract_version(record["policy_contract"])
@@ -79,7 +119,8 @@ class FrozenCheckpointPrefixPolicy:
         layout = record["policy_contract"].get("observation_layout")
         history_classes = {HISTORY_POLICY: SemanticHistoryMLPModel,
             HISTORY_TEMPERED_POLICY: SemanticTemperedHistoryMLPModel,
-            HISTORY_QUARTER_TEMPERED_POLICY: SemanticQuarterTemperedHistoryMLPModel}
+            HISTORY_QUARTER_TEMPERED_POLICY: SemanticQuarterTemperedHistoryMLPModel,
+            HISTORY_REQUEST_CAP_TRANSITION_POLICY: SemanticCapTransitionQuarterHistoryMLPModel}
         expected_class = history_classes.get(version, MLPModel)
         if not isinstance(actor, torch.nn.Module) or getattr(actor, "is_recurrent", False):
             raise ValueError("checkpoint prefix requires a nonrecurrent torch actor")

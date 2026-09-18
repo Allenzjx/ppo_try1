@@ -108,11 +108,14 @@ def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_versio
                            observation_layout: str | None = None) -> dict[str, Any]:
     if semantic_version not in ("v2", "v3"):
         raise ValueError("unsupported semantic runtime version")
-    from .semantic_policy_distribution import HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY
+    from .semantic_policy_distribution import (HISTORY_POLICY, HISTORY_TEMPERED_POLICY,
+        HISTORY_QUARTER_TEMPERED_POLICY, HISTORY_REQUEST_CAP_TRANSITION_POLICY)
     from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
-    if policy_version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY) and semantic_version != "v3":
+    if policy_version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
+                          HISTORY_REQUEST_CAP_TRANSITION_POLICY) and semantic_version != "v3":
         raise ValueError("history-conditioned policy requires the v3 semantic runtime")
-    if policy_version in (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY) and observation_layout != ROLE_OBSERVATION_LAYOUT:
+    if policy_version in (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
+                          HISTORY_REQUEST_CAP_TRANSITION_POLICY) and observation_layout != ROLE_OBSERVATION_LAYOUT:
         raise ValueError("tempered history policy requires the explicit role372 observation layout")
     if return_profile is None:
         from .semantic_reward import load_semantic_reward_config
@@ -331,6 +334,7 @@ def construct_semantic_runner(env: Any, *, seed: int, device: str,
 def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None) -> dict[str, Any]:
     """Observe official minibatches and gradients without replacing PPO math."""
     import torch
+    from .semantic_policy_distribution import HISTORY_REQUEST_CAP_TRANSITION_POLICY
     alg = runner.alg
     before = parameter_hash(alg.actor)
     generator = alg.storage.mini_batch_generator
@@ -381,7 +385,9 @@ def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None
                     "clipped_branch_strictly_active": jsonable(clipped > unclipped),
                     "current_conditional_mean": jsonable(alg.actor.output_distribution_params[0]),
                     "current_conditional_sigma": jsonable(alg.actor.output_distribution_params[1]),
-                    "history_source": "this_saved_observation_195_207_not_shuffled_neighbor",
+                    "history_source": ("this_saved_observation_stage0_13_age20_completed158_171_raw195_207_request207_219_not_shuffled_neighbor"
+                        if getattr(runner, "_semantic_policy_version", None) == HISTORY_REQUEST_CAP_TRANSITION_POLICY
+                        else "this_saved_observation_195_207_not_shuffled_neighbor"),
                 })
         return result
 
@@ -536,6 +542,56 @@ def _validated_exploration_temperature_factor(metadata: Mapping[str, Any], recor
     return factor
 
 
+def _validated_request_history_kernel_factor(metadata: Mapping[str, Any], record: Mapping[str, Any], *,
+        semantic_version: str, seed: int, device: str, observation_layout: str | None) -> Mapping[str, Any] | None:
+    """Validate the exclusive same372 mean-kernel boundary, not temperature."""
+    factor = record.get("request_history_kernel_factor")
+    if factor is None:
+        return None
+    from .semantic_migration import source_num_envs
+    from .semantic_policy_distribution import (HISTORY_QUARTER_TEMPERED_POLICY,
+        HISTORY_REQUEST_CAP_TRANSITION_POLICY, REQUEST_HISTORY_SEMANTICS, policy_version_from_metadata)
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    exclusive = ("execution_factor", "instrumentation_observation_contract", "video_instrumentation_factor",
+        "nominal_timing_factor", "body_reward_factor", "task_first_reward_factor", "height_recovery_factor",
+        "execution_composition_factor", "final_stop_handoff_factor", "rr_physical_acceptance_same372_factor",
+        "fl_capture_quality_same372_factor", "exploration_temperature_factor")
+    if any(record.get(key) is not None for key in exclusive):
+        raise RuntimeError("request-history kernel migration cannot mix other migration factors")
+    if (not isinstance(factor, Mapping) or semantic_version != "v3"
+            or metadata.get("semantic_version") != "v3" or seed != metadata.get("seed")
+            or observation_layout != ROLE_OBSERVATION_LAYOUT or source_num_envs(metadata) != 1
+            or metadata.get("runner_config", {}).get("device") != device
+            or metadata.get("runtime_contract", {}).get("experiment_id") != "fl_capture_quality_v1"
+            or policy_version_from_metadata(metadata) != HISTORY_QUARTER_TEMPERED_POLICY
+            or factor.get("schema") != "wlr50_clean.cap_transition_request_history_same372.v1"
+            or factor.get("history_center_semantics") != REQUEST_HISTORY_SEMANTICS
+            or metadata.get("optimizer_learning_rate") != 1e-5):
+        raise RuntimeError("request-history migration requires exact old quarter role372 N1 FL source and LR1e-5")
+    source_version, target_version = HISTORY_QUARTER_TEMPERED_POLICY, HISTORY_REQUEST_CAP_TRANSITION_POLICY
+    source_policy = policy_contract(source_version, observation_layout=observation_layout)
+    target_policy = policy_contract(target_version, observation_layout=observation_layout)
+    observation = {"source_policy_contract": source_policy, "target_policy_contract": target_policy,
+        "observation_layout": observation_layout, "observation_dimension": 372, "action_dimension": 12,
+        "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"}
+    if (metadata.get("policy_contract") != source_policy
+            or factor.get("source_policy_contract") != source_policy
+            or factor.get("target_policy_contract") != target_policy
+            or factor.get("source_policy_version") != source_version
+            or factor.get("target_policy_version") != target_version
+            or factor.get("observation_contract") != observation):
+        raise RuntimeError("request-history migration lacks exact source/target policy and observation contracts")
+    horizon = runner_return_profile(metadata["runner_config"], semantic_version="v3")["version"]
+    configs = {version: semantic_runner_config(seed=seed, device=device, semantic_version="v3",
+        policy_version=version, observation_layout=observation_layout, return_profile=horizon)
+        for version in (source_version, target_version)}
+    if (metadata["runner_config"] != configs[source_version]
+            or factor.get("source_runner_config") != configs[source_version]
+            or factor.get("target_runner_config") != configs[target_version]):
+        raise RuntimeError("request-history migration runner differs from its exact contracts")
+    return factor
+
+
 def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping[str, Any], seed: int,
                              migration: Mapping[str, Any] | None = None,
                              warm_start: Mapping[str, Any] | None = None,
@@ -553,7 +609,8 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
     metadata = json.loads(sidecar.read_text(encoding="utf-8"))
     from .semantic_policy_distribution import policy_version_from_metadata
     verified = None
-    if migration is not None and migration.get("exploration_temperature_factor") is not None:
+    if migration is not None and any(migration.get(key) is not None for key in (
+            "exploration_temperature_factor", "request_history_kernel_factor")):
         from .semantic_migration import validate_migration_plan
         verified = validate_migration_plan(checkpoint, contract, Path(migration["plan_path"]))
         if verified != dict(migration):
@@ -561,11 +618,15 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
     temperature = _validated_exploration_temperature_factor(metadata, verified or {},
         semantic_version=runner._semantic_version, seed=seed, device=str(runner.device),
         observation_layout=getattr(runner, "_semantic_observation_layout", None))
-    if temperature is not None:
-        if (runner._semantic_policy_version != temperature["target_policy_contract"]["version"]
-                or _runner_policy_contract(runner) != temperature["target_policy_contract"]
-                or runner._semantic_runner_config != temperature["target_runner_config"]):
-            raise RuntimeError("constructed tempered actor differs from the verified target configuration")
+    request_kernel = _validated_request_history_kernel_factor(metadata, verified or {},
+        semantic_version=runner._semantic_version, seed=seed, device=str(runner.device),
+        observation_layout=getattr(runner, "_semantic_observation_layout", None))
+    kernel_boundary = temperature or request_kernel
+    if kernel_boundary is not None:
+        if (runner._semantic_policy_version != kernel_boundary["target_policy_contract"]["version"]
+                or _runner_policy_contract(runner) != kernel_boundary["target_policy_contract"]
+                or runner._semantic_runner_config != kernel_boundary["target_runner_config"]):
+            raise RuntimeError("constructed kernel actor differs from the verified target configuration")
     else:
         if policy_version_from_metadata(metadata) != runner._semantic_policy_version:
             raise RuntimeError("checkpoint policy distribution differs from the constructed actor")
@@ -611,9 +672,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         fl_quality_factor = (verified.get("fl_capture_quality_same372_factor") or {}).get("observation_contract")
         height_factor = (verified.get("height_recovery_factor") or {}).get("observation_contract")
         temperature_factor = None if temperature is None else temperature["observation_contract"]
-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor)) > 1:
+        request_history_factor = None if request_kernel is None else request_kernel["observation_contract"]
+        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor)) > 1:
             raise RuntimeError("reviewed same-layout migration receipts must be exclusive")
-        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor
+        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor
         if reviewed_factor is not None:
             if factor is not None:
                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")
@@ -635,7 +697,7 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
                 or actual_contract["observation_dimension"] != verified["observation_dimension"]
                 or runner.alg.storage.step != 0 or runner.alg.transition.actions is not None):
             raise RuntimeError("migration requires verified-layout fresh storage with no old rollout")
-        if temperature is None and metadata.get("runner_config") != semantic_runner_config(seed=seed, device=str(runner.device),
+        if kernel_boundary is None and metadata.get("runner_config") != semantic_runner_config(seed=seed, device=str(runner.device),
                 semantic_version=metadata.get("semantic_version", "v2"),
                 policy_version=runner._semantic_policy_version, observation_layout=layout):
             raise RuntimeError("migration cannot change PPO hyperparameters or normalization")
@@ -656,6 +718,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
             raise RuntimeError(f"semantic resume failed actual {key} verification")
     restore_training_rng_state(infos["training_rng_state"], expected_seed=seed)
     assert_semantic_return_consistency(runner, runner.env)
+    if request_kernel is not None and (
+            optimizer_learning_rate(runner) != 1e-5
+            or optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate")):
+        raise RuntimeError("request-history migration changed source effective Adam learning rate")
     if migration is not None:
         infos = {**infos, "resume_migration": dict(migration)}
         fl_factor = verified.get("fl_capture_quality_same372_factor")
@@ -1266,9 +1332,12 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
     """
     import torch
     from .semantic_history_actor import (SemanticQuarterTemperedHistoryMLPModel,
+        SemanticCapTransitionQuarterHistoryMLPModel, cap_transition_request_history,
         history_conditioned_head, HISTORY_START, HISTORY_STOP, HISTORY_RHO)
-    if type(actor) is not SemanticQuarterTemperedHistoryMLPModel:
-        raise ValueError("request audit requires the unchanged quarter HISTORY actor")
+    from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+        REQUEST_HISTORY_SEMANTICS)
+    if type(actor) not in (SemanticQuarterTemperedHistoryMLPModel, SemanticCapTransitionQuarterHistoryMLPModel):
+        raise ValueError("request audit requires an exact supported quarter HISTORY actor")
     heads = []
     handle = actor.mlp.register_forward_hook(lambda _module, _inputs, output: heads.append(output.detach().clone()))
     try:
@@ -1279,7 +1348,10 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
         raise RuntimeError("request audit did not observe exactly one actual N1 actor head")
     head = heads[0]
     history = observation["policy"][..., HISTORY_START:HISTORY_STOP]
-    conditional = history_conditioned_head(head, history, HISTORY_RHO)
+    center, request_evidence = history, None
+    if type(actor) is SemanticCapTransitionQuarterHistoryMLPModel:
+        center, request_evidence = cap_transition_request_history(observation["policy"])
+    conditional = history_conditioned_head(head, center, HISTORY_RHO)
     effective_std = (head[..., 1, :] + math.log(actor.exploration_std_temperature)).exp()
     if stochastic:
         mean, std = actor.output_distribution_params
@@ -1301,6 +1373,19 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
         "physical_scale_and_execution_source": "same_decision_applied_audit_and_native_tick_audit"}
     if stochastic:
         record["selected_raw_log_probability"] = float(actor.get_output_log_prob(raw)[0])
+    if request_evidence is not None:
+        record.update(schema="wlr50_clean.actual_cap_transition_history_policy_request.v1",
+            policy_version=HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+            history_center_semantics=REQUEST_HISTORY_SEMANTICS,
+            history_center_full12=vector(center),
+            cap_transition_gate_full12=vector(request_evidence["gate_full12"]),
+            stage_index=int(request_evidence["stage_index"][0]),
+            encoded_stage_age=float(request_evidence["encoded_stage_age"][0]),
+            predecessor_completed=bool(request_evidence["predecessor_completed"][0]),
+            current_cap_full12=vector(request_evidence["current_cap_full12"]),
+            predecessor_cap_full12=vector(request_evidence["predecessor_cap_full12"]),
+            previous_filtered_request_full12=vector(request_evidence["previous_filtered_request_full12"]),
+            request_history_scope="previous_filtered_REQUEST_not_effective_final_drive_or_actual_motion")
     return raw, record
 
 

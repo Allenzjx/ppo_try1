@@ -201,3 +201,65 @@ class SemanticQuarterTemperedHistoryMLPModel(SemanticTemperedHistoryMLPModel):
     @property
     def exploration_std_temperature(self) -> float:
         return 0.25
+
+
+def cap_transition_request_history(latent: torch.Tensor) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+    """Pure current-observation center; never consume a mutable handoff flag.
+
+    The saved physical quantity is the previous filtered REQUEST, not the
+    post-headroom/final-slew actuator command or measured joint displacement.
+    """
+    from .semantic_policy_distribution import REQUEST_HISTORY_CAPS, REQUEST_HISTORY_SCALES
+    if (not isinstance(latent, torch.Tensor) or not latent.is_floating_point()
+            or latent.ndim < 2 or latent.shape[-1] != ROLE_OBSERVATION_DIM
+            or not bool(torch.isfinite(latent).all()) or not bool((latent.abs() <= HISTORY_CLIP).all())):
+        raise ValueError("request history requires finite fixed-scale-clipped 372 observations")
+    stage_bits, completed, age = latent[..., :13], latent[..., 158:171], latent[..., 20]
+    if (not bool(((stage_bits == 0) | (stage_bits == 1)).all())
+            or not bool((stage_bits.sum(-1) == 1).all())
+            or not bool(((completed == 0) | (completed == 1)).all())
+            or not bool((age >= 0).all())):
+        raise ValueError("request history stage/completed/age encoding is invalid")
+    stage = stage_bits.argmax(-1)
+    predecessor = (stage - 1).clamp(min=0)
+    caps = latent.new_tensor(REQUEST_HISTORY_CAPS)
+    current_cap, previous_cap = caps[stage], caps[predecessor]
+    predecessor_completed = completed.gather(-1, predecessor.unsqueeze(-1)).squeeze(-1) == 1
+    first = (age == 0) & (stage > 0) & predecessor_completed
+    gate = first.unsqueeze(-1) & (current_cap > previous_cap)
+    previous_request = latent[..., 207:219] * latent.new_tensor(REQUEST_HISTORY_SCALES)
+    raw_history = latent[..., HISTORY_START:HISTORY_STOP]
+    center = raw_history
+    if bool(gate.any()):
+        # Valid old-cap values are strictly interior in every enlarged cap.
+        # Only allow float32 fixed-scale decode roundoff, never silently clip.
+        valid = previous_request.abs() <= previous_cap + 1e-5
+        ratio = torch.where(gate, previous_request/current_cap, torch.zeros_like(raw_history))
+        if not bool((~gate | valid).all()) or not bool((ratio.abs() < 1).all()):
+            raise ValueError("request history violates its predecessor physical request cap")
+        center = torch.where(gate, torch.atanh(ratio), raw_history)
+    return center, {"gate_full12": gate, "stage_index": stage, "encoded_stage_age": age,
+        "predecessor_completed": predecessor_completed, "current_cap_full12": current_cap,
+        "predecessor_cap_full12": previous_cap, "previous_filtered_request_full12": previous_request}
+
+
+class SemanticCapTransitionQuarterHistoryMLPModel(SemanticQuarterTemperedHistoryMLPModel):
+    """Same parameters and sigma; explicit observable entry-history mean kernel."""
+
+    def forward(self, obs: TensorDict, masks: torch.Tensor | None = None,
+                hidden_state: HiddenState = None, stochastic_output: bool = False) -> torch.Tensor:
+        obs = unpad_trajectories(obs, masks) if masks is not None and not self.is_recurrent else obs
+        latent = self.get_latent(obs, masks, hidden_state)
+        if (getattr(self, "observation_layout", None) != ROLE_OBSERVATION_LAYOUT
+                or self.obs_dim != ROLE_OBSERVATION_DIM or latent.shape[-1] != ROLE_OBSERVATION_DIM):
+            raise ValueError("request history actor differs from its explicit 372 layout")
+        history, _ = cap_transition_request_history(latent)
+        head = history_conditioned_head(self.mlp(latent), history, HISTORY_RHO)
+        if not stochastic_output:
+            return self.distribution.deterministic_output(head)
+        log_std = head[..., 1, :] + math.log(self.exploration_std_temperature)
+        sigma = log_std.exp()
+        if not bool((torch.isfinite(sigma) & (sigma > 0)).all()):
+            raise ValueError("effective conditional sigma must be finite and strictly positive without clipping")
+        self.distribution.update(torch.stack((head[..., 0, :], log_std), dim=-2))
+        return self.distribution.sample()

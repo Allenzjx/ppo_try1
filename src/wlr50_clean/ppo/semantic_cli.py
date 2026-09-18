@@ -356,11 +356,19 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
             raise ValueError("checkpoint runtime changed; an explicit reviewed resume migration is required")
     else:
         args._migration_record = validate_migration_plan(args.checkpoint, contract, args.resume_migration)
-        from .semantic_training import _validated_exploration_temperature_factor
+        from .semantic_training import (_validated_exploration_temperature_factor,
+            _validated_request_history_kernel_factor)
+        request_history = _validated_request_history_kernel_factor(metadata, args._migration_record,
+            semantic_version=args.semantic_version, seed=int(metadata["seed"]), device=args.device,
+            observation_layout=args._observation_layout)
         temperature = _validated_exploration_temperature_factor(metadata, args._migration_record,
             semantic_version=args.semantic_version, seed=int(metadata["seed"]), device=args.device,
             observation_layout=args._observation_layout)
-        if temperature is not None:
+        if request_history is not None:
+            if getattr(args, "num_envs", 1) != 1:
+                raise ValueError("request-history kernel migration requires N1")
+            args._policy_version = request_history["target_policy_contract"]["version"]
+        elif temperature is not None:
             if getattr(args, "num_envs", 1) != 1:
                 raise ValueError("exploration temperature migration requires N1")
             args._policy_version = temperature["target_policy_contract"]["version"]
@@ -370,6 +378,34 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
             raise ValueError("migration cannot change PPO hyperparameters or normalization")
     if args.command == "train" and metadata["seed"] != args.seed:
         raise ValueError("resume must preserve the checkpoint training RNG seed")
+
+
+def _request_history_prefix_provenance(args, contract, previous):
+    """Do not relabel an old weight file as if it already stored the new kernel."""
+    from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+        HISTORY_QUARTER_TEMPERED_POLICY, supported_heteroscedastic_contract_version)
+    target = _resolved_policy_contract(args)
+    if target["version"] != HISTORY_REQUEST_CAP_TRANSITION_POLICY:
+        return {}
+    source = previous.get("policy_contract")
+    source_version = supported_heteroscedastic_contract_version(source)
+    record = getattr(args, "_migration_record", None)
+    factor = (record or {}).get("request_history_kernel_factor")
+    migration = None
+    if source_version == HISTORY_QUARTER_TEMPERED_POLICY:
+        if (factor is None or factor.get("source_policy_contract") != source
+                or factor.get("target_policy_contract") != target
+                or record.get("target_runtime_content_sha256") != contract["runtime_content_sha256"]
+                or record.get("source_runtime_content_sha256") != previous["runtime_contract"]["runtime_content_sha256"]):
+            raise ValueError("old checkpoint prefix requires explicit source-weight/new-kernel migration provenance")
+        migration = {key: record[key] for key in ("plan_path", "plan_sha256",
+            "source_checkpoint_sha256", "source_runtime_content_sha256", "target_runtime_content_sha256")}
+    elif (source_version != HISTORY_REQUEST_CAP_TRANSITION_POLICY or source != target
+            or previous["runtime_contract"] != contract or factor is not None):
+        raise ValueError("request-history checkpoint prefix is neither verified migration nor exact new-kernel resume")
+    return {"source_policy_contract": source, "effective_policy_contract": target,
+        "effective_runtime_content_sha256": contract["runtime_content_sha256"],
+        "request_history_kernel_migration": migration}
 
 
 def _resolved_policy_version(args: argparse.Namespace) -> str:
@@ -1011,6 +1047,7 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                     "source_ppo_updates": previous["ppo_updates"],
                     "policy_contract": _resolved_policy_contract(args),
                     "source_runtime_content_sha256": previous["runtime_contract"]["runtime_content_sha256"],
+                    **_request_history_prefix_provenance(args, contract, previous),
                 })
                 env.install_prefix_policy(frozen_prefix, frozen_prefix.provenance)
             if getattr(args, "_policy_migration_record", None) is not None:

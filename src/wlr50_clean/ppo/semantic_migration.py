@@ -9,6 +9,10 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 SCHEMA = "wlr50_clean.semantic_checkpoint_migration.v1"
+REQUEST_HISTORY_KERNEL_SCHEMA = "wlr50_clean.cap_transition_request_history_same372.v1"
+REQUEST_HISTORY_KERNEL_FILES = frozenset(f"src/wlr50_clean/ppo/{name}.py" for name in (
+    "semantic_history_actor", "semantic_policy_distribution", "semantic_training",
+    "semantic_migration", "semantic_cli", "semantic_checkpoint_prefix_policy"))
 STAGE_SPEC = "configs/ppo_semantic_v2/stage_task_spec.yaml"
 SUPERVISOR = "src/wlr50_clean/ppo/semantic_supervisor.py"
 PRIOR_DIAGNOSTIC_HEAD = "84c607a2ffbba36f46a0e70dbb886227c0c32ec5"
@@ -2622,6 +2626,200 @@ def _build_fl_capture_quality_plan(checkpoint, metadata, old, new, *,
         "fl_capture_quality_same372_factor": factor}
 
 
+def _request_history_runtime_binding(spec, execution, observation, target_policy):
+    """Bind the pure entry predicate to this exact observable control graph."""
+    from .semantic_policy_distribution import REQUEST_HISTORY_CAPS, REQUEST_HISTORY_SCALES
+    phases = [f"P{i:02}" for i in range(1, 14)]
+    if (set(spec.get("stages", {})) != set(phases)
+            or any(spec["stages"][p].get("next_phase") !=
+                   (phases[i+1] if i < 12 else "SUCCESS") for i, p in enumerate(phases))):
+        raise ValueError("request-history kernel requires the unchanged forward adjacent P01-P13 graph")
+    expected_caps = {p: list(REQUEST_HISTORY_CAPS[i]) for i, p in enumerate(phases)}
+    if (execution.get("physics_hz") != 120. or execution.get("decision_hz") != 15.
+            or execution.get("residual", {}).get("phase_caps_full12") != expected_caps
+            or target_policy.get("phase_caps_full12") != list(expected_caps.values())):
+        raise ValueError("request-history kernel clock or exact per-phase caps differ")
+    groups, offset = {}, 0
+    for group in observation.get("feature_groups", []):
+        name = group.get("name")
+        if name in groups:
+            raise ValueError("request-history observation contains duplicate feature groups")
+        groups[name] = (offset, group.get("size"), group.get("scale"))
+        offset += group.get("size", 0)
+    expected = {"stage_one_hot": (0, 13, 1.), "task_times": (18, 3, 200.),
+        "completed_stages": (158, 13, 1.), "previous_raw_full12": (195, 12, 1.),
+        "previous_residual_full12": (207, 12, list(REQUEST_HISTORY_SCALES))}
+    if offset != 372 or any(groups.get(k) != v for k, v in expected.items()):
+        raise ValueError("request-history schema indices or decoded REQUEST scales differ")
+    return {"phase_graph": {p: spec["stages"][p]["next_phase"] for p in phases},
+        "physics_hz": 120., "decision_hz": 15., "feature_bindings": {k: list(v) for k, v in expected.items()},
+        "phase_caps_full12": expected_caps,
+        "request_scope": "previous_filtered_REQUEST_not_post_mapper_effective_or_actual_motion"}
+
+
+def _request_history_code_scope(before, after, *, functions=(), classes=(), constants=(), methods=(),
+                                prefix_provenance_unpack=False):
+    """Exact named AST boundary; the CLI loop permits only one provenance unpack."""
+    import ast
+    def protected(text, target):
+        tree = ast.parse(text)
+        seen, unpack_count = set(), 0
+        retained = []
+        for node in tree.body:
+            name = getattr(node, "name", None)
+            if ((isinstance(node, ast.FunctionDef) and name in functions)
+                    or (isinstance(node, ast.ClassDef) and name in classes)):
+                seen.add(name)
+                continue
+            if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name) and node.targets[0].id in constants:
+                seen.add(node.targets[0].id)
+                continue
+            if isinstance(node, ast.ClassDef):
+                for method in list(node.body):
+                    key = f"{name}.{getattr(method, 'name', '')}"
+                    if isinstance(method, ast.FunctionDef) and key in methods:
+                        node.body.remove(method)
+                        seen.add(key)
+            retained.append(node)
+        tree.body = retained
+        if prefix_provenance_unpack:
+            expected = ast.dump(ast.parse("_request_history_prefix_provenance(args, contract, previous)", mode="eval").body, include_attributes=False)
+            for call in ast.walk(tree):
+                if not (isinstance(call, ast.Call) and isinstance(call.func, ast.Name)
+                        and call.func.id == "build_frozen_checkpoint_prefix_policy" and len(call.args) == 2
+                        and isinstance(call.args[1], ast.Dict)):
+                    continue
+                record = call.args[1]
+                for i in range(len(record.keys)-1, -1, -1):
+                    if record.keys[i] is None and ast.dump(record.values[i], include_attributes=False) == expected:
+                        del record.keys[i]; del record.values[i]
+                        unpack_count += 1
+            if unpack_count != (1 if target else 0):
+                raise ValueError("request-history CLI must add exactly one verified prefix provenance unpack")
+        return ast.dump(tree, include_attributes=False), seen
+    old_ast, old_seen = protected(before, False)
+    new_ast, new_seen = protected(after, True)
+    if old_ast != new_ast or not old_seen <= new_seen:
+        raise ValueError("request-history changed code outside its named review scope")
+    def physical_calls(text):
+        calls = []
+        for node in ast.walk(ast.parse(text)):
+            if isinstance(node, ast.Call):
+                name = getattr(node.func, "attr", getattr(node.func, "id", ""))
+                if name.startswith(("set_", "write_joint", "write_root", "apply_force")) or name in {
+                        "reset", "step", "step_physics", "simulate", "render", "write_data_to_sim", "apply_action"}:
+                    calls.append(ast.dump(node, include_attributes=False))
+        return sorted(calls)
+    if physical_calls(before) != physical_calls(after):
+        raise ValueError("request-history cannot alter physical setter/reset/step calls")
+    return {"protected_ast_sha256": digest(old_ast), "protected_ast_identical": True,
+        "reviewed_regions": sorted(new_seen), "prefix_provenance_unpack_only": prefix_provenance_unpack}
+
+
+def _build_request_history_kernel_plan(checkpoint, metadata, old, new, *,
+        allowed_changed_files, reason, review, project_root):
+    """One same372 mean-kernel factor; no reward, temperature or physical change."""
+    import copy
+    import yaml
+    from .semantic_policy_distribution import (CONFIG_NAMES, HISTORY_QUARTER_TEMPERED_POLICY,
+        HISTORY_REQUEST_CAP_TRANSITION_POLICY, REQUEST_HISTORY_SEMANTICS, policy_contract)
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    from .semantic_return_profile import runner_return_profile
+    from .semantic_training import semantic_runner_config
+    if (not isinstance(review, Mapping) or set(review) != {"reason", "reviewed_code_sha256"}
+            or not isinstance(review["reason"], str) or not review["reason"].strip()
+            or not isinstance(reason, str) or not reason.strip()):
+        raise ValueError("request-history requires an explicit exact-code review")
+    if (metadata.get("semantic_version") != "v3" or source_num_envs(metadata) != 1
+            or any(c.get("semantic_version") != "v3" or c.get("experiment_id") != "fl_capture_quality_v1"
+                   for c in (old, new))
+            or old["source_git_commit"] == new["source_git_commit"]):
+        raise ValueError("request-history requires a versioned FL-quality same-experiment v3 N1 boundary")
+    variable = {"files", "runtime_content_sha256", "source_git_commit"}
+    if {k:v for k,v in old.items() if k not in variable} != {k:v for k,v in new.items() if k not in variable}:
+        raise ValueError("request-history cannot change configuration, physics, rates or budgets")
+    delta = sorted(p for p in old["files"].keys() | new["files"].keys() if old["files"].get(p) != new["files"].get(p))
+    if (set(old["files"]) != set(new["files"]) or set(delta) != REQUEST_HISTORY_KERNEL_FILES
+            or sorted(allowed_changed_files) != delta or len(set(allowed_changed_files)) != len(allowed_changed_files)):
+        raise ValueError("request-history requires exactly the reviewed six runtime files")
+    hashes = {p: new["files"][p] for p in sorted(REQUEST_HISTORY_KERNEL_FILES)}
+    if not isinstance(review["reviewed_code_sha256"], Mapping) or dict(review["reviewed_code_sha256"]) != hashes:
+        raise ValueError("request-history review does not bind every exact target runtime byte hash")
+    source_policy = policy_contract(HISTORY_QUARTER_TEMPERED_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    target_policy = policy_contract(HISTORY_REQUEST_CAP_TRANSITION_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    if metadata.get("policy_contract") != source_policy or metadata.get("optimizer_learning_rate") != 1e-5:
+        raise ValueError("request-history requires the unchanged quarter HISTORY372 and verified effective Adam LR1e-5")
+    records, configs = {}, {}
+    for name in sorted(CONFIG_NAMES):
+        path = f"configs/ppo_fl_capture_quality_v1/{name}"
+        for c in (old, new):
+            if set(c.get("selected_configuration", {})) != CONFIG_NAMES or c["selected_configuration"][name] != {"path": path, "sha256": c["files"].get(path)}:
+                raise ValueError("request-history requires exact unchanged six-configuration bindings")
+        before = _version_bytes(project_root, old, path, prefer_worktree=True)
+        after = _version_bytes(project_root, new, path, prefer_worktree=True)
+        if before != after:
+            raise ValueError("request-history cannot change any of the six configuration files")
+        records[name] = {"path": path, "source_sha256": old["files"][path], "target_sha256": new["files"][path], "bytes_identical": True}
+        configs[name] = yaml.safe_load(after)
+    binding = _request_history_runtime_binding(configs["stage_task_spec.yaml"], configs["execution_profile.yaml"], configs["observation_schema.json"], target_policy)
+    scopes = {}
+    allowed = {
+        "semantic_history_actor": {"functions": ("cap_transition_request_history",), "classes": ("SemanticCapTransitionQuarterHistoryMLPModel",)},
+        "semantic_policy_distribution": {"functions": ("policy_contract", "configure_policy_distribution", "supported_heteroscedastic_contract_version", "policy_version_from_metadata"),
+            "constants": ("HISTORY_REQUEST_CAP_TRANSITION_POLICY", "HISTORY_REQUEST_CAP_TRANSITION_ACTOR_CLASS", "REQUEST_HISTORY_CAPS", "REQUEST_HISTORY_SCALES", "REQUEST_HISTORY_SEMANTICS")},
+        "semantic_training": {"functions": ("semantic_runner_config", "load_semantic_checkpoint", "_validated_request_history_kernel_factor", "audited_history_policy_request", "audited_ppo_update")},
+        "semantic_cli": {"functions": ("_preflight_checkpoint", "_request_history_prefix_provenance"), "prefix_provenance_unpack": True},
+        "semantic_checkpoint_prefix_policy": {"functions": ("_source_record",), "methods": ("FrozenCheckpointPrefixPolicy.__init__",)},
+        "semantic_migration": {"functions": ("_request_history_runtime_binding", "_request_history_code_scope", "_build_request_history_kernel_plan", "build_migration_plan", "validate_migration_plan"),
+            "constants": ("REQUEST_HISTORY_KERNEL_SCHEMA", "REQUEST_HISTORY_KERNEL_FILES")},
+    }
+    for name, options in allowed.items():
+        path = f"src/wlr50_clean/ppo/{name}.py"
+        before = _version_text(project_root, old, path, prefer_worktree=True)
+        after = _version_text(project_root, new, path, prefer_worktree=True)
+        scopes[path] = _request_history_code_scope(before, after, **options)
+    horizon = runner_return_profile(metadata["runner_config"], semantic_version="v3")["version"]
+    options = dict(seed=metadata["seed"], device=metadata["runner_config"]["device"], semantic_version="v3", return_profile=horizon, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    source_config = semantic_runner_config(policy_version=source_policy["version"], **options)
+    target_config = semantic_runner_config(policy_version=target_policy["version"], **options)
+    source_rest, target_rest = copy.deepcopy(source_config), copy.deepcopy(target_config)
+    source_rest["actor"].pop("class_name"); target_rest["actor"].pop("class_name")
+    if metadata["runner_config"] != source_config or source_rest != target_rest:
+        raise ValueError("request-history may change only the actor class selector, not PPO/normalization/temperature")
+    observation = {"source_policy_contract": source_policy, "target_policy_contract": target_policy,
+        "observation_layout": ROLE_OBSERVATION_LAYOUT, "observation_dimension": 372,
+        "action_dimension": 12, "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"}
+    factor = {"schema": REQUEST_HISTORY_KERNEL_SCHEMA, "review_reason": review["reason"].strip(),
+        "reviewed_code_sha256": hashes, "configuration_bindings": records, "code_scope": scopes,
+        "source_policy_version": source_policy["version"], "target_policy_version": target_policy["version"],
+        "source_policy_contract": source_policy, "target_policy_contract": target_policy,
+        "source_runner_config": source_config, "target_runner_config": target_config,
+        "history_center_semantics": REQUEST_HISTORY_SEMANTICS, "runtime_binding": binding,
+        "kernel_changed": True, "physical_mdp_changed": False, "nominal_control_changed": False,
+        "reward_changed": False, "task_acceptance_changed": False, "action_ranges_changed": False,
+        "observation_semantics_changed": [], "observation_contract": observation,
+        "deterministic_same_weights_same_observation": "changed_only_at_observed_cap_increase_entry_gate; not_behavior_equivalent",
+        "sigma_same_weights_same_observation": "unchanged_learned_sigma_times_fixed_0.25",
+        "stochastic_likelihood": "same_new_conditional_mean_and_sigma_for_sample_old_params_logprob_entropy_KL_update",
+        "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+        "source_effective_learning_rate": 1e-5, "target_effective_learning_rate": 1e-5,
+        "normalizers": "preserve_verified_identity_RSL_state", "training_rng": "preserve_verified_training_rng",
+        "counter_origin": {k: metadata[k] for k in ("global_policy_decisions", "ppo_updates", "optimizer_steps")},
+        "old_rollout_inherited": False, "migration_added_updates": 0, "migration_added_policy_decisions": 0,
+        "prefix_effective_kernel": "source_checkpoint_weights_plus_explicit_target_kernel_and_plan_provenance",
+        "prefix_samples_have_optimizer_credit": False, "trajectory_equivalence_claimed": False,
+        "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True}
+    return {"schema": SCHEMA, "reason": reason.strip(), "source_checkpoint": str(checkpoint),
+        "source_checkpoint_sha256": file_sha(checkpoint), "source_manifest_sha256": file_sha(checkpoint.with_name(checkpoint.stem+"_manifest.json")),
+        "source_contract_sha256": digest(old), "target_contract_sha256": digest(new),
+        "source_git_commit": old["source_git_commit"], "target_git_commit": new["source_git_commit"],
+        "source_runtime_content_sha256": old["runtime_content_sha256"], "target_runtime_content_sha256": new["runtime_content_sha256"],
+        "allowed_changed_files": delta, "changed_file_hashes": {p: {"before": old["files"][p], "after": new["files"][p]} for p in delta},
+        "geometric_factor": None, "observation_dimension": 372, "action_dimension": 12,
+        "preserve_actor_critic_optimizer_normalizer_rng_and_budget": True,
+        "discard_old_rollout_storage": True, "physics_resume": "fresh_legal_P01_reset", "request_history_kernel_factor": factor}
+
+
 def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
                          allowed_changed_files: Sequence[str], reason: str,
                          prior_evidence: Mapping[str, Any] | None = None,
@@ -2638,11 +2836,22 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                          final_stop_handoff_review: Mapping[str, Any] | None = None,
                          rr_physical_acceptance_review: Mapping[str, Any] | None = None,
                          fl_capture_quality_review: Mapping[str, Any] | None = None,
+                         request_history_kernel_review: Mapping[str, Any] | None = None,
                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Build a reviewed plan after committing the new runtime; does not write."""
     checkpoint = Path(checkpoint).resolve(strict=True)
     metadata = checkpoint_metadata(checkpoint)
     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
+    if request_history_kernel_review is not None:
+        if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
+                execution_evidence, video_review, timing_review, body_reward_review,
+                height_recovery_review, exploration_temperature_review, task_first_reward_review,
+                execution_composition_review, final_stop_handoff_review, rr_physical_acceptance_review,
+                fl_capture_quality_review)):
+            raise ValueError("request-history kernel cannot mix any other migration factor")
+        return _build_request_history_kernel_plan(checkpoint, metadata, old, new,
+            allowed_changed_files=allowed_changed_files, reason=reason,
+            review=request_history_kernel_review, project_root=Path(project_root))
     if fl_capture_quality_review is not None:
         if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
                 execution_evidence, video_review, timing_review, body_reward_review,
@@ -2844,7 +3053,10 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                                         "reviewed_code_sha256": supplied["rr_physical_acceptance_same372_factor"]["reviewed_code_sha256"]},
                                     fl_capture_quality_review=None if "fl_capture_quality_same372_factor" not in supplied else {
                                         "reason": supplied["fl_capture_quality_same372_factor"]["review_reason"],
-                                        "reviewed_code_sha256": supplied["fl_capture_quality_same372_factor"]["reviewed_code_sha256"]})
+                                        "reviewed_code_sha256": supplied["fl_capture_quality_same372_factor"]["reviewed_code_sha256"]},
+                                    request_history_kernel_review=None if "request_history_kernel_factor" not in supplied else {
+                                        "reason": supplied["request_history_kernel_factor"]["review_reason"],
+                                        "reviewed_code_sha256": supplied["request_history_kernel_factor"]["reviewed_code_sha256"]})
     if supplied != expected:
         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}
