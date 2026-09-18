@@ -13,6 +13,8 @@ REQUEST_HISTORY_KERNEL_SCHEMA = "wlr50_clean.cap_transition_request_history_same
 REQUEST_HISTORY_KERNEL_FILES = frozenset(f"src/wlr50_clean/ppo/{name}.py" for name in (
     "semantic_history_actor", "semantic_policy_distribution", "semantic_training",
     "semantic_migration", "semantic_cli", "semantic_checkpoint_prefix_policy"))
+PHYSICAL_INNOVATION_SIGMA_SCHEMA = "wlr50_clean.FR_knee_phase_physical_innovation_sigma.v1"
+PHYSICAL_INNOVATION_SIGMA_FILES = REQUEST_HISTORY_KERNEL_FILES
 STAGE_SPEC = "configs/ppo_semantic_v2/stage_task_spec.yaml"
 SUPERVISOR = "src/wlr50_clean/ppo/semantic_supervisor.py"
 PRIOR_DIAGNOSTIC_HEAD = "84c607a2ffbba36f46a0e70dbb886227c0c32ec5"
@@ -2820,6 +2822,111 @@ def _build_request_history_kernel_plan(checkpoint, metadata, old, new, *,
         "discard_old_rollout_storage": True, "physics_resume": "fresh_legal_P01_reset", "request_history_kernel_factor": factor}
 
 
+def _build_physical_innovation_sigma_plan(checkpoint, metadata, old, new, *,
+        allowed_changed_files, reason, review, project_root):
+    """Same REQUEST mean and full action support; only one phase sigma scale."""
+    import copy
+    import yaml
+    from .semantic_policy_distribution import (CONFIG_NAMES, HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+        FR_KNEE_PHYSICAL_INNOVATION_POLICY, FR_KNEE_PHYSICAL_SIGMA_SEMANTICS, policy_contract)
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    from .semantic_return_profile import runner_return_profile
+    from .semantic_training import semantic_runner_config
+    if (not isinstance(review, Mapping) or set(review) != {"reason", "reviewed_code_sha256"}
+            or not isinstance(review["reason"], str) or not review["reason"].strip()
+            or not isinstance(reason, str) or not reason.strip()):
+        raise ValueError("physical-innovation sigma requires an explicit exact-code review")
+    if (metadata.get("semantic_version") != "v3" or source_num_envs(metadata) != 1
+            or any(c.get("semantic_version") != "v3" or c.get("experiment_id") != "fl_capture_quality_v1"
+                   for c in (old, new)) or old["source_git_commit"] == new["source_git_commit"]):
+        raise ValueError("physical-innovation sigma requires a versioned FL-quality v3 N1 boundary")
+    variable = {"files", "runtime_content_sha256", "source_git_commit"}
+    if {k:v for k,v in old.items() if k not in variable} != {k:v for k,v in new.items() if k not in variable}:
+        raise ValueError("physical-innovation sigma cannot change configuration, physics, rates or budgets")
+    delta = sorted(p for p in old["files"].keys() | new["files"].keys() if old["files"].get(p) != new["files"].get(p))
+    if (set(old["files"]) != set(new["files"]) or set(delta) != PHYSICAL_INNOVATION_SIGMA_FILES
+            or sorted(allowed_changed_files) != delta or len(set(allowed_changed_files)) != len(allowed_changed_files)):
+        raise ValueError("physical-innovation sigma requires exactly the reviewed six runtime files")
+    hashes = {p: new["files"][p] for p in sorted(PHYSICAL_INNOVATION_SIGMA_FILES)}
+    if not isinstance(review["reviewed_code_sha256"], Mapping) or dict(review["reviewed_code_sha256"]) != hashes:
+        raise ValueError("physical-innovation review must bind exact target code hashes")
+    source_policy = policy_contract(HISTORY_REQUEST_CAP_TRANSITION_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    target_policy = policy_contract(FR_KNEE_PHYSICAL_INNOVATION_POLICY, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    learning_rate = metadata.get("optimizer_learning_rate")
+    if (metadata.get("policy_contract") != source_policy or isinstance(learning_rate, bool)
+            or not isinstance(learning_rate, (int, float)) or not math.isfinite(learning_rate) or learning_rate <= 0):
+        raise ValueError("physical-innovation requires exact REQUEST372 source and finite positive saved effective Adam LR")
+    records, configs = {}, {}
+    for name in sorted(CONFIG_NAMES):
+        path = f"configs/ppo_fl_capture_quality_v1/{name}"
+        for c in (old, new):
+            if set(c.get("selected_configuration", {})) != CONFIG_NAMES or c["selected_configuration"][name] != {"path": path, "sha256": c["files"].get(path)}:
+                raise ValueError("physical-innovation requires exact six configuration bindings")
+        before = _version_bytes(project_root, old, path, prefer_worktree=True)
+        after = _version_bytes(project_root, new, path, prefer_worktree=True)
+        if before != after:
+            raise ValueError("physical-innovation cannot change any of the six configuration bytes")
+        records[name] = {"path": path, "source_sha256": old["files"][path], "target_sha256": new["files"][path], "bytes_identical": True}
+        configs[name] = yaml.safe_load(after)
+    binding = _request_history_runtime_binding(configs["stage_task_spec.yaml"], configs["execution_profile.yaml"], configs["observation_schema.json"], target_policy)
+    allowed = {
+        "semantic_history_actor": {"functions": ("physical_innovation_effective_log_std",), "classes": ("SemanticFRKneePhysicalInnovationHistoryMLPModel",)},
+        "semantic_policy_distribution": {"functions": ("policy_contract", "configure_policy_distribution", "supported_heteroscedastic_contract_version", "policy_version_from_metadata"),
+            "constants": ("FR_KNEE_PHYSICAL_INNOVATION_POLICY", "FR_KNEE_PHYSICAL_INNOVATION_ACTOR_CLASS", "FR_KNEE_PHYSICAL_SIGMA_SEMANTICS")},
+        "semantic_training": {"functions": ("semantic_runner_config", "load_semantic_checkpoint", "_validated_physical_innovation_sigma_factor", "audited_history_policy_request", "audited_ppo_update")},
+        "semantic_cli": {"functions": ("_preflight_checkpoint", "_request_history_prefix_provenance")},
+        "semantic_checkpoint_prefix_policy": {"functions": ("_source_record",), "methods": ("FrozenCheckpointPrefixPolicy.__init__",)},
+        "semantic_migration": {"functions": ("_build_physical_innovation_sigma_plan", "build_migration_plan", "validate_migration_plan"),
+            "constants": ("PHYSICAL_INNOVATION_SIGMA_SCHEMA", "PHYSICAL_INNOVATION_SIGMA_FILES")},
+    }
+    scopes = {}
+    for name, options in allowed.items():
+        path = f"src/wlr50_clean/ppo/{name}.py"
+        scopes[path] = _request_history_code_scope(
+            _version_text(project_root, old, path, prefer_worktree=True),
+            _version_text(project_root, new, path, prefer_worktree=True), **options)
+    horizon = runner_return_profile(metadata["runner_config"], semantic_version="v3")["version"]
+    options = dict(seed=metadata["seed"], device=metadata["runner_config"]["device"], semantic_version="v3", return_profile=horizon, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    source_config = semantic_runner_config(policy_version=source_policy["version"], **options)
+    target_config = semantic_runner_config(policy_version=target_policy["version"], **options)
+    source_rest, target_rest = copy.deepcopy(source_config), copy.deepcopy(target_config)
+    source_rest["actor"].pop("class_name"); target_rest["actor"].pop("class_name")
+    if metadata["runner_config"] != source_config or source_rest != target_rest:
+        raise ValueError("physical-innovation may change only actor selector, not PPO/normalization/temperature")
+    observation = {"source_policy_contract": source_policy, "target_policy_contract": target_policy,
+        "observation_layout": ROLE_OBSERVATION_LAYOUT, "observation_dimension": 372,
+        "action_dimension": 12, "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"}
+    factor = {"schema": PHYSICAL_INNOVATION_SIGMA_SCHEMA, "review_reason": review["reason"].strip(),
+        "reviewed_code_sha256": hashes, "configuration_bindings": records, "code_scope": scopes,
+        "source_policy_version": source_policy["version"], "target_policy_version": target_policy["version"],
+        "source_policy_contract": source_policy, "target_policy_contract": target_policy,
+        "source_runner_config": source_config, "target_runner_config": target_config,
+        "sigma_scaling_semantics": FR_KNEE_PHYSICAL_SIGMA_SEMANTICS, "runtime_binding": binding,
+        "kernel_changed": True, "physical_mdp_changed": False, "nominal_control_changed": False,
+        "reward_changed": False, "task_acceptance_changed": False, "action_ranges_changed": False,
+        "observation_semantics_changed": [], "observation_contract": observation,
+        "deterministic_same_weights_same_observation": "unchanged_parent_REQUEST_history_mean_bitwise",
+        "sigma_same_weights_same_observation": "P01_P05_all12_unchanged;P06_P13_only_FR_knee_index3_times_24_over_112",
+        "stochastic_likelihood": "same_scaled_official_Gaussian_cache_for_sample_logprob_entropy_KL_update",
+        "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+        "source_effective_learning_rate": learning_rate, "target_effective_learning_rate": learning_rate,
+        "normalizers": "preserve_verified_identity_RSL_state", "training_rng": "preserve_verified_training_rng",
+        "counter_origin": {k: metadata[k] for k in ("global_policy_decisions", "ppo_updates", "optimizer_steps")},
+        "old_rollout_inherited": False, "migration_added_updates": 0, "migration_added_policy_decisions": 0,
+        "prefix_effective_kernel": "source_checkpoint_weights_plus_explicit_target_kernel_and_plan_provenance",
+        "prefix_samples_have_optimizer_credit": False, "physical_trajectory_equivalence_claimed": False,
+        "scope_is_reviewer_assertion_not_semantic_equivalence_proof": True}
+    return {"schema": SCHEMA, "reason": reason.strip(), "source_checkpoint": str(checkpoint),
+        "source_checkpoint_sha256": file_sha(checkpoint), "source_manifest_sha256": file_sha(checkpoint.with_name(checkpoint.stem+"_manifest.json")),
+        "source_contract_sha256": digest(old), "target_contract_sha256": digest(new),
+        "source_git_commit": old["source_git_commit"], "target_git_commit": new["source_git_commit"],
+        "source_runtime_content_sha256": old["runtime_content_sha256"], "target_runtime_content_sha256": new["runtime_content_sha256"],
+        "allowed_changed_files": delta, "changed_file_hashes": {p: {"before": old["files"][p], "after": new["files"][p]} for p in delta},
+        "geometric_factor": None, "observation_dimension": 372, "action_dimension": 12,
+        "preserve_actor_critic_optimizer_normalizer_rng_and_budget": True,
+        "discard_old_rollout_storage": True, "physics_resume": "fresh_legal_P01_reset", "physical_innovation_sigma_factor": factor}
+
+
 def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
                          allowed_changed_files: Sequence[str], reason: str,
                          prior_evidence: Mapping[str, Any] | None = None,
@@ -2837,11 +2944,22 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                          rr_physical_acceptance_review: Mapping[str, Any] | None = None,
                          fl_capture_quality_review: Mapping[str, Any] | None = None,
                          request_history_kernel_review: Mapping[str, Any] | None = None,
+                         physical_innovation_sigma_review: Mapping[str, Any] | None = None,
                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Build a reviewed plan after committing the new runtime; does not write."""
     checkpoint = Path(checkpoint).resolve(strict=True)
     metadata = checkpoint_metadata(checkpoint)
     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
+    if physical_innovation_sigma_review is not None:
+        if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
+                execution_evidence, video_review, timing_review, body_reward_review,
+                height_recovery_review, exploration_temperature_review, task_first_reward_review,
+                execution_composition_review, final_stop_handoff_review, rr_physical_acceptance_review,
+                fl_capture_quality_review, request_history_kernel_review)):
+            raise ValueError("physical-innovation sigma cannot mix any other migration factor")
+        return _build_physical_innovation_sigma_plan(checkpoint, metadata, old, new,
+            allowed_changed_files=allowed_changed_files, reason=reason,
+            review=physical_innovation_sigma_review, project_root=Path(project_root))
     if request_history_kernel_review is not None:
         if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
                 execution_evidence, video_review, timing_review, body_reward_review,
@@ -3056,7 +3174,10 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                                         "reviewed_code_sha256": supplied["fl_capture_quality_same372_factor"]["reviewed_code_sha256"]},
                                     request_history_kernel_review=None if "request_history_kernel_factor" not in supplied else {
                                         "reason": supplied["request_history_kernel_factor"]["review_reason"],
-                                        "reviewed_code_sha256": supplied["request_history_kernel_factor"]["reviewed_code_sha256"]})
+                                        "reviewed_code_sha256": supplied["request_history_kernel_factor"]["reviewed_code_sha256"]},
+                                    physical_innovation_sigma_review=None if "physical_innovation_sigma_factor" not in supplied else {
+                                        "reason": supplied["physical_innovation_sigma_factor"]["review_reason"],
+                                        "reviewed_code_sha256": supplied["physical_innovation_sigma_factor"]["reviewed_code_sha256"]})
     if supplied != expected:
         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}

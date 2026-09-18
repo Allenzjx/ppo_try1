@@ -357,14 +357,21 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
     else:
         args._migration_record = validate_migration_plan(args.checkpoint, contract, args.resume_migration)
         from .semantic_training import (_validated_exploration_temperature_factor,
-            _validated_request_history_kernel_factor)
+            _validated_request_history_kernel_factor, _validated_physical_innovation_sigma_factor)
+        physical_innovation = _validated_physical_innovation_sigma_factor(metadata, args._migration_record,
+            semantic_version=args.semantic_version, seed=int(metadata["seed"]), device=args.device,
+            observation_layout=args._observation_layout)
         request_history = _validated_request_history_kernel_factor(metadata, args._migration_record,
             semantic_version=args.semantic_version, seed=int(metadata["seed"]), device=args.device,
             observation_layout=args._observation_layout)
         temperature = _validated_exploration_temperature_factor(metadata, args._migration_record,
             semantic_version=args.semantic_version, seed=int(metadata["seed"]), device=args.device,
             observation_layout=args._observation_layout)
-        if request_history is not None:
+        if physical_innovation is not None:
+            if getattr(args, "num_envs", 1) != 1:
+                raise ValueError("physical-innovation sigma migration requires N1")
+            args._policy_version = physical_innovation["target_policy_contract"]["version"]
+        elif request_history is not None:
             if getattr(args, "num_envs", 1) != 1:
                 raise ValueError("request-history kernel migration requires N1")
             args._policy_version = request_history["target_policy_contract"]["version"]
@@ -383,16 +390,21 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
 def _request_history_prefix_provenance(args, contract, previous):
     """Do not relabel an old weight file as if it already stored the new kernel."""
     from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
-        HISTORY_QUARTER_TEMPERED_POLICY, supported_heteroscedastic_contract_version)
+        HISTORY_QUARTER_TEMPERED_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
+        supported_heteroscedastic_contract_version)
     target = _resolved_policy_contract(args)
-    if target["version"] != HISTORY_REQUEST_CAP_TRANSITION_POLICY:
+    if target["version"] not in (HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY):
         return {}
+    physical_innovation = target["version"] == FR_KNEE_PHYSICAL_INNOVATION_POLICY
+    source_kernel = HISTORY_REQUEST_CAP_TRANSITION_POLICY if physical_innovation else HISTORY_QUARTER_TEMPERED_POLICY
+    factor_key = "physical_innovation_sigma_factor" if physical_innovation else "request_history_kernel_factor"
+    provenance_key = "physical_innovation_sigma_migration" if physical_innovation else "request_history_kernel_migration"
     source = previous.get("policy_contract")
     source_version = supported_heteroscedastic_contract_version(source)
     record = getattr(args, "_migration_record", None)
-    factor = (record or {}).get("request_history_kernel_factor")
+    factor = (record or {}).get(factor_key)
     migration = None
-    if source_version == HISTORY_QUARTER_TEMPERED_POLICY:
+    if source_version == source_kernel:
         if (factor is None or factor.get("source_policy_contract") != source
                 or factor.get("target_policy_contract") != target
                 or record.get("target_runtime_content_sha256") != contract["runtime_content_sha256"]
@@ -400,12 +412,12 @@ def _request_history_prefix_provenance(args, contract, previous):
             raise ValueError("old checkpoint prefix requires explicit source-weight/new-kernel migration provenance")
         migration = {key: record[key] for key in ("plan_path", "plan_sha256",
             "source_checkpoint_sha256", "source_runtime_content_sha256", "target_runtime_content_sha256")}
-    elif (source_version != HISTORY_REQUEST_CAP_TRANSITION_POLICY or source != target
+    elif (source_version != target["version"] or source != target
             or previous["runtime_contract"] != contract or factor is not None):
         raise ValueError("request-history checkpoint prefix is neither verified migration nor exact new-kernel resume")
     return {"source_policy_contract": source, "effective_policy_contract": target,
         "effective_runtime_content_sha256": contract["runtime_content_sha256"],
-        "request_history_kernel_migration": migration}
+        provenance_key: migration}
 
 
 def _resolved_policy_version(args: argparse.Namespace) -> str:

@@ -263,3 +263,49 @@ class SemanticCapTransitionQuarterHistoryMLPModel(SemanticQuarterTemperedHistory
             raise ValueError("effective conditional sigma must be finite and strictly positive without clipping")
         self.distribution.update(torch.stack((head[..., 0, :], log_std), dim=-2))
         return self.distribution.sample()
+
+
+def physical_innovation_effective_log_std(
+    head_log_std: torch.Tensor, latent: torch.Tensor, temperature: float,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    """One phase/channel sigma rule shared by the actor and request evidence.
+
+    This changes a raw Gaussian's innovation, not its mean, sampled action,
+    physical cap or mutable history. Phase validation is the existing pure
+    current-observation contract; it does not advance an actor or consume RNG.
+    """
+    _, evidence = cap_transition_request_history(latent)
+    if (type(temperature) is not float or temperature != 0.25
+            or not isinstance(head_log_std, torch.Tensor)
+            or head_log_std.shape != latent.shape[:-1] + (12,)
+            or head_log_std.device != latent.device or head_log_std.dtype != latent.dtype):
+        raise ValueError("physical innovation sigma requires the quarter full12 current-observation head")
+    log_std = head_log_std + math.log(temperature)
+    gate = ((evidence["stage_index"] >= 5).unsqueeze(-1)
+            & (torch.arange(12, device=latent.device) == 3))
+    log_std = torch.where(gate, log_std + math.log(24.0 / 112.0), log_std)
+    sigma = log_std.exp()
+    if not bool((torch.isfinite(sigma) & (sigma > 0)).all()):
+        raise ValueError("physical innovation sigma must remain finite and strictly positive without clipping")
+    multiplier = torch.where(gate, torch.full_like(log_std, 24.0 / 112.0), torch.ones_like(log_std))
+    return log_std, multiplier
+
+
+class SemanticFRKneePhysicalInnovationHistoryMLPModel(SemanticCapTransitionQuarterHistoryMLPModel):
+    """Same REQUEST-history mean; only P06+ FR-knee innovation sigma is scaled."""
+
+    def forward(self, obs: TensorDict, masks: torch.Tensor | None = None,
+                hidden_state: HiddenState = None, stochastic_output: bool = False) -> torch.Tensor:
+        if not stochastic_output:
+            return super().forward(obs, masks, hidden_state, stochastic_output=False)
+        obs = unpad_trajectories(obs, masks) if masks is not None and not self.is_recurrent else obs
+        latent = self.get_latent(obs, masks, hidden_state)
+        if (getattr(self, "observation_layout", None) != ROLE_OBSERVATION_LAYOUT
+                or self.obs_dim != ROLE_OBSERVATION_DIM or latent.shape[-1] != ROLE_OBSERVATION_DIM):
+            raise ValueError("physical innovation actor requires the original explicit 372 observation layout")
+        history, _ = cap_transition_request_history(latent)
+        head = history_conditioned_head(self.mlp(latent), history, HISTORY_RHO)
+        log_std, _ = physical_innovation_effective_log_std(
+            head[..., 1, :], latent, self.exploration_std_temperature)
+        self.distribution.update(torch.stack((head[..., 0, :], log_std), dim=-2))
+        return self.distribution.sample()

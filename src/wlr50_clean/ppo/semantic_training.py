@@ -109,13 +109,14 @@ def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_versio
     if semantic_version not in ("v2", "v3"):
         raise ValueError("unsupported semantic runtime version")
     from .semantic_policy_distribution import (HISTORY_POLICY, HISTORY_TEMPERED_POLICY,
-        HISTORY_QUARTER_TEMPERED_POLICY, HISTORY_REQUEST_CAP_TRANSITION_POLICY)
+        HISTORY_QUARTER_TEMPERED_POLICY, HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+        FR_KNEE_PHYSICAL_INNOVATION_POLICY)
     from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
     if policy_version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
-                          HISTORY_REQUEST_CAP_TRANSITION_POLICY) and semantic_version != "v3":
+                          HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY) and semantic_version != "v3":
         raise ValueError("history-conditioned policy requires the v3 semantic runtime")
     if policy_version in (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
-                          HISTORY_REQUEST_CAP_TRANSITION_POLICY) and observation_layout != ROLE_OBSERVATION_LAYOUT:
+                          HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY) and observation_layout != ROLE_OBSERVATION_LAYOUT:
         raise ValueError("tempered history policy requires the explicit role372 observation layout")
     if return_profile is None:
         from .semantic_reward import load_semantic_reward_config
@@ -334,7 +335,8 @@ def construct_semantic_runner(env: Any, *, seed: int, device: str,
 def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None) -> dict[str, Any]:
     """Observe official minibatches and gradients without replacing PPO math."""
     import torch
-    from .semantic_policy_distribution import HISTORY_REQUEST_CAP_TRANSITION_POLICY
+    from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+        FR_KNEE_PHYSICAL_INNOVATION_POLICY)
     alg = runner.alg
     before = parameter_hash(alg.actor)
     generator = alg.storage.mini_batch_generator
@@ -385,8 +387,12 @@ def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None
                     "clipped_branch_strictly_active": jsonable(clipped > unclipped),
                     "current_conditional_mean": jsonable(alg.actor.output_distribution_params[0]),
                     "current_conditional_sigma": jsonable(alg.actor.output_distribution_params[1]),
+                    "sigma_source": ("current_official_Gaussian_cache_after_P06plus_FR_knee_24_over_112"
+                        if getattr(runner, "_semantic_policy_version", None) == FR_KNEE_PHYSICAL_INNOVATION_POLICY
+                        else "current_official_Gaussian_cache"),
                     "history_source": ("this_saved_observation_stage0_13_age20_completed158_171_raw195_207_request207_219_not_shuffled_neighbor"
-                        if getattr(runner, "_semantic_policy_version", None) == HISTORY_REQUEST_CAP_TRANSITION_POLICY
+                        if getattr(runner, "_semantic_policy_version", None) in
+                        (HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY)
                         else "this_saved_observation_195_207_not_shuffled_neighbor"),
                 })
         return result
@@ -592,6 +598,59 @@ def _validated_request_history_kernel_factor(metadata: Mapping[str, Any], record
     return factor
 
 
+def _validated_physical_innovation_sigma_factor(metadata: Mapping[str, Any], record: Mapping[str, Any], *,
+        semantic_version: str, seed: int, device: str, observation_layout: str | None) -> Mapping[str, Any] | None:
+    """Only the reviewed same-shape FR-knee sigma boundary; preserve source LR."""
+    factor = record.get("physical_innovation_sigma_factor")
+    if factor is None:
+        return None
+    from .semantic_migration import source_num_envs
+    from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+        FR_KNEE_PHYSICAL_INNOVATION_POLICY, FR_KNEE_PHYSICAL_SIGMA_SEMANTICS, policy_version_from_metadata)
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    exclusive = ("execution_factor", "instrumentation_observation_contract", "video_instrumentation_factor",
+        "nominal_timing_factor", "body_reward_factor", "task_first_reward_factor", "height_recovery_factor",
+        "execution_composition_factor", "final_stop_handoff_factor", "rr_physical_acceptance_same372_factor",
+        "fl_capture_quality_same372_factor", "exploration_temperature_factor", "request_history_kernel_factor")
+    if any(record.get(key) is not None for key in exclusive):
+        raise RuntimeError("physical innovation sigma migration cannot mix other migration factors")
+    rate = metadata.get("optimizer_learning_rate")
+    if (not isinstance(factor, Mapping) or semantic_version != "v3"
+            or metadata.get("semantic_version") != "v3" or seed != metadata.get("seed")
+            or observation_layout != ROLE_OBSERVATION_LAYOUT or source_num_envs(metadata) != 1
+            or metadata.get("runner_config", {}).get("device") != device
+            or metadata.get("runtime_contract", {}).get("experiment_id") != "fl_capture_quality_v1"
+            or policy_version_from_metadata(metadata) != HISTORY_REQUEST_CAP_TRANSITION_POLICY
+            or factor.get("schema") != "wlr50_clean.FR_knee_phase_physical_innovation_sigma.v1"
+            or factor.get("sigma_scaling_semantics") != FR_KNEE_PHYSICAL_SIGMA_SEMANTICS
+            or type(rate) not in (int, float) or not math.isfinite(rate) or rate <= 0
+            or factor.get("source_effective_learning_rate") != rate
+            or factor.get("target_effective_learning_rate") != rate):
+        raise RuntimeError("physical innovation sigma migration requires exact REQUEST role372 N1 FL source and preserved effective LR")
+    source_version, target_version = HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY
+    source_policy = policy_contract(source_version, observation_layout=observation_layout)
+    target_policy = policy_contract(target_version, observation_layout=observation_layout)
+    observation = {"source_policy_contract": source_policy, "target_policy_contract": target_policy,
+        "observation_layout": observation_layout, "observation_dimension": 372, "action_dimension": 12,
+        "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"}
+    if (metadata.get("policy_contract") != source_policy
+            or factor.get("source_policy_contract") != source_policy
+            or factor.get("target_policy_contract") != target_policy
+            or factor.get("source_policy_version") != source_version
+            or factor.get("target_policy_version") != target_version
+            or factor.get("observation_contract") != observation):
+        raise RuntimeError("physical innovation sigma migration lacks exact source/target policy and observation contracts")
+    horizon = runner_return_profile(metadata["runner_config"], semantic_version="v3")["version"]
+    configs = {version: semantic_runner_config(seed=seed, device=device, semantic_version="v3",
+        policy_version=version, observation_layout=observation_layout, return_profile=horizon)
+        for version in (source_version, target_version)}
+    if (metadata["runner_config"] != configs[source_version]
+            or factor.get("source_runner_config") != configs[source_version]
+            or factor.get("target_runner_config") != configs[target_version]):
+        raise RuntimeError("physical innovation sigma migration runner differs from its exact contracts")
+    return factor
+
+
 def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping[str, Any], seed: int,
                              migration: Mapping[str, Any] | None = None,
                              warm_start: Mapping[str, Any] | None = None,
@@ -610,7 +669,7 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
     from .semantic_policy_distribution import policy_version_from_metadata
     verified = None
     if migration is not None and any(migration.get(key) is not None for key in (
-            "exploration_temperature_factor", "request_history_kernel_factor")):
+            "exploration_temperature_factor", "request_history_kernel_factor", "physical_innovation_sigma_factor")):
         from .semantic_migration import validate_migration_plan
         verified = validate_migration_plan(checkpoint, contract, Path(migration["plan_path"]))
         if verified != dict(migration):
@@ -621,7 +680,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
     request_kernel = _validated_request_history_kernel_factor(metadata, verified or {},
         semantic_version=runner._semantic_version, seed=seed, device=str(runner.device),
         observation_layout=getattr(runner, "_semantic_observation_layout", None))
-    kernel_boundary = temperature or request_kernel
+    physical_innovation = _validated_physical_innovation_sigma_factor(metadata, verified or {},
+        semantic_version=runner._semantic_version, seed=seed, device=str(runner.device),
+        observation_layout=getattr(runner, "_semantic_observation_layout", None))
+    kernel_boundary = temperature or request_kernel or physical_innovation
     if kernel_boundary is not None:
         if (runner._semantic_policy_version != kernel_boundary["target_policy_contract"]["version"]
                 or _runner_policy_contract(runner) != kernel_boundary["target_policy_contract"]
@@ -673,9 +735,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         height_factor = (verified.get("height_recovery_factor") or {}).get("observation_contract")
         temperature_factor = None if temperature is None else temperature["observation_contract"]
         request_history_factor = None if request_kernel is None else request_kernel["observation_contract"]
-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor)) > 1:
+        physical_innovation_factor = None if physical_innovation is None else physical_innovation["observation_contract"]
+        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor)) > 1:
             raise RuntimeError("reviewed same-layout migration receipts must be exclusive")
-        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor
+        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor
         if reviewed_factor is not None:
             if factor is not None:
                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")
@@ -722,6 +785,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
             optimizer_learning_rate(runner) != 1e-5
             or optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate")):
         raise RuntimeError("request-history migration changed source effective Adam learning rate")
+    if physical_innovation is not None and (
+            optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate")
+            or optimizer_learning_rate(runner) != physical_innovation["source_effective_learning_rate"]):
+        raise RuntimeError("physical innovation sigma migration changed source effective Adam learning rate")
     if migration is not None:
         infos = {**infos, "resume_migration": dict(migration)}
         fl_factor = verified.get("fl_capture_quality_same372_factor")
@@ -1333,10 +1400,12 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
     import torch
     from .semantic_history_actor import (SemanticQuarterTemperedHistoryMLPModel,
         SemanticCapTransitionQuarterHistoryMLPModel, cap_transition_request_history,
+        SemanticFRKneePhysicalInnovationHistoryMLPModel, physical_innovation_effective_log_std,
         history_conditioned_head, HISTORY_START, HISTORY_STOP, HISTORY_RHO)
     from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
-        REQUEST_HISTORY_SEMANTICS)
-    if type(actor) not in (SemanticQuarterTemperedHistoryMLPModel, SemanticCapTransitionQuarterHistoryMLPModel):
+        REQUEST_HISTORY_SEMANTICS, FR_KNEE_PHYSICAL_INNOVATION_POLICY, FR_KNEE_PHYSICAL_SIGMA_SEMANTICS)
+    if type(actor) not in (SemanticQuarterTemperedHistoryMLPModel, SemanticCapTransitionQuarterHistoryMLPModel,
+                          SemanticFRKneePhysicalInnovationHistoryMLPModel):
         raise ValueError("request audit requires an exact supported quarter HISTORY actor")
     heads = []
     handle = actor.mlp.register_forward_hook(lambda _module, _inputs, output: heads.append(output.detach().clone()))
@@ -1349,10 +1418,15 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
     head = heads[0]
     history = observation["policy"][..., HISTORY_START:HISTORY_STOP]
     center, request_evidence = history, None
-    if type(actor) is SemanticCapTransitionQuarterHistoryMLPModel:
+    if type(actor) in (SemanticCapTransitionQuarterHistoryMLPModel, SemanticFRKneePhysicalInnovationHistoryMLPModel):
         center, request_evidence = cap_transition_request_history(observation["policy"])
     conditional = history_conditioned_head(head, center, HISTORY_RHO)
-    effective_std = (head[..., 1, :] + math.log(actor.exploration_std_temperature)).exp()
+    sigma_multiplier = None
+    effective_log_std = head[..., 1, :] + math.log(actor.exploration_std_temperature)
+    if type(actor) is SemanticFRKneePhysicalInnovationHistoryMLPModel:
+        effective_log_std, sigma_multiplier = physical_innovation_effective_log_std(
+            head[..., 1, :], observation["policy"], actor.exploration_std_temperature)
+    effective_std = effective_log_std.exp()
     if stochastic:
         mean, std = actor.output_distribution_params
         if not torch.equal(mean, conditional[..., 0, :]) or not torch.equal(std, effective_std):
@@ -1375,7 +1449,8 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
         record["selected_raw_log_probability"] = float(actor.get_output_log_prob(raw)[0])
     if request_evidence is not None:
         record.update(schema="wlr50_clean.actual_cap_transition_history_policy_request.v1",
-            policy_version=HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+            policy_version=(FR_KNEE_PHYSICAL_INNOVATION_POLICY if sigma_multiplier is not None
+                            else HISTORY_REQUEST_CAP_TRANSITION_POLICY),
             history_center_semantics=REQUEST_HISTORY_SEMANTICS,
             history_center_full12=vector(center),
             cap_transition_gate_full12=vector(request_evidence["gate_full12"]),
@@ -1386,6 +1461,12 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
             predecessor_cap_full12=vector(request_evidence["predecessor_cap_full12"]),
             previous_filtered_request_full12=vector(request_evidence["previous_filtered_request_full12"]),
             request_history_scope="previous_filtered_REQUEST_not_effective_final_drive_or_actual_motion")
+    if sigma_multiplier is not None:
+        record.update(schema="wlr50_clean.actual_physical_innovation_history_policy_request.v1",
+            sigma_scaling_semantics=FR_KNEE_PHYSICAL_SIGMA_SEMANTICS,
+            innovation_sigma_multiplier_full12=vector(sigma_multiplier),
+            sigma_scaling_gate_full12=vector(sigma_multiplier != 1),
+            effective_log_std_full12=vector(effective_log_std))
     return raw, record
 
 
