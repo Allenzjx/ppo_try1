@@ -27,6 +27,7 @@ from .rl_library_wrapper import (
 from .semantic_policy_distribution import (
     LEGACY_POLICY, STATE_DEPENDENT_POLICY, configure_policy_distribution, policy_contract,
 )
+from .semantic_receiving_wheel_profile import RECEIVING_WHEEL_POLICY, RECEIVING_WHEEL_SIGMA_SEMANTICS
 from .semantic_return_profile import (
     RETURN_PROFILE, RUNNER_PROFILE_KEY, profile_parameters,
     reward_return_profile, runner_return_profile,
@@ -122,11 +123,11 @@ def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_versio
     from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
     if policy_version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
                           HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
-                          TASK_CONDITIONED_HIP_WHEEL_POLICY) and semantic_version != "v3":
+                          TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY) and semantic_version != "v3":
         raise ValueError("history-conditioned policy requires the v3 semantic runtime")
     if policy_version in (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
                           HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
-                          TASK_CONDITIONED_HIP_WHEEL_POLICY) and observation_layout != ROLE_OBSERVATION_LAYOUT:
+                          TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY) and observation_layout != ROLE_OBSERVATION_LAYOUT:
         raise ValueError("tempered history policy requires the explicit role372 observation layout")
     if return_profile is None:
         from .semantic_reward import load_semantic_reward_config
@@ -357,7 +358,7 @@ def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None
     likelihood_rows = []
     sample_lookup = {}
     task_head_audit = (likelihood_audit_path is not None and
-        getattr(runner, "_semantic_policy_version", None) == TASK_CONDITIONED_HIP_WHEEL_POLICY)
+        getattr(runner, "_semantic_policy_version", None) in (TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY))
     if likelihood_audit_path is not None:
         # Index immutable saved observations/raw samples, never the shuffled
         # neighbor or global history. No forward pass or RNG draw is added.
@@ -413,7 +414,9 @@ def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None
                     "clipped_branch_strictly_active": jsonable(clipped > unclipped),
                     "current_conditional_mean": jsonable(alg.actor.output_distribution_params[0]),
                     "current_conditional_sigma": jsonable(alg.actor.output_distribution_params[1]),
-                    "sigma_source": ("current_official_Gaussian_cache_after_current_observation_B_over_cap"
+                    "sigma_source": ("current_official_Gaussian_cache_after_B_over_cap_and_receiving_FR_RR_sigma_x3"
+                        if getattr(runner, "_semantic_policy_version", None) == RECEIVING_WHEEL_POLICY
+                        else "current_official_Gaussian_cache_after_current_observation_B_over_cap"
                         if getattr(runner, "_semantic_policy_version", None) == TASK_CONDITIONED_HIP_WHEEL_POLICY
                         else "current_official_Gaussian_cache_after_P06plus_FR_knee_24_over_112"
                         if getattr(runner, "_semantic_policy_version", None) == FR_KNEE_PHYSICAL_INNOVATION_POLICY
@@ -421,7 +424,7 @@ def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None
                     "history_source": ("this_saved_observation_stage0_13_age20_completed158_171_raw195_207_request207_219_not_shuffled_neighbor"
                         if getattr(runner, "_semantic_policy_version", None) in
                         (HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
-                         TASK_CONDITIONED_HIP_WHEEL_POLICY)
+                         TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY)
                         else "this_saved_observation_195_207_not_shuffled_neighbor"),
                 })
                 if task_head_audit:
@@ -757,6 +760,49 @@ def _validated_task_conditioned_hip_wheel_factor(metadata: Mapping[str, Any], re
     return factor
 
 
+def _validated_receiving_wheel_sigma_factor(metadata: Mapping[str, Any], record: Mapping[str, Any], *,
+        semantic_version: str, seed: int, device: str, observation_layout: str | None):
+    factor = record.get("receiving_wheel_sigma_factor")
+    if factor is None:
+        return None
+    from .semantic_policy_distribution import TASK_CONDITIONED_HIP_WHEEL_POLICY, policy_version_from_metadata
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    from .semantic_migration import source_num_envs
+    if any(key.endswith("_factor") and key != "receiving_wheel_sigma_factor" and value is not None
+           for key, value in record.items()):
+        raise RuntimeError("receiving-wheel sigma migration cannot mix independent factors")
+    source_version, target_version = TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY
+    rate = metadata.get("optimizer_learning_rate")
+    if (not isinstance(factor, Mapping) or semantic_version != "v3" or metadata.get("semantic_version") != "v3"
+            or seed != metadata.get("seed") or observation_layout != ROLE_OBSERVATION_LAYOUT
+            or source_num_envs(metadata) != 1 or metadata.get("runner_config", {}).get("device") != device
+            or metadata.get("runtime_contract", {}).get("experiment_id") != "task_conditioned_hip_wheel_v1"
+            or policy_version_from_metadata(metadata) != source_version
+            or factor.get("schema") != "wlr50_clean.receiving_wheel_sigma_same372.v1"
+            or factor.get("sigma_scaling_semantics") != RECEIVING_WHEEL_SIGMA_SEMANTICS
+            or factor.get("kernel_changed") is not True or factor.get("same_mdp_claimed") is not True
+            or type(rate) not in (int, float) or not math.isfinite(rate) or rate <= 0
+            or factor.get("source_effective_learning_rate") != rate or factor.get("target_effective_learning_rate") != rate):
+        raise RuntimeError("receiving-wheel sigma requires exact task profile/N1/source effective LR")
+    source_policy = policy_contract(source_version, observation_layout=observation_layout)
+    target_policy = policy_contract(target_version, observation_layout=observation_layout)
+    observation = {"source_policy_contract": source_policy, "target_policy_contract": target_policy,
+        "observation_layout": observation_layout, "observation_dimension": 372, "action_dimension": 12,
+        "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"}
+    if (metadata.get("policy_contract") != source_policy or factor.get("source_policy_contract") != source_policy
+            or factor.get("target_policy_contract") != target_policy or factor.get("observation_contract") != observation
+            or factor.get("source_policy_version") != source_version or factor.get("target_policy_version") != target_version):
+        raise RuntimeError("receiving-wheel sigma lacks exact source and target contracts")
+    horizon = runner_return_profile(metadata["runner_config"], semantic_version="v3")["version"]
+    configs = {version: semantic_runner_config(seed=seed, device=device, semantic_version="v3",
+        policy_version=version, observation_layout=observation_layout, return_profile=horizon)
+        for version in (source_version, target_version)}
+    if (metadata["runner_config"] != configs[source_version] or factor.get("source_runner_config") != configs[source_version]
+            or factor.get("target_runner_config") != configs[target_version]):
+        raise RuntimeError("receiving-wheel sigma changes unrelated runner hyperparameters")
+    return factor
+
+
 def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping[str, Any], seed: int,
                              migration: Mapping[str, Any] | None = None,
                              warm_start: Mapping[str, Any] | None = None,
@@ -776,7 +822,7 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
     verified = None
     if migration is not None and any(migration.get(key) is not None for key in (
             "exploration_temperature_factor", "request_history_kernel_factor", "physical_innovation_sigma_factor",
-            "task_conditioned_hip_wheel_factor")):
+            "task_conditioned_hip_wheel_factor", "receiving_wheel_sigma_factor")):
         from .semantic_migration import validate_migration_plan
         verified = validate_migration_plan(checkpoint, contract, Path(migration["plan_path"]))
         if verified != dict(migration):
@@ -793,7 +839,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
     task_conditioned = _validated_task_conditioned_hip_wheel_factor(metadata, verified or {},
         semantic_version=runner._semantic_version, seed=seed, device=str(runner.device),
         observation_layout=getattr(runner, "_semantic_observation_layout", None))
-    kernel_boundary = temperature or request_kernel or physical_innovation or task_conditioned
+    receiving_wheel = _validated_receiving_wheel_sigma_factor(metadata, verified or {},
+        semantic_version=runner._semantic_version, seed=seed, device=str(runner.device),
+        observation_layout=getattr(runner, "_semantic_observation_layout", None))
+    kernel_boundary = temperature or request_kernel or physical_innovation or task_conditioned or receiving_wheel
     if kernel_boundary is not None:
         if (runner._semantic_policy_version != kernel_boundary["target_policy_contract"]["version"]
                 or _runner_policy_contract(runner) != kernel_boundary["target_policy_contract"]
@@ -849,9 +898,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         task_conditioned_factor = None if task_conditioned is None else task_conditioned["observation_contract"]
         archive_factor = (verified.get("archive_only_exact_bytes_factor") or {}).get("observation_contract")
         budget_factor = (verified.get("training_quantity_budget_factor") or {}).get("observation_contract")
-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor)) > 1:
+        receiving_factor = None if receiving_wheel is None else receiving_wheel["observation_contract"]
+        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor, receiving_factor)) > 1:
             raise RuntimeError("reviewed same-layout migration receipts must be exclusive")
-        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor
+        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor or receiving_factor
         if reviewed_factor is not None:
             if factor is not None:
                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")
@@ -908,6 +958,22 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         raise RuntimeError("task-conditioned migration changed source effective Adam learning rate")
     if migration is not None:
         infos = {**infos, "resume_migration": dict(migration)}
+        if receiving_wheel is not None:
+            if (optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate")
+                    or optimizer_learning_rate(runner) != receiving_wheel["source_effective_learning_rate"]):
+                raise RuntimeError("receiving-wheel sigma changed source effective Adam learning rate")
+            preserved = {**receiving_wheel["preserved_training_state"],
+                **receiving_wheel["preserved_branch_metadata"],
+                **receiving_wheel["counter_origin"],
+                "stage_requested_decisions": receiving_wheel["source_stage_requested_decisions"]}
+            if any(infos.get(key) != value for key, value in preserved.items()):
+                raise RuntimeError("receiving-wheel sigma changed source state, branch/aux lineage or counters")
+            infos["receiving_wheel_sigma_migration"] = {
+                "factor": dict(receiving_wheel), "plan_path": verified["plan_path"],
+                "plan_sha256": verified["plan_sha256"],
+                "source_checkpoint_sha256": verified["source_checkpoint_sha256"],
+                "source_contract_sha256": verified["source_contract_sha256"],
+                "target_contract_sha256": verified["target_contract_sha256"]}
         quantity = verified.get("training_quantity_budget_factor")
         if quantity is not None:
             if (optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate")
@@ -1540,8 +1606,11 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
     from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
         REQUEST_HISTORY_SEMANTICS, FR_KNEE_PHYSICAL_INNOVATION_POLICY, FR_KNEE_PHYSICAL_SIGMA_SEMANTICS,
         TASK_CONDITIONED_HIP_WHEEL_POLICY, TASK_CONDITIONED_HIP_WHEEL_SIGMA_SEMANTICS)
+    from .semantic_receiving_wheel_sigma import (
+        SemanticReceivingWheelSigmaHistoryMLPModel, receiving_wheel_effective_log_std)
     if type(actor) not in (SemanticQuarterTemperedHistoryMLPModel, SemanticCapTransitionQuarterHistoryMLPModel,
-                          SemanticFRKneePhysicalInnovationHistoryMLPModel, SemanticTaskConditionedHipWheelHistoryMLPModel):
+                          SemanticFRKneePhysicalInnovationHistoryMLPModel, SemanticTaskConditionedHipWheelHistoryMLPModel,
+                          SemanticReceivingWheelSigmaHistoryMLPModel):
         raise ValueError("request audit requires an exact supported quarter HISTORY actor")
     heads = []
     handle = actor.mlp.register_forward_hook(lambda _module, _inputs, output: heads.append(output.detach().clone()))
@@ -1555,7 +1624,7 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
     history = observation["policy"][..., HISTORY_START:HISTORY_STOP]
     center, request_evidence = history, None
     if type(actor) in (SemanticCapTransitionQuarterHistoryMLPModel, SemanticFRKneePhysicalInnovationHistoryMLPModel,
-                      SemanticTaskConditionedHipWheelHistoryMLPModel):
+                      SemanticTaskConditionedHipWheelHistoryMLPModel, SemanticReceivingWheelSigmaHistoryMLPModel):
         center, request_evidence = cap_transition_request_history(observation["policy"])
     conditional = history_conditioned_head(head, center, HISTORY_RHO)
     sigma_multiplier = None
@@ -1566,6 +1635,9 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
             head[..., 1, :], observation["policy"], actor.exploration_std_temperature)
     if type(actor) is SemanticTaskConditionedHipWheelHistoryMLPModel:
         effective_log_std, task_sigma_evidence = task_conditioned_effective_log_std(
+            head[...,1,:], observation["policy"], actor.exploration_std_temperature)
+    if type(actor) is SemanticReceivingWheelSigmaHistoryMLPModel:
+        effective_log_std, task_sigma_evidence = receiving_wheel_effective_log_std(
             head[...,1,:], observation["policy"], actor.exploration_std_temperature)
     effective_std = effective_log_std.exp()
     if stochastic:
@@ -1620,6 +1692,15 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
             current_RR_qualification=bool(task_sigma_evidence["current_RR_qualification"][0]),
             current_rear_front_distance_m=float(task_sigma_evidence["current_rear_front_distance_m"][0]),
             task_state_audit_topology="one_actual_N1_request_not_a_batched_N8_summary")
+    if type(actor) is SemanticReceivingWheelSigmaHistoryMLPModel:
+        record.update(schema="wlr50_clean.actual_receiving_wheel_sigma_policy_request.v1",
+            policy_version=RECEIVING_WHEEL_POLICY, sigma_scaling_semantics=RECEIVING_WHEEL_SIGMA_SEMANTICS,
+            receiving_continuation_active=bool(task_sigma_evidence["receiving_continuation_active"][0]),
+            RR_placed_history=bool(task_sigma_evidence["RR_placed_history"][0]),
+            receiving_sigma_gate_full12=vector(task_sigma_evidence["receiving_sigma_gate_full12"]),
+            receiving_sigma_multiplier_full12=vector(task_sigma_evidence["receiving_sigma_multiplier_full12"]),
+            effective_innovation_sigma_multiplier_full12=vector(task_sigma_evidence["effective_innovation_sigma_multiplier_full12"]),
+            receiving_state_semantics="historical_RR_placed_continuation_or_recovery_not_current_bearing")
     return raw, record
 
 
@@ -1932,7 +2013,8 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison",
                             "observation_scale_compensation_evidence", "observation_append_evidence",
                             "task_recovery_branch", "rr_task_branch", "fl_capture_quality_branch",
-                            "task_conditioned_hip_wheel_branch", "training_quantity_budget_extension"):
+                            "task_conditioned_hip_wheel_branch", "training_quantity_budget_extension",
+                            "receiving_wheel_sigma_migration"):
                     if key in previous:
                         infos[key] = previous[key]
                 if "task_recovery_branch" in infos:

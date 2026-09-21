@@ -17,6 +17,7 @@ from typing import Any, Mapping
 from .semantic_policy_distribution import (
     HISTORY_POLICY, supported_heteroscedastic_contract_version,
 )
+from .semantic_receiving_wheel_profile import RECEIVING_WHEEL_POLICY
 
 
 def _tensor_hash(items: Any) -> str:
@@ -43,7 +44,8 @@ def _task_conditioned_source_record(record):
         raise ValueError("task prefix requires explicit source and effective kernel/runtime provenance")
     archive = record.get("archive_only_exact_bytes_migration")
     task = record.get("task_conditioned_hip_wheel_migration")
-    if (archive is not None and task is not None
+    receiving = record.get("receiving_wheel_sigma_migration")
+    if (sum(x is not None for x in (archive, task, receiving)) > 1
             or record.get("physical_innovation_sigma_migration") is not None
             or record.get("request_history_kernel_migration") is not None):
         raise ValueError("task prefix may not mix independent migration provenance")
@@ -58,8 +60,14 @@ def _task_conditioned_source_record(record):
         schema = "wlr50_clean.task_conditioned_hip_wheel_same372.v1"
         if source_version != FR_KNEE_PHYSICAL_INNOVATION_POLICY or target["version"] != TASK_CONDITIONED_HIP_WHEEL_POLICY:
             raise ValueError("task prefix requires the exact FR-knee to task-conditioned policy boundary")
+    elif receiving is not None:
+        migration, factor_key = receiving, "receiving_wheel_sigma_factor"
+        schema = "wlr50_clean.receiving_wheel_sigma_same372.v1"
+        if source_version != TASK_CONDITIONED_HIP_WHEEL_POLICY or target["version"] != RECEIVING_WHEEL_POLICY:
+            raise ValueError("receiving prefix requires the exact task to receiving-wheel sigma boundary")
     else:
-        if source != target or target["version"] != TASK_CONDITIONED_HIP_WHEEL_POLICY or effective_hash != runtime_hash:
+        if (source != target or target["version"] not in (TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY)
+                or effective_hash != runtime_hash):
             raise ValueError("task prefix is not a verified migration or exact target checkpoint resume")
         return
     keys = {"plan_path", "plan_sha256", "source_checkpoint_sha256",
@@ -112,7 +120,7 @@ def _source_record(source: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("source_runtime_content_sha256 must be a lowercase SHA256")
     from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
         HISTORY_QUARTER_TEMPERED_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY)
-    if (record["policy_contract"]["version"] == TASK_CONDITIONED_HIP_WHEEL_POLICY
+    if (record["policy_contract"]["version"] in (TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY)
             or record.get("archive_only_exact_bytes_migration") is not None):
         _task_conditioned_source_record(record)
         return record
@@ -179,6 +187,7 @@ class FrozenCheckpointPrefixPolicy:
             SemanticTemperedHistoryMLPModel, SemanticQuarterTemperedHistoryMLPModel,
             SemanticCapTransitionQuarterHistoryMLPModel, SemanticFRKneePhysicalInnovationHistoryMLPModel,
             SemanticTaskConditionedHipWheelHistoryMLPModel)
+        from .semantic_receiving_wheel_sigma import SemanticReceivingWheelSigmaHistoryMLPModel
         from .semantic_policy_distribution import (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
             HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY)
 
@@ -191,7 +200,8 @@ class FrozenCheckpointPrefixPolicy:
             HISTORY_QUARTER_TEMPERED_POLICY: SemanticQuarterTemperedHistoryMLPModel,
             HISTORY_REQUEST_CAP_TRANSITION_POLICY: SemanticCapTransitionQuarterHistoryMLPModel,
             FR_KNEE_PHYSICAL_INNOVATION_POLICY: SemanticFRKneePhysicalInnovationHistoryMLPModel,
-            TASK_CONDITIONED_HIP_WHEEL_POLICY: SemanticTaskConditionedHipWheelHistoryMLPModel}
+            TASK_CONDITIONED_HIP_WHEEL_POLICY: SemanticTaskConditionedHipWheelHistoryMLPModel,
+            RECEIVING_WHEEL_POLICY: SemanticReceivingWheelSigmaHistoryMLPModel}
         expected_class = history_classes.get(version, MLPModel)
         if not isinstance(actor, torch.nn.Module) or getattr(actor, "is_recurrent", False):
             raise ValueError("checkpoint prefix requires a nonrecurrent torch actor")

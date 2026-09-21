@@ -18,6 +18,11 @@ PHYSICAL_INNOVATION_SIGMA_FILES = REQUEST_HISTORY_KERNEL_FILES
 TASK_CONDITIONED_HIP_WHEEL_SCHEMA = "wlr50_clean.task_conditioned_hip_wheel_same372.v1"
 ARCHIVE_ONLY_EXACT_BYTES_SCHEMA = "wlr50_clean.archive_only_exact_bytes_same372.v1"
 TRAINING_QUANTITY_BUDGET_SCHEMA = "wlr50_clean.training_quantity_budget_same372.v1"
+RECEIVING_WHEEL_SIGMA_SCHEMA = "wlr50_clean.receiving_wheel_sigma_same372.v1"
+RECEIVING_WHEEL_SIGMA_NEW_FILES = frozenset(f"src/wlr50_clean/ppo/{name}.py" for name in (
+    "semantic_receiving_wheel_profile", "semantic_receiving_wheel_sigma"))
+RECEIVING_WHEEL_SIGMA_EXISTING_FILES = REQUEST_HISTORY_KERNEL_FILES - frozenset({
+    "src/wlr50_clean/ppo/semantic_history_actor.py"})
 TASK_CONDITIONED_HIP_WHEEL_FILES = REQUEST_HISTORY_KERNEL_FILES | frozenset({
     "src/wlr50_clean/ppo/semantic_reward.py", "src/wlr50_clean/ppo/semantic_supervisor.py",
     "src/wlr50_clean/ppo/semantic_task_quality.py", "src/wlr50_clean/ppo/semantic_observation.py",
@@ -3374,6 +3379,207 @@ def _build_training_quantity_budget_plan(checkpoint, metadata, old, new, *,
         "training_quantity_budget_factor", factor)
 
 
+def _receiving_wheel_sigma_code_scope(before, after, *, relative):
+    """One reviewed additive profile; protect everything outside its named integration sites."""
+    import ast
+    stem = Path(relative).stem
+    functions = {
+        "semantic_policy_distribution": ("policy_contract", "configure_policy_distribution",
+            "supported_heteroscedastic_contract_version", "policy_version_from_metadata"),
+        "semantic_training": ("semantic_runner_config", "audited_ppo_update",
+            "_validated_receiving_wheel_sigma_factor", "load_semantic_checkpoint",
+            "audited_history_policy_request", "train_semantic"),
+        "semantic_cli": ("_preflight_checkpoint", "_task_conditioned_prefix_provenance",
+            "_request_history_prefix_provenance"),
+        "semantic_checkpoint_prefix_policy": ("_task_conditioned_source_record", "_source_record"),
+        "semantic_migration": ("_receiving_wheel_sigma_code_scope", "_build_receiving_wheel_sigma_plan",
+            "build_migration_plan", "validate_migration_plan"),
+    }
+    imports = {
+        "semantic_policy_distribution": {"RECEIVING_WHEEL_POLICY", "RECEIVING_WHEEL_ACTOR_CLASS",
+            "receiving_wheel_policy_contract"},
+        "semantic_training": {"RECEIVING_WHEEL_POLICY", "RECEIVING_WHEEL_SIGMA_SEMANTICS"},
+        "semantic_cli": {"RECEIVING_WHEEL_POLICY"},
+        "semantic_checkpoint_prefix_policy": {"RECEIVING_WHEEL_POLICY"},
+    }
+    def protected_imports(text):
+        tree = ast.parse(text)
+        for node in list(tree.body):
+            if (isinstance(node, ast.ImportFrom) and node.level == 1
+                    and node.module == "semantic_receiving_wheel_profile"):
+                expected = imports.get(stem)
+                if (expected is None or {n.name for n in node.names} != expected
+                        or len(node.names) != len(expected) or any(n.asname is not None for n in node.names)):
+                    raise ValueError("receiving sigma has an unreviewed top-level profile import")
+                tree.body.remove(node)
+        return ast.unparse(tree)
+    if stem not in functions:
+        raise ValueError("receiving sigma changed an unapproved integration module")
+    return _request_history_code_scope(protected_imports(before), protected_imports(after),
+        functions=functions[stem],
+        constants=("RECEIVING_WHEEL_SIGMA_SCHEMA", "RECEIVING_WHEEL_SIGMA_NEW_FILES",
+                   "RECEIVING_WHEEL_SIGMA_EXISTING_FILES") if stem == "semantic_migration" else (),
+        methods=("FrozenCheckpointPrefixPolicy.__init__",) if stem == "semantic_checkpoint_prefix_policy" else ())
+
+
+def _build_receiving_wheel_sigma_plan(checkpoint, metadata, old, new, *,
+        allowed_changed_files, reason, review, project_root):
+    """One same-MDP stochastic-kernel boundary; no branch, optimizer or budget reset."""
+    import ast
+    import copy
+    from .semantic_policy_distribution import CONFIG_NAMES, TASK_CONDITIONED_HIP_WHEEL_POLICY, policy_contract
+    from .semantic_receiving_wheel_profile import (RECEIVING_WHEEL_POLICY,
+        RECEIVING_WHEEL_SIGMA_SEMANTICS, receiving_wheel_policy_contract)
+    from .semantic_training import semantic_runner_config
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    from .semantic_return_profile import runner_return_profile
+    if (not isinstance(review, Mapping) or set(review) != {"reason", "reviewed_code_sha256"}
+            or not isinstance(review["reason"], str) or not review["reason"].strip()
+            or not isinstance(reason, str) or not reason.strip()):
+        raise ValueError("receiving sigma requires an explicit reason and exact reviewed code hashes")
+    factor = _task_conditioned_source_binding(metadata, old, new, project_root, archive=True)
+    experiment = "task_conditioned_hip_wheel_v1"
+    if (factor["source_policy_version"] != TASK_CONDITIONED_HIP_WHEEL_POLICY
+            or old.get("experiment_id") != experiment or new.get("experiment_id") != experiment):
+        raise ValueError("receiving sigma requires the current old task-conditioned N1 source")
+    variable = {"files", "runtime_content_sha256", "source_git_commit"}
+    if {k:v for k,v in old.items() if k not in variable} != {k:v for k,v in new.items() if k not in variable}:
+        raise ValueError("receiving sigma cannot change runtime/MDP/configuration/budget metadata")
+    delta = sorted(p for p in old["files"].keys() | new["files"].keys()
+                   if old["files"].get(p) != new["files"].get(p))
+    expected_files = RECEIVING_WHEEL_SIGMA_NEW_FILES | RECEIVING_WHEEL_SIGMA_EXISTING_FILES
+    if (set(delta) != expected_files or sorted(allowed_changed_files) != delta
+            or len(set(allowed_changed_files)) != len(allowed_changed_files)
+            or set(new["files"]) - set(old["files"]) != RECEIVING_WHEEL_SIGMA_NEW_FILES
+            or set(old["files"]) - set(new["files"])):
+        raise ValueError("receiving sigma requires exactly two new modules and five reviewed integration changes")
+    hashes = {p:new["files"][p] for p in delta}
+    if not isinstance(review["reviewed_code_sha256"], Mapping) or dict(review["reviewed_code_sha256"]) != hashes:
+        raise ValueError("receiving sigma review must bind every changed and added code byte")
+    source_bytes = {}
+    for path, expected in new["files"].items():
+        if file_sha(project_root / path) != expected:
+            raise ValueError("receiving sigma target bytes differ from reviewed runtime: " + path)
+        if path in old["files"]:
+            source_bytes[path] = _version_bytes(project_root, old, path, prefer_worktree=True)
+    if any(set(c.get("selected_configuration", {})) != CONFIG_NAMES for c in (old, new)):
+        raise ValueError("receiving sigma requires the exact six selected configurations")
+    bindings = {}
+    for name in sorted(CONFIG_NAMES):
+        path = f"configs/ppo_{experiment}/{name}"
+        row = {"path":path, "sha256":old["files"].get(path)}
+        if (row["sha256"] is None or old["selected_configuration"][name] != row
+                or new["selected_configuration"][name] != row
+                or source_bytes[path] != (project_root / path).read_bytes()):
+            raise ValueError("receiving sigma requires byte-identical configuration: " + name)
+        bindings[name] = {"source":dict(row), "target":dict(row), "bytes_identical":True}
+    scopes = {path:_receiving_wheel_sigma_code_scope(source_bytes[path].decode("utf-8"),
+        (project_root / path).read_text(encoding="utf-8"), relative=path)
+        for path in sorted(RECEIVING_WHEEL_SIGMA_EXISTING_FILES)}
+    # Newly introduced modules have no historical AST. Bind their complete reviewed
+    # bytes, exact exported implementation sites, and a conservative physical-write veto.
+    for path in sorted(RECEIVING_WHEEL_SIGMA_NEW_FILES):
+        tree = ast.parse((project_root / path).read_text(encoding="utf-8"))
+        definitions = {n.name for n in tree.body if isinstance(n, (ast.FunctionDef, ast.ClassDef))}
+        expected = ({"receiving_wheel_policy_contract"} if Path(path).stem == "semantic_receiving_wheel_profile"
+                    else {"receiving_wheel_effective_log_std", "SemanticReceivingWheelSigmaHistoryMLPModel"})
+        if definitions != expected or any(isinstance(n, ast.AsyncFunctionDef) for n in ast.walk(tree)):
+            raise ValueError("receiving sigma new module has an unreviewed implementation surface")
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == "update":
+                receiver = ast.dump(node.func.value, include_attributes=False)
+                allowed = {ast.dump(ast.parse(x, mode="eval").body, include_attributes=False)
+                           for x in ("contract", "self.distribution")}
+                if receiver in allowed:
+                    node.func = ast.Name(id="reviewed_local_contract_or_Gaussian_update", ctx=ast.Load())
+        _height_no_physics_writes(ast.unparse(tree))
+        scopes[path] = {"reviewed_complete_module_sha256":hashes[path],
+                       "reviewed_definitions":sorted(definitions), "physical_write_veto_passed":True}
+    target = receiving_wheel_policy_contract(observation_layout=ROLE_OBSERVATION_LAYOUT)
+    gate = {"phase_indices":[9,10,11], "RR_placed_history_observation_index":157,
+        "RR_placed_history_value":1, "channel_indices":[9,11], "channel_names":["FR_wheel","RR_wheel"],
+        "conditional_sigma_multiplier":3.0, "otherwise_multiplier":1.0,
+        "current_RR_support_required":False, "current_RR_lift_required":False, "P13_unchanged":True}
+    expected_target = copy.deepcopy(factor["source_policy_contract"])
+    expected_target.update(version=RECEIVING_WHEEL_POLICY, actor_class=target.get("actor_class"),
+        sigma_scaling_semantics=RECEIVING_WHEEL_SIGMA_SEMANTICS,
+        sigma_profile_parent_version=TASK_CONDITIONED_HIP_WHEEL_POLICY,
+        conditional_std="parent_task_conditioned_sigma*receiving_wheel_multiplier",
+        effective_log_std="parent_task_conditioned_effective_log_std+log(receiving_wheel_multiplier)",
+        receiving_continuation_gate=gate,
+        receiving_scale_units="dimensionless_conditional_innovation_std_not_cap_or_target",
+        directional_bias=False, extra_filter_or_sampling_rejection=False)
+    if target != expected_target or policy_contract(RECEIVING_WHEEL_POLICY,
+            observation_layout=ROLE_OBSERVATION_LAYOUT) != target:
+        raise ValueError("receiving sigma target policy exceeds the exact P10-P12 RR-placed FR/RR x3 profile")
+    horizon = runner_return_profile(metadata["runner_config"], semantic_version="v3")["version"]
+    target_config = semantic_runner_config(seed=metadata["seed"], device=metadata["runner_config"]["device"],
+        semantic_version="v3", return_profile=horizon, observation_layout=ROLE_OBSERVATION_LAYOUT,
+        policy_version=RECEIVING_WHEEL_POLICY)
+    a, b = copy.deepcopy(factor["source_runner_config"]), copy.deepcopy(target_config)
+    a["actor"].pop("class_name"); b["actor"].pop("class_name")
+    if a != b or target_config["actor"]["class_name"] != target["actor_class"]:
+        raise ValueError("receiving sigma must preserve complete PPO/Identity configuration except actor class")
+    counters = factor["counter_origin"]
+    budgets, spent = old.get("training_budgets"), metadata.get("stage_requested_decisions")
+    branch = metadata.get("task_conditioned_hip_wheel_branch", {})
+    origin, counts = branch.get("counter_origin", {}), metadata.get("task_conditioned_hip_wheel_branch_counts")
+    budget_origin = metadata.get("new_mdp_origin_global_policy_decisions")
+    if (not isinstance(budgets, Mapping) or set(budgets) != {"smoke","phase_suffix","full_episode"}
+            or any(type(v) is not int or v <= 0 for v in budgets.values())
+            or not isinstance(spent, Mapping) or set(spent) != set(budgets)
+            or any(type(v) is not int or not 0 <= v <= budgets[k] for k,v in spent.items())
+            or branch.get("schema") != "wlr50_clean.task_conditioned_hip_wheel_branch.v1"
+            or branch.get("branch_id") != experiment or set(origin) != set(counters)
+            or any(type(v) is not int or not 0 <= v <= counters[k] for k,v in origin.items())
+            or not isinstance(counts, Mapping) or any(type(v) is not int for v in counts.values())
+            or counts != {k:counters[k]-origin[k] for k in counters}
+            or type(budget_origin) is not int or not 0 <= budget_origin <= counters["global_policy_decisions"]
+            or sum(spent.values()) > counters["global_policy_decisions"]-budget_origin):
+        raise ValueError("receiving sigma requires intact original task-branch and lifetime budget accounting")
+    ledger = branch.get("auxiliary_mean_learning", {})
+    events = ledger.get("events")
+    if (ledger.get("schema") != "wlr50_clean.auxiliary_mean_learning_ledger.v1"
+            or ledger.get("training_lineage_label") != "PPO_plus_explicit_finite_auxiliary_mean_supervision"
+            or not isinstance(events, list) or len(events) != 1
+            or type(ledger.get("accepted_auxiliary_updates_total")) is not int
+            or type(ledger.get("attempted_auxiliary_optimizer_steps_total")) is not int
+            or ledger["accepted_auxiliary_updates_total"] != 7
+            or ledger["attempted_auxiliary_optimizer_steps_total"] != 8
+            or events[0].get("report", {}).get("accepted_auxiliary_updates") != 7
+            or events[0].get("report", {}).get("attempted_auxiliary_optimizer_steps") != 8):
+        raise ValueError("receiving sigma requires the preserved reviewed 7-accepted/8-attempted auxiliary lineage")
+    state_keys = ("actor_parameter_sha256", "critic_parameter_sha256", "optimizer_state_sha256",
+                  "normalizer_state_sha256", "training_rng_state")
+    if any(key not in metadata for key in state_keys):
+        raise ValueError("receiving sigma source lacks full-state/RNG preservation bindings")
+    preserved = {k:copy.deepcopy(v) for k,v in metadata.items() if k.endswith("_branch")
+        or k.endswith("_branch_counts") or k in ("source_stage_requested_decisions",
+            "new_mdp_origin_global_policy_decisions", "training_quantity_budget_extension")}
+    factor.update(schema=RECEIVING_WHEEL_SIGMA_SCHEMA, review_reason=review["reason"].strip(),
+        reviewed_code_sha256=hashes, code_scope=scopes, configuration_bindings=bindings,
+        target_policy_version=RECEIVING_WHEEL_POLICY, target_policy_contract=target,
+        target_runner_config=target_config,
+        observation_contract={**factor["observation_contract"], "target_policy_contract":target},
+        sigma_scaling_semantics=RECEIVING_WHEEL_SIGMA_SEMANTICS, receiving_continuation_gate=gate,
+        preserved_training_state={key:copy.deepcopy(metadata[key]) for key in state_keys},
+        preserved_branch_metadata=preserved, preserved_auxiliary_ledger_sha256=digest(ledger),
+        source_stage_requested_decisions=dict(spent), target_stage_requested_decisions=dict(spent),
+        source_training_budgets=dict(budgets), target_training_budgets=dict(budgets),
+        kernel_changed=True, reward_changed=False, task_acceptance_changed=False,
+        nominal_control_changed=False, action_execution_changed=False,
+        physical_scene_changed=False, actuator_capability_changed=False, action_ranges_changed=False,
+        observation_layout_changed=False, observation_semantics_changed=[],
+        same_mdp_claimed=True, new_mdp=False, physical_mdp_changed=False,
+        training_quantity_only=False, auxiliary_updates_added=0,
+        lifetime_stage_budget_counters_reset=False, original_branch_origin_preserved=True,
+        deterministic_mean_changed=False, history_kernel_changed=False,
+        first_target_execution="train_v3_N1_fresh_legal_P01_no_old_rollout",
+        physical_success_claimed=False)
+    return _task_conditioned_plan_envelope(checkpoint, old, new, delta, reason,
+        "receiving_wheel_sigma_factor", factor)
+
+
 def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
                          allowed_changed_files: Sequence[str], reason: str,
                          prior_evidence: Mapping[str, Any] | None = None,
@@ -3395,11 +3601,23 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                          task_conditioned_hip_wheel_review: Mapping[str, Any] | None = None,
                          archive_only_exact_bytes_review: Mapping[str, Any] | None = None,
                          training_quantity_budget_review: Mapping[str, Any] | None = None,
+                         receiving_wheel_sigma_review: Mapping[str, Any] | None = None,
                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Build a reviewed plan after committing the new runtime; does not write."""
     checkpoint = Path(checkpoint).resolve(strict=True)
     metadata = checkpoint_metadata(checkpoint)
     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
+    if receiving_wheel_sigma_review is not None:
+        if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
+                execution_evidence, video_review, timing_review, body_reward_review, height_recovery_review,
+                exploration_temperature_review, task_first_reward_review, execution_composition_review,
+                final_stop_handoff_review, rr_physical_acceptance_review, fl_capture_quality_review,
+                request_history_kernel_review, physical_innovation_sigma_review,
+                task_conditioned_hip_wheel_review, archive_only_exact_bytes_review, training_quantity_budget_review)):
+            raise ValueError("receiving-wheel sigma cannot mix another migration factor")
+        return _build_receiving_wheel_sigma_plan(checkpoint, metadata, old, new,
+            allowed_changed_files=allowed_changed_files, reason=reason,
+            review=receiving_wheel_sigma_review, project_root=Path(project_root))
     if training_quantity_budget_review is not None:
         if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
                 execution_evidence, video_review, timing_review, body_reward_review, height_recovery_review,
@@ -3659,7 +3877,10 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                                         "reason": supplied["archive_only_exact_bytes_factor"]["review_reason"]},
                                     training_quantity_budget_review=None if "training_quantity_budget_factor" not in supplied else {
                                         "reason": supplied["training_quantity_budget_factor"]["review_reason"],
-                                        "reviewed_code_sha256": supplied["training_quantity_budget_factor"]["reviewed_code_sha256"]})
+                                        "reviewed_code_sha256": supplied["training_quantity_budget_factor"]["reviewed_code_sha256"]},
+                                    receiving_wheel_sigma_review=None if "receiving_wheel_sigma_factor" not in supplied else {
+                                        "reason": supplied["receiving_wheel_sigma_factor"]["review_reason"],
+                                        "reviewed_code_sha256": supplied["receiving_wheel_sigma_factor"]["reviewed_code_sha256"]})
     if supplied != expected:
         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}

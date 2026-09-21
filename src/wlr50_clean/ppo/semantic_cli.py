@@ -27,6 +27,7 @@ from .semantic_policy_distribution import (
     policy_version_from_metadata, build_policy_distribution_migration,
     policy_migration_checkpoint_name, policy_observation_layout_from_metadata,
 )
+from .semantic_receiving_wheel_profile import RECEIVING_WHEEL_POLICY
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 RUNS_ROOT = PROJECT_ROOT / "runs/ppo_semantic_v2"
@@ -378,7 +379,10 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
             raise ValueError("quantity-only migration first enters through fresh natural-P01 N1 full training")
         from .semantic_training import (_validated_exploration_temperature_factor,
             _validated_request_history_kernel_factor, _validated_physical_innovation_sigma_factor,
-            _validated_task_conditioned_hip_wheel_factor)
+            _validated_task_conditioned_hip_wheel_factor, _validated_receiving_wheel_sigma_factor)
+        receiving_wheel = _validated_receiving_wheel_sigma_factor(metadata, args._migration_record,
+            semantic_version=args.semantic_version, seed=int(metadata["seed"]), device=args.device,
+            observation_layout=args._observation_layout)
         task_conditioned = _validated_task_conditioned_hip_wheel_factor(metadata, args._migration_record,
             semantic_version=args.semantic_version, seed=int(metadata["seed"]), device=args.device,
             observation_layout=args._observation_layout)
@@ -391,7 +395,13 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
         temperature = _validated_exploration_temperature_factor(metadata, args._migration_record,
             semantic_version=args.semantic_version, seed=int(metadata["seed"]), device=args.device,
             observation_layout=args._observation_layout)
-        if task_conditioned is not None:
+        if receiving_wheel is not None:
+            if (args.command != "train" or args.semantic_version != "v3" or args.num_envs != 1
+                    or args.stage != "full_episode" or args.from_phase != "P01" or args.teacher_offset_decisions != 0
+                    or getattr(args, "prefix_source", "frozen_fsm") != "frozen_fsm"):
+                raise ValueError("receiving-wheel sigma first enters via fresh natural-P01 N1 full training")
+            args._policy_version = receiving_wheel["target_policy_contract"]["version"]
+        elif task_conditioned is not None:
             if getattr(args, "num_envs", 1) != 1:
                 raise ValueError("task-conditioned reward/sigma migration requires N1")
             args._policy_version = task_conditioned["target_policy_contract"]["version"]
@@ -424,20 +434,24 @@ def _task_conditioned_prefix_provenance(args, contract, previous):
     record = getattr(args, "_migration_record", None) or {}
     archive = record.get("archive_only_exact_bytes_factor")
     task = record.get("task_conditioned_hip_wheel_factor")
+    receiving = record.get("receiving_wheel_sigma_factor")
     source_runtime = previous["runtime_contract"]["runtime_content_sha256"]
     target_runtime = contract["runtime_content_sha256"]
     factor, key = (archive, "archive_only_exact_bytes_migration") if archive is not None else (task, "task_conditioned_hip_wheel_migration")
+    if receiving is not None:
+        factor, key = receiving, "receiving_wheel_sigma_migration"
     if factor is not None:
-        if (task is not None and archive is not None
+        if (sum(x is not None for x in (task, archive, receiving)) != 1
                 or factor.get("source_policy_contract") != source or factor.get("target_policy_contract") != target
                 or record.get("source_runtime_content_sha256") != source_runtime
                 or record.get("target_runtime_content_sha256") != target_runtime
-                or target["version"] not in (FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY)):
+                or target["version"] not in (FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY)):
             raise ValueError("task/archival prefix lacks exact source-weight/target-kernel provenance")
         migration = {k: record[k] for k in ("plan_path", "plan_sha256", "source_checkpoint_sha256",
             "source_runtime_content_sha256", "target_runtime_content_sha256")}
     else:
-        if source != target or previous["runtime_contract"] != contract or target["version"] != TASK_CONDITIONED_HIP_WHEEL_POLICY:
+        if (source != target or previous["runtime_contract"] != contract
+                or target["version"] not in (TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY)):
             raise ValueError("task-conditioned prefix must use verified migration or exact target checkpoint resume")
         migration = None
     return {"source_policy_contract": source, "effective_policy_contract": target,
@@ -450,7 +464,7 @@ def _request_history_prefix_provenance(args, contract, previous):
         HISTORY_QUARTER_TEMPERED_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY,
         supported_heteroscedastic_contract_version)
     target = _resolved_policy_contract(args)
-    if (target["version"] == TASK_CONDITIONED_HIP_WHEEL_POLICY
+    if (target["version"] in (TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY)
             or (getattr(args, "_migration_record", None) or {}).get("archive_only_exact_bytes_factor") is not None):
         return _task_conditioned_prefix_provenance(args, contract, previous)
     if target["version"] not in (HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY):
