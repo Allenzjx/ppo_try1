@@ -1,0 +1,507 @@
+{
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fl_capture_quality_v1\\train\\20260918T0505509649338Z_gf2e552406ea7_ed7cede0bf3e4f1191e87871b746a235",
+  "lifecycle": "STOPPED_AT_VERIFIED_UPDATE_BOUNDARY",
+  "first_global_decision": 180225,
+  "last_global_decision": 180352,
+  "new_decisions": 128,
+  "new_ppo_updates": 1,
+  "new_optimizer_steps": 20,
+  "actual_request_phase_coverage": {
+    "P06": 73,
+    "P07": 2,
+    "P08": 9,
+    "P09": 44
+  },
+  "signed_family_contribution_sums": {
+    "P06": {
+      "task_progress": -0.12703726943327998,
+      "body_stability": 0.0,
+      "contact_motion_quality": 0.0,
+      "control_smoothness": 0.0,
+      "control_regularization": 0.0
+    },
+    "P07": {
+      "task_progress": -0.009654243412975954,
+      "body_stability": 0.0,
+      "contact_motion_quality": 0.0,
+      "control_smoothness": 0.0,
+      "control_regularization": 0.0
+    },
+    "P08": {
+      "task_progress": -0.034816169519565864,
+      "body_stability": 0.0,
+      "contact_motion_quality": 0.0,
+      "control_smoothness": 0.0,
+      "control_regularization": 0.0
+    },
+    "P09": {
+      "task_progress": -42.49574276292697,
+      "body_stability": 0.0,
+      "contact_motion_quality": 0.0,
+      "control_smoothness": 0.0,
+      "control_regularization": 0.0
+    }
+  },
+  "cost_component_integrals_by_phase": {
+    "P06": {
+      "confirmed_post_touchdown_rebound": 0.0,
+      "contact_chatter_diagnostic": 0.35,
+      "touchdown_events": 19.0,
+      "nominal_first_difference": 0.0,
+      "residual_first_difference": 1.4912822258468048,
+      "actual_drive_first_difference": 1.4912822258468048,
+      "actual_drive_second_difference": 0.6664720099219127,
+      "gravity_attitude": 0.0,
+      "euler_rate": 0.0,
+      "angular_acceleration": 0.0,
+      "contact_quality": 4.3693178576687945e-05
+    },
+    "P07": {
+      "confirmed_post_touchdown_rebound": 0.0,
+      "contact_chatter_diagnostic": 0.0,
+      "touchdown_events": 0.0,
+      "nominal_first_difference": 0.0013888888888888887,
+      "residual_first_difference": 0.03632944377629997,
+      "actual_drive_first_difference": 0.043237851737374405,
+      "actual_drive_second_difference": 0.019210727235565835,
+      "gravity_attitude": 0.0,
+      "euler_rate": 0.0,
+      "angular_acceleration": 0.0,
+      "contact_quality": 0.0
+    },
+    "P08": {
+      "confirmed_post_touchdown_rebound": 0.0,
+      "contact_chatter_diagnostic": 0.08333333333333333,
+      "touchdown_events": 5.0,
+      "nominal_first_difference": 0.009027777777777777,
+      "residual_first_difference": 0.1386305960504252,
+      "actual_drive_first_difference": 0.16909213432862052,
+      "actual_drive_second_difference": 0.12883831190869235,
+      "gravity_attitude": 0.0,
+      "euler_rate": 0.0,
+      "angular_acceleration": 0.0,
+      "contact_quality": 1.3682718540568556e-05
+    },
+    "P09": {
+      "confirmed_post_touchdown_rebound": 0.0,
+      "contact_chatter_diagnostic": 0.1,
+      "touchdown_events": 7.0,
+      "nominal_first_difference": 0.04722222222222223,
+      "residual_first_difference": 0.742336372847844,
+      "actual_drive_first_difference": 0.8646194873073364,
+      "actual_drive_second_difference": 0.5994682663579419,
+      "gravity_attitude": 0.0,
+      "euler_rate": 0.0,
+      "angular_acceleration": 0.0,
+      "contact_quality": 0.0004234083755823793
+    }
+  },
+  "terminals": [
+    {
+      "decision": 180299,
+      "phase": "P09",
+      "reason": "FALL",
+      "task_success": false
+    }
+  ],
+  "actual_front_quality_by_task_substate": {},
+  "ordinary_phase_changes": [
+    {
+      "decision": 180277,
+      "from": "P06",
+      "to": "P07",
+      "terminal": false
+    },
+    {
+      "decision": 180278,
+      "from": "P07",
+      "to": "P08",
+      "terminal": false
+    },
+    {
+      "decision": 180286,
+      "from": "P08",
+      "to": "P09",
+      "terminal": false
+    },
+    {
+      "decision": 180319,
+      "from": "P06",
+      "to": "P07",
+      "terminal": false
+    },
+    {
+      "decision": 180320,
+      "from": "P07",
+      "to": "P08",
+      "terminal": false
+    },
+    {
+      "decision": 180321,
+      "from": "P08",
+      "to": "P09",
+      "terminal": false
+    }
+  ],
+  "updates": [
+    {
+      "ppo_update": 1374,
+      "global_policy_decisions": 180352,
+      "kl_mean": 0.020486525120951237,
+      "value_loss": 74.33053474426269,
+      "optimizer_learning_rate": 1e-05,
+      "finite_nonzero_gradient_observed": true
+    }
+  ],
+  "advantage_by_update": [
+    {
+      "ppo_update": null,
+      "stored_advantage_semantics": "official_whole_rollout_standardized_GAE",
+      "overall": {
+        "sample_count": 128,
+        "terminal_count": 1,
+        "raw_gae_returns_minus_old_values": {
+          "count": 128,
+          "finite_count": 128,
+          "nonfinite_count": 0,
+          "minimum": -14.956012725830078,
+          "maximum": 1.3919086456298828,
+          "mean": -6.573482632637024,
+          "std_population": 5.772246603728205,
+          "positive_count": 31,
+          "negative_count": 97,
+          "zero_count": 0
+        },
+        "stored_advantages": {
+          "count": 128,
+          "finite_count": 128,
+          "nonfinite_count": 0,
+          "minimum": -1.4465291500091553,
+          "maximum": 1.374545693397522,
+          "mean": -1.7316779121756554e-08,
+          "std_population": 0.9960862237630004,
+          "positive_count": 53,
+          "negative_count": 75,
+          "zero_count": 0
+        },
+        "old_values": {
+          "count": 128,
+          "finite_count": 128,
+          "nonfinite_count": 0,
+          "minimum": -27.909299850463867,
+          "maximum": -23.299741744995117,
+          "mean": -25.188959509134293,
+          "std_population": 1.7026668778083305,
+          "positive_count": 0,
+          "negative_count": 128,
+          "zero_count": 0
+        },
+        "returns": {
+          "count": 128,
+          "finite_count": 128,
+          "nonfinite_count": 0,
+          "minimum": -42.64179229736328,
+          "maximum": -24.765832901000977,
+          "mean": -31.762442141771317,
+          "std_population": 5.608554614359083,
+          "positive_count": 0,
+          "negative_count": 128,
+          "zero_count": 0
+        },
+        "rewards": {
+          "count": 128,
+          "finite_count": 128,
+          "nonfinite_count": 0,
+          "minimum": -42.64179229736328,
+          "maximum": 0.13578219711780548,
+          "mean": -0.33333790533379215,
+          "std_population": 3.754413297266154,
+          "positive_count": 28,
+          "negative_count": 100,
+          "zero_count": 0
+        }
+      },
+      "by_request_phase": {
+        "P06": {
+          "sample_count": 73,
+          "terminal_count": 0,
+          "raw_gae_returns_minus_old_values": {
+            "count": 73,
+            "finite_count": 73,
+            "nonfinite_count": 0,
+            "minimum": -14.35089111328125,
+            "maximum": -0.7447052001953125,
+            "mean": -7.788352548259578,
+            "std_population": 4.245358843464932,
+            "positive_count": 0,
+            "negative_count": 73,
+            "zero_count": 0
+          },
+          "stored_advantages": {
+            "count": 73,
+            "finite_count": 73,
+            "nonfinite_count": 0,
+            "minimum": -1.3421064615249634,
+            "maximum": 1.0058413743972778,
+            "mean": -0.2096437274491134,
+            "std_population": 0.7325992355523456,
+            "positive_count": 20,
+            "negative_count": 53,
+            "zero_count": 0
+          },
+          "old_values": {
+            "count": 73,
+            "finite_count": 73,
+            "nonfinite_count": 0,
+            "minimum": -24.35088348388672,
+            "maximum": -23.299741744995117,
+            "mean": -23.766174629943013,
+            "std_population": 0.2442759836646606,
+            "positive_count": 0,
+            "negative_count": 73,
+            "zero_count": 0
+          },
+          "returns": {
+            "count": 73,
+            "finite_count": 73,
+            "nonfinite_count": 0,
+            "minimum": -38.243682861328125,
+            "maximum": -24.765832901000977,
+            "mean": -31.55452717820259,
+            "std_population": 4.332418766861969,
+            "positive_count": 0,
+            "negative_count": 73,
+            "zero_count": 0
+          },
+          "rewards": {
+            "count": 73,
+            "finite_count": 73,
+            "nonfinite_count": 0,
+            "minimum": -0.1375821828842163,
+            "maximum": 0.09902375191450119,
+            "mean": -0.001740236471611241,
+            "std_population": 0.03312082567035432,
+            "positive_count": 16,
+            "negative_count": 57,
+            "zero_count": 0
+          }
+        },
+        "P07": {
+          "sample_count": 2,
+          "terminal_count": 0,
+          "raw_gae_returns_minus_old_values": {
+            "count": 2,
+            "finite_count": 2,
+            "nonfinite_count": 0,
+            "minimum": -12.87784194946289,
+            "maximum": -0.7971744537353516,
+            "mean": -6.837508201599121,
+            "std_population": 6.0403337478637695,
+            "positive_count": 0,
+            "negative_count": 2,
+            "zero_count": 0
+          },
+          "stored_advantages": {
+            "count": 2,
+            "finite_count": 2,
+            "nonfinite_count": 0,
+            "minimum": -1.0879101753234863,
+            "maximum": 0.9967870712280273,
+            "mean": -0.04556155204772949,
+            "std_population": 1.0423486232757568,
+            "positive_count": 1,
+            "negative_count": 1,
+            "zero_count": 0
+          },
+          "old_values": {
+            "count": 2,
+            "finite_count": 2,
+            "nonfinite_count": 0,
+            "minimum": -25.580379486083984,
+            "maximum": -25.077220916748047,
+            "mean": -25.328800201416016,
+            "std_population": 0.25157928466796875,
+            "positive_count": 0,
+            "negative_count": 2,
+            "zero_count": 0
+          },
+          "returns": {
+            "count": 2,
+            "finite_count": 2,
+            "nonfinite_count": 0,
+            "minimum": -38.458221435546875,
+            "maximum": -25.8743953704834,
+            "mean": -32.16630840301514,
+            "std_population": 6.291913032531738,
+            "positive_count": 0,
+            "negative_count": 2,
+            "zero_count": 0
+          },
+          "rewards": {
+            "count": 2,
+            "finite_count": 2,
+            "nonfinite_count": 0,
+            "minimum": -0.00687298271805048,
+            "maximum": -0.0027812609914690256,
+            "mean": -0.004827121854759753,
+            "std_population": 0.002045860863290727,
+            "positive_count": 0,
+            "negative_count": 2,
+            "zero_count": 0
+          }
+        },
+        "P08": {
+          "sample_count": 9,
+          "terminal_count": 0,
+          "raw_gae_returns_minus_old_values": {
+            "count": 9,
+            "finite_count": 9,
+            "nonfinite_count": 0,
+            "minimum": -13.615802764892578,
+            "maximum": -0.3028602600097656,
+            "mean": -11.630276997884115,
+            "std_population": 4.023952062208209,
+            "positive_count": 0,
+            "negative_count": 9,
+            "zero_count": 0
+          },
+          "stored_advantages": {
+            "count": 9,
+            "finite_count": 9,
+            "nonfinite_count": 0,
+            "minimum": -1.2152560949325562,
+            "maximum": 1.0820882320404053,
+            "mean": -0.872624397277832,
+            "std_population": 0.6943922070313235,
+            "positive_count": 1,
+            "negative_count": 8,
+            "zero_count": 0
+          },
+          "old_values": {
+            "count": 9,
+            "finite_count": 9,
+            "nonfinite_count": 0,
+            "minimum": -26.332290649414062,
+            "maximum": -25.610647201538086,
+            "mean": -26.08563804626465,
+            "std_population": 0.19119852562784756,
+            "positive_count": 0,
+            "negative_count": 9,
+            "zero_count": 0
+          },
+          "returns": {
+            "count": 9,
+            "finite_count": 9,
+            "nonfinite_count": 0,
+            "minimum": -39.83786392211914,
+            "maximum": -25.91350746154785,
+            "mean": -37.715915044148765,
+            "std_population": 4.190577375754033,
+            "positive_count": 0,
+            "negative_count": 9,
+            "zero_count": 0
+          },
+          "rewards": {
+            "count": 9,
+            "finite_count": 9,
+            "nonfinite_count": 0,
+            "minimum": -0.10687243193387985,
+            "maximum": 0.09521792083978653,
+            "mean": -0.0038684638631012705,
+            "std_population": 0.04766870866175488,
+            "positive_count": 2,
+            "negative_count": 7,
+            "zero_count": 0
+          }
+        },
+        "P09": {
+          "sample_count": 44,
+          "terminal_count": 1,
+          "raw_gae_returns_minus_old_values": {
+            "count": 44,
+            "finite_count": 44,
+            "nonfinite_count": 0,
+            "minimum": -14.956012725830078,
+            "maximum": 1.3919086456298828,
+            "mean": -3.511557535691695,
+            "std_population": 6.708012327801995,
+            "positive_count": 31,
+            "negative_count": 13,
+            "zero_count": 0
+          },
+          "stored_advantages": {
+            "count": 44,
+            "finite_count": 44,
+            "nonfinite_count": 0,
+            "minimum": -1.4465291500091553,
+            "maximum": 1.374545693397522,
+            "mean": 0.5283802856098522,
+            "std_population": 1.157566397324338,
+            "positive_count": 31,
+            "negative_count": 13,
+            "zero_count": 0
+          },
+          "old_values": {
+            "count": 44,
+            "finite_count": 44,
+            "nonfinite_count": 0,
+            "minimum": -27.909299850463867,
+            "maximum": -26.48171615600586,
+            "mean": -27.359721053730357,
+            "std_population": 0.297045849515154,
+            "positive_count": 0,
+            "negative_count": 44,
+            "zero_count": 0
+          },
+          "returns": {
+            "count": 44,
+            "finite_count": 44,
+            "nonfinite_count": 0,
+            "minimum": -42.64179229736328,
+            "maximum": -25.942920684814453,
+            "mean": -30.87127858942205,
+            "std_population": 6.844887275641889,
+            "positive_count": 0,
+            "negative_count": 44,
+            "zero_count": 0
+          },
+          "rewards": {
+            "count": 44,
+            "finite_count": 44,
+            "nonfinite_count": 0,
+            "minimum": -42.64179229736328,
+            "maximum": 0.13578219711780548,
+            "mean": -0.9658123682231896,
+            "std_population": 6.3555952689324915,
+            "positive_count": 10,
+            "negative_count": 34,
+            "zero_count": 0
+          }
+        }
+      },
+      "terminal_samples": [
+        {
+          "global_policy_decision": 180299,
+          "rollout_step": 74,
+          "environment_index": 0,
+          "request_phase": "P09",
+          "end_phase": "P09",
+          "episode_start_tick": 3272,
+          "episode_end_tick": 3273,
+          "executed_physics_ticks": 1,
+          "sim_time_s": 27.275,
+          "terminal": true,
+          "termination_reason": "FALL",
+          "terminal_bootstrap_allowed": false,
+          "raw_gae_returns_minus_old_values": -14.956012725830078,
+          "stored_advantages": -1.4465291500091553,
+          "old_values": -27.685779571533203,
+          "returns": -42.64179229736328,
+          "rewards": -42.64179229736328
+        }
+      ]
+    }
+  ],
+  "teacher_prefixes_are_excluded_from_coverage": true,
+  "training_execution_success_is_not_full_task_success": true
+}

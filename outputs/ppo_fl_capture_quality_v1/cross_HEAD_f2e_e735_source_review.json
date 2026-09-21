@@ -1,0 +1,114 @@
+{
+  "schema": "wlr50_clean.cross_HEAD_f2e_e735_source_only_review.v1",
+  "reviewed_code_scope": {
+    "reviewed_HEADs": [
+      "f2e552406ea74a5aae2803347d1c8bebe261910d",
+      "e73542cb57ad327a6246fcffb70d652a548627a3"
+    ],
+    "changed_runtime_paths": [
+      "src/wlr50_clean/ppo/semantic_checkpoint_prefix_policy.py",
+      "src/wlr50_clean/ppo/semantic_cli.py",
+      "src/wlr50_clean/ppo/semantic_history_actor.py",
+      "src/wlr50_clean/ppo/semantic_migration.py",
+      "src/wlr50_clean/ppo/semantic_policy_distribution.py",
+      "src/wlr50_clean/ppo/semantic_training.py"
+    ],
+    "B_reachable_protected_paths_unchanged": [
+      "src/wlr50_clean/ppo/semantic_video_cli.py",
+      "src/wlr50_clean/ppo/semantic_video.py",
+      "src/wlr50_clean/ppo/semantic_backend.py",
+      "src/wlr50_clean/ppo/semantic_env.py",
+      "src/wlr50_clean/ppo/semantic_supervisor.py",
+      "src/wlr50_clean/ppo/semantic_residual_adapter.py",
+      "src/wlr50_clean/ppo/semantic_nominal_geometry.py",
+      "src/wlr50_clean/ppo/rl_library_wrapper.py",
+      "configs/environment_lock.json",
+      "configs/collision_role_map.json",
+      "src/wlr50_clean/infrastructure/scene_factory.py",
+      "src/wlr50_clean/infrastructure/robot_adapter.py",
+      "src/wlr50_clean/infrastructure/servo_target_mapper.py"
+    ],
+    "shared_helpers": {
+      "src/wlr50_clean/ppo/semantic_training.py:jsonable": "AST identical",
+      "src/wlr50_clean/ppo/semantic_training.py:write_json": "AST identical",
+      "src/wlr50_clean/ppo/semantic_cli.py:runtime_contract": "AST identical",
+      "src/wlr50_clean/ppo/semantic_cli.py:validate_request": "AST identical",
+      "src/wlr50_clean/ppo/semantic_cli.py:version_paths": "AST identical",
+      "src/wlr50_clean/ppo/semantic_cli.py:_request_paths": "AST identical",
+      "src/wlr50_clean/ppo/semantic_cli.py:_validate_target_policy_request": "AST identical",
+      "semantic_cli._preflight_checkpoint:through_no_checkpoint_return": "AST identical"
+    },
+    "two_explicit_learning_boundaries": [
+      {
+        "source_HEAD": "f2e552406ea74a5aae2803347d1c8bebe261910d",
+        "target_HEAD": "3a50657a96c9beca6178d7f549750f21025a9fc6",
+        "change": "REQUEST_history_mean_entry",
+        "changed_files": [
+          "src/wlr50_clean/ppo/semantic_checkpoint_prefix_policy.py",
+          "src/wlr50_clean/ppo/semantic_cli.py",
+          "src/wlr50_clean/ppo/semantic_history_actor.py",
+          "src/wlr50_clean/ppo/semantic_migration.py",
+          "src/wlr50_clean/ppo/semantic_policy_distribution.py",
+          "src/wlr50_clean/ppo/semantic_training.py"
+        ]
+      },
+      {
+        "source_HEAD": "3a50657a96c9beca6178d7f549750f21025a9fc6",
+        "target_HEAD": "e73542cb57ad327a6246fcffb70d652a548627a3",
+        "change": "single_FR_knee_innovation_scale",
+        "changed_files": [
+          "src/wlr50_clean/ppo/semantic_checkpoint_prefix_policy.py",
+          "src/wlr50_clean/ppo/semantic_cli.py",
+          "src/wlr50_clean/ppo/semantic_history_actor.py",
+          "src/wlr50_clean/ppo/semantic_migration.py",
+          "src/wlr50_clean/ppo/semantic_policy_distribution.py",
+          "src/wlr50_clean/ppo/semantic_training.py"
+        ]
+      }
+    ],
+    "B_call_path": "checkpoint=None -> unchanged early return; roleB no checkpoint_loader; ZERO12 -> unchanged core.step/N/mapper/physics",
+    "evidence_kind": "versioned source/config scope, not new physical replay or bitwise trajectory proof"
+  },
+  "same_locked_configuration_scene_control_bytes": {
+    "configs/ppo_fl_capture_quality_v1/action_schema.json": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7",
+    "configs/ppo_fl_capture_quality_v1/execution_profile.yaml": "1650f1b1befa496fc33e1e9aa6489155c33c949ee8748d1b3d8eb59980565d73",
+    "configs/ppo_fl_capture_quality_v1/observation_schema.json": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b",
+    "configs/ppo_fl_capture_quality_v1/quality_score.yaml": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6",
+    "configs/ppo_fl_capture_quality_v1/reward_config.yaml": "c98f0536fca387de114e563c032dc820af05a9309bd7ad57790c6d8c1a19b349",
+    "configs/ppo_fl_capture_quality_v1/stage_task_spec.yaml": "75d113ed2353af0d40a40426755cebdd6c9d0b3f60b2e96d8dbe494c2306d5d1",
+    "configs/environment_lock.json": "602f6e0893d999e5cb078aadf75541234440a3af918dc58e0154e80ff16ea3cb",
+    "configs/collision_role_map.json": "38adba9d88ed52438c6bbd9109250fbe917518f0f6fb6c5850adca044e79db12",
+    "src/wlr50_clean/infrastructure/scene_factory.py": "02df57b900fc4208ff4959e9db6fb9b39116210a4fe58d9848e6e1aa06b7fca1",
+    "src/wlr50_clean/infrastructure/robot_adapter.py": "f00a8cc83c05aa1dea590d5e9765865c79f9f7f7cfc024f01b9d08a5f4f4a8a2",
+    "src/wlr50_clean/infrastructure/servo_target_mapper.py": "ca18b55f60994a6d346a559fccd02f7fdef3dbb924e0cc65efd68035cf165ffa"
+  },
+  "B_actual_camera": {
+    "eye_m": [
+      1.85,
+      -1.65,
+      1.15
+    ],
+    "fps": 15,
+    "resolution": [
+      1280,
+      720
+    ],
+    "target_m": [
+      0.7,
+      -0.15,
+      0.15
+    ]
+  },
+  "camera_production_path_unchanged": true,
+  "future_C_actual_camera_not_yet_observed": true,
+  "future_pair_requires_exact_sealed_receipt_camera_equality": true,
+  "future_C_not_rendered_or_claimed_success": true,
+  "new_B_run": false,
+  "same_HEAD_pair": false,
+  "initial_measured_state_identical_claimed": false,
+  "physical_trajectory_equivalent_claimed": false,
+  "causal_claim": false,
+  "source_receipts_modified": false,
+  "strict_pair_rules_modified": false,
+  "helper_sha256": "c37335a6318f22ac944a4c10463b497f1ca71d3a611b421b37fbc2147c3603c2"
+}

@@ -1,0 +1,311 @@
+{
+  "schema": "wlr50_clean.first4096_completed_training_summary.v1",
+  "scope": "Sealed blocks01-10 only; receipts reused, no active video logs read; prefix decisions excluded.",
+  "counts": {
+    "source": {
+      "global_policy_decisions": 178432,
+      "ppo_updates": 1359,
+      "optimizer_steps": 27180
+    },
+    "new": {
+      "global_policy_decisions": 4096,
+      "ppo_updates": 32,
+      "optimizer_steps": 640
+    },
+    "latest": {
+      "global_policy_decisions": 182528,
+      "ppo_updates": 1391,
+      "optimizer_steps": 27820
+    }
+  },
+  "blocks": [
+    {
+      "receipt": "block01_512_receipt.json",
+      "first_global_decision": 178433,
+      "last_global_decision": 178944,
+      "new_decisions": 512,
+      "new_ppo_updates": 4,
+      "new_optimizer_steps": 80,
+      "kernel": "old_quarter"
+    },
+    {
+      "receipt": "block02_896_receipt.json",
+      "first_global_decision": 178945,
+      "last_global_decision": 179840,
+      "new_decisions": 896,
+      "new_ppo_updates": 7,
+      "new_optimizer_steps": 140,
+      "kernel": "old_quarter"
+    },
+    {
+      "receipt": "block03_384_receipt.json",
+      "first_global_decision": 179841,
+      "last_global_decision": 180224,
+      "new_decisions": 384,
+      "new_ppo_updates": 3,
+      "new_optimizer_steps": 60,
+      "kernel": "old_quarter"
+    },
+    {
+      "receipt": "block04_128_receipt.json",
+      "first_global_decision": 180225,
+      "last_global_decision": 180352,
+      "new_decisions": 128,
+      "new_ppo_updates": 1,
+      "new_optimizer_steps": 20,
+      "kernel": "old_quarter"
+    },
+    {
+      "receipt": "block05_128_receipt.json",
+      "first_global_decision": 180353,
+      "last_global_decision": 180480,
+      "new_decisions": 128,
+      "new_ppo_updates": 1,
+      "new_optimizer_steps": 20,
+      "kernel": "old_quarter"
+    },
+    {
+      "receipt": "block06_768_receipt.json",
+      "first_global_decision": 180481,
+      "last_global_decision": 181248,
+      "new_decisions": 768,
+      "new_ppo_updates": 6,
+      "new_optimizer_steps": 120,
+      "kernel": "request_history_quarter"
+    },
+    {
+      "receipt": "block07_768_receipt.json",
+      "first_global_decision": 181249,
+      "last_global_decision": 182016,
+      "new_decisions": 768,
+      "new_ppo_updates": 6,
+      "new_optimizer_steps": 120,
+      "kernel": "request_history_quarter"
+    },
+    {
+      "receipt": "block08_256_receipt.json",
+      "first_global_decision": 182017,
+      "last_global_decision": 182272,
+      "new_decisions": 256,
+      "new_ppo_updates": 2,
+      "new_optimizer_steps": 40,
+      "kernel": "request_history_quarter"
+    },
+    {
+      "receipt": "block09_128_receipt.json",
+      "first_global_decision": 182273,
+      "last_global_decision": 182400,
+      "new_decisions": 128,
+      "new_ppo_updates": 1,
+      "new_optimizer_steps": 20,
+      "kernel": "request_history_quarter"
+    },
+    {
+      "receipt": "block10_128_receipt.json",
+      "first_global_decision": 182401,
+      "last_global_decision": 182528,
+      "new_decisions": 128,
+      "new_ppo_updates": 1,
+      "new_optimizer_steps": 20,
+      "kernel": "request_history_quarter"
+    }
+  ],
+  "kernel_epochs": [
+    {
+      "label": "old_quarter",
+      "blocks": "01-05",
+      "new_decisions": 2048,
+      "new_ppo_updates": 16,
+      "new_optimizer_steps": 320,
+      "source_git_commit_prefix": "f2e552406ea7",
+      "actual_request_phase_coverage": {
+        "P01": 6,
+        "P02": 488,
+        "P03": 9,
+        "P04": 18,
+        "P05": 988,
+        "P06": 226,
+        "P07": 6,
+        "P08": 13,
+        "P09": 294,
+        "P10": 0,
+        "P11": 0,
+        "P12": 0,
+        "P13": 0
+      }
+    },
+    {
+      "label": "request_history_quarter",
+      "blocks": "06-10",
+      "new_decisions": 2048,
+      "new_ppo_updates": 16,
+      "new_optimizer_steps": 320,
+      "source_git_commit_prefix": "3a50657a96c9",
+      "migration_plan": "checkpoint180480_request_history_migration.json",
+      "actual_request_phase_coverage": {
+        "P01": 2,
+        "P02": 210,
+        "P03": 4,
+        "P04": 4,
+        "P05": 608,
+        "P06": 947,
+        "P07": 4,
+        "P08": 4,
+        "P09": 137,
+        "P10": 1,
+        "P11": 1,
+        "P12": 126,
+        "P13": 0
+      }
+    }
+  ],
+  "actual_request_phase_coverage": {
+    "P01": 8,
+    "P02": 698,
+    "P03": 13,
+    "P04": 22,
+    "P05": 1596,
+    "P06": 1173,
+    "P07": 10,
+    "P08": 17,
+    "P09": 431,
+    "P10": 1,
+    "P11": 1,
+    "P12": 126,
+    "P13": 0
+  },
+  "checks": {
+    "global_decision_intervals_contiguous": true,
+    "coverage_sum_equals_completed_decisions": true,
+    "all_32_updates_record_finite_nonzero_gradients": true,
+    "optimizer_learning_rates": [
+      0.00001
+    ],
+    "ordinary_phase_changes": 65,
+    "ordinary_phase_changes_with_terminal": 0,
+    "teacher_prefixes_excluded": true
+  },
+  "observed_terminal_episodes": {
+    "total": 10,
+    "BODY_COLLISION": 5,
+    "FALL": 5,
+    "full_task_success": 0,
+    "note": "Nonterminal budget-ended suffixes are neither full successes nor invented terminal failures."
+  },
+  "block07_FL_capture_evidence": {
+    "report": "block07_summary.md",
+    "prefix": "Frozen CP181248 deterministic checkpoint_policy P05 offset150, accepted at tick2832 in all3 episodes, no prefix credit.",
+    "episodes": [
+      {
+        "FL_placed_tick": 3010,
+        "P06_entry_tick": 3016,
+        "P06_entry_global_decision": 181271,
+        "FL_bearing_N_at_entry": 2.709520101547241,
+        "later_terminal": "BODY_COLLISION",
+        "later_terminal_tick": 5239,
+        "later_terminal_global_decision": 181549,
+        "RR_crossed": false,
+        "RR_placed": false
+      },
+      {
+        "FL_placed_tick": 3236,
+        "P06_entry_tick": 3240,
+        "P06_entry_global_decision": 181600,
+        "FL_bearing_N_at_entry": 4.856020927429199,
+        "later_terminal": "BODY_COLLISION",
+        "later_terminal_tick": 5509,
+        "later_terminal_global_decision": 181884,
+        "RR_crossed": false,
+        "RR_placed": false
+      },
+      {
+        "FL_placed_tick": 3634,
+        "P06_entry_tick": 3640,
+        "P06_entry_global_decision": 181985,
+        "FL_bearing_N_at_entry": 5.289245128631592,
+        "budget_end_phase": "P06",
+        "budget_end_tick": 3888,
+        "budget_end_FL_air": true,
+        "budget_end_FL_support": false,
+        "budget_end_FL_clearance_m": 0.024014157499912356,
+        "later_terminal": null
+      }
+    ]
+  },
+  "block08_front_quality_verified": {
+    "report": "block07_summary.md#后续前段p06维护封存-block0809",
+    "physical_samples": 1695,
+    "all_beta_positive": true,
+    "beta_range_per_s": [
+      0.015,
+      0.03
+    ],
+    "cost_sum": 0.01456464309665752,
+    "signed_body_reward_sum": -0.014564643096657517,
+    "maximum_per_decision_cost_plus_body_error": 5.421010862427522e-20,
+    "actual_reward_exact_in_float32_PPO_storage_for_256_decisions": true,
+    "raw_old_mean_sigma_logp_exact_in_storage": true,
+    "actual_optimizer_minibatches": 40,
+    "uses_per_sample": 5,
+    "hook_oldlogp_and_advantage_max_error": 0,
+    "cost_specific_gradient_isolated": false,
+    "policy_improvement_established": false
+  },
+  "block09": {
+    "actual_request_phase_coverage": {
+      "P06": 128
+    },
+    "prefix_source": "successful_nominal",
+    "task_success": false,
+    "terminal": false
+  },
+  "block10": {
+    "run": "runs/ppo_fl_capture_quality_v1/train/20260918T0736035416312Z_g3a50657a96c9_dde3a4a5427746c6b05a1b138b92b248",
+    "lifecycle": "SUCCEEDED",
+    "lifecycle_meaning": "Training budget completed, not full task success.",
+    "actual_request_phase_coverage": {
+      "P10": 1,
+      "P11": 1,
+      "P12": 126
+    },
+    "scope": "successful_nominal_initialized_suffix",
+    "last": {
+      "global_policy_decision": 182528,
+      "phase": "P12",
+      "physics_tick": 7184,
+      "sim_time_s": 59.86666666666667,
+      "termination_reason": null,
+      "task_success": false,
+      "RR_placed_history": true,
+      "RR_current": {
+        "ground_contact": true,
+        "top_contact": false,
+        "contact_surface": "NONE",
+        "support": true,
+        "bearing_force_n": 4.5450568199157715,
+        "clearance_m": -0.050043297135025436,
+        "front_distance_m": -0.05459954993892069
+      },
+      "RL_placed_history": false
+    },
+    "note": "RR ground support is not maintained top placement; inherited historical placed flag is not current-support proof. P13 has zero learning samples."
+  },
+  "checkpoint": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fl_capture_quality_v1\\checkpoints\\history\\checkpoint_step_000182528.pt",
+    "sha256": "81f392a726b425a0bd8e004db11513a4acdb5e2413aec676f8a1b5b835ebc47e",
+    "manifest_sha256": "3e61d497dd8e44207fc8caa8d9d60539b025df3db4d15ac34231d81242d06e6a",
+    "both_file_hashes_recomputed_and_matched": true,
+    "manifest_save_load_round_trip": true,
+    "physical_env_state_saved": false,
+    "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+    "policy_version": "cap_transition_request_history_heteroscedastic_log_temperature_quarter_v1",
+    "runtime_content_sha256": "e1e2a003f6711a77c463eb743282c250c67748dc1467e819ab90d9959e2d7ca4"
+  },
+  "claim_limits": [
+    "No new actor forward, optimizer, simulation or CUDA was run for this summary.",
+    "Training captures are not fixed-checkpoint natural-P01 full success evidence.",
+    "No improved stability or favorable individual reward-gradient attribution is claimed.",
+    "The old2048 and new2048 kernel epochs are not a controlled causal comparison.",
+    "Formal fixed-CP182528 video evaluation is separate and absent from this report."
+  ]
+}

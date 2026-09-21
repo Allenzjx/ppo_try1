@@ -1,0 +1,113 @@
+{
+  "schema": "bounded_saved_P05_learning_signal.v1",
+  "source_run": "runs/ppo_fl_capture_quality_v1/train/20260918T0412242524179Z_gf2e552406ea7_541c9a6d6c8e436d811fa7bcd64a885d",
+  "runtime_commit": "f2e552406ea74a5aae2803347d1c8bebe261910d",
+  "scope": {
+    "complete_audit_rows_read": 384,
+    "analyzed_updates": [1361, 1362],
+    "global_decisions": [[178561, 178688], [178689, 178816]],
+    "unoptimized_tail_counted": false,
+    "new_policy_forwards": 0,
+    "gae_recomputed": false,
+    "raw_gae_source": "saved returns minus saved values",
+    "advantage_source": "saved official whole-rollout standardized GAE",
+    "likelihood_source": "actual official PPO log_prob call before each optimizer step",
+    "production_changed": false,
+    "physics_started": false
+  },
+  "integrity": {
+    "1361": {"actions_max_abs_error": 0, "old_mean_max_abs_error": 0, "old_sigma_max_abs_error": 0, "rewards_max_abs_error": 0, "completed_optimizer_steps": 20, "finite_nonzero_gradient_observed": true},
+    "1362": {"actions_max_abs_error": 0, "old_mean_max_abs_error": 0, "old_sigma_max_abs_error": 0, "rewards_max_abs_error": 0, "completed_optimizer_steps": 20, "finite_nonzero_gradient_observed": true}
+  },
+  "discount": {"gamma": 0.9985, "lambda": 0.99, "clock": "once per policy decision including short terminal interval"},
+  "request_phase_counts": {
+    "1361": {"P02": 41, "P03": 5, "P04": 11, "P05": 71},
+    "1362": {"P05": 14, "P06": 12, "P01": 2, "P02": 100}
+  },
+  "physical_events": {
+    "FL_qualified_tick": 1535,
+    "FL_cross_tick": 1711,
+    "FL_placed_tick": 2157,
+    "first_decision_end_with_FL_TOP_support_tick": 2160,
+    "first_contact_force_tick_not_established_by_this_decision_level_report": true,
+    "P05_to_P06_tick": 2160,
+    "P05_to_P06_sim_s": 18.0,
+    "terminal_tick": 2249,
+    "terminal_sim_s": 18.741666666666667,
+    "terminal_global_decision": 178714,
+    "terminal_kind": "BODY_COLLISION",
+    "termination_source": "BODY_CONTACT",
+    "physical_evidence_status": "VERIFIED",
+    "reason": "central body/obstacle collision",
+    "full_task_success": false,
+    "terminal_FL_contact_surface": "TOP",
+    "terminal_FL_bearing_force_N": 11.42650318145752,
+    "terminal_FL_gap_m": -0.0013167533606117318,
+    "P06_FL_supported_decision_ends": 12,
+    "P06_sample_count": 12,
+    "P06_body_angular_speed_max_rad_s": 0.8104862884287969,
+    "FR_support_absent_at_tick2160_then_present2168": true,
+    "RL_support_absent_from_sampled_tick2184": true
+  },
+  "group_means": {
+    "1361_P05": {"n": 71, "reward": 0.005241771849629823, "potential_shaping": 0.006575105442901664, "raw_gae": 0.07296836208289778, "advantage": 0.7457099588404239, "raw_gae_positive": 39, "advantage_positive": 63},
+    "1361_P05_crossed_topXY_AIR": {"n": 34, "reward": -0.0028118476398316596, "raw_gae": 0.283023946425494, "advantage": 1.0811962906052084, "raw_gae_positive": 30, "advantage_positive": 34, "gap_min_mean_max_mm": [5.312679125818246, 30.359978540185775, 64.06367988279824]},
+    "1362_P05": {"n": 14, "reward": 0.013336636695644952, "potential_shaping": 0.014669970301567577, "raw_gae": -17.230972834995814, "advantage": -1.84534752368927, "raw_gae_positive": 0, "advantage_positive": 0},
+    "1362_P06": {"n": 12, "reward": -3.525259854233203, "potential_shaping": -0.19069051071152965, "raw_gae": -19.176755746205647, "advantage": -2.1075196067492166, "raw_gae_positive": 0, "advantage_positive": 0}
+  },
+  "near_capture_samples": [
+    {"tick": 2128, "gap_mm": 23.35364148187742, "reward": 0.0013794205151498318, "phi_after": 0.41428608056975363, "raw_gae": -17.92251968383789, "advantage": -1.9385255575180054},
+    {"tick": 2136, "gap_mm": 11.74723475443403, "reward": 0.00897305365651846, "phi_after": 0.4169728172761706, "raw_gae": -17.646316528320312, "advantage": -1.9013103246688843},
+    {"tick": 2144, "gap_mm": 4.448204376295867, "reward": 0.015013016760349274, "phi_after": 0.420873397412524, "raw_gae": -17.907745361328125, "advantage": -1.9365348815917969},
+    {"tick": 2152, "gap_mm": 1.184768536072578, "reward": 0.01766401156783104, "phi_after": 0.4253108326335944, "raw_gae": -18.116308212280273, "advantage": -1.9646364450454712},
+    {"tick": 2160, "gap_mm": -0.34433005168601344, "bearing_force_N": 14.648904800415039, "reward": 0.11893908679485321, "phi_after": 0.4500403778932381, "raw_gae": -18.455751419067383, "advantage": -2.0103724002838135}
+  ],
+  "terminal_reward": {
+    "total_saved_float32": -42.31766128540039,
+    "failure_event": -40.0,
+    "potential_shaping": -2.3174958319000725,
+    "phi_before": 0.4634991663800145,
+    "phi_after": 0.0,
+    "physics_ticks": 1,
+    "time_cost": -0.00016666666666666666,
+    "done": true,
+    "bootstrap_allowed": false,
+    "raw_gae": -20.90227699279785,
+    "advantage": -2.3400137424468994
+  },
+  "actual_optimizer_usage": {
+    "1361_P05": {"uses": 355, "unique_samples": 71, "negative_advantage_uses": 40, "clipped_branch_fraction": 0.18309859154929578, "last_seen_pre_optimizer_ratio_mean": 1.0440976199969438},
+    "1362_P05": {"uses": 70, "unique_samples": 14, "negative_advantage_uses": 70, "clipped_branch_fraction": 0.35714285714285715, "last_seen_pre_optimizer_ratio_mean": 0.7870828977652958, "last_seen_ratio_lt1_count": 13},
+    "1362_P06": {"uses": 60, "unique_samples": 12, "negative_advantage_uses": 60, "clipped_branch_fraction": 0.6, "last_seen_pre_optimizer_ratio_mean": 0.6115720694263777, "last_seen_ratio_lt1_count": 12},
+    "ambiguous_indices_skipped": 0,
+    "not_final_checkpoint_reevaluation": true
+  },
+  "FL_hip_sampling": {
+    "rho": 0.9,
+    "temperature": 0.25,
+    "1361_P05": {"n": 71, "base_mean": -0.032035098811218014, "conditional_mean": 0.1984310534612184, "raw_mean": 0.23702001364403208, "effective_sigma_mean": 0.1340662689066269, "effective_sigma_max": 0.5627802610397339, "abs_tanh_ge_0_95_count": 0},
+    "1362_P05": {"n": 14, "base_mean": 0.02052876985232745, "conditional_mean": -0.19396387147051947, "raw_mean": -0.3423783928155899, "effective_sigma_mean": 0.2867028218294893, "effective_sigma_max": 1.0441985130310059, "abs_tanh_ge_0_95_count": 1},
+    "tick2152": {"base_mean": 0.12609858810901642, "conditional_mean": -0.7710649967193604, "effective_sigma": 0.6668856739997864, "raw": -2.70658540725708, "innovation": -1.9355204105377197, "projected_residual_deg": -16.631588210777494, "final_target_deg": 32.81841178922251},
+    "tick2160_conditional_mean": -2.4175710678100586,
+    "mean_formula_max_abs_error": 5.848705764144313e-8
+  },
+  "nominal_and_whole_body_caveat": {
+    "capture_FL_nominal_deg": [49.45, -37.95],
+    "capture_controller_bias_full12": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "old_probe_late_endpoint_FL_nominal_deg": [22.8, -13.4],
+    "FR_knee_nominal_deg": 48.15984197562957,
+    "FR_knee_tick2152_projected_residual_deg": 17.419701944875946,
+    "FR_knee_terminal_projected_residual_deg": 64.06663731355772,
+    "FR_knee_terminal_final_target_deg": 112.2264792891873,
+    "independent_FL_causality_established": false,
+    "fixed_hip_reward_recommended": false,
+    "full_success_or_stable_capture_proven": false
+  },
+  "interpretation": [
+    "Useful real FL approach, contact and P06 experience entered completed PPO updates.",
+    "The first P05 rollout bootstrapped before the later collision; positive normalized advantage is not proof of positive hover reward.",
+    "The next rollout contains capture and true body collision; all of those P05/P06 raw advantages are negative and phase transition did not cut credit.",
+    "Base mean, conditional HISTORY mean, sampled innovation and projected physical correction are distinct.",
+    "Retain the planned P04/P05-to-P06 continuous curriculum; this single failed capture does not justify fixed-sign hip reward or nominal changes."
+  ]
+}

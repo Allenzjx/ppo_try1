@@ -1,0 +1,2031 @@
+{
+  "schema": "wlr50_clean.saved_physical_innovation_scale.v1",
+  "source_eval": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fl_capture_quality_v1\\video_eval\\validation\\20260918T0810262817782Z_g3a50657a96c9_63b77f8309b24cd4a750cb8bbf4e3013\\source",
+  "source_train": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fl_capture_quality_v1\\train\\20260918T0833241304449Z_g3a50657a96c9_f4abda62b32041808fdc243bdac4e573",
+  "eval_fixed_checkpoint": {
+    "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fl_capture_quality_v1\\checkpoints\\history\\checkpoint_step_000182528.pt",
+    "checkpoint_sha256": "81f392a726b425a0bd8e004db11513a4acdb5e2413aec676f8a1b5b835ebc47e",
+    "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fl_capture_quality_v1\\checkpoints\\history\\checkpoint_step_000182528_manifest.json",
+    "manifest_sha256": "3e61d497dd8e44207fc8caa8d9d60539b025df3db4d15ac34231d81242d06e6a"
+  },
+  "train_scope": "First661-row sealed episode only; weights evolve at completed128-decision updates, not fixed CP counterfactual.",
+  "definition": "C*tanh(raw_sample)-C*tanh(saved_conditional_mean), same saved center/cap; UNFILTERED innovation comparison only, not final-drive counterfactual.",
+  "sigma_proxy_definition": "C*(1-tanh(mu)^2)*saved effective_sigma: local linearized physical std proxy, not measured std.",
+  "windows": {
+    "CP182528_eval_late_P05_last8": {
+      "decision_end_ticks": [
+        2712,
+        2720,
+        2728,
+        2736,
+        2744,
+        2752,
+        2760,
+        2768
+      ],
+      "scope": "same phase/cap window, not guaranteed motionless pose or fixed nominal",
+      "FR_knee": {
+        "base_mean": {
+          "count": 8,
+          "min": -0.055950649082660675,
+          "max": -0.008122366853058338,
+          "mean": -0.03027527523227036,
+          "rms": 0.034091403395061656
+        },
+        "conditional_mean": {
+          "count": 8,
+          "min": 0.08718665689229965,
+          "max": 0.303472638130188,
+          "mean": 0.18374223168939352,
+          "rms": 0.19820193079824408
+        },
+        "raw_sample": {
+          "count": 8,
+          "min": 0.07228304445743561,
+          "max": 0.34204983711242676,
+          "mean": 0.20411096047610044,
+          "rms": 0.22217909449740478
+        },
+        "effective_sigma": {
+          "count": 8,
+          "min": 0.07243996858596802,
+          "max": 0.11332029849290848,
+          "mean": 0.09174757357686758,
+          "rms": 0.09273305728685936
+        },
+        "local_physical_sigma_proxy_deg": {
+          "count": 8,
+          "min": 1.6903806313842127,
+          "max": 2.636074261031266,
+          "mean": 2.1200740929789084,
+          "rms": 2.145341070617623
+        },
+        "same_center_unfiltered_innovation_deg": {
+          "count": 8,
+          "min": -2.9495834064137947,
+          "max": 2.8832748324759914,
+          "mean": 0.45897058065154744,
+          "rms": 2.196039408719959
+        },
+        "cap_deg": 24.0,
+        "saturated_count": 0
+      },
+      "FL_hip": {
+        "base_mean": {
+          "count": 8,
+          "min": 0.19501490890979767,
+          "max": 0.27308905124664307,
+          "mean": 0.23863373138010502,
+          "rms": 0.2402151226345481
+        },
+        "conditional_mean": {
+          "count": 8,
+          "min": -0.18167619407176971,
+          "max": 0.13735921680927277,
+          "mean": 0.0184012483805418,
+          "rms": 0.10760443487032693
+        },
+        "raw_sample": {
+          "count": 8,
+          "min": -0.23068465292453766,
+          "max": 0.17787545919418335,
+          "mean": 0.001944500021636486,
+          "rms": 0.1288359529896708
+        },
+        "effective_sigma": {
+          "count": 8,
+          "min": 0.05802473425865173,
+          "max": 0.12688130140304565,
+          "mean": 0.0873517319560051,
+          "rms": 0.08993091697554309
+        },
+        "local_physical_sigma_proxy_deg": {
+          "count": 8,
+          "min": 1.0249843362869495,
+          "max": 2.210109895122644,
+          "mean": 1.5532809398650964,
+          "rms": 1.5974460762125737
+        },
+        "same_center_unfiltered_innovation_deg": {
+          "count": 8,
+          "min": -3.7462971398391742,
+          "max": 1.880368372790793,
+          "mean": -0.29257881737328273,
+          "rms": 1.996930830241358
+        },
+        "cap_deg": 18.0,
+        "saturated_count": 0
+      }
+    },
+    "CP182528_eval_first_P06_first8": {
+      "decision_end_ticks": [
+        2776,
+        2784,
+        2792,
+        2800,
+        2808,
+        2816,
+        2824,
+        2832
+      ],
+      "scope": "same phase/cap window, not guaranteed motionless pose or fixed nominal",
+      "FR_knee": {
+        "base_mean": {
+          "count": 8,
+          "min": -0.0076526436023414135,
+          "max": 0.016394609585404396,
+          "mean": 0.002140349504770711,
+          "rms": 0.008553212759223237
+        },
+        "conditional_mean": {
+          "count": 8,
+          "min": -0.07744350284337997,
+          "max": 0.10259060561656952,
+          "mean": -0.009787092101760209,
+          "rms": 0.05105847672295115
+        },
+        "raw_sample": {
+          "count": 8,
+          "min": -0.08759461343288422,
+          "max": 0.11358897387981415,
+          "mean": -0.014908978366293013,
+          "rms": 0.0570744566609207
+        },
+        "effective_sigma": {
+          "count": 8,
+          "min": 0.05618327856063843,
+          "max": 0.07833964377641678,
+          "mean": 0.06739610992372036,
+          "rms": 0.0678022960335037
+        },
+        "local_physical_sigma_proxy_deg": {
+          "count": 8,
+          "min": 6.278856443184451,
+          "max": 8.682338904309637,
+          "mean": 7.528210922295299,
+          "rms": 7.572913067836281
+        },
+        "same_center_unfiltered_innovation_deg": {
+          "count": 8,
+          "min": -11.990566765693801,
+          "max": 14.860498614042783,
+          "mean": -0.5740900853263528,
+          "rms": 7.506527369630075
+        },
+        "cap_deg": 112.0,
+        "saturated_count": 0
+      },
+      "FL_hip": {
+        "base_mean": {
+          "count": 8,
+          "min": 0.13239578902721405,
+          "max": 0.2395346313714981,
+          "mean": 0.17985991947352886,
+          "rms": 0.18289369202123
+        },
+        "conditional_mean": {
+          "count": 8,
+          "min": 0.00882437452673912,
+          "max": 0.1693514585494995,
+          "mean": 0.0853759169112891,
+          "rms": 0.09853472301909316
+        },
+        "raw_sample": {
+          "count": 8,
+          "min": -0.007354132831096649,
+          "max": 0.161941260099411,
+          "mean": 0.08270305395126343,
+          "rms": 0.10201303326637118
+        },
+        "effective_sigma": {
+          "count": 8,
+          "min": 0.043576326221227646,
+          "max": 0.06721161305904388,
+          "mean": 0.05669159255921841,
+          "rms": 0.057131614251037965
+        },
+        "local_physical_sigma_proxy_deg": {
+          "count": 8,
+          "min": 1.3802500453849413,
+          "max": 2.134207685659981,
+          "mean": 1.7962150255603422,
+          "rms": 1.8096950363639075
+        },
+        "same_center_unfiltered_innovation_deg": {
+          "count": 8,
+          "min": -3.6567801119260515,
+          "max": 2.8362313012768694,
+          "mean": -0.08749207540613624,
+          "rms": 2.220928465694714
+        },
+        "cap_deg": 32.0,
+        "saturated_count": 0
+      }
+    },
+    "block11_episode0_late_P05_last8": {
+      "decision_end_ticks": [
+        2792,
+        2800,
+        2808,
+        2816,
+        2824,
+        2832,
+        2840,
+        2848
+      ],
+      "scope": "same phase/cap window, not guaranteed motionless pose or fixed nominal",
+      "FR_knee": {
+        "base_mean": {
+          "count": 8,
+          "min": -0.06525818258523941,
+          "max": -0.04233482852578163,
+          "mean": -0.05441093351691961,
+          "rms": 0.054825394833887695
+        },
+        "conditional_mean": {
+          "count": 8,
+          "min": -0.09635812789201736,
+          "max": 0.23214368522167206,
+          "mean": 0.06465386226773262,
+          "rms": 0.13577025489141364
+        },
+        "raw_sample": {
+          "count": 8,
+          "min": -0.13373816013336182,
+          "max": 0.2651883363723755,
+          "mean": 0.042390698567032814,
+          "rms": 0.15234438893136396
+        },
+        "effective_sigma": {
+          "count": 8,
+          "min": 0.08022979646921158,
+          "max": 0.09776797890663147,
+          "mean": 0.08916818350553513,
+          "rms": 0.08935167391579048
+        },
+        "local_physical_sigma_proxy_deg": {
+          "count": 8,
+          "min": 1.9121410838758117,
+          "max": 2.3445984061206597,
+          "mean": 2.10118462179251,
+          "rms": 2.1055451600551374
+        },
+        "same_center_unfiltered_innovation_deg": {
+          "count": 8,
+          "min": -1.8732429607017589,
+          "max": 3.1079158298041243,
+          "mean": -0.5409190918979989,
+          "rms": 1.6291972577471427
+        },
+        "cap_deg": 24.0,
+        "saturated_count": 0
+      },
+      "FL_hip": {
+        "base_mean": {
+          "count": 8,
+          "min": 0.1778097152709961,
+          "max": 0.23242564499378204,
+          "mean": 0.20477758534252644,
+          "rms": 0.2056126421020687
+        },
+        "conditional_mean": {
+          "count": 8,
+          "min": -0.0026052314788103104,
+          "max": 0.23614823818206787,
+          "mean": 0.15376722323708236,
+          "rms": 0.17169868757669443
+        },
+        "raw_sample": {
+          "count": 8,
+          "min": -0.02684423327445984,
+          "max": 0.23899418115615845,
+          "mean": 0.14189007692039013,
+          "rms": 0.16764584341039332
+        },
+        "effective_sigma": {
+          "count": 8,
+          "min": 0.08587613701820374,
+          "max": 0.11151784658432007,
+          "mean": 0.09851845540106297,
+          "rms": 0.09892233618461348
+        },
+        "local_physical_sigma_proxy_deg": {
+          "count": 8,
+          "min": 1.530119148040773,
+          "max": 2.007307614426354,
+          "mean": 1.7219429033870313,
+          "rms": 1.7289451051606688
+        },
+        "same_center_unfiltered_innovation_deg": {
+          "count": 8,
+          "min": -2.452365692771538,
+          "max": 3.4751580180294703,
+          "mean": -0.21269450552448524,
+          "rms": 1.8370350866565501
+        },
+        "cap_deg": 18.0,
+        "saturated_count": 0
+      }
+    },
+    "block11_episode0_first_P06_first8": {
+      "decision_end_ticks": [
+        2856,
+        2864,
+        2872,
+        2880,
+        2888,
+        2896,
+        2904,
+        2912
+      ],
+      "scope": "same phase/cap window, not guaranteed motionless pose or fixed nominal",
+      "FR_knee": {
+        "base_mean": {
+          "count": 8,
+          "min": -0.042734257876873016,
+          "max": -0.015018186531960964,
+          "mean": -0.02684372302610427,
+          "rms": 0.02824581141933767
+        },
+        "conditional_mean": {
+          "count": 8,
+          "min": -0.03180455416440964,
+          "max": 0.07601021975278854,
+          "mean": 0.00857950875069946,
+          "rms": 0.039708631004376896
+        },
+        "raw_sample": {
+          "count": 8,
+          "min": -0.03321252018213272,
+          "max": 0.14793887734413147,
+          "mean": 0.03456981328781694,
+          "rms": 0.06813463333784878
+        },
+        "effective_sigma": {
+          "count": 8,
+          "min": 0.0666695311665535,
+          "max": 0.08630315214395523,
+          "mean": 0.07432808633893728,
+          "rms": 0.0745776637752875
+        },
+        "local_physical_sigma_proxy_deg": {
+          "count": 8,
+          "min": 7.466395734043809,
+          "max": 9.657305154631214,
+          "mean": 8.311995303571736,
+          "rms": 8.34028790312354
+        },
+        "same_center_unfiltered_innovation_deg": {
+          "count": 8,
+          "min": -2.4309000707455968,
+          "max": 11.3170993998226,
+          "mean": 2.894135287302647,
+          "rms": 5.120286265573364
+        },
+        "cap_deg": 112.0,
+        "saturated_count": 0
+      },
+      "FL_hip": {
+        "base_mean": {
+          "count": 8,
+          "min": 0.17499056458473206,
+          "max": 0.21348945796489716,
+          "mean": 0.1930692419409752,
+          "rms": 0.19345527938961035
+        },
+        "conditional_mean": {
+          "count": 8,
+          "min": 0.04537983983755112,
+          "max": 0.3103955090045929,
+          "mean": 0.23122735414654016,
+          "rms": 0.2438524190182928
+        },
+        "raw_sample": {
+          "count": 8,
+          "min": 0.22144988179206848,
+          "max": 0.32544049620628357,
+          "mean": 0.2657301165163517,
+          "rms": 0.26834500104714
+        },
+        "effective_sigma": {
+          "count": 8,
+          "min": 0.050353530794382095,
+          "max": 0.09397652000188828,
+          "mean": 0.06479907175526023,
+          "rms": 0.0661386631222498
+        },
+        "local_physical_sigma_proxy_deg": {
+          "count": 8,
+          "min": 1.4718826516735464,
+          "max": 3.0010642153899463,
+          "mean": 1.9663022932322192,
+          "rms": 2.0196617093220164
+        },
+        "same_center_unfiltered_innovation_deg": {
+          "count": 8,
+          "min": -1.2485626878251779,
+          "max": 6.00396068634339,
+          "mean": 1.0624719597585965,
+          "rms": 2.4235097565679298
+        },
+        "cap_deg": 32.0,
+        "saturated_count": 0
+      }
+    }
+  },
+  "selected": [
+    {
+      "dataset": "CP182528_stochastic_eval",
+      "tick": 2768,
+      "phase": "P05",
+      "decision_start_tick": 2760,
+      "channels": {
+        "FR_knee": {
+          "base_mean": -0.008122366853058338,
+          "conditional_mean": 0.19758856296539307,
+          "raw_sample": 0.07228304445743561,
+          "effective_sigma": 0.07321827113628387,
+          "learned_sigma": 0.2928730845451355,
+          "cap_deg": 24.0,
+          "history_center": 0.22044533491134644,
+          "previous_raw": 0.22044533491134644,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": -0.0008122366853058338,
+          "history_weighted_contribution": 0.1984008014202118,
+          "raw_innovation": -0.12530551850795746,
+          "innovation_standard_scores": -1.711396848946647,
+          "tanh_sample": 0.07215741792399917,
+          "mean_unfiltered_deg": 4.681361436589775,
+          "sample_unfiltered_deg": 1.7317780301759802,
+          "same_center_unfiltered_innovation_deg": -2.9495834064137947,
+          "local_physical_sigma_proxy_deg": 1.6903806313842127,
+          "minus_one_sigma_displacement_deg": -1.7117698510664972,
+          "plus_one_sigma_displacement_deg": 1.6636490359829335,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 45.9,
+          "mapped_N": 48.1718586094976,
+          "REQUEST": 1.731778030175981,
+          "effective": 1.731778030175981,
+          "final": 49.90363663967358,
+          "actual": 52.69092963415722,
+          "actual_timing": "physical post-step at selected tick",
+          "actuator_semantics": "canonical servo degrees"
+        },
+        "FL_hip": {
+          "base_mean": 0.2010195106267929,
+          "conditional_mean": 0.13735921680927277,
+          "raw_sample": 0.17787545919418335,
+          "effective_sigma": 0.05802473425865173,
+          "learned_sigma": 0.23209893703460693,
+          "cap_deg": 18.0,
+          "history_center": 0.1302858591079712,
+          "previous_raw": 0.1302858591079712,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.020101951062679292,
+          "history_weighted_contribution": 0.11725727319717408,
+          "raw_innovation": 0.040516242384910583,
+          "innovation_standard_scores": 0.6982581290989617,
+          "tanh_sample": 0.17602292693448715,
+          "mean_unfiltered_deg": 2.4570325727789304,
+          "sample_unfiltered_deg": 3.1684126848207685,
+          "same_center_unfiltered_innovation_deg": 0.7113801120418384,
+          "local_physical_sigma_proxy_deg": 1.0249843362869495,
+          "minus_one_sigma_displacement_deg": -1.0320003318484048,
+          "plus_one_sigma_displacement_deg": 1.0157989546043389,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 22.8,
+          "mapped_N": 22.8,
+          "REQUEST": 3.168412684820769,
+          "effective": 3.168412684820769,
+          "final": 25.96841268482077,
+          "actual": 25.329799092272467,
+          "actual_timing": "physical post-step at selected tick",
+          "actuator_semantics": "canonical servo degrees"
+        }
+      },
+      "context": {
+        "body_z_m": 0.08471410721540451,
+        "body_linear_speed_m_s": 0.02753905429117771,
+        "body_angular_speed_rad_s": 0.04423639553333712,
+        "contacts": {
+          "FL": {
+            "contact": "AIR",
+            "pair_normal_force_n": 0.0,
+            "gap_m": 0.00039365262269588225
+          },
+          "FR": {
+            "contact": "OBSTACLE",
+            "pair_normal_force_n": 12.11217467701764,
+            "gap_m": -0.00041845603029657535
+          },
+          "RL": {
+            "contact": "GROUND",
+            "pair_normal_force_n": 14.665495872497692,
+            "gap_m": -0.05013734611674715
+          },
+          "RR": {
+            "contact": "GROUND",
+            "pair_normal_force_n": 1.6342989206314236,
+            "gap_m": -0.05000103928763273
+          }
+        }
+      },
+      "physical_dispatch_verified": true
+    },
+    {
+      "dataset": "CP182528_stochastic_eval",
+      "tick": 2776,
+      "phase": "P06",
+      "decision_start_tick": 2768,
+      "channels": {
+        "FR_knee": {
+          "base_mean": -0.002259824424982071,
+          "conditional_mean": 0.013691199943423271,
+          "raw_sample": -0.007754221558570862,
+          "effective_sigma": 0.07315018773078918,
+          "learned_sigma": 0.2926007807254791,
+          "cap_deg": 112.0,
+          "history_center": 0.015463536605238914,
+          "previous_raw": 0.07228304445743561,
+          "cap_entry_gate": true,
+          "base_weighted_contribution": -0.0002259824424982071,
+          "history_weighted_contribution": 0.013917182944715023,
+          "raw_innovation": -0.021445421501994133,
+          "innovation_standard_scores": -0.2931697397813742,
+          "tanh_sample": -0.007754066147154852,
+          "mean_unfiltered_deg": 1.5333185885378149,
+          "sample_unfiltered_deg": -0.8684554084813434,
+          "same_center_unfiltered_innovation_deg": -2.4017739970191583,
+          "local_physical_sigma_proxy_deg": 8.191285481995617,
+          "minus_one_sigma_displacement_deg": -8.184888477984966,
+          "plus_one_sigma_displacement_deg": 8.168540464486169,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 45.9,
+          "mapped_N": 48.1718586094976,
+          "REQUEST": -0.8684554084813456,
+          "effective": -0.8684554084813456,
+          "final": 47.30340320101625,
+          "actual": 51.05113440312598,
+          "actual_timing": "physical post-step at selected tick",
+          "actuator_semantics": "canonical servo degrees"
+        },
+        "FL_hip": {
+          "base_mean": 0.21025125682353973,
+          "conditional_mean": 0.11042966693639755,
+          "raw_sample": -0.004291445016860962,
+          "effective_sigma": 0.05947768688201904,
+          "learned_sigma": 0.23791077733039856,
+          "cap_deg": 32.0,
+          "history_center": 0.09933837503194809,
+          "previous_raw": 0.17787545919418335,
+          "cap_entry_gate": true,
+          "base_weighted_contribution": 0.021025125682353974,
+          "history_weighted_contribution": 0.08940453752875328,
+          "raw_innovation": -0.11472111195325851,
+          "innovation_standard_scores": -1.928809238678385,
+          "tanh_sample": -0.004291418672588836,
+          "mean_unfiltered_deg": 3.5194547144032087,
+          "sample_unfiltered_deg": -0.13732539752284276,
+          "same_center_unfiltered_innovation_deg": -3.6567801119260515,
+          "local_physical_sigma_proxy_deg": 1.8802633544229563,
+          "minus_one_sigma_displacement_deg": -1.8904008399767331,
+          "plus_one_sigma_displacement_deg": 1.8658580857912956,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 22.8,
+          "mapped_N": 22.8,
+          "REQUEST": -0.13732539752284367,
+          "effective": -0.13732539752284367,
+          "final": 22.662674602477157,
+          "actual": 24.827332810885892,
+          "actual_timing": "physical post-step at selected tick",
+          "actuator_semantics": "canonical servo degrees"
+        }
+      },
+      "context": {
+        "body_z_m": 0.084231898188591,
+        "body_linear_speed_m_s": 0.06161676774810906,
+        "body_angular_speed_rad_s": 0.15081283528438963,
+        "contacts": {
+          "FL": {
+            "contact": "OBSTACLE",
+            "pair_normal_force_n": 6.595127741248839,
+            "gap_m": -3.249660547107597e-05
+          },
+          "FR": {
+            "contact": "OBSTACLE",
+            "pair_normal_force_n": 8.462106375085371,
+            "gap_m": -0.0002796110120781084
+          },
+          "RL": {
+            "contact": "GROUND",
+            "pair_normal_force_n": 8.101405143737866,
+            "gap_m": -0.05034329671018331
+          },
+          "RR": {
+            "contact": "GROUND",
+            "pair_normal_force_n": 7.339458942413397,
+            "gap_m": -0.05001271823346841
+          }
+        }
+      },
+      "physical_dispatch_verified": true
+    },
+    {
+      "dataset": "CP182528_stochastic_eval",
+      "tick": 2848,
+      "phase": "P06",
+      "decision_start_tick": 2840,
+      "channels": {
+        "FR_knee": {
+          "base_mean": 0.030597081407904625,
+          "conditional_mean": -0.06887800991535187,
+          "raw_sample": -0.027803216129541397,
+          "effective_sigma": 0.05834714323282242,
+          "learned_sigma": 0.23338860273361206,
+          "cap_deg": 112.0,
+          "history_center": -0.07993079721927643,
+          "previous_raw": -0.07993079721927643,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.0030597081407904626,
+          "history_weighted_contribution": -0.07193771749734879,
+          "raw_innovation": 0.04107479378581047,
+          "innovation_standard_scores": 0.70397266275591,
+          "tanh_sample": -0.02779605420754568,
+          "mean_unfiltered_deg": -7.702160814694114,
+          "sample_unfiltered_deg": -3.113158071245116,
+          "same_center_unfiltered_innovation_deg": 4.589002743448999,
+          "local_physical_sigma_proxy_deg": 6.503975185057214,
+          "minus_one_sigma_displacement_deg": -6.470670445666476,
+          "plus_one_sigma_displacement_deg": 6.522747344580141,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 45.9,
+          "mapped_N": 48.1718586094976,
+          "REQUEST": -3.113158071245117,
+          "effective": -3.113158071245117,
+          "final": 45.05870053825248,
+          "actual": 45.02557566828658,
+          "actual_timing": "physical post-step at selected tick",
+          "actuator_semantics": "canonical servo degrees"
+        },
+        "FL_hip": {
+          "base_mean": 0.16109110414981842,
+          "conditional_mean": 0.19134755432605743,
+          "raw_sample": 0.17755375802516937,
+          "effective_sigma": 0.04184919595718384,
+          "learned_sigma": 0.16739676892757416,
+          "cap_deg": 32.0,
+          "history_center": 0.1947093904018402,
+          "previous_raw": 0.1947093904018402,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.016109110414981843,
+          "history_weighted_contribution": 0.1752384513616562,
+          "raw_innovation": -0.013793796300888062,
+          "innovation_standard_scores": -0.3296071999806299,
+          "tanh_sample": 0.17571117573455997,
+          "mean_unfiltered_deg": 6.0494697960023345,
+          "sample_unfiltered_deg": 5.622757623505919,
+          "same_center_unfiltered_innovation_deg": -0.4267121724964156,
+          "local_physical_sigma_proxy_deg": 1.2913143729863121,
+          "minus_one_sigma_displacement_deg": -1.3008465908412195,
+          "plus_one_sigma_displacement_deg": 1.2804368860474602,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 22.8,
+          "mapped_N": 22.8,
+          "REQUEST": 5.622757623505919,
+          "effective": 5.622757623505919,
+          "final": 28.42275762350592,
+          "actual": 28.038571862376777,
+          "actual_timing": "physical post-step at selected tick",
+          "actuator_semantics": "canonical servo degrees"
+        }
+      },
+      "context": {
+        "body_z_m": 0.09518168121576309,
+        "body_linear_speed_m_s": 0.0632902623497469,
+        "body_angular_speed_rad_s": 0.10431370902860422,
+        "contacts": {
+          "FL": {
+            "contact": "AIR",
+            "pair_normal_force_n": 0.0,
+            "gap_m": 0.035302358996799885
+          },
+          "FR": {
+            "contact": "OBSTACLE",
+            "pair_normal_force_n": 11.82072162628181,
+            "gap_m": -0.0003503011028728603
+          },
+          "RL": {
+            "contact": "GROUND",
+            "pair_normal_force_n": 14.151214599609503,
+            "gap_m": -0.050117360908798696
+          },
+          "RR": {
+            "contact": "GROUND",
+            "pair_normal_force_n": 3.209714889526396,
+            "gap_m": -0.05096871462635686
+          }
+        }
+      },
+      "physical_dispatch_verified": true
+    },
+    {
+      "dataset": "CP182528_stochastic_eval",
+      "tick": 5167,
+      "phase": "P09",
+      "decision_start_tick": 5160,
+      "channels": {
+        "FR_knee": {
+          "base_mean": 0.0478605218231678,
+          "conditional_mean": -0.18348880112171173,
+          "raw_sample": -0.201865091919899,
+          "effective_sigma": 0.08115922659635544,
+          "learned_sigma": 0.32463690638542175,
+          "cap_deg": 112.0,
+          "history_center": -0.20919428765773773,
+          "previous_raw": -0.20919428765773773,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.0047860521823167804,
+          "history_weighted_contribution": -0.18827485889196396,
+          "raw_innovation": -0.018376290798187256,
+          "innovation_standard_scores": -0.22642269485367997,
+          "tanh_sample": -0.19916709205688218,
+          "mean_unfiltered_deg": -20.32317486110961,
+          "sample_unfiltered_deg": -22.306714310370804,
+          "same_center_unfiltered_innovation_deg": -1.9835394492611949,
+          "local_physical_sigma_proxy_deg": 8.79053595074658,
+          "minus_one_sigma_displacement_deg": -8.644261676455036,
+          "plus_one_sigma_displacement_deg": 8.902099374693563,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 31.1,
+          "mapped_N": 37.94093686482348,
+          "REQUEST": -22.3067143103708,
+          "effective": -22.3067143103708,
+          "final": 15.634222554452677,
+          "actual": 17.294444147428283,
+          "actual_timing": "physical post-step at selected tick",
+          "actuator_semantics": "canonical servo degrees"
+        },
+        "FL_hip": {
+          "base_mean": 0.3051389455795288,
+          "conditional_mean": 0.2369195520877838,
+          "raw_sample": 0.12489041686058044,
+          "effective_sigma": 0.06194910407066345,
+          "learned_sigma": 0.24779637157917023,
+          "cap_deg": 32.0,
+          "history_center": 0.2293396294116974,
+          "previous_raw": 0.2293396294116974,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.03051389455795288,
+          "history_weighted_contribution": 0.20640566647052766,
+          "raw_innovation": -0.11202913522720337,
+          "innovation_standard_scores": -1.8084060602299454,
+          "tanh_sample": 0.12424511171979301,
+          "mean_unfiltered_deg": 7.442689114510274,
+          "sample_unfiltered_deg": 3.9758435750333763,
+          "same_center_unfiltered_innovation_deg": -3.4668455394768976,
+          "local_physical_sigma_proxy_deg": 1.8751342925114685,
+          "minus_one_sigma_displacement_deg": -1.9000813521917443,
+          "plus_one_sigma_displacement_deg": 1.8461728693316184,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 38.6,
+          "mapped_N": 38.6,
+          "REQUEST": 3.975843575033373,
+          "effective": 3.975843575033373,
+          "final": 42.575843575033375,
+          "actual": 45.312419094115214,
+          "actual_timing": "physical post-step at selected tick",
+          "actuator_semantics": "canonical servo degrees"
+        }
+      },
+      "context": {
+        "body_z_m": 0.05966707319021225,
+        "body_linear_speed_m_s": 0.01804083458078815,
+        "body_angular_speed_rad_s": 0.16427243281592877,
+        "contacts": {
+          "FL": {
+            "contact": "AIR",
+            "pair_normal_force_n": 0.0,
+            "gap_m": 0.04765713676824039
+          },
+          "FR": {
+            "contact": "OBSTACLE",
+            "pair_normal_force_n": 14.946610450744638,
+            "gap_m": -0.0013888648993370528
+          },
+          "RL": {
+            "contact": "GROUND",
+            "pair_normal_force_n": 15.080091476440565,
+            "gap_m": -0.04998602890165406
+          },
+          "RR": {
+            "contact": "AIR",
+            "pair_normal_force_n": 0.0,
+            "gap_m": -0.0408387043400727
+          }
+        }
+      },
+      "physical_dispatch_verified": true
+    },
+    {
+      "dataset": "CP182528_stochastic_eval",
+      "tick": 5394,
+      "phase": "P09",
+      "decision_start_tick": 5392,
+      "channels": {
+        "FR_knee": {
+          "base_mean": -0.025750411674380302,
+          "conditional_mean": -0.19149841368198395,
+          "raw_sample": -0.18677015602588654,
+          "effective_sigma": 0.09180911630392075,
+          "learned_sigma": 0.36723649501800537,
+          "cap_deg": 112.0,
+          "history_center": -0.20991486310958862,
+          "previous_raw": -0.20991486310958862,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": -0.0025750411674380306,
+          "history_weighted_contribution": -0.18892337679862978,
+          "raw_innovation": 0.004728257656097412,
+          "innovation_standard_scores": 0.05150096032343021,
+          "tanh_sample": -0.1846283296844927,
+          "mean_unfiltered_deg": -21.189436224855225,
+          "sample_unfiltered_deg": -20.678372924663183,
+          "same_center_unfiltered_innovation_deg": 0.5110633001920428,
+          "local_physical_sigma_proxy_deg": 9.914571224249665,
+          "minus_one_sigma_displacement_deg": -9.718476135815951,
+          "plus_one_sigma_displacement_deg": 10.061074906249901,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 31.1,
+          "mapped_N": 37.94093686482348,
+          "REQUEST": 2.661112147782781,
+          "effective": 2.661112147782781,
+          "final": 40.60204901260626,
+          "actual": 45.69342473514126,
+          "actual_timing": "physical post-step at selected tick",
+          "actuator_semantics": "canonical servo degrees"
+        },
+        "FL_hip": {
+          "base_mean": 0.29698896408081055,
+          "conditional_mean": 0.11101147532463074,
+          "raw_sample": -0.022377684712409973,
+          "effective_sigma": 0.0902957171201706,
+          "learned_sigma": 0.36118289828300476,
+          "cap_deg": 32.0,
+          "history_center": 0.0903473049402237,
+          "previous_raw": 0.0903473049402237,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.029698896408081057,
+          "history_weighted_contribution": 0.08131257444620132,
+          "raw_innovation": -0.1333891600370407,
+          "innovation_standard_scores": -1.4772479170802637,
+          "tanh_sample": -0.02237395017155398,
+          "mean_unfiltered_deg": 3.5378461974807753,
+          "sample_unfiltered_deg": -0.7159664054897273,
+          "same_center_unfiltered_innovation_deg": -4.253812602970503,
+          "local_physical_sigma_proxy_deg": 2.8541450317454498,
+          "minus_one_sigma_displacement_deg": -2.8750367454911703,
+          "plus_one_sigma_displacement_deg": 2.8183542375002957,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 38.6,
+          "mapped_N": 38.6,
+          "REQUEST": 1.8832729883555714,
+          "effective": 1.8832729883555714,
+          "final": 40.48327298835557,
+          "actual": 42.5428798385126,
+          "actual_timing": "physical post-step at selected tick",
+          "actuator_semantics": "canonical servo degrees"
+        }
+      },
+      "context": {
+        "body_z_m": 0.05856987088918686,
+        "body_linear_speed_m_s": 0.05547438650242365,
+        "body_angular_speed_rad_s": 0.1473084559397223,
+        "contacts": {
+          "FL": {
+            "contact": "AIR",
+            "pair_normal_force_n": 0.0,
+            "gap_m": 0.04431365327570343
+          },
+          "FR": {
+            "contact": "OBSTACLE",
+            "pair_normal_force_n": 9.030498504638786,
+            "gap_m": 1.0406687201564013e-07
+          },
+          "RL": {
+            "contact": "GROUND",
+            "pair_normal_force_n": 7.752479553222726,
+            "gap_m": -0.050016191148396484
+          },
+          "RR": {
+            "contact": "GROUND",
+            "pair_normal_force_n": 37.91793441772495,
+            "gap_m": -0.050382664144852415
+          }
+        }
+      },
+      "physical_dispatch_verified": true
+    },
+    {
+      "dataset": "CP182528_stochastic_eval",
+      "tick": 6381,
+      "phase": "P09",
+      "decision_start_tick": 6376,
+      "channels": {
+        "FR_knee": {
+          "base_mean": 0.0342123806476593,
+          "conditional_mean": -0.1659787893295288,
+          "raw_sample": -0.10434302687644958,
+          "effective_sigma": 0.0661875531077385,
+          "learned_sigma": 0.26475024223327637,
+          "cap_deg": 112.0,
+          "history_center": -0.1882222443819046,
+          "previous_raw": -0.1882222443819046,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.0034212380647659305,
+          "history_weighted_contribution": -0.16940001994371415,
+          "raw_innovation": 0.061635762453079224,
+          "innovation_standard_scores": 0.9312289027024465,
+          "tanh_sample": -0.10396599167848089,
+          "mean_unfiltered_deg": -18.420776530552416,
+          "sample_unfiltered_deg": -11.64419106798986,
+          "same_center_unfiltered_innovation_deg": 6.776585462562558,
+          "local_physical_sigma_proxy_deg": 7.212478341039693,
+          "minus_one_sigma_displacement_deg": -7.1245205400193194,
+          "plus_one_sigma_displacement_deg": 7.28111089160985,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 31.1,
+          "mapped_N": 37.94093686482348,
+          "REQUEST": -16.685407354436364,
+          "effective": -16.685407354436364,
+          "final": 21.255529510387113,
+          "actual": 23.2265676019692,
+          "actual_timing": "physical post-step at selected tick",
+          "actuator_semantics": "canonical servo degrees"
+        },
+        "FL_hip": {
+          "base_mean": 0.2525058090686798,
+          "conditional_mean": 0.2919321656227112,
+          "raw_sample": 0.3030909597873688,
+          "effective_sigma": 0.05514093488454819,
+          "learned_sigma": 0.22056373953819275,
+          "cap_deg": 32.0,
+          "history_center": 0.2963128685951233,
+          "previous_raw": 0.2963128685951233,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.02525058090686798,
+          "history_weighted_contribution": 0.26668158173561096,
+          "raw_innovation": 0.011158794164657593,
+          "innovation_standard_scores": 0.20236860669884207,
+          "tanh_sample": 0.2941387102813155,
+          "mean_unfiltered_deg": 9.08519061384215,
+          "sample_unfiltered_deg": 9.412438729002096,
+          "same_center_unfiltered_innovation_deg": 0.32724811515994645,
+          "local_physical_sigma_proxy_deg": 1.622279581013531,
+          "minus_one_sigma_displacement_deg": -1.6463857676688463,
+          "plus_one_sigma_displacement_deg": 1.595681977217657,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 38.6,
+          "mapped_N": 38.6,
+          "REQUEST": 9.412438729002098,
+          "effective": 9.412438729002098,
+          "final": 48.0124387290021,
+          "actual": 47.69249413305454,
+          "actual_timing": "physical post-step at selected tick",
+          "actuator_semantics": "canonical servo degrees"
+        }
+      },
+      "context": {
+        "body_z_m": 0.022588707506656647,
+        "body_linear_speed_m_s": 0.062079981354962684,
+        "body_angular_speed_rad_s": 0.2729754010995054,
+        "contacts": {
+          "FL": {
+            "contact": "OBSTACLE",
+            "pair_normal_force_n": 5.916570663452158,
+            "gap_m": -0.0009440174221791511
+          },
+          "FR": {
+            "contact": "OBSTACLE",
+            "pair_normal_force_n": 11.171427864666972,
+            "gap_m": -0.0005906302575461458
+          },
+          "RL": {
+            "contact": "GROUND",
+            "pair_normal_force_n": 11.915192604065048,
+            "gap_m": -0.04997123928094413
+          },
+          "RR": {
+            "contact": "GROUND",
+            "pair_normal_force_n": 16.053276062011864,
+            "gap_m": -0.050108101530851115
+          }
+        }
+      },
+      "physical_dispatch_verified": true
+    },
+    {
+      "dataset": "CP182528_stochastic_eval",
+      "tick": 6600,
+      "phase": "P09",
+      "decision_start_tick": 6592,
+      "channels": {
+        "FR_knee": {
+          "base_mean": -0.07091028988361359,
+          "conditional_mean": 0.16603946685791016,
+          "raw_sample": 0.18171462416648865,
+          "effective_sigma": 0.08648880571126938,
+          "learned_sigma": 0.3459552228450775,
+          "cap_deg": 112.0,
+          "history_center": 0.19236722588539124,
+          "previous_raw": 0.19236722588539124,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": -0.007091028988361359,
+          "history_weighted_contribution": 0.17313050329685212,
+          "raw_innovation": 0.01567515730857849,
+          "innovation_standard_scores": 0.18123914626486787,
+          "tanh_sample": 0.17974060834360267,
+          "mean_unfiltered_deg": 18.42738851378376,
+          "sample_unfiltered_deg": 20.1309481344835,
+          "same_center_unfiltered_innovation_deg": 1.7035596206997377,
+          "local_physical_sigma_proxy_deg": 9.424524036323799,
+          "minus_one_sigma_displacement_deg": -9.536461398507136,
+          "plus_one_sigma_displacement_deg": 9.269517127005356,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 31.1,
+          "mapped_N": 37.94093686482348,
+          "REQUEST": 20.130948134483496,
+          "effective": 20.130948134483496,
+          "final": 58.071884999306974,
+          "actual": 61.572975932733506,
+          "actual_timing": "physical post-step at selected tick",
+          "actuator_semantics": "canonical servo degrees"
+        },
+        "FL_hip": {
+          "base_mean": 0.23042264580726624,
+          "conditional_mean": 0.5042791366577148,
+          "raw_sample": 0.5845988988876343,
+          "effective_sigma": 0.09404639899730682,
+          "learned_sigma": 0.3761856257915497,
+          "cap_deg": 32.0,
+          "history_center": 0.5347076654434204,
+          "previous_raw": 0.5347076654434204,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.023042264580726626,
+          "history_weighted_contribution": 0.4812368988990784,
+          "raw_innovation": 0.08031976222991943,
+          "innovation_standard_scores": 0.8540439940950799,
+          "tanh_sample": 0.5259999665918129,
+          "mean_unfiltered_deg": 14.895225999001752,
+          "sample_unfiltered_deg": 16.831998930938013,
+          "same_center_unfiltered_innovation_deg": 1.936772931936261,
+          "local_physical_sigma_proxy_deg": 2.357426528780965,
+          "minus_one_sigma_displacement_deg": -2.4577771244666966,
+          "plus_one_sigma_displacement_deg": 2.2521974911112466,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 38.6,
+          "mapped_N": 38.6,
+          "REQUEST": 14.23560244091339,
+          "effective": 14.23560244091339,
+          "final": 52.83560244091339,
+          "actual": 48.702897677352865,
+          "actual_timing": "physical post-step at selected tick",
+          "actuator_semantics": "canonical servo degrees"
+        }
+      },
+      "context": {
+        "body_z_m": 0.04690331965684891,
+        "body_linear_speed_m_s": 0.043965499792470907,
+        "body_angular_speed_rad_s": 0.10624680667676442,
+        "contacts": {
+          "FL": {
+            "contact": "AIR",
+            "pair_normal_force_n": 0.0,
+            "gap_m": 0.06487157924192577
+          },
+          "FR": {
+            "contact": "OBSTACLE",
+            "pair_normal_force_n": 13.09127712249772,
+            "gap_m": -1.4478684237650974e-06
+          },
+          "RL": {
+            "contact": "GROUND",
+            "pair_normal_force_n": 14.897951126098768,
+            "gap_m": -0.0505531762955415
+          },
+          "RR": {
+            "contact": "GROUND",
+            "pair_normal_force_n": 0.4632407128810925,
+            "gap_m": -0.04997854079734843
+          }
+        }
+      },
+      "physical_dispatch_verified": true
+    },
+    {
+      "dataset": "CP182528_stochastic_eval",
+      "tick": 6699,
+      "phase": "P09",
+      "decision_start_tick": 6696,
+      "channels": {
+        "FR_knee": {
+          "base_mean": -0.029783815145492554,
+          "conditional_mean": -0.015475990250706673,
+          "raw_sample": 0.01742059923708439,
+          "effective_sigma": 0.07586120814085007,
+          "learned_sigma": 0.30344486236572266,
+          "cap_deg": 112.0,
+          "history_center": -0.013886231929063797,
+          "previous_raw": -0.013886231929063797,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": -0.0029783815145492556,
+          "history_weighted_contribution": -0.012497608736157418,
+          "raw_innovation": 0.03289658948779106,
+          "innovation_standard_scores": 0.4336417820648544,
+          "tanh_sample": 0.01741883719896824,
+          "mean_unfiltered_deg": -1.733172541722412,
+          "sample_unfiltered_deg": 1.950909766284443,
+          "same_center_unfiltered_innovation_deg": 3.684082308006855,
+          "local_physical_sigma_proxy_deg": 8.494420682298035,
+          "minus_one_sigma_displacement_deg": -8.468241067164136,
+          "plus_one_sigma_displacement_deg": 8.488108598306608,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 31.1,
+          "mapped_N": 37.94093686482348,
+          "REQUEST": 2.073757498714137,
+          "effective": 2.073757498714137,
+          "final": 40.014694363537615,
+          "actual": 44.487759742850606,
+          "actual_timing": "physical post-step at selected tick",
+          "actuator_semantics": "canonical servo degrees"
+        },
+        "FL_hip": {
+          "base_mean": 0.1977260261774063,
+          "conditional_mean": 0.35554641485214233,
+          "raw_sample": 0.40740683674812317,
+          "effective_sigma": 0.07171817123889923,
+          "learned_sigma": 0.2868726849555969,
+          "cap_deg": 32.0,
+          "history_center": 0.3730820417404175,
+          "previous_raw": 0.3730820417404175,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.019772602617740633,
+          "history_weighted_contribution": 0.33577383756637574,
+          "raw_innovation": 0.051860421895980835,
+          "innovation_standard_scores": 0.7231141145976719,
+          "tanh_sample": 0.38626863853213944,
+          "mean_unfiltered_deg": 10.921125775473076,
+          "sample_unfiltered_deg": 12.360596433028462,
+          "same_center_unfiltered_innovation_deg": 1.4394706575553862,
+          "local_physical_sigma_proxy_deg": 2.0276721935252175,
+          "minus_one_sigma_displacement_deg": -2.074902022018996,
+          "plus_one_sigma_displacement_deg": 1.9759222752057575,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 38.6,
+          "mapped_N": 38.6,
+          "REQUEST": 12.360596433028462,
+          "effective": 12.360596433028462,
+          "final": 50.96059643302846,
+          "actual": 51.350880056296766,
+          "actual_timing": "physical post-step at selected tick",
+          "actuator_semantics": "canonical servo degrees"
+        }
+      },
+      "context": {
+        "body_z_m": 0.014881543815135956,
+        "body_linear_speed_m_s": 0.1279974415198963,
+        "body_angular_speed_rad_s": 0.5167022488425838,
+        "contacts": {
+          "FL": {
+            "contact": "AIR",
+            "pair_normal_force_n": 0.0,
+            "gap_m": 0.013641383995010622
+          },
+          "FR": {
+            "contact": "OBSTACLE",
+            "pair_normal_force_n": 12.339858465954126,
+            "gap_m": -0.0008465564179535728
+          },
+          "RL": {
+            "contact": "GROUND",
+            "pair_normal_force_n": 13.480736732483031,
+            "gap_m": -0.05051473933314443
+          },
+          "RR": {
+            "contact": "GROUND_AND_OBSTACLE",
+            "pair_normal_force_n": 4.75099078366491,
+            "gap_m": -0.050948367024049174
+          }
+        }
+      },
+      "physical_dispatch_verified": true
+    },
+    {
+      "dataset": "block11_episode0",
+      "tick": 2848,
+      "global_policy_decision": 182884,
+      "phase": "P05",
+      "end_phase": "P06",
+      "channels": {
+        "FR_knee": {
+          "base_mean": -0.0542263500392437,
+          "conditional_mean": -0.09635812789201736,
+          "raw_sample": -0.13373816013336182,
+          "effective_sigma": 0.08600760251283646,
+          "learned_sigma": 0.3440304398536682,
+          "cap_deg": 24.0,
+          "history_center": -0.10103943943977356,
+          "previous_raw": -0.10103943943977356,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": -0.00542263500392437,
+          "history_weighted_contribution": -0.0909354954957962,
+          "raw_innovation": -0.03738003224134445,
+          "innovation_standard_scores": -0.4346131173202457,
+          "tanh_sample": -0.1329464813538085,
+          "mean_unfiltered_deg": -2.305464156104809,
+          "sample_unfiltered_deg": -3.1907155524914037,
+          "same_center_unfiltered_innovation_deg": -0.8852513963865948,
+          "local_physical_sigma_proxy_deg": 2.0451347687886092,
+          "minus_one_sigma_displacement_deg": -2.0234303801965705,
+          "plus_one_sigma_displacement_deg": 2.057060417718114,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 45.9,
+          "mapped_N": 48.92894935942129,
+          "REQUEST": -3.1907155524914046,
+          "effective": -3.1907155524914046,
+          "final": 45.738233806929884,
+          "actual": 47.37723370518406,
+          "actual_native_rad": 0.8290736675262451,
+          "actual_timing": "pre last dispatch; canonical=logged nominal minus logged canonical error; post-step q unavailable",
+          "actuator_semantics": "canonical servo degrees, with original native rad retained"
+        },
+        "FL_hip": {
+          "base_mean": 0.1778097152709961,
+          "conditional_mean": 0.1534796953201294,
+          "raw_sample": 0.0503135547041893,
+          "effective_sigma": 0.10286098718643188,
+          "learned_sigma": 0.41144391894340515,
+          "cap_deg": 18.0,
+          "history_center": 0.15077635645866394,
+          "previous_raw": 0.15077635645866394,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.01778097152709961,
+          "history_weighted_contribution": 0.13569872081279755,
+          "raw_innovation": -0.1031661406159401,
+          "innovation_standard_scores": -1.0029666585734311,
+          "tanh_sample": 0.05027114217028885,
+          "mean_unfiltered_deg": 2.7411447565670075,
+          "sample_unfiltered_deg": 0.9048805590651993,
+          "same_center_unfiltered_innovation_deg": -1.836264197501808,
+          "local_physical_sigma_proxy_deg": 1.8085597384374865,
+          "minus_one_sigma_displacement_deg": -1.8307854012277875,
+          "plus_one_sigma_displacement_deg": 1.7745094244495352,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 22.8,
+          "mapped_N": 21.194441303284453,
+          "REQUEST": 0.904880559065198,
+          "effective": 0.904880559065198,
+          "final": 22.09932186234965,
+          "actual": 23.839894070124444,
+          "actual_native_rad": 0.4174695909023285,
+          "actual_timing": "pre last dispatch; canonical=logged nominal minus logged canonical error; post-step q unavailable",
+          "actuator_semantics": "canonical servo degrees, with original native rad retained"
+        }
+      },
+      "context": {
+        "body_z_m": null,
+        "body_linear_speed_m_s": 0.025905227926359423,
+        "body_angular_speed_rad_s": 0.09935526814996166,
+        "contacts": {
+          "FL": {
+            "air": false,
+            "support": true,
+            "top_contact": true,
+            "ground_contact": false,
+            "bearing_force_n": 5.250219345092773,
+            "clearance_m": -0.0014195788567440762
+          },
+          "FR": {
+            "air": false,
+            "support": true,
+            "top_contact": true,
+            "ground_contact": false,
+            "bearing_force_n": 10.620671272277832,
+            "clearance_m": -0.0004993578954231373
+          },
+          "RL": {
+            "air": false,
+            "support": true,
+            "top_contact": false,
+            "ground_contact": true,
+            "bearing_force_n": 12.2349271774292,
+            "clearance_m": -0.050382476312652
+          },
+          "RR": {
+            "air": false,
+            "support": true,
+            "top_contact": false,
+            "ground_contact": true,
+            "bearing_force_n": 5.467677116394043,
+            "clearance_m": -0.05009165219590934
+          }
+        },
+        "termination_reason": null
+      },
+      "physical_dispatch_verified": true
+    },
+    {
+      "dataset": "block11_episode0",
+      "tick": 2856,
+      "global_policy_decision": 182885,
+      "phase": "P06",
+      "end_phase": "P06",
+      "channels": {
+        "FR_knee": {
+          "base_mean": -0.042734257876873016,
+          "conditional_mean": -0.02992004156112671,
+          "raw_sample": -0.03321252018213272,
+          "effective_sigma": 0.08630315214395523,
+          "learned_sigma": 0.3452126085758209,
+          "cap_deg": 112.0,
+          "history_center": -0.028496241196990013,
+          "previous_raw": -0.13373816013336182,
+          "cap_entry_gate": true,
+          "base_weighted_contribution": -0.004273425787687302,
+          "history_weighted_contribution": -0.025646617077291014,
+          "raw_innovation": -0.003292478621006012,
+          "innovation_standard_scores": -0.038150154880949166,
+          "tanh_sample": -0.03320031363986283,
+          "mean_unfiltered_deg": -3.350045051134377,
+          "sample_unfiltered_deg": -3.718435127664637,
+          "same_center_unfiltered_innovation_deg": -0.3683900765302603,
+          "local_physical_sigma_proxy_deg": 9.657305154631214,
+          "minus_one_sigma_displacement_deg": -9.608657134667917,
+          "plus_one_sigma_displacement_deg": 9.658270120907053,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 45.9,
+          "mapped_N": 48.92894935942129,
+          "REQUEST": -3.718435127664634,
+          "effective": -3.718435127664634,
+          "final": 45.210514231756655,
+          "actual": 46.70125671321707,
+          "actual_native_rad": 0.8172756433486938,
+          "actual_timing": "pre last dispatch; canonical=logged nominal minus logged canonical error; post-step q unavailable",
+          "actuator_semantics": "canonical servo degrees, with original native rad retained"
+        },
+        "FL_hip": {
+          "base_mean": 0.19923289120197296,
+          "conditional_mean": 0.04537983983755112,
+          "raw_sample": 0.23733025789260864,
+          "effective_sigma": 0.09397652000188828,
+          "learned_sigma": 0.3759061098098755,
+          "cap_deg": 32.0,
+          "history_center": 0.028285058215260506,
+          "previous_raw": 0.0503135547041893,
+          "cap_entry_gate": true,
+          "base_weighted_contribution": 0.019923289120197297,
+          "history_weighted_contribution": 0.025456552393734455,
+          "raw_innovation": 0.19195041805505753,
+          "innovation_standard_scores": 2.0425359233476685,
+          "tanh_sample": 0.23297248623776484,
+          "mean_unfiltered_deg": 1.4511588732650844,
+          "sample_unfiltered_deg": 7.455119559608475,
+          "same_center_unfiltered_innovation_deg": 6.00396068634339,
+          "local_physical_sigma_proxy_deg": 3.0010642153899463,
+          "minus_one_sigma_displacement_deg": -3.0050296046968845,
+          "plus_one_sigma_displacement_deg": 2.9795996423042173,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 22.8,
+          "mapped_N": 21.194441303284453,
+          "REQUEST": 4.404880559065198,
+          "effective": 4.404880559065198,
+          "final": 25.59932186234965,
+          "actual": 23.778395046837648,
+          "actual_native_rad": 0.41639623045921326,
+          "actual_timing": "pre last dispatch; canonical=logged nominal minus logged canonical error; post-step q unavailable",
+          "actuator_semantics": "canonical servo degrees, with original native rad retained"
+        }
+      },
+      "context": {
+        "body_z_m": null,
+        "body_linear_speed_m_s": 0.016898765218101717,
+        "body_angular_speed_rad_s": 0.12227452828068071,
+        "contacts": {
+          "FL": {
+            "air": true,
+            "support": false,
+            "top_contact": false,
+            "ground_contact": false,
+            "bearing_force_n": 0.0,
+            "clearance_m": -0.0007300162007119262
+          },
+          "FR": {
+            "air": false,
+            "support": true,
+            "top_contact": true,
+            "ground_contact": false,
+            "bearing_force_n": 12.97198486328125,
+            "clearance_m": -0.00038241141978782867
+          },
+          "RL": {
+            "air": false,
+            "support": true,
+            "top_contact": false,
+            "ground_contact": true,
+            "bearing_force_n": 14.988842010498047,
+            "clearance_m": -0.05068766963680198
+          },
+          "RR": {
+            "air": false,
+            "support": true,
+            "top_contact": false,
+            "ground_contact": true,
+            "bearing_force_n": 1.2383981943130493,
+            "clearance_m": -0.050134508859757204
+          }
+        },
+        "termination_reason": null
+      },
+      "physical_dispatch_verified": true
+    },
+    {
+      "dataset": "block11_episode0",
+      "tick": 2864,
+      "global_policy_decision": 182886,
+      "phase": "P06",
+      "end_phase": "P06",
+      "channels": {
+        "FR_knee": {
+          "base_mean": -0.019132861867547035,
+          "conditional_mean": -0.03180455416440964,
+          "raw_sample": -0.014546558260917664,
+          "effective_sigma": 0.07429986447095871,
+          "learned_sigma": 0.29719945788383484,
+          "cap_deg": 112.0,
+          "history_center": -0.03321252018213272,
+          "previous_raw": -0.03321252018213272,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": -0.0019132861867547037,
+          "history_weighted_contribution": -0.02989126816391945,
+          "raw_innovation": 0.017257995903491974,
+          "innovation_standard_scores": 0.23227493113715622,
+          "tanh_sample": -0.01454553231908169,
+          "mean_unfiltered_deg": -3.5609094921766893,
+          "sample_unfiltered_deg": -1.6290996197371492,
+          "same_center_unfiltered_innovation_deg": 1.93180987243954,
+          "local_physical_sigma_proxy_deg": 8.313172963971894,
+          "minus_one_sigma_displacement_deg": -8.278389181351718,
+          "plus_one_sigma_displacement_deg": 8.31752134643488,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 45.9,
+          "mapped_N": 48.92894935942129,
+          "REQUEST": -1.629099619737147,
+          "effective": -1.629099619737147,
+          "final": 47.29984973968414,
+          "actual": 46.92249337062295,
+          "actual_native_rad": 0.8211369514465332,
+          "actual_timing": "pre last dispatch; canonical=logged nominal minus logged canonical error; post-step q unavailable",
+          "actuator_semantics": "canonical servo degrees, with original native rad retained"
+        },
+        "FL_hip": {
+          "base_mean": 0.1926172822713852,
+          "conditional_mean": 0.23285895586013794,
+          "raw_sample": 0.22144988179206848,
+          "effective_sigma": 0.06470505148172379,
+          "learned_sigma": 0.25882020592689514,
+          "cap_deg": 32.0,
+          "history_center": 0.23733025789260864,
+          "previous_raw": 0.23733025789260864,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.019261728227138522,
+          "history_weighted_contribution": 0.21359723210334777,
+          "raw_innovation": -0.011409074068069458,
+          "innovation_standard_scores": -0.1763243179134476,
+          "tanh_sample": 0.2178995380749273,
+          "mean_unfiltered_deg": 7.319663620238469,
+          "sample_unfiltered_deg": 6.972785218397673,
+          "same_center_unfiltered_innovation_deg": -0.34687840184079555,
+          "local_physical_sigma_proxy_deg": 1.9622262314352206,
+          "minus_one_sigma_displacement_deg": -1.9888880887265135,
+          "plus_one_sigma_displacement_deg": 1.9309529191878738,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 22.8,
+          "mapped_N": 21.194441303284453,
+          "REQUEST": 6.9727852183976715,
+          "effective": 6.9727852183976715,
+          "final": 28.167226521682124,
+          "actual": 25.474645206453634,
+          "actual_native_rad": 0.4460013806819916,
+          "actual_timing": "pre last dispatch; canonical=logged nominal minus logged canonical error; post-step q unavailable",
+          "actuator_semantics": "canonical servo degrees, with original native rad retained"
+        }
+      },
+      "context": {
+        "body_z_m": null,
+        "body_linear_speed_m_s": 0.049380587578933516,
+        "body_angular_speed_rad_s": 0.11391310156927562,
+        "contacts": {
+          "FL": {
+            "air": true,
+            "support": false,
+            "top_contact": false,
+            "ground_contact": false,
+            "bearing_force_n": 0.0,
+            "clearance_m": 0.005936088480988783
+          },
+          "FR": {
+            "air": false,
+            "support": true,
+            "top_contact": true,
+            "ground_contact": false,
+            "bearing_force_n": 12.179410934448242,
+            "clearance_m": -0.00030966415940006375
+          },
+          "RL": {
+            "air": false,
+            "support": true,
+            "top_contact": false,
+            "ground_contact": true,
+            "bearing_force_n": 14.17159652709961,
+            "clearance_m": -0.05097684886968053
+          },
+          "RR": {
+            "air": false,
+            "support": true,
+            "top_contact": false,
+            "ground_contact": true,
+            "bearing_force_n": 1.8443490266799927,
+            "clearance_m": -0.050171557891410055
+          }
+        },
+        "termination_reason": null
+      },
+      "physical_dispatch_verified": true
+    },
+    {
+      "dataset": "block11_episode0",
+      "tick": 2880,
+      "global_policy_decision": 182888,
+      "phase": "P06",
+      "end_phase": "P06",
+      "channels": {
+        "FR_knee": {
+          "base_mean": -0.03305764123797417,
+          "conditional_mean": -0.014675232581794262,
+          "raw_sample": -0.008222941309213638,
+          "effective_sigma": 0.08016444742679596,
+          "learned_sigma": 0.32065778970718384,
+          "cap_deg": 112.0,
+          "history_center": -0.012632743455469608,
+          "previous_raw": -0.012632743455469608,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": -0.003305764123797417,
+          "history_weighted_contribution": -0.011369469109922647,
+          "raw_innovation": 0.006452291272580624,
+          "innovation_standard_scores": 0.08048818996067658,
+          "tanh_sample": -0.008222755977999556,
+          "mean_unfiltered_deg": -1.643508067546132,
+          "sample_unfiltered_deg": -0.9209486695359503,
+          "same_center_unfiltered_innovation_deg": 0.7225593980101817,
+          "local_physical_sigma_proxy_deg": 8.976484775252237,
+          "minus_one_sigma_displacement_deg": -8.94680336880825,
+          "plus_one_sigma_displacement_deg": 8.967832178123425,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 45.9,
+          "mapped_N": 48.92894935942129,
+          "REQUEST": -0.920948669535953,
+          "effective": -0.920948669535953,
+          "final": 48.008000689885336,
+          "actual": 47.95486963348121,
+          "actual_native_rad": 0.8391553163528442,
+          "actual_timing": "pre last dispatch; canonical=logged nominal minus logged canonical error; post-step q unavailable",
+          "actuator_semantics": "canonical servo degrees, with original native rad retained"
+        },
+        "FL_hip": {
+          "base_mean": 0.21348945796489716,
+          "conditional_mean": 0.23558062314987183,
+          "raw_sample": 0.32544049620628357,
+          "effective_sigma": 0.07409390807151794,
+          "learned_sigma": 0.2963756322860718,
+          "cap_deg": 32.0,
+          "history_center": 0.2380352020263672,
+          "previous_raw": 0.2380352020263672,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.021348945796489716,
+          "history_weighted_contribution": 0.21423168182373048,
+          "raw_innovation": 0.08985987305641174,
+          "innovation_standard_scores": 1.2127835525921504,
+          "tanh_sample": 0.31441792965921117,
+          "mean_unfiltered_deg": 7.402148541669055,
+          "sample_unfiltered_deg": 10.061373749094757,
+          "same_center_unfiltered_innovation_deg": 2.6592252074257026,
+          "local_physical_sigma_proxy_deg": 2.244138220257484,
+          "minus_one_sigma_displacement_deg": -2.2790299208095766,
+          "plus_one_sigma_displacement_deg": 2.2023627233920546,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 22.8,
+          "mapped_N": 21.194441303284453,
+          "REQUEST": 10.06137374909476,
+          "effective": 10.06137374909476,
+          "final": 31.255815052379212,
+          "actual": 28.611438611085962,
+          "actual_native_rad": 0.5007487535476685,
+          "actual_timing": "pre last dispatch; canonical=logged nominal minus logged canonical error; post-step q unavailable",
+          "actuator_semantics": "canonical servo degrees, with original native rad retained"
+        }
+      },
+      "context": {
+        "body_z_m": null,
+        "body_linear_speed_m_s": 0.06523342127897518,
+        "body_angular_speed_rad_s": 0.11551039373018376,
+        "contacts": {
+          "FL": {
+            "air": true,
+            "support": false,
+            "top_contact": false,
+            "ground_contact": false,
+            "bearing_force_n": 0.0,
+            "clearance_m": 0.021499846407175657
+          },
+          "FR": {
+            "air": false,
+            "support": true,
+            "top_contact": true,
+            "ground_contact": false,
+            "bearing_force_n": 11.80976390838623,
+            "clearance_m": -0.00014775192019509525
+          },
+          "RL": {
+            "air": false,
+            "support": true,
+            "top_contact": false,
+            "ground_contact": true,
+            "bearing_force_n": 14.157838821411133,
+            "clearance_m": -0.050732733170166786
+          },
+          "RR": {
+            "air": false,
+            "support": true,
+            "top_contact": false,
+            "ground_contact": true,
+            "bearing_force_n": 2.0005505084991455,
+            "clearance_m": -0.050158175835121825
+          }
+        },
+        "termination_reason": null
+      },
+      "physical_dispatch_verified": true
+    },
+    {
+      "dataset": "block11_episode0",
+      "tick": 4960,
+      "global_policy_decision": 183148,
+      "phase": "P09",
+      "end_phase": "P09",
+      "channels": {
+        "FR_knee": {
+          "base_mean": 0.030499862506985664,
+          "conditional_mean": -0.10717439651489258,
+          "raw_sample": -0.07609245926141739,
+          "effective_sigma": 0.06163379177451134,
+          "learned_sigma": 0.24653516709804535,
+          "cap_deg": 112.0,
+          "history_center": -0.12247154116630554,
+          "previous_raw": -0.12247154116630554,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.0030499862506985667,
+          "history_weighted_contribution": -0.110224387049675,
+          "raw_innovation": 0.03108193725347519,
+          "innovation_standard_scores": 0.504300260597128,
+          "tanh_sample": -0.07594593856964711,
+          "mean_unfiltered_deg": -11.957783662741676,
+          "sample_unfiltered_deg": -8.505945119800476,
+          "same_center_unfiltered_innovation_deg": 3.4518385429412,
+          "local_physical_sigma_proxy_deg": 6.8242978127641,
+          "minus_one_sigma_displacement_deg": -6.771169122818481,
+          "plus_one_sigma_displacement_deg": 6.860759097116164,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 45.9,
+          "mapped_N": 48.92894935942129,
+          "REQUEST": -9.598839899881959,
+          "effective": -9.598839899881959,
+          "final": 39.33010945953933,
+          "actual": 39.13660364137451,
+          "actual_native_rad": 0.685247540473938,
+          "actual_timing": "pre last dispatch; canonical=logged nominal minus logged canonical error; post-step q unavailable",
+          "actuator_semantics": "canonical servo degrees, with original native rad retained"
+        },
+        "FL_hip": {
+          "base_mean": 0.21704880893230438,
+          "conditional_mean": 0.42229053378105164,
+          "raw_sample": 0.5041017532348633,
+          "effective_sigma": 0.04207668453454971,
+          "learned_sigma": 0.16830673813819885,
+          "cap_deg": 32.0,
+          "history_center": 0.4450951814651489,
+          "previous_raw": 0.4450951814651489,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.02170488089323044,
+          "history_weighted_contribution": 0.40058566331863404,
+          "raw_innovation": 0.08181121945381165,
+          "innovation_standard_scores": 1.9443361652374342,
+          "tanh_sample": 0.46533685083759185,
+          "mean_unfiltered_deg": 12.763466476098577,
+          "sample_unfiltered_deg": 14.89077922680294,
+          "same_center_unfiltered_innovation_deg": 2.1273127507043625,
+          "local_physical_sigma_proxy_deg": 1.1322492929467358,
+          "minus_one_sigma_displacement_deg": -1.150885064413373,
+          "plus_one_sigma_displacement_deg": 1.1129149383484975,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 46.1,
+          "mapped_N": 46.1,
+          "REQUEST": 14.890779226802941,
+          "effective": 14.890779226802941,
+          "final": 60.971485134733086,
+          "actual": 48.779289928124875,
+          "actual_native_rad": 0.8527441620826721,
+          "actual_timing": "pre last dispatch; canonical=logged nominal minus logged canonical error; post-step q unavailable",
+          "actuator_semantics": "canonical servo degrees, with original native rad retained"
+        }
+      },
+      "context": {
+        "body_z_m": null,
+        "body_linear_speed_m_s": 0.018115594867873158,
+        "body_angular_speed_rad_s": 0.13572545450360474,
+        "contacts": {
+          "FL": {
+            "air": true,
+            "support": false,
+            "top_contact": false,
+            "ground_contact": false,
+            "bearing_force_n": 0.0,
+            "clearance_m": 0.06324053083487573
+          },
+          "FR": {
+            "air": false,
+            "support": true,
+            "top_contact": true,
+            "ground_contact": false,
+            "bearing_force_n": 13.891542434692383,
+            "clearance_m": -0.000867560655520079
+          },
+          "RL": {
+            "air": false,
+            "support": true,
+            "top_contact": false,
+            "ground_contact": true,
+            "bearing_force_n": 15.485179901123047,
+            "clearance_m": -0.0510405411595291
+          },
+          "RR": {
+            "air": false,
+            "support": true,
+            "top_contact": false,
+            "ground_contact": true,
+            "bearing_force_n": 1.040385127067566,
+            "clearance_m": -0.04999362896915599
+          }
+        },
+        "termination_reason": null
+      },
+      "physical_dispatch_verified": true
+    },
+    {
+      "dataset": "block11_episode0",
+      "tick": 5200,
+      "global_policy_decision": 183178,
+      "phase": "P09",
+      "end_phase": "P09",
+      "channels": {
+        "FR_knee": {
+          "base_mean": -0.026060830801725388,
+          "conditional_mean": 0.11443428695201874,
+          "raw_sample": 0.12763400375843048,
+          "effective_sigma": 0.08734725415706635,
+          "learned_sigma": 0.3493890166282654,
+          "cap_deg": 112.0,
+          "history_center": 0.1300448626279831,
+          "previous_raw": 0.1300448626279831,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": -0.002606083080172539,
+          "history_weighted_contribution": 0.11704037636518479,
+          "raw_innovation": 0.013199716806411743,
+          "innovation_standard_scores": 0.15111770752033302,
+          "tanh_sample": 0.126945419035642,
+          "mean_unfiltered_deg": 12.760986126350721,
+          "sample_unfiltered_deg": 14.217886931991902,
+          "same_center_unfiltered_innovation_deg": 1.4569008056411816,
+          "local_physical_sigma_proxy_deg": 9.655893639256325,
+          "minus_one_sigma_displacement_deg": -9.72798019661198,
+          "plus_one_sigma_displacement_deg": 9.53674154017315,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 31.1,
+          "mapped_N": 33.6,
+          "REQUEST": 11.585904772009066,
+          "effective": 11.585904772009066,
+          "final": 45.18590477200907,
+          "actual": 39.82019287917148,
+          "actual_native_rad": 0.6971784234046936,
+          "actual_timing": "pre last dispatch; canonical=logged nominal minus logged canonical error; post-step q unavailable",
+          "actuator_semantics": "canonical servo degrees, with original native rad retained"
+        },
+        "FL_hip": {
+          "base_mean": 0.16398271918296814,
+          "conditional_mean": 0.09725488722324371,
+          "raw_sample": -0.06458036601543427,
+          "effective_sigma": 0.10801480710506439,
+          "learned_sigma": 0.43205922842025757,
+          "cap_deg": 32.0,
+          "history_center": 0.08984068036079407,
+          "previous_raw": 0.08984068036079407,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.016398271918296816,
+          "history_weighted_contribution": 0.08085661232471467,
+          "raw_innovation": -0.16183525323867798,
+          "innovation_standard_scores": -1.498269150092202,
+          "tanh_sample": -0.06449073540421021,
+          "mean_unfiltered_deg": 3.1023812488167266,
+          "sample_unfiltered_deg": -2.063703532934727,
+          "same_center_unfiltered_innovation_deg": -5.1660847817514535,
+          "local_physical_sigma_proxy_deg": 3.4239857770002806,
+          "minus_one_sigma_displacement_deg": -3.446685397766075,
+          "plus_one_sigma_displacement_deg": 3.375520003974173,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 38.6,
+          "mapped_N": 38.6,
+          "REQUEST": -0.9160078183887137,
+          "effective": -0.9160078183887137,
+          "final": 37.68399218161129,
+          "actual": 42.33678571049663,
+          "actual_native_rad": 0.740301251411438,
+          "actual_timing": "pre last dispatch; canonical=logged nominal minus logged canonical error; post-step q unavailable",
+          "actuator_semantics": "canonical servo degrees, with original native rad retained"
+        }
+      },
+      "context": {
+        "body_z_m": null,
+        "body_linear_speed_m_s": 0.05524988507173248,
+        "body_angular_speed_rad_s": 0.20459626406313833,
+        "contacts": {
+          "FL": {
+            "air": true,
+            "support": false,
+            "top_contact": false,
+            "ground_contact": false,
+            "bearing_force_n": 0.0,
+            "clearance_m": 0.027740316494787975
+          },
+          "FR": {
+            "air": false,
+            "support": true,
+            "top_contact": true,
+            "ground_contact": false,
+            "bearing_force_n": 9.054832458496094,
+            "clearance_m": -0.0007162478302740749
+          },
+          "RL": {
+            "air": false,
+            "support": true,
+            "top_contact": false,
+            "ground_contact": true,
+            "bearing_force_n": 14.128229141235352,
+            "clearance_m": -0.05105867377791037
+          },
+          "RR": {
+            "air": false,
+            "support": true,
+            "top_contact": false,
+            "ground_contact": true,
+            "bearing_force_n": 1.2164332866668701,
+            "clearance_m": -0.0501505758313317
+          }
+        },
+        "termination_reason": null
+      },
+      "physical_dispatch_verified": true
+    },
+    {
+      "dataset": "block11_episode0",
+      "tick": 5283,
+      "global_policy_decision": 183189,
+      "phase": "P09",
+      "end_phase": "P09",
+      "channels": {
+        "FR_knee": {
+          "base_mean": -0.07204516232013702,
+          "conditional_mean": -0.09561000019311905,
+          "raw_sample": 0.21049970388412476,
+          "effective_sigma": 0.1629277765750885,
+          "learned_sigma": 0.6517111659049988,
+          "cap_deg": 112.0,
+          "history_center": -0.09822831302881241,
+          "previous_raw": -0.09822831302881241,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": -0.007204516232013703,
+          "history_weighted_contribution": -0.08840548172593117,
+          "raw_innovation": 0.3061097040772438,
+          "innovation_standard_scores": 1.8788061220252832,
+          "tanh_sample": 0.2074447492304253,
+          "mean_unfiltered_deg": -10.675809668369073,
+          "sample_unfiltered_deg": 23.233811913807635,
+          "same_center_unfiltered_innovation_deg": 33.90962158217671,
+          "local_physical_sigma_proxy_deg": 18.082113180390206,
+          "minus_one_sigma_displacement_deg": -17.652054436383303,
+          "plus_one_sigma_displacement_deg": 18.204032217813804,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 31.1,
+          "mapped_N": 33.6,
+          "REQUEST": -3.3397003001013097,
+          "effective": -3.3397003001013097,
+          "final": 30.26029969989869,
+          "actual": 31.83065764472452,
+          "actual_native_rad": 0.5577347278594971,
+          "actual_timing": "pre last dispatch; canonical=logged nominal minus logged canonical error; post-step q unavailable",
+          "actuator_semantics": "canonical servo degrees, with original native rad retained"
+        },
+        "FL_hip": {
+          "base_mean": 0.3187426030635834,
+          "conditional_mean": -0.7202875018119812,
+          "raw_sample": -0.34208953380584717,
+          "effective_sigma": 0.5341020226478577,
+          "learned_sigma": 2.1364080905914307,
+          "cap_deg": 32.0,
+          "history_center": -0.8357353210449219,
+          "previous_raw": -0.8357353210449219,
+          "cap_entry_gate": false,
+          "base_weighted_contribution": 0.031874260306358336,
+          "history_weighted_contribution": -0.7521617889404297,
+          "raw_innovation": 0.37819796800613403,
+          "innovation_standard_scores": 0.7081006099381245,
+          "tanh_sample": -0.3293415656729315,
+          "mean_unfiltered_deg": -19.746795408054567,
+          "sample_unfiltered_deg": -10.538930101533808,
+          "same_center_unfiltered_innovation_deg": 9.207865306520759,
+          "local_physical_sigma_proxy_deg": 10.58296571467146,
+          "minus_one_sigma_displacement_deg": -7.437523111632185,
+          "plus_one_sigma_displacement_deg": 13.856762698932847,
+          "raw_tanh_saturated_abs_ge_point95": false,
+          "nominal": 38.6,
+          "mapped_N": 38.6,
+          "REQUEST": -15.77500151683553,
+          "effective": -15.77500151683553,
+          "final": 22.82499848316447,
+          "actual": 23.156953700298626,
+          "actual_native_rad": 0.4055500328540802,
+          "actual_timing": "pre last dispatch; canonical=logged nominal minus logged canonical error; post-step q unavailable",
+          "actuator_semantics": "canonical servo degrees, with original native rad retained"
+        }
+      },
+      "context": {
+        "body_z_m": null,
+        "body_linear_speed_m_s": 0.1034202725616492,
+        "body_angular_speed_rad_s": 0.38282735867657186,
+        "contacts": {
+          "FL": {
+            "air": true,
+            "support": false,
+            "top_contact": false,
+            "ground_contact": false,
+            "bearing_force_n": 0.0,
+            "clearance_m": 0.07587296542535847
+          },
+          "FR": {
+            "air": false,
+            "support": true,
+            "top_contact": true,
+            "ground_contact": false,
+            "bearing_force_n": 9.971077919006348,
+            "clearance_m": -0.0015471941585497376
+          },
+          "RL": {
+            "air": false,
+            "support": true,
+            "top_contact": false,
+            "ground_contact": true,
+            "bearing_force_n": 8.49836540222168,
+            "clearance_m": -0.05023533556552858
+          },
+          "RR": {
+            "air": true,
+            "support": false,
+            "top_contact": false,
+            "ground_contact": false,
+            "bearing_force_n": 0.0,
+            "clearance_m": -0.04849928737549707
+          }
+        },
+        "termination_reason": "BODY_COLLISION"
+      },
+      "physical_dispatch_verified": true
+    }
+  ],
+  "exact_cap_multipliers_for_identical_raw_kernel": {
+    "FR_knee_P05_to_P06": 4.666666666666667,
+    "FL_hip_P05_to_P06": 1.7777777777777777
+  },
+  "limits": [
+    "No new actor forward, optimizer, simulator, CUDA or production change.",
+    "Negative conditional means can predominantly reflect accumulated HISTORY rather than the current base head or current innovation.",
+    "Filtered REQUEST/final may have different signs from the current unfiltered sample due to rate-limit/history.",
+    "Body/support coupling is observed, not a noise-only causal experiment.",
+    "No inference about active block12. No frequency claims or global audit."
+  ]
+}

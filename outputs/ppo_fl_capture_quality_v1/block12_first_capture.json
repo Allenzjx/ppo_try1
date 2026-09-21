@@ -1,0 +1,532 @@
+{
+  "schema": "wlr50_clean.block12_first_capture.v1",
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fl_capture_quality_v1\\train\\20260918T0909562623513Z_g3a50657a96c9_d0f934ba1eae46958f7c8b880fdac987",
+  "read_boundary": "first completed prefix + first86 learner rows through tick3896 + first optimizer receipt only",
+  "learner_first86_lines_sha256": "1746adacdd9ffe7730d6742cbd90168454b69163e14a981e4974aae36ab3a9cb",
+  "checks": {
+    "prefix_accepted_no_fallback": true,
+    "prefix_401_decisions_to_P05_tick3208": true,
+    "prefix_all_credit_false": true,
+    "prefix_storage_excluded": true,
+    "first_real_credit_183553": true,
+    "exact_raw_history_continuity": true,
+    "source_checkpoint_and_actor_provenance_match": true,
+    "collected_before_first128_update": true,
+    "actual_first_optimizer_after_capture": true,
+    "first_optimizer_before_actor_hash_is_source": true
+  },
+  "source_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fl_capture_quality_v1\\checkpoints\\history\\checkpoint_step_000183552.pt",
+  "source_checkpoint_sha256": "9f42f6eff0795eefa857756d4746a4170167966606e6ff3b5c231f2a7420fb7d",
+  "prefix_result": {
+    "kind": "checkpoint_prefix_result",
+    "policy_credit": false,
+    "request": {
+      "schema": "wlr50_clean.checkpoint_policy_prefix_request.v1",
+      "source": "frozen_checkpoint_policy",
+      "target_phase": "P05",
+      "teacher_offset_decisions": 200,
+      "maximum_prefix_decisions": 1800,
+      "fallback": "one_fresh_P01",
+      "task_horizon_includes_prefix": true,
+      "entry_is_exact_historical_snapshot": false,
+      "ordinary_phase_transitions_end_episode": false
+    },
+    "prefix_decisions": 401,
+    "prefix_physics_ticks": 3208,
+    "accepted": true,
+    "miss": null,
+    "target_first_observed_decision": 201
+  },
+  "prefix_credit": 0,
+  "prefix_end_tick": 3208,
+  "first_learner_global": 183553,
+  "capture": {
+    "physics_tick": 3748,
+    "time_s": 31.233333333333334,
+    "within_credited_sample": 68,
+    "global_policy_decision": 183620,
+    "P06_entry_tick": 3752,
+    "new_optimizer_updates_before_capture": 0
+  },
+  "first_optimizer_receipt": {
+    "ppo_update": 1400,
+    "global_policy_decisions": 183680,
+    "optimizer_steps": 20,
+    "actor_parameter_sha256_before": "64fafe1528193f3e635c2b8854fcebed5cb8d62fdf898b4a01efecbc48d27fb7",
+    "actor_parameter_sha256_after": "018478484f96365d3cc0646ba8da36a881b4074c9d49332a52f7feb2731eab18"
+  },
+  "previous_fixed_eval_entry": {
+    "seed": 4001,
+    "tick": 3208,
+    "FL_gap_mm": 24.99035950502064,
+    "FL_front_mm": 103.05005652737265,
+    "FL_contact": "AIR",
+    "prefix_last_raw_equals_eval_raw": true,
+    "prefix_last_final_equals_eval_final": true
+  },
+  "samples": [
+    {
+      "credited_sample": 1,
+      "global_policy_decision": 183553,
+      "end_tick": 3216,
+      "phase": "P05",
+      "end_phase": "P05",
+      "reward": 0.0328371562063694,
+      "terminal": false,
+      "FL_hip_knee": {
+        "base_mean": [
+          0.24195678532123566,
+          -0.06392309069633484
+        ],
+        "conditional_mean": [
+          0.24131149053573608,
+          -0.0635671317577362
+        ],
+        "raw_sample": [
+          0.1835390329360962,
+          -0.055811889469623566
+        ],
+        "filtered_request_deg": [
+          3.267098924594489,
+          -1.3380962604751119
+        ],
+        "effective_residual_deg": [
+          3.267098924594489,
+          -1.3380962604751119
+        ],
+        "nominal_deg": [
+          22.8,
+          -13.4
+        ],
+        "mapped_baseline_deg": [
+          22.20772573063825,
+          -12.15
+        ],
+        "final_deg": [
+          25.474824655232737,
+          -13.488096260475112
+        ],
+        "measured_native_before_last_dispatch_rad": [
+          0.4651412069797516,
+          -0.2367955893278122
+        ],
+        "derived_measured_canonical_before_last_dispatch_deg": [
+          26.571276473928787,
+          -13.594231876601562
+        ],
+        "canonical_derivation": "logged nominal minus logged current_actual_canonical_error; pre-dispatch, not post-step actual",
+        "actual_post_step_deg": null
+      },
+      "contacts": {
+        "FL": {
+          "air": true,
+          "top_contact": false,
+          "ground_contact": false,
+          "support": false,
+          "bearing_force_n": 0.0,
+          "clearance_m": 0.023496756549013342,
+          "front_distance_m": 0.10390329701733236
+        },
+        "FR": {
+          "air": false,
+          "top_contact": true,
+          "ground_contact": false,
+          "support": true,
+          "bearing_force_n": 12.245341300964355,
+          "clearance_m": -4.4952135285658557e-05,
+          "front_distance_m": 0.20127433879208212
+        },
+        "RL": {
+          "air": false,
+          "top_contact": false,
+          "ground_contact": true,
+          "support": true,
+          "bearing_force_n": 14.534008026123047,
+          "clearance_m": -0.050100966646577164,
+          "front_distance_m": -0.4910197372930085
+        },
+        "RR": {
+          "air": false,
+          "top_contact": false,
+          "ground_contact": true,
+          "support": true,
+          "bearing_force_n": 1.8898059129714966,
+          "clearance_m": -0.04999663083069203,
+          "front_distance_m": -0.47740084709692354
+        }
+      },
+      "historical_FL_placed": false,
+      "FL_placed_tick": null,
+      "all_physical_ticks_verified": true,
+      "endpoint_dispatch_verified": true,
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "clipped_servo_indices": [],
+      "sample_mode": "training_style_conditional_gaussian",
+      "extra_model_forwards": 0,
+      "extra_random_draws": 0
+    },
+    {
+      "credited_sample": 67,
+      "global_policy_decision": 183619,
+      "end_tick": 3744,
+      "phase": "P05",
+      "end_phase": "P05",
+      "reward": 0.03262954577803612,
+      "terminal": false,
+      "FL_hip_knee": {
+        "base_mean": [
+          0.2169983834028244,
+          -0.09407538175582886
+        ],
+        "conditional_mean": [
+          0.07510411739349365,
+          -0.04543333500623703
+        ],
+        "raw_sample": [
+          -0.2406415343284607,
+          0.024748660624027252
+        ],
+        "filtered_request_deg": [
+          -2.9331661463394845,
+          0.5938466169944583
+        ],
+        "effective_residual_deg": [
+          -2.9331661463394845,
+          0.5938466169944583
+        ],
+        "nominal_deg": [
+          22.8,
+          -13.4
+        ],
+        "mapped_baseline_deg": [
+          19.409321570687627,
+          -12.15
+        ],
+        "final_deg": [
+          16.476155424348143,
+          -11.556153383005542
+        ],
+        "measured_native_before_last_dispatch_rad": [
+          0.38286954164505005,
+          -0.20617888867855072
+        ],
+        "derived_measured_canonical_before_last_dispatch_deg": [
+          21.85745727673763,
+          -11.840024146783431
+        ],
+        "canonical_derivation": "logged nominal minus logged current_actual_canonical_error; pre-dispatch, not post-step actual",
+        "actual_post_step_deg": null
+      },
+      "contacts": {
+        "FL": {
+          "air": true,
+          "top_contact": false,
+          "ground_contact": false,
+          "support": false,
+          "bearing_force_n": 0.0,
+          "clearance_m": 0.001676717635446287,
+          "front_distance_m": 0.1240356002552474
+        },
+        "FR": {
+          "air": false,
+          "top_contact": true,
+          "ground_contact": false,
+          "support": true,
+          "bearing_force_n": 11.324073791503906,
+          "clearance_m": -0.000234354754718058,
+          "front_distance_m": 0.22772711856197958
+        },
+        "RL": {
+          "air": false,
+          "top_contact": false,
+          "ground_contact": true,
+          "support": true,
+          "bearing_force_n": 14.236908912658691,
+          "clearance_m": -0.05005106594647265,
+          "front_distance_m": -0.46604712711739893
+        },
+        "RR": {
+          "air": false,
+          "top_contact": false,
+          "ground_contact": true,
+          "support": true,
+          "bearing_force_n": 2.667591094970703,
+          "clearance_m": -0.05014504950048211,
+          "front_distance_m": -0.4520996327893769
+        }
+      },
+      "historical_FL_placed": false,
+      "FL_placed_tick": null,
+      "all_physical_ticks_verified": true,
+      "endpoint_dispatch_verified": true,
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "clipped_servo_indices": [],
+      "sample_mode": "training_style_conditional_gaussian",
+      "extra_model_forwards": 0,
+      "extra_random_draws": 0
+    },
+    {
+      "credited_sample": 68,
+      "global_policy_decision": 183620,
+      "end_tick": 3752,
+      "phase": "P05",
+      "end_phase": "P06",
+      "reward": 0.20547501742839813,
+      "terminal": false,
+      "FL_hip_knee": {
+        "base_mean": [
+          0.2170083373785019,
+          -0.1050933375954628
+        ],
+        "conditional_mean": [
+          -0.1948765516281128,
+          0.011764460243284702
+        ],
+        "raw_sample": [
+          -0.3467729389667511,
+          -0.12696686387062073
+        ],
+        "filtered_request_deg": [
+          -6.003189367014162,
+          -3.0309353928724843
+        ],
+        "effective_residual_deg": [
+          -6.003189367014162,
+          -3.0309353928724843
+        ],
+        "nominal_deg": [
+          22.8,
+          -13.4
+        ],
+        "mapped_baseline_deg": [
+          18.159321570687627,
+          -12.15
+        ],
+        "final_deg": [
+          12.156132203673465,
+          -15.180935392872485
+        ],
+        "measured_native_before_last_dispatch_rad": [
+          0.33124232292175293,
+          -0.21351300179958344
+        ],
+        "derived_measured_canonical_before_last_dispatch_deg": [
+          18.89943553589392,
+          -12.260237875090127
+        ],
+        "canonical_derivation": "logged nominal minus logged current_actual_canonical_error; pre-dispatch, not post-step actual",
+        "actual_post_step_deg": null
+      },
+      "contacts": {
+        "FL": {
+          "air": false,
+          "top_contact": true,
+          "ground_contact": false,
+          "support": true,
+          "bearing_force_n": 11.433995246887207,
+          "clearance_m": -0.0016473588772432657,
+          "front_distance_m": 0.11931276662182455
+        },
+        "FR": {
+          "air": false,
+          "top_contact": true,
+          "ground_contact": false,
+          "support": true,
+          "bearing_force_n": 4.809380531311035,
+          "clearance_m": -0.0002842985904358275,
+          "front_distance_m": 0.23044759375881796
+        },
+        "RL": {
+          "air": false,
+          "top_contact": false,
+          "ground_contact": true,
+          "support": true,
+          "bearing_force_n": 2.6473376750946045,
+          "clearance_m": -0.050127533111017836,
+          "front_distance_m": -0.4652772027449643
+        },
+        "RR": {
+          "air": false,
+          "top_contact": false,
+          "ground_contact": true,
+          "support": true,
+          "bearing_force_n": 12.289809226989746,
+          "clearance_m": -0.05014992036213432,
+          "front_distance_m": -0.45167479323315973
+        }
+      },
+      "historical_FL_placed": true,
+      "FL_placed_tick": 3748,
+      "all_physical_ticks_verified": true,
+      "endpoint_dispatch_verified": true,
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "clipped_servo_indices": [],
+      "sample_mode": "training_style_conditional_gaussian",
+      "extra_model_forwards": 0,
+      "extra_random_draws": 0
+    },
+    {
+      "credited_sample": 86,
+      "global_policy_decision": 183638,
+      "end_tick": 3896,
+      "phase": "P06",
+      "end_phase": "P06",
+      "reward": 0.03428160399198532,
+      "terminal": false,
+      "FL_hip_knee": {
+        "base_mean": [
+          0.209254190325737,
+          -0.05914564058184624
+        ],
+        "conditional_mean": [
+          0.3131926655769348,
+          -0.10889610648155212
+        ],
+        "raw_sample": [
+          0.3015604615211487,
+          -0.15611885488033295
+        ],
+        "filtered_request_deg": [
+          9.367679950219763,
+          -5.575058389282878
+        ],
+        "effective_residual_deg": [
+          9.367679950219763,
+          -5.575058389282878
+        ],
+        "nominal_deg": [
+          22.8,
+          -13.4
+        ],
+        "mapped_baseline_deg": [
+          18.159321570687627,
+          -12.15
+        ],
+        "final_deg": [
+          27.52700152090739,
+          -17.72505838928288
+        ],
+        "measured_native_before_last_dispatch_rad": [
+          0.4861191213130951,
+          -0.2864428758621216
+        ],
+        "derived_measured_canonical_before_last_dispatch_deg": [
+          27.773222428216364,
+          -16.438811859294177
+        ],
+        "canonical_derivation": "logged nominal minus logged current_actual_canonical_error; pre-dispatch, not post-step actual",
+        "actual_post_step_deg": null
+      },
+      "contacts": {
+        "FL": {
+          "air": true,
+          "top_contact": false,
+          "ground_contact": false,
+          "support": false,
+          "bearing_force_n": 0.0,
+          "clearance_m": 0.002449548319061204,
+          "front_distance_m": 0.13062197310757284
+        },
+        "FR": {
+          "air": false,
+          "top_contact": true,
+          "ground_contact": false,
+          "support": true,
+          "bearing_force_n": 10.845791816711426,
+          "clearance_m": -4.5003567374149456e-06,
+          "front_distance_m": 0.26888501984905844
+        },
+        "RL": {
+          "air": false,
+          "top_contact": false,
+          "ground_contact": true,
+          "support": true,
+          "bearing_force_n": 14.738605499267578,
+          "clearance_m": -0.050206146315393864,
+          "front_distance_m": -0.44659234242606516
+        },
+        "RR": {
+          "air": false,
+          "top_contact": false,
+          "ground_contact": true,
+          "support": true,
+          "bearing_force_n": 3.0000557899475098,
+          "clearance_m": -0.05068691696964586,
+          "front_distance_m": -0.4502671997444665
+        }
+      },
+      "historical_FL_placed": true,
+      "FL_placed_tick": 3748,
+      "all_physical_ticks_verified": true,
+      "endpoint_dispatch_verified": true,
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "clipped_servo_indices": [],
+      "sample_mode": "training_style_conditional_gaussian",
+      "extra_model_forwards": 0,
+      "extra_random_draws": 0
+    }
+  ],
+  "missing": [
+    "The prefix outcome does not contain FL geometry at tick3208. Actual first learner endpoint tick3216 is recorded; 24.990mm is from the separately sealed same-CP deterministic eval, not fabricated prefix sensing.",
+    "Training logs here retain native joint measurement before last dispatch, not post-step canonical actual q. It is explicitly separate from endpoint contact/gap."
+  ],
+  "limits": [
+    "Random closed-loop recovery from an unplaced P05 entry, not learned mean improvement or full-task success.",
+    "No single hip causal attribution; all12 channels and body/support evolve.",
+    "FL later AIR at tick3896 despite historical placed; no continuous support claim.",
+    "First optimizer subsequently completed while this bounded read ran; capture chronologically preceded it."
+  ],
+  "new_forward_optimizer_simulation_cuda_production_write": false
+}

@@ -1,0 +1,91 @@
+{
+  "schema": "wlr50_clean.front_quality_initial_budget.v1",
+  "beta_max_per_s": 0.03,
+  "transfer_floor": 0.5,
+  "attitude_scale_rad": 0.5,
+  "euler_rate_scale_rad_s": 0.5,
+  "tilt_fraction": 0.5,
+  "rate_fraction": 0.5,
+  "no_new_physical_trajectory_generated": true,
+  "references_are_descriptive_different_RR_versions": true,
+  "trajectories": {
+    "N_ref": {
+      "sealed_source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_non_residual_refine_v1\\video_eval\\prior_B\\20260917T0424208857504Z_g6c2121b68654_13804a86a302480ab61ad2af0dcb8dcd\\source",
+      "FR_event_window": {
+        "complete": true,
+        "start_tick": 0,
+        "end_tick": 1502,
+        "duration_s": 12.516666666666667,
+        "physical_samples": 1503,
+        "adjacent_rate_samples": 1502,
+        "rate_rms_rad_s": 0.11788939921153936,
+        "tilt_peak_rad": 0.30946430168919103
+      },
+      "eligible_current_phase_samples": 1471,
+      "eligible_physics_duration_s": 12.258333333333333,
+      "P01_P02_raw_integral_s": 1.2003614360441737,
+      "half_tilt_integral_s": 1.0806626822147742,
+      "half_rate_integral_s": 0.11969875382939868,
+      "prospective_new_quality_cost_bounds": [
+        0.018005421540662606,
+        0.03601084308132521
+      ],
+      "prospective_discounted_cost_bounds": [
+        0.015835448910613014,
+        0.03167089782122603
+      ],
+      "endpoint_transfer_fraction_proxy_cost_not_exact": 0.01827334529103996,
+      "original_actual_P01_P02_request_decision_reward": {
+        "positive_potential_sum": 1.8982967156156376,
+        "negative_potential_sum": -1.3635916796110512,
+        "time_cost_sum": 0.24533333333333285,
+        "terminal_event_sum": 0.0,
+        "net_task_reward_sum": 0.28937170267125095
+      },
+      "quality_upper_bound_over_recorded_positive_potential_sum": 0.018970081328748712,
+      "old_actual_quality_weight_was_zero": true,
+      "new_reward_was_not_used_by_this_policy": true,
+      "does_not_establish_new_policy_return_or_learning_improvement": true,
+      "bound_reason": "Exact 120 Hz pose/rate integral; transfer fraction only logged at 15 Hz endpoints. New beta is bounded .015..03 independently of substate. P01/P02 task totals use whole requested decision intervals and may include the final transition sample."
+    },
+    "CP178432": {
+      "sealed_source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_residual_rr_fix_v1\\video_eval\\validation\\20260917T0510347247858Z_g6c2121b68654_35383f247031424e9b890de765bc2b13\\source",
+      "FR_event_window": {
+        "complete": true,
+        "start_tick": 0,
+        "end_tick": 1425,
+        "duration_s": 11.875,
+        "physical_samples": 1426,
+        "adjacent_rate_samples": 1425,
+        "rate_rms_rad_s": 0.11899694740488702,
+        "tilt_peak_rad": 0.31695654497557385
+      },
+      "eligible_current_phase_samples": 1391,
+      "eligible_physics_duration_s": 11.591666666666667,
+      "P01_P02_raw_integral_s": 1.1989974847598552,
+      "half_tilt_integral_s": 1.072328676744303,
+      "half_rate_integral_s": 0.12666880801555172,
+      "prospective_new_quality_cost_bounds": [
+        0.017984962271397828,
+        0.035969924542795656
+      ],
+      "prospective_discounted_cost_bounds": [
+        0.015933932275564024,
+        0.03186786455112805
+      ],
+      "endpoint_transfer_fraction_proxy_cost_not_exact": 0.017985703568243475,
+      "original_actual_P01_P02_request_decision_reward": {
+        "positive_potential_sum": 0.7674499929185787,
+        "negative_potential_sum": -0.1998150479089615,
+        "time_cost_sum": 0.2319999999999996,
+        "terminal_event_sum": 0.0,
+        "net_task_reward_sum": 0.33563494500961594
+      },
+      "quality_upper_bound_over_recorded_positive_potential_sum": 0.04686940500970442,
+      "old_actual_quality_weight_was_zero": true,
+      "new_reward_was_not_used_by_this_policy": true,
+      "does_not_establish_new_policy_return_or_learning_improvement": true,
+      "bound_reason": "Exact 120 Hz pose/rate integral; transfer fraction only logged at 15 Hz endpoints. New beta is bounded .015..03 independently of substate. P01/P02 task totals use whole requested decision intervals and may include the final transition sample."
+    }
+  }
+}

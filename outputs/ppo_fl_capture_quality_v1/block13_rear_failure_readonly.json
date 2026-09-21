@@ -1,0 +1,5602 @@
+{
+  "schema": "wlr50_clean.block13_two_rear_failures_bounded_readonly.v1",
+  "run": "runs/ppo_fl_capture_quality_v1/train/20260918T0953571182841Z_ge73542cb57ad_fb762812ab4e4b52a77c8707d38e5d38",
+  "source_runtime_commit": "e73542cb57ad",
+  "scope": {
+    "training_row_limit": 679,
+    "last_training_global_decision_read": 184999,
+    "representative_decisions_per_episode": 3,
+    "active_third_episode_or_prefix_read": false,
+    "production_edits": false,
+    "simulator_or_optimizer_called": false,
+    "independent_policy_forward": false
+  },
+  "episode_summary": [
+    {
+      "episode_index": 0,
+      "learner_decisions": 439,
+      "selected_global_decisions": [
+        184705,
+        184758,
+        184759
+      ],
+      "FL_placed_tick": 5415,
+      "terminal_global_decision": 184759,
+      "terminal_tick": 6694,
+      "termination": "TASK_FAILURE_BODY_COLLISION",
+      "RR_crossed": false,
+      "RR_placed": false
+    },
+    {
+      "episode_index": 1,
+      "learner_decisions": 240,
+      "selected_global_decisions": [
+        184958,
+        184998,
+        184999
+      ],
+      "FL_placed_tick": 3230,
+      "terminal_global_decision": 184999,
+      "terminal_tick": 5098,
+      "termination": "TASK_FAILURE_BODY_COLLISION",
+      "RR_crossed": false,
+      "RR_placed": false
+    }
+  ],
+  "canonical_order": [
+    "front_left_hip",
+    "front_left_knee",
+    "front_right_hip",
+    "front_right_knee",
+    "rear_left_hip",
+    "rear_left_knee",
+    "rear_right_hip",
+    "rear_right_knee",
+    "front_left_ankle",
+    "front_right_ankle",
+    "rear_left_ankle",
+    "rear_right_ankle"
+  ],
+  "unit_and_time_rules": {
+    "first8": "canonical joint degrees except explicit *_physical_rad and native_target fields",
+    "last4": "canonical wheel target rad/s; evaluator reported wheel velocity order FL FR RL RR retained; native dispatch wheel-axis signs separately in actual_native_targets",
+    "predispatch_actual": "derived exactly from logged per-channel nominal_deg minus current_actual_canonical_error_deg; original measured physical radians retained; before final dispatch/step, not endpoint q",
+    "endpoint_contacts": "actual physical evaluator snapshot at end_tick, later than predisptach joint sample",
+    "same_tick_counterfactual": "only recorded actual_native_targets vs counterfactual_native_targets/native_target_delta use identical pre-tick state. Geometry native N vs final is shown as execution accounting, not a closed-loop zero-policy counterfactual",
+    "B_comparison": "separate actual zero trajectory, event aligned; never same-state or same-tick residual effect"
+  },
+  "selected_training_decisions": [
+    {
+      "label": "first_P09_request",
+      "global_policy_decision": 184705,
+      "terminal": false,
+      "phase": "P09",
+      "end_phase": "P09",
+      "end_tick": 6264,
+      "time_s": 52.199999999999996,
+      "dispatch_tick": 6443,
+      "request": {
+        "base_mean_full12": [
+          0.19925393164157867,
+          -0.16138435900211334,
+          0.08513431996107101,
+          0.023781998082995415,
+          -0.2553020417690277,
+          0.21142658591270447,
+          0.41220003366470337,
+          -0.3132961094379425,
+          0.07389524579048157,
+          0.05857882648706436,
+          0.20386947691440582,
+          -0.20270997285842896
+        ],
+        "conditional_mean_full12": [
+          0.14400741457939148,
+          -0.15430830419063568,
+          0.04568454623222351,
+          0.009619297459721565,
+          -0.25083279609680176,
+          0.20926763117313385,
+          0.4134928584098816,
+          -0.37463685870170593,
+          -0.05650532990694046,
+          0.04210588335990906,
+          0.2778688669204712,
+          -0.21626313030719757
+        ],
+        "history_center_full12": [
+          0.13786892592906952,
+          -0.1535220891237259,
+          0.041301239281892776,
+          0.008045664057135582,
+          -0.2503361999988556,
+          0.2090277522802353,
+          0.4136365056037903,
+          -0.3814525306224823,
+          -0.07099428027868271,
+          0.040275558829307556,
+          0.28609102964401245,
+          -0.21776904165744781
+        ],
+        "selected_raw_full12": [
+          0.1982884705066681,
+          -0.1853557974100113,
+          0.06089427322149277,
+          0.018716439604759216,
+          -0.3287089169025421,
+          0.2168377935886383,
+          0.3893496096134186,
+          -0.36954864859580994,
+          -0.013637896627187729,
+          0.03254484385251999,
+          0.3189035654067993,
+          -0.17800070345401764
+        ],
+        "effective_sigma_full12": [
+          0.04743712767958641,
+          0.06746295839548111,
+          0.018975144252181053,
+          0.017939060926437378,
+          0.05027495697140694,
+          0.02031022496521473,
+          0.07606291025876999,
+          0.01660313829779625,
+          0.059573255479335785,
+          0.019859105348587036,
+          0.05027192458510399,
+          0.027193842455744743
+        ],
+        "innovation_sigma_multiplier_full12": [
+          1,
+          1,
+          1,
+          0.2142857164144516,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "current_cap_full12": [
+          32,
+          36,
+          24,
+          112,
+          24,
+          36,
+          24,
+          36,
+          1.2000000476837158,
+          1.2000000476837158,
+          1,
+          0.6000000238418579
+        ],
+        "unfiltered_physical_request_full12": [
+          6.26335720258023,
+          -6.597425781479844,
+          1.4596588101364543,
+          2.095996495353241,
+          -7.61664491141738,
+          7.686073605771441,
+          8.899185514121367,
+          -12.729486848976778,
+          -0.016364462061277216,
+          0.03904003184537339,
+          0.3085151829076173,
+          -0.10568657696430558
+        ],
+        "same_observation_mean_scaled_full12": [
+          4.576643899481544,
+          -5.511423964670767,
+          1.095666968221389,
+          1.0773280869871802,
+          -5.896832238683487,
+          7.425554251425395,
+          9.394425529206028,
+          -12.889470617540557,
+          -0.06773432535691126,
+          0.05049722329937646,
+          0.27093152344475735,
+          -0.12777211049518647
+        ],
+        "raw_innovation_full12": [
+          0.05428105592727661,
+          -0.03104749321937561,
+          0.015209726989269257,
+          0.009097142145037651,
+          -0.07787612080574036,
+          0.007570162415504456,
+          -0.024143248796463013,
+          0.005088210105895996,
+          0.04286743327975273,
+          -0.009561039507389069,
+          0.041034698486328125,
+          0.03826242685317993
+        ],
+        "unfiltered_physical_innovation_full12": [
+          1.6867133030986858,
+          -1.0860018168090764,
+          0.3639918419150653,
+          1.0186684083660607,
+          -1.7198126727338927,
+          0.2605193543460468,
+          -0.49524001508466053,
+          0.15998376856377794,
+          0.051369863295634054,
+          -0.01145719145400307,
+          0.037583659462859964,
+          0.0220855335308809
+        ]
+      },
+      "control": {
+        "canonical_order": [
+          "front_left_hip",
+          "front_left_knee",
+          "front_right_hip",
+          "front_right_knee",
+          "rear_left_hip",
+          "rear_left_knee",
+          "rear_right_hip",
+          "rear_right_knee",
+          "front_left_ankle",
+          "front_right_ankle",
+          "rear_left_ankle",
+          "rear_right_ankle"
+        ],
+        "mask": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "nominal_action_full12": [
+          46.1,
+          -13.4,
+          0,
+          45.9,
+          6.9,
+          0,
+          0,
+          0,
+          0.2945119243671626,
+          0.2945119243671626,
+          0.2945119243671626,
+          0.2945119243671626
+        ],
+        "mapper_requested_servo_deg": [
+          46.1,
+          -13.4,
+          0,
+          45.9,
+          6.9,
+          0,
+          0,
+          0
+        ],
+        "mapped_before_geometry_servo_deg": [
+          46.1,
+          -12.15,
+          0,
+          45.3484859957206,
+          6.9,
+          0,
+          0,
+          0
+        ],
+        "mapper_compensation_deg": [
+          0,
+          1.25,
+          0,
+          -0.5515140042793973,
+          0,
+          0,
+          0,
+          0
+        ],
+        "geometry_corrected_native_full12": [
+          46.1,
+          -12.15,
+          0,
+          45.3484859957206,
+          6.9,
+          0,
+          0,
+          0,
+          0.2945119243671626,
+          0.2945119243671626,
+          0.2945119243671626,
+          0.2945119243671626
+        ],
+        "controller_bias_full12": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "requested_residual_full12": [
+          6.263357202580231,
+          -6.597425781479844,
+          1.4596588101364543,
+          2.0959964953532406,
+          -7.61664491141738,
+          7.686073605771441,
+          8.899185514121367,
+          -12.729486848976778,
+          -0.016364461411011944,
+          0.039040030294061945,
+          0.3085151829076173,
+          -0.10568657276469848
+        ],
+        "projected_residual_full12": [
+          6.263357202580231,
+          -6.597425781479844,
+          1.4596588101364543,
+          2.0959964953532406,
+          -7.61664491141738,
+          7.686073605771441,
+          8.899185514121367,
+          -12.729486848976778,
+          -0.016364461411011944,
+          0.039040030294061945,
+          0.3085151829076173,
+          -0.10568657276469848
+        ],
+        "candidate_before_slew_full12": [
+          52.36335720258023,
+          -18.747425781479844,
+          1.4596588101364543,
+          47.44448249107384,
+          -0.7166449114173794,
+          7.686073605771441,
+          8.899185514121367,
+          -12.729486848976778,
+          0.27814746295615067,
+          0.33355195466122456,
+          0.6030271072747799,
+          0.18882535160246414
+        ],
+        "final_drive_full12": [
+          51.9840635710506,
+          -18.747425781479844,
+          1.4596588101364543,
+          47.44448249107384,
+          -0.7166449114173794,
+          7.686073605771441,
+          8.899185514121367,
+          -12.729486848976778,
+          0.27814746295615067,
+          0.33355195466122456,
+          0.6030271072747799,
+          0.18882535160246414
+        ],
+        "predispatch_actual_physical_rad": [
+          0.688600480556488,
+          -0.31884023547172546,
+          0.03848690167069435,
+          0.8094061613082886,
+          -0.027668412774801254,
+          -0.11075105518102646,
+          -0.1690836250782013,
+          0.22523576021194458
+        ],
+        "predispatch_actual_canonical_deg": [
+          39.374549742935024,
+          -18.295043832292073,
+          2.2118825927906376,
+          46.25036860534785,
+          1.4058569430694385,
+          6.508582869413317,
+          9.364796678634658,
+          -12.689814462062639
+        ],
+        "same_tick_counterfactual": true,
+        "counterfactual_native_targets": {
+          "servo_position_rad": [
+            0.8650447726249695,
+            -0.30491918325424194,
+            0.003541504265740514,
+            0.8084307909011841,
+            -0.01244038250297308,
+            -0.10948552936315536,
+            -0.1391405612230301,
+            0.20411156117916107
+          ],
+          "wheel_velocity_rad_s": [
+            -0.29451191425323486,
+            0.29451191425323486,
+            -0.29451191425323486,
+            0.29451191425323486
+          ]
+        },
+        "actual_native_targets": {
+          "servo_position_rad": [
+            0.9086779952049255,
+            -0.32673579454421997,
+            0.02535811997950077,
+            0.8302474021911621,
+            0.009376232512295246,
+            -0.131302148103714,
+            -0.16095717251300812,
+            0.2259281724691391
+          ],
+          "wheel_velocity_rad_s": [
+            -0.27814745903015137,
+            0.33355194330215454,
+            -0.6030271053314209,
+            0.1888253539800644
+          ]
+        },
+        "native_target_delta": {
+          "servo_position_rad": [
+            0.043633222579956055,
+            -0.021816611289978027,
+            0.021816615015268326,
+            0.021816611289978027,
+            0.021816615015268326,
+            -0.021816618740558624,
+            -0.021816611289978027,
+            0.021816611289978027
+          ],
+          "wheel_velocity_rad_s": [
+            0.016364455223083496,
+            0.03904002904891968,
+            -0.30851519107818604,
+            -0.10568656027317047
+          ]
+        },
+        "headroom_clipped_indices": [],
+        "tracking_channels": [
+          "front_left_hip"
+        ],
+        "dispatch": {
+          "verified": true,
+          "actual_mapping_matches_dispatch": true,
+          "setter_dispatch_targets_equal": true,
+          "tracking_reference_previous_ack_independently_verified": true
+        },
+        "tick_audit": [
+          {
+            "episode_physics_tick": 6257,
+            "command_physics_tick": 6436,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": false,
+            "handoff_hold_used": true
+          },
+          {
+            "episode_physics_tick": 6258,
+            "command_physics_tick": 6437,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6259,
+            "command_physics_tick": 6438,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6260,
+            "command_physics_tick": 6439,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6261,
+            "command_physics_tick": 6440,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6262,
+            "command_physics_tick": 6441,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6263,
+            "command_physics_tick": 6442,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6264,
+            "command_physics_tick": 6443,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          }
+        ]
+      },
+      "physical": {
+        "valid": true,
+        "evidence": "VERIFIED",
+        "reason": "",
+        "termination_reason": null,
+        "goal_features": {
+          "body_forward_m": 0.09787506205868368,
+          "body_linear_speed_m_s": 0.03735013076410144,
+          "body_angular_speed_rad_s": 0.09538837705276555,
+          "support_count": 3,
+          "maximum_wheel_speed_rad_s": 0.5665467381477356
+        },
+        "measured_wheel_velocity_rad_s": [
+          0.2783530652523041,
+          0.053382694721221924,
+          0.5665467381477356,
+          0.1889973133802414
+        ],
+        "history": {
+          "active_lift": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "front_edge_crossed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "placed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "event_ticks": {
+            "active_lift": {
+              "FR": 23,
+              "FL": 1614
+            },
+            "front_edge_crossed": {
+              "FR": 1559,
+              "FL": 2501
+            },
+            "placed": {
+              "FR": 1572,
+              "FL": 5415
+            }
+          }
+        },
+        "legs": {
+          "FL": {
+            "air": true,
+            "support": false,
+            "ground_contact": false,
+            "top_contact": false,
+            "bearing_force_n": 0,
+            "clearance_m": 0.07445179292098904,
+            "front_distance_m": 0.38056820971798544,
+            "within_top_xy": true,
+            "active_attempt": true,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "FR": {
+            "air": false,
+            "support": true,
+            "ground_contact": false,
+            "top_contact": true,
+            "bearing_force_n": 12.07614517211914,
+            "clearance_m": -0.00018586669223231989,
+            "front_distance_m": 0.4699226055843795,
+            "within_top_xy": true,
+            "active_attempt": true,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": true,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "RL": {
+            "air": false,
+            "support": true,
+            "ground_contact": true,
+            "top_contact": false,
+            "bearing_force_n": 14.84496784210205,
+            "clearance_m": -0.05022664348593765,
+            "front_distance_m": -0.21975692765879984,
+            "within_top_xy": false,
+            "active_attempt": false,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "RR": {
+            "air": false,
+            "support": true,
+            "ground_contact": true,
+            "top_contact": false,
+            "bearing_force_n": 1.9496723413467407,
+            "clearance_m": -0.05048676982660856,
+            "front_distance_m": -0.20095726506877298,
+            "within_top_xy": false,
+            "active_attempt": false,
+            "current_lift_valid": false,
+            "motion_continuation_allowed": true,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          }
+        },
+        "RR_current_detail": {
+          "front_distance_m": -0.20095726506877298,
+          "clearance_m": -0.05048676982660856,
+          "top_geometry": false,
+          "top_contact": false,
+          "air": false,
+          "crossing_geometry_pending": false,
+          "recent_joint_motion_deg": 0,
+          "recent_clearance_gain_m": 0,
+          "recent_whole_body_joint_motion_deg": 0,
+          "whole_body_actuation_evidence": false,
+          "initial_clearance": false,
+          "ground_contact": true,
+          "obstacle_pair_active": false,
+          "consecutive_air_samples": 0,
+          "consecutive_top_samples": 0,
+          "within_top_xy": false,
+          "within_lateral_span": true,
+          "support": true,
+          "contact_surface": "NONE",
+          "top_surface_contact": false,
+          "contact_reaction": true,
+          "contact_reaction_force_n": 1.9496723413467585,
+          "bearing_force_n": 1.9496723413467407,
+          "bearing_verified": true,
+          "active_attempt": false,
+          "crossing_evidence_status": "PENDING",
+          "initial_now": false,
+          "lift_established_now": false,
+          "current_lift_valid": false,
+          "contact_mode": "GROUND",
+          "motion_continuation_allowed": true,
+          "motion_continuation_reason": "bounded_adjustment_to_acquire_measured_response",
+          "ground_relative_lift_m": 0,
+          "recent_wheel_displacement_m": 0,
+          "edge_adjustment_response_observed": null,
+          "body_control_evidence": true,
+          "body_control_evidence_semantics": "unchanged_live_safety_and_short_verified_other_supports_not_static_stability_proof",
+          "observed_other_support_contacts": [
+            "FR",
+            "RL"
+          ],
+          "air_duration_s": 0,
+          "edge_contact_duration_s": 0,
+          "durations_are_diagnostic_only": true,
+          "unsupported_free_lift_m": null,
+          "free_air_reference_tick": 6264,
+          "free_air_reference_bottom_z_m": -0.0004867698266085574,
+          "consecutive_free_air_samples": 0,
+          "free_lift_evidence_semantics": "current_continuous_AIR_rise_from_last_actual_contact",
+          "wheel_bottom_vz_m_s": -0.0005282538578999263,
+          "wheel_bottom_vz_observation_tick": 6264,
+          "wheel_bottom_vz_interval_s": 0.00833333333333286,
+          "wheel_bottom_vz_semantics": "adjacent_measured_collider_bottom_world_z_finite_difference",
+          "lift_established": false,
+          "initial_lift_observed": false,
+          "front_edge_crossed": false,
+          "placed_on_top": false,
+          "top_xy_outside_distance_m": 0.19595726506877298,
+          "load_fraction": 0.06753097698364942,
+          "load_fraction_valid": true,
+          "soft_air_actuation_earned": false,
+          "soft_air_earned_tick": null,
+          "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+        },
+        "RR_attempt_events": []
+      },
+      "aggregate_dispatch": {
+        "physics_ticks": 8,
+        "verified_tick_count": 8,
+        "all_ticks_verified": true,
+        "actual_native_effect_tick_count": 8,
+        "own_phase_request_effect_tick_count": 7
+      },
+      "episode_index": 0,
+      "nominal_diagnostics": {
+        "source_partial_order": {
+          "mode": "source_partial_order_physical_ready_v1",
+          "default_assist": "RL_source_method",
+          "RR_contact_backup_enabled": false,
+          "residual_channels_restricted": false,
+          "layers": [
+            {
+              "stage": "P07",
+              "source_ticks": 25,
+              "observation_tick": 6264,
+              "status": "active",
+              "wait_reason": null,
+              "support_count": 3,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.03062680083231828,
+              "RR_current_continuation": false,
+              "actual_start_tick": 6240
+            },
+            {
+              "stage": "P08",
+              "source_ticks": 0,
+              "observation_tick": 6264,
+              "status": "pending",
+              "wait_reason": "P07_source_groups_and_measured_FL_space_FR_response",
+              "support_count": 3,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.03062680083231828,
+              "RR_current_continuation": false,
+              "wait_ticks": 17
+            },
+            {
+              "stage": "P09",
+              "source_ticks": 0,
+              "observation_tick": 6264,
+              "status": "pending",
+              "wait_reason": "RL_source_assist_response_and_RR_measured_unload_or_lift",
+              "current_free_lift_source_readiness": null,
+              "support_count": 3,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.03062680083231828,
+              "RR_current_continuation": false,
+              "wait_ticks": 9
+            }
+          ]
+        },
+        "p06_wheel_tail": {
+          "schema": "wlr50_clean.p06_wheel_tail.v1",
+          "enabled": true,
+          "timing": "P06_layer_contribution_before_later_owners_and_slew_not_applied_target",
+          "source_rolling_rad_s": [
+            0.3,
+            0.3,
+            0.3,
+            0.3
+          ],
+          "layer_present": true,
+          "source_endpoint_issued": false,
+          "finite_source_tail_replaced": false,
+          "wheel_gain": 0.9513855317599675,
+          "status": "finite_source_before_endpoint"
+        },
+        "rr_carry_continuation": {
+          "source_joint_owners_continued": true,
+          "added_rolling_suggestion": false,
+          "ordered_source_wheel_owner": true,
+          "late_reconfiguration_waiting": false,
+          "current_TOP_continuation_eligible": false,
+          "reason": "finite_ordered_source_wheel_owner",
+          "fixed_lift_timer_gate": false,
+          "above_top_15mm_action_gate": false
+        },
+        "height_recovery": {
+          "mode": "source_segment_reduction_and_live_recovery_v1",
+          "candidate_id": "RL_preparation_minus3_v1",
+          "source_observation_tick": 6264,
+          "current_RR_carry_recovery_permitted": false,
+          "post_lift_recovery_offsets_deg": {
+            "front_left_hip": 0,
+            "rear_left_hip": 0
+          },
+          "owners": [
+            {
+              "stage": "P07",
+              "channel": "front_left_hip",
+              "fixed_source_entry_deg": 22.8,
+              "original_source_target_deg": 48.2,
+              "candidate_source_target_deg": 48.2,
+              "reduction_deg": 0
+            }
+          ],
+          "source_clocks_and_atomic_groups_unchanged": true,
+          "task_or_support_credit_awarded": false,
+          "exit": "later source owner replaces this segment; no permanent hip lock or home restore"
+        }
+      }
+    },
+    {
+      "label": "last_complete_nonterminal_decision",
+      "global_policy_decision": 184758,
+      "terminal": false,
+      "phase": "P09",
+      "end_phase": "P09",
+      "end_tick": 6688,
+      "time_s": 55.733333333333334,
+      "dispatch_tick": 6867,
+      "request": {
+        "base_mean_full12": [
+          0.1510743498802185,
+          -0.13057798147201538,
+          0.009746544063091278,
+          -0.03186647221446037,
+          -0.41210177540779114,
+          0.19399000704288483,
+          0.44914835691452026,
+          -0.3667088449001312,
+          0.13088884949684143,
+          0.013495809398591518,
+          0.32284897565841675,
+          -0.19585011899471283
+        ],
+        "conditional_mean_full12": [
+          -0.17704270780086517,
+          -0.11348813772201538,
+          0.046624805778265,
+          0.0016189096495509148,
+          -0.26251542568206787,
+          0.1921728402376175,
+          0.31510642170906067,
+          -0.4006383717060089,
+          0.5716457366943359,
+          0.008390931412577629,
+          0.40996822714805603,
+          -0.21855518221855164
+        ],
+        "history_center_full12": [
+          -0.21350017189979553,
+          -0.11158926784992218,
+          0.0507223904132843,
+          0.005339507944881916,
+          -0.24589471518993378,
+          0.19197094440460205,
+          0.3002128601074219,
+          -0.40440833568573,
+          0.6206187605857849,
+          0.007823723368346691,
+          0.4196481704711914,
+          -0.22107797861099243
+        ],
+        "selected_raw_full12": [
+          -0.16989195346832275,
+          0.04230721294879913,
+          0.0428423136472702,
+          0.015024665743112564,
+          -0.2099224179983139,
+          0.2141050100326538,
+          0.502360463142395,
+          -0.3823602795600891,
+          0.6240021586418152,
+          -0.03201618045568466,
+          0.41313815116882324,
+          -0.13203507661819458
+        ],
+        "effective_sigma_full12": [
+          0.10128657519817352,
+          0.09341736882925034,
+          0.04847190901637077,
+          0.01715659722685814,
+          0.04086494818329811,
+          0.01961566135287285,
+          0.09109311550855637,
+          0.025104094296693802,
+          0.13973264396190643,
+          0.05498514324426651,
+          0.0820474699139595,
+          0.048474740236997604
+        ],
+        "innovation_sigma_multiplier_full12": [
+          1,
+          1,
+          1,
+          0.2142857164144516,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "current_cap_full12": [
+          32,
+          36,
+          24,
+          112,
+          24,
+          36,
+          24,
+          36,
+          1.2000000476837158,
+          1.2000000476837158,
+          1,
+          0.6000000238418579
+        ],
+        "unfiltered_physical_request_full12": [
+          -5.384833945084852,
+          1.5221516079833666,
+          1.027586904916375,
+          1.6826359520617094,
+          -4.965413754499594,
+          7.592123292992385,
+          11.135316286883336,
+          -13.131197259978794,
+          0.664690125066218,
+          -0.03840629636041544,
+          0.3911339966709855,
+          -0.07876387643803566
+        ],
+        "same_observation_mean_scaled_full12": [
+          -5.6069075025030095,
+          -4.068122729158555,
+          1.118185192063288,
+          0.18131772234643062,
+          -6.159522870662597,
+          6.834297540601765,
+          7.3218106668031595,
+          -13.697821631553246,
+          0.6198802921979262,
+          0.010068881787276475,
+          0.38844570190473515,
+          -0.1290843332714483
+        ],
+        "raw_innovation_full12": [
+          0.007150754332542419,
+          0.15579535067081451,
+          -0.0037824921309947968,
+          0.01340575609356165,
+          0.05259300768375397,
+          0.021932169795036316,
+          0.18725404143333435,
+          0.0182780921459198,
+          0.05235642194747925,
+          -0.04040711186826229,
+          0.003169924020767212,
+          0.08652010560035706
+        ],
+        "unfiltered_physical_innovation_full12": [
+          0.22207355741815782,
+          5.590274337141921,
+          -0.09059828714691281,
+          1.5013182297152787,
+          1.1941091161630035,
+          0.7578257523906194,
+          3.8135056200801776,
+          0.5666243715744514,
+          0.044809832868291946,
+          -0.04847517814769192,
+          0.002688294766250321,
+          0.05032045683341266
+        ]
+      },
+      "control": {
+        "canonical_order": [
+          "front_left_hip",
+          "front_left_knee",
+          "front_right_hip",
+          "front_right_knee",
+          "rear_left_hip",
+          "rear_left_knee",
+          "rear_right_hip",
+          "rear_right_knee",
+          "front_left_ankle",
+          "front_right_ankle",
+          "rear_left_ankle",
+          "rear_right_ankle"
+        ],
+        "mask": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "nominal_action_full12": [
+          38.6,
+          -13.4,
+          0,
+          31.1,
+          28.199999999999996,
+          0,
+          55.6,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "mapper_requested_servo_deg": [
+          38.6,
+          -13.4,
+          0,
+          31.1,
+          28.199999999999996,
+          0,
+          55.6,
+          0
+        ],
+        "mapped_before_geometry_servo_deg": [
+          38.6,
+          -12.15,
+          0,
+          32.80460565987011,
+          28.199999999999996,
+          0,
+          56.96478100251628,
+          0
+        ],
+        "mapper_compensation_deg": [
+          0,
+          1.25,
+          0,
+          1.7046056598701114,
+          0,
+          0,
+          1.3647810025162812,
+          0
+        ],
+        "geometry_corrected_native_full12": [
+          38.6,
+          -12.15,
+          0,
+          32.80460565987011,
+          28.199999999999996,
+          0,
+          56.96478100251628,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "controller_bias_full12": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "requested_residual_full12": [
+          -5.38483394508485,
+          -2.3959862380065413,
+          1.027586904916375,
+          1.682635952061709,
+          -4.965413754499593,
+          7.592123292992385,
+          10.996177516535589,
+          -13.131197259978793,
+          0.6646900986538066,
+          -0.0384062948342864,
+          0.3911339966709855,
+          -0.07876387330824051
+        ],
+        "projected_residual_full12": [
+          -5.38483394508485,
+          -2.3959862380065413,
+          1.027586904916375,
+          1.682635952061709,
+          -4.965413754499593,
+          7.592123292992385,
+          10.996177516535589,
+          -13.131197259978793,
+          0.6646900986538066,
+          -0.0384062948342864,
+          0.3911339966709855,
+          -0.07876387330824051
+        ],
+        "candidate_before_slew_full12": [
+          33.21516605491515,
+          -14.545986238006542,
+          1.027586904916375,
+          34.48724161193182,
+          23.234586245500402,
+          7.592123292992385,
+          67.96095851905187,
+          -13.131197259978793,
+          0.6646900986538066,
+          -0.0384062948342864,
+          0.3911339966709855,
+          -0.07876387330824051
+        ],
+        "final_drive_full12": [
+          33.21516605491515,
+          -14.545986238006542,
+          1.027586904916375,
+          34.48724161193182,
+          23.234586245500402,
+          7.592123292992385,
+          67.96095851905187,
+          -13.131197259978793,
+          0.6646900986538066,
+          -0.0384062948342864,
+          0.3911339966709855,
+          -0.07876387330824051
+        ],
+        "predispatch_actual_physical_rad": [
+          0.5865201354026794,
+          -0.320815771818161,
+          0.03391692042350769,
+          0.5733298659324646,
+          -0.40110766887664795,
+          -0.091426320374012,
+          -1.1313633918762207,
+          0.2227565348148346
+        ],
+        "predispatch_actual_canonical_deg": [
+          33.52577679438306,
+          -18.408233727217528,
+          1.9500419548729102,
+          32.72419323722934,
+          22.80235022221033,
+          5.401357124761828,
+          64.49936602699427,
+          -12.547765310346591
+        ],
+        "same_tick_counterfactual": true,
+        "counterfactual_native_targets": {
+          "servo_position_rad": [
+            0.6029155850410461,
+            -0.24031686782836914,
+            -0.00011773224105127156,
+            0.5822842717170715,
+            -0.43046823143959045,
+            -0.10784579068422318,
+            -1.16123628616333,
+            0.21112272143363953
+          ],
+          "wheel_velocity_rad_s": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "actual_native_targets": {
+          "servo_position_rad": [
+            0.5810989737510681,
+            -0.253406822681427,
+            0.017817042768001556,
+            0.6041008830070496,
+            -0.4086516201496124,
+            -0.1296624094247818,
+            -1.191779613494873,
+            0.23293934762477875
+          ],
+          "wheel_velocity_rad_s": [
+            -0.6646900773048401,
+            -0.03840629383921623,
+            -0.39113399386405945,
+            -0.07876387238502502
+          ]
+        },
+        "native_target_delta": {
+          "servo_position_rad": [
+            -0.021816611289978027,
+            -0.013089954853057861,
+            0.017934774979948997,
+            0.021816611289978027,
+            0.021816611289978027,
+            -0.021816618740558624,
+            -0.03054332733154297,
+            0.02181662619113922
+          ],
+          "wheel_velocity_rad_s": [
+            -0.6646900773048401,
+            -0.03840629383921623,
+            -0.39113399386405945,
+            -0.07876387238502502
+          ]
+        },
+        "headroom_clipped_indices": [],
+        "tracking_channels": [
+          "rear_right_hip"
+        ],
+        "dispatch": {
+          "verified": true,
+          "actual_mapping_matches_dispatch": true,
+          "setter_dispatch_targets_equal": true,
+          "tracking_reference_previous_ack_independently_verified": true
+        },
+        "tick_audit": [
+          {
+            "episode_physics_tick": 6681,
+            "command_physics_tick": 6860,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6682,
+            "command_physics_tick": 6861,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6683,
+            "command_physics_tick": 6862,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6684,
+            "command_physics_tick": 6863,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6685,
+            "command_physics_tick": 6864,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6686,
+            "command_physics_tick": 6865,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6687,
+            "command_physics_tick": 6866,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6688,
+            "command_physics_tick": 6867,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          }
+        ]
+      },
+      "physical": {
+        "valid": true,
+        "evidence": "VERIFIED",
+        "reason": "",
+        "termination_reason": null,
+        "goal_features": {
+          "body_forward_m": 0.16103947503399496,
+          "body_linear_speed_m_s": 0.058793159422271944,
+          "body_angular_speed_rad_s": 0.2307459282224716,
+          "support_count": 3,
+          "maximum_wheel_speed_rad_s": 0.6658739447593689
+        },
+        "measured_wheel_velocity_rad_s": [
+          0.6658739447593689,
+          -0.5881091356277466,
+          0.17451688647270203,
+          -0.07498620450496674
+        ],
+        "history": {
+          "active_lift": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "front_edge_crossed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "placed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "event_ticks": {
+            "active_lift": {
+              "FR": 23,
+              "FL": 1614,
+              "RR": 6528
+            },
+            "front_edge_crossed": {
+              "FR": 1559,
+              "FL": 2501
+            },
+            "placed": {
+              "FR": 1572,
+              "FL": 5415
+            }
+          }
+        },
+        "legs": {
+          "FL": {
+            "air": true,
+            "support": false,
+            "ground_contact": false,
+            "top_contact": false,
+            "bearing_force_n": 0,
+            "clearance_m": 0.14549887794852012,
+            "front_distance_m": 0.4154409800274337,
+            "within_top_xy": true,
+            "active_attempt": true,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "FR": {
+            "air": false,
+            "support": true,
+            "ground_contact": false,
+            "top_contact": true,
+            "bearing_force_n": 11.100872039794922,
+            "clearance_m": -0.000829182762387401,
+            "front_distance_m": 0.498612705300566,
+            "within_top_xy": true,
+            "active_attempt": true,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": true,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "RL": {
+            "air": false,
+            "support": true,
+            "ground_contact": true,
+            "top_contact": false,
+            "bearing_force_n": 13.926045417785645,
+            "clearance_m": -0.05106489440004823,
+            "front_distance_m": -0.1925537254111802,
+            "within_top_xy": false,
+            "active_attempt": false,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "RR": {
+            "air": false,
+            "support": true,
+            "ground_contact": true,
+            "top_contact": false,
+            "bearing_force_n": 3.511964797973633,
+            "clearance_m": -0.05157413040500233,
+            "front_distance_m": -0.21582927959132547,
+            "within_top_xy": false,
+            "active_attempt": false,
+            "current_lift_valid": false,
+            "motion_continuation_allowed": true,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          }
+        },
+        "RR_current_detail": {
+          "front_distance_m": -0.21582927959132547,
+          "clearance_m": -0.05157413040500233,
+          "top_geometry": false,
+          "top_contact": false,
+          "air": false,
+          "crossing_geometry_pending": false,
+          "recent_joint_motion_deg": 0,
+          "recent_clearance_gain_m": 0,
+          "recent_whole_body_joint_motion_deg": 0,
+          "whole_body_actuation_evidence": false,
+          "initial_clearance": false,
+          "ground_contact": true,
+          "obstacle_pair_active": false,
+          "consecutive_air_samples": 0,
+          "consecutive_top_samples": 0,
+          "within_top_xy": false,
+          "within_lateral_span": true,
+          "support": true,
+          "contact_surface": "NONE",
+          "top_surface_contact": false,
+          "contact_reaction": true,
+          "contact_reaction_force_n": 3.5119647979736643,
+          "bearing_force_n": 3.511964797973633,
+          "bearing_verified": true,
+          "active_attempt": false,
+          "crossing_evidence_status": "PENDING",
+          "initial_now": false,
+          "lift_established_now": false,
+          "current_lift_valid": false,
+          "contact_mode": "GROUND",
+          "motion_continuation_allowed": true,
+          "motion_continuation_reason": "bounded_adjustment_to_acquire_measured_response",
+          "ground_relative_lift_m": 0,
+          "recent_wheel_displacement_m": 0,
+          "edge_adjustment_response_observed": null,
+          "body_control_evidence": true,
+          "body_control_evidence_semantics": "unchanged_live_safety_and_short_verified_other_supports_not_static_stability_proof",
+          "observed_other_support_contacts": [
+            "FR",
+            "RL"
+          ],
+          "air_duration_s": 0,
+          "edge_contact_duration_s": 0,
+          "durations_are_diagnostic_only": true,
+          "unsupported_free_lift_m": null,
+          "free_air_reference_tick": 6688,
+          "free_air_reference_bottom_z_m": -0.0015741304050023303,
+          "consecutive_free_air_samples": 0,
+          "free_lift_evidence_semantics": "current_continuous_AIR_rise_from_last_actual_contact",
+          "wheel_bottom_vz_m_s": -0.0015469430453175274,
+          "wheel_bottom_vz_observation_tick": 6688,
+          "wheel_bottom_vz_interval_s": 0.00833333333333286,
+          "wheel_bottom_vz_semantics": "adjacent_measured_collider_bottom_world_z_finite_difference",
+          "lift_established": false,
+          "initial_lift_observed": false,
+          "front_edge_crossed": false,
+          "placed_on_top": false,
+          "top_xy_outside_distance_m": 0.21082927959132547,
+          "load_fraction": 0.1230589469666472,
+          "load_fraction_valid": true,
+          "soft_air_actuation_earned": false,
+          "soft_air_earned_tick": null,
+          "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+        },
+        "RR_attempt_events": [
+          {
+            "leg": "RR",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 6518,
+            "simulation_time_s": 54.31666666666666,
+            "upward_excursion_m": 0.0030942973613904967,
+            "whole_body_joint_motion_deg": 25.04217867906487,
+            "command_motion_deg": 36.92220192057742,
+            "evidence": "continuous_unsupported_AIR_free_rise_v3",
+            "unsupported_free_lift_m": 0.003087564285442594
+          },
+          {
+            "leg": "RR",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 6528,
+            "simulation_time_s": 54.4,
+            "upward_excursion_m": 0.008350688603927209,
+            "joint_motion_deg": 14.14883761097167,
+            "airborne_clearance_above_top_m": -0.04171029052014187,
+            "qualification_evidence": "continuous_unsupported_AIR_free_rise_v3",
+            "unsupported_free_lift_m": 0.008343955527979306
+          },
+          {
+            "leg": "RR",
+            "event": "qualification_revoked_ground_before_cross",
+            "physics_tick": 6557,
+            "simulation_time_s": 54.641666666666666
+          },
+          {
+            "leg": "RR",
+            "event": "current_lift_revoked_ground",
+            "physics_tick": 6557,
+            "simulation_time_s": 54.641666666666666,
+            "completed_crossing_history_retained": false
+          }
+        ]
+      },
+      "aggregate_dispatch": {
+        "physics_ticks": 8,
+        "verified_tick_count": 8,
+        "all_ticks_verified": true,
+        "actual_native_effect_tick_count": 8,
+        "own_phase_request_effect_tick_count": 8
+      },
+      "episode_index": 0,
+      "nominal_diagnostics": {
+        "source_partial_order": {
+          "mode": "source_partial_order_physical_ready_v1",
+          "default_assist": "RL_source_method",
+          "RR_contact_backup_enabled": false,
+          "residual_channels_restricted": false,
+          "layers": [
+            {
+              "stage": "P07",
+              "source_ticks": 449,
+              "observation_tick": 6688,
+              "status": "active",
+              "wait_reason": null,
+              "support_count": 3,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.02047234278387322,
+              "RR_current_continuation": false,
+              "actual_start_tick": 6240,
+              "fr_group_start_tick": 6280
+            },
+            {
+              "stage": "P08",
+              "source_ticks": 249,
+              "observation_tick": 6688,
+              "status": "active",
+              "wait_reason": null,
+              "support_count": 3,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.02047234278387322,
+              "RR_current_continuation": false,
+              "wait_ticks": 192,
+              "actual_start_tick": 6440
+            },
+            {
+              "stage": "P09",
+              "source_ticks": 80,
+              "observation_tick": 6688,
+              "status": "holding",
+              "wait_reason": "current_free_lift_before_pending_knee",
+              "current_free_lift_source_readiness": {
+                "mode": "current_free_lift_before_pending_knee_and_roll_v1",
+                "source_tick": 80,
+                "observation_tick": 6688,
+                "pending_kind": "knee_waypoint",
+                "ready": false,
+                "reason": "current_free_lift_before_pending_knee",
+                "current_free_lift_valid": false,
+                "current_evidence_fresh": true,
+                "RR_clearance_m": -0.05157413040500233,
+                "RR_bottom_vz_m_s": -0.0015469430453175274,
+                "RR_other_verified_supports": 2,
+                "source_clock_may_advance": false,
+                "physical_success_awarded": false
+              },
+              "support_count": 3,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.02047234278387322,
+              "RR_current_continuation": false,
+              "wait_ticks": 353,
+              "actual_start_tick": 6488
+            }
+          ]
+        },
+        "p06_wheel_tail": {
+          "schema": "wlr50_clean.p06_wheel_tail.v1",
+          "enabled": true,
+          "timing": "P06_layer_contribution_before_later_owners_and_slew_not_applied_target",
+          "source_rolling_rad_s": [
+            0.3,
+            0.3,
+            0.3,
+            0.3
+          ],
+          "layer_present": true,
+          "source_endpoint_issued": false,
+          "finite_source_tail_replaced": false,
+          "wheel_gain": 0.1658559182650945,
+          "status": "finite_source_before_endpoint"
+        },
+        "rr_carry_continuation": {
+          "source_joint_owners_continued": true,
+          "added_rolling_suggestion": false,
+          "ordered_source_wheel_owner": true,
+          "late_reconfiguration_waiting": false,
+          "current_TOP_continuation_eligible": false,
+          "reason": "finite_ordered_source_wheel_owner",
+          "fixed_lift_timer_gate": false,
+          "above_top_15mm_action_gate": false
+        },
+        "height_recovery": {
+          "mode": "source_segment_reduction_and_live_recovery_v1",
+          "candidate_id": "RL_preparation_minus3_v1",
+          "source_observation_tick": 6688,
+          "current_RR_carry_recovery_permitted": false,
+          "post_lift_recovery_offsets_deg": {
+            "front_left_hip": 0,
+            "rear_left_hip": 0
+          },
+          "owners": [
+            {
+              "stage": "P07",
+              "channel": "front_left_hip",
+              "fixed_source_entry_deg": 22.8,
+              "original_source_target_deg": 38.6,
+              "candidate_source_target_deg": 38.6,
+              "reduction_deg": 0
+            },
+            {
+              "stage": "P08",
+              "channel": "rear_left_hip",
+              "fixed_source_entry_deg": 6.9,
+              "original_source_target_deg": 31.199999999999996,
+              "candidate_source_target_deg": 28.199999999999996,
+              "reduction_deg": 3
+            }
+          ],
+          "source_clocks_and_atomic_groups_unchanged": true,
+          "task_or_support_credit_awarded": false,
+          "exit": "later source owner replaces this segment; no permanent hip lock or home restore"
+        }
+      }
+    },
+    {
+      "label": "terminal_decision",
+      "global_policy_decision": 184759,
+      "terminal": true,
+      "phase": "P09",
+      "end_phase": "P09",
+      "end_tick": 6694,
+      "time_s": 55.78333333333333,
+      "dispatch_tick": 6873,
+      "request": {
+        "base_mean_full12": [
+          0.12451452761888504,
+          -0.11682189255952835,
+          0.008838971145451069,
+          -0.0260328222066164,
+          -0.3755609095096588,
+          0.1938691884279251,
+          0.39319169521331787,
+          -0.34031108021736145,
+          0.10747413337230682,
+          0.025833291932940483,
+          0.2804567217826843,
+          -0.188243106007576
+        ],
+        "conditional_mean_full12": [
+          -0.14045129716396332,
+          0.026394300162792206,
+          0.03944197669625282,
+          0.010918916203081608,
+          -0.22648626565933228,
+          0.2120814174413681,
+          0.49144357442855835,
+          -0.37815535068511963,
+          0.5723493695259094,
+          -0.026231233030557632,
+          0.39987000823020935,
+          -0.13765588402748108
+        ],
+        "history_center_full12": [
+          -0.16989195346832275,
+          0.04230721294879913,
+          0.0428423136472702,
+          0.015024665743112564,
+          -0.2099224179983139,
+          0.2141050100326538,
+          0.502360463142395,
+          -0.3823602795600891,
+          0.6240021586418152,
+          -0.03201618045568466,
+          0.41313815116882324,
+          -0.13203507661819458
+        ],
+        "selected_raw_full12": [
+          -0.12560397386550903,
+          -0.1323080062866211,
+          0.17474773526191711,
+          0.030065953731536865,
+          -0.2376970499753952,
+          0.19993123412132263,
+          0.49947911500930786,
+          -0.40332260727882385,
+          0.4688034951686859,
+          -0.022411521524190903,
+          0.31680262088775635,
+          -0.12551310658454895
+        ],
+        "effective_sigma_full12": [
+          0.08588537573814392,
+          0.08636924624443054,
+          0.043639667332172394,
+          0.015023922547698021,
+          0.04098676145076752,
+          0.021807726472616196,
+          0.08324061334133148,
+          0.023576734587550163,
+          0.10957831144332886,
+          0.049248240888118744,
+          0.07347027212381363,
+          0.04254579916596413
+        ],
+        "innovation_sigma_multiplier_full12": [
+          1,
+          1,
+          1,
+          0.2142857164144516,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "current_cap_full12": [
+          32,
+          36,
+          24,
+          112,
+          24,
+          36,
+          24,
+          36,
+          1.2000000476837158,
+          1.2000000476837158,
+          1,
+          0.6000000238418579
+        ],
+        "unfiltered_physical_request_full12": [
+          -3.9983229201798247,
+          -4.735488201685403,
+          4.151770871486632,
+          3.3663725219219014,
+          -5.599664174221687,
+          7.103132365062524,
+          11.080977836321914,
+          -13.780379484044197,
+          0.5246784863100629,
+          -0.026889325091556043,
+          0.3066129795287485,
+          -0.07491488791901804
+        ],
+        "same_observation_mean_scaled_full12": [
+          -4.465119555789624,
+          0.9499742133846492,
+          0.9461168765206702,
+          1.2228700171636793,
+          -5.344595857276895,
+          7.522484351112624,
+          10.92867427201077,
+          -12.999759246911067,
+          0.6204991165892073,
+          -0.031470263224299556,
+          0.3798377307619973,
+          -0.08207576563825711
+        ],
+        "raw_innovation_full12": [
+          0.014847323298454285,
+          -0.1587023064494133,
+          0.1353057585656643,
+          0.019147037528455257,
+          -0.011210784316062927,
+          -0.012150183320045471,
+          0.008035540580749512,
+          -0.025167256593704224,
+          -0.10354587435722351,
+          0.0038197115063667297,
+          -0.083067387342453,
+          0.012142777442932129
+        ],
+        "unfiltered_physical_innovation_full12": [
+          0.466796635609799,
+          -5.685462415070052,
+          3.2056539949659624,
+          2.143502504758222,
+          -0.2550683169447918,
+          -0.4193519860500998,
+          0.15230356431114345,
+          -0.7806202371331292,
+          -0.09582063027914446,
+          0.004580938132743516,
+          -0.07322475123324879,
+          0.00716087771923906
+        ]
+      },
+      "control": {
+        "canonical_order": [
+          "front_left_hip",
+          "front_left_knee",
+          "front_right_hip",
+          "front_right_knee",
+          "rear_left_hip",
+          "rear_left_knee",
+          "rear_right_hip",
+          "rear_right_knee",
+          "front_left_ankle",
+          "front_right_ankle",
+          "rear_left_ankle",
+          "rear_right_ankle"
+        ],
+        "mask": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "nominal_action_full12": [
+          38.6,
+          -13.4,
+          0,
+          31.1,
+          28.199999999999996,
+          0,
+          55.6,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "mapper_requested_servo_deg": [
+          38.6,
+          -13.4,
+          0,
+          31.1,
+          28.199999999999996,
+          0,
+          55.6,
+          0
+        ],
+        "mapped_before_geometry_servo_deg": [
+          38.6,
+          -12.15,
+          0,
+          32.80460565987011,
+          28.199999999999996,
+          0,
+          59.46478100251628,
+          0
+        ],
+        "mapper_compensation_deg": [
+          0,
+          1.25,
+          0,
+          1.7046056598701114,
+          0,
+          0,
+          3.864781002516281,
+          0
+        ],
+        "geometry_corrected_native_full12": [
+          38.6,
+          -12.15,
+          0,
+          32.80460565987011,
+          28.199999999999996,
+          0,
+          59.46478100251628,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "controller_bias_full12": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "requested_residual_full12": [
+          -3.998322920179824,
+          -4.7354882016854045,
+          4.027586904916375,
+          3.366372521921903,
+          -5.599664174221687,
+          7.103132365062524,
+          11.080977836321914,
+          -13.780379484044195,
+          0.5746900986538065,
+          -0.026889324023070302,
+          0.3066129795287485,
+          -0.07491488494216797
+        ],
+        "projected_residual_full12": [
+          -3.998322920179824,
+          -4.7354882016854045,
+          4.027586904916375,
+          3.366372521921903,
+          -5.599664174221687,
+          7.103132365062524,
+          11.080977836321914,
+          -13.780379484044195,
+          0.5746900986538065,
+          -0.026889324023070302,
+          0.3066129795287485,
+          -0.07491488494216797
+        ],
+        "candidate_before_slew_full12": [
+          34.60167707982018,
+          -16.885488201685405,
+          4.027586904916375,
+          36.170978181792016,
+          22.60033582577831,
+          7.103132365062524,
+          70.5457588388382,
+          -13.780379484044195,
+          0.5746900986538065,
+          -0.026889324023070302,
+          0.3066129795287485,
+          -0.07491488494216797
+        ],
+        "final_drive_full12": [
+          34.60167707982018,
+          -16.885488201685405,
+          4.027586904916375,
+          36.170978181792016,
+          22.60033582577831,
+          7.103132365062524,
+          70.5457588388382,
+          -13.780379484044195,
+          0.5746900986538065,
+          -0.026889324023070302,
+          0.3066129795287485,
+          -0.07491488494216797
+        ],
+        "predispatch_actual_physical_rad": [
+          0.5909989476203918,
+          -0.30357393622398376,
+          0.03868494927883148,
+          0.5885022282600403,
+          -0.40115582942962646,
+          -0.09298611432313919,
+          -1.1640979051589966,
+          0.23042641580104828
+        ],
+        "predispatch_actual_canonical_deg": [
+          33.78239383168962,
+          -17.420349316612736,
+          2.223229884879556,
+          33.59350556384272,
+          22.805109618635015,
+          5.49072673495686,
+          66.37491548251225,
+          -12.987217120224274
+        ],
+        "same_tick_counterfactual": true,
+        "counterfactual_native_targets": {
+          "servo_position_rad": [
+            0.6271147727966309,
+            -0.2724222242832184,
+            0.03963365778326988,
+            0.611670970916748,
+            -0.4193984568119049,
+            -0.09931128472089767,
+            -1.215076208114624,
+            0.22245308756828308
+          ],
+          "wheel_velocity_rad_s": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "actual_native_targets": {
+          "servo_position_rad": [
+            0.6052981615066528,
+            -0.2942388355731964,
+            0.07017692178487778,
+            0.6334875822067261,
+            -0.3975818455219269,
+            -0.1211279034614563,
+            -1.236892819404602,
+            0.2442697137594223
+          ],
+          "wheel_velocity_rad_s": [
+            -0.5746901035308838,
+            -0.026889324188232422,
+            -0.3066129684448242,
+            -0.07491488754749298
+          ]
+        },
+        "native_target_delta": {
+          "servo_position_rad": [
+            -0.021816611289978027,
+            -0.021816611289978027,
+            0.030543264001607895,
+            0.021816611289978027,
+            0.021816611289978027,
+            -0.021816618740558624,
+            -0.021816611289978027,
+            0.02181662619113922
+          ],
+          "wheel_velocity_rad_s": [
+            -0.5746901035308838,
+            -0.026889324188232422,
+            -0.3066129684448242,
+            -0.07491488754749298
+          ]
+        },
+        "headroom_clipped_indices": [],
+        "tracking_channels": [
+          "rear_right_hip"
+        ],
+        "dispatch": {
+          "verified": true,
+          "actual_mapping_matches_dispatch": true,
+          "setter_dispatch_targets_equal": true,
+          "tracking_reference_previous_ack_independently_verified": true
+        },
+        "tick_audit": [
+          {
+            "episode_physics_tick": 6689,
+            "command_physics_tick": 6868,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6690,
+            "command_physics_tick": 6869,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6691,
+            "command_physics_tick": 6870,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6692,
+            "command_physics_tick": 6871,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6693,
+            "command_physics_tick": 6872,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 6694,
+            "command_physics_tick": 6873,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          }
+        ]
+      },
+      "physical": {
+        "valid": true,
+        "evidence": "CONTACT_BEARING_UNVERIFIED",
+        "reason": "central body/obstacle collision",
+        "termination_reason": "TASK_FAILURE_BODY_COLLISION",
+        "goal_features": {
+          "body_forward_m": 0.16107637030911093,
+          "body_linear_speed_m_s": 0.050718853350737565,
+          "body_angular_speed_rad_s": 0.2047244671707042,
+          "support_count": 0,
+          "maximum_wheel_speed_rad_s": 0.5742383599281311
+        },
+        "measured_wheel_velocity_rad_s": [
+          0.5742383599281311,
+          -0.02845713123679161,
+          0.30453959107398987,
+          -0.07353086024522781
+        ],
+        "history": {
+          "active_lift": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "front_edge_crossed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "placed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "event_ticks": {
+            "active_lift": {
+              "FR": 23,
+              "FL": 1614,
+              "RR": 6528
+            },
+            "front_edge_crossed": {
+              "FR": 1559,
+              "FL": 2501
+            },
+            "placed": {
+              "FR": 1572,
+              "FL": 5415
+            }
+          }
+        },
+        "legs": {
+          "FL": {
+            "air": true,
+            "support": false,
+            "ground_contact": false,
+            "top_contact": false,
+            "bearing_force_n": 0,
+            "clearance_m": 0.1473420121049398,
+            "front_distance_m": 0.4174098406536544,
+            "within_top_xy": true,
+            "active_attempt": true,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "FR": {
+            "air": true,
+            "support": false,
+            "ground_contact": false,
+            "top_contact": false,
+            "bearing_force_n": 0,
+            "clearance_m": -0.0006498128179472651,
+            "front_distance_m": 0.5007954273922408,
+            "within_top_xy": true,
+            "active_attempt": true,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "RL": {
+            "air": true,
+            "support": false,
+            "ground_contact": false,
+            "top_contact": false,
+            "bearing_force_n": 0,
+            "clearance_m": -0.050936646721801385,
+            "front_distance_m": -0.19279774682689066,
+            "within_top_xy": false,
+            "active_attempt": false,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "RR": {
+            "air": true,
+            "support": false,
+            "ground_contact": false,
+            "top_contact": false,
+            "bearing_force_n": 0,
+            "clearance_m": -0.050293450489683984,
+            "front_distance_m": -0.2157337631480729,
+            "within_top_xy": false,
+            "active_attempt": false,
+            "current_lift_valid": false,
+            "motion_continuation_allowed": false,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          }
+        },
+        "RR_current_detail": {
+          "front_distance_m": -0.2157337631480729,
+          "clearance_m": -0.050293450489683984,
+          "top_geometry": false,
+          "top_contact": false,
+          "air": true,
+          "crossing_geometry_pending": false,
+          "recent_joint_motion_deg": 0.7985515668120371,
+          "recent_clearance_gain_m": 0.0013457547435119371,
+          "recent_whole_body_joint_motion_deg": 1.8156446410721605,
+          "whole_body_actuation_evidence": false,
+          "initial_clearance": false,
+          "ground_contact": false,
+          "obstacle_pair_active": false,
+          "consecutive_air_samples": 2,
+          "consecutive_top_samples": 0,
+          "within_top_xy": false,
+          "within_lateral_span": true,
+          "support": false,
+          "contact_surface": "NONE",
+          "top_surface_contact": false,
+          "contact_reaction": false,
+          "contact_reaction_force_n": 0,
+          "bearing_force_n": 0,
+          "bearing_verified": true,
+          "active_attempt": false,
+          "crossing_evidence_status": "PENDING",
+          "initial_now": false,
+          "lift_established_now": false,
+          "current_lift_valid": false,
+          "contact_mode": "AIR",
+          "motion_continuation_allowed": false,
+          "motion_continuation_reason": "physical_safety_abort",
+          "ground_relative_lift_m": 0.0013226721635660674,
+          "recent_wheel_displacement_m": 0.0014161311080190774,
+          "edge_adjustment_response_observed": null,
+          "body_control_evidence": false,
+          "body_control_evidence_semantics": "unchanged_live_safety_and_short_verified_other_supports_not_static_stability_proof",
+          "observed_other_support_contacts": [],
+          "air_duration_s": 0.016666666666666666,
+          "edge_contact_duration_s": 0,
+          "durations_are_diagnostic_only": true,
+          "unsupported_free_lift_m": 0.0013226721635660674,
+          "free_air_reference_tick": 6692,
+          "free_air_reference_bottom_z_m": -0.0016161226532500489,
+          "consecutive_free_air_samples": 2,
+          "free_lift_evidence_semantics": "current_continuous_AIR_rise_from_last_actual_contact",
+          "wheel_bottom_vz_m_s": 0.16149056922144164,
+          "wheel_bottom_vz_observation_tick": 6694,
+          "wheel_bottom_vz_interval_s": 0.00833333333333286,
+          "wheel_bottom_vz_semantics": "adjacent_measured_collider_bottom_world_z_finite_difference",
+          "lift_established": false,
+          "initial_lift_observed": false,
+          "front_edge_crossed": false,
+          "placed_on_top": false,
+          "top_xy_outside_distance_m": 0.2107337631480729,
+          "load_fraction": 0,
+          "load_fraction_valid": false,
+          "soft_air_actuation_earned": false,
+          "soft_air_earned_tick": null,
+          "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+        },
+        "RR_attempt_events": [
+          {
+            "leg": "RR",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 6518,
+            "simulation_time_s": 54.31666666666666,
+            "upward_excursion_m": 0.0030942973613904967,
+            "whole_body_joint_motion_deg": 25.04217867906487,
+            "command_motion_deg": 36.92220192057742,
+            "evidence": "continuous_unsupported_AIR_free_rise_v3",
+            "unsupported_free_lift_m": 0.003087564285442594
+          },
+          {
+            "leg": "RR",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 6528,
+            "simulation_time_s": 54.4,
+            "upward_excursion_m": 0.008350688603927209,
+            "joint_motion_deg": 14.14883761097167,
+            "airborne_clearance_above_top_m": -0.04171029052014187,
+            "qualification_evidence": "continuous_unsupported_AIR_free_rise_v3",
+            "unsupported_free_lift_m": 0.008343955527979306
+          },
+          {
+            "leg": "RR",
+            "event": "qualification_revoked_ground_before_cross",
+            "physics_tick": 6557,
+            "simulation_time_s": 54.641666666666666
+          },
+          {
+            "leg": "RR",
+            "event": "current_lift_revoked_ground",
+            "physics_tick": 6557,
+            "simulation_time_s": 54.641666666666666,
+            "completed_crossing_history_retained": false
+          }
+        ]
+      },
+      "aggregate_dispatch": {
+        "physics_ticks": 6,
+        "verified_tick_count": 6,
+        "all_ticks_verified": true,
+        "actual_native_effect_tick_count": 6,
+        "own_phase_request_effect_tick_count": 6
+      },
+      "episode_index": 0,
+      "nominal_diagnostics": {
+        "source_partial_order": {
+          "mode": "source_partial_order_physical_ready_v1",
+          "default_assist": "RL_source_method",
+          "RR_contact_backup_enabled": false,
+          "residual_channels_restricted": false,
+          "layers": [
+            {
+              "stage": "P07",
+              "source_ticks": 454,
+              "observation_tick": 6694,
+              "status": "holding",
+              "wait_reason": "no_live_physical_readiness",
+              "support_count": 2,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.022737549094892673,
+              "RR_current_continuation": false,
+              "actual_start_tick": 6240,
+              "fr_group_start_tick": 6280
+            },
+            {
+              "stage": "P08",
+              "source_ticks": 254,
+              "observation_tick": 6694,
+              "status": "holding",
+              "wait_reason": "no_live_physical_readiness",
+              "support_count": 2,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.022737549094892673,
+              "RR_current_continuation": false,
+              "wait_ticks": 192,
+              "actual_start_tick": 6440
+            },
+            {
+              "stage": "P09",
+              "source_ticks": 80,
+              "observation_tick": 6694,
+              "status": "holding",
+              "wait_reason": "no_live_physical_readiness",
+              "current_free_lift_source_readiness": null,
+              "support_count": 2,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.022737549094892673,
+              "RR_current_continuation": false,
+              "wait_ticks": 358,
+              "actual_start_tick": 6488
+            }
+          ]
+        },
+        "p06_wheel_tail": {
+          "schema": "wlr50_clean.p06_wheel_tail.v1",
+          "enabled": true,
+          "timing": "P06_layer_contribution_before_later_owners_and_slew_not_applied_target",
+          "source_rolling_rad_s": [
+            0.3,
+            0.3,
+            0.3,
+            0.3
+          ],
+          "layer_present": true,
+          "source_endpoint_issued": false,
+          "finite_source_tail_replaced": false,
+          "wheel_gain": 0.1457751134402654,
+          "status": "terminal_no_tail"
+        },
+        "rr_carry_continuation": {
+          "source_joint_owners_continued": true,
+          "added_rolling_suggestion": false,
+          "ordered_source_wheel_owner": true,
+          "late_reconfiguration_waiting": false,
+          "current_TOP_continuation_eligible": false,
+          "reason": "finite_ordered_source_wheel_owner",
+          "fixed_lift_timer_gate": false,
+          "above_top_15mm_action_gate": false
+        },
+        "height_recovery": {
+          "mode": "source_segment_reduction_and_live_recovery_v1",
+          "candidate_id": "RL_preparation_minus3_v1",
+          "source_observation_tick": 6694,
+          "current_RR_carry_recovery_permitted": false,
+          "post_lift_recovery_offsets_deg": {
+            "front_left_hip": 0,
+            "rear_left_hip": 0
+          },
+          "owners": [
+            {
+              "stage": "P07",
+              "channel": "front_left_hip",
+              "fixed_source_entry_deg": 22.8,
+              "original_source_target_deg": 38.6,
+              "candidate_source_target_deg": 38.6,
+              "reduction_deg": 0
+            },
+            {
+              "stage": "P08",
+              "channel": "rear_left_hip",
+              "fixed_source_entry_deg": 6.9,
+              "original_source_target_deg": 31.199999999999996,
+              "candidate_source_target_deg": 28.199999999999996,
+              "reduction_deg": 3
+            }
+          ],
+          "source_clocks_and_atomic_groups_unchanged": true,
+          "task_or_support_credit_awarded": false,
+          "exit": "later source owner replaces this segment; no permanent hip lock or home restore"
+        }
+      }
+    },
+    {
+      "label": "first_P09_request",
+      "global_policy_decision": 184958,
+      "terminal": false,
+      "phase": "P09",
+      "end_phase": "P09",
+      "end_tick": 4776,
+      "time_s": 39.8,
+      "dispatch_tick": 4955,
+      "request": {
+        "base_mean_full12": [
+          0.1582307666540146,
+          -0.12199857085943222,
+          0.04595896974205971,
+          -0.0007646809099242091,
+          -0.3057860732078552,
+          0.23830115795135498,
+          0.41470858454704285,
+          -0.3199057877063751,
+          0.0860557034611702,
+          0.09389061480760574,
+          0.250527948141098,
+          -0.22983917593955994
+        ],
+        "conditional_mean_full12": [
+          0.1880737990140915,
+          -0.22920376062393188,
+          0.03599685803055763,
+          -0.001112697646021843,
+          -0.3048546314239502,
+          0.28675606846809387,
+          0.26106613874435425,
+          -0.26191040873527527,
+          0.31835344433784485,
+          0.09767265617847443,
+          0.198979452252388,
+          -0.19778327643871307
+        ],
+        "history_center_full12": [
+          0.19138969480991364,
+          -0.24111545085906982,
+          0.03488995507359505,
+          -0.0011513661593198776,
+          -0.30475112795829773,
+          0.2921399474143982,
+          0.24399477243423462,
+          -0.255466490983963,
+          0.34416431188583374,
+          0.09809288382530212,
+          0.193251833319664,
+          -0.19422151148319244
+        ],
+        "selected_raw_full12": [
+          0.18013665080070496,
+          -0.2460007667541504,
+          0.03489239513874054,
+          -0.00642542727291584,
+          -0.34122827649116516,
+          0.2902565598487854,
+          0.24217583239078522,
+          -0.23826678097248077,
+          0.40753301978111267,
+          0.11565285921096802,
+          0.15988938510417938,
+          -0.19277724623680115
+        ],
+        "effective_sigma_full12": [
+          0.055067308247089386,
+          0.0744333267211914,
+          0.023503588512539864,
+          0.016647247597575188,
+          0.04712036997079849,
+          0.02060813084244728,
+          0.07887877523899078,
+          0.016538431867957115,
+          0.07140547782182693,
+          0.024370504543185234,
+          0.05383924022316933,
+          0.028980828821659088
+        ],
+        "innovation_sigma_multiplier_full12": [
+          1,
+          1,
+          1,
+          0.2142857164144516,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "current_cap_full12": [
+          32,
+          36,
+          24,
+          112,
+          24,
+          36,
+          24,
+          36,
+          1.2000000476837158,
+          1.2000000476837158,
+          1,
+          0.6000000238418579
+        ],
+        "unfiltered_physical_request_full12": [
+          5.702821827790547,
+          -8.68160368861459,
+          0.8370778026171914,
+          -0.719637950908613,
+          -7.885764185074153,
+          10.165353596796221,
+          5.701196599474345,
+          -8.418887458644951,
+          0.46365120568819945,
+          0.13816795947385366,
+          0.15854067161457203,
+          -0.11425449738647032
+        ],
+        "same_observation_mean_scaled_full12": [
+          5.9483913877879875,
+          -8.109815615446529,
+          0.8635516357586277,
+          -0.12462208492308023,
+          -7.097974951368358,
+          10.04926945116349,
+          6.127018981248833,
+          -9.21893517459025,
+          0.3696208212569147,
+          0.11683589205033527,
+          0.1963943327126163,
+          -0.11714641941123095
+        ],
+        "raw_innovation_full12": [
+          -0.007937148213386536,
+          -0.016797006130218506,
+          -0.001104462891817093,
+          -0.005312729626893997,
+          -0.036373645067214966,
+          0.0035004913806915283,
+          -0.01889030635356903,
+          0.023643627762794495,
+          0.08917957544326782,
+          0.01798020303249359,
+          -0.03909006714820862,
+          0.005006030201911926
+        ],
+        "unfiltered_physical_innovation_full12": [
+          -0.24556955999744012,
+          -0.5717880731680609,
+          -0.02647383314143631,
+          -0.5950158659855328,
+          -0.7877892337057957,
+          0.11608414563273217,
+          -0.42582238177448817,
+          0.8000477159452991,
+          0.09403038443128477,
+          0.02133206742351839,
+          -0.03785366109804428,
+          0.00289192202476062
+        ]
+      },
+      "control": {
+        "canonical_order": [
+          "front_left_hip",
+          "front_left_knee",
+          "front_right_hip",
+          "front_right_knee",
+          "rear_left_hip",
+          "rear_left_knee",
+          "rear_right_hip",
+          "rear_right_knee",
+          "front_left_ankle",
+          "front_right_ankle",
+          "rear_left_ankle",
+          "rear_right_ankle"
+        ],
+        "mask": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "nominal_action_full12": [
+          46.1,
+          -13.4,
+          0,
+          45.9,
+          6.9,
+          0,
+          0,
+          0,
+          0.205995450597021,
+          0.205995450597021,
+          0.205995450597021,
+          0.205995450597021
+        ],
+        "mapper_requested_servo_deg": [
+          46.1,
+          -13.4,
+          0,
+          45.9,
+          6.9,
+          0,
+          0,
+          0
+        ],
+        "mapped_before_geometry_servo_deg": [
+          46.1,
+          -12.15,
+          0,
+          45.33537794690286,
+          6.9,
+          0,
+          0,
+          0
+        ],
+        "mapper_compensation_deg": [
+          0,
+          1.25,
+          0,
+          -0.5646220530971391,
+          0,
+          0,
+          0,
+          0
+        ],
+        "geometry_corrected_native_full12": [
+          46.1,
+          -12.15,
+          0,
+          45.33537794690286,
+          6.9,
+          0,
+          0,
+          0,
+          0.205995450597021,
+          0.205995450597021,
+          0.205995450597021,
+          0.205995450597021
+        ],
+        "controller_bias_full12": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "requested_residual_full12": [
+          5.702821827790551,
+          -8.681603688614592,
+          0.8370778026171914,
+          -0.7196379509086128,
+          -7.885764185074153,
+          10.165353596796221,
+          5.701196599474345,
+          -8.41888745864495,
+          0.46365118726435656,
+          0.13816795398355247,
+          0.15854067161457203,
+          -0.11425449284640467
+        ],
+        "projected_residual_full12": [
+          5.702821827790551,
+          -8.681603688614592,
+          0.8370778026171914,
+          -0.7196379509086128,
+          -7.885764185074153,
+          10.165353596796221,
+          5.701196599474345,
+          -8.41888745864495,
+          0.46365118726435656,
+          0.13816795398355247,
+          0.15854067161457203,
+          -0.11425449284640467
+        ],
+        "candidate_before_slew_full12": [
+          51.80282182779055,
+          -20.831603688614592,
+          0.8370778026171914,
+          44.61573999599425,
+          -0.985764185074153,
+          10.165353596796221,
+          5.701196599474345,
+          -8.41888745864495,
+          0.6696466378613776,
+          0.3441634045805735,
+          0.36453612221159304,
+          0.09174095775061634
+        ],
+        "final_drive_full12": [
+          51.80282182779055,
+          -20.831603688614592,
+          0.8370778026171914,
+          44.61573999599425,
+          -0.985764185074153,
+          10.165353596796221,
+          5.701196599474345,
+          -8.41888745864495,
+          0.6696466378613776,
+          0.3441634045805735,
+          0.36453612221159304,
+          0.09174095775061634
+        ],
+        "predispatch_actual_physical_rad": [
+          0.7409639954566956,
+          -0.37510326504707336,
+          0.10636503994464874,
+          0.821316123008728,
+          -0.024383071810007095,
+          -0.1714760810136795,
+          -0.11214876919984818,
+          0.15394769608974457
+        ],
+        "predispatch_actual_canonical_deg": [
+          42.374758147187315,
+          -21.518677969579237,
+          6.101013437093643,
+          46.932759144945486,
+          1.2176207715252954,
+          9.987870560447234,
+          6.102669729619418,
+          -8.605309258202594
+        ],
+        "same_tick_counterfactual": true,
+        "counterfactual_native_targets": {
+          "servo_position_rad": [
+            0.8836981058120728,
+            -0.34129494428634644,
+            -0.00011773224105127156,
+            0.793436586856842,
+            -0.007743365131318569,
+            -0.15275712311267853,
+            -0.08332512527704239,
+            0.1288774013519287
+          ],
+          "wheel_velocity_rad_s": [
+            -0.20599545538425446,
+            0.20599545538425446,
+            -0.20599545538425446,
+            0.20599545538425446
+          ]
+        },
+        "actual_native_targets": {
+          "servo_position_rad": [
+            0.9055147767066956,
+            -0.36311155557632446,
+            0.014492031186819077,
+            0.7808765172958374,
+            0.014073250815272331,
+            -0.17457374930381775,
+            -0.10514174401760101,
+            0.15069402754306793
+          ],
+          "wheel_velocity_rad_s": [
+            -0.6696466207504272,
+            0.3441634178161621,
+            -0.3645361363887787,
+            0.09174095839262009
+          ]
+        },
+        "native_target_delta": {
+          "servo_position_rad": [
+            0.021816670894622803,
+            -0.021816611289978027,
+            0.014609763398766518,
+            -0.012560069561004639,
+            0.021816615015268326,
+            -0.02181662619113922,
+            -0.021816618740558624,
+            0.02181662619113922
+          ],
+          "wheel_velocity_rad_s": [
+            -0.463651180267334,
+            0.13816796243190765,
+            -0.15854068100452423,
+            -0.11425449699163437
+          ]
+        },
+        "headroom_clipped_indices": [],
+        "tracking_channels": [
+          "front_left_hip"
+        ],
+        "dispatch": {
+          "verified": true,
+          "actual_mapping_matches_dispatch": true,
+          "setter_dispatch_targets_equal": true,
+          "tracking_reference_previous_ack_independently_verified": true
+        },
+        "tick_audit": [
+          {
+            "episode_physics_tick": 4769,
+            "command_physics_tick": 4948,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": false,
+            "handoff_hold_used": true
+          },
+          {
+            "episode_physics_tick": 4770,
+            "command_physics_tick": 4949,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 4771,
+            "command_physics_tick": 4950,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 4772,
+            "command_physics_tick": 4951,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 4773,
+            "command_physics_tick": 4952,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 4774,
+            "command_physics_tick": 4953,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 4775,
+            "command_physics_tick": 4954,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 4776,
+            "command_physics_tick": 4955,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          }
+        ]
+      },
+      "physical": {
+        "valid": true,
+        "evidence": "VERIFIED",
+        "reason": "",
+        "termination_reason": null,
+        "goal_features": {
+          "body_forward_m": 0.11189365727734213,
+          "body_linear_speed_m_s": 0.01269171976994864,
+          "body_angular_speed_rad_s": 0.18930383223956296,
+          "support_count": 3,
+          "maximum_wheel_speed_rad_s": 0.669906735420227
+        },
+        "measured_wheel_velocity_rad_s": [
+          0.669906735420227,
+          0.28680142760276794,
+          0.4242456555366516,
+          0.0573209784924984
+        ],
+        "history": {
+          "active_lift": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "front_edge_crossed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "placed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "event_ticks": {
+            "active_lift": {
+              "FR": 23,
+              "FL": 1614
+            },
+            "front_edge_crossed": {
+              "FR": 1559,
+              "FL": 2497
+            },
+            "placed": {
+              "FR": 1572,
+              "FL": 3230
+            }
+          }
+        },
+        "legs": {
+          "FL": {
+            "air": true,
+            "support": false,
+            "ground_contact": false,
+            "top_contact": false,
+            "bearing_force_n": 0,
+            "clearance_m": 0.05395359158570594,
+            "front_distance_m": 0.39051157576870565,
+            "within_top_xy": true,
+            "active_attempt": true,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "FR": {
+            "air": false,
+            "support": true,
+            "ground_contact": false,
+            "top_contact": true,
+            "bearing_force_n": 12.468596458435059,
+            "clearance_m": 0.000004166146739120746,
+            "front_distance_m": 0.49713152987789755,
+            "within_top_xy": true,
+            "active_attempt": true,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": true,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "RL": {
+            "air": false,
+            "support": true,
+            "ground_contact": true,
+            "top_contact": false,
+            "bearing_force_n": 14.502994537353516,
+            "clearance_m": -0.05102664384594307,
+            "front_distance_m": -0.21829914705920572,
+            "within_top_xy": false,
+            "active_attempt": false,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "RR": {
+            "air": false,
+            "support": true,
+            "ground_contact": true,
+            "top_contact": false,
+            "bearing_force_n": 2.1646745204925537,
+            "clearance_m": -0.05057536928116971,
+            "front_distance_m": -0.18717980044055338,
+            "within_top_xy": false,
+            "active_attempt": false,
+            "current_lift_valid": false,
+            "motion_continuation_allowed": true,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          }
+        },
+        "RR_current_detail": {
+          "front_distance_m": -0.18717980044055338,
+          "clearance_m": -0.05057536928116971,
+          "top_geometry": false,
+          "top_contact": false,
+          "air": false,
+          "crossing_geometry_pending": false,
+          "recent_joint_motion_deg": 0,
+          "recent_clearance_gain_m": 0,
+          "recent_whole_body_joint_motion_deg": 0,
+          "whole_body_actuation_evidence": false,
+          "initial_clearance": false,
+          "ground_contact": true,
+          "obstacle_pair_active": false,
+          "consecutive_air_samples": 0,
+          "consecutive_top_samples": 0,
+          "within_top_xy": false,
+          "within_lateral_span": true,
+          "support": true,
+          "contact_surface": "NONE",
+          "top_surface_contact": false,
+          "contact_reaction": true,
+          "contact_reaction_force_n": 2.1646745204925733,
+          "bearing_force_n": 2.1646745204925537,
+          "bearing_verified": true,
+          "active_attempt": false,
+          "crossing_evidence_status": "PENDING",
+          "initial_now": false,
+          "lift_established_now": false,
+          "current_lift_valid": false,
+          "contact_mode": "GROUND",
+          "motion_continuation_allowed": true,
+          "motion_continuation_reason": "bounded_adjustment_to_acquire_measured_response",
+          "ground_relative_lift_m": 0,
+          "recent_wheel_displacement_m": 0,
+          "edge_adjustment_response_observed": null,
+          "body_control_evidence": true,
+          "body_control_evidence_semantics": "unchanged_live_safety_and_short_verified_other_supports_not_static_stability_proof",
+          "observed_other_support_contacts": [
+            "FR",
+            "RL"
+          ],
+          "air_duration_s": 0,
+          "edge_contact_duration_s": 0,
+          "durations_are_diagnostic_only": true,
+          "unsupported_free_lift_m": null,
+          "free_air_reference_tick": 4776,
+          "free_air_reference_bottom_z_m": -0.0005753692811697048,
+          "consecutive_free_air_samples": 0,
+          "free_lift_evidence_semantics": "current_continuous_AIR_rise_from_last_actual_contact",
+          "wheel_bottom_vz_m_s": -0.0012713291456904086,
+          "wheel_bottom_vz_observation_tick": 4776,
+          "wheel_bottom_vz_interval_s": 0.00833333333333286,
+          "wheel_bottom_vz_semantics": "adjacent_measured_collider_bottom_world_z_finite_difference",
+          "lift_established": false,
+          "initial_lift_observed": false,
+          "front_edge_crossed": false,
+          "placed_on_top": false,
+          "top_xy_outside_distance_m": 0.18217980044055337,
+          "load_fraction": 0.07429485152388351,
+          "load_fraction_valid": true,
+          "soft_air_actuation_earned": false,
+          "soft_air_earned_tick": null,
+          "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+        },
+        "RR_attempt_events": []
+      },
+      "aggregate_dispatch": {
+        "physics_ticks": 8,
+        "verified_tick_count": 8,
+        "all_ticks_verified": true,
+        "actual_native_effect_tick_count": 8,
+        "own_phase_request_effect_tick_count": 7
+      },
+      "episode_index": 1,
+      "nominal_diagnostics": {
+        "source_partial_order": {
+          "mode": "source_partial_order_physical_ready_v1",
+          "default_assist": "RL_source_method",
+          "RR_contact_backup_enabled": false,
+          "residual_channels_restricted": false,
+          "layers": [
+            {
+              "stage": "P07",
+              "source_ticks": 25,
+              "observation_tick": 4776,
+              "status": "active",
+              "wait_reason": null,
+              "support_count": 3,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.030799831549633838,
+              "RR_current_continuation": false,
+              "actual_start_tick": 4752
+            },
+            {
+              "stage": "P08",
+              "source_ticks": 0,
+              "observation_tick": 4776,
+              "status": "pending",
+              "wait_reason": "P07_source_groups_and_measured_FL_space_FR_response",
+              "support_count": 3,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.030799831549633838,
+              "RR_current_continuation": false,
+              "wait_ticks": 17
+            },
+            {
+              "stage": "P09",
+              "source_ticks": 0,
+              "observation_tick": 4776,
+              "status": "pending",
+              "wait_reason": "RL_source_assist_response_and_RR_measured_unload_or_lift",
+              "current_free_lift_source_readiness": null,
+              "support_count": 3,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.030799831549633838,
+              "RR_current_continuation": false,
+              "wait_ticks": 9
+            }
+          ]
+        },
+        "p06_wheel_tail": {
+          "schema": "wlr50_clean.p06_wheel_tail.v1",
+          "enabled": true,
+          "timing": "P06_layer_contribution_before_later_owners_and_slew_not_applied_target",
+          "source_rolling_rad_s": [
+            0.3,
+            0.3,
+            0.3,
+            0.3
+          ],
+          "layer_present": true,
+          "source_endpoint_issued": false,
+          "finite_source_tail_replaced": false,
+          "wheel_gain": 0.6598294118411443,
+          "status": "finite_source_before_endpoint"
+        },
+        "rr_carry_continuation": {
+          "source_joint_owners_continued": true,
+          "added_rolling_suggestion": false,
+          "ordered_source_wheel_owner": true,
+          "late_reconfiguration_waiting": false,
+          "current_TOP_continuation_eligible": false,
+          "reason": "finite_ordered_source_wheel_owner",
+          "fixed_lift_timer_gate": false,
+          "above_top_15mm_action_gate": false
+        },
+        "height_recovery": {
+          "mode": "source_segment_reduction_and_live_recovery_v1",
+          "candidate_id": "RL_preparation_minus3_v1",
+          "source_observation_tick": 4776,
+          "current_RR_carry_recovery_permitted": false,
+          "post_lift_recovery_offsets_deg": {
+            "front_left_hip": 0,
+            "rear_left_hip": 0
+          },
+          "owners": [
+            {
+              "stage": "P07",
+              "channel": "front_left_hip",
+              "fixed_source_entry_deg": 22.8,
+              "original_source_target_deg": 48.2,
+              "candidate_source_target_deg": 48.2,
+              "reduction_deg": 0
+            }
+          ],
+          "source_clocks_and_atomic_groups_unchanged": true,
+          "task_or_support_credit_awarded": false,
+          "exit": "later source owner replaces this segment; no permanent hip lock or home restore"
+        }
+      }
+    },
+    {
+      "label": "last_complete_nonterminal_decision",
+      "global_policy_decision": 184998,
+      "terminal": false,
+      "phase": "P09",
+      "end_phase": "P09",
+      "end_tick": 5096,
+      "time_s": 42.46666666666667,
+      "dispatch_tick": 5275,
+      "request": {
+        "base_mean_full12": [
+          0.11233458667993546,
+          -0.09277961403131485,
+          0.06799962371587753,
+          0.012558305636048317,
+          -0.22498464584350586,
+          0.21511510014533997,
+          0.3350614011287689,
+          -0.27636101841926575,
+          0.05604689568281174,
+          0.09641503542661667,
+          0.19201917946338654,
+          -0.1662263125181198
+        ],
+        "conditional_mean_full12": [
+          0.2695492208003998,
+          -0.18772773444652557,
+          0.06522531807422638,
+          0.053671255707740784,
+          -0.18054449558258057,
+          0.15661519765853882,
+          0.3167240023612976,
+          -0.2681654989719391,
+          0.14853109419345856,
+          0.15366467833518982,
+          0.2760505676269531,
+          -0.14156070351600647
+        ],
+        "history_center_full12": [
+          0.2870175242424011,
+          -0.1982775330543518,
+          0.06491705775260925,
+          0.05823936313390732,
+          -0.17560671269893646,
+          0.1501152068376541,
+          0.31468653678894043,
+          -0.26725488901138306,
+          0.15880712866783142,
+          0.16002576053142548,
+          0.28538739681243896,
+          -0.138820081949234
+        ],
+        "selected_raw_full12": [
+          0.21661880612373352,
+          -0.17002145946025848,
+          0.09018488973379135,
+          0.030263496562838554,
+          -0.18850795924663544,
+          0.19782257080078125,
+          0.32816386222839355,
+          -0.24810539186000824,
+          0.20258964598178864,
+          0.1785791963338852,
+          0.3293873965740204,
+          -0.12867848575115204
+        ],
+        "effective_sigma_full12": [
+          0.044150710105895996,
+          0.0652981773018837,
+          0.021168656647205353,
+          0.014883836731314659,
+          0.04843248054385185,
+          0.023010941222310066,
+          0.06886135786771774,
+          0.01621953956782818,
+          0.054174602031707764,
+          0.02071152999997139,
+          0.04621469974517822,
+          0.024740058928728104
+        ],
+        "innovation_sigma_multiplier_full12": [
+          1,
+          1,
+          1,
+          0.2142857164144516,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "current_cap_full12": [
+          32,
+          36,
+          24,
+          112,
+          24,
+          36,
+          24,
+          36,
+          1.2000000476837158,
+          1.2000000476837158,
+          1,
+          0.6000000238418579
+        ],
+        "unfiltered_physical_request_full12": [
+          6.825376944109091,
+          -6.062468285999544,
+          2.158588365086452,
+          3.388477199573309,
+          -4.471352525984712,
+          7.0301455472067165,
+          7.604879082218344,
+          -8.752927606525523,
+          0.23983537472651126,
+          0.21204573825448517,
+          0.31797021809470966,
+          -0.0767837625160216
+        ],
+        "same_observation_mean_scaled_full12": [
+          8.422570711234533,
+          -6.679911699243232,
+          1.5631914784755039,
+          6.005415339151703,
+          -4.2865930812813255,
+          5.592496860599797,
+          7.357002007980836,
+          -9.429012168123004,
+          0.176938057664752,
+          0.18295981662599675,
+          0.2692458658377445,
+          -0.0843735774536183
+        ],
+        "raw_innovation_full12": [
+          -0.05293041467666626,
+          0.01770627498626709,
+          0.024959571659564972,
+          -0.02340775914490223,
+          -0.00796346366405487,
+          0.04120737314224243,
+          0.011439859867095947,
+          0.020060107111930847,
+          0.05405855178833008,
+          0.024914517998695374,
+          0.05333682894706726,
+          0.012882217764854431
+        ],
+        "unfiltered_physical_innovation_full12": [
+          -1.5971937671254421,
+          0.6174434132436879,
+          0.5953968866109481,
+          -2.6169381395783944,
+          -0.18475944470338668,
+          1.4376486866069196,
+          0.2478770742375076,
+          0.6760845615974814,
+          0.06289731706175923,
+          0.02908592162848841,
+          0.04872435225696514,
+          0.007589814937596698
+        ]
+      },
+      "control": {
+        "canonical_order": [
+          "front_left_hip",
+          "front_left_knee",
+          "front_right_hip",
+          "front_right_knee",
+          "rear_left_hip",
+          "rear_left_knee",
+          "rear_right_hip",
+          "rear_right_knee",
+          "front_left_ankle",
+          "front_right_ankle",
+          "rear_left_ankle",
+          "rear_right_ankle"
+        ],
+        "mask": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "nominal_action_full12": [
+          38.6,
+          -13.4,
+          0,
+          31.1,
+          28.199999999999996,
+          0,
+          55.6,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "mapper_requested_servo_deg": [
+          38.6,
+          -13.4,
+          0,
+          31.1,
+          28.199999999999996,
+          0,
+          55.6,
+          0
+        ],
+        "mapped_before_geometry_servo_deg": [
+          38.6,
+          -12.15,
+          0,
+          32.640588103091524,
+          28.199999999999996,
+          0,
+          61.85,
+          0
+        ],
+        "mapper_compensation_deg": [
+          0,
+          1.25,
+          0,
+          1.5405881030915225,
+          0,
+          0,
+          6.25,
+          0
+        ],
+        "geometry_corrected_native_full12": [
+          38.6,
+          -12.15,
+          0,
+          32.640588103091524,
+          28.199999999999996,
+          0,
+          61.85,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "controller_bias_full12": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "requested_residual_full12": [
+          6.825376944109088,
+          -6.062468285999541,
+          2.158588365086452,
+          3.388477199573309,
+          -4.471352525984713,
+          7.0301455472067165,
+          7.604879082218339,
+          -8.752927606525523,
+          0.23983536519631007,
+          0.2120457298285449,
+          0.31797021809470966,
+          -0.07678375946490913
+        ],
+        "projected_residual_full12": [
+          6.825376944109088,
+          -6.062468285999541,
+          2.158588365086452,
+          3.388477199573309,
+          -4.471352525984713,
+          7.0301455472067165,
+          7.604879082218339,
+          -8.752927606525523,
+          0.23983536519631007,
+          0.2120457298285449,
+          0.31797021809470966,
+          -0.07678375946490913
+        ],
+        "candidate_before_slew_full12": [
+          45.42537694410909,
+          -18.21246828599954,
+          2.158588365086452,
+          36.02906530266483,
+          23.728647474015283,
+          7.0301455472067165,
+          69.45487908221834,
+          -8.752927606525523,
+          0.23983536519631007,
+          0.2120457298285449,
+          0.31797021809470966,
+          -0.07678375946490913
+        ],
+        "final_drive_full12": [
+          45.42537694410909,
+          -18.21246828599954,
+          2.158588365086452,
+          36.02906530266483,
+          23.728647474015283,
+          7.0301455472067165,
+          69.45487908221834,
+          -8.752927606525523,
+          0.23983536519631007,
+          0.2120457298285449,
+          0.31797021809470966,
+          -0.07678375946490913
+        ],
+        "predispatch_actual_physical_rad": [
+          0.8122084736824036,
+          -0.3051762282848358,
+          0.036319833248853683,
+          0.6485229134559631,
+          -0.42491286993026733,
+          -0.06960921734571457,
+          -1.0989139080047607,
+          0.16345447301864624
+        ],
+        "predispatch_actual_canonical_deg": [
+          46.45676606313208,
+          -17.512153889246875,
+          2.0877187183030914,
+          37.032437509052436,
+          24.166287773043102,
+          4.151329200038299,
+          62.64014755378176,
+          -9.150007453001
+        ],
+        "same_tick_counterfactual": true,
+        "counterfactual_native_targets": {
+          "servo_position_rad": [
+            0.7723907232284546,
+            -0.2955824136734009,
+            0.015740126371383667,
+            0.6091941595077515,
+            -0.4390912353992462,
+            -0.09803742915391922,
+            -1.1960368156433105,
+            0.134707510471344
+          ],
+          "wheel_velocity_rad_s": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "actual_native_targets": {
+          "servo_position_rad": [
+            0.7942073345184326,
+            -0.3173990249633789,
+            0.03755674138665199,
+            0.6310107707977295,
+            -0.4172745943069458,
+            -0.11985404044389725,
+            -1.2178534269332886,
+            0.15652412176132202
+          ],
+          "wheel_velocity_rad_s": [
+            -0.23983536660671234,
+            0.21204572916030884,
+            -0.3179702162742615,
+            -0.07678376138210297
+          ]
+        },
+        "native_target_delta": {
+          "servo_position_rad": [
+            0.021816611289978027,
+            -0.021816611289978027,
+            0.021816615015268326,
+            0.021816611289978027,
+            0.021816641092300415,
+            -0.021816611289978027,
+            -0.021816611289978027,
+            0.021816611289978027
+          ],
+          "wheel_velocity_rad_s": [
+            -0.23983536660671234,
+            0.21204572916030884,
+            -0.3179702162742615,
+            -0.07678376138210297
+          ]
+        },
+        "headroom_clipped_indices": [],
+        "tracking_channels": [
+          "rear_right_hip"
+        ],
+        "dispatch": {
+          "verified": true,
+          "actual_mapping_matches_dispatch": true,
+          "setter_dispatch_targets_equal": true,
+          "tracking_reference_previous_ack_independently_verified": true
+        },
+        "tick_audit": [
+          {
+            "episode_physics_tick": 5089,
+            "command_physics_tick": 5268,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 5090,
+            "command_physics_tick": 5269,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 5091,
+            "command_physics_tick": 5270,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 5092,
+            "command_physics_tick": 5271,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 5093,
+            "command_physics_tick": 5272,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 5094,
+            "command_physics_tick": 5273,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 5095,
+            "command_physics_tick": 5274,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 5096,
+            "command_physics_tick": 5275,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          }
+        ]
+      },
+      "physical": {
+        "valid": true,
+        "evidence": "VERIFIED",
+        "reason": "",
+        "termination_reason": null,
+        "goal_features": {
+          "body_forward_m": 0.16367668254208212,
+          "body_linear_speed_m_s": 0.09834212309978724,
+          "body_angular_speed_rad_s": 0.6311644566189194,
+          "support_count": 3,
+          "maximum_wheel_speed_rad_s": 0.3008834421634674
+        },
+        "measured_wheel_velocity_rad_s": [
+          0.23810720443725586,
+          0.3008834421634674,
+          0.2724241614341736,
+          -0.05567202717065811
+        ],
+        "history": {
+          "active_lift": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "front_edge_crossed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "placed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "event_ticks": {
+            "active_lift": {
+              "FR": 23,
+              "FL": 1614
+            },
+            "front_edge_crossed": {
+              "FR": 1559,
+              "FL": 2497
+            },
+            "placed": {
+              "FR": 1572,
+              "FL": 3230
+            }
+          }
+        },
+        "legs": {
+          "FL": {
+            "air": true,
+            "support": false,
+            "ground_contact": false,
+            "top_contact": false,
+            "bearing_force_n": 0,
+            "clearance_m": 0.1725248674766714,
+            "front_distance_m": 0.4233256612522567,
+            "within_top_xy": true,
+            "active_attempt": true,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "FR": {
+            "air": false,
+            "support": true,
+            "ground_contact": false,
+            "top_contact": true,
+            "bearing_force_n": 12.428007125854492,
+            "clearance_m": -0.00006300905789684286,
+            "front_distance_m": 0.5179700289471114,
+            "within_top_xy": true,
+            "active_attempt": true,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": true,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "RL": {
+            "air": false,
+            "support": true,
+            "ground_contact": true,
+            "top_contact": false,
+            "bearing_force_n": 12.683789253234863,
+            "clearance_m": -0.05024248212356191,
+            "front_distance_m": -0.19346749441790934,
+            "within_top_xy": false,
+            "active_attempt": false,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "RR": {
+            "air": false,
+            "support": true,
+            "ground_contact": true,
+            "top_contact": false,
+            "bearing_force_n": 4.927964210510254,
+            "clearance_m": -0.04999453569382583,
+            "front_distance_m": -0.21271296994853373,
+            "within_top_xy": false,
+            "active_attempt": false,
+            "current_lift_valid": false,
+            "motion_continuation_allowed": true,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          }
+        },
+        "RR_current_detail": {
+          "front_distance_m": -0.21271296994853373,
+          "clearance_m": -0.04999453569382583,
+          "top_geometry": false,
+          "top_contact": false,
+          "air": false,
+          "crossing_geometry_pending": false,
+          "recent_joint_motion_deg": 0,
+          "recent_clearance_gain_m": 0,
+          "recent_whole_body_joint_motion_deg": 0,
+          "whole_body_actuation_evidence": false,
+          "initial_clearance": false,
+          "ground_contact": true,
+          "obstacle_pair_active": false,
+          "consecutive_air_samples": 0,
+          "consecutive_top_samples": 0,
+          "within_top_xy": false,
+          "within_lateral_span": true,
+          "support": true,
+          "contact_surface": "NONE",
+          "top_surface_contact": false,
+          "contact_reaction": true,
+          "contact_reaction_force_n": 4.927964210510298,
+          "bearing_force_n": 4.927964210510254,
+          "bearing_verified": true,
+          "active_attempt": false,
+          "crossing_evidence_status": "PENDING",
+          "initial_now": false,
+          "lift_established_now": false,
+          "current_lift_valid": false,
+          "contact_mode": "GROUND",
+          "motion_continuation_allowed": true,
+          "motion_continuation_reason": "bounded_adjustment_to_acquire_measured_response",
+          "ground_relative_lift_m": 0,
+          "recent_wheel_displacement_m": 0,
+          "edge_adjustment_response_observed": null,
+          "body_control_evidence": true,
+          "body_control_evidence_semantics": "unchanged_live_safety_and_short_verified_other_supports_not_static_stability_proof",
+          "observed_other_support_contacts": [
+            "FR",
+            "RL"
+          ],
+          "air_duration_s": 0,
+          "edge_contact_duration_s": 0,
+          "durations_are_diagnostic_only": true,
+          "unsupported_free_lift_m": null,
+          "free_air_reference_tick": 5096,
+          "free_air_reference_bottom_z_m": 0.000005464306174172984,
+          "consecutive_free_air_samples": 0,
+          "free_lift_evidence_semantics": "current_continuous_AIR_rise_from_last_actual_contact",
+          "wheel_bottom_vz_m_s": -0.0008577342833227463,
+          "wheel_bottom_vz_observation_tick": 5096,
+          "wheel_bottom_vz_interval_s": 0.00833333333333286,
+          "wheel_bottom_vz_semantics": "adjacent_measured_collider_bottom_world_z_finite_difference",
+          "lift_established": false,
+          "initial_lift_observed": false,
+          "front_edge_crossed": false,
+          "placed_on_top": false,
+          "top_xy_outside_distance_m": 0.20771296994853372,
+          "load_fraction": 0.16404805210785928,
+          "load_fraction_valid": true,
+          "soft_air_actuation_earned": false,
+          "soft_air_earned_tick": null,
+          "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+        },
+        "RR_attempt_events": []
+      },
+      "aggregate_dispatch": {
+        "physics_ticks": 8,
+        "verified_tick_count": 8,
+        "all_ticks_verified": true,
+        "actual_native_effect_tick_count": 8,
+        "own_phase_request_effect_tick_count": 8
+      },
+      "episode_index": 1,
+      "nominal_diagnostics": {
+        "source_partial_order": {
+          "mode": "source_partial_order_physical_ready_v1",
+          "default_assist": "RL_source_method",
+          "RR_contact_backup_enabled": false,
+          "residual_channels_restricted": false,
+          "layers": [
+            {
+              "stage": "P07",
+              "source_ticks": 345,
+              "observation_tick": 5096,
+              "status": "active",
+              "wait_reason": null,
+              "support_count": 3,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.045603806840641636,
+              "RR_current_continuation": false,
+              "actual_start_tick": 4752,
+              "fr_group_start_tick": 4792
+            },
+            {
+              "stage": "P08",
+              "source_ticks": 145,
+              "observation_tick": 5096,
+              "status": "active",
+              "wait_reason": null,
+              "support_count": 3,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.045603806840641636,
+              "RR_current_continuation": false,
+              "wait_ticks": 192,
+              "actual_start_tick": 4952
+            },
+            {
+              "stage": "P09",
+              "source_ticks": 80,
+              "observation_tick": 5096,
+              "status": "holding",
+              "wait_reason": "current_free_lift_before_pending_knee",
+              "current_free_lift_source_readiness": {
+                "mode": "current_free_lift_before_pending_knee_and_roll_v1",
+                "source_tick": 80,
+                "observation_tick": 5096,
+                "pending_kind": "knee_waypoint",
+                "ready": false,
+                "reason": "current_free_lift_before_pending_knee",
+                "current_free_lift_valid": false,
+                "current_evidence_fresh": true,
+                "RR_clearance_m": -0.04999453569382583,
+                "RR_bottom_vz_m_s": -0.0008577342833227463,
+                "RR_other_verified_supports": 2,
+                "source_clock_may_advance": false,
+                "physical_success_awarded": false
+              },
+              "support_count": 3,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.045603806840641636,
+              "RR_current_continuation": false,
+              "wait_ticks": 249,
+              "actual_start_tick": 5000
+            }
+          ]
+        },
+        "p06_wheel_tail": {
+          "schema": "wlr50_clean.p06_wheel_tail.v1",
+          "enabled": true,
+          "timing": "P06_layer_contribution_before_later_owners_and_slew_not_applied_target",
+          "source_rolling_rad_s": [
+            0.3,
+            0.3,
+            0.3,
+            0.3
+          ],
+          "layer_present": true,
+          "source_endpoint_issued": false,
+          "finite_source_tail_replaced": false,
+          "wheel_gain": 0,
+          "status": "retired"
+        },
+        "rr_carry_continuation": {
+          "source_joint_owners_continued": true,
+          "added_rolling_suggestion": false,
+          "ordered_source_wheel_owner": true,
+          "late_reconfiguration_waiting": false,
+          "current_TOP_continuation_eligible": false,
+          "reason": "finite_ordered_source_wheel_owner",
+          "fixed_lift_timer_gate": false,
+          "above_top_15mm_action_gate": false
+        },
+        "height_recovery": {
+          "mode": "source_segment_reduction_and_live_recovery_v1",
+          "candidate_id": "RL_preparation_minus3_v1",
+          "source_observation_tick": 5096,
+          "current_RR_carry_recovery_permitted": false,
+          "post_lift_recovery_offsets_deg": {
+            "front_left_hip": 0,
+            "rear_left_hip": 0
+          },
+          "owners": [
+            {
+              "stage": "P07",
+              "channel": "front_left_hip",
+              "fixed_source_entry_deg": 22.8,
+              "original_source_target_deg": 38.6,
+              "candidate_source_target_deg": 38.6,
+              "reduction_deg": 0
+            },
+            {
+              "stage": "P08",
+              "channel": "rear_left_hip",
+              "fixed_source_entry_deg": 6.9,
+              "original_source_target_deg": 31.199999999999996,
+              "candidate_source_target_deg": 28.199999999999996,
+              "reduction_deg": 3
+            }
+          ],
+          "source_clocks_and_atomic_groups_unchanged": true,
+          "task_or_support_credit_awarded": false,
+          "exit": "later source owner replaces this segment; no permanent hip lock or home restore"
+        }
+      }
+    },
+    {
+      "label": "terminal_decision",
+      "global_policy_decision": 184999,
+      "terminal": true,
+      "phase": "P09",
+      "end_phase": "P09",
+      "end_tick": 5098,
+      "time_s": 42.483333333333334,
+      "dispatch_tick": 5277,
+      "request": {
+        "base_mean_full12": [
+          0.09326722472906113,
+          -0.08456183224916458,
+          0.06477247923612595,
+          0.017795700579881668,
+          -0.21634164452552795,
+          0.20770500600337982,
+          0.30170026421546936,
+          -0.2627924382686615,
+          0.043375588953495026,
+          0.10360148549079895,
+          0.1627025008201599,
+          -0.1604640930891037
+        ],
+        "conditional_mean_full12": [
+          0.20428363978862762,
+          -0.16147549450397491,
+          0.08764365315437317,
+          0.02901671640574932,
+          -0.19129131734371185,
+          0.19881081581115723,
+          0.3255175054073334,
+          -0.24957409501075745,
+          0.1866682469844818,
+          0.17108142375946045,
+          0.3127188980579376,
+          -0.1318570375442505
+        ],
+        "history_center_full12": [
+          0.21661880612373352,
+          -0.17002145946025848,
+          0.09018488973379135,
+          0.030263496562838554,
+          -0.18850795924663544,
+          0.19782257080078125,
+          0.32816386222839355,
+          -0.24810539186000824,
+          0.20258964598178864,
+          0.1785791963338852,
+          0.3293873965740204,
+          -0.12867848575115204
+        ],
+        "selected_raw_full12": [
+          0.23702821135520935,
+          -0.18179576098918915,
+          0.09628259390592575,
+          0.025690225884318352,
+          -0.20185740292072296,
+          0.22555480897426605,
+          0.30531713366508484,
+          -0.23956942558288574,
+          0.13159418106079102,
+          0.17802059650421143,
+          0.32695016264915466,
+          -0.12393105030059814
+        ],
+        "effective_sigma_full12": [
+          0.040658947080373764,
+          0.061913322657346725,
+          0.02005099318921566,
+          0.0136116249486804,
+          0.04825514554977417,
+          0.024691414088010788,
+          0.06564915180206299,
+          0.015938812866806984,
+          0.04784773662686348,
+          0.020796461030840874,
+          0.04408492520451546,
+          0.023716052994132042
+        ],
+        "innovation_sigma_multiplier_full12": [
+          1,
+          1,
+          1,
+          0.2142857164144516,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "current_cap_full12": [
+          32,
+          36,
+          24,
+          112,
+          24,
+          36,
+          24,
+          36,
+          1.2000000476837158,
+          1.2000000476837158,
+          1,
+          0.6000000238418579
+        ],
+        "unfiltered_physical_request_full12": [
+          7.44597803323899,
+          -6.473488419332355,
+          2.3036680555596405,
+          2.876672470732112,
+          -4.7798329932001975,
+          7.98501766657072,
+          7.108102725764466,
+          -8.463204461047527,
+          0.1570077654739158,
+          0.21139628484723735,
+          0.31577770606608774,
+          -0.07398026840600182
+        ],
+        "same_observation_mean_scaled_full12": [
+          6.447634538513823,
+          -5.763114860564814,
+          2.0980783580468074,
+          3.2489604463967674,
+          -4.53580088121645,
+          7.0643590320369505,
+          7.547695779729857,
+          -8.80265749130724,
+          0.2214358799526671,
+          0.20331794872327746,
+          0.30290855588691606,
+          -0.07865889138609354
+        ],
+        "raw_innovation_full12": [
+          0.032744571566581726,
+          -0.020320266485214233,
+          0.008638940751552582,
+          -0.0033264905214309692,
+          -0.010566085577011108,
+          0.026743993163108826,
+          -0.020200371742248535,
+          0.010004669427871704,
+          -0.055074065923690796,
+          0.0069391727447509766,
+          0.014231264591217041,
+          0.007925987243652344
+        ],
+        "unfiltered_physical_innovation_full12": [
+          0.9983434947251677,
+          -0.7103735587675412,
+          0.20558969751283296,
+          -0.37228797566465527,
+          -0.24403211198374786,
+          0.9206586345337702,
+          -0.4395930539653907,
+          0.33945303025971374,
+          -0.06442811447875128,
+          0.008078336123959896,
+          0.012869150179171673,
+          0.004678622980091723
+        ]
+      },
+      "control": {
+        "canonical_order": [
+          "front_left_hip",
+          "front_left_knee",
+          "front_right_hip",
+          "front_right_knee",
+          "rear_left_hip",
+          "rear_left_knee",
+          "rear_right_hip",
+          "rear_right_knee",
+          "front_left_ankle",
+          "front_right_ankle",
+          "rear_left_ankle",
+          "rear_right_ankle"
+        ],
+        "mask": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "nominal_action_full12": [
+          38.6,
+          -13.4,
+          0,
+          31.1,
+          28.199999999999996,
+          0,
+          55.6,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "mapper_requested_servo_deg": [
+          38.6,
+          -13.4,
+          0,
+          31.1,
+          28.199999999999996,
+          0,
+          55.6,
+          0
+        ],
+        "mapped_before_geometry_servo_deg": [
+          38.6,
+          -12.15,
+          0,
+          32.640588103091524,
+          28.199999999999996,
+          0,
+          60.6,
+          0
+        ],
+        "mapper_compensation_deg": [
+          0,
+          1.25,
+          0,
+          1.5405881030915225,
+          0,
+          0,
+          5,
+          0
+        ],
+        "geometry_corrected_native_full12": [
+          38.6,
+          -12.15,
+          0,
+          32.640588103091524,
+          28.199999999999996,
+          0,
+          60.6,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "controller_bias_full12": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "requested_residual_full12": [
+          7.445978033238994,
+          -6.473488419332353,
+          2.30366805555964,
+          2.8766724707321103,
+          -4.779832993200198,
+          7.98501766657072,
+          7.108102725764468,
+          -8.463204461047525,
+          0.20983536519631008,
+          0.21139627644710404,
+          0.31577770606608774,
+          -0.07398026546629018
+        ],
+        "projected_residual_full12": [
+          7.445978033238994,
+          -6.473488419332353,
+          2.30366805555964,
+          2.8766724707321103,
+          -4.779832993200198,
+          7.98501766657072,
+          7.108102725764468,
+          -8.463204461047525,
+          0.20983536519631008,
+          0.21139627644710404,
+          0.31577770606608774,
+          -0.07398026546629018
+        ],
+        "candidate_before_slew_full12": [
+          46.045978033238995,
+          -18.623488419332354,
+          2.30366805555964,
+          35.517260573823634,
+          23.420167006799797,
+          7.98501766657072,
+          67.70810272576446,
+          -8.463204461047525,
+          0.20983536519631008,
+          0.21139627644710404,
+          0.31577770606608774,
+          -0.07398026546629018
+        ],
+        "final_drive_full12": [
+          46.045978033238995,
+          -18.623488419332354,
+          2.30366805555964,
+          35.517260573823634,
+          23.420167006799797,
+          7.98501766657072,
+          67.70810272576446,
+          -8.463204461047525,
+          0.20983536519631008,
+          0.21139627644710404,
+          0.31577770606608774,
+          -0.07398026546629018
+        ],
+        "predispatch_actual_physical_rad": [
+          0.8100649118423462,
+          -0.30762845277786255,
+          0.03837824612855911,
+          0.6453336477279663,
+          -0.4234270453453064,
+          -0.07537269592285156,
+          -1.115351676940918,
+          0.1617783010005951
+        ],
+        "predispatch_actual_canonical_deg": [
+          46.333949016571495,
+          -17.652656003115915,
+          2.205657088805583,
+          36.8497060430925,
+          24.081156295228062,
+          4.481552197822314,
+          63.58196233843482,
+          -9.053969870628745
+        ],
+        "same_tick_counterfactual": true,
+        "counterfactual_native_targets": {
+          "servo_position_rad": [
+            0.7811173796653748,
+            -0.30275607109069824,
+            0.018272245302796364,
+            0.6004675030708313,
+            -0.43370720744132996,
+            -0.10676407068967819,
+            -1.1742202043533325,
+            0.12965089082717896
+          ],
+          "wheel_velocity_rad_s": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "actual_native_targets": {
+          "servo_position_rad": [
+            0.8050388693809509,
+            -0.32457268238067627,
+            0.04008885845541954,
+            0.6220780611038208,
+            -0.41189059615135193,
+            -0.13651970028877258,
+            -1.1873663663864136,
+            0.15146750211715698
+          ],
+          "wheel_velocity_rad_s": [
+            -0.20983536541461945,
+            0.21139627695083618,
+            -0.3157777190208435,
+            -0.07398026436567307
+          ]
+        },
+        "native_target_delta": {
+          "servo_position_rad": [
+            0.023921489715576172,
+            -0.021816611289978027,
+            0.021816613152623177,
+            0.021610558032989502,
+            0.021816611289978027,
+            -0.02975562959909439,
+            -0.013146162033081055,
+            0.021816611289978027
+          ],
+          "wheel_velocity_rad_s": [
+            -0.20983536541461945,
+            0.21139627695083618,
+            -0.3157777190208435,
+            -0.07398026436567307
+          ]
+        },
+        "headroom_clipped_indices": [],
+        "tracking_channels": [
+          "rear_right_hip"
+        ],
+        "dispatch": {
+          "verified": true,
+          "actual_mapping_matches_dispatch": true,
+          "setter_dispatch_targets_equal": true,
+          "tracking_reference_previous_ack_independently_verified": true
+        },
+        "tick_audit": [
+          {
+            "episode_physics_tick": 5097,
+            "command_physics_tick": 5276,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 11,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          },
+          {
+            "episode_physics_tick": 5098,
+            "command_physics_tick": 5277,
+            "source_phase_id": "P09",
+            "verified": true,
+            "changed_target_channel_count": 12,
+            "actual_native_effect": true,
+            "own_phase_request_effect": true,
+            "handoff_hold_used": false
+          }
+        ]
+      },
+      "physical": {
+        "valid": true,
+        "evidence": "VERIFIED",
+        "reason": "central body/obstacle collision",
+        "termination_reason": "TASK_FAILURE_BODY_COLLISION",
+        "goal_features": {
+          "body_forward_m": 0.16379279239010458,
+          "body_linear_speed_m_s": 0.019645319031322633,
+          "body_angular_speed_rad_s": 0.090342381196742,
+          "support_count": 2,
+          "maximum_wheel_speed_rad_s": 0.21000665426254272
+        },
+        "measured_wheel_velocity_rad_s": [
+          0.21000665426254272,
+          0.1651645302772522,
+          0.20864298939704895,
+          -0.07485372573137283
+        ],
+        "history": {
+          "active_lift": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "front_edge_crossed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "placed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "event_ticks": {
+            "active_lift": {
+              "FR": 23,
+              "FL": 1614
+            },
+            "front_edge_crossed": {
+              "FR": 1559,
+              "FL": 2497
+            },
+            "placed": {
+              "FR": 1572,
+              "FL": 3230
+            }
+          }
+        },
+        "legs": {
+          "FL": {
+            "air": true,
+            "support": false,
+            "ground_contact": false,
+            "top_contact": false,
+            "bearing_force_n": 0,
+            "clearance_m": 0.17308935086111804,
+            "front_distance_m": 0.4228884015781844,
+            "within_top_xy": true,
+            "active_attempt": true,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "FR": {
+            "air": false,
+            "support": true,
+            "ground_contact": false,
+            "top_contact": true,
+            "bearing_force_n": 1.6927127838134766,
+            "clearance_m": -0.00004297270588537322,
+            "front_distance_m": 0.5177512799007857,
+            "within_top_xy": true,
+            "active_attempt": true,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": true,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "RL": {
+            "air": false,
+            "support": true,
+            "ground_contact": true,
+            "top_contact": false,
+            "bearing_force_n": 4.545246124267578,
+            "clearance_m": -0.05021944477352981,
+            "front_distance_m": -0.1941241885917222,
+            "within_top_xy": false,
+            "active_attempt": false,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          },
+          "RR": {
+            "air": true,
+            "support": false,
+            "ground_contact": false,
+            "top_contact": false,
+            "bearing_force_n": 0,
+            "clearance_m": -0.04863061371969004,
+            "front_distance_m": -0.21321880476642008,
+            "within_top_xy": false,
+            "active_attempt": false,
+            "current_lift_valid": false,
+            "motion_continuation_allowed": false,
+            "obstacle_pair_active": false,
+            "lift_invalidation_reason": null,
+            "current_lift_reason": null
+          }
+        },
+        "RR_current_detail": {
+          "front_distance_m": -0.21321880476642008,
+          "clearance_m": -0.04863061371969004,
+          "top_geometry": false,
+          "top_contact": false,
+          "air": true,
+          "crossing_geometry_pending": false,
+          "recent_joint_motion_deg": 0.8304724558981018,
+          "recent_clearance_gain_m": 0.00136392197413579,
+          "recent_whole_body_joint_motion_deg": 1.8860363572149077,
+          "whole_body_actuation_evidence": false,
+          "initial_clearance": false,
+          "ground_contact": false,
+          "obstacle_pair_active": false,
+          "consecutive_air_samples": 2,
+          "consecutive_top_samples": 0,
+          "within_top_xy": false,
+          "within_lateral_span": true,
+          "support": false,
+          "contact_surface": "NONE",
+          "top_surface_contact": false,
+          "contact_reaction": false,
+          "contact_reaction_force_n": 0,
+          "bearing_force_n": 0,
+          "bearing_verified": true,
+          "active_attempt": false,
+          "crossing_evidence_status": "PENDING",
+          "initial_now": false,
+          "lift_established_now": false,
+          "current_lift_valid": false,
+          "contact_mode": "AIR",
+          "motion_continuation_allowed": false,
+          "motion_continuation_reason": "physical_safety_abort",
+          "ground_relative_lift_m": 0.00136392197413579,
+          "recent_wheel_displacement_m": 0.00159402705134021,
+          "edge_adjustment_response_observed": null,
+          "body_control_evidence": false,
+          "body_control_evidence_semantics": "unchanged_live_safety_and_short_verified_other_supports_not_static_stability_proof",
+          "observed_other_support_contacts": [
+            "FR",
+            "RL"
+          ],
+          "air_duration_s": 0.016666666666666666,
+          "edge_contact_duration_s": 0,
+          "durations_are_diagnostic_only": true,
+          "unsupported_free_lift_m": 0.00136392197413579,
+          "free_air_reference_tick": 5096,
+          "free_air_reference_bottom_z_m": 0.000005464306174172984,
+          "consecutive_free_air_samples": 2,
+          "free_lift_evidence_semantics": "current_continuous_AIR_rise_from_last_actual_contact",
+          "wheel_bottom_vz_m_s": 0.1355504797403897,
+          "wheel_bottom_vz_observation_tick": 5098,
+          "wheel_bottom_vz_interval_s": 0.00833333333333286,
+          "wheel_bottom_vz_semantics": "adjacent_measured_collider_bottom_world_z_finite_difference",
+          "lift_established": false,
+          "initial_lift_observed": false,
+          "front_edge_crossed": false,
+          "placed_on_top": false,
+          "top_xy_outside_distance_m": 0.20821880476642007,
+          "load_fraction": 0,
+          "load_fraction_valid": true,
+          "soft_air_actuation_earned": false,
+          "soft_air_earned_tick": null,
+          "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+        },
+        "RR_attempt_events": []
+      },
+      "aggregate_dispatch": {
+        "physics_ticks": 2,
+        "verified_tick_count": 2,
+        "all_ticks_verified": true,
+        "actual_native_effect_tick_count": 2,
+        "own_phase_request_effect_tick_count": 2
+      },
+      "episode_index": 1,
+      "nominal_diagnostics": {
+        "source_partial_order": {
+          "mode": "source_partial_order_physical_ready_v1",
+          "default_assist": "RL_source_method",
+          "RR_contact_backup_enabled": false,
+          "residual_channels_restricted": false,
+          "layers": [
+            {
+              "stage": "P07",
+              "source_ticks": 346,
+              "observation_tick": 5098,
+              "status": "holding",
+              "wait_reason": "no_live_physical_readiness",
+              "support_count": 2,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.04533707185814523,
+              "RR_current_continuation": false,
+              "actual_start_tick": 4752,
+              "fr_group_start_tick": 4792
+            },
+            {
+              "stage": "P08",
+              "source_ticks": 146,
+              "observation_tick": 5098,
+              "status": "holding",
+              "wait_reason": "no_live_physical_readiness",
+              "support_count": 2,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.04533707185814523,
+              "RR_current_continuation": false,
+              "wait_ticks": 192,
+              "actual_start_tick": 4952
+            },
+            {
+              "stage": "P09",
+              "source_ticks": 80,
+              "observation_tick": 5098,
+              "status": "holding",
+              "wait_reason": "no_live_physical_readiness",
+              "current_free_lift_source_readiness": null,
+              "support_count": 2,
+              "RR_other_support_count": 2,
+              "FL_space_measured": true,
+              "FL_body_radial_contraction_m": -0.04533707185814523,
+              "RR_current_continuation": false,
+              "wait_ticks": 250,
+              "actual_start_tick": 5000
+            }
+          ]
+        },
+        "p06_wheel_tail": {
+          "schema": "wlr50_clean.p06_wheel_tail.v1",
+          "enabled": true,
+          "timing": "P06_layer_contribution_before_later_owners_and_slew_not_applied_target",
+          "source_rolling_rad_s": [
+            0.3,
+            0.3,
+            0.3,
+            0.3
+          ],
+          "layer_present": true,
+          "source_endpoint_issued": false,
+          "finite_source_tail_replaced": false,
+          "wheel_gain": 0,
+          "status": "terminal_no_tail"
+        },
+        "rr_carry_continuation": {
+          "source_joint_owners_continued": true,
+          "added_rolling_suggestion": false,
+          "ordered_source_wheel_owner": true,
+          "late_reconfiguration_waiting": false,
+          "current_TOP_continuation_eligible": false,
+          "reason": "finite_ordered_source_wheel_owner",
+          "fixed_lift_timer_gate": false,
+          "above_top_15mm_action_gate": false
+        },
+        "height_recovery": {
+          "mode": "source_segment_reduction_and_live_recovery_v1",
+          "candidate_id": "RL_preparation_minus3_v1",
+          "source_observation_tick": 5098,
+          "current_RR_carry_recovery_permitted": false,
+          "post_lift_recovery_offsets_deg": {
+            "front_left_hip": 0,
+            "rear_left_hip": 0
+          },
+          "owners": [
+            {
+              "stage": "P07",
+              "channel": "front_left_hip",
+              "fixed_source_entry_deg": 22.8,
+              "original_source_target_deg": 38.6,
+              "candidate_source_target_deg": 38.6,
+              "reduction_deg": 0
+            },
+            {
+              "stage": "P08",
+              "channel": "rear_left_hip",
+              "fixed_source_entry_deg": 6.9,
+              "original_source_target_deg": 31.199999999999996,
+              "candidate_source_target_deg": 28.199999999999996,
+              "reduction_deg": 3
+            }
+          ],
+          "source_clocks_and_atomic_groups_unchanged": true,
+          "task_or_support_credit_awarded": false,
+          "exit": "later source owner replaces this segment; no permanent hip lock or home restore"
+        }
+      }
+    }
+  ],
+  "zero_B_reference": {
+    "run": "runs/ppo_fl_capture_quality_v1/video_eval/prior_B/20260918T0555572376368Z_gf2e552406ea7_1894338b350241fcbbac4868c5f7f3fb",
+    "historical_full_task_success": true,
+    "declared_duration_s": 73.80833333333334,
+    "versions_differ": "B f2e vs training e735; policy kernel migrations differ, no newly rerun B claimed",
+    "samples": [
+      {
+        "decision": 648,
+        "start_tick": 5176,
+        "end_tick": 5184,
+        "phase": "P09",
+        "end_phase": "P09",
+        "nominal": [
+          46.1,
+          -13.4,
+          0,
+          45.9,
+          6.9,
+          0,
+          0,
+          0,
+          0.3,
+          0.3,
+          0.3,
+          0.3
+        ],
+        "final": [
+          46.1,
+          -12.15,
+          0,
+          45.95897580134018,
+          6.9,
+          0,
+          0,
+          0,
+          0.3,
+          0.3,
+          0.3,
+          0.3
+        ],
+        "residual": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "effect": {
+          "verified": true,
+          "mapped": [
+            46.1,
+            -12.15,
+            0,
+            45.95897580134018,
+            6.9,
+            0,
+            0,
+            0,
+            0.3,
+            0.3,
+            0.3,
+            0.3
+          ],
+          "mapper_compensation": [
+            0,
+            1.25,
+            0,
+            0.05897580134018199,
+            0,
+            0,
+            0,
+            0
+          ],
+          "predispatch_actual_canonical_deg": [
+            36.22279310137849,
+            -12.153585324974024,
+            0.8461259704828219,
+            46.11924604875653,
+            7.8168571265944085,
+            -0.6719698720593763,
+            -0.09894449487475834,
+            0.0007597384832448983
+          ]
+        },
+        "contacts": {
+          "FL": {
+            "support": false,
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "bearing_force_n": 0,
+            "clearance_m": 0.035866029306879585,
+            "front_distance_m": 0.3912305865986312,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null
+          },
+          "FR": {
+            "support": true,
+            "air": false,
+            "ground_contact": false,
+            "top_contact": true,
+            "bearing_force_n": 11.449102401733398,
+            "clearance_m": -0.000584484571995017,
+            "front_distance_m": 0.4629115496380294,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null
+          },
+          "RL": {
+            "support": true,
+            "air": false,
+            "ground_contact": true,
+            "top_contact": false,
+            "bearing_force_n": 13.759499549865723,
+            "clearance_m": -0.050191199814468485,
+            "front_distance_m": -0.22238704221415873,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null
+          },
+          "RR": {
+            "support": true,
+            "air": false,
+            "ground_contact": true,
+            "top_contact": false,
+            "bearing_force_n": 2.688673734664917,
+            "clearance_m": -0.05085079411782119,
+            "front_distance_m": -0.21633210437465067,
+            "current_lift_valid": false,
+            "motion_continuation_allowed": true
+          }
+        },
+        "history": {
+          "active_lift": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "front_edge_crossed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "placed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "event_ticks": {
+            "active_lift": {
+              "FR": 24,
+              "FL": 1559
+            },
+            "front_edge_crossed": {
+              "FR": 1486,
+              "FL": 2468
+            },
+            "placed": {
+              "FR": 1502,
+              "FL": 2677
+            }
+          }
+        },
+        "rr_events": [],
+        "wheel_qd": [
+          0.3001142740249634,
+          0.15831267833709717,
+          0.3141665756702423,
+          0.3293186128139496
+        ],
+        "body": {
+          "body_forward_m": 0.09413689715695028,
+          "body_linear_speed_m_s": 0.030345825835785194,
+          "body_angular_speed_rad_s": 0.047526509373166353,
+          "support_count": 3
+        },
+        "source_layers": [
+          {
+            "stage": "P07",
+            "source_ticks": 25,
+            "observation_tick": 5184,
+            "status": "active",
+            "wait_reason": null,
+            "support_count": 3,
+            "RR_other_support_count": 2,
+            "FL_space_measured": true,
+            "FL_body_radial_contraction_m": -0.02404933726506947,
+            "RR_current_continuation": false,
+            "actual_start_tick": 5160
+          },
+          {
+            "stage": "P08",
+            "source_ticks": 0,
+            "observation_tick": 5184,
+            "status": "pending",
+            "wait_reason": "P07_source_groups_and_measured_FL_space_FR_response",
+            "support_count": 3,
+            "RR_other_support_count": 2,
+            "FL_space_measured": true,
+            "FL_body_radial_contraction_m": -0.02404933726506947,
+            "RR_current_continuation": false,
+            "wait_ticks": 17
+          },
+          {
+            "stage": "P09",
+            "source_ticks": 0,
+            "observation_tick": 5184,
+            "status": "pending",
+            "wait_reason": "RL_source_assist_response_and_RR_measured_unload_or_lift",
+            "current_free_lift_source_readiness": null,
+            "support_count": 3,
+            "RR_other_support_count": 2,
+            "FL_space_measured": true,
+            "FL_body_radial_contraction_m": -0.02404933726506947,
+            "RR_current_continuation": false,
+            "wait_ticks": 9
+          }
+        ]
+      },
+      {
+        "decision": 680,
+        "start_tick": 5432,
+        "end_tick": 5440,
+        "phase": "P09",
+        "end_phase": "P09",
+        "nominal": [
+          38.6,
+          -13.4,
+          0,
+          31.1,
+          28.199999999999996,
+          0,
+          23.8,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "final": [
+          38.6,
+          -12.15,
+          0,
+          29.99420710727569,
+          28.199999999999996,
+          0,
+          13.8,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "residual": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "effect": {
+          "verified": true,
+          "mapped": [
+            38.6,
+            -12.15,
+            0,
+            29.99420710727569,
+            28.199999999999996,
+            0,
+            23.8,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "mapper_compensation": [
+            0,
+            1.25,
+            0,
+            -1.1057928927243097,
+            0,
+            0,
+            0,
+            0
+          ],
+          "predispatch_actual_canonical_deg": [
+            38.54365381530839,
+            -12.160307938664609,
+            -0.039326890217031195,
+            28.879882734590197,
+            28.11847428343343,
+            -1.5362553395261784,
+            7.160401789110878,
+            0.12618785830779797
+          ]
+        },
+        "contacts": {
+          "FL": {
+            "support": false,
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "bearing_force_n": 0,
+            "clearance_m": 0.011514026643728546,
+            "front_distance_m": 0.43793958766293173,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null
+          },
+          "FR": {
+            "support": true,
+            "air": false,
+            "ground_contact": false,
+            "top_contact": true,
+            "bearing_force_n": 12.638927459716797,
+            "clearance_m": -0.0007060609960504727,
+            "front_distance_m": 0.4663431082470382,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null
+          },
+          "RL": {
+            "support": true,
+            "air": false,
+            "ground_contact": true,
+            "top_contact": false,
+            "bearing_force_n": 15.78521728515625,
+            "clearance_m": -0.050912781482310605,
+            "front_distance_m": -0.21276116030383463,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null
+          },
+          "RR": {
+            "support": false,
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "bearing_force_n": 0,
+            "clearance_m": -0.03379020704534229,
+            "front_distance_m": -0.19130175964999552,
+            "current_lift_valid": true,
+            "motion_continuation_allowed": true
+          }
+        },
+        "history": {
+          "active_lift": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": true
+          },
+          "front_edge_crossed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "placed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": false
+          },
+          "event_ticks": {
+            "active_lift": {
+              "FR": 24,
+              "FL": 1559,
+              "RR": 5434
+            },
+            "front_edge_crossed": {
+              "FR": 1486,
+              "FL": 2468
+            },
+            "placed": {
+              "FR": 1502,
+              "FL": 2677
+            }
+          }
+        },
+        "rr_events": [
+          {
+            "leg": "RR",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 5428,
+            "simulation_time_s": 45.233333333333334,
+            "upward_excursion_m": 0.0031986191959188018,
+            "whole_body_joint_motion_deg": 5.993607713963611,
+            "command_motion_deg": 3.5280705992203845,
+            "evidence": "continuous_unsupported_AIR_free_rise_v3",
+            "unsupported_free_lift_m": 0.0031986191959188018
+          },
+          {
+            "leg": "RR",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 5434,
+            "simulation_time_s": 45.28333333333333,
+            "upward_excursion_m": 0.008005516523405365,
+            "joint_motion_deg": 4.134547598670349,
+            "airborne_clearance_above_top_m": -0.04199086196616338,
+            "qualification_evidence": "continuous_unsupported_AIR_free_rise_v3",
+            "unsupported_free_lift_m": 0.008005516523405365
+          }
+        ],
+        "wheel_qd": [
+          -0.000034472759580239654,
+          0.21085092425346375,
+          -0.14359961450099945,
+          0.0001214550866279751
+        ],
+        "body": {
+          "body_forward_m": 0.14120191676449423,
+          "body_linear_speed_m_s": 0.00694194706031476,
+          "body_angular_speed_rad_s": 0.0711661330615572,
+          "support_count": 2
+        },
+        "source_layers": [
+          {
+            "stage": "P07",
+            "source_ticks": 281,
+            "observation_tick": 5440,
+            "status": "active",
+            "wait_reason": null,
+            "support_count": 2,
+            "RR_other_support_count": 2,
+            "FL_space_measured": true,
+            "FL_body_radial_contraction_m": -0.026395926802198155,
+            "RR_current_continuation": true,
+            "actual_start_tick": 5160,
+            "fr_group_start_tick": 5200
+          },
+          {
+            "stage": "P08",
+            "source_ticks": 81,
+            "observation_tick": 5440,
+            "status": "active",
+            "wait_reason": null,
+            "support_count": 2,
+            "RR_other_support_count": 2,
+            "FL_space_measured": true,
+            "FL_body_radial_contraction_m": -0.026395926802198155,
+            "RR_current_continuation": true,
+            "wait_ticks": 192,
+            "actual_start_tick": 5360
+          },
+          {
+            "stage": "P09",
+            "source_ticks": 33,
+            "observation_tick": 5440,
+            "status": "active",
+            "wait_reason": null,
+            "current_free_lift_source_readiness": null,
+            "support_count": 2,
+            "RR_other_support_count": 2,
+            "FL_space_measured": true,
+            "FL_body_radial_contraction_m": -0.026395926802198155,
+            "RR_current_continuation": true,
+            "wait_ticks": 232,
+            "actual_start_tick": 5408
+          }
+        ]
+      },
+      {
+        "decision": 770,
+        "start_tick": 6152,
+        "end_tick": 6160,
+        "phase": "P09",
+        "end_phase": "P10",
+        "nominal": [
+          -18.5,
+          -31.4,
+          0,
+          31.1,
+          15.4,
+          19.4,
+          -6.9,
+          -37.8,
+          -1.07,
+          0,
+          0,
+          0
+        ],
+        "final": [
+          32.35,
+          -18.4,
+          0,
+          29.99420710727569,
+          21.949999999999996,
+          6.25,
+          -8.15,
+          -39.05,
+          -1.07,
+          0,
+          0,
+          0
+        ],
+        "residual": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "effect": {
+          "verified": true,
+          "mapped": [
+            32.35,
+            -18.4,
+            0,
+            29.99420710727569,
+            21.949999999999996,
+            6.25,
+            -8.15,
+            -39.05,
+            -1.07,
+            0,
+            0,
+            0
+          ],
+          "mapper_compensation": [
+            0,
+            0,
+            0,
+            -1.1057928927243097,
+            0,
+            0,
+            -1.25,
+            -1.25
+          ],
+          "predispatch_actual_canonical_deg": [
+            38.198462884845114,
+            -12.728881913480443,
+            0.3641014581063185,
+            30.15385303367556,
+            28.342256893852433,
+            1.1198077935360864,
+            -8.119235110658934,
+            -39.37445513414284
+          ]
+        },
+        "contacts": {
+          "FL": {
+            "support": true,
+            "air": false,
+            "ground_contact": false,
+            "top_contact": true,
+            "bearing_force_n": 10.13767147064209,
+            "clearance_m": -0.00028761291940261613,
+            "front_distance_m": 0.49718815429043417,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null
+          },
+          "FR": {
+            "support": true,
+            "air": false,
+            "ground_contact": false,
+            "top_contact": true,
+            "bearing_force_n": 3.1855616569519043,
+            "clearance_m": 0.000013519463751318628,
+            "front_distance_m": 0.5315638218624557,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null
+          },
+          "RL": {
+            "support": true,
+            "air": false,
+            "ground_contact": true,
+            "top_contact": false,
+            "bearing_force_n": 7.857341289520264,
+            "clearance_m": -0.050474028504787105,
+            "front_distance_m": -0.15882905976939554,
+            "current_lift_valid": null,
+            "motion_continuation_allowed": null
+          },
+          "RR": {
+            "support": true,
+            "air": false,
+            "ground_contact": false,
+            "top_contact": true,
+            "bearing_force_n": 9.688446998596191,
+            "clearance_m": -0.0002667574837663944,
+            "front_distance_m": 0.0007471476299727442,
+            "current_lift_valid": true,
+            "motion_continuation_allowed": true
+          }
+        },
+        "history": {
+          "active_lift": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": true
+          },
+          "front_edge_crossed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": true
+          },
+          "placed": {
+            "FL": true,
+            "FR": true,
+            "RL": false,
+            "RR": true
+          },
+          "event_ticks": {
+            "active_lift": {
+              "FR": 24,
+              "FL": 1559,
+              "RR": 5434
+            },
+            "front_edge_crossed": {
+              "FR": 1486,
+              "FL": 2468,
+              "RR": 6155
+            },
+            "placed": {
+              "FR": 1502,
+              "FL": 2677,
+              "RR": 6155
+            }
+          }
+        },
+        "rr_events": [
+          {
+            "leg": "RR",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 5428,
+            "simulation_time_s": 45.233333333333334,
+            "upward_excursion_m": 0.0031986191959188018,
+            "whole_body_joint_motion_deg": 5.993607713963611,
+            "command_motion_deg": 3.5280705992203845,
+            "evidence": "continuous_unsupported_AIR_free_rise_v3",
+            "unsupported_free_lift_m": 0.0031986191959188018
+          },
+          {
+            "leg": "RR",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 5434,
+            "simulation_time_s": 45.28333333333333,
+            "upward_excursion_m": 0.008005516523405365,
+            "joint_motion_deg": 4.134547598670349,
+            "airborne_clearance_above_top_m": -0.04199086196616338,
+            "qualification_evidence": "continuous_unsupported_AIR_free_rise_v3",
+            "unsupported_free_lift_m": 0.008005516523405365
+          }
+        ],
+        "wheel_qd": [
+          -1.1369602680206299,
+          -0.14813269674777985,
+          0.2277500331401825,
+          0.10447656363248825
+        ],
+        "body": {
+          "body_forward_m": 0.20264417273831015,
+          "body_linear_speed_m_s": 0.13870032191768555,
+          "body_angular_speed_rad_s": 0.33516001517953886,
+          "support_count": 4
+        },
+        "source_layers": [
+          {
+            "stage": "P07",
+            "source_ticks": 1001,
+            "observation_tick": 6160,
+            "status": "active",
+            "wait_reason": null,
+            "support_count": 4,
+            "RR_other_support_count": 3,
+            "FL_space_measured": false,
+            "FL_body_radial_contraction_m": -0.023012346520190963,
+            "RR_current_continuation": true,
+            "actual_start_tick": 5160,
+            "fr_group_start_tick": 5200
+          },
+          {
+            "stage": "P08",
+            "source_ticks": 801,
+            "observation_tick": 6160,
+            "status": "active",
+            "wait_reason": null,
+            "support_count": 4,
+            "RR_other_support_count": 3,
+            "FL_space_measured": false,
+            "FL_body_radial_contraction_m": -0.023012346520190963,
+            "RR_current_continuation": true,
+            "wait_ticks": 192,
+            "actual_start_tick": 5360
+          },
+          {
+            "stage": "P09",
+            "source_ticks": 654,
+            "observation_tick": 6160,
+            "status": "active",
+            "wait_reason": null,
+            "current_free_lift_source_readiness": null,
+            "support_count": 4,
+            "RR_other_support_count": 3,
+            "FL_space_measured": false,
+            "FL_body_radial_contraction_m": -0.023012346520190963,
+            "RR_current_continuation": true,
+            "wait_ticks": 331,
+            "actual_start_tick": 5408,
+            "late_group_source_tick": 648,
+            "RR_late_front_distance_m": 0.00009793383907918951,
+            "RR_late_clearance_m": -0.00026886062488543083,
+            "RR_late_within_top_xy": true,
+            "late_group_start_tick": 6155
+          }
+        ]
+      }
+    ]
+  },
+  "findings": {
+    "dispatch": {
+      "selected_native_ticks": 40,
+      "all_verified": true,
+      "all_selected_end_masks_full12": true,
+      "selected_end_headroom_clipped_indices": [],
+      "unexpected_overwrite_observed": false,
+      "not_proof_of_exact_physical_tracking": true
+    },
+    "source_sequence": {
+      "both_preterminal": "P09 source clock 80 held for current_free_lift_before_pending_knee; live RR ground/current_lift_valid=false, pending knee/roll correctly not released",
+      "ordinary_handoff": "First P09 decision each has one preserved predecessor handoff tick; seven current-phase request ticks then follow; no action-history clearing evidence"
+    },
+    "RR_episode0": {
+      "free_initial_tick": 6518,
+      "qualified_tick": 6528,
+      "unsupported_free_lift_m_at_qualification": 0.008343955527979306,
+      "qualification_revoked_ground_tick": 6557,
+      "current_free_lift_before_collision": false,
+      "no_cross_or_placement": true
+    },
+    "RR_episode1": {
+      "qualified": false,
+      "no_cross_or_placement": true,
+      "terminal_AIR_is_not_qualification": "terminal only 2 AIR samples, 1.363922 mm rise and body collision"
+    },
+    "supporting_action_evidence": "Both episodes retain negative RL hip and positive RL knee base/conditional outputs; RR hip positive, RR knee negative. Conditional includes 0.9 observable HISTORY and must not all be called learned base mean. Real REQUEST differs from both conditional mean and unfiltered sample after limits.",
+    "wheel_evidence": "At both preterminal decisions nominal four wheel targets are zero but policy residual final targets are nonzero/differential in all four channels; this is recorded strategy output, not masking or missing N command.",
+    "FR_sigma_scope": "Only P06+ FR-knee stochastic innovation scale changed; sampled FR knee residuals near collision are modest positive 1.683/3.388 deg. Does not prove noise cured or identify sole failure cause.",
+    "height_causality": "Training audit has no body z/CoM height/collision-box vertical clearance at these samples. Joint differences and contact states do not prove which action lowered body or caused collision; no height reconstructed or fabricated.",
+    "terminal_contact_caution": "Episode0 terminal snapshot CONTACT_BEARING_UNVERIFIED reports all support false; do not infer a verified physical simultaneous loss of all contacts. Use preceding VERIFIED snapshot for load analysis."
+  },
+  "claim_limits": [
+    "Six selected decisions and two evolving-policy episodes do not justify changing action signs, support templates, reward, sigma, mapper, physical limits or the free-air qualification.",
+    "Three representative B frames describe a successful different trajectory, not a causal same-state intervention.",
+    "First episode briefly achieved actual RR free-air qualification then lost it before crossing; do not call qualification impossible, permanent, or completed traversal.",
+    "No all-channel mask/write loss observed in selected frames; unobserved times are not certified by this bounded review.",
+    "Do not assign optimizer credit beyond separately finalized rollout manifests."
+  ]
+}

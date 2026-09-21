@@ -1,0 +1,312 @@
+{
+  "schema": "wlr50_clean.first5120_completed_training_summary.v1",
+  "scope": "Reuse first4096 sealed summary and block11 receipt; only block11 completed-episode record and final audit row read for physical outcomes. No historical raw replay.",
+  "sources": {
+    "previous_summary": "first4096_training_summary.json",
+    "new_block_receipt": "block11_1024_receipt.json",
+    "new_block_run": "runs/ppo_fl_capture_quality_v1/train/20260918T0833241304449Z_g3a50657a96c9_f4abda62b32041808fdc243bdac4e573",
+    "checkpoint_pointer": "checkpoints/checkpoint_last_pointer.json"
+  },
+  "counts": {
+    "source": {
+      "global_policy_decisions": 178432,
+      "ppo_updates": 1359,
+      "optimizer_steps": 27180
+    },
+    "previous": {
+      "global_policy_decisions": 4096,
+      "ppo_updates": 32,
+      "optimizer_steps": 640
+    },
+    "block11": {
+      "global_policy_decisions": 1024,
+      "ppo_updates": 8,
+      "optimizer_steps": 160
+    },
+    "new_total": {
+      "global_policy_decisions": 5120,
+      "ppo_updates": 40,
+      "optimizer_steps": 800
+    },
+    "latest": {
+      "global_policy_decisions": 183552,
+      "ppo_updates": 1399,
+      "optimizer_steps": 27980
+    }
+  },
+  "kernel_epochs": [
+    {
+      "label": "old_quarter",
+      "blocks": "01-05",
+      "decisions": 2048,
+      "updates": 16,
+      "optimizer_steps": 320,
+      "HEAD": "f2e552406ea7"
+    },
+    {
+      "label": "cap_transition_request_history_quarter",
+      "blocks": "06-11",
+      "decisions": 3072,
+      "updates": 24,
+      "optimizer_steps": 480,
+      "HEAD": "3a50657a96c9",
+      "explicit_migration_at_global_decision": 180480
+    }
+  ],
+  "actual_request_phase_coverage": {
+    "P01": {
+      "previous4096": 8,
+      "block11": 4,
+      "total5120": 12
+    },
+    "P02": {
+      "previous4096": 698,
+      "block11": 392,
+      "total5120": 1090
+    },
+    "P03": {
+      "previous4096": 13,
+      "block11": 7,
+      "total5120": 20
+    },
+    "P04": {
+      "previous4096": 22,
+      "block11": 2,
+      "total5120": 24
+    },
+    "P05": {
+      "previous4096": 1596,
+      "block11": 307,
+      "total5120": 1903
+    },
+    "P06": {
+      "previous4096": 1173,
+      "block11": 268,
+      "total5120": 1441
+    },
+    "P07": {
+      "previous4096": 10,
+      "block11": 1,
+      "total5120": 11
+    },
+    "P08": {
+      "previous4096": 17,
+      "block11": 1,
+      "total5120": 18
+    },
+    "P09": {
+      "previous4096": 431,
+      "block11": 42,
+      "total5120": 473
+    },
+    "P10": {
+      "previous4096": 1,
+      "block11": 0,
+      "total5120": 1
+    },
+    "P11": {
+      "previous4096": 1,
+      "block11": 0,
+      "total5120": 1
+    },
+    "P12": {
+      "previous4096": 126,
+      "block11": 0,
+      "total5120": 126
+    },
+    "P13": {
+      "previous4096": 0,
+      "block11": 0,
+      "total5120": 0
+    }
+  },
+  "checks": {
+    "previous_summary_coverage_total": 4096,
+    "block11_coverage_total": 1024,
+    "total_coverage": 5120,
+    "contiguous_new_decision_interval": [
+      182529,
+      183552
+    ],
+    "block11_updates": [
+      1392,
+      1393,
+      1394,
+      1395,
+      1396,
+      1397,
+      1398,
+      1399
+    ],
+    "all40_updates_record_finite_nonzero_gradients": true,
+    "optimizer_learning_rate": 0.00001,
+    "ordinary_phase_changes_total": 78,
+    "ordinary_phase_changes_with_terminal": 0,
+    "teacher_prefixes_excluded": true,
+    "unoptimized_tail_included": false,
+    "block11_unconsumed_requested_decisions": 0,
+    "block11_rounding_overrun": 0
+  },
+  "block11": {
+    "lifecycle": "SUCCEEDED",
+    "lifecycle_means": "Training budget completed, not task success.",
+    "course": "full_episode",
+    "implemented_sampling": "P01_full_task_only_initial_version",
+    "two_natural_P01_learner_episodes": true,
+    "frozen_checkpoint_evaluation": false,
+    "episodes": [
+      {
+        "episode_index": 0,
+        "learner_decisions": 661,
+        "event_ticks": {
+          "FR_placed": 1536,
+          "FL_crossed": 2276,
+          "FL_placed": 2848
+        },
+        "FL_placed_time_s": 23.733333333333334,
+        "P05_to_P06_global_decision": 182884,
+        "terminal_global_decision": 183189,
+        "terminal_tick": 5283,
+        "terminal_time_s": 44.025,
+        "terminal_phase": "P09",
+        "termination_reason": "BODY_COLLISION",
+        "physical_evaluator_reason": "central body/obstacle collision",
+        "physical_evaluator_termination_reason": "TASK_FAILURE_BODY_COLLISION",
+        "RR_crossed": false,
+        "RR_placed": false,
+        "full_task_success": false
+      },
+      {
+        "episode_index": 1,
+        "learner_decisions": 363,
+        "event_ticks": {
+          "FR_placed": 1688,
+          "FL_crossed": 2786,
+          "FL_placed": 2847
+        },
+        "FL_placed_time_s": 23.725,
+        "P05_to_P06_global_decision": 183545,
+        "budget_end_global_decision": 183552,
+        "budget_end_tick": 2904,
+        "budget_end_time_s": 24.2,
+        "budget_end_phase": "P06",
+        "terminal": false,
+        "termination_reason": null,
+        "task_success": false,
+        "FL_placed_history": true,
+        "FL_current": {
+          "air": true,
+          "support": false,
+          "ground_contact": false,
+          "top_contact": false,
+          "bearing_force_n": 0,
+          "clearance_m": 0.007949017948619672,
+          "front_distance_m": 0.06073230845760946
+        },
+        "RR_crossed": false,
+        "RR_placed": false
+      }
+    ]
+  },
+  "actual_quality_contribution": {
+    "scope": "Block11 only; prior costs are not silently recomputed or presented as a total5120 integral.",
+    "quality_applied": true,
+    "actual_front_quality_by_task_substate": [
+      {
+        "state": "P01/UNQUALIFIED_PREPARATION",
+        "physics_samples": 30,
+        "beta_min_per_s": 0.015,
+        "beta_max_per_s": 0.03,
+        "actual_quality_cost": 0.000054286332289448874
+      },
+      {
+        "state": "P02/UNQUALIFIED_PREPARATION",
+        "physics_samples": 19,
+        "beta_min_per_s": 0.015,
+        "beta_max_per_s": 0.015,
+        "actual_quality_cost": 0.0001389867533650338
+      },
+      {
+        "state": "P02/QUALIFIED_LIFT_OR_TRANSFER",
+        "physics_samples": 75,
+        "beta_min_per_s": 0.015,
+        "beta_max_per_s": 0.015,
+        "actual_quality_cost": 0.000981459703961996
+      },
+      {
+        "state": "P02/FUNCTIONAL_CARRY",
+        "physics_samples": 3042,
+        "beta_min_per_s": 0.015,
+        "beta_max_per_s": 0.03,
+        "actual_quality_cost": 0.03553065484841682
+      }
+    ],
+    "physics_samples": 3166,
+    "all_beta_positive": true,
+    "beta_range_per_s": [
+      0.015,
+      0.03
+    ],
+    "actual_quality_cost_sum": 0.0367053876380333,
+    "signed_body_reward_by_request_phase": {
+      "P01": -0.000062378933063735,
+      "P02": -0.03664300870496947,
+      "P03": 0,
+      "P04": 0,
+      "P05": 0,
+      "P06": 0,
+      "P07": 0,
+      "P08": 0,
+      "P09": 0
+    },
+    "signed_body_reward_sum": -0.0367053876380332,
+    "absolute_cost_plus_signed_body_error": 9.71445146547012e-17,
+    "other_quality_family_contribution_sums": {
+      "contact_motion_quality": 0,
+      "control_smoothness": 0,
+      "control_regularization": 0
+    },
+    "physical_substate_phase_and_request_phase_grouping_may_differ": true,
+    "source": "sealed block11 receipt signed_family_contribution_sums and actual_front_quality_by_task_substate",
+    "saved_rollout_or_GAE_recomputed": false,
+    "cost_specific_gradient_isolated": false,
+    "quality_improvement_established": false
+  },
+  "observed_terminal_episodes": {
+    "previous": 10,
+    "block11": 1,
+    "total": 11,
+    "BODY_COLLISION": 6,
+    "FALL": 5,
+    "full_task_success": 0,
+    "budget_cutoff_is_not_terminal_failure": true
+  },
+  "checkpoint": {
+    "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_fl_capture_quality_v1/checkpoints/history/checkpoint_step_000183552.pt",
+    "sha256": "9f42f6eff0795eefa857756d4746a4170167966606e6ff3b5c231f2a7420fb7d",
+    "manifest_sha256": "f733e1e9e4c6bf709c30415b06416c9c6545580edd5df9520b435d9e0c0228c2",
+    "pointer_and_both_files_checked_once": true,
+    "manifest_counters_match": true,
+    "manifest_branch_counts": {
+      "global_policy_decisions": 5120,
+      "ppo_updates": 40,
+      "optimizer_steps": 800
+    },
+    "manifest_save_load_round_trip": true,
+    "physical_env_state_saved": false,
+    "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+    "policy_version": "cap_transition_request_history_heteroscedastic_log_temperature_quarter_v1",
+    "rho": 0.9,
+    "temperature": 0.25,
+    "observation_dimension": 372,
+    "raw_action_dimension": 12,
+    "runtime_content_sha256": "e1e2a003f6711a77c463eb743282c250c67748dc1467e819ab90d9959e2d7ca4"
+  },
+  "claim_limits": [
+    "Training parameters evolve during these naturalP01 learner episodes; they are not fixed-checkpoint evaluation repeats.",
+    "Historical FL placement is not current support; allowing later FL AIR is not itself a new failure rule.",
+    "P13 optimized sample coverage remains zero; no full-task success demonstrated by this summary.",
+    "Nonzero quality reward and optimizer updates do not identify a quality-specific gradient or prove stability improvement.",
+    "No simulation, CUDA, actor forward, GAE recalculation or production changes; active CP183552 evaluation excluded."
+  ]
+}

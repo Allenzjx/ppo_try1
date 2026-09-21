@@ -1,0 +1,41 @@
+*** Begin Patch
+*** Update File: C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_checkpoint_prefix_policy.py
+@@
+-        from .semantic_history_actor import SemanticHistoryMLPModel
++        from .semantic_history_actor import (SemanticHistoryMLPModel,
++            SemanticTemperedHistoryMLPModel, SemanticQuarterTemperedHistoryMLPModel)
++        from .semantic_policy_distribution import HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY
+@@
+-        expected_class = SemanticHistoryMLPModel if version == HISTORY_POLICY else MLPModel
++        history_classes = {HISTORY_POLICY: SemanticHistoryMLPModel,
++            HISTORY_TEMPERED_POLICY: SemanticTemperedHistoryMLPModel,
++            HISTORY_QUARTER_TEMPERED_POLICY: SemanticQuarterTemperedHistoryMLPModel}
++        expected_class = history_classes.get(version, MLPModel)
+@@
+-        if version == HISTORY_POLICY and (
++        if version in history_classes and (
+*** Update File: C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_migration.py
+@@
+-        "semantic_cli", "semantic_video_cli", "semantic_video")),
++        "semantic_cli", "semantic_video_cli", "semantic_video", "semantic_checkpoint_prefix_policy")),
+@@
+     scope = _height_source_scope(
+         without_mode_constants(_version_text(project_root, old, SUPERVISOR, prefer_worktree=True)),
+         without_mode_constants(_version_text(project_root, new, SUPERVISOR, prefer_worktree=True)),
+         functions=("_capture_approach_enabled",),
+         methods=("TaskStageSupervisor.physical_potential", "TaskStageSupervisor._current_capture_progress"))
++    prefix_path = "src/wlr50_clean/ppo/semantic_checkpoint_prefix_policy.py"
++    prefix_scope = None
++    if prefix_path in code_delta:
++        prefix_scope = _height_source_scope(
++            _version_text(project_root, old, prefix_path, prefer_worktree=True),
++            _version_text(project_root, new, prefix_path, prefer_worktree=True),
++            methods=("FrozenCheckpointPrefixPolicy.__init__",))
+@@
+-        "kernel_changed": False, "reward_changed": True, "same_mdp_claimed": False,
++        "kernel_changed": False, "reward_changed": True, "same_mdp_claimed": False,
++        "reset_prefix_class_acceptance_changed": prefix_scope is not None,
++        "checkpoint_prefix_scope": prefix_scope,
++        "reset_prefix_class_acceptance_semantics": "exact_declared_history_half_quarter_classes_same_deterministic_forward",
++        "prefix_policy_kernel_changed": False, "prefix_samples_have_optimizer_credit": False,
+*** End Patch

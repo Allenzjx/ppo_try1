@@ -1,0 +1,58 @@
+{
+  "schema": "wlr50_clean.actual_physical_innovation_update_audit.v1",
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fl_capture_quality_v1\\train\\20260918T0953571182841Z_ge73542cb57ad_fb762812ab4e4b52a77c8707d38e5d38",
+  "update": {
+    "optimizer_steps": 20,
+    "actor_parameter_sha256_before": "9931eacca00bf71b64e93713abf30e664847668405cd8d2a4d0d603a064e46ee",
+    "actor_parameter_sha256_after": "d36cd3c98c2777cd5568a2ea049e986929539d433c9ba64f1d4b4e152d9ab07c",
+    "actor_parameters_changed": true,
+    "finite_nonzero_gradient_observed": true,
+    "gradient_norm_min": 1.4142133257351603,
+    "gradient_norm_max": 1.4142136256354128,
+    "kl_mean": 0.02707973944562787,
+    "clip_fraction": 0.315625,
+    "entropy": -24.342285346984863,
+    "value_loss": 0.3613930314779282,
+    "surrogate_loss": -0.029948319867253305,
+    "optimizer_learning_rate": 1e-05,
+    "ppo_update": 1408,
+    "global_policy_decisions": 184704
+  },
+  "checks": {
+    "actual_raw_saved_exact": true,
+    "actual_mu_saved_exact": true,
+    "actual_sigma_saved_exact": true,
+    "actual_sigma_gate_exact": true,
+    "actual_sigma_multiplier_exact": true,
+    "actual_logp_saved_exact": true,
+    "effective_sigma_matches_single_channel_formula": true,
+    "raw_normal_logp_matches_storage": true,
+    "first_unupdated_minibatch_ratio_near_one": true,
+    "all_128_used_five_times": true,
+    "twenty_actual_optimizer_minibatches": true,
+    "one_draw_no_extra_forward": true,
+    "all_physics_ticks_verified": true,
+    "residual_permission_full12": true,
+    "ordinary_phase_changes_not_done": true
+  },
+  "all_checks_passed": true,
+  "actual_phase_counts": {
+    "P05": 23,
+    "P06": 103,
+    "P07": 1,
+    "P08": 1
+  },
+  "policy_versions": [
+    "request_history_FR_knee_P06plus_physical_innovation_sigma_v1"
+  ],
+  "scaled_decisions": 105,
+  "unscaled_decisions": 23,
+  "effective_sigma_max_relative_error": 5.096770223644853e-07,
+  "gaussian_logp_cpu_max_error": 3.814697265625e-06,
+  "first_unupdated_minibatch_max_ratio_error": 3.7550926208496094e-06,
+  "limits": [
+    "Only first actual32-sample minibatch is pre-update, not all128.",
+    "Read-only arithmetic verifies saved distribution wiring, not improved motion.",
+    "No new physical decisions, model forwards, random draws or optimizer steps."
+  ]
+}

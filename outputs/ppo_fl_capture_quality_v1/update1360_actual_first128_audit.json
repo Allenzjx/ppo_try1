@@ -1,0 +1,1101 @@
+{
+  "schema": "wlr50_clean.first_completed_fl_update_audit.v1",
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fl_capture_quality_v1\\train\\20260918T0412242524179Z_gf2e552406ea7_541c9a6d6c8e436d811fa7bcd64a885d",
+  "scope": "first_completed_update_only;128_decisions;decision_endpoint_execution_samples",
+  "source_prefix_sha256": {
+    "audit_first128_raw_lines": "aff53bf87378ad7c9401c1acb8e9550e02da653adbfbdb3f428de2ecc22c665c",
+    "optimizer_first_line": "915b76b375c6faff91cfb3dd1999efccb2725cf97f99c9cf6b0b60be322c4367"
+  },
+  "ppo_update": 1360,
+  "global_policy_decisions": 178560,
+  "new_decisions": 128,
+  "optimizer_steps_this_update": 20,
+  "counts_by_request_phase": {
+    "P01": 2,
+    "P02": 126
+  },
+  "completed_update": {
+    "optimizer_steps": 20,
+    "actor_parameter_sha256_before": "5a2e63c55331f68d9cb5f282851d87f86825b5c6d25923942201a7788954c561",
+    "actor_parameter_sha256_after": "1fac9400bef682968a13b466387f32d664a044e2511ed711e5ad926d18da2d2a",
+    "actor_parameters_changed": true,
+    "finite_nonzero_gradient_observed": true,
+    "gradient_norm_min": 1.4142132617582819,
+    "gradient_norm_max": 1.414213523388591,
+    "kl_mean": 0.022071936056643305,
+    "clip_fraction": 0.253125,
+    "entropy": -20.744602108001708,
+    "value_loss": 0.09733492899686098,
+    "surrogate_loss": -0.028367405012249946,
+    "optimizer_learning_rate": 1e-05,
+    "ppo_update": 1360,
+    "global_policy_decisions": 178560
+  },
+  "checks": {
+    "raw_exact_saved": true,
+    "request_raw_equal_collection": true,
+    "mean_exact_saved": true,
+    "sigma_exact_saved": true,
+    "logp_exact_saved": true,
+    "conditional_mean_equal_collected": true,
+    "conditional_sigma_equal_collected": true,
+    "selected_logp_equal_collected": true,
+    "all_masks_full12_one": true,
+    "all_native_endpoint_verifications": true,
+    "all_physical_tick_audits_verified": true,
+    "front_beta_positive_range": true,
+    "front_cost_family_sum_error_below_1e_12": true,
+    "one_real_actor_sample_no_extra_rng": true,
+    "first_minibatch_ratio_near_one": true
+  },
+  "first_minibatch_ratio": {
+    "count": 32,
+    "minimum": 0.9999980330467224,
+    "maximum": 1.0000019073486328,
+    "mean": 0.9999998416751623,
+    "sum": 31.999994933605194,
+    "positive_count": 32
+  },
+  "first_minibatch_max_abs_ratio_minus_one": 1.9669532775878906e-06,
+  "quality_physics_sample_count": 1024,
+  "quality_physics_seconds": 8.53333333333349,
+  "quality_beta": {
+    "count": 1024,
+    "minimum": 0.015,
+    "maximum": 0.03,
+    "mean": 0.015078735351562499,
+    "sum": 15.440625000000209,
+    "positive_count": 1024
+  },
+  "quality_cost_positive_physics_samples": 1024,
+  "body_family_signed": {
+    "count": 128,
+    "minimum": -0.0005313837664302494,
+    "maximum": -4.879558991108523e-06,
+    "mean": -0.00010711060971147393,
+    "sum": -0.013710158043068658,
+    "positive_count": 0
+  },
+  "task_family_signed": {
+    "count": 128,
+    "minimum": -0.07673489630686857,
+    "maximum": 0.11582901582910884,
+    "mean": 0.003152988690422928,
+    "sum": 0.4035825523741339,
+    "positive_count": 64
+  },
+  "quality_family_sum_max_abs_error": 1.0842021724855044e-19,
+  "quality_by_substate": {
+    "UNQUALIFIED_PREPARATION": {
+      "samples": 20,
+      "physical_seconds": 0.16666666666666666,
+      "beta": {
+        "count": 20,
+        "minimum": 0.015,
+        "maximum": 0.03,
+        "mean": 0.01903125,
+        "sum": 0.38062500000000016,
+        "positive_count": 20
+      },
+      "weighted_cost": 4.651523930897575e-05
+    },
+    "QUALIFIED_LIFT_OR_TRANSFER": {
+      "samples": 38,
+      "physical_seconds": 0.3166666666666668,
+      "beta": {
+        "count": 38,
+        "minimum": 0.015,
+        "maximum": 0.015,
+        "mean": 0.015,
+        "sum": 0.5700000000000004,
+        "positive_count": 38
+      },
+      "weighted_cost": 0.0003373948190596024
+    },
+    "FUNCTIONAL_CARRY": {
+      "samples": 966,
+      "physical_seconds": 8.050000000000184,
+      "beta": {
+        "count": 966,
+        "minimum": 0.015,
+        "maximum": 0.015,
+        "mean": 0.015,
+        "sum": 14.49000000000017,
+        "positive_count": 966
+      },
+      "weighted_cost": 0.013326247984700092
+    }
+  },
+  "native_counterfactual_scopes": [
+    "same_pre_tick_state_without_current_ppo_residual"
+  ],
+  "native_endpoint_nonzero_effect_count": 128,
+  "endpoint_headroom_clip_count": 0,
+  "endpoint_final_slew_or_limit_modified_servo_count": 2,
+  "channels": [
+    {
+      "channel": "front_left_hip",
+      "physical_unit": "deg",
+      "native_delta_sign_semantics": "actual_joint_axis_not_canonical_servo_sign",
+      "base_mean": {
+        "count": 128,
+        "minimum": -0.16053271293640137,
+        "maximum": -0.02824120968580246,
+        "mean": -0.09618642422719859,
+        "sum": -12.311862301081419,
+        "positive_count": 0
+      },
+      "conditional_mean": {
+        "count": 128,
+        "minimum": -0.31398648023605347,
+        "maximum": 0.10757553577423096,
+        "mean": -0.08387204505561385,
+        "sum": -10.735621767118573,
+        "positive_count": 27
+      },
+      "effective_sigma": {
+        "count": 128,
+        "minimum": 0.03876601904630661,
+        "maximum": 0.12819527089595795,
+        "mean": 0.06433333287714049,
+        "sum": 8.234666608273983,
+        "positive_count": 128
+      },
+      "selected_raw": {
+        "count": 128,
+        "minimum": -0.33872073888778687,
+        "maximum": 0.13134902715682983,
+        "mean": -0.0828280317982717,
+        "sum": -10.601988070178777,
+        "positive_count": 33
+      },
+      "requested_physical_residual": {
+        "count": 128,
+        "minimum": -5.874027218670016,
+        "maximum": 2.3507790216640996,
+        "mean": -1.4718760289423332,
+        "sum": -188.40013170461862,
+        "positive_count": 33
+      },
+      "effective_headroom_residual": {
+        "count": 128,
+        "minimum": -5.874027218670016,
+        "maximum": 2.3507790216640996,
+        "mean": -1.4718760289423332,
+        "sum": -188.40013170461862,
+        "positive_count": 33
+      },
+      "same_tick_native_delta": {
+        "count": 128,
+        "minimum": -1.2500001770800266,
+        "maximum": 1.250000070358321,
+        "mean": -0.5905760355655748,
+        "sum": -75.59373255239356,
+        "positive_count": 33
+      },
+      "same_tick_native_delta_abs_mean": 0.9782818587136705
+    },
+    {
+      "channel": "front_left_knee",
+      "physical_unit": "deg",
+      "native_delta_sign_semantics": "actual_joint_axis_not_canonical_servo_sign",
+      "base_mean": {
+        "count": 128,
+        "minimum": -0.03347230330109596,
+        "maximum": 0.05213738977909088,
+        "mean": 0.01657044479588876,
+        "sum": 2.1210169338737614,
+        "positive_count": 99
+      },
+      "conditional_mean": {
+        "count": 128,
+        "minimum": -0.2767033874988556,
+        "maximum": 0.38073500990867615,
+        "mean": 0.02946381954006938,
+        "sum": 3.7713689011288807,
+        "positive_count": 75
+      },
+      "effective_sigma": {
+        "count": 128,
+        "minimum": 0.05308518931269646,
+        "maximum": 0.09287366271018982,
+        "mean": 0.06831450044410303,
+        "sum": 8.744256056845188,
+        "positive_count": 128
+      },
+      "selected_raw": {
+        "count": 128,
+        "minimum": -0.3098049759864807,
+        "maximum": 0.42373552918434143,
+        "mean": 0.032206435476837214,
+        "sum": 4.122423741035163,
+        "positive_count": 74
+      },
+      "requested_physical_residual": {
+        "count": 128,
+        "minimum": -6.8723320010891085,
+        "maximum": 9.601745775176,
+        "mean": 0.7691304333834215,
+        "sum": 98.44869547307796,
+        "positive_count": 74
+      },
+      "effective_headroom_residual": {
+        "count": 128,
+        "minimum": -6.8723320010891085,
+        "maximum": 9.601745775176,
+        "mean": 0.7691304333834215,
+        "sum": 98.44869547307796,
+        "positive_count": 74
+      },
+      "same_tick_native_delta": {
+        "count": 128,
+        "minimum": -1.7499999064025789,
+        "maximum": 1.7499999064025789,
+        "mean": 0.17936411636282518,
+        "sum": 22.958606894441623,
+        "positive_count": 74
+      },
+      "same_tick_native_delta_abs_mean": 1.1218686776888658
+    },
+    {
+      "channel": "front_right_hip",
+      "physical_unit": "deg",
+      "native_delta_sign_semantics": "actual_joint_axis_not_canonical_servo_sign",
+      "base_mean": {
+        "count": 128,
+        "minimum": 0.03341467306017876,
+        "maximum": 0.13542459905147552,
+        "mean": 0.0904028104559984,
+        "sum": 11.571559738367796,
+        "positive_count": 128
+      },
+      "conditional_mean": {
+        "count": 128,
+        "minimum": -0.015986217185854912,
+        "maximum": 0.2574280798435211,
+        "mean": 0.11840499058234855,
+        "sum": 15.155838794540614,
+        "positive_count": 125
+      },
+      "effective_sigma": {
+        "count": 128,
+        "minimum": 0.019152430817484856,
+        "maximum": 0.05369347706437111,
+        "mean": 0.0291194599121809,
+        "sum": 3.7272908687591553,
+        "positive_count": 128
+      },
+      "selected_raw": {
+        "count": 128,
+        "minimum": -0.02694767341017723,
+        "maximum": 0.2789899706840515,
+        "mean": 0.12324839485518169,
+        "sum": 15.775794541463256,
+        "positive_count": 125
+      },
+      "requested_physical_residual": {
+        "count": 128,
+        "minimum": -0.48494074277780275,
+        "maximum": 4.895460323292642,
+        "mean": 2.1965453616192545,
+        "sum": 281.1578062872646,
+        "positive_count": 125
+      },
+      "effective_headroom_residual": {
+        "count": 128,
+        "minimum": -0.48494074277780275,
+        "maximum": 4.895460323292642,
+        "mean": 2.1965453616192545,
+        "sum": 281.1578062872646,
+        "positive_count": 125
+      },
+      "same_tick_native_delta": {
+        "count": 128,
+        "minimum": -0.4849407630282608,
+        "maximum": 1.2500001770800266,
+        "mean": 1.0651639263057817,
+        "sum": 136.34098256714,
+        "positive_count": 125
+      },
+      "same_tick_native_delta_abs_mean": 1.081070557262432
+    },
+    {
+      "channel": "front_right_knee",
+      "physical_unit": "deg",
+      "native_delta_sign_semantics": "actual_joint_axis_not_canonical_servo_sign",
+      "base_mean": {
+        "count": 128,
+        "minimum": -0.20229674875736237,
+        "maximum": -0.13888965547084808,
+        "mean": -0.17717526340857148,
+        "sum": -22.67843371629715,
+        "positive_count": 0
+      },
+      "conditional_mean": {
+        "count": 128,
+        "minimum": -0.3502812683582306,
+        "maximum": 0.4249976575374603,
+        "mean": -0.07920514370198362,
+        "sum": -10.138258393853903,
+        "positive_count": 38
+      },
+      "effective_sigma": {
+        "count": 128,
+        "minimum": 0.05096811056137085,
+        "maximum": 0.11450047791004181,
+        "mean": 0.07616570455138572,
+        "sum": 9.749210182577372,
+        "positive_count": 128
+      },
+      "selected_raw": {
+        "count": 128,
+        "minimum": -0.36861950159072876,
+        "maximum": 0.4902309775352478,
+        "mean": -0.07076782705371443,
+        "sum": -9.058281862875447,
+        "positive_count": 41
+      },
+      "requested_physical_residual": {
+        "count": 128,
+        "minimum": -8.466806757471652,
+        "maximum": 8.857323615649534,
+        "mean": -1.6731816550307017,
+        "sum": -214.16725184392985,
+        "positive_count": 40
+      },
+      "effective_headroom_residual": {
+        "count": 128,
+        "minimum": -8.466806757471652,
+        "maximum": 8.857323615649534,
+        "mean": -1.6731816550307017,
+        "sum": -214.16725184392985,
+        "positive_count": 40
+      },
+      "same_tick_native_delta": {
+        "count": 128,
+        "minimum": -1.750000333289402,
+        "maximum": 2.4999995003864073,
+        "mean": -0.43597404390893885,
+        "sum": -55.804677620344194,
+        "positive_count": 40
+      },
+      "same_tick_native_delta_abs_mean": 1.141829479120397
+    },
+    {
+      "channel": "rear_left_hip",
+      "physical_unit": "deg",
+      "native_delta_sign_semantics": "actual_joint_axis_not_canonical_servo_sign",
+      "base_mean": {
+        "count": 128,
+        "minimum": -0.0417296439409256,
+        "maximum": 0.10450085252523422,
+        "mean": 0.0433519390364836,
+        "sum": 5.549048196669901,
+        "positive_count": 116
+      },
+      "conditional_mean": {
+        "count": 128,
+        "minimum": -0.13503828644752502,
+        "maximum": 0.20131483674049377,
+        "mean": 0.03209733109451918,
+        "sum": 4.108458380098455,
+        "positive_count": 95
+      },
+      "effective_sigma": {
+        "count": 128,
+        "minimum": 0.03729667514562607,
+        "maximum": 0.041864924132823944,
+        "mean": 0.03947807569056749,
+        "sum": 5.053193688392639,
+        "positive_count": 128
+      },
+      "selected_raw": {
+        "count": 128,
+        "minimum": -0.15763358771800995,
+        "maximum": 0.21929556131362915,
+        "mean": 0.031628187560272636,
+        "sum": 4.048408007714897,
+        "positive_count": 88
+      },
+      "requested_physical_residual": {
+        "count": 128,
+        "minimum": -1.876089491970589,
+        "maximum": 2.590158535573174,
+        "mean": 0.3775612902733685,
+        "sum": 48.32784515499117,
+        "positive_count": 88
+      },
+      "effective_headroom_residual": {
+        "count": 128,
+        "minimum": -1.876089491970589,
+        "maximum": 2.590158535573174,
+        "mean": 0.3775612902733685,
+        "sum": 48.32784515499117,
+        "positive_count": 88
+      },
+      "same_tick_native_delta": {
+        "count": 128,
+        "minimum": -1.2500031652877885,
+        "maximum": 1.2499997501932036,
+        "mean": -0.3263120141229881,
+        "sum": -41.76793780774247,
+        "positive_count": 40
+      },
+      "same_tick_native_delta_abs_mean": 0.5850495450223485
+    },
+    {
+      "channel": "rear_left_knee",
+      "physical_unit": "deg",
+      "native_delta_sign_semantics": "actual_joint_axis_not_canonical_servo_sign",
+      "base_mean": {
+        "count": 128,
+        "minimum": 0.07246913015842438,
+        "maximum": 0.10450289398431778,
+        "mean": 0.08889233809895813,
+        "sum": 11.378219276666641,
+        "positive_count": 128
+      },
+      "conditional_mean": {
+        "count": 128,
+        "minimum": -0.011326875537633896,
+        "maximum": 0.228207528591156,
+        "mean": 0.12024443343034363,
+        "sum": 15.391287479083985,
+        "positive_count": 127
+      },
+      "effective_sigma": {
+        "count": 128,
+        "minimum": 0.021789738908410072,
+        "maximum": 0.03440369665622711,
+        "mean": 0.027845091477502137,
+        "sum": 3.5641717091202736,
+        "positive_count": 128
+      },
+      "selected_raw": {
+        "count": 128,
+        "minimum": -0.021616080775856972,
+        "maximum": 0.24264603853225708,
+        "mean": 0.12463635562016862,
+        "sum": 15.953453519381583,
+        "positive_count": 126
+      },
+      "requested_physical_residual": {
+        "count": 128,
+        "minimum": -0.3890288639655838,
+        "maximum": 4.283882660998836,
+        "mean": 2.2251823639861006,
+        "sum": 284.82334259022076,
+        "positive_count": 126
+      },
+      "effective_headroom_residual": {
+        "count": 128,
+        "minimum": -0.3890288639655838,
+        "maximum": 4.283882660998836,
+        "mean": 2.2251823639861006,
+        "sum": 284.82334259022076,
+        "positive_count": 126
+      },
+      "same_tick_native_delta": {
+        "count": 128,
+        "minimum": -1.2500001770800266,
+        "maximum": 0.3890288454645617,
+        "mean": -1.1700798701324964,
+        "sum": -149.77022337695948,
+        "positive_count": 2
+      },
+      "same_tick_native_delta_abs_mean": 1.176689961625838
+    },
+    {
+      "channel": "rear_right_hip",
+      "physical_unit": "deg",
+      "native_delta_sign_semantics": "actual_joint_axis_not_canonical_servo_sign",
+      "base_mean": {
+        "count": 128,
+        "minimum": -0.0332912914454937,
+        "maximum": 0.015673836693167686,
+        "mean": -0.007940338394632818,
+        "sum": -1.0163633145130007,
+        "positive_count": 28
+      },
+      "conditional_mean": {
+        "count": 128,
+        "minimum": -0.1865079253911972,
+        "maximum": 0.3087638318538666,
+        "mean": 0.04438138749810605,
+        "sum": 5.6808175997575745,
+        "positive_count": 87
+      },
+      "effective_sigma": {
+        "count": 128,
+        "minimum": 0.062335055321455,
+        "maximum": 0.10552673041820526,
+        "mean": 0.0829471118922811,
+        "sum": 10.61723032221198,
+        "positive_count": 128
+      },
+      "selected_raw": {
+        "count": 128,
+        "minimum": -0.2068672925233841,
+        "maximum": 0.34436336159706116,
+        "mean": 0.050047427183017135,
+        "sum": 6.406070679426193,
+        "positive_count": 86
+      },
+      "requested_physical_residual": {
+        "count": 128,
+        "minimum": -2.4475925593943124,
+        "maximum": 3.976406883739835,
+        "mean": 0.5929640999905234,
+        "sum": 75.89940479878697,
+        "positive_count": 86
+      },
+      "effective_headroom_residual": {
+        "count": 128,
+        "minimum": -2.4475925593943124,
+        "maximum": 3.976406883739835,
+        "mean": 0.5929640999905234,
+        "sum": 75.89940479878697,
+        "positive_count": 86
+      },
+      "same_tick_native_delta": {
+        "count": 128,
+        "minimum": -1.2500001770800266,
+        "maximum": 1.2500001770800266,
+        "mean": -0.3890889031044901,
+        "sum": -49.80337959737476,
+        "positive_count": 42
+      },
+      "same_tick_native_delta_abs_mean": 0.8807500536752544
+    },
+    {
+      "channel": "rear_right_knee",
+      "physical_unit": "deg",
+      "native_delta_sign_semantics": "actual_joint_axis_not_canonical_servo_sign",
+      "base_mean": {
+        "count": 128,
+        "minimum": -0.17940683662891388,
+        "maximum": -0.02611510269343853,
+        "mean": -0.09319872055493761,
+        "sum": -11.929436231032014,
+        "positive_count": 0
+      },
+      "conditional_mean": {
+        "count": 128,
+        "minimum": -0.22889801859855652,
+        "maximum": 0.03375417739152908,
+        "mean": -0.08659698352857959,
+        "sum": -11.084413891658187,
+        "positive_count": 12
+      },
+      "effective_sigma": {
+        "count": 128,
+        "minimum": 0.02199217490851879,
+        "maximum": 0.03432244062423706,
+        "mean": 0.026456863502971828,
+        "sum": 3.386478528380394,
+        "positive_count": 128
+      },
+      "selected_raw": {
+        "count": 128,
+        "minimum": -0.2484782636165619,
+        "maximum": 0.04193473607301712,
+        "mean": -0.08703612899262225,
+        "sum": -11.140624511055648,
+        "positive_count": 13
+      },
+      "requested_physical_residual": {
+        "count": 128,
+        "minimum": -4.382778156852035,
+        "maximum": 0.7543831013642648,
+        "mean": -1.5560052449289299,
+        "sum": -199.168671350903,
+        "positive_count": 13
+      },
+      "effective_headroom_residual": {
+        "count": 128,
+        "minimum": -4.382778156852035,
+        "maximum": 0.7543831013642648,
+        "mean": -1.5560052449289299,
+        "sum": -199.168671350903,
+        "positive_count": 13
+      },
+      "same_tick_native_delta": {
+        "count": 128,
+        "minimum": -0.7543830813270955,
+        "maximum": 1.2500001770800266,
+        "mean": 0.9207888362417216,
+        "sum": 117.86097103894035,
+        "positive_count": 115
+      },
+      "same_tick_native_delta_abs_mean": 1.009731831420472
+    },
+    {
+      "channel": "front_left_ankle",
+      "physical_unit": "rad/s",
+      "native_delta_sign_semantics": "actual_joint_axis_not_canonical_servo_sign",
+      "base_mean": {
+        "count": 128,
+        "minimum": 0.03738287463784218,
+        "maximum": 0.15663184225559235,
+        "mean": 0.08918361028190702,
+        "sum": 11.415502116084099,
+        "positive_count": 128
+      },
+      "conditional_mean": {
+        "count": 128,
+        "minimum": -0.40900272130966187,
+        "maximum": 0.37517157196998596,
+        "mean": 0.043986905766359996,
+        "sum": 5.6303239380940795,
+        "positive_count": 86
+      },
+      "effective_sigma": {
+        "count": 128,
+        "minimum": 0.03136486932635307,
+        "maximum": 0.11250908672809601,
+        "mean": 0.054060880007455125,
+        "sum": 6.919792640954256,
+        "positive_count": 128
+      },
+      "selected_raw": {
+        "count": 128,
+        "minimum": -0.4668763279914856,
+        "maximum": 0.4083479344844818,
+        "mean": 0.041095863067312166,
+        "sum": 5.260270472615957,
+        "positive_count": 84
+      },
+      "requested_physical_residual": {
+        "count": 128,
+        "minimum": -0.2614031969526055,
+        "maximum": 0.23224141802228565,
+        "mean": 0.024493919013274322,
+        "sum": 3.135221633699114,
+        "positive_count": 84
+      },
+      "effective_headroom_residual": {
+        "count": 128,
+        "minimum": -0.2614031969526055,
+        "maximum": 0.23224141802228565,
+        "mean": 0.024493919013274322,
+        "sum": 3.135221633699114,
+        "positive_count": 84
+      },
+      "same_tick_native_delta": {
+        "count": 128,
+        "minimum": -0.23224139213562012,
+        "maximum": 0.2614032030105591,
+        "mean": -0.024493906923453324,
+        "sum": -3.1352200862020254,
+        "positive_count": 44
+      },
+      "same_tick_native_delta_abs_mean": 0.08289651833183598
+    },
+    {
+      "channel": "front_right_ankle",
+      "physical_unit": "rad/s",
+      "native_delta_sign_semantics": "actual_joint_axis_not_canonical_servo_sign",
+      "base_mean": {
+        "count": 128,
+        "minimum": -0.0478752925992012,
+        "maximum": 0.04329444468021393,
+        "mean": 0.009424742274404707,
+        "sum": 1.2063670111238025,
+        "positive_count": 85
+      },
+      "conditional_mean": {
+        "count": 128,
+        "minimum": -0.1493293046951294,
+        "maximum": 0.09887586534023285,
+        "mean": 0.00422212433227287,
+        "sum": 0.5404319145309273,
+        "positive_count": 77
+      },
+      "effective_sigma": {
+        "count": 128,
+        "minimum": 0.018557801842689514,
+        "maximum": 0.05101047828793526,
+        "mean": 0.02826421710778959,
+        "sum": 3.6178197897970676,
+        "positive_count": 128
+      },
+      "selected_raw": {
+        "count": 128,
+        "minimum": -0.16233420372009277,
+        "maximum": 0.10743477940559387,
+        "mean": 0.004188133030766039,
+        "sum": 0.536081027938053,
+        "positive_count": 75
+      },
+      "requested_physical_residual": {
+        "count": 128,
+        "minimum": -0.09655386670396673,
+        "maximum": 0.06421399991654358,
+        "mean": 0.0025200078758982765,
+        "sum": 0.32256100811497956,
+        "positive_count": 75
+      },
+      "effective_headroom_residual": {
+        "count": 128,
+        "minimum": -0.09655386670396673,
+        "maximum": 0.06421399991654358,
+        "mean": 0.0025200078758982765,
+        "sum": 0.32256100811497956,
+        "positive_count": 75
+      },
+      "same_tick_native_delta": {
+        "count": 128,
+        "minimum": -0.09655387699604034,
+        "maximum": 0.06421399116516113,
+        "mean": 0.0025199970114044845,
+        "sum": 0.322559617459774,
+        "positive_count": 75
+      },
+      "same_tick_native_delta_abs_mean": 0.02702587639214471
+    },
+    {
+      "channel": "rear_left_ankle",
+      "physical_unit": "rad/s",
+      "native_delta_sign_semantics": "actual_joint_axis_not_canonical_servo_sign",
+      "base_mean": {
+        "count": 128,
+        "minimum": 0.008988728746771812,
+        "maximum": 0.1980569213628769,
+        "mean": 0.08344401836802717,
+        "sum": 10.680834351107478,
+        "positive_count": 128
+      },
+      "conditional_mean": {
+        "count": 128,
+        "minimum": -0.13503625988960266,
+        "maximum": 0.2444295585155487,
+        "mean": 0.05038090852758614,
+        "sum": 6.448756291531026,
+        "positive_count": 95
+      },
+      "effective_sigma": {
+        "count": 128,
+        "minimum": 0.03362729400396347,
+        "maximum": 0.06908266246318817,
+        "mean": 0.04515247457311489,
+        "sum": 5.7795167453587055,
+        "positive_count": 128
+      },
+      "selected_raw": {
+        "count": 128,
+        "minimum": -0.16917264461517334,
+        "maximum": 0.26920071244239807,
+        "mean": 0.048258511003950844,
+        "sum": 6.177089408505708,
+        "positive_count": 91
+      },
+      "requested_physical_residual": {
+        "count": 128,
+        "minimum": -0.10054622159282209,
+        "maximum": 0.15772856415304298,
+        "mean": 0.02868477923636691,
+        "sum": 3.671651742254964,
+        "positive_count": 91
+      },
+      "effective_headroom_residual": {
+        "count": 128,
+        "minimum": -0.10054622159282209,
+        "maximum": 0.15772856415304298,
+        "mean": 0.02868477923636691,
+        "sum": 3.671651742254964,
+        "positive_count": 91
+      },
+      "same_tick_native_delta": {
+        "count": 128,
+        "minimum": -0.15772855281829834,
+        "maximum": 0.10054624080657959,
+        "mean": -0.028684768083621748,
+        "sum": -3.6716503147035837,
+        "positive_count": 37
+      },
+      "same_tick_native_delta_abs_mean": 0.05290379138023127
+    },
+    {
+      "channel": "rear_right_ankle",
+      "physical_unit": "rad/s",
+      "native_delta_sign_semantics": "actual_joint_axis_not_canonical_servo_sign",
+      "base_mean": {
+        "count": 128,
+        "minimum": -0.004719445947557688,
+        "maximum": 0.016228191554546356,
+        "mean": 0.006515798511827597,
+        "sum": 0.8340222095139325,
+        "positive_count": 118
+      },
+      "conditional_mean": {
+        "count": 128,
+        "minimum": -0.11657871305942535,
+        "maximum": 0.11675866693258286,
+        "mean": 0.002077022490766467,
+        "sum": 0.26585887881810777,
+        "positive_count": 68
+      },
+      "effective_sigma": {
+        "count": 128,
+        "minimum": 0.018807657063007355,
+        "maximum": 0.04359569773077965,
+        "mean": 0.027349355805199593,
+        "sum": 3.500717543065548,
+        "positive_count": 128
+      },
+      "selected_raw": {
+        "count": 128,
+        "minimum": -0.12997373938560486,
+        "maximum": 0.12923209369182587,
+        "mean": 0.0014542887693096418,
+        "sum": 0.18614896247163415,
+        "positive_count": 67
+      },
+      "requested_physical_residual": {
+        "count": 128,
+        "minimum": -0.0775480570533984,
+        "maximum": 0.07711046116408143,
+        "mean": 0.00087640156321083,
+        "sum": 0.11217940009098665,
+        "positive_count": 67
+      },
+      "effective_headroom_residual": {
+        "count": 128,
+        "minimum": -0.0775480570533984,
+        "maximum": 0.07711046116408143,
+        "mean": 0.00087640156321083,
+        "sum": 0.11217940009098665,
+        "positive_count": 67
+      },
+      "same_tick_native_delta": {
+        "count": 128,
+        "minimum": -0.0775480717420578,
+        "maximum": 0.07711043953895569,
+        "mean": 0.0008763904634179198,
+        "sum": 0.11217797931749374,
+        "positive_count": 67
+      },
+      "same_tick_native_delta_abs_mean": 0.030284640072750335
+    }
+  ],
+  "last_row": {
+    "phase": "P02",
+    "tick": 1024,
+    "FR": {
+      "front_distance_m": -0.0712248350875413,
+      "clearance_m": 0.10190431930449063,
+      "top_geometry": false,
+      "top_contact": false,
+      "air": true,
+      "crossing_geometry_pending": false,
+      "recent_joint_motion_deg": 14.511401554475706,
+      "recent_clearance_gain_m": 0.0071156050128940995,
+      "recent_whole_body_joint_motion_deg": 31.243758592530668,
+      "whole_body_actuation_evidence": true,
+      "initial_clearance": true,
+      "ground_contact": false,
+      "obstacle_pair_active": false,
+      "consecutive_air_samples": 1023,
+      "consecutive_top_samples": 0,
+      "within_top_xy": false,
+      "within_lateral_span": true,
+      "support": false,
+      "contact_surface": "NONE",
+      "top_surface_contact": false,
+      "contact_reaction": false,
+      "contact_reaction_force_n": 0,
+      "bearing_force_n": 0.0,
+      "bearing_verified": true,
+      "active_attempt": true,
+      "crossing_evidence_status": "PENDING",
+      "top_xy_outside_distance_m": 0.06622483508754129,
+      "load_fraction": 0.0,
+      "load_fraction_valid": true,
+      "soft_air_actuation_earned": true,
+      "soft_air_earned_tick": 14,
+      "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+    },
+    "FL": {
+      "front_distance_m": -0.15653666513133402,
+      "clearance_m": -0.049992067521003936,
+      "top_geometry": false,
+      "top_contact": false,
+      "air": false,
+      "crossing_geometry_pending": false,
+      "recent_joint_motion_deg": 0,
+      "recent_clearance_gain_m": 0.0,
+      "recent_whole_body_joint_motion_deg": 0,
+      "whole_body_actuation_evidence": false,
+      "initial_clearance": false,
+      "ground_contact": true,
+      "obstacle_pair_active": false,
+      "consecutive_air_samples": 0,
+      "consecutive_top_samples": 0,
+      "within_top_xy": false,
+      "within_lateral_span": true,
+      "support": true,
+      "contact_surface": "NONE",
+      "top_surface_contact": false,
+      "contact_reaction": true,
+      "contact_reaction_force_n": 12.56320953369152,
+      "bearing_force_n": 12.563209533691406,
+      "bearing_verified": true,
+      "active_attempt": false,
+      "crossing_evidence_status": "PENDING",
+      "top_xy_outside_distance_m": 0.15153666513133401,
+      "load_fraction": 0.40783935077238903,
+      "load_fraction_valid": true,
+      "soft_air_actuation_earned": false,
+      "soft_air_earned_tick": null,
+      "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+    },
+    "placed": {
+      "FL": false,
+      "FR": false,
+      "RL": false,
+      "RR": false
+    },
+    "crossed": {
+      "FL": false,
+      "FR": false,
+      "RL": false,
+      "RR": false
+    }
+  },
+  "phase_advantages": {
+    "P01": {
+      "sample_count": 2,
+      "terminal_count": 0,
+      "raw_gae_returns_minus_old_values": {
+        "count": 2,
+        "finite_count": 2,
+        "nonfinite_count": 0,
+        "minimum": 0.36311912536621094,
+        "maximum": 0.584935188293457,
+        "mean": 0.474027156829834,
+        "std_population": 0.11090803146362305,
+        "positive_count": 2,
+        "negative_count": 0,
+        "zero_count": 0
+      },
+      "stored_advantages": {
+        "count": 2,
+        "finite_count": 2,
+        "nonfinite_count": 0,
+        "minimum": 0.22037571668624878,
+        "maximum": 1.3769350051879883,
+        "mean": 0.7986553609371185,
+        "std_population": 0.5782796442508698,
+        "positive_count": 2,
+        "negative_count": 0,
+        "zero_count": 0
+      },
+      "old_values": {
+        "count": 2,
+        "finite_count": 2,
+        "nonfinite_count": 0,
+        "minimum": -13.168929100036621,
+        "maximum": -12.834870338439941,
+        "mean": -13.001899719238281,
+        "std_population": 0.16702938079833984,
+        "positive_count": 0,
+        "negative_count": 2,
+        "zero_count": 0
+      },
+      "returns": {
+        "count": 2,
+        "finite_count": 2,
+        "nonfinite_count": 0,
+        "minimum": -12.583993911743164,
+        "maximum": -12.47175121307373,
+        "mean": -12.527872562408447,
+        "std_population": 0.0561213493347168,
+        "positive_count": 0,
+        "negative_count": 2,
+        "zero_count": 0
+      },
+      "rewards": {
+        "count": 2,
+        "finite_count": 2,
+        "nonfinite_count": 0,
+        "minimum": 0.09920823574066162,
+        "maximum": 0.1095268651843071,
+        "mean": 0.10436755046248436,
+        "std_population": 0.005159314721822739,
+        "positive_count": 2,
+        "negative_count": 0,
+        "zero_count": 0
+      }
+    },
+    "P02": {
+      "sample_count": 126,
+      "terminal_count": 0,
+      "raw_gae_returns_minus_old_values": {
+        "count": 126,
+        "finite_count": 126,
+        "nonfinite_count": 0,
+        "minimum": -0.046588897705078125,
+        "maximum": 0.6755809783935547,
+        "mean": 0.3184220071822878,
+        "std_population": 0.1910539185674961,
+        "positive_count": 123,
+        "negative_count": 3,
+        "zero_count": 0
+      },
+      "stored_advantages": {
+        "count": 126,
+        "finite_count": 126,
+        "nonfinite_count": 0,
+        "minimum": -1.9158610105514526,
+        "maximum": 1.8495664596557617,
+        "mean": -0.012677144540089464,
+        "std_population": 0.9961640598117882,
+        "positive_count": 52,
+        "negative_count": 74,
+        "zero_count": 0
+      },
+      "old_values": {
+        "count": 126,
+        "finite_count": 126,
+        "nonfinite_count": 0,
+        "minimum": -15.158507347106934,
+        "maximum": -12.854070663452148,
+        "mean": -14.301968695625426,
+        "std_population": 0.5327833281658073,
+        "positive_count": 0,
+        "negative_count": 126,
+        "zero_count": 0
+      },
+      "returns": {
+        "count": 126,
+        "finite_count": 126,
+        "nonfinite_count": 0,
+        "minimum": -15.096569061279297,
+        "maximum": -12.711160659790039,
+        "mean": -13.983546688443138,
+        "std_population": 0.6139202237607386,
+        "positive_count": 0,
+        "negative_count": 126,
+        "zero_count": 0
+      },
+      "rewards": {
+        "count": 126,
+        "finite_count": 126,
+        "nonfinite_count": 0,
+        "minimum": -0.07683397084474564,
+        "maximum": 0.11575102061033249,
+        "mean": 0.0014375975180651978,
+        "std_population": 0.01916550034711732,
+        "positive_count": 62,
+        "negative_count": 64,
+        "zero_count": 0
+      }
+    }
+  },
+  "claim_limits": [
+    "No P05 credit unless counts_by_request_phase contains real P05 samples.",
+    "Nonzero quality cost and nonzero actuator target effects do not establish stability improvement.",
+    "Native target delta is a same-pre-tick counterfactual, not comparison to a separately run zero trajectory.",
+    "Native target evidence does not by itself prove actual joint-speed tracking."
+  ]
+}

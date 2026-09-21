@@ -1,0 +1,439 @@
+{
+  "schema": "wlr50_clean.first5888_completed_training_summary.v1",
+  "scope": "Increment sealed first5120 summary with block12 receipt, compact training manifest, two completed-episode records and final audit row. No historical raw replay, optimizer invocation or active-run analysis.",
+  "sources": {
+    "previous_summary": "first5120_training_summary.json",
+    "new_block_receipt": "block12_768_receipt.json",
+    "new_block_run": "runs/ppo_fl_capture_quality_v1/train/20260918T0909562623513Z_g3a50657a96c9_d0f934ba1eae46958f7c8b880fdac987",
+    "checkpoint_pointer": "checkpoints/checkpoint_last_pointer.json"
+  },
+  "counts": {
+    "source": {
+      "global_policy_decisions": 178432,
+      "ppo_updates": 1359,
+      "optimizer_steps": 27180
+    },
+    "previous": {
+      "global_policy_decisions": 5120,
+      "ppo_updates": 40,
+      "optimizer_steps": 800
+    },
+    "block12": {
+      "global_policy_decisions": 768,
+      "ppo_updates": 6,
+      "optimizer_steps": 120
+    },
+    "new_total": {
+      "global_policy_decisions": 5888,
+      "ppo_updates": 46,
+      "optimizer_steps": 920
+    },
+    "latest": {
+      "global_policy_decisions": 184320,
+      "ppo_updates": 1405,
+      "optimizer_steps": 28100
+    }
+  },
+  "kernel_epochs": [
+    {
+      "label": "old_quarter",
+      "blocks": "01-05",
+      "decisions": 2048,
+      "updates": 16,
+      "optimizer_steps": 320,
+      "HEAD": "f2e552406ea7"
+    },
+    {
+      "label": "cap_transition_request_history_quarter",
+      "blocks": "06-12",
+      "decisions": 3840,
+      "updates": 30,
+      "optimizer_steps": 600,
+      "HEAD": "3a50657a96c9",
+      "explicit_migration_at_global_decision": 180480
+    }
+  ],
+  "actual_request_phase_coverage": {
+    "P01": {
+      "previous5120": 12,
+      "block12": 0,
+      "total5888": 12
+    },
+    "P02": {
+      "previous5120": 1090,
+      "block12": 0,
+      "total5888": 1090
+    },
+    "P03": {
+      "previous5120": 20,
+      "block12": 0,
+      "total5888": 20
+    },
+    "P04": {
+      "previous5120": 24,
+      "block12": 0,
+      "total5888": 24
+    },
+    "P05": {
+      "previous5120": 1903,
+      "block12": 181,
+      "total5888": 2084
+    },
+    "P06": {
+      "previous5120": 1441,
+      "block12": 467,
+      "total5888": 1908
+    },
+    "P07": {
+      "previous5120": 11,
+      "block12": 2,
+      "total5888": 13
+    },
+    "P08": {
+      "previous5120": 18,
+      "block12": 2,
+      "total5888": 20
+    },
+    "P09": {
+      "previous5120": 473,
+      "block12": 116,
+      "total5888": 589
+    },
+    "P10": {
+      "previous5120": 1,
+      "block12": 0,
+      "total5888": 1
+    },
+    "P11": {
+      "previous5120": 1,
+      "block12": 0,
+      "total5888": 1
+    },
+    "P12": {
+      "previous5120": 126,
+      "block12": 0,
+      "total5888": 126
+    },
+    "P13": {
+      "previous5120": 0,
+      "block12": 0,
+      "total5888": 0
+    }
+  },
+  "checks": {
+    "previous_summary_coverage_total": 5120,
+    "block12_coverage_total": 768,
+    "total_coverage": 5888,
+    "contiguous_new_decision_interval": [
+      183553,
+      184320
+    ],
+    "block12_updates": [
+      1400,
+      1401,
+      1402,
+      1403,
+      1404,
+      1405
+    ],
+    "all46_updates_record_finite_nonzero_gradients": true,
+    "ordinary_phase_changes_total": 87,
+    "ordinary_phase_changes_with_terminal": 0,
+    "all_prefixes_excluded": true,
+    "unoptimized_tail_included": false,
+    "block12_planned_requested_decisions": 2048,
+    "block12_completed_requested_decisions": 768,
+    "block12_unconsumed_requested_decisions": 1280,
+    "unconsumed_requests_are_not_training_credit": true,
+    "block12_rounding_overrun": 0
+  },
+  "block12": {
+    "lifecycle": "STOPPED_AT_VERIFIED_UPDATE_BOUNDARY",
+    "lifecycle_means": "Explicit stop after a verified complete PPO update; neither full original 2048 plan completion nor task success.",
+    "course": "phase_suffix",
+    "implemented_sampling": "natural_P01_frozen_checkpoint_policy_prefix_then_semantic_suffix_N1.v1:P05:offset_200",
+    "live_learner_is_not_frozen_checkpoint_evaluation": true,
+    "prefix_source_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fl_capture_quality_v1\\checkpoints\\history\\checkpoint_step_000183552.pt",
+    "prefix_source_checkpoint_sha256": "9f42f6eff0795eefa857756d4746a4170167966606e6ff3b5c231f2a7420fb7d",
+    "prefixes": {
+      "count": 3,
+      "accepted_count": 3,
+      "policy_decisions_excluded": 1203,
+      "physics_ticks_excluded": 9624,
+      "source": "frozen_checkpoint_policy",
+      "nominal_teacher": false,
+      "starts_from_natural_P01": true,
+      "entry_is_exact_historical_snapshot": false,
+      "learner_start_tick_each_episode": 3208,
+      "learner_start_time_s_each_episode": 26.733333333333334,
+      "requested_phase": "P05",
+      "post_phase_entry_prefix_offset_decisions": 200
+    },
+    "learner_physics_ticks": 6140,
+    "episodes": [
+      {
+        "episode_index": 0,
+        "learner_decisions": 365,
+        "event_ticks": {
+          "active_lift": {
+            "FR": 23,
+            "FL": 1636,
+            "RR": 5840
+          },
+          "front_edge_crossed": {
+            "FR": 1584,
+            "FL": 2588
+          },
+          "placed": {
+            "FR": 1594,
+            "FL": 3748
+          }
+        },
+        "FL_capture_in_learner_suffix": true,
+        "FL_placed_time_s": 31.233333333333334,
+        "P05_to_P06_global_decision": 183620,
+        "terminal_global_decision": 183917,
+        "terminal_tick": 6124,
+        "terminal_time_s": 51.03333333333333,
+        "terminal_phase": "P09",
+        "termination_reason": "BODY_COLLISION",
+        "physical_evaluator_reason": "central body/obstacle collision",
+        "RR_crossed": false,
+        "RR_placed": false,
+        "full_task_success": false
+      },
+      {
+        "episode_index": 1,
+        "learner_decisions": 333,
+        "event_ticks": {
+          "active_lift": {
+            "FR": 23,
+            "FL": 1636,
+            "RL": 4618
+          },
+          "front_edge_crossed": {
+            "FR": 1584,
+            "FL": 2588
+          },
+          "placed": {
+            "FR": 1594,
+            "FL": 4018
+          }
+        },
+        "FL_capture_in_learner_suffix": true,
+        "FL_placed_time_s": 33.483333333333334,
+        "P05_to_P06_global_decision": 184019,
+        "terminal_global_decision": 184250,
+        "terminal_tick": 5872,
+        "terminal_time_s": 48.93333333333333,
+        "terminal_phase": "P09",
+        "termination_reason": "BODY_COLLISION",
+        "physical_evaluator_reason": "central body/obstacle collision",
+        "RR_crossed": false,
+        "RR_placed": false,
+        "full_task_success": false
+      },
+      {
+        "episode_index": 2,
+        "learner_decisions": 70,
+        "event_ticks": {
+          "active_lift": {
+            "FR": 23,
+            "FL": 1636
+          },
+          "front_edge_crossed": {
+            "FR": 1584,
+            "FL": 2588
+          },
+          "placed": {
+            "FR": 1594,
+            "FL": 3295
+          }
+        },
+        "FL_capture_in_learner_suffix": true,
+        "FL_placed_time_s": 27.458333333333332,
+        "P05_to_P06_global_decision": 184261,
+        "budget_end_global_decision": 184320,
+        "budget_end_tick": 3768,
+        "budget_end_time_s": 31.4,
+        "budget_end_phase": "P06",
+        "terminal": false,
+        "termination_reason": null,
+        "terminal_bootstrap_allowed": true,
+        "task_success": false,
+        "physical_valid": true,
+        "physical_evidence_status": "VERIFIED",
+        "FL_placed_history": true,
+        "FL_current": {
+          "air": true,
+          "support": false,
+          "ground_contact": false,
+          "top_contact": false,
+          "bearing_force_n": 0,
+          "clearance_m": 0.008050685343307266,
+          "front_distance_m": 0.22260266883206015
+        },
+        "RR_current": {
+          "air": false,
+          "support": true,
+          "ground_contact": true,
+          "top_contact": false,
+          "bearing_force_n": 1.8387409448623657,
+          "clearance_m": -0.050353130224286696,
+          "front_distance_m": -0.3678311820523774,
+          "current_lift_valid": false
+        },
+        "RR_crossed": false,
+        "RR_placed": false
+      }
+    ],
+    "optimizer_updates": [
+      {
+        "ppo_update": 1400,
+        "global_policy_decisions": 183680,
+        "kl_mean": 0.01230277412033789,
+        "value_loss": 0.3412142559885979,
+        "optimizer_learning_rate": 0.000022500000000000008,
+        "finite_nonzero_gradient_observed": true
+      },
+      {
+        "ppo_update": 1401,
+        "global_policy_decisions": 183808,
+        "kl_mean": 0.01913361035405159,
+        "value_loss": 0.7566901534795761,
+        "optimizer_learning_rate": 0.00001,
+        "finite_nonzero_gradient_observed": true
+      },
+      {
+        "ppo_update": 1402,
+        "global_policy_decisions": 183936,
+        "kl_mean": 0.017434172691001403,
+        "value_loss": 46.073909759521484,
+        "optimizer_learning_rate": 0.00001,
+        "finite_nonzero_gradient_observed": true
+      },
+      {
+        "ppo_update": 1403,
+        "global_policy_decisions": 184064,
+        "kl_mean": 0.023182951456157785,
+        "value_loss": 0.377948197722435,
+        "optimizer_learning_rate": 0.00001,
+        "finite_nonzero_gradient_observed": true
+      },
+      {
+        "ppo_update": 1404,
+        "global_policy_decisions": 184192,
+        "kl_mean": 0.01932886115046938,
+        "value_loss": 0.64818534553051,
+        "optimizer_learning_rate": 0.00001,
+        "finite_nonzero_gradient_observed": true
+      },
+      {
+        "ppo_update": 1405,
+        "global_policy_decisions": 184320,
+        "kl_mean": 0.022085081468698853,
+        "value_loss": 47.93907012939453,
+        "optimizer_learning_rate": 0.00001,
+        "finite_nonzero_gradient_observed": true
+      }
+    ]
+  },
+  "actual_quality_contribution": {
+    "scope": "Block12 only. Previous actual nonzero front contributions remain in prior sealed summaries.",
+    "new_P01_P02_learner_decisions": 0,
+    "front_quality_physics_samples": 0,
+    "actual_front_quality_by_task_substate": {},
+    "actual_body_quality_cost_sum": 0,
+    "signed_body_reward_sum": 0,
+    "other_quality_family_contribution_sums": {
+      "contact_motion_quality": 0,
+      "control_smoothness": 0,
+      "control_regularization": 0
+    },
+    "signed_family_contribution_sums": {
+      "P05": {
+        "task_progress": 0.2328409883463019,
+        "body_stability": 0,
+        "contact_motion_quality": 0,
+        "control_smoothness": 0,
+        "control_regularization": 0
+      },
+      "P06": {
+        "task_progress": -2.2562433452494344,
+        "body_stability": 0,
+        "contact_motion_quality": 0,
+        "control_smoothness": 0,
+        "control_regularization": 0
+      },
+      "P07": {
+        "task_progress": -0.00927147277380526,
+        "body_stability": 0,
+        "contact_motion_quality": 0,
+        "control_smoothness": 0,
+        "control_regularization": 0
+      },
+      "P08": {
+        "task_progress": 0.01722708227313406,
+        "body_stability": 0,
+        "contact_motion_quality": 0,
+        "control_smoothness": 0,
+        "control_regularization": 0
+      },
+      "P09": {
+        "task_progress": -85.37807686844957,
+        "body_stability": 0,
+        "contact_motion_quality": 0,
+        "control_smoothness": 0,
+        "control_regularization": 0
+      }
+    },
+    "prefix_front_samples_do_not_count_as_optimization": true,
+    "quality_improvement_established": false,
+    "saved_rollout_or_GAE_recomputed": false
+  },
+  "observed_terminal_episodes": {
+    "previous": 11,
+    "block12": 2,
+    "total": 13,
+    "BODY_COLLISION": 8,
+    "FALL": 5,
+    "full_task_success": 0,
+    "budget_cutoff_is_not_terminal_failure": true
+  },
+  "checkpoint": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fl_capture_quality_v1\\checkpoints\\history\\checkpoint_step_000184320.pt",
+    "sha256": "4f752923182de4fefb7ab9219c3d3bfbd4ffd1a3b896786da6e3633e21fdc545",
+    "manifest_path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fl_capture_quality_v1\\checkpoints\\history\\checkpoint_step_000184320_manifest.json",
+    "manifest_sha256": "f18733884220c92bc50d48397857f304e5394789e2598d6d320a2624bf2231f5",
+    "pointer_and_both_files_match": true,
+    "hash_check_note": "Initial broad command output was truncated; compact result extraction was repeated to retain evidence. No checkpoint or pointer modified.",
+    "manifest_counters_match": true,
+    "global_policy_decisions": 184320,
+    "ppo_updates": 1405,
+    "optimizer_steps": 28100,
+    "branch_counts": {
+      "global_policy_decisions": 5888,
+      "optimizer_steps": 920,
+      "ppo_updates": 46
+    },
+    "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+    "save_load_round_trip": true,
+    "physical_env_state_saved": false,
+    "optimizer_learning_rate": 0.00001,
+    "policy_version": "cap_transition_request_history_heteroscedastic_log_temperature_quarter_v1",
+    "rho": 0.9,
+    "temperature": 0.25,
+    "observation_dimension": 372,
+    "raw_action_dimension": 12,
+    "runtime_content_sha256": "e1e2a003f6711a77c463eb743282c250c67748dc1467e819ab90d9959e2d7ca4"
+  },
+  "claim_limits": [
+    "Three FL captures belong to evolving learner suffixes after genuine frozen-checkpoint policy prefixes, not three independent natural-P01 frozen-checkpoint successes.",
+    "Prefix reset reproduces current physical episodes without history injection; its 1203 decisions and 9624 ticks are excluded from PPO coverage.",
+    "Two real P09 central body/obstacle collisions are task failures; third partial episode at saved update boundary is neither failure nor success.",
+    "Historical FL placement does not imply current bearing; third tail FL is AIR, force 0 N, gap about 8.051 mm.",
+    "No new front quality learner data in block12; prior nonzero quality contributions are retained, not falsely extended to prefix data.",
+    "P13 learner coverage and full training task successes remain zero. No stability improvement, robustness, or final CP184320 evaluation claim.",
+    "No production/DELIVERY/RECOVERY edit; no Isaac/CUDA/actor inference or optimizer rerun."
+  ]
+}

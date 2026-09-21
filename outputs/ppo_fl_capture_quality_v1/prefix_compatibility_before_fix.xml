@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="7" time="3.230" timestamp="2026-09-18T00:10:38.036233-04:00" hostname="Allenzjx"><testcase classname="tests.unit.test_semantic_tempered_checkpoint_prefix_policy" name="test_exact_class_frozen_mean_no_rng_shared_state_or_source_cache_change[history_conditioned_heteroscedastic_log_v1]" time="3.067" /><testcase classname="tests.unit.test_semantic_tempered_checkpoint_prefix_policy" name="test_exact_class_frozen_mean_no_rng_shared_state_or_source_cache_change[history_conditioned_heteroscedastic_log_temperature_v1]" time="0.012"><failure message="ValueError: checkpoint prefix actor kernel/class disagrees with its policy contract">cpu = &lt;module 'torch' from 'C:\\Users\\kskzz\\miniconda3\\envs\\env_isaaclab\\Lib\\site-packages\\torch\\__init__.py'&gt;
+version = 'history_conditioned_heteroscedastic_log_temperature_v1'
+
+    @pytest.mark.parametrize('version', [HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY])
+    def test_exact_class_frozen_mean_no_rng_shared_state_or_source_cache_change(cpu, version):
+        runner, env = make_runner(version)
+        actor = runner.alg.actor
+        obs = env.get_observations()
+        obs['policy'][0, 195:207] = cpu.linspace(-.7, .8, 12)
+        with cpu.inference_mode():
+            actor(obs, stochastic_output=True)
+            expected = actor(obs, stochastic_output=False)[0].tolist()
+        cache = actor.distribution._distribution
+        state = cpu.get_rng_state().clone()
+        parameters = t.parameter_hash(actor)
+        optimizer = t.state_hash(runner.alg.optimizer.state_dict())
+&gt;       frozen = build_frozen_checkpoint_prefix_policy(actor, provenance(actor, version))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\test_semantic_tempered_checkpoint_prefix_policy.py:46: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\wlr50_clean\ppo\semantic_checkpoint_prefix_policy.py:189: in build_frozen_checkpoint_prefix_policy
+    return FrozenCheckpointPrefixPolicy(actor, source_checkpoint)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;wlr50_clean.ppo.semantic_checkpoint_prefix_policy.FrozenCheckpointPrefixPolicy object at 0x00000265B321F610&gt;
+actor = SemanticTemperedHistoryMLPModel(
+  (obs_normalizer): Identity()
+  (distribution): HeteroscedasticGaussianDistribution(...    (4): Linear(in_features=256, out_features=24, bias=True)
+    (5): Unflatten(dim=-1, unflattened_size=[2, 12])
+  )
+)
+source_checkpoint = {'actor_parameter_sha256': '2bed1ef3b61730ed162f3e1132704ddc10562810f3f41c436c071bcf5368929c', 'checkpoint_path': 'syn..._actor:SemanticTemperedHistoryMLPModel', 'actor_hidden_dims': [256, 256], 'base_observation_dimension': 324, ...}, ...}
+
+    def __init__(self, actor: Any, source_checkpoint: Mapping[str, Any]) -&gt; None:
+        import torch
+        from rsl_rl.models import MLPModel
+        from rsl_rl.modules.distribution import HeteroscedasticGaussianDistribution
+        from .semantic_history_actor import SemanticHistoryMLPModel
+    
+        record = _source_record(source_checkpoint)
+        version = supported_heteroscedastic_contract_version(record["policy_contract"])
+        dimension = record["policy_contract"]["observation_dimension"]
+        layout = record["policy_contract"].get("observation_layout")
+        expected_class = SemanticHistoryMLPModel if version == HISTORY_POLICY else MLPModel
+        if not isinstance(actor, torch.nn.Module) or getattr(actor, "is_recurrent", False):
+            raise ValueError("checkpoint prefix requires a nonrecurrent torch actor")
+        # At the same input layout both kernels have identical learned tensors.
+        # A parameter hash therefore cannot distinguish their inference laws.
+        # Reject subclasses and per-instance kernel replacements, rather than
+        # relabeling a legacy mean as a history-conditioned mean (or vice versa).
+        if (type(actor) is not expected_class
+                or getattr(actor.forward, "__func__", None) is not expected_class.forward
+                or getattr(actor.get_latent, "__func__", None) is not expected_class.get_latent):
+&gt;           raise ValueError("checkpoint prefix actor kernel/class disagrees with its policy contract")
+E           ValueError: checkpoint prefix actor kernel/class disagrees with its policy contract
+
+src\wlr50_clean\ppo\semantic_checkpoint_prefix_policy.py:88: ValueError</failure></testcase><testcase classname="tests.unit.test_semantic_tempered_checkpoint_prefix_policy" name="test_exact_class_frozen_mean_no_rng_shared_state_or_source_cache_change[history_conditioned_heteroscedastic_log_temperature_quarter_v1]" time="0.011"><failure message="ValueError: checkpoint prefix actor kernel/class disagrees with its policy contract">cpu = &lt;module 'torch' from 'C:\\Users\\kskzz\\miniconda3\\envs\\env_isaaclab\\Lib\\site-packages\\torch\\__init__.py'&gt;
+version = 'history_conditioned_heteroscedastic_log_temperature_quarter_v1'
+
+    @pytest.mark.parametrize('version', [HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY])
+    def test_exact_class_frozen_mean_no_rng_shared_state_or_source_cache_change(cpu, version):
+        runner, env = make_runner(version)
+        actor = runner.alg.actor
+        obs = env.get_observations()
+        obs['policy'][0, 195:207] = cpu.linspace(-.7, .8, 12)
+        with cpu.inference_mode():
+            actor(obs, stochastic_output=True)
+            expected = actor(obs, stochastic_output=False)[0].tolist()
+        cache = actor.distribution._distribution
+        state = cpu.get_rng_state().clone()
+        parameters = t.parameter_hash(actor)
+        optimizer = t.state_hash(runner.alg.optimizer.state_dict())
+&gt;       frozen = build_frozen_checkpoint_prefix_policy(actor, provenance(actor, version))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\test_semantic_tempered_checkpoint_prefix_policy.py:46: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\wlr50_clean\ppo\semantic_checkpoint_prefix_policy.py:189: in build_frozen_checkpoint_prefix_policy
+    return FrozenCheckpointPrefixPolicy(actor, source_checkpoint)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;wlr50_clean.ppo.semantic_checkpoint_prefix_policy.FrozenCheckpointPrefixPolicy object at 0x00000265B3224A50&gt;
+actor = SemanticQuarterTemperedHistoryMLPModel(
+  (obs_normalizer): Identity()
+  (distribution): HeteroscedasticGaussianDistri...    (4): Linear(in_features=256, out_features=24, bias=True)
+    (5): Unflatten(dim=-1, unflattened_size=[2, 12])
+  )
+)
+source_checkpoint = {'actor_parameter_sha256': '2bed1ef3b61730ed162f3e1132704ddc10562810f3f41c436c071bcf5368929c', 'checkpoint_path': 'syn...SemanticQuarterTemperedHistoryMLPModel', 'actor_hidden_dims': [256, 256], 'base_observation_dimension': 324, ...}, ...}
+
+    def __init__(self, actor: Any, source_checkpoint: Mapping[str, Any]) -&gt; None:
+        import torch
+        from rsl_rl.models import MLPModel
+        from rsl_rl.modules.distribution import HeteroscedasticGaussianDistribution
+        from .semantic_history_actor import SemanticHistoryMLPModel
+    
+        record = _source_record(source_checkpoint)
+        version = supported_heteroscedastic_contract_version(record["policy_contract"])
+        dimension = record["policy_contract"]["observation_dimension"]
+        layout = record["policy_contract"].get("observation_layout")
+        expected_class = SemanticHistoryMLPModel if version == HISTORY_POLICY else MLPModel
+        if not isinstance(actor, torch.nn.Module) or getattr(actor, "is_recurrent", False):
+            raise ValueError("checkpoint prefix requires a nonrecurrent torch actor")
+        # At the same input layout both kernels have identical learned tensors.
+        # A parameter hash therefore cannot distinguish their inference laws.
+        # Reject subclasses and per-instance kernel replacements, rather than
+        # relabeling a legacy mean as a history-conditioned mean (or vice versa).
+        if (type(actor) is not expected_class
+                or getattr(actor.forward, "__func__", None) is not expected_class.forward
+                or getattr(actor.get_latent, "__func__", None) is not expected_class.get_latent):
+&gt;           raise ValueError("checkpoint prefix actor kernel/class disagrees with its policy contract")
+E           ValueError: checkpoint prefix actor kernel/class disagrees with its policy contract
+
+src\wlr50_clean\ppo\semantic_checkpoint_prefix_policy.py:88: ValueError</failure></testcase><testcase classname="tests.unit.test_semantic_tempered_checkpoint_prefix_policy" name="test_rejects_wrong_kernel_or_preprocessing[wrong_declared_version]" time="0.010" /><testcase classname="tests.unit.test_semantic_tempered_checkpoint_prefix_policy" name="test_rejects_wrong_kernel_or_preprocessing[instance_forward]" time="0.010" /><testcase classname="tests.unit.test_semantic_tempered_checkpoint_prefix_policy" name="test_rejects_wrong_kernel_or_preprocessing[identity_normalizer]" time="0.010" /><testcase classname="tests.unit.test_semantic_tempered_checkpoint_prefix_policy" name="test_frozen_quarter_retains_observation_history_after_source_parameter_update" time="0.009"><failure message="ValueError: checkpoint prefix actor kernel/class disagrees with its policy contract">cpu = &lt;module 'torch' from 'C:\\Users\\kskzz\\miniconda3\\envs\\env_isaaclab\\Lib\\site-packages\\torch\\__init__.py'&gt;
+
+    def test_frozen_quarter_retains_observation_history_after_source_parameter_update(cpu):
+        runner, env = make_runner(HISTORY_QUARTER_TEMPERED_POLICY)
+        actor = runner.alg.actor
+&gt;       frozen = build_frozen_checkpoint_prefix_policy(actor, provenance(actor, HISTORY_QUARTER_TEMPERED_POLICY))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\unit\test_semantic_tempered_checkpoint_prefix_policy.py:78: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\wlr50_clean\ppo\semantic_checkpoint_prefix_policy.py:189: in build_frozen_checkpoint_prefix_policy
+    return FrozenCheckpointPrefixPolicy(actor, source_checkpoint)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;wlr50_clean.ppo.semantic_checkpoint_prefix_policy.FrozenCheckpointPrefixPolicy object at 0x00000265B321FC50&gt;
+actor = SemanticQuarterTemperedHistoryMLPModel(
+  (obs_normalizer): Identity()
+  (distribution): HeteroscedasticGaussianDistri...    (4): Linear(in_features=256, out_features=24, bias=True)
+    (5): Unflatten(dim=-1, unflattened_size=[2, 12])
+  )
+)
+source_checkpoint = {'actor_parameter_sha256': '2bed1ef3b61730ed162f3e1132704ddc10562810f3f41c436c071bcf5368929c', 'checkpoint_path': 'syn...SemanticQuarterTemperedHistoryMLPModel', 'actor_hidden_dims': [256, 256], 'base_observation_dimension': 324, ...}, ...}
+
+    def __init__(self, actor: Any, source_checkpoint: Mapping[str, Any]) -&gt; None:
+        import torch
+        from rsl_rl.models import MLPModel
+        from rsl_rl.modules.distribution import HeteroscedasticGaussianDistribution
+        from .semantic_history_actor import SemanticHistoryMLPModel
+    
+        record = _source_record(source_checkpoint)
+        version = supported_heteroscedastic_contract_version(record["policy_contract"])
+        dimension = record["policy_contract"]["observation_dimension"]
+        layout = record["policy_contract"].get("observation_layout")
+        expected_class = SemanticHistoryMLPModel if version == HISTORY_POLICY else MLPModel
+        if not isinstance(actor, torch.nn.Module) or getattr(actor, "is_recurrent", False):
+            raise ValueError("checkpoint prefix requires a nonrecurrent torch actor")
+        # At the same input layout both kernels have identical learned tensors.
+        # A parameter hash therefore cannot distinguish their inference laws.
+        # Reject subclasses and per-instance kernel replacements, rather than
+        # relabeling a legacy mean as a history-conditioned mean (or vice versa).
+        if (type(actor) is not expected_class
+                or getattr(actor.forward, "__func__", None) is not expected_class.forward
+                or getattr(actor.get_latent, "__func__", None) is not expected_class.get_latent):
+&gt;           raise ValueError("checkpoint prefix actor kernel/class disagrees with its policy contract")
+E           ValueError: checkpoint prefix actor kernel/class disagrees with its policy contract
+
+src\wlr50_clean\ppo\semantic_checkpoint_prefix_policy.py:88: ValueError</failure></testcase></testsuite></testsuites>

@@ -1,0 +1,5557 @@
+{
+  "schema": "wlr50_clean.sealed_C_CP182528_P05_diagnosis.v1",
+  "diagnostic_conclusion": {
+    "terminal_tick": 6036,
+    "terminal_time_s": 50.3,
+    "P05_entry_tick": 1568,
+    "P05_age_s": 37.233333333333334,
+    "current_completion_progress": 0.85,
+    "deadline_formula": "30 + min(10, 30*0.5) * 0.85^2 = 37.225 seconds; checked at120Hz",
+    "stall_flag_is_diagnostic_not_direct_termination": true,
+    "FL_request_not_removed_by_headroom": true,
+    "dispatch_and_actual_tracking_evidence_present": true,
+    "full_task_success": false,
+    "individual_joint_or_feedback_causal_effect_isolated": false
+  },
+  "proposed_next_prefix_not_yet_run": {
+    "from_phase": "P05",
+    "prefix_source": "checkpoint_policy",
+    "teacher_offset_decisions": 200,
+    "reason": "Observed stable source-endpoint plateau with valid FL XY and no contact; shorter than240 without appreciable geometric disadvantage.",
+    "counterpoint": "Offsets200/240 are not temporally closer to source endpoint or vertically closer to contact than150 in this sealed trajectory.",
+    "seed1001_prefix_reachability_verified": false,
+    "prefix_receipt_exists_for_this_candidate": false
+  },
+  "source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fl_capture_quality_v1\\video_eval\\validation\\20260918T0751563353604Z_g3a50657a96c9_9132b92ae22044568b20624cf72afc7f\\source",
+  "checkpoint": {
+    "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fl_capture_quality_v1\\checkpoints\\history\\checkpoint_step_000182528.pt",
+    "checkpoint_sha256": "81f392a726b425a0bd8e004db11513a4acdb5e2413aec676f8a1b5b835ebc47e",
+    "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fl_capture_quality_v1\\checkpoints\\history\\checkpoint_step_000182528_manifest.json",
+    "manifest_sha256": "3e61d497dd8e44207fc8caa8d9d60539b025df3db4d15ac34231d81242d06e6a"
+  },
+  "source_manifest_sha256": "e0ea4fd91409790f354cc5ddc0b3ae23316ecb74ef3c61b2aa232fd5dd8c8210",
+  "mode": "deterministic_conditional_mean",
+  "lifecycle": "DIAGNOSTIC_FAILURE",
+  "terminal": {
+    "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "termination_source": "LOCAL_BOUNDED_RECOVERY_EXHAUSTED",
+    "stage_id": "P05",
+    "stage_age_s": 37.233333333333334,
+    "phase_progress": 0.85,
+    "task_progress_potential": 0.40579280188758043,
+    "local_timeout": {
+      "nominal_limit_s": 30.0,
+      "current_progress_allowance_s": 7.225,
+      "fixed_post_window_allowance_s": 0.0,
+      "effective_limit_s": 37.225,
+      "nominal_limit_exceeded": true,
+      "classification": "finite_task_terminal_not_external_truncation",
+      "timer_inputs_observable_in_existing372": true
+    },
+    "stall_diagnostic": true,
+    "completion_values": {
+      "placed_FL": 0.85
+    }
+  },
+  "physical_evaluator_terminal": {
+    "valid": true,
+    "termination_reason": null,
+    "failure_details": null
+  },
+  "events": {
+    "active_lift": {
+      "FR": 25,
+      "FL": 1606
+    },
+    "front_edge_crossed": {
+      "FR": 1543,
+      "FL": 2586
+    },
+    "placed": {
+      "FR": 1556
+    }
+  },
+  "terminal_FL": {
+    "front_distance_m": 0.10003543240856771,
+    "clearance_m": 0.019282771398890813,
+    "top_geometry": true,
+    "top_contact": false,
+    "air": true,
+    "crossing_geometry_pending": false,
+    "recent_joint_motion_deg": 3.0542121486986638,
+    "recent_clearance_gain_m": 0.0005151631684170849,
+    "recent_whole_body_joint_motion_deg": 3.7395722197596646,
+    "whole_body_actuation_evidence": true,
+    "initial_clearance": true,
+    "ground_contact": false,
+    "obstacle_pair_active": false,
+    "consecutive_air_samples": 4452,
+    "consecutive_top_samples": 0,
+    "within_top_xy": true,
+    "within_lateral_span": true,
+    "support": false,
+    "contact_surface": "NONE",
+    "top_surface_contact": false,
+    "contact_reaction": false,
+    "contact_reaction_force_n": 0,
+    "bearing_force_n": 0.0,
+    "bearing_verified": true,
+    "active_attempt": true,
+    "crossing_evidence_status": "VERIFIED",
+    "top_xy_outside_distance_m": 0.0,
+    "load_fraction": 0.0,
+    "load_fraction_valid": true,
+    "soft_air_actuation_earned": true,
+    "soft_air_earned_tick": 1597,
+    "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+  },
+  "source_endpoint": {
+    "tick": 2737,
+    "time_s": 22.808333333333334,
+    "first_P05_dispatch_tick": 1569,
+    "authored_source_duration_s": 9.733333333332784,
+    "full12_endpoint": [
+      22.8,
+      -13.4,
+      0.0,
+      45.9,
+      6.9,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "status": "code-and-logged-target-derived; source endpoint flag not independently logged for P05",
+    "note": "MotionExecutor starts at local tick0; P05 sequence permission always true; all post-endpoint recorded nominal servo8 exactly equal source endpoint."
+  },
+  "windows": {
+    "source_endpoint_pm1s": {
+      "ticks": [
+        2617,
+        2857
+      ],
+      "samples": 241,
+      "FL_gap_mm": {
+        "min": 16.14739571012168,
+        "max": 95.32883162720216,
+        "mean": 47.766451013680374,
+        "rms": 56.285300872754355
+      },
+      "FL_front_mm": {
+        "min": 3.7496720058882715,
+        "max": 76.89857823681479,
+        "mean": 52.88044193929587,
+        "rms": 59.26156296056484
+      },
+      "FL_error_deg": [
+        {
+          "min": -11.24649559640146,
+          "max": 1.7869943462997249,
+          "mean": -1.225532148489257,
+          "rms": 3.1342307896925035
+        },
+        {
+          "min": -0.00734894005303488,
+          "max": 9.127107116712288,
+          "mean": 1.2456845559194003,
+          "rms": 2.7190559807071155
+        }
+      ],
+      "FL_abs_error_deg": [
+        {
+          "min": 0.029010238144444145,
+          "max": 11.24649559640146,
+          "mean": 1.5851431336919262,
+          "rms": 3.1342307896925035
+        },
+        {
+          "min": 1.0624813114645804e-05,
+          "max": 9.127107116712288,
+          "mean": 1.246681326870352,
+          "rms": 2.7190559807071155
+        }
+      ],
+      "FL_request_deg": [
+        {
+          "min": 4.14945816309346,
+          "max": 4.255216695455772,
+          "mean": 4.194566402134234,
+          "rms": 4.194694538618943
+        },
+        {
+          "min": 0.5772717659726432,
+          "max": 0.6299076734863345,
+          "mean": 0.6126035857742885,
+          "rms": 0.6128162860156489
+        }
+      ],
+      "FL_mapped_N_deg": [
+        {
+          "min": 19.05,
+          "max": 49.45,
+          "mean": 33.83429862081905,
+          "rms": 36.1794143329828
+        },
+        {
+          "min": -37.95,
+          "max": -12.15,
+          "mean": -18.758091286307053,
+          "rms": 21.50929163305977
+        }
+      ],
+      "FL_target_deg": [
+        {
+          "min": 23.19945816309346,
+          "max": 53.705216695455775,
+          "mean": 38.030458611097195,
+          "rms": 40.14072254841513
+        },
+        {
+          "min": -37.37014475732233,
+          "max": -11.520092326513666,
+          "mean": -18.145872411333304,
+          "rms": 20.98492444395179
+        }
+      ],
+      "FL_actual_deg": [
+        {
+          "min": 26.026020764939375,
+          "max": 53.65684071255228,
+          "mean": 39.25599075958652,
+          "rms": 41.226906464449655
+        },
+        {
+          "min": -37.37136091052395,
+          "max": -11.532336931279051,
+          "mean": -19.391556967252658,
+          "rms": 22.20725266424791
+        }
+      ],
+      "FL_contacts": {
+        "AIR": 241
+      },
+      "body_z_m": {
+        "min": 0.09225302934646606,
+        "max": 0.09335415810346603,
+        "mean": 0.09280911310579767,
+        "rms": 0.09280979002977813
+      },
+      "body_linear_speed_m_s": {
+        "min": 0.029087132356776006,
+        "max": 0.03656261562870084,
+        "mean": 0.033315125069030956,
+        "rms": 0.0333421439551551
+      },
+      "body_angular_speed_rad_s": {
+        "min": 0.03500034199304309,
+        "max": 0.11070506615128871,
+        "mean": 0.06183058356287669,
+        "rms": 0.06312141009405538
+      },
+      "FL_max_obstacle_force_n": 0.0,
+      "mapped_N_FL_hip_target_changes": 54,
+      "final_slew_modified_samples": 32,
+      "headroom_clipped_FL_samples": 0,
+      "support_contact_counts": {
+        "FL": {
+          "AIR": 241
+        },
+        "FR": {
+          "OBSTACLE": 241
+        },
+        "RL": {
+          "GROUND": 241
+        },
+        "RR": {
+          "GROUND": 239,
+          "AIR": 2
+        }
+      },
+      "support_normal_force_n": {
+        "FL": {
+          "min": 0.0,
+          "max": 0.0,
+          "mean": 0.0,
+          "rms": 0.0
+        },
+        "FR": {
+          "min": 10.43651485443178,
+          "max": 13.874309539795007,
+          "mean": 12.306663485483973,
+          "rms": 12.315184558204736
+        },
+        "RL": {
+          "min": 13.034735679626582,
+          "max": 16.388576507568505,
+          "mean": 14.573074582206859,
+          "rms": 14.585760035002922
+        },
+        "RR": {
+          "min": 0.0,
+          "max": 3.2128851413727095,
+          "mean": 1.8722483339522493,
+          "rms": 1.9527751826612787
+        }
+      },
+      "all12_mask_one": true,
+      "all_dispatch_verified": true,
+      "max_request_minus_effective_FL_deg": 0.0
+    },
+    "source_endpoint_to_end": {
+      "ticks": [
+        2737,
+        6036
+      ],
+      "samples": 3300,
+      "FL_gap_mm": {
+        "min": 16.14739571012168,
+        "max": 36.315143691833015,
+        "mean": 19.529527830178132,
+        "rms": 19.547557293752906
+      },
+      "FL_front_mm": {
+        "min": 62.07877738308554,
+        "max": 100.49522263836508,
+        "mean": 98.46160239644578,
+        "rms": 98.67439042743224
+      },
+      "FL_error_deg": [
+        {
+          "min": -5.98744034354883,
+          "max": 1.7869943462997249,
+          "mean": 0.03294185370339148,
+          "rms": 0.6892238251506562
+        },
+        {
+          "min": -0.006659456000674524,
+          "max": 0.29591003891782286,
+          "mean": 0.005877793556198815,
+          "rms": 0.01442275277255906
+        }
+      ],
+      "FL_abs_error_deg": [
+        {
+          "min": 0.15045764096200642,
+          "max": 5.98744034354883,
+          "mean": 0.6161288601106379,
+          "rms": 0.6892238251506562
+        },
+        {
+          "min": 2.958355338122942e-05,
+          "max": 0.29591003891782286,
+          "mean": 0.005959404064670867,
+          "rms": 0.01442275277255906
+        }
+      ],
+      "FL_request_deg": [
+        {
+          "min": 4.131076032916809,
+          "max": 4.226987066776772,
+          "mean": 4.160528856921858,
+          "rms": 4.160558039896886
+        },
+        {
+          "min": 0.5749778329535999,
+          "max": 0.6299076734863345,
+          "mean": 0.5940312224552577,
+          "rms": 0.5941394302167773
+        }
+      ],
+      "FL_mapped_N_deg": [
+        {
+          "min": 19.05,
+          "max": 24.05,
+          "mean": 22.825916448916452,
+          "rms": 22.835245981371965
+        },
+        {
+          "min": -12.15,
+          "max": -12.15,
+          "mean": -12.150000000000757,
+          "rms": 12.149999999999912
+        }
+      ],
+      "FL_target_deg": [
+        {
+          "min": 23.19945816309346,
+          "max": 28.207132116785353,
+          "mean": 26.98652060404088,
+          "rms": 26.994420405554052
+        },
+        {
+          "min": -11.5750221670464,
+          "max": -11.520092326513666,
+          "mean": -11.555968777544779,
+          "rms": 11.55597434043859
+        }
+      ],
+      "FL_actual_deg": [
+        {
+          "min": 26.026020764939375,
+          "max": 32.94298407326256,
+          "mean": 26.953578750337645,
+          "rms": 26.954728979469454
+        },
+        {
+          "min": -11.82470915511697,
+          "max": -11.528944034808848,
+          "mean": -11.56184657110093,
+          "rms": 11.561856660751
+        }
+      ],
+      "FL_contacts": {
+        "AIR": 3300
+      },
+      "body_z_m": {
+        "min": 0.09225302934646606,
+        "max": 0.09366840124130249,
+        "mean": 0.09310824344329761,
+        "rms": 0.09310844271900119
+      },
+      "body_linear_speed_m_s": {
+        "min": 0.02572318963453779,
+        "max": 0.03656261562870084,
+        "mean": 0.027509782448663683,
+        "rms": 0.02758710171008626
+      },
+      "body_angular_speed_rad_s": {
+        "min": 0.04695215874449243,
+        "max": 0.111072467705352,
+        "mean": 0.0707748241245471,
+        "rms": 0.0709248795793331
+      },
+      "FL_max_obstacle_force_n": 0.0,
+      "mapped_N_FL_hip_target_changes": 824,
+      "final_slew_modified_samples": 194,
+      "headroom_clipped_FL_samples": 0,
+      "support_contact_counts": {
+        "FL": {
+          "AIR": 3300
+        },
+        "FR": {
+          "OBSTACLE": 3300
+        },
+        "RL": {
+          "GROUND": 3300
+        },
+        "RR": {
+          "GROUND": 3298,
+          "AIR": 2
+        }
+      },
+      "support_normal_force_n": {
+        "FL": {
+          "min": 0.0,
+          "max": 0.0,
+          "mean": 0.0,
+          "rms": 0.0
+        },
+        "FR": {
+          "min": 11.151606559753441,
+          "max": 13.874309539795007,
+          "mean": 12.238151557299467,
+          "rms": 12.248204665583696
+        },
+        "RL": {
+          "min": 12.771261215210076,
+          "max": 16.388576507568505,
+          "mean": 14.607752791607027,
+          "rms": 14.618503117950722
+        },
+        "RR": {
+          "min": 0.0,
+          "max": 3.2545709609985645,
+          "mean": 1.9079980010110331,
+          "rms": 1.9493267970328267
+        }
+      },
+      "all12_mask_one": true,
+      "all_dispatch_verified": true,
+      "max_request_minus_effective_FL_deg": 0.0
+    },
+    "last_6s": {
+      "ticks": [
+        5317,
+        6036
+      ],
+      "samples": 720,
+      "FL_gap_mm": {
+        "min": 19.282771398890812,
+        "max": 20.521001738660267,
+        "mean": 19.995577229176156,
+        "rms": 19.99708423407813
+      },
+      "FL_front_mm": {
+        "min": 99.98923880886679,
+        "max": 100.44896943401938,
+        "mean": 100.21816203691976,
+        "rms": 100.21822012412618
+      },
+      "FL_error_deg": [
+        {
+          "min": -0.6175910095735588,
+          "max": 0.7302981423194694,
+          "mean": 0.05623253509079669,
+          "rms": 0.6007670149520625
+        },
+        {
+          "min": 0.001986281552319724,
+          "max": 0.007442949233031015,
+          "mean": 0.004839605971827924,
+          "rms": 0.004963303431943241
+        }
+      ],
+      "FL_abs_error_deg": [
+        {
+          "min": 0.4648110424157217,
+          "max": 0.7302981423194694,
+          "mean": 0.5955794165865018,
+          "rms": 0.6007670149520625
+        },
+        {
+          "min": 0.001986281552319724,
+          "max": 0.007442949233031015,
+          "mean": 0.004839605971827924,
+          "rms": 0.004963303431943241
+        }
+      ],
+      "FL_request_deg": [
+        {
+          "min": 4.163445545424867,
+          "max": 4.1810650379317735,
+          "mean": 4.169972892664081,
+          "rms": 4.169974623915373
+        },
+        {
+          "min": 0.5749778329535999,
+          "max": 0.5873364594462611,
+          "mean": 0.582724382231611,
+          "rms": 0.582731991508868
+        }
+      ],
+      "FL_mapped_N_deg": [
+        {
+          "min": 22.21206497982492,
+          "max": 23.46206497982492,
+          "mean": 22.837064979825183,
+          "rms": 22.84561581338413
+        },
+        {
+          "min": -12.15,
+          "max": -12.15,
+          "mean": -12.149999999999839,
+          "rms": 12.14999999999994
+        }
+      ],
+      "FL_target_deg": [
+        {
+          "min": 26.375510525249787,
+          "max": 27.643130017756693,
+          "mean": 27.007100270243306,
+          "rms": 27.014328684352574
+        },
+        {
+          "min": -11.5750221670464,
+          "max": -11.56266354055374,
+          "mean": -11.567275617768383,
+          "rms": 11.567276001103268
+        }
+      ],
+      "FL_actual_deg": [
+        {
+          "min": 26.844432814310522,
+          "max": 27.0619128676729,
+          "mean": 26.950867735152613,
+          "rms": 26.950940489722694
+        },
+        {
+          "min": -11.579213373326494,
+          "max": -11.567900872513661,
+          "mean": -11.572115223740212,
+          "rms": 11.572115533314859
+        }
+      ],
+      "FL_contacts": {
+        "AIR": 720
+      },
+      "body_z_m": {
+        "min": 0.09312806278467178,
+        "max": 0.09335298836231232,
+        "mean": 0.09326173486188054,
+        "rms": 0.0932617496392908
+      },
+      "body_linear_speed_m_s": {
+        "min": 0.025873040640828578,
+        "max": 0.030042140660115263,
+        "mean": 0.026809685831864025,
+        "rms": 0.026816526189816167
+      },
+      "body_angular_speed_rad_s": {
+        "min": 0.06255096705178655,
+        "max": 0.08100777443839295,
+        "mean": 0.07125352498714177,
+        "rms": 0.07133363974459997
+      },
+      "FL_max_obstacle_force_n": 0.0,
+      "mapped_N_FL_hip_target_changes": 179,
+      "final_slew_modified_samples": 38,
+      "headroom_clipped_FL_samples": 0,
+      "support_contact_counts": {
+        "FL": {
+          "AIR": 720
+        },
+        "FR": {
+          "OBSTACLE": 720
+        },
+        "RL": {
+          "GROUND": 720
+        },
+        "RR": {
+          "GROUND": 720
+        }
+      },
+      "support_normal_force_n": {
+        "FL": {
+          "min": 0.0,
+          "max": 0.0,
+          "mean": 0.0,
+          "rms": 0.0
+        },
+        "FR": {
+          "min": 11.197985817921898,
+          "max": 13.262558105791841,
+          "mean": 12.233206606530613,
+          "rms": 12.243112659945657
+        },
+        "RL": {
+          "min": 13.383187294006468,
+          "max": 15.80173969268813,
+          "mean": 14.60277453925878,
+          "rms": 14.613305084198105
+        },
+        "RR": {
+          "min": 1.1497213840484724,
+          "max": 2.872103929519679,
+          "mean": 1.9160860263639068,
+          "rms": 1.9503320152464818
+        }
+      },
+      "all12_mask_one": true,
+      "all_dispatch_verified": true,
+      "max_request_minus_effective_FL_deg": 0.0
+    }
+  },
+  "selected_same_tick_chain": [
+    {
+      "tick": 1569,
+      "time_s": 13.075,
+      "decision_start_tick": 1568,
+      "FL_base_mean": [
+        0.2234082967042923,
+        0.015224064700305462
+      ],
+      "FL_conditional_mean": [
+        0.1287003606557846,
+        0.052760448306798935
+      ],
+      "FL_previous_raw": [
+        0.11817726492881775,
+        0.056931160390377045
+      ],
+      "FL_sigma": [
+        0.07758568227291107,
+        0.07882809638977051
+      ],
+      "FL_raw": [
+        0.1287003606557846,
+        0.052760448306798935
+      ],
+      "FL_unfiltered_cap_tanh_deg": [
+        2.3039000827026306,
+        1.2650771268788623
+      ],
+      "N_full12": [
+        0.0,
+        -26.1,
+        0.0,
+        45.9,
+        17.5,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_N_full12": [
+        0.0,
+        -27.9,
+        0.0,
+        46.5888134358951,
+        12.5,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "controller_bias_full12": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "requested_residual_full12": [
+        2.1173430905644164,
+        1.3648735780347145,
+        -0.06523126398886138,
+        0.11167580499858332,
+        -0.009712449948111157,
+        2.050533506627769,
+        3.4017267233897566,
+        -3.058291872661547,
+        0.06983167783707989,
+        0.010655690446684962,
+        0.028374194996826585,
+        -0.07130062577467888
+      ],
+      "effective_residual_full12": [
+        2.1173430905644164,
+        1.3648735780347145,
+        -0.06523126398886138,
+        0.11167580499858332,
+        -0.009712449948111157,
+        2.050533506627769,
+        3.4017267233897566,
+        -3.058291872661547,
+        0.06983167783707989,
+        0.010655690446684962,
+        0.028374194996826585,
+        -0.07130062577467888
+      ],
+      "final_full12": [
+        2.1173430905644164,
+        -26.535126421965284,
+        -0.06523126398886138,
+        46.70048924089368,
+        12.490287550051889,
+        2.050533506627769,
+        3.4017267233897566,
+        -3.058291872661547,
+        0.3698316778370799,
+        0.31065569044668495,
+        0.3283741949968266,
+        0.2286993742253211
+      ],
+      "actual_full12": [
+        8.473052730126492,
+        -22.864749453090553,
+        0.1733192268273472,
+        46.85410951665279,
+        17.625046340773153,
+        3.5792432273286097,
+        3.719367853184087,
+        -3.1164924015521844,
+        0.5503159761428833,
+        0.09302503615617752,
+        0.41405874490737915,
+        0.15633980929851532
+      ],
+      "FL_error_deg": [
+        -6.355709639562075,
+        -3.6703769688747307
+      ],
+      "FL_velocity_deg_s": [
+        -76.42985096338853,
+        -45.29106634862459
+      ],
+      "FL_mapper_pre_compensation_deg": [
+        0.0,
+        -6.25
+      ],
+      "FL_reference": [
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 2.1173430905644164,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        },
+        {
+          "scheduled": true,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 1.3648735780347145,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        }
+      ],
+      "FL_native_target_rad": [
+        0.03833955526351929,
+        -0.46265679597854614
+      ],
+      "FL_native_measured_before_dispatch_rad": [
+        0.15775369107723236,
+        -0.3938065469264984
+      ],
+      "FL_gap_mm": -51.08232323146743,
+      "FL_front_mm": -138.80106465983744,
+      "FL_contact": "GROUND",
+      "FL_pair_forces_n": {
+        "ground": 5.057116508483932,
+        "obstacle": 0.0
+      },
+      "contacts": {
+        "FL": {
+          "contact": "GROUND",
+          "normal_force_n": 5.057116508483932
+        },
+        "FR": {
+          "contact": "OBSTACLE",
+          "normal_force_n": 8.90681648254395
+        },
+        "RL": {
+          "contact": "GROUND",
+          "normal_force_n": 9.245385169982994
+        },
+        "RR": {
+          "contact": "GROUND",
+          "normal_force_n": 6.155404090881403
+        }
+      },
+      "body": {
+        "name": "base_link",
+        "position_w_m": [
+          0.1658942997455597,
+          0.004247136414051056,
+          0.07015359401702881
+        ],
+        "orientation_wxyz": [
+          0.9987567663192749,
+          -0.04497756436467171,
+          -0.021073274314403534,
+          -0.004253006540238857
+        ],
+        "linear_velocity_w_m_s": [
+          -0.03327637165784836,
+          -0.009529244154691696,
+          0.059944380074739456
+        ],
+        "angular_velocity_w_rad_s": [
+          0.2356383055448532,
+          0.12124060839414597,
+          -0.015904897823929787
+        ]
+      },
+      "FL_center_w_m": [
+        0.38251110911369324,
+        0.08024510741233826,
+        0.05041956901550293
+      ],
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "verified": true,
+      "mapping_matches": true,
+      "setter_equal": true,
+      "final_slew_difference_deg": [
+        0.0,
+        0.0
+      ],
+      "headroom_clipped_servo_indices": []
+    },
+    {
+      "tick": 2586,
+      "time_s": 21.55,
+      "decision_start_tick": 2584,
+      "FL_base_mean": [
+        0.23472167551517487,
+        0.02643415704369545
+      ],
+      "FL_conditional_mean": [
+        0.23527222871780396,
+        0.02639780007302761
+      ],
+      "FL_previous_raw": [
+        0.2353334128856659,
+        0.026393761858344078
+      ],
+      "FL_sigma": [
+        0.07535956054925919,
+        0.07721877843141556
+      ],
+      "FL_raw": [
+        0.23527222871780396,
+        0.02639780007302761
+      ],
+      "FL_unfiltered_cap_tanh_deg": [
+        4.158454106380339,
+        0.633400081603635
+      ],
+      "N_full12": [
+        48.2,
+        -36.7,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_N_full12": [
+        49.45,
+        -37.95,
+        0.0,
+        46.5888134358951,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "controller_bias_full12": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "requested_residual_full12": [
+        4.15845410638034,
+        0.6334000816036323,
+        0.09282538521131296,
+        -0.3203005297760839,
+        -0.949398943282616,
+        2.5009968747621203,
+        5.466581428388722,
+        -4.527588209308458,
+        0.14268990705938567,
+        -0.01642296294516382,
+        0.1051848555469374,
+        -0.09125199843766757
+      ],
+      "effective_residual_full12": [
+        4.15845410638034,
+        0.6334000816036323,
+        0.09282538521131296,
+        -0.3203005297760839,
+        -0.949398943282616,
+        2.5009968747621203,
+        5.466581428388722,
+        -4.527588209308458,
+        0.14268990705938567,
+        -0.01642296294516382,
+        0.1051848555469374,
+        -0.09125199843766757
+      ],
+      "final_full12": [
+        53.60845410638034,
+        -37.31659991839637,
+        0.09282538521131296,
+        46.268512906119014,
+        5.950601056717384,
+        2.5009968747621203,
+        5.466581428388722,
+        -4.527588209308458,
+        0.44268990705938566,
+        0.28357703705483617,
+        0.4051848555469374,
+        0.20874800156233242
+      ],
+      "actual_full12": [
+        53.57074276296969,
+        -37.32154151071788,
+        1.2711570098667853,
+        46.813381098632,
+        7.1493077342895655,
+        1.9700801140644009,
+        5.553961360004566,
+        -4.279714171453553,
+        0.44268861413002014,
+        0.06760392338037491,
+        0.41548264026641846,
+        0.31010764837265015
+      ],
+      "FL_error_deg": [
+        0.037711343410656184,
+        0.004941592321507926
+      ],
+      "FL_velocity_deg_s": [
+        0.7933367707415889,
+        -0.5315079789332028
+      ],
+      "FL_mapper_pre_compensation_deg": [
+        1.25,
+        -1.25
+      ],
+      "FL_reference": [
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 4.15845410638034,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        },
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 0.6334000816036323,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": 4.9721408404462295,
+          "bounded_desired_c1_deg": 4.9721408404462295
+        }
+      ],
+      "FL_native_target_rad": [
+        0.9370290040969849,
+        -0.650829017162323
+      ],
+      "FL_native_measured_before_dispatch_rad": [
+        0.9363707900047302,
+        -0.6509148478507996
+      ],
+      "FL_gap_mm": 72.42053801638279,
+      "FL_front_mm": 0.09644372295980475,
+      "FL_contact": "AIR",
+      "FL_pair_forces_n": {
+        "ground": 0.0,
+        "obstacle": 0.0
+      },
+      "contacts": {
+        "FL": {
+          "contact": "AIR",
+          "normal_force_n": 0.0
+        },
+        "FR": {
+          "contact": "OBSTACLE",
+          "normal_force_n": 12.180580139161393
+        },
+        "RL": {
+          "contact": "GROUND",
+          "normal_force_n": 14.09620952606214
+        },
+        "RR": {
+          "contact": "GROUND",
+          "normal_force_n": 2.5622785091400377
+        }
+      },
+      "body": {
+        "name": "base_link",
+        "position_w_m": [
+          0.2789820730686188,
+          -0.0011055544018745422,
+          0.09270300716161728
+        ],
+        "orientation_wxyz": [
+          0.9997607469558716,
+          -0.0023948370944708586,
+          -0.021572323516011238,
+          -0.002725179772824049
+        ],
+        "linear_velocity_w_m_s": [
+          0.0199099313467741,
+          -0.003980428911745548,
+          0.02722771279513836
+        ],
+        "angular_velocity_w_rad_s": [
+          0.05860166251659393,
+          -0.03201167657971382,
+          -0.00931424368172884
+        ]
+      },
+      "FL_center_w_m": [
+        0.5214086174964905,
+        0.07763133943080902,
+        0.17250554263591766
+      ],
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "verified": true,
+      "mapping_matches": true,
+      "setter_equal": true,
+      "final_slew_difference_deg": [
+        0.0,
+        0.0
+      ],
+      "headroom_clipped_servo_indices": []
+    },
+    {
+      "tick": 2617,
+      "time_s": 21.808333333333334,
+      "decision_start_tick": 2616,
+      "FL_base_mean": [
+        0.24416522681713104,
+        0.022607825696468353
+      ],
+      "FL_conditional_mean": [
+        0.2381000965833664,
+        0.02510790526866913
+      ],
+      "FL_previous_raw": [
+        0.23742620646953583,
+        0.025385692715644836
+      ],
+      "FL_sigma": [
+        0.07902974635362625,
+        0.07880956679582596
+      ],
+      "FL_raw": [
+        0.2381000965833664,
+        0.02510790526866913
+      ],
+      "FL_unfiltered_cap_tanh_deg": [
+        4.206607385900252,
+        0.6024631327949591
+      ],
+      "N_full12": [
+        48.2,
+        -36.7,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_N_full12": [
+        49.45,
+        -37.95,
+        0.0,
+        46.5888134358951,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "controller_bias_full12": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "requested_residual_full12": [
+        4.206607385900256,
+        0.6024631327949592,
+        0.09687658177792792,
+        -0.3411555481067907,
+        -0.9832552279006634,
+        2.5083884719069043,
+        5.513870816160153,
+        -4.564243695321066,
+        0.14432658190494985,
+        -0.017545047840152372,
+        0.10741520632756685,
+        -0.09164705309621013
+      ],
+      "effective_residual_full12": [
+        4.206607385900256,
+        0.6024631327949592,
+        0.09687658177792792,
+        -0.3411555481067907,
+        -0.9832552279006634,
+        2.5083884719069043,
+        5.513870816160153,
+        -4.564243695321066,
+        0.14432658190494985,
+        -0.017545047840152372,
+        0.10741520632756685,
+        -0.09164705309621013
+      ],
+      "final_full12": [
+        53.65660738590026,
+        -37.347536867205044,
+        0.09687658177792792,
+        46.24765788778831,
+        5.916744772099337,
+        2.5083884719069043,
+        5.513870816160153,
+        -4.564243695321066,
+        0.44432658190494984,
+        0.2824549521598476,
+        0.40741520632756684,
+        0.20835294690378986
+      ],
+      "actual_full12": [
+        53.598558708364564,
+        -37.34018792715201,
+        1.2713603147162988,
+        46.76128041564314,
+        7.0356772921626485,
+        1.912378782677839,
+        5.672478802482627,
+        -4.25889788929747,
+        0.4442134201526642,
+        0.11014723777770996,
+        0.42207446694374084,
+        0.3415044844150543
+      ],
+      "FL_error_deg": [
+        0.05804867753569454,
+        -0.00734894005303488
+      ],
+      "FL_velocity_deg_s": [
+        0.6013145933239958,
+        -0.6222470420568222
+      ],
+      "FL_mapper_pre_compensation_deg": [
+        1.25,
+        -1.25
+      ],
+      "FL_reference": [
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 4.19513805115065,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        },
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 0.6091257837977366,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": 5.112870058105159,
+          "bounded_desired_c1_deg": 5.112870058105159
+        }
+      ],
+      "FL_native_target_rad": [
+        0.9378694295883179,
+        -0.6513689756393433
+      ],
+      "FL_native_measured_before_dispatch_rad": [
+        0.9368258118629456,
+        -0.6512218713760376
+      ],
+      "FL_gap_mm": 73.24487428550259,
+      "FL_front_mm": 3.7496720058882715,
+      "FL_contact": "AIR",
+      "FL_pair_forces_n": {
+        "ground": 0.0,
+        "obstacle": 0.0
+      },
+      "contacts": {
+        "FL": {
+          "contact": "AIR",
+          "normal_force_n": 0.0
+        },
+        "FR": {
+          "contact": "OBSTACLE",
+          "normal_force_n": 12.31413173675547
+        },
+        "RL": {
+          "contact": "GROUND",
+          "normal_force_n": 14.177147865295538
+        },
+        "RR": {
+          "contact": "GROUND",
+          "normal_force_n": 2.3242297172546595
+        }
+      },
+      "body": {
+        "name": "base_link",
+        "position_w_m": [
+          0.2827209234237671,
+          -0.0012472644448280334,
+          0.09318289160728455
+        ],
+        "orientation_wxyz": [
+          0.9997571706771851,
+          -0.0015422904398292303,
+          -0.021825019270181656,
+          -0.0026651255320757627
+        ],
+        "linear_velocity_w_m_s": [
+          0.02150728926062584,
+          -0.002682694233953953,
+          0.025639498606324196
+        ],
+        "angular_velocity_w_rad_s": [
+          0.05844524875283241,
+          -0.0341712050139904,
+          -0.009631454944610596
+        ]
+      },
+      "FL_center_w_m": [
+        0.525061845779419,
+        0.07739225029945374,
+        0.17329148948192596
+      ],
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "verified": true,
+      "mapping_matches": true,
+      "setter_equal": true,
+      "final_slew_difference_deg": [
+        0.0,
+        0.0
+      ],
+      "headroom_clipped_servo_indices": []
+    },
+    {
+      "tick": 2729,
+      "time_s": 22.741666666666667,
+      "decision_start_tick": 2728,
+      "FL_base_mean": [
+        0.22921152412891388,
+        0.026062795892357826
+      ],
+      "FL_conditional_mean": [
+        0.23551398515701294,
+        0.02601679041981697
+      ],
+      "FL_previous_raw": [
+        0.2362142652273178,
+        0.02601167932152748
+      ],
+      "FL_sigma": [
+        0.07344920188188553,
+        0.07541301101446152
+      ],
+      "FL_raw": [
+        0.23551398515701294,
+        0.02601679041981697
+      ],
+      "FL_unfiltered_cap_tanh_deg": [
+        4.162573234846034,
+        0.624262127624761
+      ],
+      "N_full12": [
+        24.9,
+        -13.4,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_N_full12": [
+        23.65,
+        -12.15,
+        0.0,
+        46.5888134358951,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "controller_bias_full12": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "requested_residual_full12": [
+        4.1625732348460325,
+        0.6242621276247604,
+        0.07385835137338413,
+        -0.32863262992123765,
+        -0.936998394203906,
+        2.496736228379911,
+        5.445180694755503,
+        -4.501783372965685,
+        0.14156627950336442,
+        -0.017299639469609218,
+        0.10579011726845472,
+        -0.0901269903471631
+      ],
+      "effective_residual_full12": [
+        4.1625732348460325,
+        0.6242621276247604,
+        0.07385835137338413,
+        -0.32863262992123765,
+        -0.936998394203906,
+        2.496736228379911,
+        5.445180694755503,
+        -4.501783372965685,
+        0.14156627950336442,
+        -0.017299639469609218,
+        0.10579011726845472,
+        -0.0901269903471631
+      ],
+      "final_full12": [
+        27.824502244350032,
+        -11.52573787237524,
+        0.07385835137338413,
+        46.26018080597386,
+        5.963001605796094,
+        2.496736228379911,
+        5.445180694755503,
+        -4.501783372965685,
+        0.4415662795033644,
+        0.28270036053039077,
+        0.4057901172684547,
+        0.2098730096528369
+      ],
+      "actual_full12": [
+        38.60826398976212,
+        -12.095765212328926,
+        1.118998537848884,
+        46.579884251665945,
+        6.8388636836814385,
+        1.718102376029877,
+        5.6142915671696425,
+        -4.2304825948029245,
+        0.4412691295146942,
+        0.16975554823875427,
+        0.38017502427101135,
+        0.20030635595321655
+      ],
+      "FL_error_deg": [
+        -10.78376174541209,
+        0.5700273399536862
+      ],
+      "FL_velocity_deg_s": [
+        -108.48164062488642,
+        5.160809828365241
+      ],
+      "FL_mapper_pre_compensation_deg": [
+        0.0,
+        1.25
+      ],
+      "FL_reference": [
+        {
+          "scheduled": true,
+          "feedback_eligible": true,
+          "reference_used": true,
+          "previous_requested_deg": 4.174502244350034,
+          "active_reference_deg": 4.174502244350034,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        },
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 0.6241395442416575,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        }
+      ],
+      "FL_native_target_rad": [
+        0.48701411485671997,
+        -0.20069356262683868
+      ],
+      "FL_native_measured_before_dispatch_rad": [
+        0.6915708780288696,
+        -0.21149200201034546
+      ],
+      "FL_gap_mm": 53.487039599368224,
+      "FL_front_mm": 72.9915533764327,
+      "FL_contact": "AIR",
+      "FL_pair_forces_n": {
+        "ground": 0.0,
+        "obstacle": 0.0
+      },
+      "contacts": {
+        "FL": {
+          "contact": "AIR",
+          "normal_force_n": 0.0
+        },
+        "FR": {
+          "contact": "OBSTACLE",
+          "normal_force_n": 12.021554946899531
+        },
+        "RL": {
+          "contact": "GROUND",
+          "normal_force_n": 14.66580963134779
+        },
+        "RR": {
+          "contact": "GROUND",
+          "normal_force_n": 1.712921500206009
+        }
+      },
+      "body": {
+        "name": "base_link",
+        "position_w_m": [
+          0.2977257966995239,
+          -0.0010810047388076782,
+          0.09287632256746292
+        ],
+        "orientation_wxyz": [
+          0.9997491836547852,
+          -0.00344584952108562,
+          -0.02196405827999115,
+          -0.0027170330286026
+        ],
+        "linear_velocity_w_m_s": [
+          0.021032901480793953,
+          0.0005592051893472672,
+          0.023317821323871613
+        ],
+        "angular_velocity_w_rad_s": [
+          0.04092756658792496,
+          -0.0196033027023077,
+          -0.006919078063219786
+        ]
+      },
+      "FL_center_w_m": [
+        0.5943037271499634,
+        0.07738520950078964,
+        0.15361347794532776
+      ],
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "verified": true,
+      "mapping_matches": true,
+      "setter_equal": true,
+      "final_slew_difference_deg": [
+        0.011929009504001442,
+        0.0
+      ],
+      "headroom_clipped_servo_indices": []
+    },
+    {
+      "tick": 2737,
+      "time_s": 22.808333333333334,
+      "decision_start_tick": 2736,
+      "FL_base_mean": [
+        0.23138843476772308,
+        0.024740422144532204
+      ],
+      "FL_conditional_mean": [
+        0.23510143160820007,
+        0.02588915266096592
+      ],
+      "FL_previous_raw": [
+        0.23551398515701294,
+        0.02601679041981697
+      ],
+      "FL_sigma": [
+        0.07495502382516861,
+        0.07634665071964264
+      ],
+      "FL_raw": [
+        0.23510143160820007,
+        0.02588915266096592
+      ],
+      "FL_unfiltered_cap_tanh_deg": [
+        4.1555437297137265,
+        0.6212008838008533
+      ],
+      "N_full12": [
+        22.8,
+        -13.4,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_N_full12": [
+        22.8,
+        -12.15,
+        0.0,
+        46.5888134358951,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "controller_bias_full12": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "requested_residual_full12": [
+        4.155543729713727,
+        0.6212008838008529,
+        0.07110760623718917,
+        -0.3281603143065226,
+        -0.9302190897946705,
+        2.49460066832927,
+        5.434041482826847,
+        -4.490450407732526,
+        0.1413632692244447,
+        -0.017376785734869837,
+        0.1057198336801321,
+        -0.08991095123908391
+      ],
+      "effective_residual_full12": [
+        4.155543729713727,
+        0.6212008838008529,
+        0.07110760623718917,
+        -0.3281603143065226,
+        -0.9302190897946705,
+        2.49460066832927,
+        5.434041482826847,
+        -4.490450407732526,
+        0.1413632692244447,
+        -0.017376785734869837,
+        0.1057198336801321,
+        -0.08991095123908391
+      ],
+      "final_full12": [
+        26.955543729713728,
+        -11.528799116199147,
+        0.07110760623718917,
+        46.260653121588575,
+        5.96978091020533,
+        2.49460066832927,
+        5.434041482826847,
+        -4.490450407732526,
+        0.4413632692244447,
+        0.28262321426513015,
+        0.4057198336801321,
+        0.21008904876091608
+      ],
+      "actual_full12": [
+        32.94298407326256,
+        -11.82470915511697,
+        1.1367583103513865,
+        46.564366061871674,
+        6.88659603380925,
+        1.6926492492010015,
+        5.485394371587278,
+        -4.247130754018007,
+        0.4411097466945648,
+        0.14791330695152283,
+        0.3803179860115051,
+        0.205535888671875
+      ],
+      "FL_error_deg": [
+        -5.98744034354883,
+        0.29591003891782286
+      ],
+      "FL_velocity_deg_s": [
+        -60.33684610894963,
+        2.2854487444043206
+      ],
+      "FL_mapper_pre_compensation_deg": [
+        -2.5,
+        1.25
+      ],
+      "FL_reference": [
+        {
+          "scheduled": true,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 4.1625732348460325,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        },
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 0.6242621276247604,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        }
+      ],
+      "FL_native_target_rad": [
+        0.47184792160987854,
+        -0.20074698328971863
+      ],
+      "FL_native_measured_before_dispatch_rad": [
+        0.5855158567428589,
+        -0.20634083449840546
+      ],
+      "FL_gap_mm": 36.315143691833015,
+      "FL_front_mm": 68.47077948879843,
+      "FL_contact": "AIR",
+      "FL_pair_forces_n": {
+        "ground": 0.0,
+        "obstacle": 0.0
+      },
+      "contacts": {
+        "FL": {
+          "contact": "AIR",
+          "normal_force_n": 0.0
+        },
+        "FR": {
+          "contact": "OBSTACLE",
+          "normal_force_n": 13.063643455505602
+        },
+        "RL": {
+          "contact": "GROUND",
+          "normal_force_n": 15.727784156799459
+        },
+        "RR": {
+          "contact": "GROUND",
+          "normal_force_n": 0.9644565582275477
+        }
+      },
+      "body": {
+        "name": "base_link",
+        "position_w_m": [
+          0.2988103926181793,
+          -0.0010228902101516724,
+          0.09272944927215576
+        ],
+        "orientation_wxyz": [
+          0.999752938747406,
+          -0.003938117064535618,
+          -0.021706178784370422,
+          -0.0027428760658949614
+        ],
+        "linear_velocity_w_m_s": [
+          0.0226631797850132,
+          0.00020033284090459347,
+          0.02482934296131134
+        ],
+        "angular_velocity_w_rad_s": [
+          0.04083847999572754,
+          -0.024265820160508156,
+          -0.011967271566390991
+        ]
+      },
+      "FL_center_w_m": [
+        0.5897829532623291,
+        0.07738187164068222,
+        0.13638998568058014
+      ],
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "verified": true,
+      "mapping_matches": true,
+      "setter_equal": true,
+      "final_slew_difference_deg": [
+        0.0,
+        0.0
+      ],
+      "headroom_clipped_servo_indices": []
+    },
+    {
+      "tick": 2744,
+      "time_s": 22.866666666666667,
+      "decision_start_tick": 2736,
+      "FL_base_mean": [
+        0.23138843476772308,
+        0.024740422144532204
+      ],
+      "FL_conditional_mean": [
+        0.23510143160820007,
+        0.02588915266096592
+      ],
+      "FL_previous_raw": [
+        0.23551398515701294,
+        0.02601679041981697
+      ],
+      "FL_sigma": [
+        0.07495502382516861,
+        0.07634665071964264
+      ],
+      "FL_raw": [
+        0.23510143160820007,
+        0.02588915266096592
+      ],
+      "FL_unfiltered_cap_tanh_deg": [
+        4.1555437297137265,
+        0.6212008838008533
+      ],
+      "N_full12": [
+        22.8,
+        -13.4,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_N_full12": [
+        21.55,
+        -12.15,
+        0.0,
+        46.5888134358951,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "controller_bias_full12": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "requested_residual_full12": [
+        4.155543729713727,
+        0.6212008838008529,
+        0.07110760623718917,
+        -0.3281603143065226,
+        -0.9302190897946705,
+        2.49460066832927,
+        5.434041482826847,
+        -4.490450407732526,
+        0.1413632692244447,
+        -0.017376785734869837,
+        0.1057198336801321,
+        -0.08991095123908391
+      ],
+      "effective_residual_full12": [
+        4.155543729713727,
+        0.6212008838008529,
+        0.07110760623718917,
+        -0.3281603143065226,
+        -0.9302190897946705,
+        2.49460066832927,
+        5.434041482826847,
+        -4.490450407732526,
+        0.1413632692244447,
+        -0.017376785734869837,
+        0.1057198336801321,
+        -0.08991095123908391
+      ],
+      "final_full12": [
+        25.705543729713728,
+        -11.528799116199147,
+        0.07110760623718917,
+        46.260653121588575,
+        5.96978091020533,
+        2.49460066832927,
+        5.434041482826847,
+        -4.490450407732526,
+        0.4413632692244447,
+        0.28262321426513015,
+        0.4057198336801321,
+        0.21008904876091608
+      ],
+      "actual_full12": [
+        29.924566384683008,
+        -11.697813631848243,
+        1.1322671408069858,
+        46.54915181549547,
+        6.916975007690174,
+        1.6940990635740425,
+        5.44052216317441,
+        -4.247935435679599,
+        0.4410947263240814,
+        0.1977778971195221,
+        0.3914583623409271,
+        0.2342464178800583
+      ],
+      "FL_error_deg": [
+        -4.2190226549692795,
+        0.16901451564909564
+      ],
+      "FL_velocity_deg_s": [
+        -43.03059475224136,
+        1.3613834869700097
+      ],
+      "FL_mapper_pre_compensation_deg": [
+        -1.25,
+        1.25
+      ],
+      "FL_reference": [
+        {
+          "scheduled": true,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 4.155543729713727,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        },
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 0.6212008838008529,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        }
+      ],
+      "FL_native_target_rad": [
+        0.4500313103199005,
+        -0.20074698328971863
+      ],
+      "FL_native_measured_before_dispatch_rad": [
+        0.53014075756073,
+        -0.203938826918602
+      ],
+      "FL_gap_mm": 27.355845254062164,
+      "FL_front_mm": 65.75799329113607,
+      "FL_contact": "AIR",
+      "FL_pair_forces_n": {
+        "ground": 0.0,
+        "obstacle": 0.0
+      },
+      "contacts": {
+        "FL": {
+          "contact": "AIR",
+          "normal_force_n": 0.0
+        },
+        "FR": {
+          "contact": "OBSTACLE",
+          "normal_force_n": 13.874309539795007
+        },
+        "RL": {
+          "contact": "GROUND",
+          "normal_force_n": 15.689820289611959
+        },
+        "RR": {
+          "contact": "GROUND",
+          "normal_force_n": 1.0196273326873873
+        }
+      },
+      "body": {
+        "name": "base_link",
+        "position_w_m": [
+          0.2998082637786865,
+          -0.0010044574737548828,
+          0.09268585592508316
+        ],
+        "orientation_wxyz": [
+          0.999753475189209,
+          -0.004157818853855133,
+          -0.021638957783579826,
+          -0.002751861000433564
+        ],
+        "linear_velocity_w_m_s": [
+          0.02261269837617874,
+          0.00031327735632658005,
+          0.02645896188914776
+        ],
+        "angular_velocity_w_rad_s": [
+          0.05622611939907074,
+          -0.02855195663869381,
+          -0.0052693248726427555
+        ]
+      },
+      "FL_center_w_m": [
+        0.5870701670646667,
+        0.07736057043075562,
+        0.1275096982717514
+      ],
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "verified": true,
+      "mapping_matches": true,
+      "setter_equal": true,
+      "final_slew_difference_deg": [
+        0.0,
+        0.0
+      ],
+      "headroom_clipped_servo_indices": []
+    },
+    {
+      "tick": 2768,
+      "time_s": 23.066666666666666,
+      "decision_start_tick": 2760,
+      "FL_base_mean": [
+        0.23692592978477478,
+        0.02709299884736538
+      ],
+      "FL_conditional_mean": [
+        0.23498313128948212,
+        0.026164423674345016
+      ],
+      "FL_previous_raw": [
+        0.23476727306842804,
+        0.026061249896883965
+      ],
+      "FL_sigma": [
+        0.0761522576212883,
+        0.07732271403074265
+      ],
+      "FL_raw": [
+        0.23498313128948212,
+        0.026164423674345016
+      ],
+      "FL_unfiltered_cap_tanh_deg": [
+        4.153527761939996,
+        0.6278029148961342
+      ],
+      "N_full12": [
+        22.8,
+        -13.4,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_N_full12": [
+        24.05,
+        -12.15,
+        0.0,
+        46.5888134358951,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "controller_bias_full12": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "requested_residual_full12": [
+        4.153527761939994,
+        0.6278029148961348,
+        0.05611873861777353,
+        -0.32314868030647403,
+        -0.9028084359798214,
+        2.502200810064248,
+        5.4190993044686016,
+        -4.473025086459841,
+        0.1408038561757166,
+        -0.01753907497671431,
+        0.10613180273054951,
+        -0.08955217927832865
+      ],
+      "effective_residual_full12": [
+        4.153527761939994,
+        0.6278029148961348,
+        0.05611873861777353,
+        -0.32314868030647403,
+        -0.9028084359798214,
+        2.502200810064248,
+        5.4190993044686016,
+        -4.473025086459841,
+        0.1408038561757166,
+        -0.01753907497671431,
+        0.10613180273054951,
+        -0.08955217927832865
+      ],
+      "final_full12": [
+        28.203527761939995,
+        -11.522197085103866,
+        0.05611873861777353,
+        46.265664755588624,
+        5.997191564020179,
+        2.502200810064248,
+        5.4190993044686016,
+        -4.473025086459841,
+        0.4408038561757166,
+        0.2824609250232857,
+        0.4061318027305495,
+        0.21044782072167134
+      ],
+      "actual_full12": [
+        26.798704697817286,
+        -11.552301574222998,
+        1.0994934385700317,
+        46.53297109735171,
+        6.97855343192607,
+        1.72553415545538,
+        5.390957614801742,
+        -4.229005993281732,
+        0.4405331015586853,
+        0.20007434487342834,
+        0.3941904604434967,
+        0.27408358454704285
+      ],
+      "FL_error_deg": [
+        1.4048230641227093,
+        0.030104489119132438
+      ],
+      "FL_velocity_deg_s": [
+        13.382168513431603,
+        0.031089980565266673
+      ],
+      "FL_mapper_pre_compensation_deg": [
+        1.25,
+        1.25
+      ],
+      "FL_reference": [
+        {
+          "scheduled": true,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 4.153527761939994,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        },
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 0.6278029148961348,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        }
+      ],
+      "FL_native_target_rad": [
+        0.4936293661594391,
+        -0.2006317526102066
+      ],
+      "FL_native_measured_before_dispatch_rad": [
+        0.46706920862197876,
+        -0.20119597017765045
+      ],
+      "FL_gap_mm": 18.245510343302755,
+      "FL_front_mm": 64.99201400112753,
+      "FL_contact": "AIR",
+      "FL_pair_forces_n": {
+        "ground": 0.0,
+        "obstacle": 0.0
+      },
+      "contacts": {
+        "FL": {
+          "contact": "AIR",
+          "normal_force_n": 0.0
+        },
+        "FR": {
+          "contact": "OBSTACLE",
+          "normal_force_n": 12.322933197022245
+        },
+        "RL": {
+          "contact": "GROUND",
+          "normal_force_n": 14.537225723266733
+        },
+        "RR": {
+          "contact": "GROUND",
+          "normal_force_n": 1.7455019950866857
+        }
+      },
+      "body": {
+        "name": "base_link",
+        "position_w_m": [
+          0.3033222556114197,
+          -0.0009696409106254578,
+          0.09251813590526581
+        ],
+        "orientation_wxyz": [
+          0.9997545480728149,
+          -0.004602908156812191,
+          -0.021501503884792328,
+          -0.0027603269554674625
+        ],
+        "linear_velocity_w_m_s": [
+          0.023529481142759323,
+          -0.0008431775495409966,
+          0.02553914487361908
+        ],
+        "angular_velocity_w_rad_s": [
+          0.0557212196290493,
+          -0.03455901890993118,
+          -0.004185699857771397
+        ]
+      },
+      "FL_center_w_m": [
+        0.5863041877746582,
+        0.07735956460237503,
+        0.11832766234874725
+      ],
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "verified": true,
+      "mapping_matches": true,
+      "setter_equal": true,
+      "final_slew_difference_deg": [
+        0.0,
+        0.0
+      ],
+      "headroom_clipped_servo_indices": []
+    },
+    {
+      "tick": 2857,
+      "time_s": 23.808333333333334,
+      "decision_start_tick": 2856,
+      "FL_base_mean": [
+        0.23755374550819397,
+        0.025914492085576057
+      ],
+      "FL_conditional_mean": [
+        0.23671004176139832,
+        0.025980111211538315
+      ],
+      "FL_previous_raw": [
+        0.23661629855632782,
+        0.025987401604652405
+      ],
+      "FL_sigma": [
+        0.07730621844530106,
+        0.0778798907995224
+      ],
+      "FL_raw": [
+        0.23671004176139832,
+        0.025980111211538315
+      ],
+      "FL_unfiltered_cap_tanh_deg": [
+        4.1829452708131365,
+        0.6233824213707162
+      ],
+      "N_full12": [
+        22.8,
+        -13.4,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_N_full12": [
+        22.411170216947045,
+        -12.15,
+        0.0,
+        46.5888134358951,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "controller_bias_full12": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "requested_residual_full12": [
+        4.182945270813136,
+        0.6233824213707155,
+        0.025237929534119987,
+        -0.34750177855122644,
+        -0.8766573422823534,
+        2.545385778076449,
+        5.4372785057369795,
+        -4.491860445263648,
+        0.1414169070341878,
+        -0.018896348538337326,
+        0.10954620593155462,
+        -0.08957943517352418
+      ],
+      "effective_residual_full12": [
+        4.182945270813136,
+        0.6233824213707155,
+        0.025237929534119987,
+        -0.34750177855122644,
+        -0.8766573422823534,
+        2.545385778076449,
+        5.4372785057369795,
+        -4.491860445263648,
+        0.1414169070341878,
+        -0.018896348538337326,
+        0.10954620593155462,
+        -0.08957943517352418
+      ],
+      "final_full12": [
+        26.59411548776018,
+        -11.526617578629285,
+        0.025237929534119987,
+        46.24131165734387,
+        6.023342657717647,
+        2.545385778076449,
+        5.4372785057369795,
+        -4.491860445263648,
+        0.4414169070341878,
+        0.28110365146166266,
+        0.4095462059315546,
+        0.2104205648264758
+      ],
+      "actual_full12": [
+        26.99260693816478,
+        -11.532336931279051,
+        1.1082851726923073,
+        46.64290640713765,
+        7.022611994054061,
+        1.8018994056358248,
+        5.4652201272131755,
+        -4.257259924557136,
+        0.4411507248878479,
+        0.1306031197309494,
+        0.3861309587955475,
+        0.28284674882888794
+      ],
+      "FL_error_deg": [
+        -0.3984914504045989,
+        0.005719352649766307
+      ],
+      "FL_velocity_deg_s": [
+        -4.2931051575277595,
+        -0.460817388653422
+      ],
+      "FL_mapper_pre_compensation_deg": [
+        0.34239660911026704,
+        1.25
+      ],
+      "FL_reference": [
+        {
+          "scheduled": true,
+          "feedback_eligible": true,
+          "reference_used": true,
+          "previous_requested_deg": 4.181348982117495,
+          "active_reference_deg": 4.181348982117495,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -0.38882978305295524
+        },
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 0.6235572727270107,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        }
+      ],
+      "FL_native_target_rad": [
+        0.465539813041687,
+        -0.20070891082286835
+      ],
+      "FL_native_measured_before_dispatch_rad": [
+        0.47314661741256714,
+        -0.20081430673599243
+      ],
+      "FL_gap_mm": 19.190344616217285,
+      "FL_front_mm": 76.89857823681479,
+      "FL_contact": "AIR",
+      "FL_pair_forces_n": {
+        "ground": 0.0,
+        "obstacle": 0.0
+      },
+      "contacts": {
+        "FL": {
+          "contact": "AIR",
+          "normal_force_n": 0.0
+        },
+        "FR": {
+          "contact": "OBSTACLE",
+          "normal_force_n": 11.495328903198338
+        },
+        "RL": {
+          "contact": "GROUND",
+          "normal_force_n": 14.14241313934339
+        },
+        "RR": {
+          "contact": "GROUND",
+          "normal_force_n": 2.233712911605855
+        }
+      },
+      "body": {
+        "name": "base_link",
+        "position_w_m": [
+          0.3148730397224426,
+          -0.0012509673833847046,
+          0.0929219201207161
+        ],
+        "orientation_wxyz": [
+          0.9997686743736267,
+          -0.003162642940878868,
+          -0.021111706271767616,
+          -0.0026432827580720186
+        ],
+        "linear_velocity_w_m_s": [
+          0.019498035311698914,
+          -0.0032427050173282623,
+          0.027961228042840958
+        ],
+        "angular_velocity_w_rad_s": [
+          0.06677976250648499,
+          -0.039497919380664825,
+          -0.007071306463330984
+        ]
+      },
+      "FL_center_w_m": [
+        0.5982107520103455,
+        0.07708822190761566,
+        0.11929609626531601
+      ],
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "verified": true,
+      "mapping_matches": true,
+      "setter_equal": true,
+      "final_slew_difference_deg": [
+        0.0,
+        0.0
+      ],
+      "headroom_clipped_servo_indices": []
+    },
+    {
+      "tick": 3000,
+      "time_s": 25.0,
+      "decision_start_tick": 2992,
+      "FL_base_mean": [
+        0.23706038296222687,
+        0.025544149801135063
+      ],
+      "FL_conditional_mean": [
+        0.23710717260837555,
+        0.025776850059628487
+      ],
+      "FL_previous_raw": [
+        0.2371123880147934,
+        0.02580270729959011
+      ],
+      "FL_sigma": [
+        0.07746294885873795,
+        0.07787710428237915
+      ],
+      "FL_raw": [
+        0.23710717260837555,
+        0.025776850059628487
+      ],
+      "FL_unfiltered_cap_tanh_deg": [
+        4.1897069677494585,
+        0.6185074192387655
+      ],
+      "N_full12": [
+        22.8,
+        -13.4,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_N_full12": [
+        23.46206497982492,
+        -12.15,
+        0.0,
+        46.5888134358951,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "controller_bias_full12": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "requested_residual_full12": [
+        4.1897069677494585,
+        0.6185074192387656,
+        0.01425033044372754,
+        -0.35959120069537676,
+        -0.870271933552524,
+        2.5568547639424253,
+        5.439708745222171,
+        -4.495170758968723,
+        0.14141832354010025,
+        -0.01947385618285352,
+        0.1107825652599086,
+        -0.08941960079545841
+      ],
+      "effective_residual_full12": [
+        4.1897069677494585,
+        0.6185074192387656,
+        0.01425033044372754,
+        -0.35959120069537676,
+        -0.870271933552524,
+        2.5568547639424253,
+        5.439708745222171,
+        -4.495170758968723,
+        0.14141832354010025,
+        -0.01947385618285352,
+        0.1107825652599086,
+        -0.08941960079545841
+      ],
+      "final_full12": [
+        27.651771947574378,
+        -11.531492580761235,
+        0.01425033044372754,
+        46.22922223519972,
+        6.029728066447476,
+        2.5568547639424253,
+        5.439708745222171,
+        -4.495170758968723,
+        0.44141832354010024,
+        0.28052614381714647,
+        0.4107825652599086,
+        0.21058039920454158
+      ],
+      "actual_full12": [
+        27.072791651473434,
+        -11.535915950404139,
+        1.0566583340771198,
+        46.5244777571188,
+        6.9024903108946924,
+        1.7480266087224665,
+        5.586847867084531,
+        -4.1982658731484435,
+        0.44119808077812195,
+        0.15082958340644836,
+        0.36836081743240356,
+        0.3232819139957428
+      ],
+      "FL_error_deg": [
+        0.5789802961009443,
+        0.004423369642903907
+      ],
+      "FL_velocity_deg_s": [
+        5.546605379670595,
+        -0.4936171309865868
+      ],
+      "FL_mapper_pre_compensation_deg": [
+        0.662064979824919,
+        1.25
+      ],
+      "FL_reference": [
+        {
+          "scheduled": true,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 4.1897069677494585,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        },
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 0.6185074192387656,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        }
+      ],
+      "FL_native_target_rad": [
+        0.4839994013309479,
+        -0.20079399645328522
+      ],
+      "FL_native_measured_before_dispatch_rad": [
+        0.47310301661491394,
+        -0.20087067782878876
+      ],
+      "FL_gap_mm": 19.967004952680085,
+      "FL_front_mm": 95.95805747341757,
+      "FL_contact": "AIR",
+      "FL_pair_forces_n": {
+        "ground": 0.0,
+        "obstacle": 0.0
+      },
+      "contacts": {
+        "FL": {
+          "contact": "AIR",
+          "normal_force_n": 0.0
+        },
+        "FR": {
+          "contact": "OBSTACLE",
+          "normal_force_n": 12.211280822754004
+        },
+        "RL": {
+          "contact": "GROUND",
+          "normal_force_n": 14.015436172485478
+        },
+        "RR": {
+          "contact": "GROUND",
+          "normal_force_n": 2.523248195648216
+        }
+      },
+      "body": {
+        "name": "base_link",
+        "position_w_m": [
+          0.3338721692562103,
+          -0.0012687519192695618,
+          0.09305578470230103
+        ],
+        "orientation_wxyz": [
+          0.9997497200965881,
+          -0.0036463565193116665,
+          -0.021926594898104668,
+          -0.002559739863499999
+        ],
+        "linear_velocity_w_m_s": [
+          0.01960086263716221,
+          -0.002556228544563055,
+          0.024840187281370163
+        ],
+        "angular_velocity_w_rad_s": [
+          0.0580296665430069,
+          -0.028540559113025665,
+          -0.008614393882453442
+        ]
+      },
+      "FL_center_w_m": [
+        0.6172702312469482,
+        0.07714030891656876,
+        0.12003988772630692
+      ],
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "verified": true,
+      "mapping_matches": true,
+      "setter_equal": true,
+      "final_slew_difference_deg": [
+        0.0,
+        0.0
+      ],
+      "headroom_clipped_servo_indices": []
+    },
+    {
+      "tick": 3168,
+      "time_s": 26.4,
+      "decision_start_tick": 3160,
+      "FL_base_mean": [
+        0.23516279458999634,
+        0.02489524893462658
+      ],
+      "FL_conditional_mean": [
+        0.236078143119812,
+        0.025079872459173203
+      ],
+      "FL_previous_raw": [
+        0.23617985844612122,
+        0.025100385770201683
+      ],
+      "FL_sigma": [
+        0.075595922768116,
+        0.07613533735275269
+      ],
+      "FL_raw": [
+        0.236078143119812,
+        0.025079872459173203
+      ],
+      "FL_unfiltered_cap_tanh_deg": [
+        4.172183758108343,
+        0.6017907688457479
+      ],
+      "N_full12": [
+        22.8,
+        -13.4,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_N_full12": [
+        23.46206497982492,
+        -12.15,
+        0.0,
+        46.5888134358951,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "controller_bias_full12": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "requested_residual_full12": [
+        4.172183758108343,
+        0.6017907688457473,
+        0.038332396912958346,
+        -0.3092626356199446,
+        -0.869448197456939,
+        2.4948411131352,
+        5.394460231043178,
+        -4.425311707408745,
+        0.1382983833844196,
+        -0.019371141445188905,
+        0.10827987801591324,
+        -0.08747220389161854
+      ],
+      "effective_residual_full12": [
+        4.172183758108343,
+        0.6017907688457473,
+        0.038332396912958346,
+        -0.3092626356199446,
+        -0.869448197456939,
+        2.4948411131352,
+        5.394460231043178,
+        -4.425311707408745,
+        0.1382983833844196,
+        -0.019371141445188905,
+        0.10827987801591324,
+        -0.08747220389161854
+      ],
+      "final_full12": [
+        27.634248737933262,
+        -11.548209231154253,
+        0.038332396912958346,
+        46.27955080027515,
+        6.030551802543061,
+        2.4948411131352,
+        5.394460231043178,
+        -4.425311707408745,
+        0.1382983833844196,
+        -0.019371141445188905,
+        0.10827987801591324,
+        -0.08747220389161854
+      ],
+      "actual_full12": [
+        27.057859150400496,
+        -11.553496857327751,
+        1.0982986890738082,
+        46.65502657781984,
+        6.971662624827173,
+        1.7127951056013657,
+        5.457306926172892,
+        -4.163141625341653,
+        0.1380140632390976,
+        -0.15012720227241516,
+        0.07857669144868851,
+        0.01596062257885933
+      ],
+      "FL_error_deg": [
+        0.5763895875327663,
+        0.0052876261734979835
+      ],
+      "FL_velocity_deg_s": [
+        5.214647086950574,
+        -0.3064303272949661
+      ],
+      "FL_mapper_pre_compensation_deg": [
+        0.662064979824919,
+        1.25
+      ],
+      "FL_reference": [
+        {
+          "scheduled": true,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 4.172183758108343,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        },
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 0.6017907688457473,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        }
+      ],
+      "FL_native_target_rad": [
+        0.48369356989860535,
+        -0.20108576118946075
+      ],
+      "FL_native_measured_before_dispatch_rad": [
+        0.47284552454948425,
+        -0.2011793702840805
+      ],
+      "FL_gap_mm": 19.743285180432196,
+      "FL_front_mm": 100.40235860180502,
+      "FL_contact": "AIR",
+      "FL_pair_forces_n": {
+        "ground": 0.0,
+        "obstacle": 0.0
+      },
+      "contacts": {
+        "FL": {
+          "contact": "AIR",
+          "normal_force_n": 0.0
+        },
+        "FR": {
+          "contact": "OBSTACLE",
+          "normal_force_n": 12.165496958411445
+        },
+        "RL": {
+          "contact": "GROUND",
+          "normal_force_n": 14.593125343322885
+        },
+        "RR": {
+          "contact": "GROUND",
+          "normal_force_n": 1.7759156227111976
+        }
+      },
+      "body": {
+        "name": "base_link",
+        "position_w_m": [
+          0.3383653461933136,
+          -0.0013390779495239258,
+          0.09316359460353851
+        ],
+        "orientation_wxyz": [
+          0.9997618198394775,
+          -0.0033641615882515907,
+          -0.021417981013655663,
+          -0.0025291768833994865
+        ],
+        "linear_velocity_w_m_s": [
+          0.004944728221744299,
+          -0.0015491368249058723,
+          0.02608685940504074
+        ],
+        "angular_velocity_w_rad_s": [
+          0.06578095257282257,
+          -0.03207574412226677,
+          -0.004562514368444681
+        ]
+      },
+      "FL_center_w_m": [
+        0.6217145323753357,
+        0.07707461714744568,
+        0.11985272169113159
+      ],
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "verified": true,
+      "mapping_matches": true,
+      "setter_equal": true,
+      "final_slew_difference_deg": [
+        0.0,
+        0.0
+      ],
+      "headroom_clipped_servo_indices": []
+    },
+    {
+      "tick": 3488,
+      "time_s": 29.066666666666666,
+      "decision_start_tick": 3480,
+      "FL_base_mean": [
+        0.2345237284898758,
+        0.024945160374045372
+      ],
+      "FL_conditional_mean": [
+        0.2347240298986435,
+        0.024825265631079674
+      ],
+      "FL_previous_raw": [
+        0.2347462922334671,
+        0.024811943992972374
+      ],
+      "FL_sigma": [
+        0.07539014518260956,
+        0.0759873017668724
+      ],
+      "FL_raw": [
+        0.2347240298986435,
+        0.024825265631079674
+      ],
+      "FL_unfiltered_cap_tanh_deg": [
+        4.149112004301245,
+        0.5956840080504113
+      ],
+      "N_full12": [
+        22.8,
+        -13.4,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_N_full12": [
+        23.46206497982492,
+        -12.15,
+        0.0,
+        46.5888134358951,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "controller_bias_full12": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "requested_residual_full12": [
+        4.149112004301244,
+        0.5956840080504104,
+        0.05215132219105382,
+        -0.2861764389331043,
+        -0.8629705277797513,
+        2.4660415488190846,
+        5.36103810196503,
+        -4.386938901939416,
+        0.13709739043673655,
+        -0.01904004271141873,
+        0.10665563834408519,
+        -0.08669333143153134
+      ],
+      "effective_residual_full12": [
+        4.149112004301244,
+        0.5956840080504104,
+        0.05215132219105382,
+        -0.2861764389331043,
+        -0.8629705277797513,
+        2.4660415488190846,
+        5.36103810196503,
+        -4.386938901939416,
+        0.13709739043673655,
+        -0.01904004271141873,
+        0.10665563834408519,
+        -0.08669333143153134
+      ],
+      "final_full12": [
+        27.611176984126164,
+        -11.55431599194959,
+        0.05215132219105382,
+        46.30263699696199,
+        6.037029472220249,
+        2.4660415488190846,
+        5.36103810196503,
+        -4.386938901939416,
+        0.13709739043673655,
+        -0.01904004271141873,
+        0.10665563834408519,
+        -0.08669333143153134
+      ],
+      "actual_full12": [
+        27.032490120275774,
+        -11.560067499309303,
+        1.1327933855381942,
+        46.703889751142114,
+        6.9986995017698455,
+        1.7010862403732598,
+        5.4386652054938125,
+        -4.113784970851849,
+        0.1367621272802353,
+        -0.15761016309261322,
+        0.08090414851903915,
+        0.008371556177735329
+      ],
+      "FL_error_deg": [
+        0.5786868638503897,
+        0.005751507359713415
+      ],
+      "FL_velocity_deg_s": [
+        5.223742337604092,
+        -0.33156745115302283
+      ],
+      "FL_mapper_pre_compensation_deg": [
+        0.662064979824919,
+        1.25
+      ],
+      "FL_reference": [
+        {
+          "scheduled": true,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 4.149112004301244,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        },
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 0.5956840080504104,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        }
+      ],
+      "FL_native_target_rad": [
+        0.4832908809185028,
+        -0.20119233429431915
+      ],
+      "FL_native_measured_before_dispatch_rad": [
+        0.47239941358566284,
+        -0.2012946456670761
+      ],
+      "FL_gap_mm": 19.24618909947677,
+      "FL_front_mm": 100.40051085781698,
+      "FL_contact": "AIR",
+      "FL_pair_forces_n": {
+        "ground": 0.0,
+        "obstacle": 0.0
+      },
+      "contacts": {
+        "FL": {
+          "contact": "AIR",
+          "normal_force_n": 0.0
+        },
+        "FR": {
+          "contact": "OBSTACLE",
+          "normal_force_n": 12.173906284734528
+        },
+        "RL": {
+          "contact": "GROUND",
+          "normal_force_n": 14.527555465698374
+        },
+        "RR": {
+          "contact": "GROUND",
+          "normal_force_n": 1.8583707809448409
+        }
+      },
+      "body": {
+        "name": "base_link",
+        "position_w_m": [
+          0.3384028971195221,
+          -0.0013045072555541992,
+          0.09295990318059921
+        ],
+        "orientation_wxyz": [
+          0.9997668862342834,
+          -0.0036210811231285334,
+          -0.02113877609372139,
+          -0.002542054047808051
+        ],
+        "linear_velocity_w_m_s": [
+          0.005362184252589941,
+          -0.0015088832005858421,
+          0.02622266486287117
+        ],
+        "angular_velocity_w_rad_s": [
+          0.06498587131500244,
+          -0.03315924108028412,
+          -0.0046327197924256325
+        ]
+      },
+      "FL_center_w_m": [
+        0.6217126846313477,
+        0.07711165398359299,
+        0.11937516182661057
+      ],
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "verified": true,
+      "mapping_matches": true,
+      "setter_equal": true,
+      "final_slew_difference_deg": [
+        0.0,
+        0.0
+      ],
+      "headroom_clipped_servo_indices": []
+    },
+    {
+      "tick": 4608,
+      "time_s": 38.4,
+      "decision_start_tick": 4600,
+      "FL_base_mean": [
+        0.2357918620109558,
+        0.024245375767350197
+      ],
+      "FL_conditional_mean": [
+        0.23518556356430054,
+        0.024609846994280815
+      ],
+      "FL_previous_raw": [
+        0.23511821031570435,
+        0.024650344625115395
+      ],
+      "FL_sigma": [
+        0.07606872916221619,
+        0.07636090368032455
+      ],
+      "FL_raw": [
+        0.23518556356430054,
+        0.024609846994280815
+      ],
+      "FL_unfiltered_cap_tanh_deg": [
+        4.156977363943584,
+        0.5905171181807107
+      ],
+      "N_full12": [
+        22.8,
+        -13.4,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_N_full12": [
+        23.46206497982492,
+        -12.15,
+        0.0,
+        46.5888134358951,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "controller_bias_full12": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "requested_residual_full12": [
+        4.156977363943586,
+        0.5905171181807098,
+        0.0538243984285228,
+        -0.2894418493127162,
+        -0.8658708710296832,
+        2.466049181226951,
+        5.36591411431983,
+        -4.389839093836549,
+        0.13727748840943627,
+        -0.0192694236633263,
+        0.10696872696956379,
+        -0.08664041256235738
+      ],
+      "effective_residual_full12": [
+        4.156977363943586,
+        0.5905171181807098,
+        0.0538243984285228,
+        -0.2894418493127162,
+        -0.8658708710296832,
+        2.466049181226951,
+        5.36591411431983,
+        -4.389839093836549,
+        0.13727748840943627,
+        -0.0192694236633263,
+        0.10696872696956379,
+        -0.08664041256235738
+      ],
+      "final_full12": [
+        27.619042343768506,
+        -11.55948288181929,
+        0.0538243984285228,
+        46.29937158658238,
+        6.034129128970317,
+        2.466049181226951,
+        5.36591411431983,
+        -4.389839093836549,
+        0.13727748840943627,
+        -0.0192694236633263,
+        0.10696872696956379,
+        -0.08664041256235738
+      ],
+      "actual_full12": [
+        27.038749988650093,
+        -11.563898381660033,
+        1.1354769028300686,
+        46.70292327937455,
+        6.996574459164326,
+        1.7000553086954109,
+        5.434397617923024,
+        -4.113271852890451,
+        0.13698363304138184,
+        -0.1515013575553894,
+        0.08763700723648071,
+        0.06705494225025177
+      ],
+      "FL_error_deg": [
+        0.5802923551184129,
+        0.004415499840742854
+      ],
+      "FL_velocity_deg_s": [
+        5.143112808225737,
+        -0.32839712280022626
+      ],
+      "FL_mapper_pre_compensation_deg": [
+        0.662064979824919,
+        1.25
+      ],
+      "FL_reference": [
+        {
+          "scheduled": true,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 4.156977363943586,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        },
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 0.5905171181807098,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        }
+      ],
+      "FL_native_target_rad": [
+        0.4834281802177429,
+        -0.20128251612186432
+      ],
+      "FL_native_measured_before_dispatch_rad": [
+        0.4725063443183899,
+        -0.20135930180549622
+      ],
+      "FL_gap_mm": 19.330873675337216,
+      "FL_front_mm": 100.35312516522055,
+      "FL_contact": "AIR",
+      "FL_pair_forces_n": {
+        "ground": 0.0,
+        "obstacle": 0.0
+      },
+      "contacts": {
+        "FL": {
+          "contact": "AIR",
+          "normal_force_n": 0.0
+        },
+        "FR": {
+          "contact": "OBSTACLE",
+          "normal_force_n": 12.189086050323613
+        },
+        "RL": {
+          "contact": "GROUND",
+          "normal_force_n": 14.591278076172006
+        },
+        "RR": {
+          "contact": "GROUND",
+          "normal_force_n": 1.87433838844301
+        }
+      },
+      "body": {
+        "name": "base_link",
+        "position_w_m": [
+          0.33836010098457336,
+          -0.0013186484575271606,
+          0.09297773241996765
+        ],
+        "orientation_wxyz": [
+          0.9997661113739014,
+          -0.0035200631245970726,
+          -0.021190373227000237,
+          -0.00253666820935905
+        ],
+        "linear_velocity_w_m_s": [
+          0.005953931715339422,
+          -0.0013918629847466946,
+          0.026850678026676178
+        ],
+        "angular_velocity_w_rad_s": [
+          0.06745236366987228,
+          -0.032900601625442505,
+          -0.005238629877567291
+        ]
+      },
+      "FL_center_w_m": [
+        0.6216652989387512,
+        0.07709664851427078,
+        0.11945393681526184
+      ],
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "verified": true,
+      "mapping_matches": true,
+      "setter_equal": true,
+      "final_slew_difference_deg": [
+        0.0,
+        0.0
+      ],
+      "headroom_clipped_servo_indices": []
+    },
+    {
+      "tick": 5200,
+      "time_s": 43.333333333333336,
+      "decision_start_tick": 5192,
+      "FL_base_mean": [
+        0.23686639964580536,
+        0.023663688451051712
+      ],
+      "FL_conditional_mean": [
+        0.23557564616203308,
+        0.02437633089721203
+      ],
+      "FL_previous_raw": [
+        0.2354322373867035,
+        0.024455513805150986
+      ],
+      "FL_sigma": [
+        0.07663917541503906,
+        0.07664869725704193
+      ],
+      "FL_raw": [
+        0.23557564616203308,
+        0.02437633089721203
+      ],
+      "FL_unfiltered_cap_tanh_deg": [
+        4.163623762332074,
+        0.5849160926675507
+      ],
+      "N_full12": [
+        22.8,
+        -13.4,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_N_full12": [
+        23.46206497982492,
+        -12.15,
+        0.0,
+        46.5888134358951,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "controller_bias_full12": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "requested_residual_full12": [
+        4.163623762332072,
+        0.5849160926675498,
+        0.0546731296614697,
+        -0.29292548124294626,
+        -0.8708193372922386,
+        2.4662120934414156,
+        5.371644417669603,
+        -4.394047926984972,
+        0.13749627520393123,
+        -0.019476374803021803,
+        0.1073141479628511,
+        -0.08664935065162972
+      ],
+      "effective_residual_full12": [
+        4.163623762332072,
+        0.5849160926675498,
+        0.0546731296614697,
+        -0.29292548124294626,
+        -0.8708193372922386,
+        2.4662120934414156,
+        5.371644417669603,
+        -4.394047926984972,
+        0.13749627520393123,
+        -0.019476374803021803,
+        0.1073141479628511,
+        -0.08664935065162972
+      ],
+      "final_full12": [
+        27.625688742156992,
+        -11.56508390733245,
+        0.0546731296614697,
+        46.29588795465215,
+        6.029180662707762,
+        2.4662120934414156,
+        5.371644417669603,
+        -4.394047926984972,
+        0.13749627520393123,
+        -0.019476374803021803,
+        0.1073141479628511,
+        -0.08664935065162972
+      ],
+      "actual_full12": [
+        27.04370870598752,
+        -11.56835678764076,
+        1.1410644244579622,
+        46.7027081284157,
+        6.99686730352499,
+        1.701501174365338,
+        5.4530760508688925,
+        -4.112728425964612,
+        0.13716788589954376,
+        -0.15966524183750153,
+        0.08002574741840363,
+        -0.005103633739054203
+      ],
+      "FL_error_deg": [
+        0.5819800361694725,
+        0.0032728803083088565
+      ],
+      "FL_velocity_deg_s": [
+        5.198265731999944,
+        -0.34109244343529654
+      ],
+      "FL_mapper_pre_compensation_deg": [
+        0.662064979824919,
+        1.25
+      ],
+      "FL_reference": [
+        {
+          "scheduled": true,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 4.163623762332072,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        },
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 0.5849160926675498,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        }
+      ],
+      "FL_native_target_rad": [
+        0.48354417085647583,
+        -0.20138028264045715
+      ],
+      "FL_native_measured_before_dispatch_rad": [
+        0.4725904166698456,
+        -0.20143553614616394
+      ],
+      "FL_gap_mm": 20.359646967302595,
+      "FL_front_mm": 100.38274867367392,
+      "FL_contact": "AIR",
+      "FL_pair_forces_n": {
+        "ground": 0.0,
+        "obstacle": 0.0
+      },
+      "contacts": {
+        "FL": {
+          "contact": "AIR",
+          "normal_force_n": 0.0
+        },
+        "FR": {
+          "contact": "OBSTACLE",
+          "normal_force_n": 12.183770857796018
+        },
+        "RL": {
+          "contact": "GROUND",
+          "normal_force_n": 14.522337913513315
+        },
+        "RR": {
+          "contact": "GROUND",
+          "normal_force_n": 1.8237537145614788
+        }
+      },
+      "body": {
+        "name": "base_link",
+        "position_w_m": [
+          0.33845216035842896,
+          -0.00150299072265625,
+          0.09325530380010605
+        ],
+        "orientation_wxyz": [
+          0.9997527003288269,
+          -0.00218981527723372,
+          -0.021991057321429253,
+          -0.002471816958859563
+        ],
+        "linear_velocity_w_m_s": [
+          0.005256430711597204,
+          -0.0016342452727258205,
+          0.026179105043411255
+        ],
+        "angular_velocity_w_rad_s": [
+          0.0656728446483612,
+          -0.034131042659282684,
+          -0.004556920845061541
+        ]
+      },
+      "FL_center_w_m": [
+        0.6216949224472046,
+        0.0768955871462822,
+        0.12040676176548004
+      ],
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "verified": true,
+      "mapping_matches": true,
+      "setter_equal": true,
+      "final_slew_difference_deg": [
+        0.0,
+        0.0
+      ],
+      "headroom_clipped_servo_indices": []
+    },
+    {
+      "tick": 6032,
+      "time_s": 50.266666666666666,
+      "decision_start_tick": 6024,
+      "FL_base_mean": [
+        0.23498381674289703,
+        0.024984313175082207
+      ],
+      "FL_conditional_mean": [
+        0.23643803596496582,
+        0.02406422607600689
+      ],
+      "FL_previous_raw": [
+        0.2365996241569519,
+        0.02396199479699135
+      ],
+      "FL_sigma": [
+        0.07547567784786224,
+        0.07596451789140701
+      ],
+      "FL_raw": [
+        0.23643803596496582,
+        0.02406422607600689
+      ],
+      "FL_unfiltered_cap_tanh_deg": [
+        4.178313279018122,
+        0.5774299694018914
+      ],
+      "N_full12": [
+        22.8,
+        -13.4,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_N_full12": [
+        23.46206497982492,
+        -12.15,
+        0.0,
+        46.5888134358951,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "controller_bias_full12": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "requested_residual_full12": [
+        4.178313279018123,
+        0.5774299694018907,
+        0.05357534077437893,
+        -0.3020245723359878,
+        -0.8775625537211313,
+        2.4710171604971634,
+        5.38550254432098,
+        -4.405348328167057,
+        0.13797568786094366,
+        -0.01984630302820489,
+        0.1080997036835706,
+        -0.0867642379303452
+      ],
+      "effective_residual_full12": [
+        4.178313279018123,
+        0.5774299694018907,
+        0.05357534077437893,
+        -0.3020245723359878,
+        -0.8775625537211313,
+        2.4710171604971634,
+        5.38550254432098,
+        -4.405348328167057,
+        0.13797568786094366,
+        -0.01984630302820489,
+        0.1080997036835706,
+        -0.0867642379303452
+      ],
+      "final_full12": [
+        27.640378258843043,
+        -11.57257003059811,
+        0.05357534077437893,
+        46.28678886355911,
+        6.022437446278869,
+        2.4710171604971634,
+        5.38550254432098,
+        -4.405348328167057,
+        0.13797568786094366,
+        -0.01984630302820489,
+        0.1080997036835706,
+        -0.0867642379303452
+      ],
+      "actual_full12": [
+        27.06150476386999,
+        -11.578433877987468,
+        1.1343063791610577,
+        46.68596733476,
+        6.98124111136447,
+        1.7020977487006563,
+        5.466270268798064,
+        -4.1235512875913205,
+        0.1376732736825943,
+        -0.15708333253860474,
+        0.0784289538860321,
+        0.003178536891937256
+      ],
+      "FL_error_deg": [
+        0.5788734949730525,
+        0.005863847389358412
+      ],
+      "FL_velocity_deg_s": [
+        5.249376037559149,
+        -0.30483731907319284
+      ],
+      "FL_mapper_pre_compensation_deg": [
+        0.662064979824919,
+        1.25
+      ],
+      "FL_reference": [
+        {
+          "scheduled": true,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 4.178313279018123,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        },
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 0.5774299694018907,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        }
+      ],
+      "FL_native_target_rad": [
+        0.4838005602359772,
+        -0.2015109360218048
+      ],
+      "FL_native_measured_before_dispatch_rad": [
+        0.47290512919425964,
+        -0.20161546766757965
+      ],
+      "FL_gap_mm": 19.81843938110979,
+      "FL_front_mm": 100.35145623516684,
+      "FL_contact": "AIR",
+      "FL_pair_forces_n": {
+        "ground": 0.0,
+        "obstacle": 0.0
+      },
+      "contacts": {
+        "FL": {
+          "contact": "AIR",
+          "normal_force_n": 0.0
+        },
+        "FR": {
+          "contact": "OBSTACLE",
+          "normal_force_n": 12.194620829751253
+        },
+        "RL": {
+          "contact": "GROUND",
+          "normal_force_n": 14.602586746215952
+        },
+        "RR": {
+          "contact": "GROUND",
+          "normal_force_n": 1.8320541381836102
+        }
+      },
+      "body": {
+        "name": "base_link",
+        "position_w_m": [
+          0.33838459849357605,
+          -0.0013899058103561401,
+          0.09312942624092102
+        ],
+        "orientation_wxyz": [
+          0.999761164188385,
+          -0.003002631012350321,
+          -0.021504459902644157,
+          -0.002511566272005439
+        ],
+        "linear_velocity_w_m_s": [
+          0.0048272209241986275,
+          -0.0016043083742260933,
+          0.02628970518708229
+        ],
+        "angular_velocity_w_rad_s": [
+          0.06658844649791718,
+          -0.031954631209373474,
+          -0.00466917222365737
+        ]
+      },
+      "FL_center_w_m": [
+        0.6216636300086975,
+        0.0770193338394165,
+        0.11992210894823074
+      ],
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "verified": true,
+      "mapping_matches": true,
+      "setter_equal": true,
+      "final_slew_difference_deg": [
+        0.0,
+        0.0
+      ],
+      "headroom_clipped_servo_indices": []
+    },
+    {
+      "tick": 6036,
+      "time_s": 50.3,
+      "decision_start_tick": 6032,
+      "FL_base_mean": [
+        0.2352188378572464,
+        0.02480047382414341
+      ],
+      "FL_conditional_mean": [
+        0.23631611466407776,
+        0.024137848988175392
+      ],
+      "FL_previous_raw": [
+        0.23643803596496582,
+        0.02406422607600689
+      ],
+      "FL_sigma": [
+        0.07561741024255753,
+        0.07603040337562561
+      ],
+      "FL_raw": [
+        0.23631611466407776,
+        0.024137848988175392
+      ],
+      "FL_unfiltered_cap_tanh_deg": [
+        4.1762368890073125,
+        0.5791958933399203
+      ],
+      "N_full12": [
+        22.8,
+        -13.4,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_N_full12": [
+        22.21206497982492,
+        -12.15,
+        0.0,
+        46.5888134358951,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "controller_bias_full12": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "requested_residual_full12": [
+        4.176236889007313,
+        0.5791958933399197,
+        0.053527811613136016,
+        -0.30062054551100914,
+        -0.8759176208401849,
+        2.470305555270472,
+        5.383068698743028,
+        -4.403268996436279,
+        0.137867341422879,
+        -0.01979665593743428,
+        0.10796798320357665,
+        -0.08672399660742298
+      ],
+      "effective_residual_full12": [
+        4.176236889007313,
+        0.5791958933399197,
+        0.053527811613136016,
+        -0.30062054551100914,
+        -0.8759176208401849,
+        2.470305555270472,
+        5.383068698743028,
+        -4.403268996436279,
+        0.137867341422879,
+        -0.01979665593743428,
+        0.10796798320357665,
+        -0.08672399660742298
+      ],
+      "final_full12": [
+        26.388301868832233,
+        -11.57080410666008,
+        0.053527811613136016,
+        46.28819289038409,
+        6.0240823791598155,
+        2.470305555270472,
+        5.383068698743028,
+        -4.403268996436279,
+        0.137867341422879,
+        -0.01979665593743428,
+        0.10796798320357665,
+        -0.08672399660742298
+      ],
+      "actual_full12": [
+        26.857990739812998,
+        -11.577368368476945,
+        1.1279265555894427,
+        46.68660254235281,
+        6.977749604038125,
+        1.7074921040410855,
+        5.475270750576849,
+        -4.123664839486271,
+        0.13756594061851501,
+        -0.1531209945678711,
+        0.08230922371149063,
+        0.03869660943746567
+      ],
+      "FL_error_deg": [
+        -0.4696888709807645,
+        0.006564261816864203
+      ],
+      "FL_velocity_deg_s": [
+        -5.489364125557657,
+        -0.28890192745059773
+      ],
+      "FL_mapper_pre_compensation_deg": [
+        -0.587935020175081,
+        1.25
+      ],
+      "FL_reference": [
+        {
+          "scheduled": true,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 4.176236889007313,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        },
+        {
+          "scheduled": false,
+          "feedback_eligible": false,
+          "reference_used": false,
+          "previous_requested_deg": 0.5791958933399197,
+          "active_reference_deg": 0.0,
+          "desired_original_c0_deg": -10.0,
+          "bounded_desired_c1_deg": -10.0
+        }
+      ],
+      "FL_native_target_rad": [
+        0.4619477093219757,
+        -0.20148010551929474
+      ],
+      "FL_native_measured_before_dispatch_rad": [
+        0.4709414541721344,
+        -0.2015964388847351
+      ],
+      "FL_gap_mm": 19.282771398890812,
+      "FL_front_mm": 100.03543240856771,
+      "FL_contact": "AIR",
+      "FL_pair_forces_n": {
+        "ground": 0.0,
+        "obstacle": 0.0
+      },
+      "contacts": {
+        "FL": {
+          "contact": "AIR",
+          "normal_force_n": 0.0
+        },
+        "FR": {
+          "contact": "OBSTACLE",
+          "normal_force_n": 12.25910126836283
+        },
+        "RL": {
+          "contact": "GROUND",
+          "normal_force_n": 14.593852043151987
+        },
+        "RR": {
+          "contact": "GROUND",
+          "normal_force_n": 1.8684185743332078
+        }
+      },
+      "body": {
+        "name": "base_link",
+        "position_w_m": [
+          0.33838653564453125,
+          -0.0013936161994934082,
+          0.09315237402915955
+        ],
+        "orientation_wxyz": [
+          0.9997605681419373,
+          -0.002976086689159274,
+          -0.021533550694584846,
+          -0.0025100635830312967
+        ],
+        "linear_velocity_w_m_s": [
+          0.005137925501912832,
+          -0.0012876917608082294,
+          0.025978565216064453
+        ],
+        "angular_velocity_w_rad_s": [
+          0.06619497388601303,
+          -0.03150738403201103,
+          -0.005257522687315941
+        ]
+      },
+      "FL_center_w_m": [
+        0.6213476061820984,
+        0.07701376080513,
+        0.11939079314470291
+      ],
+      "mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "verified": true,
+      "mapping_matches": true,
+      "setter_equal": true,
+      "final_slew_difference_deg": [
+        0.0,
+        0.0
+      ],
+      "headroom_clipped_servo_indices": []
+    }
+  ],
+  "prefix_offset_candidates": [
+    {
+      "offset_decisions": 150,
+      "tick": 2768,
+      "time_s": 23.066666666666666,
+      "evaluated_decision": {
+        "start_tick": 2760,
+        "end_tick": 2768,
+        "phase": "P05",
+        "age_s": 10.0,
+        "progress": 0.85,
+        "current_FL": {
+          "front_distance_m": 0.06499201400112753,
+          "clearance_m": 0.018245510343302754,
+          "top_geometry": true,
+          "top_contact": false,
+          "air": true,
+          "crossing_geometry_pending": false,
+          "recent_joint_motion_deg": 30.683023166921913,
+          "recent_clearance_gain_m": 0.002098114633181075,
+          "recent_whole_body_joint_motion_deg": 31.856973776627168,
+          "whole_body_actuation_evidence": true,
+          "initial_clearance": true,
+          "ground_contact": false,
+          "obstacle_pair_active": false,
+          "consecutive_air_samples": 1184,
+          "consecutive_top_samples": 0,
+          "within_top_xy": true,
+          "within_lateral_span": true,
+          "support": false,
+          "contact_surface": "NONE",
+          "top_surface_contact": false,
+          "contact_reaction": false,
+          "contact_reaction_force_n": 0,
+          "bearing_force_n": 0.0,
+          "bearing_verified": true,
+          "active_attempt": true,
+          "crossing_evidence_status": "VERIFIED",
+          "top_xy_outside_distance_m": 0.0,
+          "load_fraction": 0.0,
+          "load_fraction_valid": true,
+          "soft_air_actuation_earned": true,
+          "soft_air_earned_tick": 1597,
+          "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+        },
+        "event_ticks": {
+          "active_lift": {
+            "FR": 25,
+            "FL": 1606
+          },
+          "front_edge_crossed": {
+            "FR": 1543,
+            "FL": 2586
+          },
+          "placed": {
+            "FR": 1556
+          }
+        },
+        "task_potential": 0.4133907752090349,
+        "stall_diagnostic": false,
+        "local_timeout": {
+          "nominal_limit_s": 30.0,
+          "current_progress_allowance_s": 7.225,
+          "fixed_post_window_allowance_s": 0.0,
+          "effective_limit_s": 37.225,
+          "nominal_limit_exceeded": false,
+          "classification": "finite_task_terminal_not_external_truncation",
+          "timer_inputs_observable_in_existing372": true
+        },
+        "base_mean": [
+          0.23692592978477478,
+          0.02709299884736538,
+          0.00036248465767130256,
+          -0.013471253216266632,
+          -0.06971272081136703,
+          0.14273019134998322,
+          0.48704594373703003,
+          -0.2535901367664337,
+          0.14129754900932312,
+          -0.030874567106366158,
+          0.10978561639785767,
+          -0.1498824506998062
+        ],
+        "conditional_mean": [
+          0.23498313128948212,
+          0.026164423674345016,
+          0.0031177178025245667,
+          -0.013465342111885548,
+          -0.0753764659166336,
+          0.13991710543632507,
+          0.48669782280921936,
+          -0.2538149356842041,
+          0.14174559712409973,
+          -0.029240122064948082,
+          0.1065330058336258,
+          -0.15037697553634644
+        ],
+        "previous_raw": [
+          0.23476727306842804,
+          0.026061249896883965,
+          0.0034238549415022135,
+          -0.013464685529470444,
+          -0.07600577175617218,
+          0.13960455358028412,
+          0.4866591691970825,
+          -0.253839910030365,
+          0.14179538190364838,
+          -0.029058517888188362,
+          0.1061716079711914,
+          -0.15043193101882935
+        ],
+        "sigma": [
+          0.0761522576212883,
+          0.07732271403074265,
+          0.023722121492028236,
+          0.08579959720373154,
+          0.04194258153438568,
+          0.022398263216018677,
+          0.09100684523582458,
+          0.01988876797258854,
+          0.06277135759592056,
+          0.023745354264974594,
+          0.045427609235048294,
+          0.027069594711065292
+        ],
+        "raw": [
+          0.23498313128948212,
+          0.026164423674345016,
+          0.0031177178025245667,
+          -0.013465342111885548,
+          -0.0753764659166336,
+          0.13991710543632507,
+          0.48669782280921936,
+          -0.2538149356842041,
+          0.14174559712409973,
+          -0.029240122064948082,
+          0.1065330058336258,
+          -0.15037697553634644
+        ],
+        "selected_equals_conditional": true,
+        "support": {
+          "FL": {
+            "support": false,
+            "air": true,
+            "bearing_force_n": 0.0,
+            "load_fraction": 0.0,
+            "contact_surface": "NONE"
+          },
+          "FR": {
+            "support": true,
+            "air": false,
+            "bearing_force_n": 12.322933197021484,
+            "load_fraction": 0.4307865227612429,
+            "contact_surface": "TOP"
+          },
+          "RL": {
+            "support": true,
+            "air": false,
+            "bearing_force_n": 14.537225723266602,
+            "load_fraction": 0.5081940167812463,
+            "contact_surface": "NONE"
+          },
+          "RR": {
+            "support": true,
+            "air": false,
+            "bearing_force_n": 1.74550199508667,
+            "load_fraction": 0.06101946045751072,
+            "contact_surface": "NONE"
+          }
+        }
+      },
+      "same_tick": {
+        "tick": 2768,
+        "time_s": 23.066666666666666,
+        "decision_start_tick": 2760,
+        "FL_base_mean": [
+          0.23692592978477478,
+          0.02709299884736538
+        ],
+        "FL_conditional_mean": [
+          0.23498313128948212,
+          0.026164423674345016
+        ],
+        "FL_previous_raw": [
+          0.23476727306842804,
+          0.026061249896883965
+        ],
+        "FL_sigma": [
+          0.0761522576212883,
+          0.07732271403074265
+        ],
+        "FL_raw": [
+          0.23498313128948212,
+          0.026164423674345016
+        ],
+        "FL_unfiltered_cap_tanh_deg": [
+          4.153527761939996,
+          0.6278029148961342
+        ],
+        "N_full12": [
+          22.8,
+          -13.4,
+          0.0,
+          45.9,
+          6.9,
+          0.0,
+          0.0,
+          0.0,
+          0.3,
+          0.3,
+          0.3,
+          0.3
+        ],
+        "mapped_N_full12": [
+          24.05,
+          -12.15,
+          0.0,
+          46.5888134358951,
+          6.9,
+          0.0,
+          0.0,
+          0.0,
+          0.3,
+          0.3,
+          0.3,
+          0.3
+        ],
+        "controller_bias_full12": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "requested_residual_full12": [
+          4.153527761939994,
+          0.6278029148961348,
+          0.05611873861777353,
+          -0.32314868030647403,
+          -0.9028084359798214,
+          2.502200810064248,
+          5.4190993044686016,
+          -4.473025086459841,
+          0.1408038561757166,
+          -0.01753907497671431,
+          0.10613180273054951,
+          -0.08955217927832865
+        ],
+        "effective_residual_full12": [
+          4.153527761939994,
+          0.6278029148961348,
+          0.05611873861777353,
+          -0.32314868030647403,
+          -0.9028084359798214,
+          2.502200810064248,
+          5.4190993044686016,
+          -4.473025086459841,
+          0.1408038561757166,
+          -0.01753907497671431,
+          0.10613180273054951,
+          -0.08955217927832865
+        ],
+        "final_full12": [
+          28.203527761939995,
+          -11.522197085103866,
+          0.05611873861777353,
+          46.265664755588624,
+          5.997191564020179,
+          2.502200810064248,
+          5.4190993044686016,
+          -4.473025086459841,
+          0.4408038561757166,
+          0.2824609250232857,
+          0.4061318027305495,
+          0.21044782072167134
+        ],
+        "actual_full12": [
+          26.798704697817286,
+          -11.552301574222998,
+          1.0994934385700317,
+          46.53297109735171,
+          6.97855343192607,
+          1.72553415545538,
+          5.390957614801742,
+          -4.229005993281732,
+          0.4405331015586853,
+          0.20007434487342834,
+          0.3941904604434967,
+          0.27408358454704285
+        ],
+        "FL_error_deg": [
+          1.4048230641227093,
+          0.030104489119132438
+        ],
+        "FL_velocity_deg_s": [
+          13.382168513431603,
+          0.031089980565266673
+        ],
+        "FL_mapper_pre_compensation_deg": [
+          1.25,
+          1.25
+        ],
+        "FL_reference": [
+          {
+            "scheduled": true,
+            "feedback_eligible": false,
+            "reference_used": false,
+            "previous_requested_deg": 4.153527761939994,
+            "active_reference_deg": 0.0,
+            "desired_original_c0_deg": -10.0,
+            "bounded_desired_c1_deg": -10.0
+          },
+          {
+            "scheduled": false,
+            "feedback_eligible": false,
+            "reference_used": false,
+            "previous_requested_deg": 0.6278029148961348,
+            "active_reference_deg": 0.0,
+            "desired_original_c0_deg": -10.0,
+            "bounded_desired_c1_deg": -10.0
+          }
+        ],
+        "FL_native_target_rad": [
+          0.4936293661594391,
+          -0.2006317526102066
+        ],
+        "FL_native_measured_before_dispatch_rad": [
+          0.46706920862197876,
+          -0.20119597017765045
+        ],
+        "FL_gap_mm": 18.245510343302755,
+        "FL_front_mm": 64.99201400112753,
+        "FL_contact": "AIR",
+        "FL_pair_forces_n": {
+          "ground": 0.0,
+          "obstacle": 0.0
+        },
+        "contacts": {
+          "FL": {
+            "contact": "AIR",
+            "normal_force_n": 0.0
+          },
+          "FR": {
+            "contact": "OBSTACLE",
+            "normal_force_n": 12.322933197022245
+          },
+          "RL": {
+            "contact": "GROUND",
+            "normal_force_n": 14.537225723266733
+          },
+          "RR": {
+            "contact": "GROUND",
+            "normal_force_n": 1.7455019950866857
+          }
+        },
+        "body": {
+          "name": "base_link",
+          "position_w_m": [
+            0.3033222556114197,
+            -0.0009696409106254578,
+            0.09251813590526581
+          ],
+          "orientation_wxyz": [
+            0.9997545480728149,
+            -0.004602908156812191,
+            -0.021501503884792328,
+            -0.0027603269554674625
+          ],
+          "linear_velocity_w_m_s": [
+            0.023529481142759323,
+            -0.0008431775495409966,
+            0.02553914487361908
+          ],
+          "angular_velocity_w_rad_s": [
+            0.0557212196290493,
+            -0.03455901890993118,
+            -0.004185699857771397
+          ]
+        },
+        "FL_center_w_m": [
+          0.5863041877746582,
+          0.07735956460237503,
+          0.11832766234874725
+        ],
+        "mask": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "verified": true,
+        "mapping_matches": true,
+        "setter_equal": true,
+        "final_slew_difference_deg": [
+          0.0,
+          0.0
+        ],
+        "headroom_clipped_servo_indices": []
+      },
+      "claim": "real deterministic full-eval state only; not seed1001 prefix receipt or reachability guarantee"
+    },
+    {
+      "offset_decisions": 200,
+      "tick": 3168,
+      "time_s": 26.4,
+      "evaluated_decision": {
+        "start_tick": 3160,
+        "end_tick": 3168,
+        "phase": "P05",
+        "age_s": 13.333333333333332,
+        "progress": 0.85,
+        "current_FL": {
+          "front_distance_m": 0.10040235860180502,
+          "clearance_m": 0.019743285180432196,
+          "top_geometry": true,
+          "top_contact": false,
+          "air": true,
+          "crossing_geometry_pending": false,
+          "recent_joint_motion_deg": 3.062762691765851,
+          "recent_clearance_gain_m": 0.0005151839646037187,
+          "recent_whole_body_joint_motion_deg": 3.8706118535855523,
+          "whole_body_actuation_evidence": true,
+          "initial_clearance": true,
+          "ground_contact": false,
+          "obstacle_pair_active": false,
+          "consecutive_air_samples": 1584,
+          "consecutive_top_samples": 0,
+          "within_top_xy": true,
+          "within_lateral_span": true,
+          "support": false,
+          "contact_surface": "NONE",
+          "top_surface_contact": false,
+          "contact_reaction": false,
+          "contact_reaction_force_n": 0,
+          "bearing_force_n": 0.0,
+          "bearing_verified": true,
+          "active_attempt": true,
+          "crossing_evidence_status": "VERIFIED",
+          "top_xy_outside_distance_m": 0.0,
+          "load_fraction": 0.0,
+          "load_fraction_valid": true,
+          "soft_air_actuation_earned": true,
+          "soft_air_earned_tick": 1597,
+          "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+        },
+        "event_ticks": {
+          "active_lift": {
+            "FR": 25,
+            "FL": 1606
+          },
+          "front_edge_crossed": {
+            "FR": 1543,
+            "FL": 2586
+          },
+          "placed": {
+            "FR": 1556
+          }
+        },
+        "task_potential": 0.4037447527283517,
+        "stall_diagnostic": false,
+        "local_timeout": {
+          "nominal_limit_s": 30.0,
+          "current_progress_allowance_s": 7.225,
+          "fixed_post_window_allowance_s": 0.0,
+          "effective_limit_s": 37.225,
+          "nominal_limit_exceeded": false,
+          "classification": "finite_task_terminal_not_external_truncation",
+          "timer_inputs_observable_in_existing372": true
+        },
+        "base_mean": [
+          0.23516279458999634,
+          0.02489524893462658,
+          0.002889867639169097,
+          -0.011854964308440685,
+          -0.07217008620500565,
+          0.13800038397312164,
+          0.4814099669456482,
+          -0.2490495890378952,
+          0.1380481719970703,
+          -0.031725428998470306,
+          0.10715351998806,
+          -0.1456650197505951
+        ],
+        "conditional_mean": [
+          0.236078143119812,
+          0.025079872459173203,
+          0.0021295808255672455,
+          -0.012886656448245049,
+          -0.0725812017917633,
+          0.1395002007484436,
+          0.48412156105041504,
+          -0.25099170207977295,
+          0.13919036090373993,
+          -0.03229646012187004,
+          0.10870605707168579,
+          -0.14683322608470917
+        ],
+        "previous_raw": [
+          0.23617985844612122,
+          0.025100385770201683,
+          0.0020451045129448175,
+          -0.01300128921866417,
+          -0.07262688130140305,
+          0.1396668553352356,
+          0.48442286252975464,
+          -0.25120750069618225,
+          0.13931727409362793,
+          -0.032359909266233444,
+          0.10887856781482697,
+          -0.14696304500102997
+        ],
+        "sigma": [
+          0.075595922768116,
+          0.07613533735275269,
+          0.023511070758104324,
+          0.0844167172908783,
+          0.0420929379761219,
+          0.022712847217917442,
+          0.08959019184112549,
+          0.020468398928642273,
+          0.06174876540899277,
+          0.024374891072511673,
+          0.04575030505657196,
+          0.027536269277334213
+        ],
+        "raw": [
+          0.236078143119812,
+          0.025079872459173203,
+          0.0021295808255672455,
+          -0.012886656448245049,
+          -0.0725812017917633,
+          0.1395002007484436,
+          0.48412156105041504,
+          -0.25099170207977295,
+          0.13919036090373993,
+          -0.03229646012187004,
+          0.10870605707168579,
+          -0.14683322608470917
+        ],
+        "selected_equals_conditional": true,
+        "support": {
+          "FL": {
+            "support": false,
+            "air": true,
+            "bearing_force_n": 0.0,
+            "load_fraction": 0.0,
+            "contact_surface": "NONE"
+          },
+          "FR": {
+            "support": true,
+            "air": false,
+            "bearing_force_n": 12.165496826171875,
+            "load_fraction": 0.4263428731442383,
+            "contact_surface": "TOP"
+          },
+          "RL": {
+            "support": true,
+            "air": false,
+            "bearing_force_n": 14.593125343322754,
+            "load_fraction": 0.5114197205363129,
+            "contact_surface": "NONE"
+          },
+          "RR": {
+            "support": true,
+            "air": false,
+            "bearing_force_n": 1.7759156227111816,
+            "load_fraction": 0.06223740631944884,
+            "contact_surface": "NONE"
+          }
+        }
+      },
+      "same_tick": {
+        "tick": 3168,
+        "time_s": 26.4,
+        "decision_start_tick": 3160,
+        "FL_base_mean": [
+          0.23516279458999634,
+          0.02489524893462658
+        ],
+        "FL_conditional_mean": [
+          0.236078143119812,
+          0.025079872459173203
+        ],
+        "FL_previous_raw": [
+          0.23617985844612122,
+          0.025100385770201683
+        ],
+        "FL_sigma": [
+          0.075595922768116,
+          0.07613533735275269
+        ],
+        "FL_raw": [
+          0.236078143119812,
+          0.025079872459173203
+        ],
+        "FL_unfiltered_cap_tanh_deg": [
+          4.172183758108343,
+          0.6017907688457479
+        ],
+        "N_full12": [
+          22.8,
+          -13.4,
+          0.0,
+          45.9,
+          6.9,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mapped_N_full12": [
+          23.46206497982492,
+          -12.15,
+          0.0,
+          46.5888134358951,
+          6.9,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "controller_bias_full12": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "requested_residual_full12": [
+          4.172183758108343,
+          0.6017907688457473,
+          0.038332396912958346,
+          -0.3092626356199446,
+          -0.869448197456939,
+          2.4948411131352,
+          5.394460231043178,
+          -4.425311707408745,
+          0.1382983833844196,
+          -0.019371141445188905,
+          0.10827987801591324,
+          -0.08747220389161854
+        ],
+        "effective_residual_full12": [
+          4.172183758108343,
+          0.6017907688457473,
+          0.038332396912958346,
+          -0.3092626356199446,
+          -0.869448197456939,
+          2.4948411131352,
+          5.394460231043178,
+          -4.425311707408745,
+          0.1382983833844196,
+          -0.019371141445188905,
+          0.10827987801591324,
+          -0.08747220389161854
+        ],
+        "final_full12": [
+          27.634248737933262,
+          -11.548209231154253,
+          0.038332396912958346,
+          46.27955080027515,
+          6.030551802543061,
+          2.4948411131352,
+          5.394460231043178,
+          -4.425311707408745,
+          0.1382983833844196,
+          -0.019371141445188905,
+          0.10827987801591324,
+          -0.08747220389161854
+        ],
+        "actual_full12": [
+          27.057859150400496,
+          -11.553496857327751,
+          1.0982986890738082,
+          46.65502657781984,
+          6.971662624827173,
+          1.7127951056013657,
+          5.457306926172892,
+          -4.163141625341653,
+          0.1380140632390976,
+          -0.15012720227241516,
+          0.07857669144868851,
+          0.01596062257885933
+        ],
+        "FL_error_deg": [
+          0.5763895875327663,
+          0.0052876261734979835
+        ],
+        "FL_velocity_deg_s": [
+          5.214647086950574,
+          -0.3064303272949661
+        ],
+        "FL_mapper_pre_compensation_deg": [
+          0.662064979824919,
+          1.25
+        ],
+        "FL_reference": [
+          {
+            "scheduled": true,
+            "feedback_eligible": false,
+            "reference_used": false,
+            "previous_requested_deg": 4.172183758108343,
+            "active_reference_deg": 0.0,
+            "desired_original_c0_deg": -10.0,
+            "bounded_desired_c1_deg": -10.0
+          },
+          {
+            "scheduled": false,
+            "feedback_eligible": false,
+            "reference_used": false,
+            "previous_requested_deg": 0.6017907688457473,
+            "active_reference_deg": 0.0,
+            "desired_original_c0_deg": -10.0,
+            "bounded_desired_c1_deg": -10.0
+          }
+        ],
+        "FL_native_target_rad": [
+          0.48369356989860535,
+          -0.20108576118946075
+        ],
+        "FL_native_measured_before_dispatch_rad": [
+          0.47284552454948425,
+          -0.2011793702840805
+        ],
+        "FL_gap_mm": 19.743285180432196,
+        "FL_front_mm": 100.40235860180502,
+        "FL_contact": "AIR",
+        "FL_pair_forces_n": {
+          "ground": 0.0,
+          "obstacle": 0.0
+        },
+        "contacts": {
+          "FL": {
+            "contact": "AIR",
+            "normal_force_n": 0.0
+          },
+          "FR": {
+            "contact": "OBSTACLE",
+            "normal_force_n": 12.165496958411445
+          },
+          "RL": {
+            "contact": "GROUND",
+            "normal_force_n": 14.593125343322885
+          },
+          "RR": {
+            "contact": "GROUND",
+            "normal_force_n": 1.7759156227111976
+          }
+        },
+        "body": {
+          "name": "base_link",
+          "position_w_m": [
+            0.3383653461933136,
+            -0.0013390779495239258,
+            0.09316359460353851
+          ],
+          "orientation_wxyz": [
+            0.9997618198394775,
+            -0.0033641615882515907,
+            -0.021417981013655663,
+            -0.0025291768833994865
+          ],
+          "linear_velocity_w_m_s": [
+            0.004944728221744299,
+            -0.0015491368249058723,
+            0.02608685940504074
+          ],
+          "angular_velocity_w_rad_s": [
+            0.06578095257282257,
+            -0.03207574412226677,
+            -0.004562514368444681
+          ]
+        },
+        "FL_center_w_m": [
+          0.6217145323753357,
+          0.07707461714744568,
+          0.11985272169113159
+        ],
+        "mask": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "verified": true,
+        "mapping_matches": true,
+        "setter_equal": true,
+        "final_slew_difference_deg": [
+          0.0,
+          0.0
+        ],
+        "headroom_clipped_servo_indices": []
+      },
+      "claim": "real deterministic full-eval state only; not seed1001 prefix receipt or reachability guarantee"
+    },
+    {
+      "offset_decisions": 240,
+      "tick": 3488,
+      "time_s": 29.066666666666666,
+      "evaluated_decision": {
+        "start_tick": 3480,
+        "end_tick": 3488,
+        "phase": "P05",
+        "age_s": 16.0,
+        "progress": 0.85,
+        "current_FL": {
+          "front_distance_m": 0.10040051085781698,
+          "clearance_m": 0.01924618909947677,
+          "top_geometry": true,
+          "top_contact": false,
+          "air": true,
+          "crossing_geometry_pending": false,
+          "recent_joint_motion_deg": 3.0527889080303403,
+          "recent_clearance_gain_m": 0.0005372415097359556,
+          "recent_whole_body_joint_motion_deg": 3.7957438022155383,
+          "whole_body_actuation_evidence": true,
+          "initial_clearance": true,
+          "ground_contact": false,
+          "obstacle_pair_active": false,
+          "consecutive_air_samples": 1904,
+          "consecutive_top_samples": 0,
+          "within_top_xy": true,
+          "within_lateral_span": true,
+          "support": false,
+          "contact_surface": "NONE",
+          "top_surface_contact": false,
+          "contact_reaction": false,
+          "contact_reaction_force_n": 0,
+          "bearing_force_n": 0.0,
+          "bearing_verified": true,
+          "active_attempt": true,
+          "crossing_evidence_status": "VERIFIED",
+          "top_xy_outside_distance_m": 0.0,
+          "load_fraction": 0.0,
+          "load_fraction_valid": true,
+          "soft_air_actuation_earned": true,
+          "soft_air_earned_tick": 1597,
+          "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+        },
+        "event_ticks": {
+          "active_lift": {
+            "FR": 25,
+            "FL": 1606
+          },
+          "front_edge_crossed": {
+            "FR": 1543,
+            "FL": 2586
+          },
+          "placed": {
+            "FR": 1556
+          }
+        },
+        "task_potential": 0.40391245200684367,
+        "stall_diagnostic": true,
+        "local_timeout": {
+          "nominal_limit_s": 30.0,
+          "current_progress_allowance_s": 7.225,
+          "fixed_post_window_allowance_s": 0.0,
+          "effective_limit_s": 37.225,
+          "nominal_limit_exceeded": false,
+          "classification": "finite_task_terminal_not_external_truncation",
+          "timer_inputs_observable_in_existing372": true
+        },
+        "base_mean": [
+          0.2345237284898758,
+          0.024945160374045372,
+          0.0029801419004797935,
+          -0.01169727835804224,
+          -0.07171595841646194,
+          0.13768497109413147,
+          0.48003432154655457,
+          -0.24835661053657532,
+          0.13771022856235504,
+          -0.031532883644104004,
+          0.10669401288032532,
+          -0.14530108869075775
+        ],
+        "conditional_mean": [
+          0.2347240298986435,
+          0.024825265631079674,
+          0.0028973037842661142,
+          -0.011924583464860916,
+          -0.07203856855630875,
+          0.13786925375461578,
+          0.48063644766807556,
+          -0.24872399866580963,
+          0.13796615600585938,
+          -0.03174406290054321,
+          0.10706283897161484,
+          -0.14550717175006866
+        ],
+        "previous_raw": [
+          0.2347462922334671,
+          0.024811943992972374,
+          0.002888099756091833,
+          -0.011949840001761913,
+          -0.07207442075014114,
+          0.13788972795009613,
+          0.48070335388183594,
+          -0.24876482784748077,
+          0.13799460232257843,
+          -0.031767528504133224,
+          0.10710382461547852,
+          -0.1455300748348236
+        ],
+        "sigma": [
+          0.07539014518260956,
+          0.0759873017668724,
+          0.023518795147538185,
+          0.08421902358531952,
+          0.042091984301805496,
+          0.02275156043469906,
+          0.0894085168838501,
+          0.020501092076301575,
+          0.06157292053103447,
+          0.02437412552535534,
+          0.04569607228040695,
+          0.027519963681697845
+        ],
+        "raw": [
+          0.2347240298986435,
+          0.024825265631079674,
+          0.0028973037842661142,
+          -0.011924583464860916,
+          -0.07203856855630875,
+          0.13786925375461578,
+          0.48063644766807556,
+          -0.24872399866580963,
+          0.13796615600585938,
+          -0.03174406290054321,
+          0.10706283897161484,
+          -0.14550717175006866
+        ],
+        "selected_equals_conditional": true,
+        "support": {
+          "FL": {
+            "support": false,
+            "air": true,
+            "bearing_force_n": 0.0,
+            "load_fraction": 0.0,
+            "contact_surface": "NONE"
+          },
+          "FR": {
+            "support": true,
+            "air": false,
+            "bearing_force_n": 12.173905372619629,
+            "load_fraction": 0.4262597040106048,
+            "contact_surface": "TOP"
+          },
+          "RL": {
+            "support": true,
+            "air": false,
+            "bearing_force_n": 14.527555465698242,
+            "load_fraction": 0.5086709074257941,
+            "contact_surface": "NONE"
+          },
+          "RR": {
+            "support": true,
+            "air": false,
+            "bearing_force_n": 1.8583707809448242,
+            "load_fraction": 0.06506938856360107,
+            "contact_surface": "NONE"
+          }
+        }
+      },
+      "same_tick": {
+        "tick": 3488,
+        "time_s": 29.066666666666666,
+        "decision_start_tick": 3480,
+        "FL_base_mean": [
+          0.2345237284898758,
+          0.024945160374045372
+        ],
+        "FL_conditional_mean": [
+          0.2347240298986435,
+          0.024825265631079674
+        ],
+        "FL_previous_raw": [
+          0.2347462922334671,
+          0.024811943992972374
+        ],
+        "FL_sigma": [
+          0.07539014518260956,
+          0.0759873017668724
+        ],
+        "FL_raw": [
+          0.2347240298986435,
+          0.024825265631079674
+        ],
+        "FL_unfiltered_cap_tanh_deg": [
+          4.149112004301245,
+          0.5956840080504113
+        ],
+        "N_full12": [
+          22.8,
+          -13.4,
+          0.0,
+          45.9,
+          6.9,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "mapped_N_full12": [
+          23.46206497982492,
+          -12.15,
+          0.0,
+          46.5888134358951,
+          6.9,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "controller_bias_full12": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "requested_residual_full12": [
+          4.149112004301244,
+          0.5956840080504104,
+          0.05215132219105382,
+          -0.2861764389331043,
+          -0.8629705277797513,
+          2.4660415488190846,
+          5.36103810196503,
+          -4.386938901939416,
+          0.13709739043673655,
+          -0.01904004271141873,
+          0.10665563834408519,
+          -0.08669333143153134
+        ],
+        "effective_residual_full12": [
+          4.149112004301244,
+          0.5956840080504104,
+          0.05215132219105382,
+          -0.2861764389331043,
+          -0.8629705277797513,
+          2.4660415488190846,
+          5.36103810196503,
+          -4.386938901939416,
+          0.13709739043673655,
+          -0.01904004271141873,
+          0.10665563834408519,
+          -0.08669333143153134
+        ],
+        "final_full12": [
+          27.611176984126164,
+          -11.55431599194959,
+          0.05215132219105382,
+          46.30263699696199,
+          6.037029472220249,
+          2.4660415488190846,
+          5.36103810196503,
+          -4.386938901939416,
+          0.13709739043673655,
+          -0.01904004271141873,
+          0.10665563834408519,
+          -0.08669333143153134
+        ],
+        "actual_full12": [
+          27.032490120275774,
+          -11.560067499309303,
+          1.1327933855381942,
+          46.703889751142114,
+          6.9986995017698455,
+          1.7010862403732598,
+          5.4386652054938125,
+          -4.113784970851849,
+          0.1367621272802353,
+          -0.15761016309261322,
+          0.08090414851903915,
+          0.008371556177735329
+        ],
+        "FL_error_deg": [
+          0.5786868638503897,
+          0.005751507359713415
+        ],
+        "FL_velocity_deg_s": [
+          5.223742337604092,
+          -0.33156745115302283
+        ],
+        "FL_mapper_pre_compensation_deg": [
+          0.662064979824919,
+          1.25
+        ],
+        "FL_reference": [
+          {
+            "scheduled": true,
+            "feedback_eligible": false,
+            "reference_used": false,
+            "previous_requested_deg": 4.149112004301244,
+            "active_reference_deg": 0.0,
+            "desired_original_c0_deg": -10.0,
+            "bounded_desired_c1_deg": -10.0
+          },
+          {
+            "scheduled": false,
+            "feedback_eligible": false,
+            "reference_used": false,
+            "previous_requested_deg": 0.5956840080504104,
+            "active_reference_deg": 0.0,
+            "desired_original_c0_deg": -10.0,
+            "bounded_desired_c1_deg": -10.0
+          }
+        ],
+        "FL_native_target_rad": [
+          0.4832908809185028,
+          -0.20119233429431915
+        ],
+        "FL_native_measured_before_dispatch_rad": [
+          0.47239941358566284,
+          -0.2012946456670761
+        ],
+        "FL_gap_mm": 19.24618909947677,
+        "FL_front_mm": 100.40051085781698,
+        "FL_contact": "AIR",
+        "FL_pair_forces_n": {
+          "ground": 0.0,
+          "obstacle": 0.0
+        },
+        "contacts": {
+          "FL": {
+            "contact": "AIR",
+            "normal_force_n": 0.0
+          },
+          "FR": {
+            "contact": "OBSTACLE",
+            "normal_force_n": 12.173906284734528
+          },
+          "RL": {
+            "contact": "GROUND",
+            "normal_force_n": 14.527555465698374
+          },
+          "RR": {
+            "contact": "GROUND",
+            "normal_force_n": 1.8583707809448409
+          }
+        },
+        "body": {
+          "name": "base_link",
+          "position_w_m": [
+            0.3384028971195221,
+            -0.0013045072555541992,
+            0.09295990318059921
+          ],
+          "orientation_wxyz": [
+            0.9997668862342834,
+            -0.0036210811231285334,
+            -0.02113877609372139,
+            -0.002542054047808051
+          ],
+          "linear_velocity_w_m_s": [
+            0.005362184252589941,
+            -0.0015088832005858421,
+            0.02622266486287117
+          ],
+          "angular_velocity_w_rad_s": [
+            0.06498587131500244,
+            -0.03315924108028412,
+            -0.0046327197924256325
+          ]
+        },
+        "FL_center_w_m": [
+          0.6217126846313477,
+          0.07711165398359299,
+          0.11937516182661057
+        ],
+        "mask": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "verified": true,
+        "mapping_matches": true,
+        "setter_equal": true,
+        "final_slew_difference_deg": [
+          0.0,
+          0.0
+        ],
+        "headroom_clipped_servo_indices": []
+      },
+      "claim": "real deterministic full-eval state only; not seed1001 prefix receipt or reachability guarantee"
+    }
+  ],
+  "deterministic_mean_max_error": 0.0,
+  "decision_samples": 559,
+  "physics_samples": 4468,
+  "boundaries": {
+    "new_simulations": 0,
+    "new_model_forwards": 0,
+    "optimizer_updates": 0,
+    "production_changed": false
+  },
+  "limitations": [
+    "N/mapped N here is the SAME real closed-loop state; not an independent zero trajectory.",
+    "Actual canonical q/qd is read after tick; native measured_rad is pre-dispatch, explicitly separate.",
+    "Pair-force sum is reported separately from evaluator verified bearing/support; it is not inferred support.",
+    "No sign-only attribution or frozen-body FK is a closed-loop intervention; the exact causal contribution of each servo/support/wheel remains unisolated.",
+    "P06 was never entered; the separately diagnosed P05-to-P06 cap expansion cannot be the direct cause of this run termination."
+  ]
+}
