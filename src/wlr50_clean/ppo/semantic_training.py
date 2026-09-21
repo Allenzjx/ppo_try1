@@ -38,6 +38,14 @@ STAGE_BUDGETS = {"smoke": 10_000, "phase_suffix": 100_000, "full_episode": 100_0
 ROLLOUT_LENGTH = 128
 
 
+def training_quantity_budgets(experiment_id: str | None = None) -> dict[str, int]:
+    """Explicit quantity ceiling; historical entropy horizon stays 210000."""
+    budgets = dict(STAGE_BUDGETS)
+    if experiment_id == "task_conditioned_hip_wheel_v1":
+        budgets["full_episode"] = 131_072
+    return budgets
+
+
 def write_json(path: Path, payload: Any, *, replace: bool = False) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     if not replace:
@@ -840,9 +848,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         physical_innovation_factor = None if physical_innovation is None else physical_innovation["observation_contract"]
         task_conditioned_factor = None if task_conditioned is None else task_conditioned["observation_contract"]
         archive_factor = (verified.get("archive_only_exact_bytes_factor") or {}).get("observation_contract")
-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor)) > 1:
+        budget_factor = (verified.get("training_quantity_budget_factor") or {}).get("observation_contract")
+        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor)) > 1:
             raise RuntimeError("reviewed same-layout migration receipts must be exclusive")
-        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor
+        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor
         if reviewed_factor is not None:
             if factor is not None:
                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")
@@ -899,6 +908,17 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         raise RuntimeError("task-conditioned migration changed source effective Adam learning rate")
     if migration is not None:
         infos = {**infos, "resume_migration": dict(migration)}
+        quantity = verified.get("training_quantity_budget_factor")
+        if quantity is not None:
+            if (optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate")
+                    or optimizer_learning_rate(runner) != quantity["source_effective_learning_rate"]):
+                raise RuntimeError("quantity-only continuation changed source effective Adam learning rate")
+            infos["training_quantity_budget_extension"] = {
+                "factor": dict(quantity), "plan_path": verified["plan_path"],
+                "plan_sha256": verified["plan_sha256"],
+                "source_checkpoint_sha256": verified["source_checkpoint_sha256"],
+                "source_contract_sha256": verified["source_contract_sha256"],
+                "target_contract_sha256": verified["target_contract_sha256"]}
         if task_conditioned is not None:
             infos["task_conditioned_hip_wheel_branch"] = {
                 "schema":"wlr50_clean.task_conditioned_hip_wheel_branch.v1",
@@ -1715,8 +1735,14 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     curriculum = semantic_curriculum_epoch(env.cfg)
     defer_tail_reset = _supports_deferred_terminal_reset(runner, env)
     semantic_version = env.cfg.get("semantic_version", "v2")
+    budgets = training_quantity_budgets(contract.get("experiment_id"))
+    declared_budgets = contract.get("training_budgets", budgets)
+    if (declared_budgets != budgets or any(type(value) is not int for value in declared_budgets.values())
+            or (contract.get("experiment_id") == "task_conditioned_hip_wheel_v1"
+                and "training_budgets" not in contract)):
+        raise ValueError("training quantity budgets differ from the explicit experiment declaration")
     stage_spent = {name: int(previous.get("stage_requested_decisions", {}).get(name, 0)) for name in STAGE_BUDGETS}
-    if stage_spent[stage] + decisions > STAGE_BUDGETS[stage]:
+    if stage_spent[stage] + decisions > budgets[stage]:
         raise ValueError("additional request exceeds the remaining semantic stage budget")
     base_global = int(previous.get("global_policy_decisions", 0))
     base_updates = int(previous.get("ppo_updates", 0))
@@ -1906,7 +1932,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison",
                             "observation_scale_compensation_evidence", "observation_append_evidence",
                             "task_recovery_branch", "rr_task_branch", "fl_capture_quality_branch",
-                            "task_conditioned_hip_wheel_branch"):
+                            "task_conditioned_hip_wheel_branch", "training_quantity_budget_extension"):
                     if key in previous:
                         infos[key] = previous[key]
                 if "task_recovery_branch" in infos:

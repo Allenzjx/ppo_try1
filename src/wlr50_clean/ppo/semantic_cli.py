@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from .semantic_training import (
-    STAGE_BUDGETS, SemanticRslAdapter, construct_semantic_runner, jsonable,
+    STAGE_BUDGETS, training_quantity_budgets, SemanticRslAdapter, construct_semantic_runner, jsonable,
     load_semantic_checkpoint, save_semantic_checkpoint, seed_training_rngs,
     semantic_runner_config, semantic_curriculum_epoch, sha256_file, train_semantic, verified_native_effect, write_json,
 )
@@ -113,7 +113,7 @@ def runtime_contract(*, expected_head: str, semantic_version: str = "v2",
             "runtime_content_sha256": hashlib.sha256(data).hexdigest(), "files": files,
             "frozen_A_files": dict(frozen["protected_files"]), "rsl_rl_version": "5.0.1",
             "physics_hz": 120.0, "decision_hz": 15.0, "task_timeout_s": 200.0,
-            "timeout_bootstrap": False, "training_budgets": dict(STAGE_BUDGETS),
+            "timeout_bootstrap": False, "training_budgets": training_quantity_budgets(experiment_id),
             "local_runtime_versions": local_versions()}
     if semantic_version == "v3":
         config_root = version_paths(semantic_version, experiment_id=experiment_id)[2]
@@ -122,6 +122,13 @@ def runtime_contract(*, expected_head: str, semantic_version: str = "v2",
                         "sha256": sha256_file(path)} for path in sorted(config_root.iterdir()) if path.is_file()})
     if experiment_id is not None:
         contract["experiment_id"] = experiment_id
+    if experiment_id == "task_conditioned_hip_wheel_v1":
+        import yaml
+        profile = yaml.safe_load((config_root / "execution_profile.yaml").read_text(encoding="utf-8"))
+        declared = profile.get("training_budgets", {})
+        if (declared != contract["training_budgets"]
+                or any(type(value) is not int for value in declared.values())):
+            raise ValueError("execution profile quantity budget differs from its explicit experiment ceiling")
     return contract
 
 
@@ -145,6 +152,7 @@ def _resolved_checkpoint(path: Path, *, output_root: Path | None = None) -> Path
 def validate_request(args: argparse.Namespace) -> None:
     _validate_target_policy_request(args)
     runs_root, output_root, _ = _request_paths(args)
+    budgets = training_quantity_budgets(getattr(args, "experiment_id", None))
     if getattr(args, "experiment_id", None) in ("residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1") and (
             args.new_mdp_warm_start or getattr(args, "policy_distribution_migration", False)):
         raise ValueError("RR continuation uses its explicit state-preserving task migration or exact resume")
@@ -184,7 +192,7 @@ def validate_request(args: argparse.Namespace) -> None:
     if args.new_mdp_warm_start and (args.semantic_version != "v3" or args.command != "train"
                                   or args.checkpoint is None or args.resume_migration is not None):
         raise ValueError("new-MDP warm start requires v3 train with a v2 or v3 checkpoint, not exact resume migration")
-    if args.decisions is not None and (args.command != "train" or not 1 <= args.decisions <= STAGE_BUDGETS[args.stage]):
+    if args.decisions is not None and (args.command != "train" or not 1 <= args.decisions <= budgets[args.stage]):
         raise ValueError("--decisions is an additional train request within the stage budget")
     if not 1 <= args.max_decisions <= 3000 or args.checkpoint_interval_updates < 1:
         raise ValueError("semantic window must remain within the 200 second task horizon")
@@ -262,7 +270,7 @@ def validate_request(args: argparse.Namespace) -> None:
                         "checkpoints/checkpoint_last_pointer.json", "checkpoints/history/checkpoint_initial_v3_warm_start.pt")):
                     raise ValueError("v3 training already exists; continue its checkpoint without restarting v3 budgets")
             reset_v3_budget = args.new_mdp_warm_start and source_version == "v2"
-            remaining = STAGE_BUDGETS[args.stage] - (0 if reset_v3_budget else int(metadata["stage_requested_decisions"].get(args.stage, 0)))
+            remaining = budgets[args.stage] - (0 if reset_v3_budget else int(metadata["stage_requested_decisions"].get(args.stage, 0)))
             if remaining < 1 or (args.decisions is not None and args.decisions > remaining):
                 raise ValueError("additional request exceeds the remaining semantic stage budget")
     if args.num_envs == 8:
@@ -278,7 +286,7 @@ def validate_request(args: argparse.Namespace) -> None:
             from .semantic_migration import checkpoint_metadata
             from .semantic_migration import stage_partition
             metadata = checkpoint_metadata(args.checkpoint)
-            left = STAGE_BUDGETS[args.stage]-int(metadata["stage_requested_decisions"][args.stage])
+            left = budgets[args.stage]-int(metadata["stage_requested_decisions"][args.stage])
             if args.decisions is None and stage_partition(left)["N8_requested"] < 1024:
                 raise ValueError("remaining stage budget requires the explicit N1 tail")
     elif args.vector_smoke_evidence is not None:
@@ -363,6 +371,11 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
             raise ValueError("checkpoint runtime changed; an explicit reviewed resume migration is required")
     else:
         args._migration_record = validate_migration_plan(args.checkpoint, contract, args.resume_migration)
+        if args._migration_record.get("training_quantity_budget_factor") is not None and (
+                args.command != "train" or args.semantic_version != "v3" or args.num_envs != 1
+                or args.stage != "full_episode" or args.from_phase != "P01" or args.teacher_offset_decisions != 0
+                or getattr(args, "prefix_source", "frozen_fsm") != "frozen_fsm"):
+            raise ValueError("quantity-only migration first enters through fresh natural-P01 N1 full training")
         from .semantic_training import (_validated_exploration_temperature_factor,
             _validated_request_history_kernel_factor, _validated_physical_innovation_sigma_factor,
             _validated_task_conditioned_hip_wheel_factor)
@@ -993,9 +1006,8 @@ def dispatch_vector(app,args,contract,output_root):
                                             migration=args._migration_record)
         if runner.alg.storage.step != 0 or runner.alg.storage.actions.shape != (128,8,12):
             raise RuntimeError("N8 migration must start with fresh complete 128x8 raw rollout storage")
-        # CLI already requires a declared stage budget; use canonical constant here.
-        from .semantic_training import STAGE_BUDGETS
-        remaining = STAGE_BUDGETS[args.stage]-int(previous["stage_requested_decisions"][args.stage])
+        # Runtime contract binds the same explicit ceiling checked before launch.
+        remaining = contract["training_budgets"][args.stage]-int(previous["stage_requested_decisions"][args.stage])
         requested = stage_partition(remaining)["N8_requested"] if args.decisions is None else args.decisions
         gpu.sample("after_actual_checkpoint_reload")
         result = train_semantic_vector(runner,env,decisions=requested,run_dir=args.run_dir,
@@ -1170,7 +1182,7 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
                     observation_layout=_resolved_observation_layout(args)),
             })
         _save_live_runtime_identity(core, args, contract, boundary="training_after_actual_reset_and_checkpoint_load")
-        remaining = STAGE_BUDGETS[args.stage] - int((previous or {}).get("stage_requested_decisions", {}).get(args.stage, 0))
+        remaining = contract["training_budgets"][args.stage] - int((previous or {}).get("stage_requested_decisions", {}).get(args.stage, 0))
         return train_semantic(runner, env, run_dir=args.run_dir, output_root=output_root,
                               stage=args.stage, decisions=remaining if args.decisions is None else args.decisions,
                               contract=contract, seed=args.seed, resume_infos=previous,

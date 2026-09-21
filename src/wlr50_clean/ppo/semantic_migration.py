@@ -17,6 +17,7 @@ PHYSICAL_INNOVATION_SIGMA_SCHEMA = "wlr50_clean.FR_knee_phase_physical_innovatio
 PHYSICAL_INNOVATION_SIGMA_FILES = REQUEST_HISTORY_KERNEL_FILES
 TASK_CONDITIONED_HIP_WHEEL_SCHEMA = "wlr50_clean.task_conditioned_hip_wheel_same372.v1"
 ARCHIVE_ONLY_EXACT_BYTES_SCHEMA = "wlr50_clean.archive_only_exact_bytes_same372.v1"
+TRAINING_QUANTITY_BUDGET_SCHEMA = "wlr50_clean.training_quantity_budget_same372.v1"
 TASK_CONDITIONED_HIP_WHEEL_FILES = REQUEST_HISTORY_KERNEL_FILES | frozenset({
     "src/wlr50_clean/ppo/semantic_reward.py", "src/wlr50_clean/ppo/semantic_supervisor.py",
     "src/wlr50_clean/ppo/semantic_task_quality.py", "src/wlr50_clean/ppo/semantic_observation.py",
@@ -3181,6 +3182,198 @@ def _build_task_conditioned_hip_wheel_plan(checkpoint, metadata, old, new, *,
         "task_conditioned_hip_wheel_factor", factor)
 
 
+def _training_quantity_budget_code_scope(before, after, *, relative):
+    """Pin reviewed quantity plumbing, not arbitrary whole-function exemptions."""
+    import ast
+
+    def tree_hash(node):
+        return hashlib.sha256(ast.dump(node, include_attributes=False).encode()).hexdigest()
+
+    # These are Python 3.11 AST pairs for the pinned official runtime's reviewed quantity
+    # diff. A changed LR, entropy formula, loss, reset, control call or receipt
+    # inside a listed function cannot pass by merely editing the review hashes.
+    bindings = {
+        "semantic_training.py": {
+            "training_quantity_budgets": (None, "2ba090cfe6659c62acf38f1aa87c798f27f29f5cf9931e691a338c7f6f113855"),
+            "load_semantic_checkpoint": ("ffd7f35d9e5a3e40ff484815aff99306e1801b7d4823e27699e10b3682a33a35", "3dba6ef72f595a737fafd1dd2f0ea9b90f0af1c63600c6e83c4eccb17967134e"),
+            "train_semantic": ("c08e29bb05e65555af58a23c10f2bcee4613422f1e2a49f56b5e8268b7c823b1", "a6beba47341cdbf3f348a61912fda1867a53447161f0f9806be94f5647ff04dd"),
+        },
+        "semantic_cli.py": {
+            "validate_request": ("0312487aa05813b5235174823d4d98833855ec3fa574f2edfd52d357d2673bb4", "8bb59f1ba95c3df64fe51398799a87dc9589325ae618179f4ed9a456a816972d"),
+            "dispatch_vector": ("ab82830e4b91746e7bad7926c2341f25cbadd6a9ea0a7bcc6505fb6be984133b", "b77892b89f96cbe6736feaba24ce5ecb97ccc318817b59b90973c02a0f05487e"),
+            "runtime_contract": ("bf3af97f8bfb7acb9f961cab2f9cf09c4540e1b3e31bd25b39e7382d4a77de89", "0f8d37f76cc53ab9939a63c0a7e2fe4353e647d39f94cd6a2526fd8c9e8b6336"),
+            "_preflight_checkpoint": ("e242a01d0e79f877e93edc889afbb48cb1a50c20490db9c9744ca7a1225c1cec", "6409d586389423ac2be321b3d100089e726c87fd2d2714f079409655557cddbe"),
+            "dispatch_live": ("d353a50b81c1801fcc2a95f65437e675265021db43661a748d26dd548733b3de", "3243056158bc6b8ffcb2fc45db5400ea934d2bdc137ba71d28e1dac181faa30a"),
+        },
+    }
+    trees = [ast.parse(before), ast.parse(after)]
+    filename = Path(relative).name
+    if filename in bindings:
+        expected = bindings[filename]
+        for side, tree in enumerate(trees):
+            nodes = {n.name: n for n in tree.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))}
+            for name, pair in expected.items():
+                actual = tree_hash(nodes[name]) if name in nodes else None
+                if actual != pair[side]:
+                    raise ValueError(f"quantity-only reviewed AST changed: {filename}:{name}")
+            tree.body = [n for n in tree.body if not isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) or n.name not in expected]
+        if filename == "semantic_cli.py":
+            imports = [n for n in trees[1].body if isinstance(n, ast.ImportFrom) and n.module == "semantic_training"]
+            if len(imports) != 1 or sum(x.name == "training_quantity_budgets" and x.asname is None for x in imports[0].names) != 1:
+                raise ValueError("quantity-only CLI must import exactly its budget helper")
+            imports[0].names = [n for n in imports[0].names if n.name != "training_quantity_budgets"]
+        regions = {name: {"before": pair[0], "after": pair[1]} for name, pair in expected.items()}
+    elif filename == "semantic_migration.py":
+        added = {"_training_quantity_budget_code_scope", "_build_training_quantity_budget_plan"}
+        present = [{n.name for n in t.body if isinstance(n, ast.FunctionDef)} & added for t in trees]
+        if present != [set(), added]:
+            raise ValueError("quantity-only migration adds only its explicit new factor helpers")
+        trees[1].body = [n for n in trees[1].body if not isinstance(n, ast.FunctionDef) or n.name not in added]
+        constants = [n for n in trees[1].body if isinstance(n, ast.Assign) and any(isinstance(x, ast.Name) and x.id == "TRAINING_QUANTITY_BUDGET_SCHEMA" for x in n.targets)]
+        if len(constants) != 1 or ast.literal_eval(constants[0].value) != TRAINING_QUANTITY_BUDGET_SCHEMA:
+            raise ValueError("quantity-only migration schema declaration changed")
+        trees[1].body.remove(constants[0])
+        build = next(n for n in trees[1].body if isinstance(n, ast.FunctionDef) and n.name == "build_migration_plan")
+        indexes = [i for i, n in enumerate(build.args.kwonlyargs) if n.arg == "training_quantity_budget_review"]
+        if len(indexes) != 1 or ast.dump(build.args.kw_defaults[indexes[0]]) != "Constant(value=None)":
+            raise ValueError("quantity review must remain an optional explicit keyword")
+        del build.args.kwonlyargs[indexes[0]]
+        del build.args.kw_defaults[indexes[0]]
+        route = ast.parse('''
+if training_quantity_budget_review is not None:
+    if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
+            execution_evidence, video_review, timing_review, body_reward_review, height_recovery_review,
+            exploration_temperature_review, task_first_reward_review, execution_composition_review,
+            final_stop_handoff_review, rr_physical_acceptance_review, fl_capture_quality_review,
+            request_history_kernel_review, physical_innovation_sigma_review,
+            task_conditioned_hip_wheel_review, archive_only_exact_bytes_review)):
+        raise ValueError("quantity-only budget continuation cannot mix another migration factor")
+    return _build_training_quantity_budget_plan(checkpoint, metadata, old, new,
+        allowed_changed_files=allowed_changed_files, reason=reason,
+        review=training_quantity_budget_review, project_root=Path(project_root))
+''').body[0]
+        routes = [n for n in build.body if ast.dump(n, include_attributes=False) == ast.dump(route, include_attributes=False)]
+        if len(routes) != 1:
+            raise ValueError("quantity-only migration route differs from the exclusive reviewed route")
+        build.body.remove(routes[0])
+        validate = next(n for n in trees[1].body if isinstance(n, ast.FunctionDef) and n.name == "validate_migration_plan")
+        calls = [n for n in ast.walk(validate) if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == "build_migration_plan"]
+        if len(calls) != 1:
+            raise ValueError("quantity-only validator lost its canonical builder")
+        added_keywords = [k for k in calls[0].keywords if k.arg == "training_quantity_budget_review"]
+        expected_value = ast.parse('''None if "training_quantity_budget_factor" not in supplied else {
+            "reason": supplied["training_quantity_budget_factor"]["review_reason"],
+            "reviewed_code_sha256": supplied["training_quantity_budget_factor"]["reviewed_code_sha256"]}''', mode="eval").body
+        if len(added_keywords) != 1 or ast.dump(added_keywords[0].value, include_attributes=False) != ast.dump(expected_value, include_attributes=False):
+            raise ValueError("quantity-only validator must reconstruct the exact explicit review")
+        calls[0].keywords.remove(added_keywords[0])
+        regions = {"new_factor_helpers": sorted(added), "existing_routes_preserved": True}
+    else:
+        raise ValueError("quantity-only migration cannot modify this code file")
+    if ast.dump(trees[0], include_attributes=False) != ast.dump(trees[1], include_attributes=False):
+        raise ValueError(f"quantity-only migration changed protected AST: {relative}")
+    return {"protected_ast_sha256": tree_hash(trees[0]), "exact_reviewed_regions": regions}
+
+
+def _build_training_quantity_budget_plan(checkpoint, metadata, old, new, *,
+        allowed_changed_files, reason, review, project_root):
+    """Extend one lifetime quantity ceiling; preserve the MDP, kernel and Adam."""
+    import copy
+    import yaml
+    from .semantic_policy_distribution import CONFIG_NAMES, TASK_CONDITIONED_HIP_WHEEL_POLICY
+    if (not isinstance(review, Mapping) or set(review) != {"reason", "reviewed_code_sha256"}
+            or not isinstance(review["reason"], str) or not review["reason"].strip()
+            or not isinstance(reason, str) or not reason.strip()):
+        raise ValueError("quantity-only migration requires a reason and exact reviewed code hashes")
+    factor = _task_conditioned_source_binding(metadata, old, new, project_root, archive=True)
+    experiment = "task_conditioned_hip_wheel_v1"
+    source_budgets = {"smoke": 10000, "phase_suffix": 100000, "full_episode": 100000}
+    target_budgets = {**source_budgets, "full_episode": 131072}
+    if (factor["source_policy_version"] != TASK_CONDITIONED_HIP_WHEEL_POLICY
+            or old.get("experiment_id") != experiment or new.get("experiment_id") != experiment
+            or old["source_git_commit"] != "ee5a9651591d20bea48be8ceba075fa66594cb36"
+            or metadata.get("training_quantity_budget_extension") is not None
+            or old.get("training_budgets") != source_budgets or new.get("training_budgets") != target_budgets
+            or any(type(v) is not int for c in (old, new) for v in c.get("training_budgets", {}).values())):
+        raise ValueError("quantity-only migration requires the first exact task-policy 100000-to-131072 boundary")
+    variable = {"files", "runtime_content_sha256", "source_git_commit", "selected_configuration", "training_budgets"}
+    if {k: v for k, v in old.items() if k not in variable} != {k: v for k, v in new.items() if k not in variable}:
+        raise ValueError("quantity-only migration cannot change runtime/MDP/control metadata")
+    profile = f"configs/ppo_{experiment}/execution_profile.yaml"
+    code = {f"src/wlr50_clean/ppo/{name}.py" for name in ("semantic_cli", "semantic_training", "semantic_migration")}
+    delta = sorted(p for p in old["files"].keys() | new["files"].keys() if old["files"].get(p) != new["files"].get(p))
+    if (set(old["files"]) != set(new["files"]) or set(delta) != code | {profile}
+            or sorted(allowed_changed_files) != delta or len(set(allowed_changed_files)) != len(allowed_changed_files)):
+        raise ValueError("quantity-only migration requires exactly three code files and one execution profile")
+    hashes = {p: new["files"][p] for p in sorted(code)}
+    if not isinstance(review["reviewed_code_sha256"], Mapping) or dict(review["reviewed_code_sha256"]) != hashes:
+        raise ValueError("quantity-only review must bind every changed code byte")
+    source_bytes = {}
+    for path, expected in new["files"].items():
+        if file_sha(project_root / path) != expected:
+            raise ValueError(f"quantity-only target bytes are not the reviewed runtime: {path}")
+        source_bytes[path] = _version_bytes(project_root, old, path, prefer_worktree=True)
+    bindings = {}
+    if any(set(c.get("selected_configuration", {})) != CONFIG_NAMES for c in (old, new)):
+        raise ValueError("quantity-only migration requires all six selected configurations")
+    for name in sorted(CONFIG_NAMES):
+        path = f"configs/ppo_{experiment}/{name}"
+        rows = []
+        for contract in (old, new):
+            row = contract["selected_configuration"][name]
+            if row != {"path": path, "sha256": contract["files"].get(path)} or row["sha256"] is None:
+                raise ValueError("quantity-only migration selected configuration/hash mismatch")
+            rows.append(dict(row))
+        before, after = source_bytes[path], (project_root / path).read_bytes()
+        if path == profile:
+            marker = b"  full_episode: 100000"
+            if before.count(marker) != 1 or before.replace(marker, b"  full_episode: 131072") != after:
+                raise ValueError("quantity-only profile permits only the single full_episode integer delta")
+            a, b = yaml.safe_load(before), yaml.safe_load(after)
+            expected = copy.deepcopy(a)
+            expected["training_budgets"] = target_budgets
+            if a.get("training_budgets") != source_budgets or b != expected:
+                raise ValueError("quantity-only profile altered a non-budget field")
+        elif before != after:
+            raise ValueError("quantity-only migration must preserve five configuration files byte-for-byte")
+        bindings[name] = {"source": rows[0], "target": rows[1], "bytes_identical": before == after}
+    scopes = {path: _training_quantity_budget_code_scope(source_bytes[path].decode("utf-8"),
+        (project_root / path).read_text(encoding="utf-8"), relative=path) for path in sorted(code)}
+    spent = metadata.get("stage_requested_decisions")
+    branch = metadata.get("task_conditioned_hip_wheel_branch", {})
+    origin = branch.get("counter_origin", {})
+    counters = factor["counter_origin"]
+    counts = metadata.get("task_conditioned_hip_wheel_branch_counts")
+    budget_origin = metadata.get("new_mdp_origin_global_policy_decisions")
+    if (not isinstance(spent, Mapping) or set(spent) != set(source_budgets)
+            or any(type(v) is not int or not 0 <= v <= source_budgets[k] for k, v in spent.items())
+            or branch.get("schema") != "wlr50_clean.task_conditioned_hip_wheel_branch.v1"
+            or branch.get("branch_id") != experiment or set(origin) != set(counters)
+            or any(type(v) is not int or not 0 <= v <= counters[k] for k, v in origin.items())
+            or not isinstance(counts, Mapping) or any(type(v) is not int for v in counts.values())
+            or counts != {k: counters[k] - origin[k] for k in counters}
+            or type(budget_origin) is not int or not 0 <= budget_origin <= counters["global_policy_decisions"]
+            or sum(spent.values()) > counters["global_policy_decisions"] - budget_origin):
+        raise ValueError("quantity-only continuation requires exact lifetime budgets and original task branch accounting")
+    preserved = {k: copy.deepcopy(v) for k, v in metadata.items() if k.endswith("_branch")
+        or k.endswith("_branch_counts") or k in ("source_stage_requested_decisions", "new_mdp_origin_global_policy_decisions")}
+    factor.update(schema=TRAINING_QUANTITY_BUDGET_SCHEMA, review_reason=review["reason"].strip(),
+        reviewed_code_sha256=hashes, code_scope=scopes, source_training_budgets=source_budgets,
+        target_training_budgets=target_budgets, source_stage_requested_decisions=dict(spent),
+        target_stage_requested_decisions=dict(spent), preserved_branch_metadata=preserved,
+        configuration_bindings=bindings, budget_field="training_budgets.full_episode",
+        source_remaining_full_episode=source_budgets["full_episode"] - spent["full_episode"],
+        target_remaining_full_episode=target_budgets["full_episode"] - spent["full_episode"],
+        entropy_schedule_denominator=210000, training_quantity_only=True,
+        first_target_execution="train_v3_N1_full_episode_fresh_natural_P01_no_offset_no_prefix",
+        kernel_changed=False, reward_changed=False, task_acceptance_changed=False,
+        nominal_control_changed=False, action_execution_changed=False,
+        observation_semantics_changed=[], same_mdp_claimed=True, new_mdp=False,
+        lifetime_stage_budget_counters_reset=False, original_branch_origin_preserved=True)
+    return _task_conditioned_plan_envelope(checkpoint, old, new, delta, reason,
+        "training_quantity_budget_factor", factor)
+
+
 def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
                          allowed_changed_files: Sequence[str], reason: str,
                          prior_evidence: Mapping[str, Any] | None = None,
@@ -3201,11 +3394,23 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                          physical_innovation_sigma_review: Mapping[str, Any] | None = None,
                          task_conditioned_hip_wheel_review: Mapping[str, Any] | None = None,
                          archive_only_exact_bytes_review: Mapping[str, Any] | None = None,
+                         training_quantity_budget_review: Mapping[str, Any] | None = None,
                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Build a reviewed plan after committing the new runtime; does not write."""
     checkpoint = Path(checkpoint).resolve(strict=True)
     metadata = checkpoint_metadata(checkpoint)
     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
+    if training_quantity_budget_review is not None:
+        if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
+                execution_evidence, video_review, timing_review, body_reward_review, height_recovery_review,
+                exploration_temperature_review, task_first_reward_review, execution_composition_review,
+                final_stop_handoff_review, rr_physical_acceptance_review, fl_capture_quality_review,
+                request_history_kernel_review, physical_innovation_sigma_review,
+                task_conditioned_hip_wheel_review, archive_only_exact_bytes_review)):
+            raise ValueError("quantity-only budget continuation cannot mix another migration factor")
+        return _build_training_quantity_budget_plan(checkpoint, metadata, old, new,
+            allowed_changed_files=allowed_changed_files, reason=reason,
+            review=training_quantity_budget_review, project_root=Path(project_root))
     if task_conditioned_hip_wheel_review is not None or archive_only_exact_bytes_review is not None:
         if (task_conditioned_hip_wheel_review is not None and archive_only_exact_bytes_review is not None
                 or any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
@@ -3451,7 +3656,10 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                                         "reason": supplied["task_conditioned_hip_wheel_factor"]["review_reason"],
                                         "reviewed_code_sha256": supplied["task_conditioned_hip_wheel_factor"]["reviewed_code_sha256"]},
                                     archive_only_exact_bytes_review=None if "archive_only_exact_bytes_factor" not in supplied else {
-                                        "reason": supplied["archive_only_exact_bytes_factor"]["review_reason"]})
+                                        "reason": supplied["archive_only_exact_bytes_factor"]["review_reason"]},
+                                    training_quantity_budget_review=None if "training_quantity_budget_factor" not in supplied else {
+                                        "reason": supplied["training_quantity_budget_factor"]["review_reason"],
+                                        "reviewed_code_sha256": supplied["training_quantity_budget_factor"]["reviewed_code_sha256"]})
     if supplied != expected:
         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}
