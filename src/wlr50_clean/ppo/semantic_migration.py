@@ -15,6 +15,13 @@ REQUEST_HISTORY_KERNEL_FILES = frozenset(f"src/wlr50_clean/ppo/{name}.py" for na
     "semantic_migration", "semantic_cli", "semantic_checkpoint_prefix_policy"))
 PHYSICAL_INNOVATION_SIGMA_SCHEMA = "wlr50_clean.FR_knee_phase_physical_innovation_sigma.v1"
 PHYSICAL_INNOVATION_SIGMA_FILES = REQUEST_HISTORY_KERNEL_FILES
+TASK_CONDITIONED_HIP_WHEEL_SCHEMA = "wlr50_clean.task_conditioned_hip_wheel_same372.v1"
+ARCHIVE_ONLY_EXACT_BYTES_SCHEMA = "wlr50_clean.archive_only_exact_bytes_same372.v1"
+TASK_CONDITIONED_HIP_WHEEL_FILES = REQUEST_HISTORY_KERNEL_FILES | frozenset({
+    "src/wlr50_clean/ppo/semantic_reward.py", "src/wlr50_clean/ppo/semantic_supervisor.py",
+    "src/wlr50_clean/ppo/semantic_task_quality.py", "src/wlr50_clean/ppo/semantic_observation.py",
+    "src/wlr50_clean/ppo/semantic_video.py", "src/wlr50_clean/ppo/semantic_video_cli.py",
+    "scripts/run_semantic_ppo.ps1", "scripts/run_semantic_video.ps1"})
 STAGE_SPEC = "configs/ppo_semantic_v2/stage_task_spec.yaml"
 SUPERVISOR = "src/wlr50_clean/ppo/semantic_supervisor.py"
 PRIOR_DIAGNOSTIC_HEAD = "84c607a2ffbba36f46a0e70dbb886227c0c32ec5"
@@ -124,7 +131,7 @@ def experiment_namespace(semantic_version: str, experiment_id: str | None = None
         raise ValueError("unsupported semantic runtime version")
     if experiment_id is None:
         return f"ppo_semantic_{semantic_version}"
-    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1") or semantic_version != "v3":
+    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1") or semantic_version != "v3":
         raise ValueError("isolated semantic experiment requires semantic version v3")
     return f"ppo_{experiment_id}"
 
@@ -2927,6 +2934,253 @@ def _build_physical_innovation_sigma_plan(checkpoint, metadata, old, new, *,
         "discard_old_rollout_storage": True, "physics_resume": "fresh_legal_P01_reset", "physical_innovation_sigma_factor": factor}
 
 
+def _task_conditioned_plan_envelope(checkpoint, old, new, delta, reason, factor_key, factor):
+    return {"schema": SCHEMA, "reason": reason.strip(), "source_checkpoint": str(checkpoint),
+        "source_checkpoint_sha256": file_sha(checkpoint),
+        "source_manifest_sha256": file_sha(checkpoint.with_name(checkpoint.stem+"_manifest.json")),
+        "source_contract_sha256": digest(old), "target_contract_sha256": digest(new),
+        "source_git_commit": old["source_git_commit"], "target_git_commit": new["source_git_commit"],
+        "source_runtime_content_sha256": old["runtime_content_sha256"],
+        "target_runtime_content_sha256": new["runtime_content_sha256"],
+        "allowed_changed_files": delta,
+        "changed_file_hashes": {p: {"before": old["files"].get(p), "after": new["files"][p]} for p in delta},
+        "geometric_factor": None, "observation_dimension": 372, "action_dimension": 12,
+        "preserve_actor_critic_optimizer_normalizer_rng_and_budget": True,
+        "discard_old_rollout_storage": True, "physics_resume": "fresh_legal_P01_reset", factor_key: factor}
+
+
+def _task_conditioned_source_binding(metadata, old, new, project_root, *, archive=False):
+    from .semantic_policy_distribution import (FR_KNEE_PHYSICAL_INNOVATION_POLICY,
+        TASK_CONDITIONED_HIP_WHEEL_POLICY, policy_contract)
+    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+    from .semantic_training import semantic_runner_config
+    from .semantic_return_profile import runner_return_profile
+    source_version = metadata.get("policy_contract", {}).get("version")
+    versions = {FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY} if archive else {FR_KNEE_PHYSICAL_INNOVATION_POLICY}
+    if (metadata.get("semantic_version") != "v3" or source_num_envs(metadata) != 1
+            or source_version not in versions or old.get("semantic_version") != "v3"
+            or new.get("semantic_version") != "v3" or old["source_git_commit"] == new["source_git_commit"]):
+        raise ValueError("task/archival migration requires a versioned exact supported v3 N1 source")
+    actual_head = subprocess.run(["git", "-C", str(project_root), "rev-parse", "HEAD"],
+        check=True, capture_output=True, text=True).stdout.strip()
+    if actual_head != new["source_git_commit"]:
+        raise ValueError("task/archival migration target HEAD is not the actual project HEAD")
+    target_version = source_version if archive else TASK_CONDITIONED_HIP_WHEEL_POLICY
+    source = policy_contract(source_version, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    target = policy_contract(target_version, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    horizon = runner_return_profile(metadata["runner_config"], semantic_version="v3")["version"]
+    options = dict(seed=metadata["seed"], device=metadata["runner_config"]["device"],
+        semantic_version="v3", return_profile=horizon, observation_layout=ROLE_OBSERVATION_LAYOUT)
+    source_config = semantic_runner_config(policy_version=source_version, **options)
+    target_config = semantic_runner_config(policy_version=target_version, **options)
+    import copy
+    a, b = copy.deepcopy(source_config), copy.deepcopy(target_config)
+    a["actor"].pop("class_name"); b["actor"].pop("class_name")
+    lr = metadata.get("optimizer_learning_rate")
+    if (metadata.get("policy_contract") != source or metadata["runner_config"] != source_config or a != b
+            or type(lr) not in (int, float) or not math.isfinite(lr) or lr <= 0):
+        raise ValueError("task migration must preserve canonical PPO/Identity/source effective Adam LR")
+    origin = {key: metadata[key] for key in ("global_policy_decisions", "ppo_updates", "optimizer_steps")}
+    if any(type(v) is not int or v < 0 for v in origin.values()):
+        raise ValueError("task migration source counters must be nonnegative integers")
+    return {"source_policy_version": source_version, "target_policy_version": target_version,
+        "source_policy_contract": source, "target_policy_contract": target,
+        "source_runner_config": source_config, "target_runner_config": target_config,
+        "source_effective_learning_rate": lr, "target_effective_learning_rate": lr,
+        "counter_origin": origin, "observation_contract": {
+            "source_policy_contract": source, "target_policy_contract": target,
+            "observation_layout": ROLE_OBSERVATION_LAYOUT, "observation_dimension": 372,
+            "action_dimension": 12, "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"},
+        "normalizers": "preserve_verified_identity_RSL_state",
+        "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+        "optimizer_lr_scope": "all_parameter_groups_and_algorithm_learning_rate_scalar",
+        "training_rng": "preserve_verified_training_rng", "lifetime_counters_preserved": True,
+        "old_rollout_inherited": False, "migration_added_updates": 0, "migration_added_policy_decisions": 0,
+        "prefix_samples_have_optimizer_credit": False, "physical_trajectory_equivalence_claimed": False}
+
+
+def _build_archive_only_exact_bytes_plan(checkpoint, metadata, old, new, *,
+        allowed_changed_files, reason, review, project_root):
+    """Explicit known-policy HEAD-only archive boundary, never a source exemption."""
+    from .semantic_policy_distribution import CONFIG_NAMES
+    if (not isinstance(review, Mapping) or set(review) != {"reason"}
+            or not isinstance(review["reason"], str) or not review["reason"].strip()
+            or not isinstance(reason, str) or not reason.strip() or list(allowed_changed_files)):
+        raise ValueError("archive-only migration needs its explicit reason and no changed runtime file")
+    factor = _task_conditioned_source_binding(metadata, old, new, project_root, archive=True)
+    expected_experiment = ("fl_capture_quality_v1" if factor["source_policy_version"] ==
+        "request_history_FR_knee_P06plus_physical_innovation_sigma_v1" else "task_conditioned_hip_wheel_v1")
+    if (old.get("experiment_id") != expected_experiment or new.get("experiment_id") != expected_experiment
+            or {k:v for k,v in old.items() if k != "source_git_commit"}
+            != {k:v for k,v in new.items() if k != "source_git_commit"}
+            or set(old.get("selected_configuration", {})) != CONFIG_NAMES):
+        raise ValueError("archive-only migration permits only HEAD, not runtime/configuration/namespace changes")
+    for relative, expected in new["files"].items():
+        if file_sha(project_root / relative) != expected:
+            raise ValueError("archive-only current runtime bytes differ from the source checkpoint")
+        _version_bytes(project_root, old, relative, prefer_worktree=True)
+    for name, row in old["selected_configuration"].items():
+        path = f"configs/ppo_{expected_experiment}/{name}"
+        if row != {"path": path, "sha256": old["files"].get(path)} or row["sha256"] is None:
+            raise ValueError("archive-only migration requires exact six namespace/hash bindings")
+    factor.update(schema=ARCHIVE_ONLY_EXACT_BYTES_SCHEMA, review_reason=review["reason"].strip(),
+        kernel_changed=False, reward_changed=False, task_acceptance_changed=False,
+        nominal_control_changed=False, action_execution_changed=False,
+        configuration_bindings=old["selected_configuration"], runtime_bytes_identical=True,
+        observation_semantics_changed=[], same_mdp_claimed=True)
+    return _task_conditioned_plan_envelope(checkpoint, old, new, [], reason,
+        "archive_only_exact_bytes_factor", factor)
+
+
+def _build_task_conditioned_hip_wheel_plan(checkpoint, metadata, old, new, *,
+        allowed_changed_files, reason, review, project_root):
+    """Joint task-reward/potential and state-sigma boundary; not a sigma-only waiver."""
+    import ast
+    import copy
+    import yaml
+    from .semantic_policy_distribution import CONFIG_NAMES, TASK_CONDITIONED_HIP_WHEEL_SIGMA_SEMANTICS
+    if (not isinstance(review, Mapping) or set(review) != {"reason", "reviewed_code_sha256"}
+            or not isinstance(review["reason"], str) or not review["reason"].strip()
+            or not isinstance(reason, str) or not reason.strip()):
+        raise ValueError("task-conditioned migration needs explicit reason and exact reviewed code hashes")
+    factor = _task_conditioned_source_binding(metadata, old, new, project_root)
+    if old.get("experiment_id") != "fl_capture_quality_v1" or new.get("experiment_id") != "task_conditioned_hip_wheel_v1":
+        raise ValueError("task-conditioned migration requires the isolated FL-quality source and task target")
+    variable = {"files", "runtime_content_sha256", "source_git_commit", "selected_configuration", "experiment_id"}
+    if {k:v for k,v in old.items() if k not in variable} != {k:v for k,v in new.items() if k not in variable}:
+        raise ValueError("task-conditioned migration cannot alter physical/runtime metadata")
+    delta = sorted(p for p in old["files"].keys() | new["files"].keys() if old["files"].get(p) != new["files"].get(p))
+    if (sorted(allowed_changed_files) != delta or len(set(allowed_changed_files)) != len(allowed_changed_files)
+            or old["files"].keys() - new["files"].keys()):
+        raise ValueError("task-conditioned migration requires exact changed inventory without deletions")
+    target_paths = {f"configs/ppo_task_conditioned_hip_wheel_v1/{n}" for n in CONFIG_NAMES}
+    code_delta = set(delta) - target_paths
+    required = REQUEST_HISTORY_KERNEL_FILES | {SUPERVISOR, BODY_REWARD_CODE}
+    if not code_delta <= TASK_CONDITIONED_HIP_WHEEL_FILES or not required <= code_delta:
+        raise ValueError("task-conditioned migration changed protected files or omitted its joint implementation")
+    hashes = {p: new["files"][p] for p in sorted(code_delta)}
+    if not isinstance(review["reviewed_code_sha256"], Mapping) or dict(review["reviewed_code_sha256"]) != hashes:
+        raise ValueError("task-conditioned exact code review does not bind the entire changed implementation")
+    records = {}
+    for side, contract, namespace in (("source", old, "ppo_fl_capture_quality_v1"),
+                                     ("target", new, "ppo_task_conditioned_hip_wheel_v1")):
+        if set(contract.get("selected_configuration", {})) != CONFIG_NAMES:
+            raise ValueError("task-conditioned migration requires exactly six selected configurations")
+        for name in CONFIG_NAMES:
+            path = f"configs/{namespace}/{name}"
+            row = {"path": path, "sha256": contract["files"].get(path)}
+            if row["sha256"] is None or contract["selected_configuration"][name] != row:
+                raise ValueError("task-conditioned selected configuration is not bound to its namespace and bytes")
+            records.setdefault(name, {})[side] = row
+    configs = {}
+    for name, row in records.items():
+        before_raw = _version_bytes(project_root, old, row["source"]["path"], prefer_worktree=True)
+        after_raw = _version_bytes(project_root, new, row["target"]["path"], prefer_worktree=True)
+        before, after = yaml.safe_load(before_raw), yaml.safe_load(after_raw)
+        expected = copy.deepcopy(before)
+        if name == "stage_task_spec.yaml":
+            if (before.get("capture_approach_semantics") != "post_cross_FL_multiscale_positive_gap_plus_real_contact_v1"
+                    or before.get("p09_lift_semantics") != "functional_free_air_lift_v3"
+                    or before["nominal"].get("final_stop_owner") != "source_home_after_physical_stop_v2"):
+                raise ValueError("task-conditioned source lacks preserved FL/RR/home semantics")
+            expected.update(revision="task_conditioned_hip_wheel_v1",
+                rolling_capture_retention={"rear_preparation_near_m": -.22, "blend_distance_m": .05,
+                    "contact_fraction": .5, "positive_gap_scale_m": .003})
+        elif name == "reward_config.yaml":
+            if before.get("objective_profile") != "fl_capture_front_body_quality_v1" or before.get("quality_epsilon") != .03:
+                raise ValueError("task-conditioned source must preserve the genuinely nonzero front-quality objective")
+            expected.update(revision="task_conditioned_hip_wheel_quality_v1",
+                objective_profile="task_conditioned_hip_wheel_quality_v1", quality_epsilon=.06,
+                task_space_quality={"phases": ["P01", "P02", "P05", "P06", "P07", "P08", "P09"],
+                    "clearance_margin_m": .020, "geometry_fraction": .5, "front_fraction": .5,
+                    "sample_audit": True})
+            expected["family_weights"]["body_stability"] = .06
+            expected["signal_ownership"]["body_stability"] = ["gravity_attitude", "euler_roll_pitch_derivative",
+                "conservative_collider_obstacle_separation_deficit"]
+        elif before_raw != after_raw:
+            raise ValueError(f"task-conditioned migration requires byte-identical protected configuration: {name}")
+        if after != expected:
+            raise ValueError(f"task-conditioned configuration exceeds its explicitly reviewed soft fields: {name}")
+        row.update(bytes_identical=before_raw == after_raw, semantics_identical=before == after)
+        configs[name] = after
+    runtime_binding = _request_history_runtime_binding(configs["stage_task_spec.yaml"],
+        configs["execution_profile.yaml"], configs["observation_schema.json"], factor["target_policy_contract"])
+    spec = configs["stage_task_spec.yaml"]
+    geometry = spec.get("geometry", {})
+    if (any(geometry.get(k) != v for k,v in {"airborne_clearance_above_top_m": .015,
+            "top_gap_min_m": -.015, "top_gap_max_m": .025, "xy_measurement_tolerance_m": .005}.items())
+            or spec.get("support", {}).get("force_noise_floor_n") != .2
+            or spec.get("fl_capture_potential", {}).get("fine_gap_scale_m") != .003):
+        raise ValueError("task sigma observable proxies differ from the fixed current gap/contact geometry")
+    runtime_binding["exploration_proxy_not_acceptance"] = {
+        "FR_approach_gap_m": .015, "FL_fine_gap_m": .003, "top_gap_m": [-.015,.025],
+        "contact_force_floor_N": .2, "xy_tolerance_m": .005,
+        "rear_exploration_blend_m": [-.27,-.22], "rear_retention_blend_m": [-.27,-.22]}
+    # Named soft scopes only; permit the new pure-quality helper import, not other module changes.
+    def without_quality_import_and_mode(text):
+        tree = ast.parse(text)
+        tree.body = [n for n in tree.body if not (
+            isinstance(n, ast.ImportFrom) and n.level == 1 and n.module == "semantic_task_quality")
+            and not (isinstance(n, ast.Assign) and len(n.targets) == 1
+                and isinstance(n.targets[0], ast.Name) and n.targets[0].id == "TASK_CONDITIONED_QUALITY_OBJECTIVE")]
+        return ast.unparse(tree)
+    scopes = {}
+    for relative, functions, methods in (
+            (SUPERVISOR, ("load_task_spec",), ("TaskStageSupervisor._current_capture_retention",)),
+            (BODY_REWARD_CODE, ("_validate_task_priority",), ("SemanticRewardCalculator.evaluate",)),
+            ("src/wlr50_clean/ppo/semantic_observation.py", (), ("SemanticObservationBuilder.build",))):
+        scopes[relative] = _height_source_scope(
+            without_quality_import_and_mode(_version_text(project_root, old, relative, prefer_worktree=True)),
+            without_quality_import_and_mode(_version_text(project_root, new, relative, prefer_worktree=True)),
+            functions=functions, methods=methods)
+    helper = "src/wlr50_clean/ppo/semantic_task_quality.py"
+    if helper in code_delta:
+        helper_tree = ast.parse(_version_text(project_root, new, helper, prefer_worktree=True))
+        # This reviewed helper's local JSON result.update is not app.update.
+        # Keep the existing veto untouched; only normalize that exact receiver.
+        for node in ast.walk(helper_tree):
+            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                    and isinstance(node.func.value, ast.Name) and node.func.value.id == "result"
+                    and node.func.attr == "update"):
+                node.func = ast.Name(id="local_result_mapping_update", ctx=ast.Load())
+        _height_no_physics_writes(ast.unparse(helper_tree))
+    # Exact protected ASTs keep hard events and the entire nominal/dispatch classes unchanged.
+    def protected_supervisor(text):
+        tree = ast.parse(text)
+        names = {"TaskEvaluator", "NominalMotionProvider", "SemanticControllerAdapter"}
+        selected = [node for node in tree.body if isinstance(node, ast.ClassDef) and node.name in names]
+        if {node.name for node in selected} != names:
+            raise ValueError("task-conditioned supervisor omitted a protected event/control class")
+        return ast.dump(ast.Module(body=selected, type_ignores=[]), include_attributes=False)
+    before_ast = protected_supervisor(_version_text(project_root, old, SUPERVISOR, prefer_worktree=True))
+    after_ast = protected_supervisor(_version_text(project_root, new, SUPERVISOR, prefer_worktree=True))
+    if before_ast != after_ast:
+        raise ValueError("task-conditioned migration cannot change hard events, nominal motion or controller dispatch")
+    for relative in delta:
+        if relative in old["files"]:
+            _version_bytes(project_root, old, relative, prefer_worktree=True)
+        if file_sha(project_root / relative) != new["files"][relative]:
+            raise ValueError("task-conditioned target bytes differ from the reviewed runtime")
+    factor.update(schema=TASK_CONDITIONED_HIP_WHEEL_SCHEMA, review_reason=review["reason"].strip(),
+        branch_id="task_conditioned_hip_wheel_v1", reviewed_code_sha256=hashes,
+        configuration_bindings=records, protected_supervisor_ast_sha256=digest(before_ast),
+        quality_code_scope=scopes,
+        protected_hard_evaluator_nominal_dispatch_ast_identical=True,
+        sigma_scaling_semantics=TASK_CONDITIONED_HIP_WHEEL_SIGMA_SEMANTICS,
+        runtime_binding=runtime_binding,
+        kernel_changed=True, reward_changed=True, same_mdp_claimed=False, physical_mdp_changed=False,
+        task_acceptance_changed=False, nominal_control_changed=False, action_execution_changed=False,
+        physical_scene_changed=False, actuator_capability_changed=False, action_ranges_changed=False,
+        observation_layout_changed=False,
+        observation_semantics_changed=["existing_global_physical_potential_current_front_rolling_retention"],
+        critic="preserve_then_refit_on_fresh_reward_data",
+        stochastic_likelihood="same_task_scaled_official_Gaussian_cache_for_sample_logprob_entropy_KL_update",
+        prefix_effective_kernel="source_weights_plus_explicit_target_kernel_and_task_config",
+        scope_is_reviewer_assertion_not_semantic_equivalence_proof=True)
+    return _task_conditioned_plan_envelope(checkpoint, old, new, delta, reason,
+        "task_conditioned_hip_wheel_factor", factor)
+
+
 def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
                          allowed_changed_files: Sequence[str], reason: str,
                          prior_evidence: Mapping[str, Any] | None = None,
@@ -2945,11 +3199,26 @@ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], 
                          fl_capture_quality_review: Mapping[str, Any] | None = None,
                          request_history_kernel_review: Mapping[str, Any] | None = None,
                          physical_innovation_sigma_review: Mapping[str, Any] | None = None,
+                         task_conditioned_hip_wheel_review: Mapping[str, Any] | None = None,
+                         archive_only_exact_bytes_review: Mapping[str, Any] | None = None,
                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     """Build a reviewed plan after committing the new runtime; does not write."""
     checkpoint = Path(checkpoint).resolve(strict=True)
     metadata = checkpoint_metadata(checkpoint)
     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
+    if task_conditioned_hip_wheel_review is not None or archive_only_exact_bytes_review is not None:
+        if (task_conditioned_hip_wheel_review is not None and archive_only_exact_bytes_review is not None
+                or any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
+                    execution_evidence, video_review, timing_review, body_reward_review, height_recovery_review,
+                    exploration_temperature_review, task_first_reward_review, execution_composition_review,
+                    final_stop_handoff_review, rr_physical_acceptance_review, fl_capture_quality_review,
+                    request_history_kernel_review, physical_innovation_sigma_review))):
+            raise ValueError("task-conditioned or archive-only boundary cannot mix another migration factor")
+        builder = (_build_task_conditioned_hip_wheel_plan if task_conditioned_hip_wheel_review is not None
+                   else _build_archive_only_exact_bytes_plan)
+        return builder(checkpoint, metadata, old, new, allowed_changed_files=allowed_changed_files,
+            reason=reason, review=(task_conditioned_hip_wheel_review if task_conditioned_hip_wheel_review is not None
+                                  else archive_only_exact_bytes_review), project_root=Path(project_root))
     if physical_innovation_sigma_review is not None:
         if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
                 execution_evidence, video_review, timing_review, body_reward_review,
@@ -3177,7 +3446,12 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                                         "reviewed_code_sha256": supplied["request_history_kernel_factor"]["reviewed_code_sha256"]},
                                     physical_innovation_sigma_review=None if "physical_innovation_sigma_factor" not in supplied else {
                                         "reason": supplied["physical_innovation_sigma_factor"]["review_reason"],
-                                        "reviewed_code_sha256": supplied["physical_innovation_sigma_factor"]["reviewed_code_sha256"]})
+                                        "reviewed_code_sha256": supplied["physical_innovation_sigma_factor"]["reviewed_code_sha256"]},
+                                    task_conditioned_hip_wheel_review=None if "task_conditioned_hip_wheel_factor" not in supplied else {
+                                        "reason": supplied["task_conditioned_hip_wheel_factor"]["review_reason"],
+                                        "reviewed_code_sha256": supplied["task_conditioned_hip_wheel_factor"]["reviewed_code_sha256"]},
+                                    archive_only_exact_bytes_review=None if "archive_only_exact_bytes_factor" not in supplied else {
+                                        "reason": supplied["archive_only_exact_bytes_factor"]["review_reason"]})
     if supplied != expected:
         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}

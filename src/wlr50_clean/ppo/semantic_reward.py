@@ -13,6 +13,8 @@ from typing import Any, Mapping, Sequence
 import yaml
 
 from .semantic_observation import CONFIG_ROOT, SemanticObservationFrame, finite, vector
+from .semantic_task_quality import (OBJECTIVE as TASK_CONDITIONED_QUALITY_OBJECTIVE,
+                                    SPACE_CONFIG, task_space_quality_sample)
 
 FAMILIES = ("task_progress", "body_stability", "contact_motion_quality",
             "control_smoothness", "control_regularization")
@@ -52,6 +54,21 @@ def _validate_task_priority(values: Mapping[str, Any]) -> None:
     nonzero-quality candidate needs its own explicit objective version.
     """
     objective = values.get("objective_profile")
+    if "task_space_quality" in values and objective != TASK_CONDITIONED_QUALITY_OBJECTIVE:
+        raise ValueError("task-space quality settings require their explicit objective version")
+    if objective == TASK_CONDITIONED_QUALITY_OBJECTIVE:
+        expected_front = {"phases": ["P01", "P02"], "transfer_weight_floor": .5,
+                          "attitude_fraction": .5, "rate_fraction": .5, "sample_audit": True}
+        if (values.get("revision") != TASK_CONDITIONED_QUALITY_OBJECTIVE
+                or values.get("task_space_quality") != SPACE_CONFIG
+                or values.get("front_body_quality") != expected_front
+                or isinstance(values.get("quality_epsilon"), bool)
+                or finite(values.get("quality_epsilon"), "task quality epsilon") != .06
+                or values["family_weights"] != dict(zip(FAMILIES, (1., .06, 0., 0., 0.), strict=True))
+                or values["attitude_scale_rad"] != .5 or values["euler_rate_scale_rad_s"] != .5
+                or values["control_regularization_enabled"] is not False):
+            raise ValueError("task-quality v1 binds preserved front cost and bounded measured geometry only")
+        return
     if objective == FRONT_QUALITY_OBJECTIVE:
         expected = {"phases": ["P01", "P02"], "transfer_weight_floor": .5,
                     "attitude_fraction": .5, "rate_fraction": .5, "sample_audit": True}
@@ -269,8 +286,10 @@ class SemanticRewardCalculator:
         v = self.config.values
         costs = {name:0.0 for name in FAMILIES[1:]}
         diagnostics: dict[str,float] = {}
-        front_quality = v.get("objective_profile") == FRONT_QUALITY_OBJECTIVE
+        task_quality = v.get("objective_profile") == TASK_CONDITIONED_QUALITY_OBJECTIVE
+        front_quality = v.get("objective_profile") == FRONT_QUALITY_OBJECTIVE or task_quality
         front_sample_audit = []
+        geometry_sample_audit = []
         total_dt = 0.0
         for sample in samples:
             dt = finite(sample.dt_s,"reward dt")
@@ -320,8 +339,11 @@ class SemanticRewardCalculator:
                 attitude = weight*tilt_raw if eligible else 0.
                 rates = weight*rate_raw if eligible else 0.
                 acceleration = 0.  # Measured elsewhere; not this objective.
+                front_coefficient = v["family_weights"]["body_stability"]
+                if task_quality:
+                    front_coefficient *= v["task_space_quality"]["front_fraction"]
                 if eligible:
-                    beta = v["family_weights"]["body_stability"]*weight
+                    beta = front_coefficient*weight
                     front_sample_audit.append({
                         "sim_time_s": metrics["sim_time_s"], "dt_s": dt, "phase": phase,
                         "substate": _front_quality_substate(sample.current.task),
@@ -329,7 +351,7 @@ class SemanticRewardCalculator:
                         "roll_pitch_rad": tuple(metrics["rpy"][:2]),
                         "roll_pitch_rate_rad_s": tuple(metrics["euler_roll_pitch_rate"]),
                         "raw_tilt_cost": tilt_raw, "raw_rate_cost": rate_raw,
-                        "weighted_quality_cost": v["family_weights"]["body_stability"]*body*dt,
+                        "weighted_quality_cost": front_coefficient*body*dt,
                     })
                     for key, value in (("front_beta_time_integral", beta),
                                        ("front_raw_tilt_cost", tilt_raw),
@@ -337,6 +359,28 @@ class SemanticRewardCalculator:
                                        ("front_weighted_tilt_cost", beta*cfg["attitude_fraction"]*tilt_raw),
                                        ("front_weighted_rate_cost", beta*cfg["rate_fraction"]*rate_raw)):
                         diagnostics[key] = diagnostics.get(key, 0.)+value*dt
+                if task_quality:
+                    body *= v["task_space_quality"]["front_fraction"]
+            if task_quality:
+                space_cfg = v["task_space_quality"]
+                geometry = task_space_quality_sample(sample.current.task, metrics, space_cfg)
+                geometry.update(dt_s=dt, effective_beta_per_s=(v["family_weights"]["body_stability"]
+                    *space_cfg["geometry_fraction"] if geometry["eligible"] else 0.),
+                    weighted_geometry_cost=None, terminal_measurement_omitted=False)
+                if geometry["eligible"] and not geometry["valid"]:
+                    if termination_reason is None:
+                        raise ValueError("task-space quality measurement unavailable: " + geometry["reason"])
+                    # Preserve already classified safety/task termination and
+                    # Phi=0. Unknown geometry is audited null, never good zero.
+                    geometry["terminal_measurement_omitted"] = True
+                elif geometry["valid"]:
+                    raw_geometry = geometry["raw_geometry_cost"]
+                    body += space_cfg["geometry_fraction"]*raw_geometry
+                    geometry["weighted_geometry_cost"] = geometry["effective_beta_per_s"]*raw_geometry*dt
+                    for key, value in (("task_space_raw_geometry_cost", raw_geometry*dt),
+                                       ("task_space_weighted_geometry_cost", geometry["weighted_geometry_cost"])):
+                        diagnostics[key] = diagnostics.get(key, 0.)+value
+                geometry_sample_audit.append(geometry)
             contact_terms = []
             for index,(before,after) in enumerate(zip(sample.previous.metrics["wheels"],metrics["wheels"],strict=True)):
                 touchdown = after["contact"] and not before["contact"]
@@ -406,4 +450,7 @@ class SemanticRewardCalculator:
         if front_quality:
             result["front_quality_sample_audit"] = front_sample_audit
             result["front_quality_semantics"] = "P01_P02_tilt_rate_only_positive_transfer_floor_v1"
+        if task_quality:
+            result["task_space_quality_sample_audit"] = geometry_sample_audit
+            result["task_space_quality_semantics"] = "bounded_current_collider_obstacle_AABB_separation_deficit_v1"
         return result

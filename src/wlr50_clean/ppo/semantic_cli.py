@@ -40,7 +40,7 @@ def version_paths(version: str, *, experiment_id: str | None = None) -> tuple[Pa
     if version == "v2":
         return RUNS_ROOT, OUTPUT_ROOT, PROJECT_ROOT / "configs/ppo_semantic_v2"
     return (PROJECT_ROOT / "runs" / namespace, PROJECT_ROOT / "outputs" / namespace,
-            PROJECT_ROOT / "configs" / (namespace if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1") else "ppo_semantic_v3"))
+            PROJECT_ROOT / "configs" / (namespace if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1") else "ppo_semantic_v3"))
 
 
 def _request_paths(args: argparse.Namespace) -> tuple[Path, Path, Path]:
@@ -65,7 +65,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--seed", type=int, default=1001)
     result.add_argument("--num-envs", type=int, choices=(1, 8), default=1)
     result.add_argument("--semantic-version", choices=("v2", "v3"), default="v2")
-    result.add_argument("--experiment-id", choices=("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1"))
+    result.add_argument("--experiment-id", choices=("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1"))
     result.add_argument("--from-phase", choices=("P01", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13"), default="P01")
     result.add_argument("--teacher-offset-decisions", type=int, default=0)
     result.add_argument("--prefix-source", choices=("frozen_fsm", "checkpoint_policy", "successful_nominal"), default="frozen_fsm")
@@ -145,7 +145,7 @@ def _resolved_checkpoint(path: Path, *, output_root: Path | None = None) -> Path
 def validate_request(args: argparse.Namespace) -> None:
     _validate_target_policy_request(args)
     runs_root, output_root, _ = _request_paths(args)
-    if getattr(args, "experiment_id", None) in ("residual_rr_fix_v1", "fl_capture_quality_v1") and (
+    if getattr(args, "experiment_id", None) in ("residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1") and (
             args.new_mdp_warm_start or getattr(args, "policy_distribution_migration", False)):
         raise ValueError("RR continuation uses its explicit state-preserving task migration or exact resume")
     if getattr(args, "experiment_id", None) == "non_residual_refine_v1":
@@ -208,6 +208,13 @@ def validate_request(args: argparse.Namespace) -> None:
         raise ValueError("training already exists; explicitly resume checkpoint_last instead of reinitializing")
     if args.checkpoint is not None:
         source_root = output_root
+        if (getattr(args, "experiment_id", None) == "task_conditioned_hip_wheel_v1"
+                and args.resume_migration is not None
+                and not args.checkpoint.resolve(strict=True).is_relative_to((output_root / "checkpoints").resolve())):
+            planned = json.loads(args.resume_migration.read_text(encoding="utf-8"))
+            if not isinstance(planned.get("task_conditioned_hip_wheel_factor"), dict):
+                raise ValueError("task-conditioned cross-root continuation requires its joint reviewed factor")
+            source_root = version_paths("v3", experiment_id="fl_capture_quality_v1")[1]
         if (getattr(args, "experiment_id", None) == "fl_capture_quality_v1"
                 and args.resume_migration is not None
                 and not args.checkpoint.resolve(strict=True).is_relative_to((output_root / "checkpoints").resolve())):
@@ -357,7 +364,11 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
     else:
         args._migration_record = validate_migration_plan(args.checkpoint, contract, args.resume_migration)
         from .semantic_training import (_validated_exploration_temperature_factor,
-            _validated_request_history_kernel_factor, _validated_physical_innovation_sigma_factor)
+            _validated_request_history_kernel_factor, _validated_physical_innovation_sigma_factor,
+            _validated_task_conditioned_hip_wheel_factor)
+        task_conditioned = _validated_task_conditioned_hip_wheel_factor(metadata, args._migration_record,
+            semantic_version=args.semantic_version, seed=int(metadata["seed"]), device=args.device,
+            observation_layout=args._observation_layout)
         physical_innovation = _validated_physical_innovation_sigma_factor(metadata, args._migration_record,
             semantic_version=args.semantic_version, seed=int(metadata["seed"]), device=args.device,
             observation_layout=args._observation_layout)
@@ -367,7 +378,11 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
         temperature = _validated_exploration_temperature_factor(metadata, args._migration_record,
             semantic_version=args.semantic_version, seed=int(metadata["seed"]), device=args.device,
             observation_layout=args._observation_layout)
-        if physical_innovation is not None:
+        if task_conditioned is not None:
+            if getattr(args, "num_envs", 1) != 1:
+                raise ValueError("task-conditioned reward/sigma migration requires N1")
+            args._policy_version = task_conditioned["target_policy_contract"]["version"]
+        elif physical_innovation is not None:
             if getattr(args, "num_envs", 1) != 1:
                 raise ValueError("physical-innovation sigma migration requires N1")
             args._policy_version = physical_innovation["target_policy_contract"]["version"]
@@ -387,12 +402,44 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
         raise ValueError("resume must preserve the checkpoint training RNG seed")
 
 
+def _task_conditioned_prefix_provenance(args, contract, previous):
+    """Bind migrated source weights to the actual target task/kernel, including exact archive-only changes."""
+    from .semantic_policy_distribution import (TASK_CONDITIONED_HIP_WHEEL_POLICY,
+        FR_KNEE_PHYSICAL_INNOVATION_POLICY)
+    target = _resolved_policy_contract(args)
+    source = previous.get("policy_contract")
+    record = getattr(args, "_migration_record", None) or {}
+    archive = record.get("archive_only_exact_bytes_factor")
+    task = record.get("task_conditioned_hip_wheel_factor")
+    source_runtime = previous["runtime_contract"]["runtime_content_sha256"]
+    target_runtime = contract["runtime_content_sha256"]
+    factor, key = (archive, "archive_only_exact_bytes_migration") if archive is not None else (task, "task_conditioned_hip_wheel_migration")
+    if factor is not None:
+        if (task is not None and archive is not None
+                or factor.get("source_policy_contract") != source or factor.get("target_policy_contract") != target
+                or record.get("source_runtime_content_sha256") != source_runtime
+                or record.get("target_runtime_content_sha256") != target_runtime
+                or target["version"] not in (FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY)):
+            raise ValueError("task/archival prefix lacks exact source-weight/target-kernel provenance")
+        migration = {k: record[k] for k in ("plan_path", "plan_sha256", "source_checkpoint_sha256",
+            "source_runtime_content_sha256", "target_runtime_content_sha256")}
+    else:
+        if source != target or previous["runtime_contract"] != contract or target["version"] != TASK_CONDITIONED_HIP_WHEEL_POLICY:
+            raise ValueError("task-conditioned prefix must use verified migration or exact target checkpoint resume")
+        migration = None
+    return {"source_policy_contract": source, "effective_policy_contract": target,
+        "effective_runtime_content_sha256": target_runtime, key: migration}
+
+
 def _request_history_prefix_provenance(args, contract, previous):
     """Do not relabel an old weight file as if it already stored the new kernel."""
     from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
-        HISTORY_QUARTER_TEMPERED_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
+        HISTORY_QUARTER_TEMPERED_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY,
         supported_heteroscedastic_contract_version)
     target = _resolved_policy_contract(args)
+    if (target["version"] == TASK_CONDITIONED_HIP_WHEEL_POLICY
+            or (getattr(args, "_migration_record", None) or {}).get("archive_only_exact_bytes_factor") is not None):
+        return _task_conditioned_prefix_provenance(args, contract, previous)
     if target["version"] not in (HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY):
         return {}
     physical_innovation = target["version"] == FR_KNEE_PHYSICAL_INNOVATION_POLICY

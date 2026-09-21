@@ -360,4 +360,4 @@ class SemanticObservationBuilder:
         return SemanticObservationFrame(groups, dict(task), {"sim_time_s":now,"rpy":rpy,
             "euler_roll_pitch_rate":rates,"body_angular_velocity":omega,
             "body_angular_acceleration":angular_acceleration,"wheels":tuple(wheel_metrics),
-            "mass_kg":mass,"raw_orientation_wxyz":q})
+            "mass_kg":mass,"raw_orientation_wxyz":q,"obstacle_planes_world_m":planes})

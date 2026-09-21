@@ -309,3 +309,97 @@ class SemanticFRKneePhysicalInnovationHistoryMLPModel(SemanticCapTransitionQuart
             head[..., 1, :], latent, self.exploration_std_temperature)
         self.distribution.update(torch.stack((head[..., 0, :], log_std), dim=-2))
         return self.distribution.sample()
+
+
+def task_conditioned_physical_scales(latent: torch.Tensor):
+    """Pure observable exploration schedule; contact proxies are not acceptance.
+
+    B is a physical equivalent innovation scale, NOT actual sigma, a target,
+    capacity or a sign preference. No hidden timer or new action history.
+    """
+    from .semantic_policy_distribution import TASK_CONDITIONED_PHYSICAL_B_TABLE
+    _, evidence = cap_transition_request_history(latent)
+    for start, end in ((131,139), (146,158)):
+        bits = latent[...,start:end]
+        if not bool(((bits == 0) | (bits == 1)).all()):
+            raise ValueError("task sigma requires binary observed contact/history flags")
+    stage, cap = evidence["stage_index"], evidence["current_cap_full12"]
+    base = cap.clone()
+    base[...,3] = torch.where(stage >= 5, 24., base[...,3])
+    weights = {}
+    no_fr = (latent[...,133] == 0) & (latent[...,134] == 0)
+    no_fl = (latent[...,131] == 0) & (latent[...,132] == 0)
+    fr = ((stage <= 1) & (latent[...,155] == 0) & (latent[...,147] == 1)
+          & no_fr & (latent[...,33] >= 2))
+    weights["FR_air_approach_proxy"] = fr * (latent[...,24]/.015).clamp(0.,1.)
+    fl = ((stage == 4) & (latent[...,150] == 1) & (latent[...,154] == 0) & no_fl)
+    weights["FL_crossed_air_pending"] = fl * (latent[...,21]/.003).clamp(0.,1.)
+
+    def front_support_proxy(i):
+        goal, geom, pair, force = 21+3*i, 99+3*i, 131+2*i, 123+2*i
+        # Obstacle-pair reaction near top is NOT classified TOP or current Y ROI.
+        return ((latent[...,pair] == 0) & (latent[...,pair+1] == 1)
+                & (latent[...,force+1]*100. >= .2)
+                & (latent[...,goal] >= -.015) & (latent[...,goal] <= .025)
+                & (latent[...,goal+1] >= -.005) & (latent[...,geom+1] <= .005))
+
+    fronts_placed = (latent[...,154] == 1) & (latent[...,155] == 1)
+    support_proxy = front_support_proxy(0) & front_support_proxy(1)
+    pending = latent[...,157] == 0
+    p06 = (stage == 5) & fronts_placed & pending
+    rolling = p06 & support_proxy
+    weights["P06_front_support_rolling_proxy"] = rolling.to(latent.dtype)
+    weights["P06_front_support_recovery_proxy"] = (p06 & ~support_proxy).to(latent.dtype)
+    # Any rear leg approaching the preparation region releases rolling preference.
+    rear_x = torch.maximum(latent[...,28], latent[...,31])
+    rear_proximity = ((rear_x+.27)/.05).clamp(0.,1.)
+    prepare = ((stage >= 6) & (stage <= 8) & pending).to(latent.dtype)
+    weights["RR_preparation"] = torch.maximum(prepare, p06*rear_proximity)
+    valid_rr = ((stage >= 5) & (stage <= 8) & pending & (latent[...,149] == 1))
+    weights["RR_current_valid_lift"] = valid_rr.to(latent.dtype)
+    B = base
+    for name, weight in weights.items():
+        target = latent.new_tensor(TASK_CONDITIONED_PHYSICAL_B_TABLE[name])
+        if target.shape != (12,) or not bool((torch.isfinite(target) & (target > 0)).all()):
+            raise ValueError("task sigma table must preserve twelve positive finite scales")
+        B = torch.lerp(B, target, weight.unsqueeze(-1))
+    return B, cap, {"task_state_weights": weights, "stage_index":stage,
+        "front_support_proxy_not_exact_TOP":support_proxy,
+        "current_RR_qualification":latent[...,149], "current_rear_front_distance_m":rear_x}
+
+
+def task_conditioned_effective_log_std(head_log_std: torch.Tensor, latent: torch.Tensor,
+                                     temperature: float):
+    """The one sigma kernel used by official sampling/likelihood and evidence."""
+    B, cap, evidence = task_conditioned_physical_scales(latent)
+    if (type(temperature) is not float or temperature != .25
+            or not isinstance(head_log_std, torch.Tensor)
+            or head_log_std.shape != latent.shape[:-1]+(12,)
+            or head_log_std.device != latent.device or head_log_std.dtype != latent.dtype):
+        raise ValueError("task sigma requires matching quarter full12 current-observation head")
+    multiplier = B/cap
+    log_std = head_log_std + math.log(temperature) + multiplier.log()
+    sigma = log_std.exp()
+    if not bool((torch.isfinite(sigma) & (sigma > 0)).all()):
+        raise ValueError("task-conditioned Gaussian sigma must remain positive finite without clipping")
+    return log_std, {**evidence, "physical_equivalent_B_full12":B,
+                    "current_cap_full12":cap, "innovation_sigma_multiplier_full12":multiplier}
+
+
+class SemanticTaskConditionedHipWheelHistoryMLPModel(SemanticCapTransitionQuarterHistoryMLPModel):
+    """Same REQUEST-history mean/rho/cap; observable positive full12 innovation."""
+
+    def forward(self, obs: TensorDict, masks: torch.Tensor | None = None,
+                hidden_state: HiddenState = None, stochastic_output: bool = False) -> torch.Tensor:
+        if not stochastic_output:
+            return super().forward(obs,masks,hidden_state,stochastic_output=False)
+        obs = unpad_trajectories(obs,masks) if masks is not None and not self.is_recurrent else obs
+        latent = self.get_latent(obs,masks,hidden_state)
+        if (getattr(self,"observation_layout",None) != ROLE_OBSERVATION_LAYOUT
+                or self.obs_dim != ROLE_OBSERVATION_DIM or latent.shape[-1] != ROLE_OBSERVATION_DIM):
+            raise ValueError("task sigma actor requires the unchanged explicit 372 layout")
+        history,_ = cap_transition_request_history(latent)
+        head = history_conditioned_head(self.mlp(latent),history,HISTORY_RHO)
+        log_std,_ = task_conditioned_effective_log_std(head[...,1,:],latent,self.exploration_std_temperature)
+        self.distribution.update(torch.stack((head[...,0,:],log_std),dim=-2))
+        return self.distribution.sample()

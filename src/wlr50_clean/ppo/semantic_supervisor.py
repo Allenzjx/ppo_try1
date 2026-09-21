@@ -231,6 +231,15 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
         if _number(spec["geometry"]["xy_measurement_tolerance_m"], "capture XY tolerance") < 0:
             raise ValueError("capture retention requires nonnegative existing XY tolerance")
         _number(spec["geometry"]["top_gap_min_m"], "capture existing top gap")
+    if "rolling_capture_retention" in spec or spec.get("revision") == "task_conditioned_hip_wheel_v1":
+        expected = {"rear_preparation_near_m": -.22, "blend_distance_m": .05,
+                    "contact_fraction": .5, "positive_gap_scale_m": .003}
+        if (spec.get("revision") != "task_conditioned_hip_wheel_v1"
+                or spec.get("rolling_capture_retention") != expected
+                or spec.get("capture_retention_semantics") != CAPTURE_RETENTION_MODE
+                or spec.get("physical_acceptance_version") != "all_stage_v1"
+                or spec.get("p09_lift_semantics") != P09_FREE_AIR_LIFT_MODE):
+            raise ValueError("rolling retention requires its explicit current-contact task-quality version")
     _capture_approach_enabled(spec)
     _workspace_potential_enabled(spec)
     validate_transfer_roles(spec)
@@ -1286,7 +1295,24 @@ class TaskStageSupervisor:
         scale=self.spec["history"]["minimum_lift_gain_m"]
         gap=max(0.,self.spec["geometry"]["top_gap_min_m"]-clearance)
         vertical=scale/(scale+gap)
-        return min(xy,vertical)
+        retention = min(xy,vertical)
+        cfg = self.spec.get("rolling_capture_retention")
+        if cfg is None or leg not in ("FR", "FL"):
+            return retention
+        placed, legs = evaluation["history"]["placed"], evaluation["current_legs"]
+        if (not all(placed[p] for p in ("FR", "FL")) or placed["RR"]
+                or legs["RR"].get("current_lift_valid") is True):
+            return retention
+        rear = max(_number(legs[p]["front_distance_m"], f"{p} rolling edge distance") for p in ("RL", "RR"))
+        weight = _clip((cfg["rear_preparation_near_m"]-rear)/cfg["blend_distance_m"])
+        # Current support is a boolean measured condition, never a reward for
+        # greater force. Reuse the existing capture share, with no new event.
+        contact = bool(current.get("top_contact") is True and current.get("top_surface_contact") is True
+            and current.get("support") is True and current.get("bearing_verified") is True
+            and current.get("air") is False and current.get("ground_contact") is False)
+        proximity = 1./(1.+max(0.,clearance)/cfg["positive_gap_scale_m"])
+        usable = (1.-cfg["contact_fraction"])*proximity+cfg["contact_fraction"]*float(contact)
+        return retention*((1.-weight)+weight*usable)
 
     def _current_lift_credit(self, leg: str, evaluation: Mapping[str,Any]) -> float:
         if evaluation.get("valid") is not True or evaluation.get("termination_reason") is not None: return 0.

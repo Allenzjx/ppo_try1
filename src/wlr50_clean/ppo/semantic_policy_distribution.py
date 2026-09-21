@@ -36,6 +36,17 @@ HISTORY_REQUEST_CAP_TRANSITION_ACTOR_CLASS = "wlr50_clean.ppo.semantic_history_a
 FR_KNEE_PHYSICAL_INNOVATION_POLICY = "request_history_FR_knee_P06plus_physical_innovation_sigma_v1"
 FR_KNEE_PHYSICAL_INNOVATION_ACTOR_CLASS = "wlr50_clean.ppo.semantic_history_actor:SemanticFRKneePhysicalInnovationHistoryMLPModel"
 FR_KNEE_PHYSICAL_SIGMA_SEMANTICS = "P01_P05_unchanged_P06_P13_FR_knee_log_sigma_plus_log_24_over_112_v1"
+TASK_CONDITIONED_HIP_WHEEL_POLICY = "task_conditioned_hip_wheel_sigma_v1"
+TASK_CONDITIONED_HIP_WHEEL_ACTOR_CLASS = "wlr50_clean.ppo.semantic_history_actor:SemanticTaskConditionedHipWheelHistoryMLPModel"
+TASK_CONDITIONED_HIP_WHEEL_SIGMA_SEMANTICS = "current_observation_task_physical_B_over_cap_sigma_same372_v1"
+TASK_CONDITIONED_PHYSICAL_B_TABLE = {
+    "FR_air_approach_proxy": (9.,12.,12.,18.,12.,12.,6.,9.,.6,.6,.6,.6),
+    "FL_crossed_air_pending": (24.,24.,9.,12.,6.,9.,6.,9.,1.,.6,1.,.6),
+    "P06_front_support_rolling_proxy": (12.,12.,12.,12.,12.,12.,12.,12.,1.2,1.2,1.,.6),
+    "P06_front_support_recovery_proxy": (24.,24.,12.,18.,12.,12.,12.,18.,1.2,1.2,1.,.6),
+    "RR_preparation": (24.,24.,12.,18.,24.,24.,12.,18.,1.2,1.2,1.,.6),
+    "RR_current_valid_lift": (24.,24.,12.,18.,24.,24.,24.,36.,1.2,1.2,1.,.6),
+}
 REQUEST_HISTORY_SEMANTICS = "entry_age_zero_predecessor_completed_increased_cap_filtered_request_inverse_tanh_v1"
 REQUEST_HISTORY_SCALES = (4., 4., 4., 6., 4., 4., 4., 4., .12, .12, .12, .12)
 REQUEST_HISTORY_CAPS = (
@@ -66,16 +77,19 @@ NORMALIZATION = "fixed_versioned_observation_schema; identity_RSL_normalizer"
 def policy_contract(version: str, *, observation_layout: str | None = None) -> dict[str, Any]:
     if version not in (LEGACY_POLICY, STATE_DEPENDENT_POLICY, HISTORY_POLICY,
                        HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
-                       HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY):
+                       HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
+                       TASK_CONDITIONED_HIP_WHEEL_POLICY):
         raise ValueError("unsupported semantic policy distribution version")
     if (version in (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
-                    HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY)
+                    HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
+                    TASK_CONDITIONED_HIP_WHEEL_POLICY)
             and observation_layout != ROLE_OBSERVATION_LAYOUT):
         raise ValueError("tempered history policy requires the explicit 372 role layout")
     if observation_layout is not None and (
             type(observation_layout) is not str or observation_layout != ROLE_OBSERVATION_LAYOUT
             or version not in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
-                               HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY)):
+                               HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
+                               TASK_CONDITIONED_HIP_WHEEL_POLICY)):
         raise ValueError("appended role observation layout requires the exact history policy")
     dependent = version != LEGACY_POLICY
     contract = {
@@ -88,7 +102,8 @@ def policy_contract(version: str, *, observation_layout: str | None = None) -> d
         "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
     }
     if version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
-                   HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY):
+                   HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
+                   TASK_CONDITIONED_HIP_WHEEL_POLICY):
         contract.update({
             "actor_class": HISTORY_ACTOR_CLASS,
             "history_feature": "previous_raw_full12",
@@ -108,7 +123,7 @@ def policy_contract(version: str, *, observation_layout: str | None = None) -> d
             "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; deterministic_mean_unchanged",
         })
     if version in (HISTORY_QUARTER_TEMPERED_POLICY, HISTORY_REQUEST_CAP_TRANSITION_POLICY,
-                   FR_KNEE_PHYSICAL_INNOVATION_POLICY):
+                   FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY):
         contract.update({
             "actor_class": HISTORY_QUARTER_TEMPERED_ACTOR_CLASS,
             "exploration_std_temperature": 0.25,
@@ -116,7 +131,8 @@ def policy_contract(version: str, *, observation_layout: str | None = None) -> d
             "effective_log_std": "learned_log_std+log(0.25)",
             "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; deterministic_mean_unchanged",
         })
-    if version in (HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY):
+    if version in (HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
+                   TASK_CONDITIONED_HIP_WHEEL_POLICY):
         contract.update({
             "actor_class": HISTORY_REQUEST_CAP_TRANSITION_ACTOR_CLASS,
             "history_feature": "previous_raw_else_cap_entry_previous_filtered_request",
@@ -140,6 +156,20 @@ def policy_contract(version: str, *, observation_layout: str | None = None) -> d
             "conditional_std": "0.25*learned_sigma*P06plus_FR_knee_24_over_112; no_stationary_rescaling",
             "effective_log_std": "learned_log_std+log(0.25)+selected_P06plus_FR_knee_log(24/112)",
             "sigma_scaling_scope": "official_raw_Gaussian_sample_logprob_entropy_KL; mean_history_caps_unchanged",
+        })
+    if version == TASK_CONDITIONED_HIP_WHEEL_POLICY:
+        contract.update({
+            "actor_class": TASK_CONDITIONED_HIP_WHEEL_ACTOR_CLASS,
+            "sigma_scaling_semantics": TASK_CONDITIONED_HIP_WHEEL_SIGMA_SEMANTICS,
+            "physical_equivalent_B_full12": {key:list(value) for key,value in TASK_CONDITIONED_PHYSICAL_B_TABLE.items()},
+            "B_units": "canonical_servo_degrees_first8_wheel_rad_per_second_last4_not_actual_sigma_or_capacity",
+            "conditional_std": "0.25*learned_sigma*positive_current_observation_B_over_current_cap",
+            "effective_log_std": "learned_log_std+log(0.25)+log(B/current_cap)",
+            "sigma_fallback": "unchanged_e735_B_equals_current_cap_except_P06plus_FR_knee_B24",
+            "state_gate_semantics": "FR_current_AIR_gap0to15mm_after_lift;FL_crossed_pending_AIR_gap0to3mm;P06_front_support_rolling_or_recovery_proxy;nearest_rear_max_distance_blend_minus270to220mm;RR_current_qualification149_overrides_preparation",
+            "contact_proxy_limitations": "pair_active_near_top_is_not_classified_TOP_or_current_lateral_ROI;not_physical_acceptance",
+            "sigma_scaling_scope": "official_raw_Gaussian_sample_logprob_entropy_KL;mean_history_caps_unchanged",
+            "directional_bias": False, "extra_filter_or_sampling_rejection": False,
         })
     if observation_layout is not None:
         contract.update({
@@ -181,6 +211,9 @@ def configure_policy_distribution(config: dict[str, Any], version: str, *,
     if version == FR_KNEE_PHYSICAL_INNOVATION_POLICY:
         config["actor"]["class_name"] = FR_KNEE_PHYSICAL_INNOVATION_ACTOR_CLASS
         config["actor"]["exploration_std_temperature"] = contract["exploration_std_temperature"]
+    if version == TASK_CONDITIONED_HIP_WHEEL_POLICY:
+        config["actor"]["class_name"] = TASK_CONDITIONED_HIP_WHEEL_ACTOR_CLASS
+        config["actor"]["exploration_std_temperature"] = contract["exploration_std_temperature"]
     if observation_layout is not None:
         config["actor"]["observation_layout"] = observation_layout
 
@@ -204,10 +237,11 @@ def supported_heteroscedastic_contract_version(contract: Mapping[str, Any]) -> s
     if isinstance(contract, Mapping):
         for version in (STATE_DEPENDENT_POLICY, HISTORY_POLICY, HISTORY_TEMPERED_POLICY,
                         HISTORY_QUARTER_TEMPERED_POLICY, HISTORY_REQUEST_CAP_TRANSITION_POLICY,
-                        FR_KNEE_PHYSICAL_INNOVATION_POLICY):
+                        FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY):
             layouts = ((ROLE_OBSERVATION_LAYOUT,) if version in
                        (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
-                        HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY) else
+                        HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
+                        TASK_CONDITIONED_HIP_WHEEL_POLICY) else
                        (None, ROLE_OBSERVATION_LAYOUT) if version == HISTORY_POLICY else (None,))
             for layout in layouts:
                 if _same_json(dict(contract), policy_contract(version, observation_layout=layout)):
@@ -243,11 +277,14 @@ def policy_version_from_metadata(metadata: Mapping[str, Any]) -> str:
                 HISTORY_REQUEST_CAP_TRANSITION_POLICY,
             (FR_KNEE_PHYSICAL_INNOVATION_ACTOR_CLASS, "HeteroscedasticGaussianDistribution", "log"):
                 FR_KNEE_PHYSICAL_INNOVATION_POLICY,
+            (TASK_CONDITIONED_HIP_WHEEL_ACTOR_CLASS, "HeteroscedasticGaussianDistribution", "log"):
+                TASK_CONDITIONED_HIP_WHEEL_POLICY,
         }[pair]
     except (KeyError, TypeError) as error:
         raise ValueError("checkpoint has an unsupported policy distribution") from error
     if version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
-                   HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY) and semantic_version != "v3":
+                   HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
+                   TASK_CONDITIONED_HIP_WHEEL_POLICY) and semantic_version != "v3":
         raise ValueError("history-conditioned policy requires semantic v3")
     declared = metadata.get("policy_contract")
     if declared is None:

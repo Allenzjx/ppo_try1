@@ -31,6 +31,61 @@ def _tensor_hash(items: Any) -> str:
     return digest.hexdigest()
 
 
+def _task_conditioned_source_record(record):
+    from pathlib import Path
+    from .semantic_policy_distribution import (TASK_CONDITIONED_HIP_WHEEL_POLICY,
+        FR_KNEE_PHYSICAL_INNOVATION_POLICY)
+    target, source = record["policy_contract"], record.get("source_policy_contract")
+    source_version = supported_heteroscedastic_contract_version(source)
+    runtime_hash, effective_hash = record.get("source_runtime_content_sha256"), record.get("effective_runtime_content_sha256")
+    if (record.get("effective_policy_contract") != target or runtime_hash is None
+            or not isinstance(effective_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", effective_hash)):
+        raise ValueError("task prefix requires explicit source and effective kernel/runtime provenance")
+    archive = record.get("archive_only_exact_bytes_migration")
+    task = record.get("task_conditioned_hip_wheel_migration")
+    if (archive is not None and task is not None
+            or record.get("physical_innovation_sigma_migration") is not None
+            or record.get("request_history_kernel_migration") is not None):
+        raise ValueError("task prefix may not mix independent migration provenance")
+    if archive is not None:
+        migration, factor_key = archive, "archive_only_exact_bytes_factor"
+        schema = "wlr50_clean.archive_only_exact_bytes_same372.v1"
+        if (source != target or source_version not in (FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY)
+                or effective_hash != runtime_hash):
+            raise ValueError("archive-only prefix may not change policy or runtime bytes")
+    elif task is not None:
+        migration, factor_key = task, "task_conditioned_hip_wheel_factor"
+        schema = "wlr50_clean.task_conditioned_hip_wheel_same372.v1"
+        if source_version != FR_KNEE_PHYSICAL_INNOVATION_POLICY or target["version"] != TASK_CONDITIONED_HIP_WHEEL_POLICY:
+            raise ValueError("task prefix requires the exact FR-knee to task-conditioned policy boundary")
+    else:
+        if source != target or target["version"] != TASK_CONDITIONED_HIP_WHEEL_POLICY or effective_hash != runtime_hash:
+            raise ValueError("task prefix is not a verified migration or exact target checkpoint resume")
+        return
+    keys = {"plan_path", "plan_sha256", "source_checkpoint_sha256",
+        "source_runtime_content_sha256", "target_runtime_content_sha256"}
+    if not isinstance(migration, dict) or set(migration) != keys:
+        raise ValueError("task prefix requires its exact immutable migration binding")
+    path = Path(migration["plan_path"]).resolve(strict=True)
+    raw = path.read_bytes()
+    plan = json.loads(raw)
+    factor = plan.get(factor_key, {})
+    if (hashlib.sha256(raw).hexdigest() != migration["plan_sha256"]
+            or migration["source_checkpoint_sha256"] != record["checkpoint_sha256"]
+            or migration["source_runtime_content_sha256"] != runtime_hash
+            or migration["target_runtime_content_sha256"] != effective_hash
+            or plan.get("source_checkpoint") != record["checkpoint_path"]
+            or plan.get("source_checkpoint_sha256") != record["checkpoint_sha256"]
+            or plan.get("source_runtime_content_sha256") != runtime_hash
+            or plan.get("target_runtime_content_sha256") != effective_hash
+            or factor.get("schema") != schema or factor.get("source_policy_contract") != source
+            or factor.get("target_policy_contract") != target):
+        raise ValueError("task prefix plan differs from source checkpoint and effective kernel")
+    if archive is not None and (factor.get("runtime_bytes_identical") is not True
+            or plan.get("allowed_changed_files") != [] or plan.get("changed_file_hashes") != {}):
+        raise ValueError("archive-only prefix plan contains runtime changes")
+
+
 def _source_record(source: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(source, Mapping):
         raise ValueError("verified source checkpoint must be a JSON mapping")
@@ -56,7 +111,11 @@ def _source_record(source: Mapping[str, Any]) -> dict[str, Any]:
     ):
         raise ValueError("source_runtime_content_sha256 must be a lowercase SHA256")
     from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
-        HISTORY_QUARTER_TEMPERED_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY)
+        HISTORY_QUARTER_TEMPERED_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY)
+    if (record["policy_contract"]["version"] == TASK_CONDITIONED_HIP_WHEEL_POLICY
+            or record.get("archive_only_exact_bytes_migration") is not None):
+        _task_conditioned_source_record(record)
+        return record
     if record["policy_contract"]["version"] in (HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY):
         target = record["policy_contract"]
         physical_innovation = target["version"] == FR_KNEE_PHYSICAL_INNOVATION_POLICY
@@ -118,9 +177,10 @@ class FrozenCheckpointPrefixPolicy:
         from rsl_rl.modules.distribution import HeteroscedasticGaussianDistribution
         from .semantic_history_actor import (SemanticHistoryMLPModel,
             SemanticTemperedHistoryMLPModel, SemanticQuarterTemperedHistoryMLPModel,
-            SemanticCapTransitionQuarterHistoryMLPModel, SemanticFRKneePhysicalInnovationHistoryMLPModel)
+            SemanticCapTransitionQuarterHistoryMLPModel, SemanticFRKneePhysicalInnovationHistoryMLPModel,
+            SemanticTaskConditionedHipWheelHistoryMLPModel)
         from .semantic_policy_distribution import (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
-            HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY)
+            HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY)
 
         record = _source_record(source_checkpoint)
         version = supported_heteroscedastic_contract_version(record["policy_contract"])
@@ -130,7 +190,8 @@ class FrozenCheckpointPrefixPolicy:
             HISTORY_TEMPERED_POLICY: SemanticTemperedHistoryMLPModel,
             HISTORY_QUARTER_TEMPERED_POLICY: SemanticQuarterTemperedHistoryMLPModel,
             HISTORY_REQUEST_CAP_TRANSITION_POLICY: SemanticCapTransitionQuarterHistoryMLPModel,
-            FR_KNEE_PHYSICAL_INNOVATION_POLICY: SemanticFRKneePhysicalInnovationHistoryMLPModel}
+            FR_KNEE_PHYSICAL_INNOVATION_POLICY: SemanticFRKneePhysicalInnovationHistoryMLPModel,
+            TASK_CONDITIONED_HIP_WHEEL_POLICY: SemanticTaskConditionedHipWheelHistoryMLPModel}
         expected_class = history_classes.get(version, MLPModel)
         if not isinstance(actor, torch.nn.Module) or getattr(actor, "is_recurrent", False):
             raise ValueError("checkpoint prefix requires a nonrecurrent torch actor")
