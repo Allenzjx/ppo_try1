@@ -1,0 +1,139 @@
+{
+  "schema": "wlr50_clean.quantity_first_actual_update_readonly.v1",
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\train\\20260921T0956511314318Z_g97ecd305afb5_6a28dfa361804726aa56ecb7e030410c",
+  "evidence_scope": "actual sealed immutable first-update checkpoint + saved rollout/update + official plan revalidation; no runner/model/optimizer replay or CUDA",
+  "source": {
+    "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000192000.pt",
+    "sha256": "d54f6f5450ddca5a94c674051a1d7d3759a228d7128a067a42618c0da97660b0",
+    "counters": {
+      "global_policy_decisions": 192000,
+      "ppo_updates": 1465,
+      "optimizer_steps": 29300
+    },
+    "stage_requested_decisions": {
+      "full_episode": 99968,
+      "phase_suffix": 81920,
+      "smoke": 0
+    }
+  },
+  "first_target": {
+    "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000192128.pt",
+    "sha256": "6463fae5d8e15984104074145fdb259a2f98028a228ed4fb8e6bbd53421e9eda",
+    "manifest_sha256": "56ed3754ab4e3cd7429b7f0e5aa43cff0b7c0a3dd118f91419150280c10f45a3",
+    "counters": {
+      "global_policy_decisions": 192128,
+      "ppo_updates": 1466,
+      "optimizer_steps": 29320
+    },
+    "stage_requested_decisions": {
+      "full_episode": 100096,
+      "phase_suffix": 81920,
+      "smoke": 0
+    },
+    "branch_counts": {
+      "global_policy_decisions": 6272,
+      "optimizer_steps": 980,
+      "ppo_updates": 49
+    }
+  },
+  "counter_delta": {
+    "global_policy_decisions": 128,
+    "ppo_updates": 1,
+    "optimizer_steps": 20
+  },
+  "original_branch_origins_preserved": true,
+  "quantity_plan": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoint192000_quantity_continuation.json",
+    "sha256": "2f551128effcb1f6f039ced3d5c3487b8860408ffc71b736a1471975fce1023c",
+    "official_revalidation_passed": true,
+    "persisted_infos_and_sidecar_receipt_exact": true,
+    "new_mdp": false,
+    "kernel_changed": false,
+    "budgets": {
+      "smoke": 10000,
+      "phase_suffix": 100000,
+      "full_episode": 131072
+    },
+    "remaining_full_episode_after_first_update": 30976
+  },
+  "restoration": {
+    "source_actor_hash_matches_first_actual_preupdate_hash": true,
+    "both_CP_all_actor_critic_tensor_hashes_verified": true,
+    "source_and_target_full_Adam_hashes_verified": true,
+    "Adam_state_entries": 12,
+    "Adam_param_groups": 1,
+    "Adam_param_groups_identical": true,
+    "Adam_step_pairs_unique": [
+      [
+        6220,
+        6240
+      ]
+    ],
+    "Adam_first_and_second_moments_finite_nonzero_all_parameters": true,
+    "LR_all_groups_and_metadata": 0.00001,
+    "Identity_normalizer_hash_unchanged": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+    "actual_post_load_identity_recorded_at": "2026-09-21T09:57:15.768685+00:00",
+    "restore_boundary_evidence": "production load_semantic_checkpoint lines888-896 compares actual actor/critic/fullAdam/normalizer hashes then restores source RNG; quantity check913-920; live_runtime_identity boundary is after this successful return",
+    "no_separate_preupdate_fullAdam_or_RNG_snapshot": "not captured; do not equate post-update state with source"
+  },
+  "RNG": {
+    "source_saved_hash": "0ece51771886771ffc87f000ce20641d94d7ee9a999df1153f17c770f54cc6f0",
+    "target_saved_hash": "cf7ad2ca3532aabcd6f384a2cb0df0e29a0da9af06665aaa5f512e7fa66c7ab1",
+    "seed": 1001,
+    "postupdate_equal_to_source_by_component": {
+      "python_random": true,
+      "numpy_random": true,
+      "torch_cpu": true,
+      "torch_cuda": false,
+      "torch_cuda_device_count": true
+    },
+    "interpretation": "source saved RNG is restored by mandatory loader before collecting; sampling/update may advance it. This audit does not replay or independently reconstruct CUDA RNG."
+  },
+  "first_update": {
+    "optimizer_steps": 20,
+    "actor_parameter_sha256_before": "f9fe0415502ed82df9b568fc04ce28ce7c6bec4882ebb20ed26f8f842182674f",
+    "actor_parameter_sha256_after": "4098513665bb4c8b7954703603ed24016751dc539bdaaa7515060cb227212eae",
+    "actor_parameters_changed": true,
+    "finite_nonzero_gradient_observed": true,
+    "gradient_norm_min": 1.0666733033620635,
+    "gradient_norm_max": 1.4142135080076192,
+    "kl_mean": 0.013623395117626303,
+    "clip_fraction": 0.278125,
+    "entropy": -26.67949676513672,
+    "value_loss": 0.023787084873765706,
+    "surrogate_loss": -0.022199822030961512,
+    "optimizer_learning_rate": 0.00001,
+    "ppo_update": 1466,
+    "global_policy_decisions": 192128
+  },
+  "rollout": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\train\\20260921T0956511314318Z_g97ecd305afb5_6a28dfa361804726aa56ecb7e030410c\\rollouts\\rollout_001466.pt",
+    "sha256": "85a6b77e2173deffba9223552e24c7bfc7f8cc311bdf07984d2dadbacadded87",
+    "actions_shape": [
+      128,
+      1,
+      12
+    ],
+    "policy_observations_shape": [
+      128,
+      1,
+      372
+    ],
+    "actual_samples": 128,
+    "first_decision": 192001,
+    "last_decision": 192128,
+    "phase_samples": {
+      "P01": 2,
+      "P02": 126
+    },
+    "teacher_prefix_samples_included": false
+  },
+  "entropy_schedule": {
+    "denominator": 210000,
+    "legacy_STAGES_literal_unchanged": true,
+    "coefficient_at_first_update_from_pinned_statement": 0.0013404190476190478,
+    "coefficient_not_separately_logged": true,
+    "reported_entropy_is_distribution_entropy_not_coefficient": true
+  },
+  "task_success_claim": false
+}

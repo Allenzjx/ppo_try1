@@ -1,0 +1,81 @@
+{
+  "schema": "wlr50_clean.receiving_wheel_sigma_candidate_seal.v1",
+  "status": "CPU_VERIFIED_NOT_APPLIED",
+  "source_production_head": "97ecd305afb5c43b095e1206ce8917e6e742b1bb",
+  "production_files_modified": false,
+  "target_policy_version": "task_conditioned_receiving_wheel_sigma_x3_v1",
+  "factor_key": "receiving_wheel_sigma_factor",
+  "factor_schema": "wlr50_clean.receiving_wheel_sigma_same372.v1",
+  "candidate_file_sha256": {
+    "src/wlr50_clean/ppo/semantic_checkpoint_prefix_policy.py": "812369e7be1a9bc6048ed9c59a4fb3ba7f0c25bf7db05109add12f4db3047130",
+    "src/wlr50_clean/ppo/semantic_cli.py": "33a76194c026799c3843dd235bd83ab83c65ba2b601a77b36ec4265813dfe451",
+    "src/wlr50_clean/ppo/semantic_migration.py": "71c4ede51f42088dbdd6f76b06a462e3c875f26e3bba1a1220fe158ffe9838b5",
+    "src/wlr50_clean/ppo/semantic_policy_distribution.py": "9e3c82b54e7a0d153aae1726489bb3f4b2744afb459ce5a1e6352e0f2c0220ba",
+    "src/wlr50_clean/ppo/semantic_receiving_wheel_profile.py": "7602652ecdf565c6542d412e6d03772fb1563f493bb4631d0732802054c69b86",
+    "src/wlr50_clean/ppo/semantic_receiving_wheel_sigma.py": "320c0511b434257b5d4dbf9121c9a99c5ffa394d2a49a4f2cfae9cba55c891be",
+    "src/wlr50_clean/ppo/semantic_training.py": "7c263c2f8e12e6dbe018c77e680a3134735c7bd39be24d5b7d529d250570fc4f"
+  },
+  "adopt_patch_sha256": "e77a0b33ef7623fee950abfdd54c3a6ed339f075fa19c3990ca19f01a6b04c2f",
+  "read_only_patch_exact_candidate_verified": [
+    "src/wlr50_clean/ppo/semantic_policy_distribution.py",
+    "src/wlr50_clean/ppo/semantic_training.py",
+    "src/wlr50_clean/ppo/semantic_cli.py",
+    "src/wlr50_clean/ppo/semantic_checkpoint_prefix_policy.py",
+    "src/wlr50_clean/ppo/semantic_migration.py",
+    "src/wlr50_clean/ppo/semantic_receiving_wheel_profile.py",
+    "src/wlr50_clean/ppo/semantic_receiving_wheel_sigma.py"
+  ],
+  "diffstat": [
+    {
+      "path": "src/wlr50_clean/ppo/semantic_policy_distribution.py",
+      "additions": 14,
+      "deletions": 3
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_training.py",
+      "additions": 94,
+      "deletions": 12
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_cli.py",
+      "additions": 20,
+      "deletions": 6
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_checkpoint_prefix_policy.py",
+      "additions": 14,
+      "deletions": 4
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_migration.py",
+      "additions": 222,
+      "deletions": 1
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_receiving_wheel_profile.py",
+      "additions": 53,
+      "deletions": 0
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_receiving_wheel_sigma.py",
+      "additions": 75,
+      "deletions": 0
+    }
+  ],
+  "tests": {
+    "tests": 47,
+    "failures": 0,
+    "errors": 0,
+    "junit": "final_cpu_tests.xml",
+    "scope": "CPU synthetic; no physics or production PPO/auxiliary credit",
+    "test_files": [
+      "test_receiving_wheel_sigma.py",
+      "test_receiving_integration.py",
+      "test_receiving_migration.py"
+    ]
+  },
+  "adoption_source_checkpoint": null,
+  "adoption_source_rule": "actual latest sealed compatible old-task-profile checkpoint after current P12 block, not the fixed CP196608 CPU fixture",
+  "actual_migration_plan_created": false,
+  "method": "PPO + LIMITED AUX; existing 7 accepted / 8 attempted AUX preserved; receiving sigma exploration experiment"
+}

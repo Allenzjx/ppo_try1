@@ -1,0 +1,1770 @@
+{
+  "schema": "wlr50_clean.CP187904_P01_P03_four_wheel_readonly.v1",
+  "source_run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\video_eval\\validation\\20260921T0627142354953Z_gee5a9651591d_91d8d06aaced49ebb0ad9d5a5c067b31\\source",
+  "classification": "fixed_CP187904_deterministic_natural_P01_evaluation_not_training_not_mask_intervention",
+  "checkpoint": {
+    "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000187904.pt",
+    "checkpoint_sha256": "e3a405312514c8c99dd55195a7f8648cff5c44af48e33c4a7e7429a2a2d2eb4c",
+    "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000187904_manifest.json",
+    "manifest_sha256": "e4d8f30d0679c73190092341996f7a094936772b2471d512ee9fa1362eba89b2"
+  },
+  "optimizer_updates": 0,
+  "scope": {
+    "episode_physics_ticks": [
+      1,
+      1624
+    ],
+    "native_dispatches": 1624,
+    "decision_endpoints": 203,
+    "selected_same_step_ticks": [
+      16,
+      24,
+      400,
+      1200,
+      1592,
+      1600
+    ],
+    "P02_forward_endpoint_count": 194,
+    "P02_forward_endpoint_ticks": [
+      48,
+      1592
+    ],
+    "physics_measurement_scope": "selected shots contain independent native qd and canonical sensor readback; rolling statistics use 194 saved evaluator endpoints, not inferred native targets",
+    "new_same_version_B_comparison": "not included; B not yet sealed when task assigned",
+    "full_task_result_claimed": false
+  },
+  "units": {
+    "wheel_targets_and_qd": "rad/s",
+    "policy_raw": "unbounded Gaussian latent; here conditional deterministic mean with rho=.9",
+    "servo_positions": "canonical degrees",
+    "positions": "world metres",
+    "native_sign_order": [
+      -1,
+      1,
+      -1,
+      1
+    ],
+    "wheel_order": [
+      "FL",
+      "FR",
+      "RL",
+      "RR"
+    ]
+  },
+  "source_frozen_reference": {
+    "path": "configs/recording_motion_contract.json",
+    "reference": "v010_20260806_220745_363972_manual",
+    "P01_four_wheel_source_group": {
+      "time_s": 0.33333333333333215,
+      "full_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "source_commands": [
+        "wheel all 0.300"
+      ],
+      "source_event": {
+        "step": 2,
+        "event": 0
+      }
+    },
+    "P01_explicit_all_wheel_stop_time_s": 13.266666666666424,
+    "P02_authored_changes": "FR knee only; original phase-entry wheel vector is zero after authored P01 stop. Current continuous scheduler keeps source-owner clocks, not zeroing other channels from P02 changed_channels.",
+    "P03_authored_entry_wheels": [
+      -0.79,
+      0,
+      0.61,
+      0
+    ],
+    "P03_existing_shared_nominal_entry_wheels": [
+      -0.79,
+      0,
+      0.51911,
+      0
+    ],
+    "P03_RL_difference": "Existing frozen fsm_states normal_correction_fractions[10]=-.149 in logical_command: .61*(1-.149)=.51911. This is shared source tuning, not current PPO residual or a similarity acceptance gate.",
+    "current_observed_nominal_change_points": [
+      {
+        "tick": 1,
+        "source_phase": "P01",
+        "wheels": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "tick": 41,
+        "source_phase": "P02",
+        "wheels": [
+          0.3,
+          0.3,
+          0.3,
+          0.3
+        ]
+      },
+      {
+        "tick": 1593,
+        "source_phase": "P03",
+        "wheels": [
+          -0.79,
+          0,
+          0.51911,
+          0
+        ]
+      }
+    ],
+    "same_nominal_values_are_not_an_independent_zero_trajectory": "N is the shared source suggestion in the PPO trajectory. Later physical-feedback timing can differ from a separate B run; no current A/B paired result is inferred."
+  },
+  "mask_and_dispatch": {
+    "recorded_phase_residual_mask_all_one_120Hz": true,
+    "all_1624_final_native_dispatch_checks_verified": true,
+    "actual_effective_runtime_safety_mask_vector_not_separately_logged": true,
+    "nominal_masked_away_observed": false,
+    "full_source_owner_and_numeric_actuator_id_ledger": null,
+    "same_dispatch_request_vs_effective_max_abs_rad_s": 0,
+    "same_dispatch_baseline_vs_sourceN_max_abs_rad_s": 0,
+    "same_dispatch_baseline_plus_effective_vs_final_max_abs_rad_s": 0,
+    "native_target_sign_mapping_max_abs_rad_s": 2.9299206838473424e-8,
+    "diagnostic_mask_leakage_observed_in_these_channels": false,
+    "scope_limitation": "No fixed masked-zero or missing-wheel dispatch is observed in this run/window; this does not audit every prior run/reset/global configuration."
+  },
+  "first_observed_difference": {
+    "whole_window": {
+      "decision": 1,
+      "end_tick": 8,
+      "time_s": 0.06666666666666667,
+      "layer": "nonzero policy residual -> verified dispatched target; shared N wheels are zero"
+    },
+    "P02": {
+      "decision": 3,
+      "end_tick": 24,
+      "time_s": 0.2,
+      "layer": "nonzero residual while source N wheels still zero, not dropped nominal"
+    },
+    "P02_forward": {
+      "decision": 6,
+      "end_tick": 48,
+      "time_s": 0.4,
+      "layer": "policy residual changes all four nonzero N targets; RR reduced most, no other-wheel cancellation"
+    },
+    "source_stop_or_differential": {
+      "episode_poststep_tick": 1593,
+      "time_s": 13.275,
+      "layer": "source/N owner changes to P03, before PPO addition; zeros in FR/RR nominal are authored stop, not residual permission mask"
+    },
+    "timing_scope": "First saved decision endpoint for policy-layer comparisons, not the first changed 120Hz actuator sample. Source/N change points are exact 120Hz poststep-associated dispatch ticks."
+  },
+  "P02_forward_statistics": {
+    "FL": {
+      "nominal": {
+        "count": 194,
+        "min": 0.3,
+        "max": 0.3,
+        "mean": 0.299999999999999
+      },
+      "raw": {
+        "count": 194,
+        "min": 0.01607593707740307,
+        "max": 0.03726711496710777,
+        "mean": 0.03460728446232904
+      },
+      "effective": {
+        "count": 194,
+        "min": 0.009644731412948082,
+        "max": 0.02234992313168438,
+        "mean": 0.020755892784606517
+      },
+      "final": {
+        "count": 194,
+        "min": 0.30964473141294807,
+        "max": 0.32234992313168437,
+        "mean": 0.32075589278460637
+      },
+      "actual": {
+        "count": 194,
+        "min": 0.05165790021419525,
+        "max": 0.3134317100048065,
+        "mean": 0.19502586955876694
+      },
+      "actual_abs_lt001": 0,
+      "final_abs_lt001": 0,
+      "target_actual_rms": 0.12886034451261522
+    },
+    "FR": {
+      "nominal": {
+        "count": 194,
+        "min": 0.3,
+        "max": 0.3,
+        "mean": 0.299999999999999
+      },
+      "raw": {
+        "count": 194,
+        "min": 0.037143267691135406,
+        "max": 0.09771866351366043,
+        "mean": 0.09314828711686675
+      },
+      "effective": {
+        "count": 194,
+        "min": 0.02227571753094032,
+        "max": 0.05844528630376833,
+        "mean": 0.05572370276477599
+      },
+      "final": {
+        "count": 194,
+        "min": 0.3222757175309403,
+        "max": 0.3584452863037683,
+        "mean": 0.3557237027647763
+      },
+      "actual": {
+        "count": 194,
+        "min": 0.32220137119293213,
+        "max": 0.36102941632270813,
+        "mean": 0.3563035566782214
+      },
+      "actual_abs_lt001": 0,
+      "final_abs_lt001": 0,
+      "target_actual_rms": 0.0009104888181412752
+    },
+    "RL": {
+      "nominal": {
+        "count": 194,
+        "min": 0.3,
+        "max": 0.3,
+        "mean": 0.299999999999999
+      },
+      "raw": {
+        "count": 194,
+        "min": -0.0017616492696106434,
+        "max": 0.01880677416920662,
+        "mean": 0.011839886575807654
+      },
+      "effective": {
+        "count": 194,
+        "min": -0.0010569884683443997,
+        "max": 0.011282734318240062,
+        "mean": 0.0071035176588446014
+      },
+      "final": {
+        "count": 194,
+        "min": 0.2989430115316556,
+        "max": 0.31128273431824005,
+        "mean": 0.3071035176588446
+      },
+      "actual": {
+        "count": 194,
+        "min": 0.2704576849937439,
+        "max": 0.4834327697753906,
+        "mean": 0.37020340269988344
+      },
+      "actual_abs_lt001": 0,
+      "final_abs_lt001": 0,
+      "target_actual_rms": 0.07495786854109174
+    },
+    "RR": {
+      "nominal": {
+        "count": 194,
+        "min": 0.3,
+        "max": 0.3,
+        "mean": 0.299999999999999
+      },
+      "raw": {
+        "count": 194,
+        "min": -0.22352232038974762,
+        "max": -0.08875533938407898,
+        "mean": -0.2148532243349503
+      },
+      "effective": {
+        "count": 194,
+        "min": -0.1319236097946496,
+        "max": -0.053113808628711096,
+        "mean": -0.12691283343898324
+      },
+      "final": {
+        "count": 194,
+        "min": 0.1680763902053504,
+        "max": 0.2468861913712889,
+        "mean": 0.17308716656101686
+      },
+      "actual": {
+        "count": 194,
+        "min": 0.03534713387489319,
+        "max": 0.3728087842464447,
+        "mean": 0.25643956661224365
+      },
+      "actual_abs_lt001": 0,
+      "final_abs_lt001": 0,
+      "target_actual_rms": 0.08749659171760843
+    }
+  },
+  "same_step_evidence": [
+    {
+      "episode_poststep_tick": 16,
+      "sim_time_s": 0.13333333333333333,
+      "request_decision": 2,
+      "request_phase": "P01",
+      "request_start_tick": 8,
+      "native_dispatch_tick": 195,
+      "clock_semantics": "poststep episode tick; preceding dispatch has reset/settle native clock offset +179, not same numeric time axis",
+      "native_buffer_read_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim",
+      "verified": true,
+      "setter_dispatch_targets_equal": true,
+      "actual_mapping_matches_dispatch": true,
+      "final_stop_owner_active": false,
+      "source_request_semantics": "held_source_owner_requests_single_mature_mapper",
+      "read_only_native_measurement_clock_unchanged": true,
+      "base_position_w_m": [
+        -0.0039159394800662994,
+        0.00018389523029327393,
+        0.09651689976453781
+      ],
+      "base_linear_velocity_w_m_s": [
+        -0.01289219968020916,
+        0.01504887267947197,
+        -0.0060650017112493515
+      ],
+      "RR_knee": {
+        "target_deg": -0.5931429788555123,
+        "actual_deg": -0.9082712187110231,
+        "velocity_deg_s": 5.062733434525735
+      },
+      "FR_wheel_bottom_clearance_above_obstacle_top_m": -0.04644181334622812,
+      "wheels": [
+        {
+          "leg": "FL",
+          "canonical_action_index": 8,
+          "joint_name": "front_left_ankle",
+          "native_dof_name_index": 8,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": -1,
+          "source_held_reference_wheel_rad_s": 0,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0,
+          "policy_raw_latent": 0.007276069838553667,
+          "history_center_raw": 0.004051194991916418,
+          "base_mean_raw": 0.036299943923950195,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.004365564864001121,
+          "same_dispatch_effective_residual_rad_s": 0.004365564864001121,
+          "same_dispatch_baseline_rad_s": 0,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.004365564864001121,
+          "actual_native_target_buffer_rad_s": -0.004365564789623022,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0,
+          "same_tick_native_target_delta_rad_s": -0.004365564789623022,
+          "native_measured_joint_qd_rad_s": 0.020387405529618263,
+          "canonical_measured_joint_qd_rad_s": -0.020387405529618263,
+          "contact": {
+            "contact_class": "GROUND",
+            "ground_active": true,
+            "obstacle_active": false,
+            "ground_normal_force_n": 14.086714744567999,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            0.2487807422876358,
+            0.08007930219173431,
+            0.04908662661910057
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            -0.00602823356166482,
+            0.007759558502584696,
+            0.00042967800982296467
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "FR",
+          "canonical_action_index": 9,
+          "joint_name": "front_right_ankle",
+          "native_dof_name_index": 9,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": 1,
+          "source_held_reference_wheel_rad_s": 0,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0,
+          "policy_raw_latent": 0.013766295276582241,
+          "history_center_raw": 0.007190147880464792,
+          "base_mean_raw": 0.07295162230730057,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.008259255432936968,
+          "same_dispatch_effective_residual_rad_s": 0.008259255432936968,
+          "same_dispatch_baseline_rad_s": 0,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.008259255432936968,
+          "actual_native_target_buffer_rad_s": 0.008259255439043045,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0,
+          "same_tick_native_target_delta_rad_s": 0.008259255439043045,
+          "native_measured_joint_qd_rad_s": 0.008309230208396912,
+          "canonical_measured_joint_qd_rad_s": 0.008309230208396912,
+          "contact": {
+            "contact_class": "AIR",
+            "ground_active": false,
+            "obstacle_active": false,
+            "ground_normal_force_n": 0,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            0.25397542119026184,
+            -0.31818249821662903,
+            0.053532958030700684
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            0.003234455594792962,
+            0.008639628067612648,
+            0.07577313482761383
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "RL",
+          "canonical_action_index": 10,
+          "joint_name": "rear_left_ankle",
+          "native_dof_name_index": 10,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": -1,
+          "source_held_reference_wheel_rad_s": 0,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0,
+          "policy_raw_latent": 0.006357469595968723,
+          "history_center_raw": 0.00453342916443944,
+          "base_mean_raw": 0.02277383767068386,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.003814430367908717,
+          "same_dispatch_effective_residual_rad_s": 0.003814430367908717,
+          "same_dispatch_baseline_rad_s": 0,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.003814430367908717,
+          "actual_native_target_buffer_rad_s": -0.0038144304417073727,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0,
+          "same_tick_native_target_delta_rad_s": -0.0038144304417073727,
+          "native_measured_joint_qd_rad_s": -0.0036701953504234552,
+          "canonical_measured_joint_qd_rad_s": 0.0036701953504234552,
+          "contact": {
+            "contact_class": "AIR",
+            "ground_active": false,
+            "obstacle_active": false,
+            "ground_normal_force_n": 0,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            -0.32615214586257935,
+            0.07371220737695694,
+            0.062248438596725464
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            -0.22808584570884705,
+            0.011671945452690125,
+            0.1779933124780655
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "RR",
+          "canonical_action_index": 11,
+          "joint_name": "rear_right_ankle",
+          "native_dof_name_index": 11,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": 1,
+          "source_held_reference_wheel_rad_s": 0,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0,
+          "policy_raw_latent": -0.036591749638319016,
+          "history_center_raw": -0.01972646825015545,
+          "base_mean_raw": -0.18837928771972656,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": -0.02194525607871219,
+          "same_dispatch_effective_residual_rad_s": -0.02194525607871219,
+          "same_dispatch_baseline_rad_s": 0,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": -0.02194525607871219,
+          "actual_native_target_buffer_rad_s": -0.021945256739854813,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0,
+          "same_tick_native_target_delta_rad_s": -0.021945256739854813,
+          "native_measured_joint_qd_rad_s": 0.0024889579508453608,
+          "canonical_measured_joint_qd_rad_s": 0.0024889579508453608,
+          "contact": {
+            "contact_class": "GROUND",
+            "ground_active": true,
+            "obstacle_active": false,
+            "ground_normal_force_n": 13.986159324646122,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            -0.3070659935474396,
+            -0.3227156102657318,
+            0.04961485415697098
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            -0.005876950919628143,
+            0.0074172127060592175,
+            -0.002172943903133273
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        }
+      ]
+    },
+    {
+      "episode_poststep_tick": 24,
+      "sim_time_s": 0.2,
+      "request_decision": 3,
+      "request_phase": "P02",
+      "request_start_tick": 16,
+      "native_dispatch_tick": 203,
+      "clock_semantics": "poststep episode tick; preceding dispatch has reset/settle native clock offset +179, not same numeric time axis",
+      "native_buffer_read_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim",
+      "verified": true,
+      "setter_dispatch_targets_equal": true,
+      "actual_mapping_matches_dispatch": true,
+      "final_stop_owner_active": false,
+      "source_request_semantics": "held_source_owner_requests_single_mature_mapper",
+      "read_only_native_measurement_clock_unchanged": true,
+      "base_position_w_m": [
+        -0.004682281985878944,
+        0.0014272406697273254,
+        0.09473856538534164
+      ],
+      "base_linear_velocity_w_m_s": [
+        -0.015130515210330486,
+        0.02168039046227932,
+        -0.009660506621003151
+      ],
+      "RR_knee": {
+        "target_deg": -0.8095342289148216,
+        "actual_deg": -1.1275472916599951,
+        "velocity_deg_s": 6.2357458537154935
+      },
+      "FR_wheel_bottom_clearance_above_obstacle_top_m": -0.04155390452273241,
+      "wheels": [
+        {
+          "leg": "FL",
+          "canonical_action_index": 8,
+          "joint_name": "front_left_ankle",
+          "native_dof_name_index": 8,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": -1,
+          "source_held_reference_wheel_rad_s": 0,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0,
+          "policy_raw_latent": 0.009863093495368958,
+          "history_center_raw": 0.007276069838553667,
+          "base_mean_raw": 0.03314630687236786,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.005917664207131395,
+          "same_dispatch_effective_residual_rad_s": 0.005917664207131395,
+          "same_dispatch_baseline_rad_s": 0,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.005917664207131395,
+          "actual_native_target_buffer_rad_s": -0.005917664151638746,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0,
+          "same_tick_native_target_delta_rad_s": -0.005917664151638746,
+          "native_measured_joint_qd_rad_s": 0.02847856469452381,
+          "canonical_measured_joint_qd_rad_s": -0.02847856469452381,
+          "contact": {
+            "contact_class": "GROUND",
+            "ground_active": true,
+            "obstacle_active": false,
+            "ground_normal_force_n": 14.255771636963019,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            0.24815982580184937,
+            0.08071932196617126,
+            0.04918910190463066
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            -0.008025187999010086,
+            0.013184282928705215,
+            -0.0004557741340249777
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "FR",
+          "canonical_action_index": 9,
+          "joint_name": "front_right_ankle",
+          "native_dof_name_index": 9,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": 1,
+          "source_held_reference_wheel_rad_s": 0,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0,
+          "policy_raw_latent": 0.01979944482445717,
+          "history_center_raw": 0.013766295276582241,
+          "base_mean_raw": 0.07409778982400894,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.011878114790241954,
+          "same_dispatch_effective_residual_rad_s": 0.011878114790241954,
+          "same_dispatch_baseline_rad_s": 0,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.011878114790241954,
+          "actual_native_target_buffer_rad_s": 0.011878115125000477,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0,
+          "same_tick_native_target_delta_rad_s": 0.011878115125000477,
+          "native_measured_joint_qd_rad_s": 0.011790665797889233,
+          "canonical_measured_joint_qd_rad_s": 0.011790665797889233,
+          "contact": {
+            "contact_class": "AIR",
+            "ground_active": false,
+            "obstacle_active": false,
+            "ground_normal_force_n": 0,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            0.2613947093486786,
+            -0.3174399435520172,
+            0.058385103940963745
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            0.14484119415283203,
+            0.016096312552690506,
+            0.1039060652256012
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "RL",
+          "canonical_action_index": 10,
+          "joint_name": "rear_left_ankle",
+          "native_dof_name_index": 10,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": -1,
+          "source_held_reference_wheel_rad_s": 0,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0,
+          "policy_raw_latent": 0.006672316696494818,
+          "history_center_raw": 0.006357469595968723,
+          "base_mean_raw": 0.009505942463874817,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.004003330608900392,
+          "same_dispatch_effective_residual_rad_s": 0.004003330608900392,
+          "same_dispatch_baseline_rad_s": 0,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.004003330608900392,
+          "actual_native_target_buffer_rad_s": -0.00400333059951663,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0,
+          "same_tick_native_target_delta_rad_s": -0.00400333059951663,
+          "native_measured_joint_qd_rad_s": -0.004082208499312401,
+          "canonical_measured_joint_qd_rad_s": 0.004082208499312401,
+          "contact": {
+            "contact_class": "AIR",
+            "ground_active": false,
+            "obstacle_active": false,
+            "ground_normal_force_n": 0,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            -0.3432752788066864,
+            0.0749112069606781,
+            0.07528022676706314
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            -0.2602941691875458,
+            0.023184504359960556,
+            0.25546130537986755
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "RR",
+          "canonical_action_index": 11,
+          "joint_name": "rear_right_ankle",
+          "native_dof_name_index": 11,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": 1,
+          "source_held_reference_wheel_rad_s": 0,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0,
+          "policy_raw_latent": -0.05087992548942566,
+          "history_center_raw": -0.036591749638319016,
+          "base_mean_raw": -0.17947351932525635,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": -0.03050163929115719,
+          "same_dispatch_effective_residual_rad_s": -0.03050163929115719,
+          "same_dispatch_baseline_rad_s": 0,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": -0.03050163929115719,
+          "actual_native_target_buffer_rad_s": -0.03050163947045803,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0,
+          "same_tick_native_target_delta_rad_s": -0.03050163947045803,
+          "native_measured_joint_qd_rad_s": 0.013564626686275005,
+          "canonical_measured_joint_qd_rad_s": 0.013564626686275005,
+          "contact": {
+            "contact_class": "GROUND",
+            "ground_active": true,
+            "obstacle_active": false,
+            "ground_normal_force_n": 14.994817733764783,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            -0.3075612783432007,
+            -0.32207027077674866,
+            0.04951481148600578
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            -0.0074220504611730576,
+            0.009812463074922562,
+            -0.0006189605919644237
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        }
+      ]
+    },
+    {
+      "episode_poststep_tick": 400,
+      "sim_time_s": 3.3333333333333335,
+      "request_decision": 50,
+      "request_phase": "P02",
+      "request_start_tick": 392,
+      "native_dispatch_tick": 579,
+      "clock_semantics": "poststep episode tick; preceding dispatch has reset/settle native clock offset +179, not same numeric time axis",
+      "native_buffer_read_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim",
+      "verified": true,
+      "setter_dispatch_targets_equal": true,
+      "actual_mapping_matches_dispatch": true,
+      "final_stop_owner_active": false,
+      "source_request_semantics": "held_source_owner_requests_single_mature_mapper",
+      "read_only_native_measurement_clock_unchanged": true,
+      "base_position_w_m": [
+        0.02518799901008606,
+        0.015860997140407562,
+        0.07360590994358063
+      ],
+      "base_linear_velocity_w_m_s": [
+        0.009605693630874157,
+        0.005836704280227423,
+        0.008810662664473057
+      ],
+      "RR_knee": {
+        "target_deg": -3.347207415635079,
+        "actual_deg": -3.4217984423571695,
+        "velocity_deg_s": 4.659425278188468
+      },
+      "FR_wheel_bottom_clearance_above_obstacle_top_m": 0.09887470200900376,
+      "wheels": [
+        {
+          "leg": "FL",
+          "canonical_action_index": 8,
+          "joint_name": "front_left_ankle",
+          "native_dof_name_index": 8,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": -1,
+          "source_held_reference_wheel_rad_s": 0.3,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0.3,
+          "policy_raw_latent": 0.03498885780572891,
+          "history_center_raw": 0.0349913015961647,
+          "base_mean_raw": 0.03496687114238739,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.020984752063331724,
+          "same_dispatch_effective_residual_rad_s": 0.020984752063331724,
+          "same_dispatch_baseline_rad_s": 0.3,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.3209847520633317,
+          "actual_native_target_buffer_rad_s": -0.32098475098609924,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": -0.30000001192092896,
+          "same_tick_native_target_delta_rad_s": -0.020984739065170288,
+          "native_measured_joint_qd_rad_s": -0.19899442791938782,
+          "canonical_measured_joint_qd_rad_s": 0.19899442791938782,
+          "contact": {
+            "contact_class": "GROUND",
+            "ground_active": true,
+            "obstacle_active": false,
+            "ground_normal_force_n": 14.149740219116339,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            0.2741333842277527,
+            0.08854950219392776,
+            0.052631016820669174
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            0.010890928097069263,
+            0.007102374453097582,
+            -0.005455967038869858
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "FR",
+          "canonical_action_index": 9,
+          "joint_name": "front_right_ankle",
+          "native_dof_name_index": 9,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": 1,
+          "source_held_reference_wheel_rad_s": 0.3,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0.3,
+          "policy_raw_latent": 0.09743791818618774,
+          "history_center_raw": 0.09736963361501694,
+          "base_mean_raw": 0.09805245697498322,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.058278432855958184,
+          "same_dispatch_effective_residual_rad_s": 0.058278432855958184,
+          "same_dispatch_baseline_rad_s": 0.3,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.3582784328559582,
+          "actual_native_target_buffer_rad_s": 0.35827842354774475,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0.30000001192092896,
+          "same_tick_native_target_delta_rad_s": 0.058278411626815796,
+          "native_measured_joint_qd_rad_s": 0.3591691255569458,
+          "canonical_measured_joint_qd_rad_s": 0.3591691255569458,
+          "contact": {
+            "contact_class": "AIR",
+            "ground_active": false,
+            "obstacle_active": false,
+            "ground_normal_force_n": 0,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            0.39265328645706177,
+            -0.29008665680885315,
+            0.19738824665546417
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            0.029245072975754738,
+            0.019803032279014587,
+            0.046445220708847046
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "RL",
+          "canonical_action_index": 10,
+          "joint_name": "rear_left_ankle",
+          "native_dof_name_index": 10,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": -1,
+          "source_held_reference_wheel_rad_s": 0.3,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0.3,
+          "policy_raw_latent": 0.010282783769071102,
+          "history_center_raw": 0.010273884050548077,
+          "base_mean_raw": 0.010362884029746056,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.006169452819290433,
+          "same_dispatch_effective_residual_rad_s": 0.006169452819290433,
+          "same_dispatch_baseline_rad_s": 0.3,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.3061694528192904,
+          "actual_native_target_buffer_rad_s": -0.30616945028305054,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": -0.30000001192092896,
+          "same_tick_native_target_delta_rad_s": -0.006169438362121582,
+          "native_measured_joint_qd_rad_s": -0.3898206949234009,
+          "canonical_measured_joint_qd_rad_s": 0.3898206949234009,
+          "contact": {
+            "contact_class": "GROUND",
+            "ground_active": true,
+            "obstacle_active": false,
+            "ground_normal_force_n": 2.1147332191467476,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            -0.35237064957618713,
+            0.09436988830566406,
+            0.05148232355713844
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            0.0036611531395465136,
+            -0.00336873484775424,
+            -0.004199476912617683
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "RR",
+          "canonical_action_index": 11,
+          "joint_name": "rear_right_ankle",
+          "native_dof_name_index": 11,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": 1,
+          "source_held_reference_wheel_rad_s": 0.3,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0.3,
+          "policy_raw_latent": -0.22184066474437714,
+          "history_center_raw": -0.22167712450027466,
+          "base_mean_raw": -0.22331249713897705,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": -0.1309630409154443,
+          "same_dispatch_effective_residual_rad_s": -0.1309630409154443,
+          "same_dispatch_baseline_rad_s": 0.3,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.16903695908455568,
+          "actual_native_target_buffer_rad_s": 0.16903695464134216,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0.30000001192092896,
+          "same_tick_native_target_delta_rad_s": -0.1309630572795868,
+          "native_measured_joint_qd_rad_s": 0.25470736622810364,
+          "canonical_measured_joint_qd_rad_s": 0.25470736622810364,
+          "contact": {
+            "contact_class": "GROUND",
+            "ground_active": true,
+            "obstacle_active": false,
+            "ground_normal_force_n": 12.674945831298942,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            -0.27365416288375854,
+            -0.3128938674926758,
+            0.047851551324129105
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            0.01255663949996233,
+            -0.0017868832219392061,
+            -0.0038042531814426184
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        }
+      ]
+    },
+    {
+      "episode_poststep_tick": 1200,
+      "sim_time_s": 10,
+      "request_decision": 150,
+      "request_phase": "P02",
+      "request_start_tick": 1192,
+      "native_dispatch_tick": 1379,
+      "clock_semantics": "poststep episode tick; preceding dispatch has reset/settle native clock offset +179, not same numeric time axis",
+      "native_buffer_read_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim",
+      "verified": true,
+      "setter_dispatch_targets_equal": true,
+      "actual_mapping_matches_dispatch": true,
+      "final_stop_owner_active": false,
+      "source_request_semantics": "held_source_owner_requests_single_mature_mapper",
+      "read_only_native_measurement_clock_unchanged": true,
+      "base_position_w_m": [
+        0.10752502083778381,
+        0.013996832072734833,
+        0.07391048222780228
+      ],
+      "base_linear_velocity_w_m_s": [
+        0.005941866431385279,
+        0.005132581572979689,
+        0.007588373962789774
+      ],
+      "RR_knee": {
+        "target_deg": -3.384538397370712,
+        "actual_deg": -3.4198842818422737,
+        "velocity_deg_s": 4.699677290514646
+      },
+      "FR_wheel_bottom_clearance_above_obstacle_top_m": 0.0971703087306147,
+      "wheels": [
+        {
+          "leg": "FL",
+          "canonical_action_index": 8,
+          "joint_name": "front_left_ankle",
+          "native_dof_name_index": 8,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": -1,
+          "source_held_reference_wheel_rad_s": 0.3,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0.3,
+          "policy_raw_latent": 0.03585170581936836,
+          "history_center_raw": 0.03583556041121483,
+          "base_mean_raw": 0.03599704056978226,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.02150181186683564,
+          "same_dispatch_effective_residual_rad_s": 0.02150181186683564,
+          "same_dispatch_baseline_rad_s": 0.3,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.32150181186683563,
+          "actual_native_target_buffer_rad_s": -0.32150182127952576,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": -0.30000001192092896,
+          "same_tick_native_target_delta_rad_s": -0.021501809358596802,
+          "native_measured_joint_qd_rad_s": -0.19677871465682983,
+          "canonical_measured_joint_qd_rad_s": 0.19677871465682983,
+          "contact": {
+            "contact_class": "GROUND",
+            "ground_active": true,
+            "obstacle_active": false,
+            "ground_normal_force_n": 13.909011840820439,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            0.3569730222225189,
+            0.08512591570615768,
+            0.05246629938483238
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            0.0074836513958871365,
+            0.010236919857561588,
+            -0.006471995264291763
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "FR",
+          "canonical_action_index": 9,
+          "joint_name": "front_right_ankle",
+          "native_dof_name_index": 9,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": 1,
+          "source_held_reference_wheel_rad_s": 0.3,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0.3,
+          "policy_raw_latent": 0.09521270543336868,
+          "history_center_raw": 0.09524767100811005,
+          "base_mean_raw": 0.09489802271127701,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.056955617576582296,
+          "same_dispatch_effective_residual_rad_s": 0.056955617576582296,
+          "same_dispatch_baseline_rad_s": 0.3,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.3569556175765823,
+          "actual_native_target_buffer_rad_s": 0.3569556176662445,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0.30000001192092896,
+          "same_tick_native_target_delta_rad_s": 0.05695560574531555,
+          "native_measured_joint_qd_rad_s": 0.35796958208084106,
+          "canonical_measured_joint_qd_rad_s": 0.35796958208084106,
+          "contact": {
+            "contact_class": "AIR",
+            "ground_active": false,
+            "obstacle_active": false,
+            "ground_normal_force_n": 0,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            0.473230242729187,
+            -0.2946542799472809,
+            0.19580678641796112
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            0.029216395691037178,
+            0.026989072561264038,
+            0.050836436450481415
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "RL",
+          "canonical_action_index": 10,
+          "joint_name": "rear_left_ankle",
+          "native_dof_name_index": 10,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": -1,
+          "source_held_reference_wheel_rad_s": 0.3,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0.3,
+          "policy_raw_latent": 0.014405745081603527,
+          "history_center_raw": 0.014376448467373848,
+          "base_mean_raw": 0.014669423922896385,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.008642849186725421,
+          "same_dispatch_effective_residual_rad_s": 0.008642849186725421,
+          "same_dispatch_baseline_rad_s": 0.3,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.3086428491867254,
+          "actual_native_target_buffer_rad_s": -0.30864283442497253,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": -0.30000001192092896,
+          "same_tick_native_target_delta_rad_s": -0.008642822504043579,
+          "native_measured_joint_qd_rad_s": -0.44850051403045654,
+          "canonical_measured_joint_qd_rad_s": 0.44850051403045654,
+          "contact": {
+            "contact_class": "GROUND",
+            "ground_active": true,
+            "obstacle_active": false,
+            "ground_normal_force_n": 1.7389832735061803,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            -0.2692801058292389,
+            0.09492640197277069,
+            0.05266358703374863
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            -0.00729168439283967,
+            -0.01058355625718832,
+            -0.008785592392086983
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "RR",
+          "canonical_action_index": 11,
+          "joint_name": "rear_right_ankle",
+          "native_dof_name_index": 11,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": 1,
+          "source_held_reference_wheel_rad_s": 0.3,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0.3,
+          "policy_raw_latent": -0.2218594253063202,
+          "history_center_raw": -0.22187590599060059,
+          "base_mean_raw": -0.22171106934547424,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": -0.1309737609281026,
+          "same_dispatch_effective_residual_rad_s": -0.1309737609281026,
+          "same_dispatch_baseline_rad_s": 0.3,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.1690262390718974,
+          "actual_native_target_buffer_rad_s": 0.1690262407064438,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0.30000001192092896,
+          "same_tick_native_target_delta_rad_s": -0.13097377121448517,
+          "native_measured_joint_qd_rad_s": 0.2569880187511444,
+          "canonical_measured_joint_qd_rad_s": 0.2569880187511444,
+          "contact": {
+            "contact_class": "GROUND",
+            "ground_active": true,
+            "obstacle_active": false,
+            "ground_normal_force_n": 12.668819427490348,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            -0.19383668899536133,
+            -0.3126915395259857,
+            0.048423461616039276
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            0.014889560639858246,
+            -0.0082194022834301,
+            -0.0007725615869276226
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        }
+      ]
+    },
+    {
+      "episode_poststep_tick": 1592,
+      "sim_time_s": 13.266666666666666,
+      "request_decision": 199,
+      "request_phase": "P02",
+      "request_start_tick": 1584,
+      "native_dispatch_tick": 1771,
+      "clock_semantics": "poststep episode tick; preceding dispatch has reset/settle native clock offset +179, not same numeric time axis",
+      "native_buffer_read_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim",
+      "verified": true,
+      "setter_dispatch_targets_equal": true,
+      "actual_mapping_matches_dispatch": true,
+      "final_stop_owner_active": false,
+      "source_request_semantics": "held_source_owner_requests_single_mature_mapper",
+      "read_only_native_measurement_clock_unchanged": true,
+      "base_position_w_m": [
+        0.14830632507801056,
+        0.012887053191661835,
+        0.0739772692322731
+      ],
+      "base_linear_velocity_w_m_s": [
+        0.009415765292942524,
+        0.00644606864079833,
+        0.008897590450942516
+      ],
+      "RR_knee": {
+        "target_deg": -3.441937641021743,
+        "actual_deg": -3.5377259624793265,
+        "velocity_deg_s": 2.6826169875645687
+      },
+      "FR_wheel_bottom_clearance_above_obstacle_top_m": 0.0964624518311299,
+      "wheels": [
+        {
+          "leg": "FL",
+          "canonical_action_index": 8,
+          "joint_name": "front_left_ankle",
+          "native_dof_name_index": 8,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": -1,
+          "source_held_reference_wheel_rad_s": 0.3,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0.3,
+          "policy_raw_latent": 0.03726711496710777,
+          "history_center_raw": 0.03720375895500183,
+          "base_mean_raw": 0.037837330251932144,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.02234992313168438,
+          "same_dispatch_effective_residual_rad_s": 0.02234992313168438,
+          "same_dispatch_baseline_rad_s": 0.3,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.32234992313168437,
+          "actual_native_target_buffer_rad_s": -0.3223499357700348,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": -0.30000001192092896,
+          "same_tick_native_target_delta_rad_s": -0.022349923849105835,
+          "native_measured_joint_qd_rad_s": -0.20424479246139526,
+          "canonical_measured_joint_qd_rad_s": 0.20424479246139526,
+          "contact": {
+            "contact_class": "GROUND",
+            "ground_active": true,
+            "obstacle_active": false,
+            "ground_normal_force_n": 13.8272981643678,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            0.3981193006038666,
+            0.08255185931921005,
+            0.05275045707821846
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            0.010857767425477505,
+            0.008606500923633575,
+            -0.0055195181630551815
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "FR",
+          "canonical_action_index": 9,
+          "joint_name": "front_right_ankle",
+          "native_dof_name_index": 9,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": 1,
+          "source_held_reference_wheel_rad_s": 0.3,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0.3,
+          "policy_raw_latent": 0.09366132318973541,
+          "history_center_raw": 0.09361755102872849,
+          "base_mean_raw": 0.09405527263879776,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.05603304076350335,
+          "same_dispatch_effective_residual_rad_s": 0.05603304076350335,
+          "same_dispatch_baseline_rad_s": 0.3,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.35603304076350334,
+          "actual_native_target_buffer_rad_s": 0.3560330271720886,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0.30000001192092896,
+          "same_tick_native_target_delta_rad_s": 0.05603301525115967,
+          "native_measured_joint_qd_rad_s": 0.3564482033252716,
+          "canonical_measured_joint_qd_rad_s": 0.3564482033252716,
+          "contact": {
+            "contact_class": "AIR",
+            "ground_active": false,
+            "obstacle_active": false,
+            "ground_normal_force_n": 0,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            0.5120159983634949,
+            -0.2983030676841736,
+            0.1950475424528122
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            0.029446594417095184,
+            0.021978095173835754,
+            0.04621792957186699
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "RL",
+          "canonical_action_index": 10,
+          "joint_name": "rear_left_ankle",
+          "native_dof_name_index": 10,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": -1,
+          "source_held_reference_wheel_rad_s": 0.3,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0.3,
+          "policy_raw_latent": 0.01880677416920662,
+          "history_center_raw": 0.01866743341088295,
+          "base_mean_raw": 0.020060831680893898,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.011282734318240062,
+          "same_dispatch_effective_residual_rad_s": 0.011282734318240062,
+          "same_dispatch_baseline_rad_s": 0.3,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.31128273431824005,
+          "actual_native_target_buffer_rad_s": -0.3112827241420746,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": -0.30000001192092896,
+          "same_tick_native_target_delta_rad_s": -0.01128271222114563,
+          "native_measured_joint_qd_rad_s": -0.4302915036678314,
+          "canonical_measured_joint_qd_rad_s": 0.4302915036678314,
+          "contact": {
+            "contact_class": "GROUND",
+            "ground_active": true,
+            "obstacle_active": false,
+            "ground_normal_force_n": 2.2623667716980185,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            -0.22788845002651215,
+            0.09612321108579636,
+            0.0527089424431324
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            -0.0012428783811628819,
+            -0.0035151115152984858,
+            -0.0018792287446558475
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "RR",
+          "canonical_action_index": 11,
+          "joint_name": "rear_right_ankle",
+          "native_dof_name_index": 11,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": 1,
+          "source_held_reference_wheel_rad_s": 0.3,
+          "source_reference_meaning": "P01 authored wheel group held into current P02",
+          "shared_nominal_wheel_rad_s": 0.3,
+          "policy_raw_latent": -0.22352232038974762,
+          "history_center_raw": -0.22332192957401276,
+          "base_mean_raw": -0.2253258228302002,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": -0.1319236097946496,
+          "same_dispatch_effective_residual_rad_s": -0.1319236097946496,
+          "same_dispatch_baseline_rad_s": 0.3,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.1680763902053504,
+          "actual_native_target_buffer_rad_s": 0.16807639598846436,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0.30000001192092896,
+          "same_tick_native_target_delta_rad_s": -0.1319236159324646,
+          "native_measured_joint_qd_rad_s": 0.19034914672374725,
+          "canonical_measured_joint_qd_rad_s": 0.19034914672374725,
+          "contact": {
+            "contact_class": "GROUND",
+            "ground_active": true,
+            "obstacle_active": false,
+            "ground_normal_force_n": 12.614843368530387,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            -0.15469160676002502,
+            -0.3118872046470642,
+            0.04775764420628548
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            0.021366361528635025,
+            -0.002843326423317194,
+            -0.00012193249858682975
+          ],
+          "source_owner_inference": "P01 continuing authored wheel group (full per-channel owner ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        }
+      ]
+    },
+    {
+      "episode_poststep_tick": 1600,
+      "sim_time_s": 13.333333333333334,
+      "request_decision": 200,
+      "request_phase": "P03",
+      "request_start_tick": 1592,
+      "native_dispatch_tick": 1779,
+      "clock_semantics": "poststep episode tick; preceding dispatch has reset/settle native clock offset +179, not same numeric time axis",
+      "native_buffer_read_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim",
+      "verified": true,
+      "setter_dispatch_targets_equal": true,
+      "actual_mapping_matches_dispatch": true,
+      "final_stop_owner_active": false,
+      "source_request_semantics": "held_source_owner_requests_single_mature_mapper",
+      "read_only_native_measurement_clock_unchanged": true,
+      "base_position_w_m": [
+        0.14923886954784393,
+        0.01161879301071167,
+        0.07308720797300339
+      ],
+      "base_linear_velocity_w_m_s": [
+        0.016544461250305176,
+        -0.04596583545207977,
+        -0.055997345596551895
+      ],
+      "RR_knee": {
+        "target_deg": -3.458994628253094,
+        "actual_deg": -3.521643001418062,
+        "velocity_deg_s": 1.3877022335544786
+      },
+      "FR_wheel_bottom_clearance_above_obstacle_top_m": 0.08470728184825037,
+      "wheels": [
+        {
+          "leg": "FL",
+          "canonical_action_index": 8,
+          "joint_name": "front_left_ankle",
+          "native_dof_name_index": 8,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": -1,
+          "source_held_reference_wheel_rad_s": -0.79,
+          "source_reference_meaning": "P03 authored differential group after P01 all-wheel stop",
+          "shared_nominal_wheel_rad_s": -0.79,
+          "policy_raw_latent": 0.024207817390561104,
+          "history_center_raw": 0.022353645414114,
+          "base_mean_raw": 0.040895361453294754,
+          "recorded_cap_float32": 1,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.02420308975642793,
+          "same_dispatch_effective_residual_rad_s": 0.02420308975642793,
+          "same_dispatch_baseline_rad_s": -0.79,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": -0.7657969102435721,
+          "actual_native_target_buffer_rad_s": 0.7657968997955322,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0.7900000214576721,
+          "same_tick_native_target_delta_rad_s": -0.024203121662139893,
+          "native_measured_joint_qd_rad_s": 0.8431786298751831,
+          "canonical_measured_joint_qd_rad_s": -0.8431786298751831,
+          "contact": {
+            "contact_class": "GROUND",
+            "ground_active": true,
+            "obstacle_active": false,
+            "ground_normal_force_n": 9.745190620422452,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            0.39624857902526855,
+            0.08196242153644562,
+            0.052518777549266815
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            -0.015019681304693222,
+            -0.02036101743578911,
+            -0.010349488817155361
+          ],
+          "source_owner_inference": "P03 differential FL/RL owner plus explicit all-wheel stop; existing RL source tuning (ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "FR",
+          "canonical_action_index": 9,
+          "joint_name": "front_right_ankle",
+          "native_dof_name_index": 9,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": 1,
+          "source_held_reference_wheel_rad_s": 0,
+          "source_reference_meaning": "P03 authored differential group after P01 all-wheel stop",
+          "shared_nominal_wheel_rad_s": 0,
+          "policy_raw_latent": 0.09319491684436798,
+          "history_center_raw": 0.09366132318973541,
+          "base_mean_raw": 0.0889972671866417,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.05575562552099799,
+          "same_dispatch_effective_residual_rad_s": 0.05575562552099799,
+          "same_dispatch_baseline_rad_s": 0,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.05575562552099799,
+          "actual_native_target_buffer_rad_s": 0.055755626410245895,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0,
+          "same_tick_native_target_delta_rad_s": 0.055755626410245895,
+          "native_measured_joint_qd_rad_s": 0.05618725344538689,
+          "canonical_measured_joint_qd_rad_s": 0.05618725344538689,
+          "contact": {
+            "contact_class": "AIR",
+            "ground_active": false,
+            "obstacle_active": false,
+            "ground_normal_force_n": 0,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            0.5149463415145874,
+            -0.30187731981277466,
+            0.18340153992176056
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            0.08182798326015472,
+            -0.10335073620080948,
+            -0.36715853214263916
+          ],
+          "source_owner_inference": "P03 differential FL/RL owner plus explicit all-wheel stop; existing RL source tuning (ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "RL",
+          "canonical_action_index": 10,
+          "joint_name": "rear_left_ankle",
+          "native_dof_name_index": 10,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": -1,
+          "source_held_reference_wheel_rad_s": 0.61,
+          "source_reference_meaning": "P03 authored differential group after P01 all-wheel stop",
+          "shared_nominal_wheel_rad_s": 0.51911,
+          "policy_raw_latent": 0.012985834851861,
+          "history_center_raw": 0.011283214204013348,
+          "base_mean_raw": 0.028309417888522148,
+          "recorded_cap_float32": 1,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": 0.012985104959063465,
+          "same_dispatch_effective_residual_rad_s": 0.012985104959063465,
+          "same_dispatch_baseline_rad_s": 0.51911,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": 0.5320951049590634,
+          "actual_native_target_buffer_rad_s": -0.5320951342582703,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": -0.5191100239753723,
+          "same_tick_native_target_delta_rad_s": -0.01298511028289795,
+          "native_measured_joint_qd_rad_s": -0.44149741530418396,
+          "canonical_measured_joint_qd_rad_s": 0.44149741530418396,
+          "contact": {
+            "contact_class": "GROUND",
+            "ground_active": true,
+            "obstacle_active": false,
+            "ground_normal_force_n": 6.407915115356503,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            -0.2246956080198288,
+            0.09442558884620667,
+            0.05263195186853409
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            0.13068115711212158,
+            -0.061745986342430115,
+            -0.0204529520124197
+          ],
+          "source_owner_inference": "P03 differential FL/RL owner plus explicit all-wheel stop; existing RL source tuning (ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        },
+        {
+          "leg": "RR",
+          "canonical_action_index": 11,
+          "joint_name": "rear_right_ankle",
+          "native_dof_name_index": 11,
+          "actuator_joint_id_recorded": null,
+          "actuator_joint_id_absence_reason": "Startup records robot.joint_names and native qd order; selected audit does not serialize actuator joint_ids. Do not substitute a name-derived DOF index for a logged dispatch ID.",
+          "native_forward_sign": 1,
+          "source_held_reference_wheel_rad_s": 0,
+          "source_reference_meaning": "P03 authored differential group after P01 all-wheel stop",
+          "shared_nominal_wheel_rad_s": 0,
+          "policy_raw_latent": -0.22374951839447021,
+          "history_center_raw": -0.22352232038974762,
+          "base_mean_raw": -0.22579431533813477,
+          "recorded_cap_float32": 0.6000000238418579,
+          "residual_permission_phase_mask": 1,
+          "residual_permission_mask_target": "PPO additive residual only, before residual rate limit; never nominal+residual",
+          "separate_runtime_and_safety_mask_record": null,
+          "projected_request_rad_s": -0.1320533319192719,
+          "same_dispatch_effective_residual_rad_s": -0.1320533319192719,
+          "same_dispatch_baseline_rad_s": 0,
+          "controller_bias_rad_s": 0,
+          "final_canonical_target_rad_s": -0.1320533319192719,
+          "actual_native_target_buffer_rad_s": -0.13205333054065704,
+          "same_prestate_no_current_residual_counterfactual_native_target_rad_s": 0,
+          "same_tick_native_target_delta_rad_s": -0.13205333054065704,
+          "native_measured_joint_qd_rad_s": -0.11591608822345734,
+          "canonical_measured_joint_qd_rad_s": -0.11591608822345734,
+          "contact": {
+            "contact_class": "GROUND",
+            "ground_active": true,
+            "obstacle_active": false,
+            "ground_normal_force_n": 8.83687400817879,
+            "obstacle_normal_force_n": 0
+          },
+          "wheel_center_w_m": [
+            -0.15411277115345,
+            -0.3122292160987854,
+            0.047985151410102844
+          ],
+          "wheel_center_linear_velocity_w_m_s": [
+            0.016236325725913048,
+            -0.022529063746333122,
+            0.0016876977169886231
+          ],
+          "source_owner_inference": "P03 differential FL/RL owner plus explicit all-wheel stop; existing RL source tuning (ledger not logged)",
+          "last_observed_target_writer": "apply_semantic_residual -> set_joint_velocity_target -> write_data_to_sim; validated native buffer readback",
+          "complete_source_event_owner_ledger": null
+        }
+      ]
+    }
+  ],
+  "findings": [
+    "All four P02 wheel final targets and measured angular velocities are present. At all 194 forward endpoints every wheel has |target|>0.01 and |measured canonical qd|>0.01 rad/s; RR-only rotation/dispatch is not supported.",
+    "Policy slows RR (mean delta -.126913 rad/s), while FL/FR/RL retain forward targets. It does not cancel the other three wheels here.",
+    "Measured tracking differs: FL RMS error .128860 rad/s; FR AIR rotates close to target but contributes no ground contact force at selected forward shots. RL/RR can exceed target due to coupled dynamics; telemetry alone does not establish a unique load/motor-fault cause or traction fraction.",
+    "Wheel-centre translation is separately retained and is not wheel spin. This newer run cannot conclusively explain which feature made RR look dominant in an earlier user's video.",
+    "No confirmed wiring/mask implementation bug established here; no production/reward/HISTORY/temperature change or new simulation performed."
+  ],
+  "prior_P06_diagnostic_reused": {
+    "path": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_task_conditioned_hip_wheel_v1/block02_P06_wheel_window.md",
+    "classification": "stochastic training block02 with optimizer updates, not fixed-CP current B pair",
+    "finding": "Previously recorded P06 also had all four N/baselines +.300 and all four measured rotations; FL could reverse at eight sampled targets due to policy residual, RR was slowed. This supports separating policy cancellation from masking, not declaring every task solved."
+  },
+  "source_code_hashes_verified_against_recorded_runtime": [
+    {
+      "path": "src/wlr50_clean/ppo/action_projection.py",
+      "actual_sha256": "bb13caa8053d60cb00f5a08eee4e8c5113bcb8be0f0a6ee585177979b7d6aa75",
+      "frozen_manifest_sha256": "bb13caa8053d60cb00f5a08eee4e8c5113bcb8be0f0a6ee585177979b7d6aa75"
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_env.py",
+      "actual_sha256": "f15ce31897a9e0974dd79b9f25adfc224e8d0992a880a020ecdd7c905ee98de2",
+      "frozen_manifest_sha256": "f15ce31897a9e0974dd79b9f25adfc224e8d0992a880a020ecdd7c905ee98de2"
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_residual_adapter.py",
+      "actual_sha256": "db419e99ad59ecb140dd03757568c6fd43a3410a82f42eb5d83c8bfc70a7592e",
+      "frozen_manifest_sha256": "db419e99ad59ecb140dd03757568c6fd43a3410a82f42eb5d83c8bfc70a7592e"
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_supervisor.py",
+      "actual_sha256": "30e735d46d8f48659d7b93e4d909468d2cfaff0a787957ab511dd50f874e5cfa",
+      "frozen_manifest_sha256": "30e735d46d8f48659d7b93e4d909468d2cfaff0a787957ab511dd50f874e5cfa"
+    },
+    {
+      "path": "src/wlr50_clean/infrastructure/command_batch.py",
+      "actual_sha256": "dbcee551cd1eba697b06b5f29439325cc9e36938ecdfaaa30ca718632937f0db",
+      "frozen_manifest_sha256": "dbcee551cd1eba697b06b5f29439325cc9e36938ecdfaaa30ca718632937f0db"
+    },
+    {
+      "path": "src/wlr50_clean/infrastructure/robot_adapter.py",
+      "actual_sha256": "f00a8cc83c05aa1dea590d5e9765865c79f9f7f7cfc024f01b9d08a5f4f4a8a2",
+      "frozen_manifest_sha256": "f00a8cc83c05aa1dea590d5e9765865c79f9f7f7cfc024f01b9d08a5f4f4a8a2"
+    },
+    {
+      "path": "configs/recording_motion_contract.json",
+      "actual_sha256": "f3c930aaf44ff3599c6df87478e3a33a594ea0fb706183e6924e3f025f537a0b",
+      "frozen_manifest_sha256": "f3c930aaf44ff3599c6df87478e3a33a594ea0fb706183e6924e3f025f537a0b"
+    },
+    {
+      "path": "configs/fsm_states.yaml",
+      "actual_sha256": "f717a1d0d232d2341a1c12080015c1b770924bedacba1dd5853d79d26c8d3dbe",
+      "frozen_manifest_sha256": "f717a1d0d232d2341a1c12080015c1b770924bedacba1dd5853d79d26c8d3dbe"
+    },
+    {
+      "path": "configs/ppo_task_conditioned_hip_wheel_v1/stage_task_spec.yaml",
+      "actual_sha256": "cacf4c5cb1c9e3f1c319de8e303be74124826ba01ab27b67c7149bcd2561b936",
+      "frozen_manifest_sha256": "cacf4c5cb1c9e3f1c319de8e303be74124826ba01ab27b67c7149bcd2561b936"
+    }
+  ],
+  "input_sha256": [
+    {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\video_eval\\validation\\20260921T0627142354953Z_gee5a9651591d_91d8d06aaced49ebb0ad9d5a5c067b31\\source\\semantic_video_source_manifest.json",
+      "sha256": "cf6e31f7c9673eed1afd2ee8f98c4d73db6c5f2397ee46859d9cce649ae7a12a"
+    },
+    {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\video_eval\\validation\\20260921T0627142354953Z_gee5a9651591d_91d8d06aaced49ebb0ad9d5a5c067b31\\source\\video_policy_decisions.jsonl",
+      "sha256": "23bfa7be5989e5c9f793ba99981e2ac25f9e817c0511206e1b3ed81764ecdb34"
+    },
+    {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\video_eval\\validation\\20260921T0627142354953Z_gee5a9651591d_91d8d06aaced49ebb0ad9d5a5c067b31\\source\\native_tick_audit.jsonl",
+      "sha256": "dcdd8d04088d2c00948bf582767b457dd4aa27ebd29deeec43fa099c7246fe65"
+    },
+    {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\video_eval\\validation\\20260921T0627142354953Z_gee5a9651591d_91d8d06aaced49ebb0ad9d5a5c067b31\\source\\physical_observations.jsonl",
+      "sha256": "cb22eea91c9f671a3d67c59ffd4f75d8fa5e8205940a29af3d9165bd42bf0744"
+    },
+    {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\video_eval\\validation\\20260921T0627142354953Z_gee5a9651591d_91d8d06aaced49ebb0ad9d5a5c067b31\\source\\height_diagnostics.jsonl",
+      "sha256": "b617485ff35adcd1efb3e81d04c337aae404ac81cde914e2ec5248626d1e30bb"
+    },
+    {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\video_eval\\validation\\20260921T0627142354953Z_gee5a9651591d_91d8d06aaced49ebb0ad9d5a5c067b31\\source\\height_diagnostics_startup.json",
+      "sha256": "0df02a9a4a8883589a824f8fbcd037fce56c72d2c554790f7bcf0179b43ef4a9"
+    }
+  ]
+}

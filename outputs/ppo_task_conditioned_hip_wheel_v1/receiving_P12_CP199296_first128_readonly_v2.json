@@ -1,0 +1,348 @@
+{
+  "schema": "wlr50_clean.receiving_p12_first128_readonly.v1",
+  "status": "PASS",
+  "scope": "bounded immutable CPU audit; no Isaac/model-forward/optimizer step; no physical success claim",
+  "run": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\train\\20260921T1528590444842Z_g649ccd906421_b7f45c711b47473b9be9eaeced962417",
+    "started_manifest_sha256": "a23baee0ee9fdc077fdc43e2946293f34ac1d32c5182c58537e55b31f8ab5560",
+    "requested_policy_decisions": 512,
+    "requested_stage": "phase_suffix",
+    "requested_phase": "P12"
+  },
+  "source": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000199168.pt",
+    "sha256": "e98957a4072b01eff9d9f20838b07dd0890bc997ef7a268061b929ae8aa5b673",
+    "counters": {
+      "global_policy_decisions": 199168,
+      "ppo_updates": 1521,
+      "optimizer_steps": 30420
+    },
+    "effective_learning_rate": 1e-05
+  },
+  "target_first128": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000199296.pt",
+    "sha256": "3f80a79a834988634e932d8ed3582f43504552b2feb7b1efd2918365fc404363",
+    "counters": {
+      "global_policy_decisions": 199296,
+      "ppo_updates": 1522,
+      "optimizer_steps": 30440
+    },
+    "counter_delta": {
+      "global_policy_decisions": 128,
+      "ppo_updates": 1,
+      "optimizer_steps": 20
+    },
+    "effective_learning_rate": 1e-05,
+    "learner_source": {
+      "complete_records": 128,
+      "consumed_bytes": 14504279,
+      "consumed_prefix_sha256": "4807f3d325841418bc1e6b7cfe716700e7e6b2610e6fbefc1e4d5acda7156501",
+      "whole_active_file_hashed": false
+    }
+  },
+  "ordinary_resume": {
+    "same_policy_contract": true,
+    "same_runtime_contract": true,
+    "immediate_source_receipt_exact": true,
+    "persisted_receiving_migration_receipt_exact": true,
+    "new_resume_migration": null,
+    "no_repeated_migration": true,
+    "identity_normalizer_both": true,
+    "LIMITED_AUX_accepted_attempted": [
+      7,
+      8
+    ],
+    "all_inherited_branch_counter_deltas": {
+      "global_policy_decisions": 128,
+      "ppo_updates": 1,
+      "optimizer_steps": 20
+    }
+  },
+  "successful_nominal_prefix": {
+    "complete_records_through_credit_start_sha256": "4f6fc24f25d97121fe4f7acef532300064bffb7feceac69763065e8c071e8eb7",
+    "attempts_read": 1,
+    "accepted_P12_attempts": 1,
+    "fresh_P01_fallbacks": 0,
+    "decisions": 772,
+    "physics_ticks": 6176,
+    "verified_native_ticks": 6176,
+    "attempts": [
+      {
+        "index": 0,
+        "accepted": true,
+        "miss": null,
+        "prefix_decisions": 772,
+        "prefix_physics_ticks": 6176,
+        "target_first_observed_decision": 772,
+        "handoff_mode": "successful_nominal_initialized_suffix",
+        "handoff_phase": "P12",
+        "handoff_tick": 6176,
+        "handoff_time_s": 51.46666666666667,
+        "remaining_task_time_s": 148.53333333333333
+      }
+    ],
+    "target_phase": "P12",
+    "learner_credit": 0,
+    "learner_episodes_in_first128": 1
+  },
+  "receiving_gate": {
+    "learner_samples": 128,
+    "phase_counts": {
+      "P12": 128
+    },
+    "pre_action_RR_placed_history_true": 128,
+    "active_samples": 128,
+    "active_profile_observed": true,
+    "coverage_status": "ACTIVE_FR_RR_X3_OBSERVED",
+    "active_by_phase": {
+      "P12": 128
+    },
+    "condition": "stored pre-action stage in P10-P12 AND stored pre-action RR placed history",
+    "FR_RR_multiplier_when_active": 3.0,
+    "request_sigma_identity_max_abs_error": 5.960464477539063e-08,
+    "active_FR_RR_ratio_max_abs_error": 2.384185791015625e-07,
+    "other_ten_unchanged_max_abs_error": 0.0,
+    "active_sigma": {
+      "FR": {
+        "base": {
+          "min": 0.017914529889822006,
+          "mean": 0.04127771391358692,
+          "max": 0.1552288830280304
+        },
+        "effective": {
+          "min": 0.05374358966946602,
+          "mean": 0.1238331419590395,
+          "max": 0.4656866490840912
+        }
+      },
+      "RR": {
+        "base": {
+          "min": 0.01608089916408062,
+          "mean": 0.043700796202756464,
+          "max": 0.14301268756389618
+        },
+        "effective": {
+          "min": 0.04824269562959671,
+          "mean": 0.13110238808440045,
+          "max": 0.42903804779052734
+        }
+      }
+    },
+    "post_action_RR_endpoint_only": {
+      "historical_placed_true": 128,
+      "currently_usable_true": 64,
+      "support_true": 93,
+      "TOP_true": 38,
+      "AIR_true": 35,
+      "current_lift_valid_true": 71,
+      "contact_modes": {
+        "AIR": 35,
+        "GROUND": 55,
+        "TOP": 38
+      },
+      "not_gate_input_or_continuous_8tick_claim": true
+    },
+    "selected_endpoints": [
+      {
+        "decision": 199169,
+        "tick": 6184,
+        "phase": "P12",
+        "pre_action_RR_placed_history": true,
+        "gate_active": true,
+        "end_RR_mode": "TOP",
+        "end_RR_support": true,
+        "end_RR_TOP": true,
+        "end_RR_AIR": false,
+        "FR_base_effective_sigma": [
+          0.09386684000492096,
+          0.2816005349159241
+        ],
+        "RR_base_effective_sigma": [
+          0.0547274686396122,
+          0.1641824096441269
+        ]
+      },
+      {
+        "decision": 199176,
+        "tick": 6240,
+        "phase": "P12",
+        "pre_action_RR_placed_history": true,
+        "gate_active": true,
+        "end_RR_mode": "AIR",
+        "end_RR_support": false,
+        "end_RR_TOP": false,
+        "end_RR_AIR": true,
+        "FR_base_effective_sigma": [
+          0.0201126541942358,
+          0.060337960720062256
+        ],
+        "RR_base_effective_sigma": [
+          0.02518473193049431,
+          0.07555419206619263
+        ]
+      }
+    ]
+  },
+  "wheel_physical_response": {
+    "scope": "receiving-gate-active samples; request/target and post-action 15Hz endpoint canonical qd",
+    "canonical_wheel_order": [
+      "FL",
+      "FR",
+      "RL",
+      "RR"
+    ],
+    "active_samples": 128,
+    "FR_RR": {
+      "FR": {
+        "requested": {
+          "min": -0.7127728823660778,
+          "mean": -0.08590551975261525,
+          "max": 0.47834597826275943
+        },
+        "effective": {
+          "min": -0.7127728823660778,
+          "mean": -0.08590551975261525,
+          "max": 0.47834597826275943
+        },
+        "final_target": {
+          "min": -0.8122979583813723,
+          "mean": -0.1562180197526153,
+          "max": 0.47834597826275943
+        },
+        "measured_qd": {
+          "min": -0.9935407638549805,
+          "mean": -0.2358578449639026,
+          "max": 0.5950712561607361
+        }
+      },
+      "RR": {
+        "requested": {
+          "min": -0.49469888799839956,
+          "mean": -0.04380851488720995,
+          "max": 0.47477387994448406
+        },
+        "effective": {
+          "min": -0.49469888799839956,
+          "mean": -0.04380851488720995,
+          "max": 0.47477387994448406
+        },
+        "final_target": {
+          "min": -0.5484962870179313,
+          "mean": -0.11412101488720995,
+          "max": 0.6321892599139662
+        },
+        "measured_qd": {
+          "min": -0.7418117523193359,
+          "mean": -0.14879810633101442,
+          "max": 0.4827016592025757
+        }
+      }
+    },
+    "RR_positive_requested_count": 47,
+    "RR_positive_requested_but_endpoint_qd_negative_count": 22,
+    "RR_positive_requested_and_endpoint_qd_nonnegative_count": 25,
+    "RR_positive_request_positive_final_target_but_endpoint_qd_negative_count": 16,
+    "RR_positive_request_nonpositive_final_target_and_endpoint_qd_negative_count": 6,
+    "selected_positive_final_target_negative_endpoint_qd": [
+      {
+        "decision": 199222,
+        "tick": 6608,
+        "phase": "P12",
+        "RR_requested_residual_rad_s": 0.12357011885765706,
+        "RR_effective_residual_rad_s": 0.12357011885765706,
+        "RR_final_target_rad_s": 0.12357011885765706,
+        "RR_measured_endpoint_qd_rad_s": -0.005149226635694504,
+        "RR_contact_mode": "TOP",
+        "RR_support": true,
+        "RR_TOP": true,
+        "RR_AIR": false
+      },
+      {
+        "decision": 199223,
+        "tick": 6616,
+        "phase": "P12",
+        "RR_requested_residual_rad_s": 0.033523147767883205,
+        "RR_effective_residual_rad_s": 0.033523147767883205,
+        "RR_final_target_rad_s": 0.033523147767883205,
+        "RR_measured_endpoint_qd_rad_s": -0.1122560128569603,
+        "RR_contact_mode": "TOP",
+        "RR_support": true,
+        "RR_TOP": true,
+        "RR_AIR": false
+      },
+      {
+        "decision": 199225,
+        "tick": 6632,
+        "phase": "P12",
+        "RR_requested_residual_rad_s": 0.0716166937597634,
+        "RR_effective_residual_rad_s": 0.0716166937597634,
+        "RR_final_target_rad_s": 0.0716166937597634,
+        "RR_measured_endpoint_qd_rad_s": -0.22400256991386414,
+        "RR_contact_mode": "TOP",
+        "RR_support": true,
+        "RR_TOP": true,
+        "RR_AIR": false
+      }
+    ],
+    "interpretation_limit": "Measured qd is the action-interval endpoint response to the full12 target, nominal/controller, contact and whole-body dynamics; sign opposition is descriptive, not a mask or single-channel causal claim."
+  },
+  "sampling_and_update": {
+    "stored_raw_mean_sigma_old_logp_exact": true,
+    "one_draw_no_extra_forward_or_rng": true,
+    "minibatches": 20,
+    "each_saved_sample_seen": 5,
+    "current_mean_max_abs_error": 0.0,
+    "current_sigma_max_abs_error": 1.1920928955078125e-07,
+    "current_logp_CPU_reconstruction_max_abs_error": 3.814697265625e-06,
+    "first_minibatch_ratio_max_error_from_one": 3.7550926208496094e-06,
+    "reported_entropy": -18.10257205963135,
+    "CPU_reconstructed_entropy": -18.10257167816162,
+    "reported_KL": 0.02018928363469984,
+    "reported_clip_fraction": 0.3015625
+  },
+  "native_dispatch": {
+    "all_first128_requests_and_ticks_verified": true,
+    "native_physics_ticks": 1024,
+    "observed_phase_masks": [
+      [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    ],
+    "all_observed_phase_masks_full12": true,
+    "raw_request_max_abs_error": 0.0,
+    "requested_projected_residual_max_abs_error": 0.0,
+    "final_target_composition_max_abs_error": 0.0,
+    "pre_slew_candidate_composition_max_abs_error": 0.0,
+    "actual_target_sources": [
+      "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    ]
+  },
+  "optimizer": {
+    "parameter_state_count": 12,
+    "all_Adam_step_deltas": 20,
+    "non_LR_group_settings_unchanged": true,
+    "source_LR_restored": true,
+    "target_LR_matches_saved_update": true,
+    "adaptive_LR_was_not_assumed_constant": true,
+    "actor_before_equals_immediate_source": true,
+    "actor_after_equals_target": true
+  },
+  "limitations": [
+    "Current RR contact is the logged post-action endpoint; historical placed is the stored pre-action gate input.",
+    "Endpoint counts do not claim every intermediate 120 Hz contact state or causal support improvement.",
+    "The first-update audit validates ordinary resume, probability accounting and native dispatch, not task success.",
+    "A legal fresh-P01 fallback or zero active receiving samples is reported, not promoted to a runtime/training failure.",
+    "Wheel request-versus-measured-qdot sign is a same-interval endpoint diagnostic, not a single-channel counterfactual."
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "schema": "wlr50_clean.block14_receiving_fullP01_2048_receipt_summary.v1",
+  "status": "PASS",
+  "generated_at_utc": "2026-09-21T14:35:14.1697761Z",
+  "scope": "Post-hoc CPU validation of one naturally sealed training run; no simulation, training, optimizer mutation, or video interaction.",
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\train\\20260921T1355291518150Z_g649ccd906421_aac78369d59846409cb2d4039083e87a",
+  "formal_receipt": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\block14_receiving_fullP01_2048_receipt.json",
+    "bytes": 1645228,
+    "sha256": "ee8afe0bb171eab8cf14d0afbd7fbedc1951e27626b6ebb912cfeee023196c1f",
+    "schema": "wlr50_clean.task_conditioned_receiving_wheel_sealed_training_receipt.v1"
+  },
+  "sealed_training_credit": {
+    "first_global_policy_decision": 197121,
+    "last_global_policy_decision": 199168,
+    "policy_decisions": 2048,
+    "ppo_updates": 16,
+    "optimizer_steps": 320,
+    "sampling": "P01_full_task_only_initial_version",
+    "policy_version": "task_conditioned_receiving_wheel_sigma_x3_v1"
+  },
+  "checkpoint": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000199168.pt",
+    "sha256": "e98957a4072b01eff9d9f20838b07dd0890bc997ef7a268061b929ae8aa5b673",
+    "global_policy_decisions": 199168,
+    "ppo_updates": 1521,
+    "optimizer_steps": 30420,
+    "save_load_round_trip": true,
+    "optimizer_learning_rate": 0.00001
+  },
+  "full_episode_budget": {
+    "before_run": 102528,
+    "spent_in_run": 2048,
+    "after_run": 104576,
+    "authorized_limit": 131072,
+    "remaining": 26496,
+    "counter_reset": false
+  },
+  "phase_coverage": {
+    "P01": 8,
+    "P02": 961,
+    "P03": 12,
+    "P04": 3,
+    "P05": 382,
+    "P06": 418,
+    "P07": 2,
+    "P08": 2,
+    "P09": 260,
+    "P10": 0,
+    "P11": 0,
+    "P12": 0,
+    "P13": 0
+  },
+  "terminal_outcomes": [
+    {
+      "global_policy_decision": 197833,
+      "phase": "P09",
+      "termination_reason": "BODY_COLLISION",
+      "full_task_success": false
+    },
+    {
+      "global_policy_decision": 198069,
+      "phase": "P02",
+      "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+      "full_task_success": false
+    },
+    {
+      "global_policy_decision": 198812,
+      "phase": "P09",
+      "termination_reason": "BODY_COLLISION",
+      "full_task_success": false
+    }
+  ],
+  "last_sample": {
+    "global_policy_decision": 199168,
+    "phase": "P05",
+    "classification": "budget_boundary_not_a_task_failure_or_success"
+  },
+  "success_counts": {
+    "natural_P01_full_task": 0,
+    "suffix": 0
+  },
+  "receiving_sigma_gate": {
+    "eligible_phase_indices": [9, 10, 11],
+    "eligible_phases": ["P10", "P11", "P12"],
+    "RR_placed_history_rows": 0,
+    "eligible_phase_rows": 0,
+    "active_rows": 0,
+    "row_level_gate_and_multiplier_invariants_verified": true,
+    "interpretation": "The sealed run did not reach P10-P12 and never logged RR_placed_history=true, so the x3 branch was not exercised; zero is the required gate count for these actual rows, not evidence of active-branch physical behavior."
+  },
+  "quality_contributions": {
+    "front_cost": 0.06094348182919586,
+    "geometry_cost_known": 0.17067929525151676,
+    "signed_body_stability": -0.23162277708071283,
+    "arithmetic_verified": true,
+    "unknown_terminal_geometry_is_null_not_measured_zero": true
+  },
+  "lineage": {
+    "display_label": "PPO + LIMITED AUX",
+    "method": "PPO_PLUS_LIMITED_AUX",
+    "accepted_auxiliary_updates_total": 7,
+    "attempted_auxiliary_optimizer_steps_total": 8,
+    "auxiliary_PPO_credit": 0,
+    "teacher_deployed": false,
+    "receiving_plan_sha256": "57652a879eea57a26fb6e399a23ab08c2c05c00c16106d6036e75c3ab7dfcbe0",
+    "historical_quantity_target_commit": "97ecd305afb5c43b095e1206ce8917e6e742b1bb",
+    "historical_runtime_clean": true,
+    "historical_runtime_file_count": 246,
+    "historical_runtime_contract_sha256": "73cdc5a4d9274c27a837490d6eb3610a42db127f5bcf78d669c2f81ec645c356",
+    "posthoc_only_no_training": true
+  },
+  "claims": {
+    "sealed_run_and_accounting_validated": true,
+    "checkpoint_lineage_validated": true,
+    "quality_arithmetic_validated": true,
+    "physical_success_claimed": false,
+    "receiving_active_branch_observed": false,
+    "video_validated": false
+  }
+}

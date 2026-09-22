@@ -1,0 +1,426 @@
+{
+  "schema": "CP194560.stochastic_compact_physical_readonly.v1",
+  "source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\video_eval\\validation\\20260921T1136245327456Z_g97ecd305afb5_1e424676283e49bdbee680a08111d59e\\source",
+  "training_label": "PPO+LIMITEDAUX",
+  "outcome": {
+    "physical_valid": true,
+    "physical_task_success": false,
+    "termination_reason": null,
+    "reason": "",
+    "final_tick": 8219,
+    "final_time_s": 68.49166666666666,
+    "first_unfinished_derived_from_physical_history": "RR:active_lift",
+    "source_acceptance_error": "SemanticVideoError: episode did not meet common physical task",
+    "external_budget_stop": null,
+    "classification": "INCOMPLETE"
+  },
+  "semantic_terminal": {
+    "reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "source": "LOCAL_BOUNDED_RECOVERY_EXHAUSTED",
+    "phase": "P09",
+    "time_outs": false,
+    "bootstrap_allowed": false
+  },
+  "identity": {
+    "seed": 4001,
+    "policy_seed": 4101,
+    "policy_sampling_mode": "training_style_conditional_gaussian",
+    "optimizer_updates": 0,
+    "interrupted_final_decision_ticks": 0
+  },
+  "history_event_ticks": {
+    "active_lift": {
+      "FL": 1737,
+      "FR": 21,
+      "RR": 4887
+    },
+    "front_edge_crossed": {
+      "FL": 2747,
+      "FR": 1647
+    },
+    "placed": {
+      "FL": 2986,
+      "FR": 1660
+    }
+  },
+  "stage_entry_ticks": {
+    "P01": 0,
+    "P02": 16,
+    "P03": 1632,
+    "P04": 1664,
+    "P05": 1672,
+    "P06": 2992,
+    "P07": 4600,
+    "P08": 4608,
+    "P09": 4616
+  },
+  "RR_attempt_events": [
+    {
+      "command_motion_deg": 23.623429522605633,
+      "event": "whole_body_initial_clearance",
+      "evidence": "continuous_unsupported_AIR_free_rise_v3",
+      "leg": "RR",
+      "physics_tick": 4878,
+      "simulation_time_s": 40.65,
+      "unsupported_free_lift_m": 0.003250914881271341,
+      "upward_excursion_m": 0.003250914881271341,
+      "whole_body_joint_motion_deg": 11.593254458006523
+    },
+    {
+      "airborne_clearance_above_top_m": -0.04115737102612553,
+      "event": "qualified_measured_upward_lift",
+      "joint_motion_deg": 12.673756660643516,
+      "leg": "RR",
+      "physics_tick": 4887,
+      "qualification_evidence": "continuous_unsupported_AIR_free_rise_v3",
+      "simulation_time_s": 40.725,
+      "unsupported_free_lift_m": 0.008837840538602301,
+      "upward_excursion_m": 0.008837840538602301
+    },
+    {
+      "event": "qualification_revoked_ground_before_cross",
+      "leg": "RR",
+      "physics_tick": 4928,
+      "simulation_time_s": 41.06666666666666
+    },
+    {
+      "completed_crossing_history_retained": false,
+      "event": "current_lift_revoked_ground",
+      "leg": "RR",
+      "physics_tick": 4928,
+      "simulation_time_s": 41.06666666666666
+    }
+  ],
+  "current_legs": {
+    "FL": {
+      "air": true,
+      "ground_contact": false,
+      "contact_mode": null,
+      "support": false,
+      "bearing_force_n": 0.0,
+      "top_surface_contact": false,
+      "current_lift_valid": null,
+      "active_attempt": true,
+      "front_edge_crossed": null,
+      "placed_on_top": null,
+      "clearance_m": 0.18641599587725804,
+      "front_distance_m": 0.48568231208157187
+    },
+    "FR": {
+      "air": false,
+      "ground_contact": false,
+      "contact_mode": null,
+      "support": true,
+      "bearing_force_n": 13.492438316345215,
+      "top_surface_contact": true,
+      "current_lift_valid": null,
+      "active_attempt": true,
+      "front_edge_crossed": null,
+      "placed_on_top": null,
+      "clearance_m": 6.766158511944953e-06,
+      "front_distance_m": 0.491596046517607
+    },
+    "RL": {
+      "air": false,
+      "ground_contact": true,
+      "contact_mode": null,
+      "support": true,
+      "bearing_force_n": 11.706357955932617,
+      "top_surface_contact": false,
+      "current_lift_valid": null,
+      "active_attempt": false,
+      "front_edge_crossed": null,
+      "placed_on_top": null,
+      "clearance_m": -0.051363358551953175,
+      "front_distance_m": -0.09650459544825907
+    },
+    "RR": {
+      "air": false,
+      "ground_contact": true,
+      "contact_mode": "GROUND",
+      "support": true,
+      "bearing_force_n": 3.893004894256592,
+      "top_surface_contact": false,
+      "current_lift_valid": false,
+      "active_attempt": false,
+      "front_edge_crossed": false,
+      "placed_on_top": false,
+      "clearance_m": -0.04997647802869776,
+      "front_distance_m": -0.17532395975756998
+    }
+  },
+  "RR_history_active_boolean": false,
+  "windows": {
+    "FL_cross_to_capture": {
+      "status": "COMPLETE",
+      "ticks": [
+        2747,
+        2986
+      ],
+      "reason": null,
+      "duration_s": 1.9916666666666671,
+      "body_forward_displacement_m": 0.03409528732299805,
+      "rate_RMS_rad_s": 0.03038503570660181,
+      "peak_tilt_rad": 0.042482483693805036,
+      "body_collider_min_z_m": 0.12713411456121362,
+      "AABB_separation_lower_bound_min_m": 0.08852137563022908,
+      "FL_gap_m": {
+        "n": 240,
+        "minimum": -0.0010534007624941263,
+        "maximum": 0.057080427178570925,
+        "mean": 0.026296249116764668,
+        "first": 0.04874672162345957,
+        "last": -0.0009890474989399448
+      },
+      "RR_gap_m": {
+        "n": 240,
+        "minimum": -0.051254928952344576,
+        "maximum": -0.05016586475643777,
+        "mean": -0.05067841843129594,
+        "first": -0.05016586475643777,
+        "last": -0.05057228720181251
+      },
+      "raw_contact_counts": {
+        "FL": {
+          "ground": 0,
+          "obstacle": 2,
+          "air": 238
+        },
+        "FR": {
+          "ground": 0,
+          "obstacle": 239,
+          "air": 1
+        },
+        "RL": {
+          "ground": 240,
+          "obstacle": 0,
+          "air": 0
+        },
+        "RR": {
+          "ground": 239,
+          "obstacle": 0,
+          "air": 1
+        }
+      },
+      "evaluator_endpoint_count": 30,
+      "FL_current_support_summary": {
+        "air_samples": 30,
+        "ground_samples": 0,
+        "top_verified_bearing_samples": 0,
+        "support_samples": 0,
+        "current_lift_valid_samples": null
+      },
+      "RR_current_support_summary": {
+        "air_samples": 0,
+        "ground_samples": 30,
+        "top_verified_bearing_samples": 0,
+        "support_samples": 30,
+        "current_lift_valid_samples": 0
+      }
+    },
+    "FL_capture_hold_until_RR_preparation": {
+      "status": "COMPLETE",
+      "ticks": [
+        2986,
+        4600
+      ],
+      "reason": null,
+      "duration_s": 13.450000000000003,
+      "body_forward_displacement_m": 0.25500431656837463,
+      "rate_RMS_rad_s": 0.047438966420152384,
+      "peak_tilt_rad": 0.15987045923340398,
+      "body_collider_min_z_m": 0.12012234898377186,
+      "AABB_separation_lower_bound_min_m": 0.07012234898377186,
+      "FL_gap_m": {
+        "n": 1615,
+        "minimum": -0.0011980133441689134,
+        "maximum": 0.06310833848015475,
+        "mean": 0.036462104609367836,
+        "first": -0.0009890474989399448,
+        "last": 0.03741262718428068
+      },
+      "RR_gap_m": {
+        "n": 1615,
+        "minimum": -0.05188279534007052,
+        "maximum": -0.04998152185347035,
+        "mean": -0.05039461258969929,
+        "first": -0.05057228720181251,
+        "last": -0.050295047284935765
+      },
+      "raw_contact_counts": {
+        "FL": {
+          "ground": 0,
+          "obstacle": 108,
+          "air": 1507
+        },
+        "FR": {
+          "ground": 0,
+          "obstacle": 1613,
+          "air": 2
+        },
+        "RL": {
+          "ground": 1615,
+          "obstacle": 0,
+          "air": 0
+        },
+        "RR": {
+          "ground": 1608,
+          "obstacle": 0,
+          "air": 7
+        }
+      },
+      "evaluator_endpoint_count": 202,
+      "FL_current_support_summary": {
+        "air_samples": 189,
+        "ground_samples": 0,
+        "top_verified_bearing_samples": 13,
+        "support_samples": 13,
+        "current_lift_valid_samples": null
+      },
+      "RR_current_support_summary": {
+        "air_samples": 0,
+        "ground_samples": 202,
+        "top_verified_bearing_samples": 0,
+        "support_samples": 202,
+        "current_lift_valid_samples": 0
+      }
+    },
+    "P06_rear_approach": {
+      "status": "COMPLETE",
+      "ticks": [
+        2992,
+        4600
+      ],
+      "reason": null,
+      "duration_s": 13.400000000000002,
+      "body_forward_displacement_m": 0.24936029314994812,
+      "rate_RMS_rad_s": 0.04672806660764838,
+      "peak_tilt_rad": 0.15987045923340398,
+      "body_collider_min_z_m": 0.12012234898377186,
+      "AABB_separation_lower_bound_min_m": 0.07012234898377186,
+      "FL_gap_m": {
+        "n": 1609,
+        "minimum": -0.0011980133441689134,
+        "maximum": 0.06310833848015475,
+        "mean": 0.036601423979193796,
+        "first": -0.0007906885516514375,
+        "last": 0.03741262718428068
+      },
+      "RR_gap_m": {
+        "n": 1609,
+        "minimum": -0.05188279534007052,
+        "maximum": -0.04998152185347035,
+        "mean": -0.050393655046603855,
+        "first": -0.050783453281478486,
+        "last": -0.050295047284935765
+      },
+      "raw_contact_counts": {
+        "FL": {
+          "ground": 0,
+          "obstacle": 102,
+          "air": 1507
+        },
+        "FR": {
+          "ground": 0,
+          "obstacle": 1609,
+          "air": 0
+        },
+        "RL": {
+          "ground": 1609,
+          "obstacle": 0,
+          "air": 0
+        },
+        "RR": {
+          "ground": 1602,
+          "obstacle": 0,
+          "air": 7
+        }
+      },
+      "evaluator_endpoint_count": 202,
+      "FL_current_support_summary": {
+        "air_samples": 189,
+        "ground_samples": 0,
+        "top_verified_bearing_samples": 13,
+        "support_samples": 13,
+        "current_lift_valid_samples": null
+      },
+      "RR_current_support_summary": {
+        "air_samples": 0,
+        "ground_samples": 202,
+        "top_verified_bearing_samples": 0,
+        "support_samples": 202,
+        "current_lift_valid_samples": 0
+      }
+    },
+    "RR_preparation_to_place": {
+      "status": "INCOMPLETE",
+      "ticks": [
+        4600,
+        8219
+      ],
+      "reason": null,
+      "duration_s": 30.158333333333324,
+      "body_forward_displacement_m": 0.1398993730545044,
+      "rate_RMS_rad_s": 0.11471256656250291,
+      "peak_tilt_rad": 0.5182389777441422,
+      "body_collider_min_z_m": 0.05377600530247455,
+      "AABB_separation_lower_bound_min_m": 0.0037760053024745444,
+      "FL_gap_m": {
+        "n": 3620,
+        "minimum": 0.03741262718428068,
+        "maximum": 0.2148283765193793,
+        "mean": 0.17510443424403338,
+        "first": 0.03741262718428068,
+        "last": 0.18641599587725804
+      },
+      "RR_gap_m": {
+        "n": 3620,
+        "minimum": -0.051552458333403293,
+        "maximum": -0.026471775440711984,
+        "mean": -0.05017483053881705,
+        "first": -0.050295047284935765,
+        "last": -0.04997647802869776
+      },
+      "raw_contact_counts": {
+        "FL": {
+          "ground": 0,
+          "obstacle": 0,
+          "air": 3620
+        },
+        "FR": {
+          "ground": 0,
+          "obstacle": 3619,
+          "air": 1
+        },
+        "RL": {
+          "ground": 3619,
+          "obstacle": 0,
+          "air": 1
+        },
+        "RR": {
+          "ground": 3441,
+          "obstacle": 0,
+          "air": 179
+        }
+      },
+      "evaluator_endpoint_count": 454,
+      "FL_current_support_summary": {
+        "air_samples": 454,
+        "ground_samples": 0,
+        "top_verified_bearing_samples": 0,
+        "support_samples": 0,
+        "current_lift_valid_samples": null
+      },
+      "RR_current_support_summary": {
+        "air_samples": 12,
+        "ground_samples": 442,
+        "top_verified_bearing_samples": 0,
+        "support_samples": 442,
+        "current_lift_valid_samples": 5
+      }
+    }
+  },
+  "first_unmet_explanation": "RR qualified at4887, regrounded/revoked before crossing at4928, and never crossed/placed. First unmet task is maintained valid RR lift followed by crossing/controlled placement, not 'RR never qualified'.",
+  "first_exact_FL_air_after_capture_tick": null,
+  "limitations": "Fixed stochastic checkpoint, not a training rollout. Current endpoint support counts are not contact durations. Complete FL stage window does not prove continuous retention. Incomplete RR cannot outrank successful completion. No wheel traction causality, fabricated geometry/zero filling, old raw scan, GPU import, physics or production edits."
+}

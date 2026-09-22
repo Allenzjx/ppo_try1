@@ -1,0 +1,1937 @@
+*** Begin Patch
+*** Update File: src/wlr50_clean/ppo/semantic_checkpoint_prefix_policy.py
+@@
+         digest.update(str(tuple(tensor.shape)).encode())
+         digest.update(tensor.numpy().tobytes())
+     return digest.hexdigest()
++
++
++def _task_conditioned_source_record(record):
++    from pathlib import Path
++    from .semantic_policy_distribution import (TASK_CONDITIONED_HIP_WHEEL_POLICY,
++        FR_KNEE_PHYSICAL_INNOVATION_POLICY)
++    target, source = record["policy_contract"], record.get("source_policy_contract")
++    source_version = supported_heteroscedastic_contract_version(source)
++    runtime_hash, effective_hash = record.get("source_runtime_content_sha256"), record.get("effective_runtime_content_sha256")
++    if (record.get("effective_policy_contract") != target or runtime_hash is None
++            or not isinstance(effective_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", effective_hash)):
++        raise ValueError("task prefix requires explicit source and effective kernel/runtime provenance")
++    archive = record.get("archive_only_exact_bytes_migration")
++    task = record.get("task_conditioned_hip_wheel_migration")
++    if (archive is not None and task is not None
++            or record.get("physical_innovation_sigma_migration") is not None
++            or record.get("request_history_kernel_migration") is not None):
++        raise ValueError("task prefix may not mix independent migration provenance")
++    if archive is not None:
++        migration, factor_key = archive, "archive_only_exact_bytes_factor"
++        schema = "wlr50_clean.archive_only_exact_bytes_same372.v1"
++        if (source != target or source_version not in (FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY)
++                or effective_hash != runtime_hash):
++            raise ValueError("archive-only prefix may not change policy or runtime bytes")
++    elif task is not None:
++        migration, factor_key = task, "task_conditioned_hip_wheel_factor"
++        schema = "wlr50_clean.task_conditioned_hip_wheel_same372.v1"
++        if source_version != FR_KNEE_PHYSICAL_INNOVATION_POLICY or target["version"] != TASK_CONDITIONED_HIP_WHEEL_POLICY:
++            raise ValueError("task prefix requires the exact FR-knee to task-conditioned policy boundary")
++    else:
++        if source != target or target["version"] != TASK_CONDITIONED_HIP_WHEEL_POLICY or effective_hash != runtime_hash:
++            raise ValueError("task prefix is not a verified migration or exact target checkpoint resume")
++        return
++    keys = {"plan_path", "plan_sha256", "source_checkpoint_sha256",
++        "source_runtime_content_sha256", "target_runtime_content_sha256"}
++    if not isinstance(migration, dict) or set(migration) != keys:
++        raise ValueError("task prefix requires its exact immutable migration binding")
++    path = Path(migration["plan_path"]).resolve(strict=True)
++    raw = path.read_bytes()
++    plan = json.loads(raw)
++    factor = plan.get(factor_key, {})
++    if (hashlib.sha256(raw).hexdigest() != migration["plan_sha256"]
++            or migration["source_checkpoint_sha256"] != record["checkpoint_sha256"]
++            or migration["source_runtime_content_sha256"] != runtime_hash
++            or migration["target_runtime_content_sha256"] != effective_hash
++            or plan.get("source_checkpoint") != record["checkpoint_path"]
++            or plan.get("source_checkpoint_sha256") != record["checkpoint_sha256"]
++            or plan.get("source_runtime_content_sha256") != runtime_hash
++            or plan.get("target_runtime_content_sha256") != effective_hash
++            or factor.get("schema") != schema or factor.get("source_policy_contract") != source
++            or factor.get("target_policy_contract") != target):
++        raise ValueError("task prefix plan differs from source checkpoint and effective kernel")
++    if archive is not None and (factor.get("runtime_bytes_identical") is not True
++            or plan.get("allowed_changed_files") != [] or plan.get("changed_file_hashes") != {}):
++        raise ValueError("archive-only prefix plan contains runtime changes")
+ 
+ 
+ def _source_record(source: Mapping[str, Any]) -> dict[str, Any]:
+@@
+     ):
+         raise ValueError("source_runtime_content_sha256 must be a lowercase SHA256")
+     from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+-        HISTORY_QUARTER_TEMPERED_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY)
++        HISTORY_QUARTER_TEMPERED_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY)
++    if (record["policy_contract"]["version"] == TASK_CONDITIONED_HIP_WHEEL_POLICY
++            or record.get("archive_only_exact_bytes_migration") is not None):
++        _task_conditioned_source_record(record)
++        return record
+     if record["policy_contract"]["version"] in (HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY):
+         target = record["policy_contract"]
+         physical_innovation = target["version"] == FR_KNEE_PHYSICAL_INNOVATION_POLICY
+@@
+         from rsl_rl.modules.distribution import HeteroscedasticGaussianDistribution
+         from .semantic_history_actor import (SemanticHistoryMLPModel,
+             SemanticTemperedHistoryMLPModel, SemanticQuarterTemperedHistoryMLPModel,
+-            SemanticCapTransitionQuarterHistoryMLPModel, SemanticFRKneePhysicalInnovationHistoryMLPModel)
++            SemanticCapTransitionQuarterHistoryMLPModel, SemanticFRKneePhysicalInnovationHistoryMLPModel,
++            SemanticTaskConditionedHipWheelHistoryMLPModel)
+         from .semantic_policy_distribution import (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
+-            HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY)
++            HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY)
+ 
+         record = _source_record(source_checkpoint)
+         version = supported_heteroscedastic_contract_version(record["policy_contract"])
+@@
+             HISTORY_TEMPERED_POLICY: SemanticTemperedHistoryMLPModel,
+             HISTORY_QUARTER_TEMPERED_POLICY: SemanticQuarterTemperedHistoryMLPModel,
+             HISTORY_REQUEST_CAP_TRANSITION_POLICY: SemanticCapTransitionQuarterHistoryMLPModel,
+-            FR_KNEE_PHYSICAL_INNOVATION_POLICY: SemanticFRKneePhysicalInnovationHistoryMLPModel}
++            FR_KNEE_PHYSICAL_INNOVATION_POLICY: SemanticFRKneePhysicalInnovationHistoryMLPModel,
++            TASK_CONDITIONED_HIP_WHEEL_POLICY: SemanticTaskConditionedHipWheelHistoryMLPModel}
+         expected_class = history_classes.get(version, MLPModel)
+         if not isinstance(actor, torch.nn.Module) or getattr(actor, "is_recurrent", False):
+             raise ValueError("checkpoint prefix requires a nonrecurrent torch actor")
+*** Update File: src/wlr50_clean/ppo/semantic_cli.py
+@@
+     if version == "v2":
+         return RUNS_ROOT, OUTPUT_ROOT, PROJECT_ROOT / "configs/ppo_semantic_v2"
+     return (PROJECT_ROOT / "runs" / namespace, PROJECT_ROOT / "outputs" / namespace,
+-            PROJECT_ROOT / "configs" / (namespace if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1") else "ppo_semantic_v3"))
++            PROJECT_ROOT / "configs" / (namespace if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1") else "ppo_semantic_v3"))
+ 
+ 
+ def _request_paths(args: argparse.Namespace) -> tuple[Path, Path, Path]:
+@@
+     result.add_argument("--seed", type=int, default=1001)
+     result.add_argument("--num-envs", type=int, choices=(1, 8), default=1)
+     result.add_argument("--semantic-version", choices=("v2", "v3"), default="v2")
+-    result.add_argument("--experiment-id", choices=("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1"))
++    result.add_argument("--experiment-id", choices=("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1"))
+     result.add_argument("--from-phase", choices=("P01", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13"), default="P01")
+     result.add_argument("--teacher-offset-decisions", type=int, default=0)
+     result.add_argument("--prefix-source", choices=("frozen_fsm", "checkpoint_policy", "successful_nominal"), default="frozen_fsm")
+@@
+ def validate_request(args: argparse.Namespace) -> None:
+     _validate_target_policy_request(args)
+     runs_root, output_root, _ = _request_paths(args)
+-    if getattr(args, "experiment_id", None) in ("residual_rr_fix_v1", "fl_capture_quality_v1") and (
++    if getattr(args, "experiment_id", None) in ("residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1") and (
+             args.new_mdp_warm_start or getattr(args, "policy_distribution_migration", False)):
+         raise ValueError("RR continuation uses its explicit state-preserving task migration or exact resume")
+     if getattr(args, "experiment_id", None) == "non_residual_refine_v1":
+@@
+         raise ValueError("training already exists; explicitly resume checkpoint_last instead of reinitializing")
+     if args.checkpoint is not None:
+         source_root = output_root
++        if (getattr(args, "experiment_id", None) == "task_conditioned_hip_wheel_v1"
++                and args.resume_migration is not None
++                and not args.checkpoint.resolve(strict=True).is_relative_to((output_root / "checkpoints").resolve())):
++            planned = json.loads(args.resume_migration.read_text(encoding="utf-8"))
++            if not isinstance(planned.get("task_conditioned_hip_wheel_factor"), dict):
++                raise ValueError("task-conditioned cross-root continuation requires its joint reviewed factor")
++            source_root = version_paths("v3", experiment_id="fl_capture_quality_v1")[1]
+         if (getattr(args, "experiment_id", None) == "fl_capture_quality_v1"
+                 and args.resume_migration is not None
+                 and not args.checkpoint.resolve(strict=True).is_relative_to((output_root / "checkpoints").resolve())):
+@@
+     else:
+         args._migration_record = validate_migration_plan(args.checkpoint, contract, args.resume_migration)
+         from .semantic_training import (_validated_exploration_temperature_factor,
+-            _validated_request_history_kernel_factor, _validated_physical_innovation_sigma_factor)
++            _validated_request_history_kernel_factor, _validated_physical_innovation_sigma_factor,
++            _validated_task_conditioned_hip_wheel_factor)
++        task_conditioned = _validated_task_conditioned_hip_wheel_factor(metadata, args._migration_record,
++            semantic_version=args.semantic_version, seed=int(metadata["seed"]), device=args.device,
++            observation_layout=args._observation_layout)
+         physical_innovation = _validated_physical_innovation_sigma_factor(metadata, args._migration_record,
+             semantic_version=args.semantic_version, seed=int(metadata["seed"]), device=args.device,
+             observation_layout=args._observation_layout)
+@@
+         temperature = _validated_exploration_temperature_factor(metadata, args._migration_record,
+             semantic_version=args.semantic_version, seed=int(metadata["seed"]), device=args.device,
+             observation_layout=args._observation_layout)
+-        if physical_innovation is not None:
++        if task_conditioned is not None:
++            if getattr(args, "num_envs", 1) != 1:
++                raise ValueError("task-conditioned reward/sigma migration requires N1")
++            args._policy_version = task_conditioned["target_policy_contract"]["version"]
++        elif physical_innovation is not None:
+             if getattr(args, "num_envs", 1) != 1:
+                 raise ValueError("physical-innovation sigma migration requires N1")
+             args._policy_version = physical_innovation["target_policy_contract"]["version"]
+@@
+         raise ValueError("resume must preserve the checkpoint training RNG seed")
+ 
+ 
++def _task_conditioned_prefix_provenance(args, contract, previous):
++    """Bind migrated source weights to the actual target task/kernel, including exact archive-only changes."""
++    from .semantic_policy_distribution import (TASK_CONDITIONED_HIP_WHEEL_POLICY,
++        FR_KNEE_PHYSICAL_INNOVATION_POLICY)
++    target = _resolved_policy_contract(args)
++    source = previous.get("policy_contract")
++    record = getattr(args, "_migration_record", None) or {}
++    archive = record.get("archive_only_exact_bytes_factor")
++    task = record.get("task_conditioned_hip_wheel_factor")
++    source_runtime = previous["runtime_contract"]["runtime_content_sha256"]
++    target_runtime = contract["runtime_content_sha256"]
++    factor, key = (archive, "archive_only_exact_bytes_migration") if archive is not None else (task, "task_conditioned_hip_wheel_migration")
++    if factor is not None:
++        if (task is not None and archive is not None
++                or factor.get("source_policy_contract") != source or factor.get("target_policy_contract") != target
++                or record.get("source_runtime_content_sha256") != source_runtime
++                or record.get("target_runtime_content_sha256") != target_runtime
++                or target["version"] not in (FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY)):
++            raise ValueError("task/archival prefix lacks exact source-weight/target-kernel provenance")
++        migration = {k: record[k] for k in ("plan_path", "plan_sha256", "source_checkpoint_sha256",
++            "source_runtime_content_sha256", "target_runtime_content_sha256")}
++    else:
++        if source != target or previous["runtime_contract"] != contract or target["version"] != TASK_CONDITIONED_HIP_WHEEL_POLICY:
++            raise ValueError("task-conditioned prefix must use verified migration or exact target checkpoint resume")
++        migration = None
++    return {"source_policy_contract": source, "effective_policy_contract": target,
++        "effective_runtime_content_sha256": target_runtime, key: migration}
++
++
+ def _request_history_prefix_provenance(args, contract, previous):
+     """Do not relabel an old weight file as if it already stored the new kernel."""
+     from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+-        HISTORY_QUARTER_TEMPERED_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
++        HISTORY_QUARTER_TEMPERED_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY,
+         supported_heteroscedastic_contract_version)
+     target = _resolved_policy_contract(args)
++    if (target["version"] == TASK_CONDITIONED_HIP_WHEEL_POLICY
++            or (getattr(args, "_migration_record", None) or {}).get("archive_only_exact_bytes_factor") is not None):
++        return _task_conditioned_prefix_provenance(args, contract, previous)
+     if target["version"] not in (HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY):
+         return {}
+     physical_innovation = target["version"] == FR_KNEE_PHYSICAL_INNOVATION_POLICY
+*** Update File: src/wlr50_clean/ppo/semantic_history_actor.py
+@@
+             head[..., 1, :], latent, self.exploration_std_temperature)
+         self.distribution.update(torch.stack((head[..., 0, :], log_std), dim=-2))
+         return self.distribution.sample()
++
++
++def task_conditioned_physical_scales(latent: torch.Tensor):
++    """Pure observable exploration schedule; contact proxies are not acceptance.
++
++    B is a physical equivalent innovation scale, NOT actual sigma, a target,
++    capacity or a sign preference. No hidden timer or new action history.
++    """
++    from .semantic_policy_distribution import TASK_CONDITIONED_PHYSICAL_B_TABLE
++    _, evidence = cap_transition_request_history(latent)
++    for start, end in ((131,139), (146,158)):
++        bits = latent[...,start:end]
++        if not bool(((bits == 0) | (bits == 1)).all()):
++            raise ValueError("task sigma requires binary observed contact/history flags")
++    stage, cap = evidence["stage_index"], evidence["current_cap_full12"]
++    base = cap.clone()
++    base[...,3] = torch.where(stage >= 5, 24., base[...,3])
++    weights = {}
++    no_fr = (latent[...,133] == 0) & (latent[...,134] == 0)
++    no_fl = (latent[...,131] == 0) & (latent[...,132] == 0)
++    fr = ((stage <= 1) & (latent[...,155] == 0) & (latent[...,147] == 1)
++          & no_fr & (latent[...,33] >= 2))
++    weights["FR_air_approach_proxy"] = fr * (latent[...,24]/.015).clamp(0.,1.)
++    fl = ((stage == 4) & (latent[...,150] == 1) & (latent[...,154] == 0) & no_fl)
++    weights["FL_crossed_air_pending"] = fl * (latent[...,21]/.003).clamp(0.,1.)
++
++    def front_support_proxy(i):
++        goal, geom, pair, force = 21+3*i, 99+3*i, 131+2*i, 123+2*i
++        # Obstacle-pair reaction near top is NOT classified TOP or current Y ROI.
++        return ((latent[...,pair] == 0) & (latent[...,pair+1] == 1)
++                & (latent[...,force+1]*100. >= .2)
++                & (latent[...,goal] >= -.015) & (latent[...,goal] <= .025)
++                & (latent[...,goal+1] >= -.005) & (latent[...,geom+1] <= .005))
++
++    fronts_placed = (latent[...,154] == 1) & (latent[...,155] == 1)
++    support_proxy = front_support_proxy(0) & front_support_proxy(1)
++    pending = latent[...,157] == 0
++    p06 = (stage == 5) & fronts_placed & pending
++    rolling = p06 & support_proxy
++    weights["P06_front_support_rolling_proxy"] = rolling.to(latent.dtype)
++    weights["P06_front_support_recovery_proxy"] = (p06 & ~support_proxy).to(latent.dtype)
++    # Any rear leg approaching the preparation region releases rolling preference.
++    rear_x = torch.maximum(latent[...,28], latent[...,31])
++    rear_proximity = ((rear_x+.27)/.05).clamp(0.,1.)
++    prepare = ((stage >= 6) & (stage <= 8) & pending).to(latent.dtype)
++    weights["RR_preparation"] = torch.maximum(prepare, p06*rear_proximity)
++    valid_rr = ((stage >= 5) & (stage <= 8) & pending & (latent[...,149] == 1))
++    weights["RR_current_valid_lift"] = valid_rr.to(latent.dtype)
++    B = base
++    for name, weight in weights.items():
++        target = latent.new_tensor(TASK_CONDITIONED_PHYSICAL_B_TABLE[name])
++        if target.shape != (12,) or not bool((torch.isfinite(target) & (target > 0)).all()):
++            raise ValueError("task sigma table must preserve twelve positive finite scales")
++        B = torch.lerp(B, target, weight.unsqueeze(-1))
++    return B, cap, {"task_state_weights": weights, "stage_index":stage,
++        "front_support_proxy_not_exact_TOP":support_proxy,
++        "current_RR_qualification":latent[...,149], "current_rear_front_distance_m":rear_x}
++
++
++def task_conditioned_effective_log_std(head_log_std: torch.Tensor, latent: torch.Tensor,
++                                     temperature: float):
++    """The one sigma kernel used by official sampling/likelihood and evidence."""
++    B, cap, evidence = task_conditioned_physical_scales(latent)
++    if (type(temperature) is not float or temperature != .25
++            or not isinstance(head_log_std, torch.Tensor)
++            or head_log_std.shape != latent.shape[:-1]+(12,)
++            or head_log_std.device != latent.device or head_log_std.dtype != latent.dtype):
++        raise ValueError("task sigma requires matching quarter full12 current-observation head")
++    multiplier = B/cap
++    log_std = head_log_std + math.log(temperature) + multiplier.log()
++    sigma = log_std.exp()
++    if not bool((torch.isfinite(sigma) & (sigma > 0)).all()):
++        raise ValueError("task-conditioned Gaussian sigma must remain positive finite without clipping")
++    return log_std, {**evidence, "physical_equivalent_B_full12":B,
++                    "current_cap_full12":cap, "innovation_sigma_multiplier_full12":multiplier}
++
++
++class SemanticTaskConditionedHipWheelHistoryMLPModel(SemanticCapTransitionQuarterHistoryMLPModel):
++    """Same REQUEST-history mean/rho/cap; observable positive full12 innovation."""
++
++    def forward(self, obs: TensorDict, masks: torch.Tensor | None = None,
++                hidden_state: HiddenState = None, stochastic_output: bool = False) -> torch.Tensor:
++        if not stochastic_output:
++            return super().forward(obs,masks,hidden_state,stochastic_output=False)
++        obs = unpad_trajectories(obs,masks) if masks is not None and not self.is_recurrent else obs
++        latent = self.get_latent(obs,masks,hidden_state)
++        if (getattr(self,"observation_layout",None) != ROLE_OBSERVATION_LAYOUT
++                or self.obs_dim != ROLE_OBSERVATION_DIM or latent.shape[-1] != ROLE_OBSERVATION_DIM):
++            raise ValueError("task sigma actor requires the unchanged explicit 372 layout")
++        history,_ = cap_transition_request_history(latent)
++        head = history_conditioned_head(self.mlp(latent),history,HISTORY_RHO)
++        log_std,_ = task_conditioned_effective_log_std(head[...,1,:],latent,self.exploration_std_temperature)
++        self.distribution.update(torch.stack((head[...,0,:],log_std),dim=-2))
++        return self.distribution.sample()
+*** Update File: src/wlr50_clean/ppo/semantic_migration.py
+@@
+     "semantic_migration", "semantic_cli", "semantic_checkpoint_prefix_policy"))
+ PHYSICAL_INNOVATION_SIGMA_SCHEMA = "wlr50_clean.FR_knee_phase_physical_innovation_sigma.v1"
+ PHYSICAL_INNOVATION_SIGMA_FILES = REQUEST_HISTORY_KERNEL_FILES
++TASK_CONDITIONED_HIP_WHEEL_SCHEMA = "wlr50_clean.task_conditioned_hip_wheel_same372.v1"
++ARCHIVE_ONLY_EXACT_BYTES_SCHEMA = "wlr50_clean.archive_only_exact_bytes_same372.v1"
++TASK_CONDITIONED_HIP_WHEEL_FILES = REQUEST_HISTORY_KERNEL_FILES | frozenset({
++    "src/wlr50_clean/ppo/semantic_reward.py", "src/wlr50_clean/ppo/semantic_supervisor.py",
++    "src/wlr50_clean/ppo/semantic_task_quality.py", "src/wlr50_clean/ppo/semantic_observation.py",
++    "src/wlr50_clean/ppo/semantic_video.py", "src/wlr50_clean/ppo/semantic_video_cli.py",
++    "scripts/run_semantic_ppo.ps1", "scripts/run_semantic_video.ps1"})
+ STAGE_SPEC = "configs/ppo_semantic_v2/stage_task_spec.yaml"
+ SUPERVISOR = "src/wlr50_clean/ppo/semantic_supervisor.py"
+ PRIOR_DIAGNOSTIC_HEAD = "84c607a2ffbba36f46a0e70dbb886227c0c32ec5"
+@@
+         raise ValueError("unsupported semantic runtime version")
+     if experiment_id is None:
+         return f"ppo_semantic_{semantic_version}"
+-    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1") or semantic_version != "v3":
++    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1") or semantic_version != "v3":
+         raise ValueError("isolated semantic experiment requires semantic version v3")
+     return f"ppo_{experiment_id}"
+ 
+@@
+         "discard_old_rollout_storage": True, "physics_resume": "fresh_legal_P01_reset", "physical_innovation_sigma_factor": factor}
+ 
+ 
++def _task_conditioned_plan_envelope(checkpoint, old, new, delta, reason, factor_key, factor):
++    return {"schema": SCHEMA, "reason": reason.strip(), "source_checkpoint": str(checkpoint),
++        "source_checkpoint_sha256": file_sha(checkpoint),
++        "source_manifest_sha256": file_sha(checkpoint.with_name(checkpoint.stem+"_manifest.json")),
++        "source_contract_sha256": digest(old), "target_contract_sha256": digest(new),
++        "source_git_commit": old["source_git_commit"], "target_git_commit": new["source_git_commit"],
++        "source_runtime_content_sha256": old["runtime_content_sha256"],
++        "target_runtime_content_sha256": new["runtime_content_sha256"],
++        "allowed_changed_files": delta,
++        "changed_file_hashes": {p: {"before": old["files"].get(p), "after": new["files"][p]} for p in delta},
++        "geometric_factor": None, "observation_dimension": 372, "action_dimension": 12,
++        "preserve_actor_critic_optimizer_normalizer_rng_and_budget": True,
++        "discard_old_rollout_storage": True, "physics_resume": "fresh_legal_P01_reset", factor_key: factor}
++
++
++def _task_conditioned_source_binding(metadata, old, new, project_root, *, archive=False):
++    from .semantic_policy_distribution import (FR_KNEE_PHYSICAL_INNOVATION_POLICY,
++        TASK_CONDITIONED_HIP_WHEEL_POLICY, policy_contract)
++    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
++    from .semantic_training import semantic_runner_config
++    from .semantic_return_profile import runner_return_profile
++    source_version = metadata.get("policy_contract", {}).get("version")
++    versions = {FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY} if archive else {FR_KNEE_PHYSICAL_INNOVATION_POLICY}
++    if (metadata.get("semantic_version") != "v3" or source_num_envs(metadata) != 1
++            or source_version not in versions or old.get("semantic_version") != "v3"
++            or new.get("semantic_version") != "v3" or old["source_git_commit"] == new["source_git_commit"]):
++        raise ValueError("task/archival migration requires a versioned exact supported v3 N1 source")
++    actual_head = subprocess.run(["git", "-C", str(project_root), "rev-parse", "HEAD"],
++        check=True, capture_output=True, text=True).stdout.strip()
++    if actual_head != new["source_git_commit"]:
++        raise ValueError("task/archival migration target HEAD is not the actual project HEAD")
++    target_version = source_version if archive else TASK_CONDITIONED_HIP_WHEEL_POLICY
++    source = policy_contract(source_version, observation_layout=ROLE_OBSERVATION_LAYOUT)
++    target = policy_contract(target_version, observation_layout=ROLE_OBSERVATION_LAYOUT)
++    horizon = runner_return_profile(metadata["runner_config"], semantic_version="v3")["version"]
++    options = dict(seed=metadata["seed"], device=metadata["runner_config"]["device"],
++        semantic_version="v3", return_profile=horizon, observation_layout=ROLE_OBSERVATION_LAYOUT)
++    source_config = semantic_runner_config(policy_version=source_version, **options)
++    target_config = semantic_runner_config(policy_version=target_version, **options)
++    import copy
++    a, b = copy.deepcopy(source_config), copy.deepcopy(target_config)
++    a["actor"].pop("class_name"); b["actor"].pop("class_name")
++    lr = metadata.get("optimizer_learning_rate")
++    if (metadata.get("policy_contract") != source or metadata["runner_config"] != source_config or a != b
++            or type(lr) not in (int, float) or not math.isfinite(lr) or lr <= 0):
++        raise ValueError("task migration must preserve canonical PPO/Identity/source effective Adam LR")
++    origin = {key: metadata[key] for key in ("global_policy_decisions", "ppo_updates", "optimizer_steps")}
++    if any(type(v) is not int or v < 0 for v in origin.values()):
++        raise ValueError("task migration source counters must be nonnegative integers")
++    return {"source_policy_version": source_version, "target_policy_version": target_version,
++        "source_policy_contract": source, "target_policy_contract": target,
++        "source_runner_config": source_config, "target_runner_config": target_config,
++        "source_effective_learning_rate": lr, "target_effective_learning_rate": lr,
++        "counter_origin": origin, "observation_contract": {
++            "source_policy_contract": source, "target_policy_contract": target,
++            "observation_layout": ROLE_OBSERVATION_LAYOUT, "observation_dimension": 372,
++            "action_dimension": 12, "num_envs": 1, "parameter_mapping": "identity_all_parameters_and_buffers"},
++        "normalizers": "preserve_verified_identity_RSL_state",
++        "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
++        "optimizer_lr_scope": "all_parameter_groups_and_algorithm_learning_rate_scalar",
++        "training_rng": "preserve_verified_training_rng", "lifetime_counters_preserved": True,
++        "old_rollout_inherited": False, "migration_added_updates": 0, "migration_added_policy_decisions": 0,
++        "prefix_samples_have_optimizer_credit": False, "physical_trajectory_equivalence_claimed": False}
++
++
++def _build_archive_only_exact_bytes_plan(checkpoint, metadata, old, new, *,
++        allowed_changed_files, reason, review, project_root):
++    """Explicit known-policy HEAD-only archive boundary, never a source exemption."""
++    from .semantic_policy_distribution import CONFIG_NAMES
++    if (not isinstance(review, Mapping) or set(review) != {"reason"}
++            or not isinstance(review["reason"], str) or not review["reason"].strip()
++            or not isinstance(reason, str) or not reason.strip() or list(allowed_changed_files)):
++        raise ValueError("archive-only migration needs its explicit reason and no changed runtime file")
++    factor = _task_conditioned_source_binding(metadata, old, new, project_root, archive=True)
++    expected_experiment = ("fl_capture_quality_v1" if factor["source_policy_version"] ==
++        "request_history_FR_knee_P06plus_physical_innovation_sigma_v1" else "task_conditioned_hip_wheel_v1")
++    if (old.get("experiment_id") != expected_experiment or new.get("experiment_id") != expected_experiment
++            or {k:v for k,v in old.items() if k != "source_git_commit"}
++            != {k:v for k,v in new.items() if k != "source_git_commit"}
++            or set(old.get("selected_configuration", {})) != CONFIG_NAMES):
++        raise ValueError("archive-only migration permits only HEAD, not runtime/configuration/namespace changes")
++    for relative, expected in new["files"].items():
++        if file_sha(project_root / relative) != expected:
++            raise ValueError("archive-only current runtime bytes differ from the source checkpoint")
++        _version_bytes(project_root, old, relative, prefer_worktree=True)
++    for name, row in old["selected_configuration"].items():
++        path = f"configs/ppo_{expected_experiment}/{name}"
++        if row != {"path": path, "sha256": old["files"].get(path)} or row["sha256"] is None:
++            raise ValueError("archive-only migration requires exact six namespace/hash bindings")
++    factor.update(schema=ARCHIVE_ONLY_EXACT_BYTES_SCHEMA, review_reason=review["reason"].strip(),
++        kernel_changed=False, reward_changed=False, task_acceptance_changed=False,
++        nominal_control_changed=False, action_execution_changed=False,
++        configuration_bindings=old["selected_configuration"], runtime_bytes_identical=True,
++        observation_semantics_changed=[], same_mdp_claimed=True)
++    return _task_conditioned_plan_envelope(checkpoint, old, new, [], reason,
++        "archive_only_exact_bytes_factor", factor)
++
++
++def _build_task_conditioned_hip_wheel_plan(checkpoint, metadata, old, new, *,
++        allowed_changed_files, reason, review, project_root):
++    """Joint task-reward/potential and state-sigma boundary; not a sigma-only waiver."""
++    import ast
++    import copy
++    import yaml
++    from .semantic_policy_distribution import CONFIG_NAMES, TASK_CONDITIONED_HIP_WHEEL_SIGMA_SEMANTICS
++    if (not isinstance(review, Mapping) or set(review) != {"reason", "reviewed_code_sha256"}
++            or not isinstance(review["reason"], str) or not review["reason"].strip()
++            or not isinstance(reason, str) or not reason.strip()):
++        raise ValueError("task-conditioned migration needs explicit reason and exact reviewed code hashes")
++    factor = _task_conditioned_source_binding(metadata, old, new, project_root)
++    if old.get("experiment_id") != "fl_capture_quality_v1" or new.get("experiment_id") != "task_conditioned_hip_wheel_v1":
++        raise ValueError("task-conditioned migration requires the isolated FL-quality source and task target")
++    variable = {"files", "runtime_content_sha256", "source_git_commit", "selected_configuration", "experiment_id"}
++    if {k:v for k,v in old.items() if k not in variable} != {k:v for k,v in new.items() if k not in variable}:
++        raise ValueError("task-conditioned migration cannot alter physical/runtime metadata")
++    delta = sorted(p for p in old["files"].keys() | new["files"].keys() if old["files"].get(p) != new["files"].get(p))
++    if (sorted(allowed_changed_files) != delta or len(set(allowed_changed_files)) != len(allowed_changed_files)
++            or old["files"].keys() - new["files"].keys()):
++        raise ValueError("task-conditioned migration requires exact changed inventory without deletions")
++    target_paths = {f"configs/ppo_task_conditioned_hip_wheel_v1/{n}" for n in CONFIG_NAMES}
++    code_delta = set(delta) - target_paths
++    required = REQUEST_HISTORY_KERNEL_FILES | {SUPERVISOR, BODY_REWARD_CODE}
++    if not code_delta <= TASK_CONDITIONED_HIP_WHEEL_FILES or not required <= code_delta:
++        raise ValueError("task-conditioned migration changed protected files or omitted its joint implementation")
++    hashes = {p: new["files"][p] for p in sorted(code_delta)}
++    if not isinstance(review["reviewed_code_sha256"], Mapping) or dict(review["reviewed_code_sha256"]) != hashes:
++        raise ValueError("task-conditioned exact code review does not bind the entire changed implementation")
++    records = {}
++    for side, contract, namespace in (("source", old, "ppo_fl_capture_quality_v1"),
++                                     ("target", new, "ppo_task_conditioned_hip_wheel_v1")):
++        if set(contract.get("selected_configuration", {})) != CONFIG_NAMES:
++            raise ValueError("task-conditioned migration requires exactly six selected configurations")
++        for name in CONFIG_NAMES:
++            path = f"configs/{namespace}/{name}"
++            row = {"path": path, "sha256": contract["files"].get(path)}
++            if row["sha256"] is None or contract["selected_configuration"][name] != row:
++                raise ValueError("task-conditioned selected configuration is not bound to its namespace and bytes")
++            records.setdefault(name, {})[side] = row
++    configs = {}
++    for name, row in records.items():
++        before_raw = _version_bytes(project_root, old, row["source"]["path"], prefer_worktree=True)
++        after_raw = _version_bytes(project_root, new, row["target"]["path"], prefer_worktree=True)
++        before, after = yaml.safe_load(before_raw), yaml.safe_load(after_raw)
++        expected = copy.deepcopy(before)
++        if name == "stage_task_spec.yaml":
++            if (before.get("capture_approach_semantics") != "post_cross_FL_multiscale_positive_gap_plus_real_contact_v1"
++                    or before.get("p09_lift_semantics") != "functional_free_air_lift_v3"
++                    or before["nominal"].get("final_stop_owner") != "source_home_after_physical_stop_v2"):
++                raise ValueError("task-conditioned source lacks preserved FL/RR/home semantics")
++            expected.update(revision="task_conditioned_hip_wheel_v1",
++                rolling_capture_retention={"rear_preparation_near_m": -.22, "blend_distance_m": .05,
++                    "contact_fraction": .5, "positive_gap_scale_m": .003})
++        elif name == "reward_config.yaml":
++            if before.get("objective_profile") != "fl_capture_front_body_quality_v1" or before.get("quality_epsilon") != .03:
++                raise ValueError("task-conditioned source must preserve the genuinely nonzero front-quality objective")
++            expected.update(revision="task_conditioned_hip_wheel_quality_v1",
++                objective_profile="task_conditioned_hip_wheel_quality_v1", quality_epsilon=.06,
++                task_space_quality={"phases": ["P01", "P02", "P05", "P06", "P07", "P08", "P09"],
++                    "clearance_margin_m": .020, "geometry_fraction": .5, "front_fraction": .5,
++                    "sample_audit": True})
++            expected["family_weights"]["body_stability"] = .06
++            expected["signal_ownership"]["body_stability"] = ["gravity_attitude", "euler_roll_pitch_derivative",
++                "conservative_collider_obstacle_separation_deficit"]
++        elif before_raw != after_raw:
++            raise ValueError(f"task-conditioned migration requires byte-identical protected configuration: {name}")
++        if after != expected:
++            raise ValueError(f"task-conditioned configuration exceeds its explicitly reviewed soft fields: {name}")
++        row.update(bytes_identical=before_raw == after_raw, semantics_identical=before == after)
++        configs[name] = after
++    runtime_binding = _request_history_runtime_binding(configs["stage_task_spec.yaml"],
++        configs["execution_profile.yaml"], configs["observation_schema.json"], factor["target_policy_contract"])
++    spec = configs["stage_task_spec.yaml"]
++    geometry = spec.get("geometry", {})
++    if (any(geometry.get(k) != v for k,v in {"airborne_clearance_above_top_m": .015,
++            "top_gap_min_m": -.015, "top_gap_max_m": .025, "xy_measurement_tolerance_m": .005}.items())
++            or spec.get("support", {}).get("force_noise_floor_n") != .2
++            or spec.get("fl_capture_potential", {}).get("fine_gap_scale_m") != .003):
++        raise ValueError("task sigma observable proxies differ from the fixed current gap/contact geometry")
++    runtime_binding["exploration_proxy_not_acceptance"] = {
++        "FR_approach_gap_m": .015, "FL_fine_gap_m": .003, "top_gap_m": [-.015,.025],
++        "contact_force_floor_N": .2, "xy_tolerance_m": .005,
++        "rear_exploration_blend_m": [-.27,-.22], "rear_retention_blend_m": [-.27,-.22]}
++    # Named soft scopes only; permit the new pure-quality helper import, not other module changes.
++    def without_quality_import_and_mode(text):
++        tree = ast.parse(text)
++        tree.body = [n for n in tree.body if not (
++            isinstance(n, ast.ImportFrom) and n.level == 1 and n.module == "semantic_task_quality")
++            and not (isinstance(n, ast.Assign) and len(n.targets) == 1
++                and isinstance(n.targets[0], ast.Name) and n.targets[0].id == "TASK_CONDITIONED_QUALITY_OBJECTIVE")]
++        return ast.unparse(tree)
++    scopes = {}
++    for relative, functions, methods in (
++            (SUPERVISOR, ("load_task_spec",), ("TaskStageSupervisor._current_capture_retention",)),
++            (BODY_REWARD_CODE, ("_validate_task_priority",), ("SemanticRewardCalculator.evaluate",)),
++            ("src/wlr50_clean/ppo/semantic_observation.py", (), ("SemanticObservationBuilder.build",))):
++        scopes[relative] = _height_source_scope(
++            without_quality_import_and_mode(_version_text(project_root, old, relative, prefer_worktree=True)),
++            without_quality_import_and_mode(_version_text(project_root, new, relative, prefer_worktree=True)),
++            functions=functions, methods=methods)
++    helper = "src/wlr50_clean/ppo/semantic_task_quality.py"
++    if helper in code_delta:
++        helper_tree = ast.parse(_version_text(project_root, new, helper, prefer_worktree=True))
++        # This reviewed helper's local JSON result.update is not app.update.
++        # Keep the existing veto untouched; only normalize that exact receiver.
++        for node in ast.walk(helper_tree):
++            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
++                    and isinstance(node.func.value, ast.Name) and node.func.value.id == "result"
++                    and node.func.attr == "update"):
++                node.func = ast.Name(id="local_result_mapping_update", ctx=ast.Load())
++        _height_no_physics_writes(ast.unparse(helper_tree))
++    # Exact protected ASTs keep hard events and the entire nominal/dispatch classes unchanged.
++    def protected_supervisor(text):
++        tree = ast.parse(text)
++        names = {"TaskEvaluator", "NominalMotionProvider", "SemanticControllerAdapter"}
++        selected = [node for node in tree.body if isinstance(node, ast.ClassDef) and node.name in names]
++        if {node.name for node in selected} != names:
++            raise ValueError("task-conditioned supervisor omitted a protected event/control class")
++        return ast.dump(ast.Module(body=selected, type_ignores=[]), include_attributes=False)
++    before_ast = protected_supervisor(_version_text(project_root, old, SUPERVISOR, prefer_worktree=True))
++    after_ast = protected_supervisor(_version_text(project_root, new, SUPERVISOR, prefer_worktree=True))
++    if before_ast != after_ast:
++        raise ValueError("task-conditioned migration cannot change hard events, nominal motion or controller dispatch")
++    for relative in delta:
++        if relative in old["files"]:
++            _version_bytes(project_root, old, relative, prefer_worktree=True)
++        if file_sha(project_root / relative) != new["files"][relative]:
++            raise ValueError("task-conditioned target bytes differ from the reviewed runtime")
++    factor.update(schema=TASK_CONDITIONED_HIP_WHEEL_SCHEMA, review_reason=review["reason"].strip(),
++        branch_id="task_conditioned_hip_wheel_v1", reviewed_code_sha256=hashes,
++        configuration_bindings=records, protected_supervisor_ast_sha256=digest(before_ast),
++        quality_code_scope=scopes,
++        protected_hard_evaluator_nominal_dispatch_ast_identical=True,
++        sigma_scaling_semantics=TASK_CONDITIONED_HIP_WHEEL_SIGMA_SEMANTICS,
++        runtime_binding=runtime_binding,
++        kernel_changed=True, reward_changed=True, same_mdp_claimed=False, physical_mdp_changed=False,
++        task_acceptance_changed=False, nominal_control_changed=False, action_execution_changed=False,
++        physical_scene_changed=False, actuator_capability_changed=False, action_ranges_changed=False,
++        observation_layout_changed=False,
++        observation_semantics_changed=["existing_global_physical_potential_current_front_rolling_retention"],
++        critic="preserve_then_refit_on_fresh_reward_data",
++        stochastic_likelihood="same_task_scaled_official_Gaussian_cache_for_sample_logprob_entropy_KL_update",
++        prefix_effective_kernel="source_weights_plus_explicit_target_kernel_and_task_config",
++        scope_is_reviewer_assertion_not_semantic_equivalence_proof=True)
++    return _task_conditioned_plan_envelope(checkpoint, old, new, delta, reason,
++        "task_conditioned_hip_wheel_factor", factor)
++
++
+ def build_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any], *,
+                          allowed_changed_files: Sequence[str], reason: str,
+                          prior_evidence: Mapping[str, Any] | None = None,
+@@
+                          fl_capture_quality_review: Mapping[str, Any] | None = None,
+                          request_history_kernel_review: Mapping[str, Any] | None = None,
+                          physical_innovation_sigma_review: Mapping[str, Any] | None = None,
++                         task_conditioned_hip_wheel_review: Mapping[str, Any] | None = None,
++                         archive_only_exact_bytes_review: Mapping[str, Any] | None = None,
+                          project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
+     """Build a reviewed plan after committing the new runtime; does not write."""
+     checkpoint = Path(checkpoint).resolve(strict=True)
+     metadata = checkpoint_metadata(checkpoint)
+     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
++    if task_conditioned_hip_wheel_review is not None or archive_only_exact_bytes_review is not None:
++        if (task_conditioned_hip_wheel_review is not None and archive_only_exact_bytes_review is not None
++                or any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
++                    execution_evidence, video_review, timing_review, body_reward_review, height_recovery_review,
++                    exploration_temperature_review, task_first_reward_review, execution_composition_review,
++                    final_stop_handoff_review, rr_physical_acceptance_review, fl_capture_quality_review,
++                    request_history_kernel_review, physical_innovation_sigma_review))):
++            raise ValueError("task-conditioned or archive-only boundary cannot mix another migration factor")
++        builder = (_build_task_conditioned_hip_wheel_plan if task_conditioned_hip_wheel_review is not None
++                   else _build_archive_only_exact_bytes_plan)
++        return builder(checkpoint, metadata, old, new, allowed_changed_files=allowed_changed_files,
++            reason=reason, review=(task_conditioned_hip_wheel_review if task_conditioned_hip_wheel_review is not None
++                                  else archive_only_exact_bytes_review), project_root=Path(project_root))
+     if physical_innovation_sigma_review is not None:
+         if any(v is not None for v in (prior_evidence, qualification_evidence, evaluator_review,
+                 execution_evidence, video_review, timing_review, body_reward_review,
+@@
+                                         "reviewed_code_sha256": supplied["request_history_kernel_factor"]["reviewed_code_sha256"]},
+                                     physical_innovation_sigma_review=None if "physical_innovation_sigma_factor" not in supplied else {
+                                         "reason": supplied["physical_innovation_sigma_factor"]["review_reason"],
+-                                        "reviewed_code_sha256": supplied["physical_innovation_sigma_factor"]["reviewed_code_sha256"]})
++                                        "reviewed_code_sha256": supplied["physical_innovation_sigma_factor"]["reviewed_code_sha256"]},
++                                    task_conditioned_hip_wheel_review=None if "task_conditioned_hip_wheel_factor" not in supplied else {
++                                        "reason": supplied["task_conditioned_hip_wheel_factor"]["review_reason"],
++                                        "reviewed_code_sha256": supplied["task_conditioned_hip_wheel_factor"]["reviewed_code_sha256"]},
++                                    archive_only_exact_bytes_review=None if "archive_only_exact_bytes_factor" not in supplied else {
++                                        "reason": supplied["archive_only_exact_bytes_factor"]["review_reason"]})
+     if supplied != expected:
+         raise ValueError("migration plan is not exactly bound to this immutable checkpoint and runtime")
+     return {"plan_path": str(path), "plan_sha256": file_sha(path), **expected}
+*** Update File: src/wlr50_clean/ppo/semantic_observation.py
+@@
+         return SemanticObservationFrame(groups, dict(task), {"sim_time_s":now,"rpy":rpy,
+             "euler_roll_pitch_rate":rates,"body_angular_velocity":omega,
+             "body_angular_acceleration":angular_acceleration,"wheels":tuple(wheel_metrics),
+-            "mass_kg":mass,"raw_orientation_wxyz":q})
++            "mass_kg":mass,"raw_orientation_wxyz":q,"obstacle_planes_world_m":planes})
+*** Update File: src/wlr50_clean/ppo/semantic_policy_distribution.py
+@@
+ FR_KNEE_PHYSICAL_INNOVATION_POLICY = "request_history_FR_knee_P06plus_physical_innovation_sigma_v1"
+ FR_KNEE_PHYSICAL_INNOVATION_ACTOR_CLASS = "wlr50_clean.ppo.semantic_history_actor:SemanticFRKneePhysicalInnovationHistoryMLPModel"
+ FR_KNEE_PHYSICAL_SIGMA_SEMANTICS = "P01_P05_unchanged_P06_P13_FR_knee_log_sigma_plus_log_24_over_112_v1"
++TASK_CONDITIONED_HIP_WHEEL_POLICY = "task_conditioned_hip_wheel_sigma_v1"
++TASK_CONDITIONED_HIP_WHEEL_ACTOR_CLASS = "wlr50_clean.ppo.semantic_history_actor:SemanticTaskConditionedHipWheelHistoryMLPModel"
++TASK_CONDITIONED_HIP_WHEEL_SIGMA_SEMANTICS = "current_observation_task_physical_B_over_cap_sigma_same372_v1"
++TASK_CONDITIONED_PHYSICAL_B_TABLE = {
++    "FR_air_approach_proxy": (9.,12.,12.,18.,12.,12.,6.,9.,.6,.6,.6,.6),
++    "FL_crossed_air_pending": (24.,24.,9.,12.,6.,9.,6.,9.,1.,.6,1.,.6),
++    "P06_front_support_rolling_proxy": (12.,12.,12.,12.,12.,12.,12.,12.,1.2,1.2,1.,.6),
++    "P06_front_support_recovery_proxy": (24.,24.,12.,18.,12.,12.,12.,18.,1.2,1.2,1.,.6),
++    "RR_preparation": (24.,24.,12.,18.,24.,24.,12.,18.,1.2,1.2,1.,.6),
++    "RR_current_valid_lift": (24.,24.,12.,18.,24.,24.,24.,36.,1.2,1.2,1.,.6),
++}
+ REQUEST_HISTORY_SEMANTICS = "entry_age_zero_predecessor_completed_increased_cap_filtered_request_inverse_tanh_v1"
+ REQUEST_HISTORY_SCALES = (4., 4., 4., 6., 4., 4., 4., 4., .12, .12, .12, .12)
+ REQUEST_HISTORY_CAPS = (
+@@
+ def policy_contract(version: str, *, observation_layout: str | None = None) -> dict[str, Any]:
+     if version not in (LEGACY_POLICY, STATE_DEPENDENT_POLICY, HISTORY_POLICY,
+                        HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
+-                       HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY):
++                       HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
++                       TASK_CONDITIONED_HIP_WHEEL_POLICY):
+         raise ValueError("unsupported semantic policy distribution version")
+     if (version in (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
+-                    HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY)
++                    HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
++                    TASK_CONDITIONED_HIP_WHEEL_POLICY)
+             and observation_layout != ROLE_OBSERVATION_LAYOUT):
+         raise ValueError("tempered history policy requires the explicit 372 role layout")
+     if observation_layout is not None and (
+             type(observation_layout) is not str or observation_layout != ROLE_OBSERVATION_LAYOUT
+             or version not in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
+-                               HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY)):
++                               HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
++                               TASK_CONDITIONED_HIP_WHEEL_POLICY)):
+         raise ValueError("appended role observation layout requires the exact history policy")
+     dependent = version != LEGACY_POLICY
+     contract = {
+@@
+         "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+     }
+     if version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
+-                   HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY):
++                   HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
++                   TASK_CONDITIONED_HIP_WHEEL_POLICY):
+         contract.update({
+             "actor_class": HISTORY_ACTOR_CLASS,
+             "history_feature": "previous_raw_full12",
+@@
+             "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; deterministic_mean_unchanged",
+         })
+     if version in (HISTORY_QUARTER_TEMPERED_POLICY, HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+-                   FR_KNEE_PHYSICAL_INNOVATION_POLICY):
++                   FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY):
+         contract.update({
+             "actor_class": HISTORY_QUARTER_TEMPERED_ACTOR_CLASS,
+             "exploration_std_temperature": 0.25,
+@@
+             "effective_log_std": "learned_log_std+log(0.25)",
+             "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; deterministic_mean_unchanged",
+         })
+-    if version in (HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY):
++    if version in (HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
++                   TASK_CONDITIONED_HIP_WHEEL_POLICY):
+         contract.update({
+             "actor_class": HISTORY_REQUEST_CAP_TRANSITION_ACTOR_CLASS,
+             "history_feature": "previous_raw_else_cap_entry_previous_filtered_request",
+@@
+             "conditional_std": "0.25*learned_sigma*P06plus_FR_knee_24_over_112; no_stationary_rescaling",
+             "effective_log_std": "learned_log_std+log(0.25)+selected_P06plus_FR_knee_log(24/112)",
+             "sigma_scaling_scope": "official_raw_Gaussian_sample_logprob_entropy_KL; mean_history_caps_unchanged",
++        })
++    if version == TASK_CONDITIONED_HIP_WHEEL_POLICY:
++        contract.update({
++            "actor_class": TASK_CONDITIONED_HIP_WHEEL_ACTOR_CLASS,
++            "sigma_scaling_semantics": TASK_CONDITIONED_HIP_WHEEL_SIGMA_SEMANTICS,
++            "physical_equivalent_B_full12": {key:list(value) for key,value in TASK_CONDITIONED_PHYSICAL_B_TABLE.items()},
++            "B_units": "canonical_servo_degrees_first8_wheel_rad_per_second_last4_not_actual_sigma_or_capacity",
++            "conditional_std": "0.25*learned_sigma*positive_current_observation_B_over_current_cap",
++            "effective_log_std": "learned_log_std+log(0.25)+log(B/current_cap)",
++            "sigma_fallback": "unchanged_e735_B_equals_current_cap_except_P06plus_FR_knee_B24",
++            "state_gate_semantics": "FR_current_AIR_gap0to15mm_after_lift;FL_crossed_pending_AIR_gap0to3mm;P06_front_support_rolling_or_recovery_proxy;nearest_rear_max_distance_blend_minus270to220mm;RR_current_qualification149_overrides_preparation",
++            "contact_proxy_limitations": "pair_active_near_top_is_not_classified_TOP_or_current_lateral_ROI;not_physical_acceptance",
++            "sigma_scaling_scope": "official_raw_Gaussian_sample_logprob_entropy_KL;mean_history_caps_unchanged",
++            "directional_bias": False, "extra_filter_or_sampling_rejection": False,
+         })
+     if observation_layout is not None:
+         contract.update({
+@@
+     if version == FR_KNEE_PHYSICAL_INNOVATION_POLICY:
+         config["actor"]["class_name"] = FR_KNEE_PHYSICAL_INNOVATION_ACTOR_CLASS
+         config["actor"]["exploration_std_temperature"] = contract["exploration_std_temperature"]
++    if version == TASK_CONDITIONED_HIP_WHEEL_POLICY:
++        config["actor"]["class_name"] = TASK_CONDITIONED_HIP_WHEEL_ACTOR_CLASS
++        config["actor"]["exploration_std_temperature"] = contract["exploration_std_temperature"]
+     if observation_layout is not None:
+         config["actor"]["observation_layout"] = observation_layout
+ 
+@@
+     if isinstance(contract, Mapping):
+         for version in (STATE_DEPENDENT_POLICY, HISTORY_POLICY, HISTORY_TEMPERED_POLICY,
+                         HISTORY_QUARTER_TEMPERED_POLICY, HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+-                        FR_KNEE_PHYSICAL_INNOVATION_POLICY):
++                        FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY):
+             layouts = ((ROLE_OBSERVATION_LAYOUT,) if version in
+                        (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
+-                        HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY) else
++                        HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
++                        TASK_CONDITIONED_HIP_WHEEL_POLICY) else
+                        (None, ROLE_OBSERVATION_LAYOUT) if version == HISTORY_POLICY else (None,))
+             for layout in layouts:
+                 if _same_json(dict(contract), policy_contract(version, observation_layout=layout)):
+@@
+                 HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+             (FR_KNEE_PHYSICAL_INNOVATION_ACTOR_CLASS, "HeteroscedasticGaussianDistribution", "log"):
+                 FR_KNEE_PHYSICAL_INNOVATION_POLICY,
++            (TASK_CONDITIONED_HIP_WHEEL_ACTOR_CLASS, "HeteroscedasticGaussianDistribution", "log"):
++                TASK_CONDITIONED_HIP_WHEEL_POLICY,
+         }[pair]
+     except (KeyError, TypeError) as error:
+         raise ValueError("checkpoint has an unsupported policy distribution") from error
+     if version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
+-                   HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY) and semantic_version != "v3":
++                   HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
++                   TASK_CONDITIONED_HIP_WHEEL_POLICY) and semantic_version != "v3":
+         raise ValueError("history-conditioned policy requires semantic v3")
+     declared = metadata.get("policy_contract")
+     if declared is None:
+*** Update File: src/wlr50_clean/ppo/semantic_reward.py
+@@
+ import yaml
+ 
+ from .semantic_observation import CONFIG_ROOT, SemanticObservationFrame, finite, vector
++from .semantic_task_quality import (OBJECTIVE as TASK_CONDITIONED_QUALITY_OBJECTIVE,
++                                    SPACE_CONFIG, task_space_quality_sample)
+ 
+ FAMILIES = ("task_progress", "body_stability", "contact_motion_quality",
+             "control_smoothness", "control_regularization")
+@@
+     nonzero-quality candidate needs its own explicit objective version.
+     """
+     objective = values.get("objective_profile")
++    if "task_space_quality" in values and objective != TASK_CONDITIONED_QUALITY_OBJECTIVE:
++        raise ValueError("task-space quality settings require their explicit objective version")
++    if objective == TASK_CONDITIONED_QUALITY_OBJECTIVE:
++        expected_front = {"phases": ["P01", "P02"], "transfer_weight_floor": .5,
++                          "attitude_fraction": .5, "rate_fraction": .5, "sample_audit": True}
++        if (values.get("revision") != TASK_CONDITIONED_QUALITY_OBJECTIVE
++                or values.get("task_space_quality") != SPACE_CONFIG
++                or values.get("front_body_quality") != expected_front
++                or isinstance(values.get("quality_epsilon"), bool)
++                or finite(values.get("quality_epsilon"), "task quality epsilon") != .06
++                or values["family_weights"] != dict(zip(FAMILIES, (1., .06, 0., 0., 0.), strict=True))
++                or values["attitude_scale_rad"] != .5 or values["euler_rate_scale_rad_s"] != .5
++                or values["control_regularization_enabled"] is not False):
++            raise ValueError("task-quality v1 binds preserved front cost and bounded measured geometry only")
++        return
+     if objective == FRONT_QUALITY_OBJECTIVE:
+         expected = {"phases": ["P01", "P02"], "transfer_weight_floor": .5,
+                     "attitude_fraction": .5, "rate_fraction": .5, "sample_audit": True}
+@@
+         v = self.config.values
+         costs = {name:0.0 for name in FAMILIES[1:]}
+         diagnostics: dict[str,float] = {}
+-        front_quality = v.get("objective_profile") == FRONT_QUALITY_OBJECTIVE
++        task_quality = v.get("objective_profile") == TASK_CONDITIONED_QUALITY_OBJECTIVE
++        front_quality = v.get("objective_profile") == FRONT_QUALITY_OBJECTIVE or task_quality
+         front_sample_audit = []
++        geometry_sample_audit = []
+         total_dt = 0.0
+         for sample in samples:
+             dt = finite(sample.dt_s,"reward dt")
+@@
+                 attitude = weight*tilt_raw if eligible else 0.
+                 rates = weight*rate_raw if eligible else 0.
+                 acceleration = 0.  # Measured elsewhere; not this objective.
++                front_coefficient = v["family_weights"]["body_stability"]
++                if task_quality:
++                    front_coefficient *= v["task_space_quality"]["front_fraction"]
+                 if eligible:
+-                    beta = v["family_weights"]["body_stability"]*weight
++                    beta = front_coefficient*weight
+                     front_sample_audit.append({
+                         "sim_time_s": metrics["sim_time_s"], "dt_s": dt, "phase": phase,
+                         "substate": _front_quality_substate(sample.current.task),
+@@
+                         "roll_pitch_rad": tuple(metrics["rpy"][:2]),
+                         "roll_pitch_rate_rad_s": tuple(metrics["euler_roll_pitch_rate"]),
+                         "raw_tilt_cost": tilt_raw, "raw_rate_cost": rate_raw,
+-                        "weighted_quality_cost": v["family_weights"]["body_stability"]*body*dt,
++                        "weighted_quality_cost": front_coefficient*body*dt,
+                     })
+                     for key, value in (("front_beta_time_integral", beta),
+                                        ("front_raw_tilt_cost", tilt_raw),
+@@
+                                        ("front_weighted_tilt_cost", beta*cfg["attitude_fraction"]*tilt_raw),
+                                        ("front_weighted_rate_cost", beta*cfg["rate_fraction"]*rate_raw)):
+                         diagnostics[key] = diagnostics.get(key, 0.)+value*dt
++                if task_quality:
++                    body *= v["task_space_quality"]["front_fraction"]
++            if task_quality:
++                space_cfg = v["task_space_quality"]
++                geometry = task_space_quality_sample(sample.current.task, metrics, space_cfg)
++                geometry.update(dt_s=dt, effective_beta_per_s=(v["family_weights"]["body_stability"]
++                    *space_cfg["geometry_fraction"] if geometry["eligible"] else 0.),
++                    weighted_geometry_cost=None, terminal_measurement_omitted=False)
++                if geometry["eligible"] and not geometry["valid"]:
++                    if termination_reason is None:
++                        raise ValueError("task-space quality measurement unavailable: " + geometry["reason"])
++                    # Preserve already classified safety/task termination and
++                    # Phi=0. Unknown geometry is audited null, never good zero.
++                    geometry["terminal_measurement_omitted"] = True
++                elif geometry["valid"]:
++                    raw_geometry = geometry["raw_geometry_cost"]
++                    body += space_cfg["geometry_fraction"]*raw_geometry
++                    geometry["weighted_geometry_cost"] = geometry["effective_beta_per_s"]*raw_geometry*dt
++                    for key, value in (("task_space_raw_geometry_cost", raw_geometry*dt),
++                                       ("task_space_weighted_geometry_cost", geometry["weighted_geometry_cost"])):
++                        diagnostics[key] = diagnostics.get(key, 0.)+value
++                geometry_sample_audit.append(geometry)
+             contact_terms = []
+             for index,(before,after) in enumerate(zip(sample.previous.metrics["wheels"],metrics["wheels"],strict=True)):
+                 touchdown = after["contact"] and not before["contact"]
+@@
+         if front_quality:
+             result["front_quality_sample_audit"] = front_sample_audit
+             result["front_quality_semantics"] = "P01_P02_tilt_rate_only_positive_transfer_floor_v1"
++        if task_quality:
++            result["task_space_quality_sample_audit"] = geometry_sample_audit
++            result["task_space_quality_semantics"] = "bounded_current_collider_obstacle_AABB_separation_deficit_v1"
+         return result
+*** Update File: src/wlr50_clean/ppo/semantic_supervisor.py
+@@
+         if _number(spec["geometry"]["xy_measurement_tolerance_m"], "capture XY tolerance") < 0:
+             raise ValueError("capture retention requires nonnegative existing XY tolerance")
+         _number(spec["geometry"]["top_gap_min_m"], "capture existing top gap")
++    if "rolling_capture_retention" in spec or spec.get("revision") == "task_conditioned_hip_wheel_v1":
++        expected = {"rear_preparation_near_m": -.22, "blend_distance_m": .05,
++                    "contact_fraction": .5, "positive_gap_scale_m": .003}
++        if (spec.get("revision") != "task_conditioned_hip_wheel_v1"
++                or spec.get("rolling_capture_retention") != expected
++                or spec.get("capture_retention_semantics") != CAPTURE_RETENTION_MODE
++                or spec.get("physical_acceptance_version") != "all_stage_v1"
++                or spec.get("p09_lift_semantics") != P09_FREE_AIR_LIFT_MODE):
++            raise ValueError("rolling retention requires its explicit current-contact task-quality version")
+     _capture_approach_enabled(spec)
+     _workspace_potential_enabled(spec)
+     validate_transfer_roles(spec)
+@@
+         scale=self.spec["history"]["minimum_lift_gain_m"]
+         gap=max(0.,self.spec["geometry"]["top_gap_min_m"]-clearance)
+         vertical=scale/(scale+gap)
+-        return min(xy,vertical)
++        retention = min(xy,vertical)
++        cfg = self.spec.get("rolling_capture_retention")
++        if cfg is None or leg not in ("FR", "FL"):
++            return retention
++        placed, legs = evaluation["history"]["placed"], evaluation["current_legs"]
++        if (not all(placed[p] for p in ("FR", "FL")) or placed["RR"]
++                or legs["RR"].get("current_lift_valid") is True):
++            return retention
++        rear = max(_number(legs[p]["front_distance_m"], f"{p} rolling edge distance") for p in ("RL", "RR"))
++        weight = _clip((cfg["rear_preparation_near_m"]-rear)/cfg["blend_distance_m"])
++        # Current support is a boolean measured condition, never a reward for
++        # greater force. Reuse the existing capture share, with no new event.
++        contact = bool(current.get("top_contact") is True and current.get("top_surface_contact") is True
++            and current.get("support") is True and current.get("bearing_verified") is True
++            and current.get("air") is False and current.get("ground_contact") is False)
++        proximity = 1./(1.+max(0.,clearance)/cfg["positive_gap_scale_m"])
++        usable = (1.-cfg["contact_fraction"])*proximity+cfg["contact_fraction"]*float(contact)
++        return retention*((1.-weight)+weight*usable)
+ 
+     def _current_lift_credit(self, leg: str, evaluation: Mapping[str,Any]) -> float:
+         if evaluation.get("valid") is not True or evaluation.get("termination_reason") is not None: return 0.
+*** Add File: src/wlr50_clean/ppo/semantic_task_quality.py
++"""Task-space quality measurements, not a new sensor or physical acceptance rule."""
++from __future__ import annotations
++
++import math
++from typing import Any, Mapping
++
++OBJECTIVE = "task_conditioned_hip_wheel_quality_v1"
++SPACE_CONFIG = {"phases": ["P01", "P02", "P05", "P06", "P07", "P08", "P09"],
++                "clearance_margin_m": .020, "front_fraction": .5,
++                "geometry_fraction": .5, "sample_audit": True}
++
++
++def _vector(value, size, name):
++    if not isinstance(value, (tuple, list)) or len(value) != size:
++        raise ValueError(f"missing {size}-component {name}")
++    if any(isinstance(x, bool) or not isinstance(x, (int, float)) or not math.isfinite(x) for x in value):
++        raise ValueError(f"nonfinite/non-numeric {name}")
++    return tuple(float(x) for x in value)
++
++
++def task_space_quality_sample(task: Mapping[str, Any], metrics: Mapping[str, Any], config) -> dict:
++    """Missing data stays null. Callers decide terminal versus invalid-sample handling.
++
++    Distance between current collider AABB and the frozen obstacle AABB is a
++    conservative Euclidean separation lower bound, not mesh distance, body z,
++    contact force or a collision classifier. No benefit above the finite margin.
++    """
++    phase = task["stage_id"]
++    result = dict(schema="wlr50_clean.task_space_quality_sample.v1", phase=phase,
++        sim_time_s=metrics["sim_time_s"], eligible=phase in config["phases"], valid=False,
++        clearance_margin_m=config["clearance_margin_m"], separation_lower_bound_m=None,
++        raw_geometry_cost=None, body_collider_minimum_w_m=None, body_collider_maximum_w_m=None,
++        obstacle_planes_world_m=None, reason="outside_declared_task_space_window",
++        measurement="current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance")
++    if not result["eligible"]:
++        return result
++    try:
++        ev = task["physical_evaluator"]
++        if ev.get("valid") is not True:
++            raise ValueError("current physical evaluator measurement is invalid")
++        geometry = ev["body_traversal_geometry"]
++        if geometry.get("valid") is not True:
++            raise ValueError("current collider bounds are invalid")
++        low = _vector(geometry["minimum_w_m"], 3, "collider minimum")
++        high = _vector(geometry["maximum_w_m"], 3, "collider maximum")
++        planes = _vector(metrics["obstacle_planes_world_m"], 6, "live obstacle planes")
++        front, back, left, right, bottom, top = planes
++        if any(a > b for a, b in zip(low, high)) or not (front < back and right < left and bottom < top):
++            raise ValueError("unordered collider/obstacle bounds")
++        if not math.isclose(float(ev["simulation_time_s"]), float(metrics["sim_time_s"]), abs_tol=1e-8, rel_tol=0.):
++            raise ValueError("collider measurement and reward clock differ")
++        separation = tuple(max(a-y, x-b, 0.) for a, b, x, y in
++            zip(low, high, (front, right, bottom), (back, left, top)))
++        distance = math.sqrt(sum(x*x for x in separation))
++        if not math.isfinite(distance):
++            raise ValueError("nonfinite collider/obstacle separation")
++        deficit = min(1., max(0., (config["clearance_margin_m"]-distance)/config["clearance_margin_m"]))
++        result.update(valid=True, separation_lower_bound_m=distance, raw_geometry_cost=deficit**2,
++            body_collider_minimum_w_m=low, body_collider_maximum_w_m=high,
++            obstacle_planes_world_m=planes, reason=None)
++    except (KeyError, TypeError, ValueError, AttributeError, OverflowError) as exc:
++        result["reason"] = f"{type(exc).__name__}: {exc}"
++    return result
+*** Update File: src/wlr50_clean/ppo/semantic_training.py
+@@
+         raise ValueError("unsupported semantic runtime version")
+     from .semantic_policy_distribution import (HISTORY_POLICY, HISTORY_TEMPERED_POLICY,
+         HISTORY_QUARTER_TEMPERED_POLICY, HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+-        FR_KNEE_PHYSICAL_INNOVATION_POLICY)
++        FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY)
+     from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
+     if policy_version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
+-                          HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY) and semantic_version != "v3":
++                          HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
++                          TASK_CONDITIONED_HIP_WHEEL_POLICY) and semantic_version != "v3":
+         raise ValueError("history-conditioned policy requires the v3 semantic runtime")
+     if policy_version in (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
+-                          HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY) and observation_layout != ROLE_OBSERVATION_LAYOUT:
++                          HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
++                          TASK_CONDITIONED_HIP_WHEEL_POLICY) and observation_layout != ROLE_OBSERVATION_LAYOUT:
+         raise ValueError("tempered history policy requires the explicit role372 observation layout")
+     if return_profile is None:
+         from .semantic_reward import load_semantic_reward_config
+@@
+     """Observe official minibatches and gradients without replacing PPO math."""
+     import torch
+     from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+-        FR_KNEE_PHYSICAL_INNOVATION_POLICY)
++        FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY)
+     alg = runner.alg
+     before = parameter_hash(alg.actor)
+     generator = alg.storage.mini_batch_generator
+@@
+     gradients, clips, kls = [], [], []
+     likelihood_rows = []
+     sample_lookup = {}
++    task_head_audit = (likelihood_audit_path is not None and
++        getattr(runner, "_semantic_policy_version", None) == TASK_CONDITIONED_HIP_WHEEL_POLICY)
+     if likelihood_audit_path is not None:
+         # Index immutable saved observations/raw samples, never the shuffled
+         # neighbor or global history. No forward pass or RNG draw is added.
+@@
+     def batches(*args: Any, **kwargs: Any):
+         for batch in generator(*args, **kwargs):
+             active["batch"] = batch
++            if task_head_audit:
++                active.pop("head", None)
++                active.pop("head_gradient", None)
+             yield batch
++
++    def observed_head_gradient(gradient):
++        # Return None: observe autograd's real derivative without replacing it.
++        active["head_gradient"] = gradient.detach().clone()
++
++    def observed_actor_head(_module, _inputs, output):
++        if (output.shape[-2:] != (2, 12) or not output.requires_grad
++                or "head" in active):
++            raise RuntimeError("task head audit requires exactly one official differentiable minibatch head")
++        active["head"] = output.detach().clone()
++        output.register_hook(observed_head_gradient)
+ 
+     def observed_log_prob(raw: Any):
+         result = log_prob(raw)
+@@
+                     "clipped_branch_strictly_active": jsonable(clipped > unclipped),
+                     "current_conditional_mean": jsonable(alg.actor.output_distribution_params[0]),
+                     "current_conditional_sigma": jsonable(alg.actor.output_distribution_params[1]),
+-                    "sigma_source": ("current_official_Gaussian_cache_after_P06plus_FR_knee_24_over_112"
++                    "sigma_source": ("current_official_Gaussian_cache_after_current_observation_B_over_cap"
++                        if getattr(runner, "_semantic_policy_version", None) == TASK_CONDITIONED_HIP_WHEEL_POLICY
++                        else "current_official_Gaussian_cache_after_P06plus_FR_knee_24_over_112"
+                         if getattr(runner, "_semantic_policy_version", None) == FR_KNEE_PHYSICAL_INNOVATION_POLICY
+                         else "current_official_Gaussian_cache"),
+                     "history_source": ("this_saved_observation_stage0_13_age20_completed158_171_raw195_207_request207_219_not_shuffled_neighbor"
+                         if getattr(runner, "_semantic_policy_version", None) in
+-                        (HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY)
++                        (HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
++                         TASK_CONDITIONED_HIP_WHEEL_POLICY)
+                         else "this_saved_observation_195_207_not_shuffled_neighbor"),
+                 })
++                if task_head_audit:
++                    head = active["head"]
++                    likelihood_rows[-1].update(
++                        current_network_mean_full12=jsonable(head[..., 0, :]),
++                        current_network_log_sigma_full12=jsonable(head[..., 1, :]),
++                        head_measurement="same_official_minibatch_forward_before_HISTORY_and_sigma_schedule")
+         return result
+ 
+     def observed_kl(*args: Any, **kwargs: Any):
+@@
+             raise RuntimeError("PPO optimizer received missing/non-finite gradients")
+         norm = math.sqrt(sum(float(grad.double().square().sum()) for grad in grads))
+         gradients.append(norm)
++        if task_head_audit:
++            derivative = active.get("head_gradient")
++            if (derivative is None or not bool(torch.isfinite(derivative).all())
++                    or len(likelihood_rows) != len(gradients)):
++                raise RuntimeError("task head derivative does not match its official likelihood/optimizer step")
++            head_layer = [m for m in alg.actor.mlp.modules() if isinstance(m, torch.nn.Linear)][-1]
++            row_norm = (head_layer.weight.grad.detach().double().square().sum(-1)
++                        + head_layer.bias.grad.detach().double().square()).sqrt()
++            separate_norms = {}
++            for role in ("actor", "critic"):
++                separate_norms[role] = math.sqrt(sum(float(p.grad.detach().double().square().sum())
++                    for p in getattr(alg, role).parameters() if p.grad is not None))
++            likelihood_rows[-1].update(
++                loss_gradient_wrt_network_mean_full12=jsonable(derivative[..., 0, :]),
++                loss_gradient_wrt_network_log_sigma_full12=jsonable(derivative[..., 1, :]),
++                actor_head_postclip_parameter_gradient_norm_by_row=jsonable(row_norm),
++                separate_postclip_parameter_gradient_norms=separate_norms,
++                gradient_semantics="actual_total_official_loss_output_derivative_before_parameter_clipping;parameter_norms_after_separate_actor_critic_clipping;not_an_isolated_sample_update_or_Adam_parameter_delta")
+ 
+     handle = alg.optimizer.register_step_pre_hook(optimizer_pre_step)
++    head_handle = alg.actor.mlp.register_forward_hook(observed_actor_head) if task_head_audit else None
+     try:
+         alg.storage.mini_batch_generator = batches
+         alg.actor.get_output_log_prob = observed_log_prob
+@@
+         loss = alg.update()
+     finally:
+         handle.remove()
++        if head_handle is not None:
++            head_handle.remove()
+         alg.storage.mini_batch_generator = generator
+         alg.actor.get_output_log_prob = log_prob
+         alg.actor.get_kl_divergence = kl_method
+@@
+     return factor
+ 
+ 
++def _validated_task_conditioned_hip_wheel_factor(metadata: Mapping[str, Any], record: Mapping[str, Any], *,
++        semantic_version: str, seed: int, device: str, observation_layout: str | None) -> Mapping[str, Any] | None:
++    """Reviewed joint reward/potential and sigma boundary, identity learned state."""
++    factor = record.get("task_conditioned_hip_wheel_factor")
++    if factor is None:
++        return None
++    from .semantic_migration import source_num_envs
++    from .semantic_policy_distribution import (FR_KNEE_PHYSICAL_INNOVATION_POLICY,
++        TASK_CONDITIONED_HIP_WHEEL_POLICY, TASK_CONDITIONED_HIP_WHEEL_SIGMA_SEMANTICS, policy_version_from_metadata)
++    from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
++    exclusive = ("execution_factor", "instrumentation_observation_contract", "video_instrumentation_factor",
++        "nominal_timing_factor", "body_reward_factor", "task_first_reward_factor", "height_recovery_factor",
++        "execution_composition_factor", "final_stop_handoff_factor", "rr_physical_acceptance_same372_factor",
++        "fl_capture_quality_same372_factor", "exploration_temperature_factor", "request_history_kernel_factor",
++        "physical_innovation_sigma_factor", "archive_only_exact_bytes_factor")
++    if any(record.get(key) is not None for key in exclusive):
++        raise RuntimeError("task-conditioned joint migration cannot mix separate migration factors")
++    rate = metadata.get("optimizer_learning_rate")
++    source_version, target_version = FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY
++    if (not isinstance(factor, Mapping) or semantic_version != "v3" or metadata.get("semantic_version") != "v3"
++            or seed != metadata.get("seed") or observation_layout != ROLE_OBSERVATION_LAYOUT
++            or source_num_envs(metadata) != 1 or metadata.get("runner_config", {}).get("device") != device
++            or metadata.get("runtime_contract", {}).get("experiment_id") != "fl_capture_quality_v1"
++            or policy_version_from_metadata(metadata) != source_version
++            or factor.get("schema") != "wlr50_clean.task_conditioned_hip_wheel_same372.v1"
++            or factor.get("sigma_scaling_semantics") != TASK_CONDITIONED_HIP_WHEEL_SIGMA_SEMANTICS
++            or factor.get("branch_id") != "task_conditioned_hip_wheel_v1"
++            or type(rate) not in (int,float) or not math.isfinite(rate) or rate <= 0
++            or factor.get("source_effective_learning_rate") != rate or factor.get("target_effective_learning_rate") != rate):
++        raise RuntimeError("task-conditioned continuation requires exact e735 role372 N1 FL source and preserved effective LR")
++    source_policy = policy_contract(source_version, observation_layout=observation_layout)
++    target_policy = policy_contract(target_version, observation_layout=observation_layout)
++    observation = {"source_policy_contract":source_policy, "target_policy_contract":target_policy,
++        "observation_layout":observation_layout, "observation_dimension":372, "action_dimension":12,
++        "num_envs":1, "parameter_mapping":"identity_all_parameters_and_buffers"}
++    if (metadata.get("policy_contract") != source_policy or factor.get("source_policy_contract") != source_policy
++            or factor.get("target_policy_contract") != target_policy
++            or factor.get("source_policy_version") != source_version or factor.get("target_policy_version") != target_version
++            or factor.get("observation_contract") != observation):
++        raise RuntimeError("task-conditioned migration lacks exact source/target policy and observation contracts")
++    horizon = runner_return_profile(metadata["runner_config"], semantic_version="v3")["version"]
++    configs = {version:semantic_runner_config(seed=seed,device=device,semantic_version="v3",
++        policy_version=version,observation_layout=observation_layout,return_profile=horizon)
++        for version in (source_version,target_version)}
++    if (metadata["runner_config"] != configs[source_version] or factor.get("source_runner_config") != configs[source_version]
++            or factor.get("target_runner_config") != configs[target_version]):
++        raise RuntimeError("task-conditioned migration runner differs from exact unchanged PPO hyperparameter contracts")
++    return factor
++
++
+ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping[str, Any], seed: int,
+                              migration: Mapping[str, Any] | None = None,
+                              warm_start: Mapping[str, Any] | None = None,
+@@
+     from .semantic_policy_distribution import policy_version_from_metadata
+     verified = None
+     if migration is not None and any(migration.get(key) is not None for key in (
+-            "exploration_temperature_factor", "request_history_kernel_factor", "physical_innovation_sigma_factor")):
++            "exploration_temperature_factor", "request_history_kernel_factor", "physical_innovation_sigma_factor",
++            "task_conditioned_hip_wheel_factor")):
+         from .semantic_migration import validate_migration_plan
+         verified = validate_migration_plan(checkpoint, contract, Path(migration["plan_path"]))
+         if verified != dict(migration):
+@@
+     physical_innovation = _validated_physical_innovation_sigma_factor(metadata, verified or {},
+         semantic_version=runner._semantic_version, seed=seed, device=str(runner.device),
+         observation_layout=getattr(runner, "_semantic_observation_layout", None))
+-    kernel_boundary = temperature or request_kernel or physical_innovation
++    task_conditioned = _validated_task_conditioned_hip_wheel_factor(metadata, verified or {},
++        semantic_version=runner._semantic_version, seed=seed, device=str(runner.device),
++        observation_layout=getattr(runner, "_semantic_observation_layout", None))
++    kernel_boundary = temperature or request_kernel or physical_innovation or task_conditioned
+     if kernel_boundary is not None:
+         if (runner._semantic_policy_version != kernel_boundary["target_policy_contract"]["version"]
+                 or _runner_policy_contract(runner) != kernel_boundary["target_policy_contract"]
+@@
+         temperature_factor = None if temperature is None else temperature["observation_contract"]
+         request_history_factor = None if request_kernel is None else request_kernel["observation_contract"]
+         physical_innovation_factor = None if physical_innovation is None else physical_innovation["observation_contract"]
+-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor)) > 1:
++        task_conditioned_factor = None if task_conditioned is None else task_conditioned["observation_contract"]
++        archive_factor = (verified.get("archive_only_exact_bytes_factor") or {}).get("observation_contract")
++        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor)) > 1:
+             raise RuntimeError("reviewed same-layout migration receipts must be exclusive")
+-        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor
++        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor
+         if reviewed_factor is not None:
+             if factor is not None:
+                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")
+@@
+             optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate")
+             or optimizer_learning_rate(runner) != physical_innovation["source_effective_learning_rate"]):
+         raise RuntimeError("physical innovation sigma migration changed source effective Adam learning rate")
++    if task_conditioned is not None and (
++            optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate")
++            or optimizer_learning_rate(runner) != task_conditioned["source_effective_learning_rate"]):
++        raise RuntimeError("task-conditioned migration changed source effective Adam learning rate")
+     if migration is not None:
+         infos = {**infos, "resume_migration": dict(migration)}
++        if task_conditioned is not None:
++            infos["task_conditioned_hip_wheel_branch"] = {
++                "schema":"wlr50_clean.task_conditioned_hip_wheel_branch.v1",
++                "branch_id":task_conditioned["branch_id"], "counter_origin":dict(task_conditioned["counter_origin"]),
++                "source_checkpoint_sha256":verified["source_checkpoint_sha256"],
++                "source_manifest_sha256":verified["source_manifest_sha256"], "migration_added_updates":0}
+         fl_factor = verified.get("fl_capture_quality_same372_factor")
+         if fl_factor is not None:
+             if optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate"):
+@@
+     from .semantic_history_actor import (SemanticQuarterTemperedHistoryMLPModel,
+         SemanticCapTransitionQuarterHistoryMLPModel, cap_transition_request_history,
+         SemanticFRKneePhysicalInnovationHistoryMLPModel, physical_innovation_effective_log_std,
++        SemanticTaskConditionedHipWheelHistoryMLPModel, task_conditioned_effective_log_std,
+         history_conditioned_head, HISTORY_START, HISTORY_STOP, HISTORY_RHO)
+     from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
+-        REQUEST_HISTORY_SEMANTICS, FR_KNEE_PHYSICAL_INNOVATION_POLICY, FR_KNEE_PHYSICAL_SIGMA_SEMANTICS)
++        REQUEST_HISTORY_SEMANTICS, FR_KNEE_PHYSICAL_INNOVATION_POLICY, FR_KNEE_PHYSICAL_SIGMA_SEMANTICS,
++        TASK_CONDITIONED_HIP_WHEEL_POLICY, TASK_CONDITIONED_HIP_WHEEL_SIGMA_SEMANTICS)
+     if type(actor) not in (SemanticQuarterTemperedHistoryMLPModel, SemanticCapTransitionQuarterHistoryMLPModel,
+-                          SemanticFRKneePhysicalInnovationHistoryMLPModel):
++                          SemanticFRKneePhysicalInnovationHistoryMLPModel, SemanticTaskConditionedHipWheelHistoryMLPModel):
+         raise ValueError("request audit requires an exact supported quarter HISTORY actor")
+     heads = []
+     handle = actor.mlp.register_forward_hook(lambda _module, _inputs, output: heads.append(output.detach().clone()))
+@@
+     head = heads[0]
+     history = observation["policy"][..., HISTORY_START:HISTORY_STOP]
+     center, request_evidence = history, None
+-    if type(actor) in (SemanticCapTransitionQuarterHistoryMLPModel, SemanticFRKneePhysicalInnovationHistoryMLPModel):
++    if type(actor) in (SemanticCapTransitionQuarterHistoryMLPModel, SemanticFRKneePhysicalInnovationHistoryMLPModel,
++                      SemanticTaskConditionedHipWheelHistoryMLPModel):
+         center, request_evidence = cap_transition_request_history(observation["policy"])
+     conditional = history_conditioned_head(head, center, HISTORY_RHO)
+     sigma_multiplier = None
++    task_sigma_evidence = None
+     effective_log_std = head[..., 1, :] + math.log(actor.exploration_std_temperature)
+     if type(actor) is SemanticFRKneePhysicalInnovationHistoryMLPModel:
+         effective_log_std, sigma_multiplier = physical_innovation_effective_log_std(
+             head[..., 1, :], observation["policy"], actor.exploration_std_temperature)
++    if type(actor) is SemanticTaskConditionedHipWheelHistoryMLPModel:
++        effective_log_std, task_sigma_evidence = task_conditioned_effective_log_std(
++            head[...,1,:], observation["policy"], actor.exploration_std_temperature)
+     effective_std = effective_log_std.exp()
+     if stochastic:
+         mean, std = actor.output_distribution_params
+@@
+             innovation_sigma_multiplier_full12=vector(sigma_multiplier),
+             sigma_scaling_gate_full12=vector(sigma_multiplier != 1),
+             effective_log_std_full12=vector(effective_log_std))
++    if task_sigma_evidence is not None:
++        record.update(schema="wlr50_clean.actual_task_conditioned_hip_wheel_policy_request.v1",
++            policy_version=TASK_CONDITIONED_HIP_WHEEL_POLICY,
++            sigma_scaling_semantics=TASK_CONDITIONED_HIP_WHEEL_SIGMA_SEMANTICS,
++            effective_log_std_full12=vector(effective_log_std),
++            physical_equivalent_B_full12=vector(task_sigma_evidence["physical_equivalent_B_full12"]),
++            innovation_sigma_multiplier_full12=vector(task_sigma_evidence["innovation_sigma_multiplier_full12"]),
++            task_state_weights={key:float(value[0]) for key,value in task_sigma_evidence["task_state_weights"].items()},
++            front_support_proxy_not_exact_TOP=bool(task_sigma_evidence["front_support_proxy_not_exact_TOP"][0]),
++            current_RR_qualification=bool(task_sigma_evidence["current_RR_qualification"][0]),
++            current_rear_front_distance_m=float(task_sigma_evidence["current_rear_front_distance_m"][0]),
++            task_state_audit_topology="one_actual_N1_request_not_a_batched_N8_summary")
+     return raw, record
+ 
+ 
+@@
+                         raise RuntimeError("curriculum must remain fixed throughout this on-policy epoch")
+                     assert_semantic_return_consistency(runner, env)
+                     policy_request = None
+-                    if contract.get("experiment_id") == "fl_capture_quality_v1":
++                    if contract.get("experiment_id") in ("fl_capture_quality_v1", "task_conditioned_hip_wheel_v1"):
+                         raw, policy_request = audited_history_policy_request(
+                             runner.alg.actor, obs, lambda: runner.alg.act(obs), stochastic=True)
+                     else:
+@@
+             torch.save(snapshot, rollout_dir / f"rollout_{base_updates + iteration + 1:06d}.pt")
+             global_step = base_global + (iteration + 1) * batch
+             runner.alg.entropy_coef = 0.005 + (0.001 - 0.005) * min(global_step / sum(STAGE_BUDGETS.values()), 1.0)
+-            if contract.get("experiment_id") in ("task_first_recovery_v1", "residual_rr_fix_v1", "fl_capture_quality_v1"):
++            if contract.get("experiment_id") in ("task_first_recovery_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1"):
+                 update = audited_ppo_update(runner, likelihood_audit_path=rollout_dir /
+                     f"update_{base_updates + iteration + 1:06d}_likelihood.json")
+             else:
+@@
+                             "new_mdp_initial_action_comparison", "policy_distribution_migration",
+                             "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison",
+                             "observation_scale_compensation_evidence", "observation_append_evidence",
+-                            "task_recovery_branch", "rr_task_branch", "fl_capture_quality_branch"):
++                            "task_recovery_branch", "rr_task_branch", "fl_capture_quality_branch",
++                            "task_conditioned_hip_wheel_branch"):
+                     if key in previous:
+                         infos[key] = previous[key]
+                 if "task_recovery_branch" in infos:
+@@
+                     infos["fl_capture_quality_branch_counts"] = {
+                         key: int(infos[key]) - int(origin[key])
+                         for key in ("global_policy_decisions", "ppo_updates", "optimizer_steps")}
++                if "task_conditioned_hip_wheel_branch" in infos:
++                    origin = infos["task_conditioned_hip_wheel_branch"]["counter_origin"]
++                    infos["task_conditioned_hip_wheel_branch_counts"] = {
++                        key:int(infos[key])-int(origin[key])
++                        for key in ("global_policy_decisions","ppo_updates","optimizer_steps")}
+                 if previous:
+                     infos["resume_ancestry"] = {
+                         "source_global_policy_decisions": base_global, "source_ppo_updates": base_updates,
+*** Update File: src/wlr50_clean/ppo/semantic_video.py
+@@
+ HZ, FPS, STRIDE = 120, 15, 8
+ PRE_TICKS, POST_TICKS, MAX_FRAMES = 64, 184, 3000
+ TASK_WINDOW_EXPERIMENT = "fsm_reference_p09_stable_v2"
+-TASK_WINDOW_EXPERIMENTS = (TASK_WINDOW_EXPERIMENT, "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1")
++TASK_WINDOW_EXPERIMENTS = (TASK_WINDOW_EXPERIMENT, "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1")
+ CAMERA = {"eye_m": [1.45, -1.25, .8], "target_m": [.45, 0., .12]}
+-REVIEW_CAMERA_EXPERIMENTS = ("non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1")
++REVIEW_CAMERA_EXPERIMENTS = ("non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1")
+ REVIEW_CAMERA = {"eye_m": [1.85, -1.65, 1.15], "target_m": [.70, -.15, .15]}
+ ROLES = {"A": "legacy_fsm_eval", "B": "semantic_prior_eval",
+          "C": "semantic_residual_eval"}
+*** Update File: src/wlr50_clean/ppo/semantic_video_cli.py
+@@
+             inputs = TensorDict({"policy":tensor,"critic":tensor.clone()},
+                                 batch_size=[1], device=args.device)
+             with torch.inference_mode():
+-                if getattr(args, "experiment_id", None) == "fl_capture_quality_v1":
++                if getattr(args, "experiment_id", None) in ("fl_capture_quality_v1", "task_conditioned_hip_wheel_v1"):
+                     selected, action.last_request = audited_history_policy_request(runner.alg.actor, inputs,
+                         lambda: runner.alg.actor(inputs, stochastic_output=stochastic), stochastic=stochastic)
+                 else:
+@@
+     stochastic = bool(getattr(args, "stochastic_policy", False))
+     policy_seed = getattr(args, "policy_seed", None)
+     require((not stochastic and policy_seed is None) or (
+-        stochastic and getattr(args, "experiment_id", None) == "fl_capture_quality_v1"
++        stochastic and getattr(args, "experiment_id", None) in ("fl_capture_quality_v1", "task_conditioned_hip_wheel_v1")
+         and args.mode == "semantic_residual_eval" and args.checkpoint is not None
+         and type(policy_seed) is int and 0 <= policy_seed <= 2147483647),
+-        "stochastic video requires explicit FL-quality C and --policy-seed; deterministic video has no policy seed")
++        "stochastic video requires explicit supported residual C and --policy-seed; deterministic video has no policy seed")
+     require(args.command=="eval" and args.seed==4001 and not args.headless,
+             "video requires eval, locked seed 4001 and --no-headless")
+     require(args.max_decisions==3000 and args.decisions is None,
+@@
+         from .isaac_fsm_backend import IsaacFSMBackend, _load_live_dependencies
+         from .residual_direct_env import ResidualEpisodeEnv
+         options = {"audit_actuator_target_effect": True}
+-        if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "residual_rr_fix_v1", "fl_capture_quality_v1"):
++        if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1"):
+             from dataclasses import replace
+             from .semantic_supervisor import load_task_spec
+             from .semantic_physical_sensing import SemanticSensorReader
+*** Update File: scripts/run_semantic_ppo.ps1
+@@
+     [int]$Seed = 1001,
+     [ValidateSet(1,8)][int]$NumEnvs = 1,
+     [ValidateSet('v2','v3')][string]$SemanticVersion = 'v2',
+-    [ValidateSet('transfer_roles_v1','all_stage_acceptance_v1','fsm_reference_p09_stable_v2','task_first_recovery_v1','non_residual_refine_v1','residual_rr_fix_v1','fl_capture_quality_v1')][string]$ExperimentId,
++    [ValidateSet('transfer_roles_v1','all_stage_acceptance_v1','fsm_reference_p09_stable_v2','task_first_recovery_v1','non_residual_refine_v1','residual_rr_fix_v1','fl_capture_quality_v1','task_conditioned_hip_wheel_v1')][string]$ExperimentId,
+     [ValidateSet('P01','P03','P04','P05','P06','P07','P08','P09','P10','P11','P12','P13')][string]$FromPhase = 'P01',
+     [ValidateRange(0,1799)][int]$TeacherOffsetDecisions = 0,
+     [ValidateSet('frozen_fsm','checkpoint_policy','successful_nominal')][string]$PrefixSource = 'frozen_fsm',
+*** Update File: scripts/run_semantic_video.ps1
+@@
+ param(
+     [ValidateSet('eval')][string]$Command = 'eval',
+     [ValidateSet('v2','v3')][string]$SemanticVersion = 'v2',
+-    [ValidateSet('transfer_roles_v1','all_stage_acceptance_v1','fsm_reference_p09_stable_v2','task_first_recovery_v1','non_residual_refine_v1','residual_rr_fix_v1','fl_capture_quality_v1')][string]$ExperimentId,
++    [ValidateSet('transfer_roles_v1','all_stage_acceptance_v1','fsm_reference_p09_stable_v2','task_first_recovery_v1','non_residual_refine_v1','residual_rr_fix_v1','fl_capture_quality_v1','task_conditioned_hip_wheel_v1')][string]$ExperimentId,
+     [Parameter(Mandatory = $true)][ValidatePattern('^[0-9a-f]{40}$')][string]$ExpectedHead,
+     [ValidateSet('smoke','phase_suffix','full_episode')][string]$Stage = 'smoke',
+     [ValidateRange(1,100000)][int]$Decisions,
+*** Add File: configs/ppo_task_conditioned_hip_wheel_v1/reward_config.yaml
++schema: wlr50_clean.semantic_reward.v2
++revision: task_conditioned_hip_wheel_quality_v1
++objective_profile: task_conditioned_hip_wheel_quality_v1
++quality_epsilon: 0.06
++# Epsilon is the maximum body-family coefficient, not a second multiplier.
++front_body_quality:
++  phases: [P01, P02]
++  transfer_weight_floor: 0.5
++  attitude_fraction: 0.5
++  rate_fraction: 0.5
++  sample_audit: true
++task_space_quality:
++  phases: [P01, P02, P05, P06, P07, P08, P09]
++  clearance_margin_m: 0.020
++  geometry_fraction: 0.5
++  front_fraction: 0.5
++  sample_audit: true
++# Half the .06 budget preserves the previous P01/P02 .03 tilt/rate cost.
++# Half prices only insufficient conservative collider/obstacle separation.
++# The 20 mm engineering margin is 15 mm task clearance plus 5 mm geometry
++# tolerance, not a historical base_z or a reward for increasing height forever.
++return_profile: v3_gamma_09985_lambda_099_v1
++contact_loss_semantics: recent_touchdown_without_active_command_change
++smoothness_components: applied_only
++physical_transfer_weighting: true
++carry_body_allowance: current_functional_carry_and_capture_settle_v1
++capture_settle_window_s: 0.5
++# Legacy allowance fields remain compatible but do not gate this objective.
++# P01/P02 retain tilt/rate cost with a positive transfer floor. Geometry cost
++# also covers the declared capture/rolling/rear window. No linkage-motion,
++# contact-force, acceleration or residual-size cost is enabled in this version.
++rebound_window_s: 0.25
++rebound_command_motion_deg: 0.1
++gamma: 0.9985
++physics_hz: 120.0
++decision_hz: 15.0
++maximum_task_duration_s: 200.0
++time_limit_semantics: finite_horizon_task_termination_no_bootstrap
++potential_terminal_value: 0.0
++potential_weight: 5.0
++success_reward: 40.0
++failure_cost: 40.0
++time_cost_per_s: 0.02
++family_weights:
++  task_progress: 1.0
++  body_stability: 0.06
++  contact_motion_quality: 0.0
++  control_smoothness: 0.0
++  control_regularization: 0.0
++transfer_attitude_weight: 0.2
++transfer_contact_weight: 0.2
++attitude_scale_rad: 0.5
++euler_rate_scale_rad_s: 0.5
++angular_acceleration_scale_rad_s2: 20.0
++touchdown_speed_allowance_m_s: 0.05
++touchdown_speed_scale_m_s: 0.5
++slip_speed_allowance_m_s: 0.15
++slip_speed_scale_m_s: 0.5
++control_regularization_enabled: false
++signal_ownership:
++  task_progress: [global_physical_potential, finite_task_elapsed_time, task_terminal_event]
++  body_stability: [gravity_attitude, euler_roll_pitch_derivative, conservative_collider_obstacle_separation_deficit]
++  contact_motion_quality: [touchdown_vertical_speed, touchdown_load, post_contact_rebound, contact_chatter, uncontrolled_contact_slip]
++  control_smoothness: [actual_drive_first_difference, actual_drive_second_difference]
++  control_regularization: [projected_residual_magnitude]
++reference_imitation_reward: false
++phase_label_transition_bonus: false
++nonzero_residual_bonus: false
++cost_integration: actual_physics_time
++normalization: fixed_engineering_scales_not_reference_statistics
+*** Add File: configs/ppo_task_conditioned_hip_wheel_v1/stage_task_spec.yaml
++schema: wlr50_clean.semantic_stage_task_spec.v2
++rear_leg_order: RR_FIRST
++physics_hz: 120.0
++decision_hz: 15.0
++episode_maximum_duration_s: 200.0
++revision: task_conditioned_hip_wheel_v1
++p09_lift_semantics: functional_free_air_lift_v3
++reference_nominal_semantics: successful_fsm_derived_v2
++physical_acceptance_version: all_stage_v1
++# P13 phase_progress acceptance bands: 0 no event; .25 event/no timer;
++# .50+.25*t healthy post; .80+.19*t latched region loss; 1 true success.
++# t is the full clipped1s timer; physical Phi uses a separate current-body /
++# measured-rate finish share, with no commanded-stop or home target.
++# An already-started fixed post window may finish past a local deadline,
++# but never past the global200s task deadline or a safety termination.
++local_timeout_policy:
++  mode: bounded_current_progress_allowance_v1
++  maximum_extension_s: 10.0
++  fraction_of_original_limit: 0.5
++  # Derived from observable stage id, current goal progress and stage elapsed.
++  # No renewable hidden deadline; incomplete runs remain finite task terminals.
++transfer_roles:
++  mode: diagonal_transfer_roles_v1
++  window_s: 0.5
++  minimum_evidence_s: 0.06666666666666667
++  motion_scale_m: 0.001
++  velocity_scale_m_s: 0.005
++  load_change_scale: 0.02
++  # Preferences and measured workspace proxies; not fixed support templates,
++  # joint targets, static balance certificates, or action-enabling conditions.
++  mapping:
++    FR: {diagonal_receiving_side: RL, preferred_bridge_contacts: [FL, RR]}
++    FL: {diagonal_receiving_side: RR, preferred_bridge_contacts: [FR, RL]}
++    RR: {diagonal_receiving_side: FL, preferred_bridge_contacts: [FR, RL]}
++    RL: {diagonal_receiving_side: FR, preferred_bridge_contacts: [FL, RR]}
++potential_definition: global_physical_progress_v3
++# Existing workspace credit only; later lift/carry/capture remain ordered.
++preparation_credit_semantics: current_workspace_before_predecessor_placement
++# Soft potential only: retain the existing .1 workspace share and .25 m scale,
++# but retain distance sensitivity beyond the old clipped preparation range.
++# Public entry/completion predicates, nominal scheduling and Q/C/P do not use it.
++workspace_potential_semantics: workspace_interval_reciprocal_potential_v1
++# Reuse capture credit for current region, without forcing contact or a pose.
++capture_retention_semantics: current_platform_region_after_placement
++rolling_capture_retention:
++  rear_preparation_near_m: -0.22
++  blend_distance_m: 0.05
++  contact_fraction: 0.5
++  positive_gap_scale_m: 0.003
++# Reuse the existing placed-front retention share only while the rear wheels
++# are still in the rolling approach. Retire before RR preparation; no fixed
++# post-contact timer, permanent dual-front-contact constraint or new hard gate.
++# Reuse half the existing first-capture share for post-cross surface approach;
++# the other half still requires real contact. No change to hard placement.
++# Keep earned unload progress after qualified crossing so capture may load.
++capture_approach_semantics: post_cross_FL_multiscale_positive_gap_plus_real_contact_v1
++# Soft FL-only last-millimetre refinement; no nominal or placed predicate change.
++fl_capture_potential:
++  coarse_gap_scale_m: 0.025
++  fine_gap_scale_m: 0.003
++  fine_fraction: 0.5
++# Soft progress only; hard initial/qualified/cross/placed semantics are unchanged.
++lift_credit_semantics: measured_air_process_current_top_gap
++history:
++  crossing_evidence_semantics: qualified_air_pending_geometry
++  lift_motion_evidence: whole_body_actuation
++  minimum_initial_clearance_gain_m: 0.003
++  minimum_command_motion_deg: 0.1
++  minimum_gravity_direction_change: 0.02
++  window_s: 0.5
++  minimum_lift_gain_m: 0.008
++  minimum_joint_motion_deg: 2.0
++  minimum_air_samples: 2
++  minimum_top_samples: 2
++  near_front_min_m: -0.40
++  near_front_max_m: 0.15
++geometry:
++  # Legacy key spelling retained for existing nominal retirement. These bounds
++  # describe edge proximity ONLY; receiver workspace is separately measured.
++  workspace_min_m: -0.22
++  workspace_max_m: 0.06
++  approach_min_m: -0.005
++  approach_max_m: 0.10
++  airborne_clearance_above_top_m: 0.015
++  top_gap_min_m: -0.015
++  top_gap_max_m: 0.025
++  xy_measurement_tolerance_m: 0.005
++support:
++  minimum_other_supports: 2
++  force_noise_floor_n: 0.2
++  unloaded_leg_maximum_load_fraction: 0.20
++final:
++  post_completion_observation_s: 1.0
++  # Home remains a finite nominal suggestion and diagnostic, not a unique
++  # terminal joint configuration. Physical stop/region/support gates remain.
++  stop_pose_semantics: physical_stable_pose
++  # Explicit new-MDP progress/observation-scalar revision; no hard gate change.
++  # Replaces the whole stop aggregation with four continuous physical types.
++  stop_progress_semantics: per_wheel_four_type_threshold_ratio_v1
++  # Legacy fallback only when the above mode is absent, never counted twice.
++  stop_command_progress: reciprocal_physical_stop_tolerance
++  region: obstacle_top_after_front_plane
++  minimum_rear_wheel_forward_m: 0.02
++  minimum_body_forward_m: 0.15
++  home_servo_pose_deg: [0, 0, 0, 0, 0, 0, 0, 0]
++  home_tolerance_deg: 8.0
++  maximum_wheel_speed_rad_s: 0.25
++  # About 1 mm/s circumferential speed for the frozen 50 mm-radius wheels;
++  # this is a physical stop tolerance, not an exact-zero actor requirement.
++  maximum_commanded_wheel_speed_rad_s: 0.02
++  maximum_body_linear_speed_m_s: 0.05
++  maximum_body_angular_speed_rad_s: 0.30
++  stable_duration_s: 0.5
++nominal:
++  # Restore the source home suggestion after physical stopping, with zero nominal wheels.
++  # RR carry advice requires current qualified free-air lift, not a stale event latch.
++  # All policy residuals, fixed physical completion rules and safety checks remain.
++  final_stop_owner: source_home_after_physical_stop_v2
++  rr_carry_source_semantics: current_free_lift_before_pending_knee_and_roll_v1
++  height_recovery:
++    mode: source_segment_reduction_and_live_recovery_v1
++    candidate_id: RL_preparation_minus3_v1
++    preparation_reduction_deg: {front_left_hip: 0.0, rear_left_hip: 3.0}
++    post_lift_recovery_deg: {front_left_hip: 0.0, rear_left_hip: 0.0}
++    recovery_rate_deg_s: 15.0
++  sequence_semantics: source_partial_order_physical_ready_v1
++  p05_pending_capture: current_FL_capture_wheel_continuation_to_handoff_v2
++  continuous_channel_inheritance: true
++  # Retire only P06's rolling contribution inside the existing workspace margin.
++  p06_rolling_retirement: measured_workspace_interior_peak
++  # Continue only the existing P06-owned rolling suggestion after its finite
++  # source ends; measured retirement and newer channel owners still take priority.
++  p06_wheel_tail_semantics: measured_workspace_retirement_after_finite_source
++  rear_advisory_semantics: finite_continuous_suggestion_no_joint_sign_or_front_arrival_dispatch_gate
++  source: configs/recording_motion_contract.json
++  ownership: advisory_only_no_reference_entry_or_completion_veto
++  handoff: persistent_nominal_slew_toward_advisory_targets_without_anchor_reset
++  servo_handoff_rate_deg_s: 150.0
++  # Advisory-only FL hip timing: let the unchanged 60 deg/s residual oppose
++  # receiver-opening suggestions. Other servos and all physical limits stay unchanged.
++  phase_servo_rate_overrides_deg_s:
++    P06: {front_left_hip: 60.0}
++    P07: {front_left_hip: 60.0}
++    P08: {front_left_hip: 60.0}
++    P09: {front_left_hip: 60.0}
++    P10: {front_left_hip: 60.0}
++    P11: {front_left_hip: 60.0}
++    P12: {front_left_hip: 60.0}
++    P13: {front_left_hip: 60.0}
++  wheel_handoff_rate_rad_s2: 3.0
++  approach_wheel_prior_rad_s: [0.3, 0.3, 0.3, 0.3]
++  approach_wheel_prior_source: P01
++  approach_wheel_prior_scope: P02_current_physical_goal_feedback_only
++  nominal_tail: finite_home_advisory_with_residual_enabled_until_task_deadline
++stage_defaults: &stage_defaults
++  allowed_action_channels: [front_left_hip, front_left_knee, front_right_hip, front_right_knee, rear_left_hip, rear_left_knee, rear_right_hip, rear_right_knee, front_left_ankle, front_right_ankle, rear_left_ankle, rear_right_ankle]
++  physical_limits: frozen_full12_hard_limits_and_authoritative_live_safety
++  stall_diagnostic: {window_s: 6.0, minimum_potential_change: 0.01, terminates: false}
++  progress_potential: mean_of_current_physical_goal_features
++stages:
++  P01:
++    <<: *stage_defaults
++    purpose: Prepare FR support and load transfer
++    valid_start_conditions: [physical_valid]
++    goal_features: [transfer_ready_FR]
++    completion_predicates: [transfer_ready_FR]
++    active_leg: FR
++    maximum_task_duration: 30.0
++    next_phase: P02
++  P02:
++    <<: *stage_defaults
++    purpose: Lift FR with clearance and approach
++    valid_start_conditions: [physical_valid]
++    goal_features: [lifted_FR, clear_FR, approach_FR]
++    completion_predicates: [lifted_FR, clear_FR, approach_FR]
++    active_leg: FR
++    maximum_task_duration: 15.0
++    next_phase: P03
++  P03:
++    <<: *stage_defaults
++    purpose: Actively cross and place FR
++    valid_start_conditions: [physical_valid, lifted_FR]
++    goal_features: [placed_FR]
++    completion_predicates: [placed_FR]
++    active_leg: FR
++    maximum_task_duration: 20.0
++    next_phase: P04
++  P04:
++    <<: *stage_defaults
++    purpose: Reconfigure current FR support toward RR side for first FL swing
++    valid_start_conditions: [physical_valid, placed_FR]
++    goal_features: [edge_proximity_FL, role_prepared_FL]
++    completion_predicates: [edge_proximity_FL, role_prepared_FL]
++    active_leg: FL
++    maximum_task_duration: 20.0
++    next_phase: P05
++  P05:
++    <<: *stage_defaults
++    purpose: First FL swing and continuous pending capture including wheel cooperation
++    valid_start_conditions: [physical_valid, placed_FR]
++    goal_features: [placed_FL]
++    completion_predicates: [placed_FL]
++    active_leg: FL
++    maximum_task_duration: 30.0
++    next_phase: P06
++  P06:
++    <<: *stage_defaults
++    purpose: Rear approach overlapping FL receiving space and bridge shaping
++    valid_start_conditions: [physical_valid, placed_FR, placed_FL]
++    goal_features: [rear_approach]
++    completion_predicates: [rear_approach]
++    active_leg: RR
++    maximum_task_duration: 40.0
++    next_phase: P07
++  P07:
++    <<: *stage_defaults
++    purpose: Create FL receiving space and measured RR preparation with live bridges
++    valid_start_conditions: [physical_valid, placed_FR, placed_FL]
++    goal_features: [edge_proximity_RR, edge_proximity_RL, role_prepared_RR]
++    completion_predicates: [edge_proximity_RR, edge_proximity_RL, role_prepared_RR]
++    active_leg: RR
++    maximum_task_duration: 15.0
++    next_phase: P08
++  P08:
++    <<: *stage_defaults
++    purpose: Transfer load to permit RR lift
++    valid_start_conditions: [physical_valid, placed_FR, placed_FL]
++    goal_features: [edge_proximity_RR, transfer_ready_RR]
++    completion_predicates: [edge_proximity_RR, transfer_ready_RR]
++    active_leg: RR
++    maximum_task_duration: 20.0
++    next_phase: P09
++  P09:
++    <<: *stage_defaults
++    purpose: Actively lift cross and place RR first
++    valid_start_conditions: [physical_valid, placed_FR, placed_FL]
++    goal_features: [placed_RR]
++    completion_predicates: [placed_RR]
++    active_leg: RR
++    maximum_task_duration: 30.0
++    next_phase: P10
++  P10:
++    <<: *stage_defaults
++    purpose: Check current RR support and open FR receiving space for RL
++    valid_start_conditions: [physical_valid, placed_FR, placed_FL, placed_RR]
++    goal_features: [edge_proximity_RL, role_prepared_RL]
++    completion_predicates: [edge_proximity_RL, role_prepared_RL]
++    active_leg: RL
++    maximum_task_duration: 20.0
++    next_phase: P11
++  P11:
++    <<: *stage_defaults
++    purpose: Transfer load to permit RL lift
++    valid_start_conditions: [physical_valid, placed_FR, placed_FL, placed_RR]
++    goal_features: [edge_proximity_RL, transfer_ready_RL]
++    completion_predicates: [edge_proximity_RL, transfer_ready_RL]
++    active_leg: RL
++    maximum_task_duration: 20.0
++    next_phase: P12
++  P12:
++    <<: *stage_defaults
++    purpose: Actively lift cross and place RL second
++    valid_start_conditions: [physical_valid, placed_RR]
++    goal_features: [placed_RL]
++    completion_predicates: [placed_RL]
++    active_leg: RL
++    maximum_task_duration: 30.0
++    next_phase: P13
++  P13:
++    <<: *stage_defaults
++    purpose: Complete whole-body traversal and controlled physical stop
++    valid_start_conditions: [physical_valid, placed_FR, placed_FL, placed_RR, placed_RL]
++    goal_features: [whole_task_success]
++    completion_predicates: [whole_task_success]
++    active_leg: RL
++    maximum_task_duration: 60.0
++    next_phase: SUCCESS
+*** Add File: tests/unit/test_task_conditioned_hip_wheel.py
++"""Task-conditioned exploration and soft quality, using CPU/synthetic data only.
++
++No checkpoint, output-directory bootstrap, physical simulation, or training
++credit is required. This file runs unchanged from the project's tests/unit.
++"""
++from copy import deepcopy
++from dataclasses import replace
++from pathlib import Path
++
++import pytest
++import torch
++from tensordict import TensorDict
++
++from test_semantic_capture_approach import _qualified, _step
++from test_semantic_observation_reward_env import _built, _frame, _sample
++from wlr50_clean.ppo.semantic_history_actor import (
++    SemanticTaskConditionedHipWheelHistoryMLPModel,
++    task_conditioned_effective_log_std, task_conditioned_physical_scales,
++)
++from wlr50_clean.ppo.semantic_policy_distribution import (
++    TASK_CONDITIONED_PHYSICAL_B_TABLE, REQUEST_HISTORY_CAPS,
++)
++from wlr50_clean.ppo.semantic_reward import SemanticRewardCalculator, load_semantic_reward_config
++from wlr50_clean.ppo.semantic_supervisor import TaskStageSupervisor, load_task_spec
++
++CONFIGS_ROOT = Path(__file__).resolve().parents[2] / "configs"
++CONFIG = CONFIGS_ROOT / "ppo_task_conditioned_hip_wheel_v1"
++
++
++@pytest.fixture(autouse=True)
++def preserve_torch_rng():
++    state = torch.get_rng_state()
++    yield
++    torch.set_rng_state(state)
++
++
++def _latent(phase):
++    x = torch.zeros(1, 372)
++    x[0, phase] = 1
++    x[0, 158:158 + phase] = 1
++    x[0, 20] = .01
++    x[0, 195:207] = torch.linspace(-.2, .2, 12)
++    # Both rear wheels are initially outside the preparation region.
++    x[0, 28] = x[0, 31] = -.3
++    return x
++
++
++def _rolling():
++    x = _latent(5)
++    x[0, 154:156] = 1  # Actual placement history is not current support.
++    x[0, 132] = x[0, 134] = 1
++    x[0, 124] = x[0, 126] = .1
++    x[0, 22] = x[0, 25] = .1
++    x[0, 100] = x[0, 103] = -.1
++    return x
++
++
++def _assert_B(x, label):
++    B, cap, evidence = task_conditioned_physical_scales(x)
++    assert torch.equal(B[0], torch.tensor(TASK_CONDITIONED_PHYSICAL_B_TABLE[label]))
++    assert torch.equal(cap[0], torch.tensor(REQUEST_HISTORY_CAPS[int(x[0, :13].argmax())]))
++    return evidence
++
++
++def test_all_thirteen_phases_keep_twelve_positive_finite_sigmas():
++    for phase in range(13):
++        x = _latent(phase)
++        log_std, _ = task_conditioned_effective_log_std(torch.full((1, 12), -2.), x, .25)
++        sigma = log_std.exp()
++        assert sigma.shape == (1, 12)
++        assert bool((torch.isfinite(sigma) & (sigma > 0)).all())
++
++
++@pytest.mark.parametrize("leg", ["FR", "FL"])
++def test_approach_sigma_requires_current_air_and_task_history(leg):
++    x = _latent(1 if leg == "FR" else 4)
++    if leg == "FR":
++        x[0, 147], x[0, 24], x[0, 33] = 1, .015, 3
++        label, contact, placed = "FR_air_approach_proxy", 133, 155
++    else:
++        x[0, 150], x[0, 21] = 1, .003
++        label, contact, placed = "FL_crossed_air_pending", 131, 154
++    _assert_B(x, label)
++    for index in (contact, placed):
++        incompatible = x.clone()
++        incompatible[0, index] = 1
++        _, _, evidence = task_conditioned_physical_scales(incompatible)
++        assert evidence["task_state_weights"][label].item() == 0
++
++
++def test_p06_rolling_and_contact_recovery_are_distinct_observable_states():
++    x = _rolling()
++    _assert_B(x, "P06_front_support_rolling_proxy")
++    x[0, 132] = 0  # FL current obstacle contact lost, placement history remains.
++    evidence = _assert_B(x, "P06_front_support_recovery_proxy")
++    assert evidence["task_state_weights"]["P06_front_support_rolling_proxy"].item() == 0
++    assert x[0, 154].item() == 1
++
++
++@pytest.mark.parametrize("rear_index", [28, 31])
++def test_closer_rear_wheel_continuously_releases_p06_rolling_preference(rear_index):
++    x = _rolling()
++    rolling = torch.tensor(TASK_CONDITIONED_PHYSICAL_B_TABLE["P06_front_support_rolling_proxy"])
++    prepare = torch.tensor(TASK_CONDITIONED_PHYSICAL_B_TABLE["RR_preparation"])
++    for distance, fraction in ((-.3, 0.), (-.27, 0.), (-.245, .5), (-.22, 1.)):
++        x[0, rear_index] = distance
++        B, _, evidence = task_conditioned_physical_scales(x)
++        assert evidence["task_state_weights"]["RR_preparation"].item() == pytest.approx(fraction, abs=1e-6)
++        torch.testing.assert_close(B[0], torch.lerp(rolling, prepare, fraction))
++
++
++def test_current_valid_rr_lift_overrides_rolling_and_preparation_not_stale_history():
++    x = _rolling()
++    x[0, 28] = -.22
++    x[0, 149] = 1
++    _assert_B(x, "RR_current_valid_lift")
++    x[0, 149] = 0  # Completed prior stages alone cannot recreate a current lift.
++    _assert_B(x, "RR_preparation")
++    x[0, 157] = 1
++    _, _, evidence = task_conditioned_physical_scales(x)
++    assert all(evidence["task_state_weights"][name].item() == 0 for name in
++               ("RR_preparation", "RR_current_valid_lift", "P06_front_support_rolling_proxy"))
++
++
++def test_actual_raw_sample_log_probability_entropy_share_one_gaussian():
++    x = _rolling()
++    obs = TensorDict({"policy": x, "critic": x.clone()}, batch_size=[1])
++    model = SemanticTaskConditionedHipWheelHistoryMLPModel(
++        obs, {"actor": ["policy"]}, "actor", 12,
++        observation_layout="diagonal_transfer_state_v1", exploration_std_temperature=.25,
++        distribution_cfg={"class_name": "HeteroscedasticGaussianDistribution", "std_type": "log", "init_std": .15})
++    state = torch.get_rng_state()
++    raw = model(obs, stochastic_output=True)
++    after = torch.get_rng_state()
++    normal = torch.distributions.Normal(model.output_mean, model.output_std)
++    torch.set_rng_state(state)
++    assert torch.equal(raw, normal.sample()) and torch.equal(after, torch.get_rng_state())
++    assert torch.equal(model.get_output_log_prob(raw), normal.log_prob(raw).sum(-1))
++    assert torch.equal(model.output_entropy, normal.entropy().sum(-1))
++
++
++def _reward_frame(tick, *, phase="P06", missing=False):
++    frame = _built(_frame(tick, stage=phase, phi=.45))
++    evaluator = {"valid": True, "simulation_time_s": tick / 120, "history": {}, "current_legs": {}}
++    if not missing:
++        evaluator["body_traversal_geometry"] = dict(valid=True,
++            minimum_w_m=(.7, -.2, .06), maximum_w_m=(1., .2, .3))
++    return replace(frame, task={**frame.task, "physical_evaluator": evaluator},
++        metrics={**frame.metrics, "obstacle_planes_world_m": (.5, 2., .8, -.8, 0., .05)})
++
++
++def _reward_result(*, missing=False, terminal=None, phase="P06"):
++    before, after = _reward_frame(0, phase=phase), _reward_frame(1, phase=phase, missing=missing)
++    calc = SemanticRewardCalculator(load_semantic_reward_config(CONFIG / "reward_config.yaml"))
++    return calc.evaluate(before, after, [_sample(before, after)], termination_reason=terminal, task_success=False)
++
++
++def test_live_geometry_cost_and_missing_nonterminal_measurement_are_not_confused():
++    row = _reward_result()["task_space_quality_sample_audit"][0]
++    assert row["separation_lower_bound_m"] == pytest.approx(.01)
++    assert row["raw_geometry_cost"] == pytest.approx(.25)
++    with pytest.raises(ValueError, match="measurement unavailable"):
++        _reward_result(missing=True)
++    outside = _reward_result(missing=True, phase="P13")["task_space_quality_sample_audit"][0]
++    assert not outside["eligible"] and outside["raw_geometry_cost"] is None
++
++
++@pytest.mark.parametrize("reason", ["TASK_FAILURE_BODY_COLLISION", "NAN_INF"])
++def test_missing_terminal_geometry_stays_null_and_does_not_hide_failure(reason):
++    result = _reward_result(missing=True, terminal=reason)
++    row = result["task_space_quality_sample_audit"][0]
++    assert row["terminal_measurement_omitted"] and not row["valid"]
++    assert row["raw_geometry_cost"] is row["weighted_geometry_cost"] is None
++    assert result["terminal_event"] == -40. and result["potential_after"] == 0.
++    assert not result["terminal_bootstrap_allowed"]
++
++
++def test_fl_near_surface_air_is_soft_progress_not_hard_capture():
++    spec = load_task_spec(CONFIG / "stage_task_spec.yaml")
++    # The established sensor fixture predates RR-v3 velocity inputs. Earn the
++    # unchanged FR/FL hard events with that evaluator, then apply the new soft
++    # potential to its snapshots; do not claim this fixture verifies RR sensors.
++    ev, obs, _ = _qualified("FL")
++    sup = TaskStageSupervisor(CONFIG / "stage_task_spec.yaml", evaluator=ev)
++    obs, airborne = _step(ev, obs, "FL", x=.53, bottom=.0504, air=True)
++    assert not airborne["history"]["placed"]["FL"]
++    assert sup._current_capture_progress("FL", airborne, 0.) < .5
++    assert sup.predicate("placed_FL", airborne) < 1.
++    for _ in range(spec["history"]["minimum_top_samples"]):
++        obs, captured = _step(ev, obs, "FL", x=.53, bottom=.05, top=True)
++    assert captured["history"]["placed"]["FL"] and sup.predicate("placed_FL", captured) == 1.
++
++
++def test_soft_rolling_retention_does_not_rewrite_history_or_require_permanent_contact():
++    sup = TaskStageSupervisor.__new__(TaskStageSupervisor)
++    sup.spec = load_task_spec(CONFIG / "stage_task_spec.yaml")
++    row = dict(top_xy_outside_distance_m=0., clearance_m=.02, front_distance_m=-.3,
++               top_contact=False, top_surface_contact=False, support=False,
++               bearing_verified=True, air=True, ground_contact=False)
++    ev = dict(valid=True, history=dict(placed=dict(FR=True, FL=True, RR=False, RL=False)),
++              current_legs={leg: deepcopy(row) for leg in ("FR", "FL", "RR", "RL")})
++    original = deepcopy(ev)
++    assert sup._current_capture_retention("FL", ev) == pytest.approx(.5 / (1 + .02 / .003))
++    assert ev == original and sup.predicate("placed_FL", ev) == 1.
++    ev["current_legs"]["RL"]["front_distance_m"] = -.22
++    assert sup._current_capture_retention("FL", ev) == 1.
++    ev = deepcopy(original)
++    ev["current_legs"]["RR"]["current_lift_valid"] = True
++    assert sup._current_capture_retention("FL", ev) == 1.
+*** End Patch

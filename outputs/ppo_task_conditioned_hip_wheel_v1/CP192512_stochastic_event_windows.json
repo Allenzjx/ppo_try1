@@ -1,0 +1,3518 @@
+{
+  "schema": "sealed_physical_event_windows.v1",
+  "source": "runs\\ppo_task_conditioned_hip_wheel_v1\\video_eval\\validation\\20260921T1024030822863Z_g97ecd305afb5_57f370bd94e9499e8ab7a10b18115e10\\source",
+  "manifest": "runs\\ppo_task_conditioned_hip_wheel_v1\\video_eval\\validation\\20260921T1024030822863Z_g97ecd305afb5_57f370bd94e9499e8ab7a10b18115e10\\source\\semantic_video_source_manifest.json",
+  "role": "C",
+  "sampling_mode": "training_style_conditional_gaussian",
+  "checkpoint_load_provenance": {
+    "checkpoint_loaded_and_verified": true,
+    "evaluation_sampling_changes_checkpoint_training_rng": false,
+    "migration": null,
+    "observation_dimension": 372,
+    "observation_layout": "diagonal_transfer_state_v1",
+    "official_load_semantic_checkpoint": true,
+    "optimizer_updates": 0,
+    "parameter_hashes": {
+      "actor_parameter_sha256": "56c86a44e119cd2cd7d3a4f6d18bbf268acb97080a30197f5ec06a9217f7c9f4",
+      "critic_parameter_sha256": "ca2833d1e4c01c5cdcb0b3ccd6fbb12babb635dcc50dcb2ac3876bd153e00ee7",
+      "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+      "optimizer_state_sha256": "891b4fdb53cdb505edefe57eb9bf37456ea4a291c80daf325c4b52beb97cba8b"
+    },
+    "policy_contract": {
+      "B_units": "canonical_servo_degrees_first8_wheel_rad_per_second_last4_not_actual_sigma_or_capacity",
+      "activation": "elu",
+      "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticTaskConditionedHipWheelHistoryMLPModel",
+      "actor_hidden_dims": [
+        256,
+        256
+      ],
+      "base_observation_dimension": 324,
+      "completed_stages_slice": [
+        158,
+        171
+      ],
+      "conditional_mean": "(1-rho)*base_mean+rho*observable_cap_entry_request_or_raw_history_center",
+      "conditional_std": "0.25*learned_sigma*positive_current_observation_B_over_current_cap",
+      "contact_proxy_limitations": "pair_active_near_top_is_not_classified_TOP_or_current_lateral_ROI;not_physical_acceptance",
+      "deterministic_output": "conditional_mean",
+      "directional_bias": false,
+      "distribution_class": "HeteroscedasticGaussianDistribution",
+      "effective_log_std": "learned_log_std+log(0.25)+log(B/current_cap)",
+      "exploration_std_temperature": 0.25,
+      "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+      "extra_filter_or_sampling_rejection": false,
+      "history_center_semantics": "entry_age_zero_predecessor_completed_increased_cap_filtered_request_inverse_tanh_v1",
+      "history_clip": 20.0,
+      "history_feature": "previous_raw_else_cap_entry_previous_filtered_request",
+      "history_request_scales": [
+        4.0,
+        4.0,
+        4.0,
+        6.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        0.12,
+        0.12,
+        0.12,
+        0.12
+      ],
+      "history_request_slice": [
+        207,
+        219
+      ],
+      "history_slice": [
+        195,
+        207
+      ],
+      "history_state": "stored_observation_only; no_actor_mutable_history",
+      "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+      "observation_dimension": 372,
+      "observation_layout": "diagonal_transfer_state_v1",
+      "phase_caps_full12": [
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          0.6,
+          0.6,
+          0.6,
+          0.6
+        ],
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          0.6,
+          0.6,
+          0.6,
+          0.6
+        ],
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          1.0,
+          0.6,
+          1.0,
+          0.6
+        ],
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          1.0,
+          0.6,
+          1.0,
+          0.6
+        ],
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          1.0,
+          0.6,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ]
+      ],
+      "phase_entry_clock": "120Hz_physics_15Hz_decision_aligned_forward_adjacent_stage_graph",
+      "physical_equivalent_B_full12": {
+        "FL_crossed_air_pending": [
+          24.0,
+          24.0,
+          9.0,
+          12.0,
+          6.0,
+          9.0,
+          6.0,
+          9.0,
+          1.0,
+          0.6,
+          1.0,
+          0.6
+        ],
+        "FR_air_approach_proxy": [
+          9.0,
+          12.0,
+          12.0,
+          18.0,
+          12.0,
+          12.0,
+          6.0,
+          9.0,
+          0.6,
+          0.6,
+          0.6,
+          0.6
+        ],
+        "P06_front_support_recovery_proxy": [
+          24.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          12.0,
+          12.0,
+          18.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        "P06_front_support_rolling_proxy": [
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        "RR_current_valid_lift": [
+          24.0,
+          24.0,
+          12.0,
+          18.0,
+          24.0,
+          24.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        "RR_preparation": [
+          24.0,
+          24.0,
+          12.0,
+          18.0,
+          24.0,
+          24.0,
+          12.0,
+          18.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ]
+      },
+      "raw_action_dimension": 12,
+      "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+      "request_history_scope": "previous_filtered_REQUEST_not_effective_final_drive_or_actual_motion",
+      "rho": 0.9,
+      "role_observation_fields": [
+        "valid",
+        "workspace_progress",
+        "preparation_progress",
+        "transfer_progress",
+        "motion_fraction",
+        "preparation_ready",
+        "transfer_ready",
+        "fixed_direction_world_x",
+        "fixed_direction_world_y",
+        "short_support_continuity_fraction",
+        "continued_response_fraction",
+        "window_evidence_fraction"
+      ],
+      "role_observation_group": "transfer_role_context_full48",
+      "role_observation_leg_order": [
+        "FL",
+        "FR",
+        "RL",
+        "RR"
+      ],
+      "role_observation_slice": [
+        324,
+        372
+      ],
+      "schema": "wlr50_clean.semantic_policy_distribution.v1",
+      "sigma_fallback": "unchanged_e735_B_equals_current_cap_except_P06plus_FR_knee_B24",
+      "sigma_scaling_scope": "official_raw_Gaussian_sample_logprob_entropy_KL;mean_history_caps_unchanged",
+      "sigma_scaling_semantics": "current_observation_task_physical_B_over_cap_sigma_same372_v1",
+      "stage_elapsed_index": 20,
+      "stage_elapsed_scale_s": 200.0,
+      "stage_one_hot_slice": [
+        0,
+        13
+      ],
+      "state_dependent_std": true,
+      "state_gate_semantics": "FR_current_AIR_gap0to15mm_after_lift;FL_crossed_pending_AIR_gap0to3mm;P06_front_support_rolling_or_recovery_proxy;nearest_rear_max_distance_blend_minus270to220mm;RR_current_qualification149_overrides_preparation",
+      "std_type": "log",
+      "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; no_deterministic_output_scaling",
+      "version": "task_conditioned_hip_wheel_sigma_v1"
+    },
+    "policy_sampling_mode": "training_style_conditional_gaussian",
+    "policy_seed": 4101,
+    "policy_version": "task_conditioned_hip_wheel_sigma_v1",
+    "saved_global_policy_decisions": 192512,
+    "source": {
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000192512.pt",
+      "checkpoint_sha256": "97284bfa095cc40719b5ba0b9a309ed954dc90d8454c0af9119cb76614e8052d",
+      "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000192512_manifest.json",
+      "manifest_sha256": "c63754cfff5fb3b2a107f1b361ea389281a09f3468d0ab2fec8c8dcf1e61a2f2"
+    },
+    "stochastic_policy": true,
+    "training_seed": 1001,
+    "video_seed": 4001
+  },
+  "outcome": {
+    "physical_task_success": false,
+    "termination_reason": "TASK_FAILURE_BODY_COLLISION",
+    "reason": "central body/obstacle collision",
+    "final_tick": 5775,
+    "final_time_s": 48.125,
+    "first_unfinished_derived_from_physical_history": "RR:active_lift",
+    "source_acceptance_error": "SemanticVideoError: episode did not meet common physical task",
+    "external_budget_stop": null,
+    "classification": "TERMINATED_UNSUCCESSFUL"
+  },
+  "history_event_ticks": {
+    "active_lift": {
+      "FL": 1738,
+      "FR": 21,
+      "RR": 4861
+    },
+    "front_edge_crossed": {
+      "FL": 2503,
+      "FR": 1647
+    },
+    "placed": {
+      "FL": 2986,
+      "FR": 1661
+    }
+  },
+  "stage_entry_ticks": {
+    "P01": 0,
+    "P02": 16,
+    "P03": 1632,
+    "P04": 1664,
+    "P05": 1672,
+    "P06": 2992,
+    "P07": 4584,
+    "P08": 4592,
+    "P09": 4600
+  },
+  "metric_semantics": {
+    "rate_RMS": "sqrt(integral((wrapped adjacent roll rate squared + pitch rate squared)/2 *dt)/T); rad/s, NOT RMS/T",
+    "comparison": "Compare like physical event windows; report duration/progress separately. Incomplete windows must not outrank completed tasks on smaller RMS.",
+    "exact_mesh_clearance": null,
+    "CoM_direction_is_not_receiver_support": true,
+    "wheel_rotation_is_not_traction": true,
+    "measurement_failure": "Any missing/nonfinite physical sample makes that window's physical aggregate null; failure outcome remains authoritative."
+  },
+  "windows": {
+    "FR_P01_to_capture": {
+      "status": "COMPLETE",
+      "start_tick": 0,
+      "goal_tick": 1661,
+      "observed_end_tick": 1661,
+      "physical": {
+        "duration_s": 13.841666666666667,
+        "physics_samples": 1662,
+        "rate_RMS_rad_s": 0.10758496645036257,
+        "peak_tilt_rad": 0.2933646162646096,
+        "body_collider_min_world_z_m": {
+          "n": 1662,
+          "minimum": 0.08969686926163128,
+          "maximum": 0.14243893018174042,
+          "mean": 0.0951876441702739,
+          "first": 0.14243893018174042,
+          "last": 0.10329116508408785
+        },
+        "conservative_body_obstacle_AABB_separation_m": {
+          "n": 1662,
+          "minimum": 0.2253468782812246,
+          "maximum": 0.4188054808548365,
+          "mean": 0.3363786275607879,
+          "first": 0.3960487840527369,
+          "last": 0.2253468782812246
+        },
+        "com_world_displacement_m": [
+          0.1678989587719198,
+          0.011575582157435607,
+          -0.009797931182095015
+        ],
+        "com_displacement_toward_initial_FL_direction_m": 0.14252080731042707,
+        "actual_contact_ticks": {
+          "FL": {
+            "ground": 1662,
+            "obstacle": 0,
+            "air": 0
+          },
+          "FR": {
+            "ground": 2,
+            "obstacle": 2,
+            "air": 1658
+          },
+          "RL": {
+            "ground": 1530,
+            "obstacle": 0,
+            "air": 132
+          },
+          "RR": {
+            "ground": 1661,
+            "obstacle": 0,
+            "air": 1
+          }
+        },
+        "joints": {
+          "front_left_hip": {
+            "actual_deg": {
+              "n": 1662,
+              "minimum": -1.5372321766394093,
+              "maximum": 15.232493093168959,
+              "mean": 1.5033397183680846,
+              "first": 0.10224846548361981,
+              "last": 14.364830257240143
+            },
+            "minimum_negative_margin_deg": 133.4627678233606,
+            "minimum_positive_margin_deg": 119.76750690683104,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_left_hip": {
+            "actual_deg": {
+              "n": 1662,
+              "minimum": 0.21267569563214642,
+              "maximum": 38.59223469637865,
+              "mean": 35.412036148929886,
+              "first": 0.21267569563214642,
+              "last": 19.706018858221157
+            },
+            "minimum_negative_margin_deg": 135.21267569563216,
+            "minimum_positive_margin_deg": 96.40776530362135,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_right_hip": {
+            "actual_deg": {
+              "n": 1662,
+              "minimum": -1.5017500909531334,
+              "maximum": 4.730948751340594,
+              "mean": 2.965349445127139,
+              "first": 0.1740611010975603,
+              "last": 4.219521688649787
+            },
+            "minimum_negative_margin_deg": 133.49824990904688,
+            "minimum_positive_margin_deg": 130.2690512486594,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_right_knee": {
+            "actual_deg": {
+              "n": 1662,
+              "minimum": -4.608862268216937,
+              "maximum": -0.3810284261102289,
+              "mean": -3.6093720107117764,
+              "first": -0.3810284261102289,
+              "last": -3.879473623827268
+            },
+            "minimum_negative_margin_deg": 55.39113773178306,
+            "minimum_positive_margin_deg": 210.38102842611022,
+            "hard_limits_deg": [
+              -60.0,
+              210.0
+            ]
+          }
+        },
+        "body_forward_displacement_m": 0.1692874114960432,
+        "wheel_bottom_gap_above_top_m": {
+          "FL": {
+            "n": 1662,
+            "minimum": -0.05148408608232844,
+            "maximum": -0.04997768605200962,
+            "mean": -0.05043174429461813,
+            "first": -0.051048765508487234,
+            "last": -0.04999977584611603
+          },
+          "FR": {
+            "n": 1662,
+            "minimum": -0.05083646351979408,
+            "maximum": 0.10174866788631666,
+            "mean": 0.08023219223413577,
+            "first": -0.05083646351979408,
+            "last": -0.0008020487127641668
+          },
+          "RL": {
+            "n": 1662,
+            "minimum": -0.05173699575226135,
+            "maximum": 0.010707411588532542,
+            "mean": -0.04886188208246355,
+            "first": -0.05013027215080251,
+            "last": -0.050065172304571096
+          },
+          "RR": {
+            "n": 1662,
+            "minimum": -0.05185557296188975,
+            "maximum": -0.04999470239349244,
+            "mean": -0.05060352548060446,
+            "first": -0.05017395201755137,
+            "last": -0.049995421243665385
+          }
+        },
+        "wheel_center_forward_displacement_m": {
+          "FL": 0.14435429871082306,
+          "FR": 0.28490063548088074,
+          "RL": 0.11503331363201141,
+          "RR": 0.16220319271087646
+        },
+        "wheel_measured_canonical_qd_rad_s": {
+          "FL": {
+            "n": 1662,
+            "minimum": -0.9247822761535645,
+            "maximum": 0.7429122924804688,
+            "mean": 0.2133257006161659,
+            "first": 0.01831049472093582,
+            "last": -0.8170489072799683
+          },
+          "FR": {
+            "n": 1662,
+            "minimum": -0.16201996803283691,
+            "maximum": 1.2310173511505127,
+            "mean": 0.32140203048270555,
+            "first": 0.029033124446868896,
+            "last": -0.16201996803283691
+          },
+          "RL": {
+            "n": 1662,
+            "minimum": -2.0792012214660645,
+            "maximum": 1.2573046684265137,
+            "mean": 0.3867748772054814,
+            "first": -0.014638260938227177,
+            "last": 0.6860717535018921
+          },
+          "RR": {
+            "n": 1662,
+            "minimum": -0.4223558306694031,
+            "maximum": 0.5257636308670044,
+            "mean": 0.23908942493567498,
+            "first": -0.023966750130057335,
+            "last": -0.11776823550462723
+          }
+        },
+        "wheel_command_canonical_rad_s": {
+          "FL": {
+            "n": 1662,
+            "minimum": -0.8135903541417359,
+            "maximum": 0.5328370201360065,
+            "mean": 0.31510332650260686,
+            "first": 0.0,
+            "last": -0.7385903541417358
+          },
+          "FR": {
+            "n": 1662,
+            "minimum": -0.025057040322098195,
+            "maximum": 0.40488160017743086,
+            "mean": 0.3201844445752351,
+            "first": 0.0,
+            "last": 0.020576806408324495
+          },
+          "RL": {
+            "n": 1662,
+            "minimum": -0.00017415806162004885,
+            "maximum": 0.6101643366975023,
+            "mean": 0.3136058940560787,
+            "first": 0.0,
+            "last": 0.6101643366975023
+          },
+          "RR": {
+            "n": 1662,
+            "minimum": -0.1862473858184748,
+            "maximum": 0.25544534605608266,
+            "mean": 0.1485416890906173,
+            "first": 0.0,
+            "last": -0.1254341283917832
+          }
+        },
+        "RR_mount_world_z_m_sampled": {
+          "n": 208,
+          "minimum": 0.19197535450208528,
+          "maximum": 0.2107518587329198,
+          "mean": 0.198172446197843,
+          "first": 0.20698800456909472,
+          "last": 0.19197535450208528
+        },
+        "other_hip_mount_world_z_m": null,
+        "hip_absence_reason": "Only independently recorded RR USD mount is read; other mounts are not inferred from base/CoM."
+      },
+      "current_support_samples": {
+        "sample_ticks": [
+          8,
+          16,
+          24,
+          32,
+          40,
+          48,
+          56,
+          64,
+          72,
+          80,
+          88,
+          96,
+          104,
+          112,
+          120,
+          128,
+          136,
+          144,
+          152,
+          160,
+          168,
+          176,
+          184,
+          192,
+          200,
+          208,
+          216,
+          224,
+          232,
+          240,
+          248,
+          256,
+          264,
+          272,
+          280,
+          288,
+          296,
+          304,
+          312,
+          320,
+          328,
+          336,
+          344,
+          352,
+          360,
+          368,
+          376,
+          384,
+          392,
+          400,
+          408,
+          416,
+          424,
+          432,
+          440,
+          448,
+          456,
+          464,
+          472,
+          480,
+          488,
+          496,
+          504,
+          512,
+          520,
+          528,
+          536,
+          544,
+          552,
+          560,
+          568,
+          576,
+          584,
+          592,
+          600,
+          608,
+          616,
+          624,
+          632,
+          640,
+          648,
+          656,
+          664,
+          672,
+          680,
+          688,
+          696,
+          704,
+          712,
+          720,
+          728,
+          736,
+          744,
+          752,
+          760,
+          768,
+          776,
+          784,
+          792,
+          800,
+          808,
+          816,
+          824,
+          832,
+          840,
+          848,
+          856,
+          864,
+          872,
+          880,
+          888,
+          896,
+          904,
+          912,
+          920,
+          928,
+          936,
+          944,
+          952,
+          960,
+          968,
+          976,
+          984,
+          992,
+          1000,
+          1008,
+          1016,
+          1024,
+          1032,
+          1040,
+          1048,
+          1056,
+          1064,
+          1072,
+          1080,
+          1088,
+          1096,
+          1104,
+          1112,
+          1120,
+          1128,
+          1136,
+          1144,
+          1152,
+          1160,
+          1168,
+          1176,
+          1184,
+          1192,
+          1200,
+          1208,
+          1216,
+          1224,
+          1232,
+          1240,
+          1248,
+          1256,
+          1264,
+          1272,
+          1280,
+          1288,
+          1296,
+          1304,
+          1312,
+          1320,
+          1328,
+          1336,
+          1344,
+          1352,
+          1360,
+          1368,
+          1376,
+          1384,
+          1392,
+          1400,
+          1408,
+          1416,
+          1424,
+          1432,
+          1440,
+          1448,
+          1456,
+          1464,
+          1472,
+          1480,
+          1488,
+          1496,
+          1504,
+          1512,
+          1520,
+          1528,
+          1536,
+          1544,
+          1552,
+          1560,
+          1568,
+          1576,
+          1584,
+          1592,
+          1600,
+          1608,
+          1616,
+          1624,
+          1632,
+          1640,
+          1648,
+          1656
+        ],
+        "sampling": "completed decision endpoints plus exact manifest terminal; not 120Hz contact durations",
+        "FL": {
+          "air_samples": 0,
+          "ground_samples": 207,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 207,
+          "current_lift_valid_samples": null
+        },
+        "FR": {
+          "air_samples": 207,
+          "ground_samples": 0,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 0,
+          "current_lift_valid_samples": null
+        },
+        "RL": {
+          "air_samples": 13,
+          "ground_samples": 194,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 192,
+          "current_lift_valid_samples": null
+        },
+        "RR": {
+          "air_samples": 0,
+          "ground_samples": 207,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 207,
+          "current_lift_valid_samples": 0
+        }
+      },
+      "reason": null,
+      "stable_success_claim": false
+    },
+    "FR_qualified_to_cross": {
+      "status": "COMPLETE",
+      "start_tick": 21,
+      "goal_tick": 1647,
+      "observed_end_tick": 1647,
+      "physical": {
+        "duration_s": 13.549999999999999,
+        "physics_samples": 1627,
+        "rate_RMS_rad_s": 0.09266618311156022,
+        "peak_tilt_rad": 0.2933646162646096,
+        "body_collider_min_world_z_m": {
+          "n": 1627,
+          "minimum": 0.08969686926163128,
+          "maximum": 0.13964560360827655,
+          "mean": 0.09454395943587819,
+          "first": 0.13964560360827655,
+          "last": 0.09827710678041465
+        },
+        "conservative_body_obstacle_AABB_separation_m": {
+          "n": 1627,
+          "minimum": 0.24348305683997348,
+          "maximum": 0.4188054808548365,
+          "mean": 0.3364588931926713,
+          "first": 0.40422892920164105,
+          "last": 0.24348305683997348
+        },
+        "com_world_displacement_m": [
+          0.16141966088643578,
+          0.01837250920185246,
+          -0.004594141663711027
+        ],
+        "com_displacement_toward_initial_FL_direction_m": 0.14279233329632626,
+        "actual_contact_ticks": {
+          "FL": {
+            "ground": 1627,
+            "obstacle": 0,
+            "air": 0
+          },
+          "FR": {
+            "ground": 0,
+            "obstacle": 0,
+            "air": 1627
+          },
+          "RL": {
+            "ground": 1515,
+            "obstacle": 0,
+            "air": 112
+          },
+          "RR": {
+            "ground": 1626,
+            "obstacle": 0,
+            "air": 1
+          }
+        },
+        "joints": {
+          "front_left_hip": {
+            "actual_deg": {
+              "n": 1627,
+              "minimum": -1.5372321766394093,
+              "maximum": 8.29433400030394,
+              "mean": 1.4183905269902717,
+              "first": 0.49162946589683376,
+              "last": 8.29433400030394
+            },
+            "minimum_negative_margin_deg": 133.4627678233606,
+            "minimum_positive_margin_deg": 126.70566599969607,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_left_hip": {
+            "actual_deg": {
+              "n": 1627,
+              "minimum": 13.438577511662219,
+              "maximum": 38.59223469637865,
+              "mean": 35.90937606279786,
+              "first": 13.438577511662219,
+              "last": 28.343076516552838
+            },
+            "minimum_negative_margin_deg": 148.43857751166223,
+            "minimum_positive_margin_deg": 96.40776530362135,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_right_hip": {
+            "actual_deg": {
+              "n": 1627,
+              "minimum": -1.5017500909531334,
+              "maximum": 4.730948751340594,
+              "mean": 3.0004391674358426,
+              "first": -0.8328044585715522,
+              "last": 3.2416622881992794
+            },
+            "minimum_negative_margin_deg": 133.49824990904688,
+            "minimum_positive_margin_deg": 130.2690512486594,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_right_knee": {
+            "actual_deg": {
+              "n": 1627,
+              "minimum": -4.608862268216937,
+              "maximum": -0.5088792153674068,
+              "mean": -3.641487479735032,
+              "first": -1.2450348696772655,
+              "last": -4.21007868531798
+            },
+            "minimum_negative_margin_deg": 55.39113773178306,
+            "minimum_positive_margin_deg": 210.50887921536741,
+            "hard_limits_deg": [
+              -60.0,
+              210.0
+            ]
+          }
+        },
+        "body_forward_displacement_m": 0.16582396999001503,
+        "wheel_bottom_gap_above_top_m": {
+          "FL": {
+            "n": 1627,
+            "minimum": -0.05148408608232844,
+            "maximum": -0.04997768605200962,
+            "mean": -0.05042677611349587,
+            "first": -0.051162873243815396,
+            "last": -0.05001814523755003
+          },
+          "FR": {
+            "n": 1627,
+            "minimum": -0.042736110398279945,
+            "maximum": 0.10174866788631666,
+            "mean": 0.08243708514048836,
+            "first": -0.042736110398279945,
+            "last": 0.047041460609244065
+          },
+          "RL": {
+            "n": 1627,
+            "minimum": -0.05173699575226135,
+            "maximum": 0.010707411588532542,
+            "mean": -0.0489622640383005,
+            "first": -0.02355814298625257,
+            "last": -0.04963505818382141
+          },
+          "RR": {
+            "n": 1627,
+            "minimum": -0.05185557296188975,
+            "maximum": -0.04999470239349244,
+            "mean": -0.050613245193730304,
+            "first": -0.05023833323376041,
+            "last": -0.050264695344512264
+          }
+        },
+        "wheel_center_forward_displacement_m": {
+          "FL": 0.14895546436309814,
+          "FR": 0.27698564529418945,
+          "RL": 0.1317187398672104,
+          "RR": 0.1589958220720291
+        },
+        "wheel_measured_canonical_qd_rad_s": {
+          "FL": {
+            "n": 1627,
+            "minimum": -0.9247822761535645,
+            "maximum": 0.7429122924804688,
+            "mean": 0.22368843971849514,
+            "first": -0.04713822528719902,
+            "last": -0.7440908551216125
+          },
+          "FR": {
+            "n": 1627,
+            "minimum": -0.010249227285385132,
+            "maximum": 0.4068034291267395,
+            "mean": 0.3277685715528989,
+            "first": -0.010079193860292435,
+            "last": 0.010092141106724739
+          },
+          "RL": {
+            "n": 1627,
+            "minimum": -2.0644893646240234,
+            "maximum": 1.2573046684265137,
+            "mean": 0.40194088210292805,
+            "first": 0.023864513263106346,
+            "last": -1.985790729522705
+          },
+          "RR": {
+            "n": 1627,
+            "minimum": -0.4223558306694031,
+            "maximum": 0.5257636308670044,
+            "mean": 0.24441153841515625,
+            "first": 0.0701204389333725,
+            "last": -0.1805770844221115
+          }
+        },
+        "wheel_command_canonical_rad_s": {
+          "FL": {
+            "n": 1627,
+            "minimum": -0.7121414027785964,
+            "maximum": 0.5328370201360065,
+            "mean": 0.32831406253404893,
+            "first": 0.02571750301718231,
+            "last": -0.6935903541417358
+          },
+          "FR": {
+            "n": 1627,
+            "minimum": -0.010051998900674923,
+            "maximum": 0.40488160017743086,
+            "mean": 0.32711968014140297,
+            "first": -0.010051998900674923,
+            "last": 0.017954148815148865
+          },
+          "RL": {
+            "n": 1627,
+            "minimum": 0.012135430007394754,
+            "maximum": 0.6040078862928184,
+            "mean": 0.31548784220183446,
+            "first": 0.023917610365579364,
+            "last": 0.5086362450520551
+          },
+          "RR": {
+            "n": 1627,
+            "minimum": -0.1862473858184748,
+            "maximum": 0.25544534605608266,
+            "mean": 0.1526989006290135,
+            "first": -0.005359674358957194,
+            "last": -0.15025230338004972
+          }
+        },
+        "RR_mount_world_z_m_sampled": {
+          "n": 203,
+          "minimum": 0.19561949074840287,
+          "maximum": 0.2107518587329198,
+          "mean": 0.19808070513668077,
+          "first": 0.20872784874491987,
+          "last": 0.1974119883512854
+        },
+        "other_hip_mount_world_z_m": null,
+        "hip_absence_reason": "Only independently recorded RR USD mount is read; other mounts are not inferred from base/CoM."
+      },
+      "current_support_samples": {
+        "sample_ticks": [
+          24,
+          32,
+          40,
+          48,
+          56,
+          64,
+          72,
+          80,
+          88,
+          96,
+          104,
+          112,
+          120,
+          128,
+          136,
+          144,
+          152,
+          160,
+          168,
+          176,
+          184,
+          192,
+          200,
+          208,
+          216,
+          224,
+          232,
+          240,
+          248,
+          256,
+          264,
+          272,
+          280,
+          288,
+          296,
+          304,
+          312,
+          320,
+          328,
+          336,
+          344,
+          352,
+          360,
+          368,
+          376,
+          384,
+          392,
+          400,
+          408,
+          416,
+          424,
+          432,
+          440,
+          448,
+          456,
+          464,
+          472,
+          480,
+          488,
+          496,
+          504,
+          512,
+          520,
+          528,
+          536,
+          544,
+          552,
+          560,
+          568,
+          576,
+          584,
+          592,
+          600,
+          608,
+          616,
+          624,
+          632,
+          640,
+          648,
+          656,
+          664,
+          672,
+          680,
+          688,
+          696,
+          704,
+          712,
+          720,
+          728,
+          736,
+          744,
+          752,
+          760,
+          768,
+          776,
+          784,
+          792,
+          800,
+          808,
+          816,
+          824,
+          832,
+          840,
+          848,
+          856,
+          864,
+          872,
+          880,
+          888,
+          896,
+          904,
+          912,
+          920,
+          928,
+          936,
+          944,
+          952,
+          960,
+          968,
+          976,
+          984,
+          992,
+          1000,
+          1008,
+          1016,
+          1024,
+          1032,
+          1040,
+          1048,
+          1056,
+          1064,
+          1072,
+          1080,
+          1088,
+          1096,
+          1104,
+          1112,
+          1120,
+          1128,
+          1136,
+          1144,
+          1152,
+          1160,
+          1168,
+          1176,
+          1184,
+          1192,
+          1200,
+          1208,
+          1216,
+          1224,
+          1232,
+          1240,
+          1248,
+          1256,
+          1264,
+          1272,
+          1280,
+          1288,
+          1296,
+          1304,
+          1312,
+          1320,
+          1328,
+          1336,
+          1344,
+          1352,
+          1360,
+          1368,
+          1376,
+          1384,
+          1392,
+          1400,
+          1408,
+          1416,
+          1424,
+          1432,
+          1440,
+          1448,
+          1456,
+          1464,
+          1472,
+          1480,
+          1488,
+          1496,
+          1504,
+          1512,
+          1520,
+          1528,
+          1536,
+          1544,
+          1552,
+          1560,
+          1568,
+          1576,
+          1584,
+          1592,
+          1600,
+          1608,
+          1616,
+          1624,
+          1632,
+          1640
+        ],
+        "sampling": "completed decision endpoints plus exact manifest terminal; not 120Hz contact durations",
+        "FL": {
+          "air_samples": 0,
+          "ground_samples": 203,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 203,
+          "current_lift_valid_samples": null
+        },
+        "FR": {
+          "air_samples": 203,
+          "ground_samples": 0,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 0,
+          "current_lift_valid_samples": null
+        },
+        "RL": {
+          "air_samples": 11,
+          "ground_samples": 192,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 190,
+          "current_lift_valid_samples": null
+        },
+        "RR": {
+          "air_samples": 0,
+          "ground_samples": 203,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 203,
+          "current_lift_valid_samples": 0
+        }
+      },
+      "reason": null,
+      "stable_success_claim": false
+    },
+    "FL_cross_to_capture": {
+      "status": "COMPLETE",
+      "start_tick": 2503,
+      "goal_tick": 2986,
+      "observed_end_tick": 2986,
+      "physical": {
+        "duration_s": 4.024999999999999,
+        "physics_samples": 484,
+        "rate_RMS_rad_s": 0.038820569090181466,
+        "peak_tilt_rad": 0.04110074863726953,
+        "body_collider_min_world_z_m": {
+          "n": 484,
+          "minimum": 0.11823754458952263,
+          "maximum": 0.1371650456344803,
+          "mean": 0.13099101625256185,
+          "first": 0.11823754458952263,
+          "last": 0.13493888172259724
+        },
+        "conservative_body_obstacle_AABB_separation_m": {
+          "n": 484,
+          "minimum": 0.09208607060101685,
+          "maximum": 0.1174148841883933,
+          "mean": 0.10222935837494097,
+          "first": 0.11665590795677434,
+          "last": 0.09208607060101685
+        },
+        "com_world_displacement_m": [
+          0.0646026029247832,
+          -0.0047887161441859255,
+          0.0041350777589903576
+        ],
+        "com_displacement_toward_initial_FL_direction_m": 0.0483536749178555,
+        "actual_contact_ticks": {
+          "FL": {
+            "ground": 0,
+            "obstacle": 2,
+            "air": 482
+          },
+          "FR": {
+            "ground": 0,
+            "obstacle": 483,
+            "air": 1
+          },
+          "RL": {
+            "ground": 484,
+            "obstacle": 0,
+            "air": 0
+          },
+          "RR": {
+            "ground": 484,
+            "obstacle": 0,
+            "air": 0
+          }
+        },
+        "joints": {
+          "front_left_hip": {
+            "actual_deg": {
+              "n": 484,
+              "minimum": 20.33335862005723,
+              "maximum": 55.85473070066527,
+              "mean": 42.41068632519375,
+              "first": 51.531784446653724,
+              "last": 20.33335862005723
+            },
+            "minimum_negative_margin_deg": 155.33335862005723,
+            "minimum_positive_margin_deg": 79.14526929933473,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_left_hip": {
+            "actual_deg": {
+              "n": 484,
+              "minimum": 2.6578073526009156,
+              "maximum": 3.9534524032436678,
+              "mean": 3.187506523864781,
+              "first": 3.6980549815907895,
+              "last": 2.7368221825707963
+            },
+            "minimum_negative_margin_deg": 137.6578073526009,
+            "minimum_positive_margin_deg": 131.04654759675634,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_right_hip": {
+            "actual_deg": {
+              "n": 484,
+              "minimum": 0.40597905378743254,
+              "maximum": 5.893857613200611,
+              "mean": 3.760491521326467,
+              "first": 0.40597905378743254,
+              "last": 4.105679937545423
+            },
+            "minimum_negative_margin_deg": 135.40597905378743,
+            "minimum_positive_margin_deg": 129.10614238679938,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_right_knee": {
+            "actual_deg": {
+              "n": 484,
+              "minimum": -6.441867756055388,
+              "maximum": -4.350983780348051,
+              "mean": -5.506163386170667,
+              "first": -6.141423956165807,
+              "last": -5.24386324780573
+            },
+            "minimum_negative_margin_deg": 53.55813224394461,
+            "minimum_positive_margin_deg": 214.35098378034806,
+            "hard_limits_deg": [
+              -60.0,
+              210.0
+            ]
+          }
+        },
+        "body_forward_displacement_m": 0.06592276692390442,
+        "wheel_bottom_gap_above_top_m": {
+          "FL": {
+            "n": 484,
+            "minimum": -0.0001717417420037115,
+            "maximum": 0.07393800547215017,
+            "mean": 0.04146603740199486,
+            "first": 0.03066446364361855,
+            "last": -0.0001717417420037115
+          },
+          "FR": {
+            "n": 484,
+            "minimum": -0.001091437186191882,
+            "maximum": 1.4202366998630755e-05,
+            "mean": -0.00020025997356653142,
+            "first": -0.00038184027509246404,
+            "last": -6.320908819028997e-05
+          },
+          "RL": {
+            "n": 484,
+            "minimum": -0.05110076112954844,
+            "maximum": -0.04999068071247832,
+            "mean": -0.05033955064191141,
+            "first": -0.05026654222660753,
+            "last": -0.050839933388186764
+          },
+          "RR": {
+            "n": 484,
+            "minimum": -0.05108811153961701,
+            "maximum": -0.0499902094536842,
+            "mean": -0.05043075398733588,
+            "first": -0.05040263539258341,
+            "last": -0.0502594283367718
+          }
+        },
+        "wheel_center_forward_displacement_m": {
+          "FL": 0.09007561206817627,
+          "FR": 0.05952095985412598,
+          "RL": 0.07220157608389854,
+          "RR": 0.05640751123428345
+        },
+        "wheel_measured_canonical_qd_rad_s": {
+          "FL": {
+            "n": 484,
+            "minimum": -0.1950523853302002,
+            "maximum": 0.5808225870132446,
+            "mean": 0.2254033088813967,
+            "first": 0.2416880577802658,
+            "last": 0.334212064743042
+          },
+          "FR": {
+            "n": 484,
+            "minimum": -0.2516404092311859,
+            "maximum": 0.5973726511001587,
+            "mean": 0.1728586275765503,
+            "first": 0.3528723120689392,
+            "last": 0.3260155916213989
+          },
+          "RL": {
+            "n": 484,
+            "minimum": -0.20365755259990692,
+            "maximum": 0.8878086805343628,
+            "mean": 0.4593639981794394,
+            "first": 0.5795958638191223,
+            "last": 0.3861188292503357
+          },
+          "RR": {
+            "n": 484,
+            "minimum": -0.26163458824157715,
+            "maximum": 0.5120668411254883,
+            "mean": 0.05985429262442222,
+            "first": 0.2835138440132141,
+            "last": 0.17130868136882782
+          }
+        },
+        "wheel_command_canonical_rad_s": {
+          "FL": {
+            "n": 484,
+            "minimum": -0.19495890790274686,
+            "maximum": 0.5810192575951159,
+            "mean": 0.2258656665246777,
+            "first": 0.2417819836930296,
+            "last": 0.3638205447166727
+          },
+          "FR": {
+            "n": 484,
+            "minimum": -0.008812519435772902,
+            "maximum": 0.3670969719412027,
+            "mean": 0.23663343252379845,
+            "first": 0.35900015734240487,
+            "last": 0.32746553508542126
+          },
+          "RL": {
+            "n": 484,
+            "minimum": -0.05880386316239015,
+            "maximum": 0.7299088545322725,
+            "mean": 0.45593779279047963,
+            "first": 0.4431457212462524,
+            "last": 0.3203934684802711
+          },
+          "RR": {
+            "n": 484,
+            "minimum": -0.16216764947559079,
+            "maximum": 0.2151790944254569,
+            "mean": 0.049802705573139025,
+            "first": 0.11234525529984427,
+            "last": 0.12748116774584417
+          }
+        },
+        "RR_mount_world_z_m_sampled": {
+          "n": 61,
+          "minimum": 0.19454305055965354,
+          "maximum": 0.2009286551586401,
+          "mean": 0.19743410741601625,
+          "first": 0.19660112009258818,
+          "last": 0.19921463728526537
+        },
+        "other_hip_mount_world_z_m": null,
+        "hip_absence_reason": "Only independently recorded RR USD mount is read; other mounts are not inferred from base/CoM."
+      },
+      "current_support_samples": {
+        "sample_ticks": [
+          2504,
+          2512,
+          2520,
+          2528,
+          2536,
+          2544,
+          2552,
+          2560,
+          2568,
+          2576,
+          2584,
+          2592,
+          2600,
+          2608,
+          2616,
+          2624,
+          2632,
+          2640,
+          2648,
+          2656,
+          2664,
+          2672,
+          2680,
+          2688,
+          2696,
+          2704,
+          2712,
+          2720,
+          2728,
+          2736,
+          2744,
+          2752,
+          2760,
+          2768,
+          2776,
+          2784,
+          2792,
+          2800,
+          2808,
+          2816,
+          2824,
+          2832,
+          2840,
+          2848,
+          2856,
+          2864,
+          2872,
+          2880,
+          2888,
+          2896,
+          2904,
+          2912,
+          2920,
+          2928,
+          2936,
+          2944,
+          2952,
+          2960,
+          2968,
+          2976,
+          2984
+        ],
+        "sampling": "completed decision endpoints plus exact manifest terminal; not 120Hz contact durations",
+        "FL": {
+          "air_samples": 61,
+          "ground_samples": 0,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 0,
+          "current_lift_valid_samples": null
+        },
+        "FR": {
+          "air_samples": 0,
+          "ground_samples": 0,
+          "top_verified_bearing_samples": 61,
+          "support_samples": 61,
+          "current_lift_valid_samples": null
+        },
+        "RL": {
+          "air_samples": 0,
+          "ground_samples": 61,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 61,
+          "current_lift_valid_samples": null
+        },
+        "RR": {
+          "air_samples": 0,
+          "ground_samples": 61,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 61,
+          "current_lift_valid_samples": 0
+        }
+      },
+      "reason": null,
+      "stable_success_claim": false
+    },
+    "FL_capture_hold_until_RR_preparation": {
+      "status": "COMPLETE",
+      "start_tick": 2986,
+      "goal_tick": 4584,
+      "observed_end_tick": 4584,
+      "physical": {
+        "duration_s": 13.31666666666667,
+        "physics_samples": 1599,
+        "rate_RMS_rad_s": 0.0469270088452747,
+        "peak_tilt_rad": 0.12220052815788117,
+        "body_collider_min_world_z_m": {
+          "n": 1599,
+          "minimum": 0.12347903762527883,
+          "maximum": 0.13939536249888101,
+          "mean": 0.13301419307953433,
+          "first": 0.13493888172259724,
+          "last": 0.1315598308219454
+        },
+        "conservative_body_obstacle_AABB_separation_m": {
+          "n": 1599,
+          "minimum": 0.07347903762527883,
+          "maximum": 0.09208607060101685,
+          "mean": 0.08316579711718824,
+          "first": 0.09208607060101685,
+          "last": 0.08155983082194539
+        },
+        "com_world_displacement_m": [
+          0.25614827331548295,
+          -0.01015952746924459,
+          0.0065981295143369145
+        ],
+        "com_displacement_toward_initial_FL_direction_m": 0.20395307084626896,
+        "actual_contact_ticks": {
+          "FL": {
+            "ground": 0,
+            "obstacle": 105,
+            "air": 1494
+          },
+          "FR": {
+            "ground": 0,
+            "obstacle": 1597,
+            "air": 2
+          },
+          "RL": {
+            "ground": 1599,
+            "obstacle": 0,
+            "air": 0
+          },
+          "RR": {
+            "ground": 1581,
+            "obstacle": 0,
+            "air": 18
+          }
+        },
+        "joints": {
+          "front_left_hip": {
+            "actual_deg": {
+              "n": 1599,
+              "minimum": 13.559334095589493,
+              "maximum": 24.99305198317062,
+              "mean": 19.491043130858664,
+              "first": 20.33335862005723,
+              "last": 22.036874393402815
+            },
+            "minimum_negative_margin_deg": 148.5593340955895,
+            "minimum_positive_margin_deg": 110.00694801682938,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_left_hip": {
+            "actual_deg": {
+              "n": 1599,
+              "minimum": -2.5649791854061976,
+              "maximum": 3.699499566600247,
+              "mean": 0.2400461004993161,
+              "first": 2.7368221825707963,
+              "last": 3.699499566600247
+            },
+            "minimum_negative_margin_deg": 132.4350208145938,
+            "minimum_positive_margin_deg": 131.30050043339975,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_right_hip": {
+            "actual_deg": {
+              "n": 1599,
+              "minimum": 4.105679937545423,
+              "maximum": 12.812838388649881,
+              "mean": 9.212506564091193,
+              "first": 4.105679937545423,
+              "last": 9.46387113386663
+            },
+            "minimum_negative_margin_deg": 139.10567993754543,
+            "minimum_positive_margin_deg": 122.18716161135012,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_right_knee": {
+            "actual_deg": {
+              "n": 1599,
+              "minimum": -12.068040143801577,
+              "maximum": -5.112716358665492,
+              "mean": -10.328053199680513,
+              "first": -5.24386324780573,
+              "last": -10.512897423569822
+            },
+            "minimum_negative_margin_deg": 47.931959856198425,
+            "minimum_positive_margin_deg": 215.1127163586655,
+            "hard_limits_deg": [
+              -60.0,
+              210.0
+            ]
+          }
+        },
+        "body_forward_displacement_m": 0.2637008726596832,
+        "wheel_bottom_gap_above_top_m": {
+          "FL": {
+            "n": 1599,
+            "minimum": -0.0014332176452267337,
+            "maximum": 0.05135198867504093,
+            "mean": 0.028869131926584704,
+            "first": -0.0001717417420037115,
+            "last": 0.027916629498478035
+          },
+          "FR": {
+            "n": 1599,
+            "minimum": -0.0017997948401333938,
+            "maximum": 3.0813025721332377e-05,
+            "mean": -0.00041329484695018395,
+            "first": -6.320908819028997e-05,
+            "last": -0.0011806227378496764
+          },
+          "RL": {
+            "n": 1599,
+            "minimum": -0.05163358886483893,
+            "maximum": -0.04998862428101976,
+            "mean": -0.05054461674280084,
+            "first": -0.050839933388186764,
+            "last": -0.051155672875320135
+          },
+          "RR": {
+            "n": 1599,
+            "minimum": -0.05188145240121476,
+            "maximum": -0.049986242914555015,
+            "mean": -0.05054989631927602,
+            "first": -0.0502594283367718,
+            "last": -0.05003997944168872
+          }
+        },
+        "wheel_center_forward_displacement_m": {
+          "FL": 0.24035930633544922,
+          "FR": 0.23402827978134155,
+          "RL": 0.261220570653677,
+          "RR": 0.26421452313661575
+        },
+        "wheel_measured_canonical_qd_rad_s": {
+          "FL": {
+            "n": 1599,
+            "minimum": 0.08294037729501724,
+            "maximum": 1.1973695755004883,
+            "mean": 0.4170845485781043,
+            "first": 0.334212064743042,
+            "last": 0.11833193153142929
+          },
+          "FR": {
+            "n": 1599,
+            "minimum": -0.263033002614975,
+            "maximum": 0.6743801236152649,
+            "mean": 0.23772562003570416,
+            "first": 0.3260155916213989,
+            "last": 0.10857357084751129
+          },
+          "RL": {
+            "n": 1599,
+            "minimum": -0.007818520069122314,
+            "maximum": 0.7799665331840515,
+            "mean": 0.4422379690475804,
+            "first": 0.3861188292503357,
+            "last": 0.5282489657402039
+          },
+          "RR": {
+            "n": 1599,
+            "minimum": -0.045138053596019745,
+            "maximum": 0.5865716338157654,
+            "mean": 0.15186275104951905,
+            "first": 0.17130868136882782,
+            "last": 0.09585529565811157
+          }
+        },
+        "wheel_command_canonical_rad_s": {
+          "FL": {
+            "n": 1599,
+            "minimum": 0.08272591397562529,
+            "maximum": 0.9953408072519925,
+            "mean": 0.41822179174098534,
+            "first": 0.3638205447166727,
+            "last": 0.11834103010505015
+          },
+          "FR": {
+            "n": 1599,
+            "minimum": 0.12940076849742146,
+            "maximum": 0.4769310010962672,
+            "mean": 0.33535251662952387,
+            "first": 0.32746553508542126,
+            "last": 0.3617537947069228
+          },
+          "RL": {
+            "n": 1599,
+            "minimum": 0.2509174513352923,
+            "maximum": 0.6315402571787436,
+            "mean": 0.42305110358372916,
+            "first": 0.3203934684802711,
+            "last": 0.4629119476443721
+          },
+          "RR": {
+            "n": 1599,
+            "minimum": 0.07938044951474083,
+            "maximum": 0.21046009386526915,
+            "mean": 0.12974310749269696,
+            "first": 0.12748116774584417,
+            "last": 0.13085990914967818
+          }
+        },
+        "RR_mount_world_z_m_sampled": {
+          "n": 200,
+          "minimum": 0.1878040717716189,
+          "maximum": 0.20178149417268942,
+          "mean": 0.1949113167989229,
+          "first": 0.19725120913458866,
+          "last": 0.19351347232328253
+        },
+        "other_hip_mount_world_z_m": null,
+        "hip_absence_reason": "Only independently recorded RR USD mount is read; other mounts are not inferred from base/CoM."
+      },
+      "current_support_samples": {
+        "sample_ticks": [
+          2992,
+          3000,
+          3008,
+          3016,
+          3024,
+          3032,
+          3040,
+          3048,
+          3056,
+          3064,
+          3072,
+          3080,
+          3088,
+          3096,
+          3104,
+          3112,
+          3120,
+          3128,
+          3136,
+          3144,
+          3152,
+          3160,
+          3168,
+          3176,
+          3184,
+          3192,
+          3200,
+          3208,
+          3216,
+          3224,
+          3232,
+          3240,
+          3248,
+          3256,
+          3264,
+          3272,
+          3280,
+          3288,
+          3296,
+          3304,
+          3312,
+          3320,
+          3328,
+          3336,
+          3344,
+          3352,
+          3360,
+          3368,
+          3376,
+          3384,
+          3392,
+          3400,
+          3408,
+          3416,
+          3424,
+          3432,
+          3440,
+          3448,
+          3456,
+          3464,
+          3472,
+          3480,
+          3488,
+          3496,
+          3504,
+          3512,
+          3520,
+          3528,
+          3536,
+          3544,
+          3552,
+          3560,
+          3568,
+          3576,
+          3584,
+          3592,
+          3600,
+          3608,
+          3616,
+          3624,
+          3632,
+          3640,
+          3648,
+          3656,
+          3664,
+          3672,
+          3680,
+          3688,
+          3696,
+          3704,
+          3712,
+          3720,
+          3728,
+          3736,
+          3744,
+          3752,
+          3760,
+          3768,
+          3776,
+          3784,
+          3792,
+          3800,
+          3808,
+          3816,
+          3824,
+          3832,
+          3840,
+          3848,
+          3856,
+          3864,
+          3872,
+          3880,
+          3888,
+          3896,
+          3904,
+          3912,
+          3920,
+          3928,
+          3936,
+          3944,
+          3952,
+          3960,
+          3968,
+          3976,
+          3984,
+          3992,
+          4000,
+          4008,
+          4016,
+          4024,
+          4032,
+          4040,
+          4048,
+          4056,
+          4064,
+          4072,
+          4080,
+          4088,
+          4096,
+          4104,
+          4112,
+          4120,
+          4128,
+          4136,
+          4144,
+          4152,
+          4160,
+          4168,
+          4176,
+          4184,
+          4192,
+          4200,
+          4208,
+          4216,
+          4224,
+          4232,
+          4240,
+          4248,
+          4256,
+          4264,
+          4272,
+          4280,
+          4288,
+          4296,
+          4304,
+          4312,
+          4320,
+          4328,
+          4336,
+          4344,
+          4352,
+          4360,
+          4368,
+          4376,
+          4384,
+          4392,
+          4400,
+          4408,
+          4416,
+          4424,
+          4432,
+          4440,
+          4448,
+          4456,
+          4464,
+          4472,
+          4480,
+          4488,
+          4496,
+          4504,
+          4512,
+          4520,
+          4528,
+          4536,
+          4544,
+          4552,
+          4560,
+          4568,
+          4576,
+          4584
+        ],
+        "sampling": "completed decision endpoints plus exact manifest terminal; not 120Hz contact durations",
+        "FL": {
+          "air_samples": 187,
+          "ground_samples": 0,
+          "top_verified_bearing_samples": 13,
+          "support_samples": 13,
+          "current_lift_valid_samples": null
+        },
+        "FR": {
+          "air_samples": 0,
+          "ground_samples": 0,
+          "top_verified_bearing_samples": 200,
+          "support_samples": 200,
+          "current_lift_valid_samples": null
+        },
+        "RL": {
+          "air_samples": 0,
+          "ground_samples": 200,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 200,
+          "current_lift_valid_samples": null
+        },
+        "RR": {
+          "air_samples": 0,
+          "ground_samples": 200,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 200,
+          "current_lift_valid_samples": 0
+        }
+      },
+      "reason": null,
+      "stable_success_claim": false
+    },
+    "P06_rear_approach": {
+      "status": "COMPLETE",
+      "start_tick": 2992,
+      "goal_tick": 4584,
+      "observed_end_tick": 4584,
+      "physical": {
+        "duration_s": 13.26666666666667,
+        "physics_samples": 1593,
+        "rate_RMS_rad_s": 0.046197188728492225,
+        "peak_tilt_rad": 0.12220052815788117,
+        "body_collider_min_world_z_m": {
+          "n": 1593,
+          "minimum": 0.12347903762527883,
+          "maximum": 0.13939536249888101,
+          "mean": 0.1330091571414757,
+          "first": 0.13355703779134798,
+          "last": 0.1315598308219454
+        },
+        "conservative_body_obstacle_AABB_separation_m": {
+          "n": 1593,
+          "minimum": 0.07347903762527883,
+          "maximum": 0.08939536249888101,
+          "mean": 0.08313704406172896,
+          "first": 0.0890241058288679,
+          "last": 0.08155983082194539
+        },
+        "com_world_displacement_m": [
+          0.2520142720043971,
+          -0.00843569370770017,
+          0.006591340470885582
+        ],
+        "com_displacement_toward_initial_FL_direction_m": 0.20001283572007852,
+        "actual_contact_ticks": {
+          "FL": {
+            "ground": 0,
+            "obstacle": 99,
+            "air": 1494
+          },
+          "FR": {
+            "ground": 0,
+            "obstacle": 1593,
+            "air": 0
+          },
+          "RL": {
+            "ground": 1593,
+            "obstacle": 0,
+            "air": 0
+          },
+          "RR": {
+            "ground": 1575,
+            "obstacle": 0,
+            "air": 18
+          }
+        },
+        "joints": {
+          "front_left_hip": {
+            "actual_deg": {
+              "n": 1593,
+              "minimum": 13.559334095589493,
+              "maximum": 24.99305198317062,
+              "mean": 19.490522563476876,
+              "first": 18.63195849780705,
+              "last": 22.036874393402815
+            },
+            "minimum_negative_margin_deg": 148.5593340955895,
+            "minimum_positive_margin_deg": 110.00694801682938,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_left_hip": {
+            "actual_deg": {
+              "n": 1593,
+              "minimum": -2.5649791854061976,
+              "maximum": 3.699499566600247,
+              "mean": 0.23048731358101887,
+              "first": 2.8375903112735217,
+              "last": 3.699499566600247
+            },
+            "minimum_negative_margin_deg": 132.4350208145938,
+            "minimum_positive_margin_deg": 131.30050043339975,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_right_hip": {
+            "actual_deg": {
+              "n": 1593,
+              "minimum": 4.4835964387563445,
+              "maximum": 12.812838388649881,
+              "mean": 9.229496438498956,
+              "first": 5.497156384224862,
+              "last": 9.46387113386663
+            },
+            "minimum_negative_margin_deg": 139.48359643875634,
+            "minimum_positive_margin_deg": 122.18716161135012,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_right_knee": {
+            "actual_deg": {
+              "n": 1593,
+              "minimum": -12.068040143801577,
+              "maximum": -5.112716358665492,
+              "mean": -10.347299148152379,
+              "first": -5.148022033372111,
+              "last": -10.512897423569822
+            },
+            "minimum_negative_margin_deg": 47.931959856198425,
+            "minimum_positive_margin_deg": 215.1127163586655,
+            "hard_limits_deg": [
+              -60.0,
+              210.0
+            ]
+          }
+        },
+        "body_forward_displacement_m": 0.2581092417240143,
+        "wheel_bottom_gap_above_top_m": {
+          "FL": {
+            "n": 1593,
+            "minimum": -0.0014332176452267337,
+            "maximum": 0.05135198867504093,
+            "mean": 0.028979131502394097,
+            "first": -0.0005475274054667356,
+            "last": 0.027916629498478035
+          },
+          "FR": {
+            "n": 1593,
+            "minimum": -0.0017997948401333938,
+            "maximum": 3.0813025721332377e-05,
+            "mean": -0.00041433994660700475,
+            "first": -0.00014610923218155714,
+            "last": -0.0011806227378496764
+          },
+          "RL": {
+            "n": 1593,
+            "minimum": -0.05163358886483893,
+            "maximum": -0.04998862428101976,
+            "mean": -0.050543148198570045,
+            "first": -0.050941749477796075,
+            "last": -0.051155672875320135
+          },
+          "RR": {
+            "n": 1593,
+            "minimum": -0.05188145240121476,
+            "maximum": -0.049986242914555015,
+            "mean": -0.05055068868183775,
+            "first": -0.05046746751664482,
+            "last": -0.05003997944168872
+          }
+        },
+        "wheel_center_forward_displacement_m": {
+          "FL": 0.24206727743148804,
+          "FR": 0.2286839485168457,
+          "RL": 0.257735226303339,
+          "RR": 0.26270462945103645
+        },
+        "wheel_measured_canonical_qd_rad_s": {
+          "FL": {
+            "n": 1593,
+            "minimum": 0.08294037729501724,
+            "maximum": 1.1973695755004883,
+            "mean": 0.41752154481575615,
+            "first": 0.2525009214878082,
+            "last": 0.11833193153142929
+          },
+          "FR": {
+            "n": 1593,
+            "minimum": -0.263033002614975,
+            "maximum": 0.6743801236152649,
+            "mean": 0.2374770732488944,
+            "first": 0.26020562648773193,
+            "last": 0.10857357084751129
+          },
+          "RL": {
+            "n": 1593,
+            "minimum": -0.007818520069122314,
+            "maximum": 0.7799665331840515,
+            "mean": 0.44256353349298033,
+            "first": 0.31421568989753723,
+            "last": 0.5282489657402039
+          },
+          "RR": {
+            "n": 1593,
+            "minimum": -0.045138053596019745,
+            "maximum": 0.5865716338157654,
+            "mean": 0.15171424380625784,
+            "first": 0.2153577357530594,
+            "last": 0.09585529565811157
+          }
+        },
+        "wheel_command_canonical_rad_s": {
+          "FL": {
+            "n": 1593,
+            "minimum": 0.08272591397562529,
+            "maximum": 0.9953408072519925,
+            "mean": 0.41856793579757423,
+            "first": 0.2738205447166726,
+            "last": 0.11834103010505015
+          },
+          "FR": {
+            "n": 1593,
+            "minimum": 0.12940076849742146,
+            "maximum": 0.4769310010962672,
+            "mean": 0.3353822227746995,
+            "first": 0.32746553508542126,
+            "last": 0.3617537947069228
+          },
+          "RL": {
+            "n": 1593,
+            "minimum": 0.2509174513352923,
+            "maximum": 0.6315402571787436,
+            "mean": 0.4234033543241251,
+            "first": 0.33135554471433865,
+            "last": 0.4629119476443721
+          },
+          "RR": {
+            "n": 1593,
+            "minimum": 0.07938044951474083,
+            "maximum": 0.21046009386526915,
+            "mean": 0.12975162703976617,
+            "first": 0.12748116774584417,
+            "last": 0.13085990914967818
+          }
+        },
+        "RR_mount_world_z_m_sampled": {
+          "n": 200,
+          "minimum": 0.1878040717716189,
+          "maximum": 0.20178149417268942,
+          "mean": 0.1949113167989229,
+          "first": 0.19725120913458866,
+          "last": 0.19351347232328253
+        },
+        "other_hip_mount_world_z_m": null,
+        "hip_absence_reason": "Only independently recorded RR USD mount is read; other mounts are not inferred from base/CoM."
+      },
+      "current_support_samples": {
+        "sample_ticks": [
+          2992,
+          3000,
+          3008,
+          3016,
+          3024,
+          3032,
+          3040,
+          3048,
+          3056,
+          3064,
+          3072,
+          3080,
+          3088,
+          3096,
+          3104,
+          3112,
+          3120,
+          3128,
+          3136,
+          3144,
+          3152,
+          3160,
+          3168,
+          3176,
+          3184,
+          3192,
+          3200,
+          3208,
+          3216,
+          3224,
+          3232,
+          3240,
+          3248,
+          3256,
+          3264,
+          3272,
+          3280,
+          3288,
+          3296,
+          3304,
+          3312,
+          3320,
+          3328,
+          3336,
+          3344,
+          3352,
+          3360,
+          3368,
+          3376,
+          3384,
+          3392,
+          3400,
+          3408,
+          3416,
+          3424,
+          3432,
+          3440,
+          3448,
+          3456,
+          3464,
+          3472,
+          3480,
+          3488,
+          3496,
+          3504,
+          3512,
+          3520,
+          3528,
+          3536,
+          3544,
+          3552,
+          3560,
+          3568,
+          3576,
+          3584,
+          3592,
+          3600,
+          3608,
+          3616,
+          3624,
+          3632,
+          3640,
+          3648,
+          3656,
+          3664,
+          3672,
+          3680,
+          3688,
+          3696,
+          3704,
+          3712,
+          3720,
+          3728,
+          3736,
+          3744,
+          3752,
+          3760,
+          3768,
+          3776,
+          3784,
+          3792,
+          3800,
+          3808,
+          3816,
+          3824,
+          3832,
+          3840,
+          3848,
+          3856,
+          3864,
+          3872,
+          3880,
+          3888,
+          3896,
+          3904,
+          3912,
+          3920,
+          3928,
+          3936,
+          3944,
+          3952,
+          3960,
+          3968,
+          3976,
+          3984,
+          3992,
+          4000,
+          4008,
+          4016,
+          4024,
+          4032,
+          4040,
+          4048,
+          4056,
+          4064,
+          4072,
+          4080,
+          4088,
+          4096,
+          4104,
+          4112,
+          4120,
+          4128,
+          4136,
+          4144,
+          4152,
+          4160,
+          4168,
+          4176,
+          4184,
+          4192,
+          4200,
+          4208,
+          4216,
+          4224,
+          4232,
+          4240,
+          4248,
+          4256,
+          4264,
+          4272,
+          4280,
+          4288,
+          4296,
+          4304,
+          4312,
+          4320,
+          4328,
+          4336,
+          4344,
+          4352,
+          4360,
+          4368,
+          4376,
+          4384,
+          4392,
+          4400,
+          4408,
+          4416,
+          4424,
+          4432,
+          4440,
+          4448,
+          4456,
+          4464,
+          4472,
+          4480,
+          4488,
+          4496,
+          4504,
+          4512,
+          4520,
+          4528,
+          4536,
+          4544,
+          4552,
+          4560,
+          4568,
+          4576,
+          4584
+        ],
+        "sampling": "completed decision endpoints plus exact manifest terminal; not 120Hz contact durations",
+        "FL": {
+          "air_samples": 187,
+          "ground_samples": 0,
+          "top_verified_bearing_samples": 13,
+          "support_samples": 13,
+          "current_lift_valid_samples": null
+        },
+        "FR": {
+          "air_samples": 0,
+          "ground_samples": 0,
+          "top_verified_bearing_samples": 200,
+          "support_samples": 200,
+          "current_lift_valid_samples": null
+        },
+        "RL": {
+          "air_samples": 0,
+          "ground_samples": 200,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 200,
+          "current_lift_valid_samples": null
+        },
+        "RR": {
+          "air_samples": 0,
+          "ground_samples": 200,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 200,
+          "current_lift_valid_samples": 0
+        }
+      },
+      "reason": null,
+      "stable_success_claim": false
+    },
+    "RR_preparation_to_place": {
+      "status": "INCOMPLETE",
+      "start_tick": 4584,
+      "goal_tick": null,
+      "observed_end_tick": 5775,
+      "physical": {
+        "duration_s": 9.924999999999997,
+        "physics_samples": 1192,
+        "rate_RMS_rad_s": 0.15936193830325074,
+        "peak_tilt_rad": 0.49862570983170734,
+        "body_collider_min_world_z_m": {
+          "n": 1192,
+          "minimum": 0.04999601130930531,
+          "maximum": 0.1321120220753901,
+          "mean": 0.07827328948959615,
+          "first": 0.1315598308219454,
+          "last": 0.050009217872934233
+        },
+        "conservative_body_obstacle_AABB_separation_m": {
+          "n": 1192,
+          "minimum": 0.0,
+          "maximum": 0.0821120220753901,
+          "mean": 0.028273292835813514,
+          "first": 0.08155983082194539,
+          "last": 9.217872934230709e-06
+        },
+        "com_world_displacement_m": [
+          0.04397768312972339,
+          -0.04838703519246873,
+          0.0019482312720590644
+        ],
+        "com_displacement_toward_initial_FL_direction_m": 0.006568770020544099,
+        "actual_contact_ticks": {
+          "FL": {
+            "ground": 0,
+            "obstacle": 0,
+            "air": 1192
+          },
+          "FR": {
+            "ground": 0,
+            "obstacle": 1192,
+            "air": 0
+          },
+          "RL": {
+            "ground": 1190,
+            "obstacle": 0,
+            "air": 2
+          },
+          "RR": {
+            "ground": 1033,
+            "obstacle": 0,
+            "air": 159
+          }
+        },
+        "joints": {
+          "front_left_hip": {
+            "actual_deg": {
+              "n": 1192,
+              "minimum": 22.036874393402815,
+              "maximum": 54.51739332155511,
+              "mean": 42.690622553122,
+              "first": 22.036874393402815,
+              "last": 40.972578367191645
+            },
+            "minimum_negative_margin_deg": 157.03687439340283,
+            "minimum_positive_margin_deg": 80.48260667844488,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_left_hip": {
+            "actual_deg": {
+              "n": 1192,
+              "minimum": -0.20547238403334855,
+              "maximum": 23.891936149556614,
+              "mean": 15.954842157157906,
+              "first": 3.699499566600247,
+              "last": 19.944660545179524
+            },
+            "minimum_negative_margin_deg": 134.79452761596664,
+            "minimum_positive_margin_deg": 111.10806385044339,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_right_hip": {
+            "actual_deg": {
+              "n": 1192,
+              "minimum": 8.836261272733438,
+              "maximum": 70.21355692814029,
+              "mean": 51.47888545737171,
+              "first": 9.46387113386663,
+              "last": 68.81488445028342
+            },
+            "minimum_negative_margin_deg": 143.83626127273345,
+            "minimum_positive_margin_deg": 64.78644307185971,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_right_knee": {
+            "actual_deg": {
+              "n": 1192,
+              "minimum": -12.433419405904116,
+              "maximum": -7.956413112521056,
+              "mean": -10.432968229242405,
+              "first": -10.512897423569822,
+              "last": -8.078804979805806
+            },
+            "minimum_negative_margin_deg": 47.56658059409588,
+            "minimum_positive_margin_deg": 217.95641311252106,
+            "hard_limits_deg": [
+              -60.0,
+              210.0
+            ]
+          }
+        },
+        "body_forward_displacement_m": 0.06614559888839722,
+        "wheel_bottom_gap_above_top_m": {
+          "FL": {
+            "n": 1192,
+            "minimum": 0.027916629498478035,
+            "maximum": 0.2195101305069147,
+            "mean": 0.1629196416525988,
+            "first": 0.027916629498478035,
+            "last": 0.20582757355920595
+          },
+          "FR": {
+            "n": 1192,
+            "minimum": -0.0019123240438648145,
+            "maximum": 1.5822306012866494e-05,
+            "mean": -0.0009636156664013818,
+            "first": -0.0011806227378496764,
+            "last": -0.0013421378594262734
+          },
+          "RL": {
+            "n": 1192,
+            "minimum": -0.051402896052171784,
+            "maximum": -0.049854630493261,
+            "mean": -0.05034057375647891,
+            "first": -0.051155672875320135,
+            "last": -0.050721893401808424
+          },
+          "RR": {
+            "n": 1192,
+            "minimum": -0.05100762491541833,
+            "maximum": -0.0014027619415190942,
+            "mean": -0.04815852922455314,
+            "first": -0.05003997944168872,
+            "last": -0.050300366187739656
+          }
+        },
+        "wheel_center_forward_displacement_m": {
+          "FL": 0.09056448936462402,
+          "FR": 0.03443485498428345,
+          "RL": 0.041541486978530884,
+          "RR": -0.010311365127563477
+        },
+        "wheel_measured_canonical_qd_rad_s": {
+          "FL": {
+            "n": 1192,
+            "minimum": -0.4700917601585388,
+            "maximum": 0.45156657695770264,
+            "mean": -0.08240984781140707,
+            "first": 0.11833193153142929,
+            "last": -0.1747569441795349
+          },
+          "FR": {
+            "n": 1192,
+            "minimum": -1.2389581203460693,
+            "maximum": 0.4666908085346222,
+            "mean": -0.0651668028051136,
+            "first": 0.10857357084751129,
+            "last": 0.037944722920656204
+          },
+          "RL": {
+            "n": 1192,
+            "minimum": -0.4161973297595978,
+            "maximum": 0.6203161478042603,
+            "mean": 0.1358564051546722,
+            "first": 0.5282489657402039,
+            "last": 0.13048726320266724
+          },
+          "RR": {
+            "n": 1192,
+            "minimum": -1.232189416885376,
+            "maximum": 0.8086386919021606,
+            "mean": -0.08200901658383616,
+            "first": 0.09585529565811157,
+            "last": -0.09010826051235199
+          }
+        },
+        "wheel_command_canonical_rad_s": {
+          "FL": {
+            "n": 1192,
+            "minimum": -0.4699949469887292,
+            "maximum": 0.45155648914766605,
+            "mean": -0.08280798348132772,
+            "first": 0.11834103010505015,
+            "last": -0.17418460285224574
+          },
+          "FR": {
+            "n": 1192,
+            "minimum": -0.6807621534231235,
+            "maximum": 0.3751796158166839,
+            "mean": -0.00670218235757957,
+            "first": 0.3617537947069228,
+            "last": 0.011268545252965566
+          },
+          "RL": {
+            "n": 1192,
+            "minimum": -0.0917350779172709,
+            "maximum": 0.48932209537235644,
+            "mean": 0.15253475090888197,
+            "first": 0.4629119476443721,
+            "last": 0.0706562277823951
+          },
+          "RR": {
+            "n": 1192,
+            "minimum": -0.20943061849421055,
+            "maximum": 0.13234747411711884,
+            "mean": -0.12602418782179428,
+            "first": 0.13085990914967818,
+            "last": -0.0892679017344645
+          }
+        },
+        "RR_mount_world_z_m_sampled": {
+          "n": 150,
+          "minimum": 0.09325638855712973,
+          "maximum": 0.193937408414711,
+          "mean": 0.127425240917938,
+          "first": 0.19351347232328253,
+          "last": 0.09325638855712973
+        },
+        "other_hip_mount_world_z_m": null,
+        "hip_absence_reason": "Only independently recorded RR USD mount is read; other mounts are not inferred from base/CoM."
+      },
+      "current_support_samples": {
+        "sample_ticks": [
+          4584,
+          4592,
+          4600,
+          4608,
+          4616,
+          4624,
+          4632,
+          4640,
+          4648,
+          4656,
+          4664,
+          4672,
+          4680,
+          4688,
+          4696,
+          4704,
+          4712,
+          4720,
+          4728,
+          4736,
+          4744,
+          4752,
+          4760,
+          4768,
+          4776,
+          4784,
+          4792,
+          4800,
+          4808,
+          4816,
+          4824,
+          4832,
+          4840,
+          4848,
+          4856,
+          4864,
+          4872,
+          4880,
+          4888,
+          4896,
+          4904,
+          4912,
+          4920,
+          4928,
+          4936,
+          4944,
+          4952,
+          4960,
+          4968,
+          4976,
+          4984,
+          4992,
+          5000,
+          5008,
+          5016,
+          5024,
+          5032,
+          5040,
+          5048,
+          5056,
+          5064,
+          5072,
+          5080,
+          5088,
+          5096,
+          5104,
+          5112,
+          5120,
+          5128,
+          5136,
+          5144,
+          5152,
+          5160,
+          5168,
+          5176,
+          5184,
+          5192,
+          5200,
+          5208,
+          5216,
+          5224,
+          5232,
+          5240,
+          5248,
+          5256,
+          5264,
+          5272,
+          5280,
+          5288,
+          5296,
+          5304,
+          5312,
+          5320,
+          5328,
+          5336,
+          5344,
+          5352,
+          5360,
+          5368,
+          5376,
+          5384,
+          5392,
+          5400,
+          5408,
+          5416,
+          5424,
+          5432,
+          5440,
+          5448,
+          5456,
+          5464,
+          5472,
+          5480,
+          5488,
+          5496,
+          5504,
+          5512,
+          5520,
+          5528,
+          5536,
+          5544,
+          5552,
+          5560,
+          5568,
+          5576,
+          5584,
+          5592,
+          5600,
+          5608,
+          5616,
+          5624,
+          5632,
+          5640,
+          5648,
+          5656,
+          5664,
+          5672,
+          5680,
+          5688,
+          5696,
+          5704,
+          5712,
+          5720,
+          5728,
+          5736,
+          5744,
+          5752,
+          5760,
+          5768,
+          5775
+        ],
+        "sampling": "completed decision endpoints plus exact manifest terminal; not 120Hz contact durations",
+        "FL": {
+          "air_samples": 150,
+          "ground_samples": 0,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 0,
+          "current_lift_valid_samples": null
+        },
+        "FR": {
+          "air_samples": 0,
+          "ground_samples": 0,
+          "top_verified_bearing_samples": 150,
+          "support_samples": 150,
+          "current_lift_valid_samples": null
+        },
+        "RL": {
+          "air_samples": 1,
+          "ground_samples": 149,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 149,
+          "current_lift_valid_samples": null
+        },
+        "RR": {
+          "air_samples": 15,
+          "ground_samples": 135,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 135,
+          "current_lift_valid_samples": 9
+        }
+      },
+      "reason": null,
+      "stable_success_claim": false
+    },
+    "RR_qualified_to_place": {
+      "status": "INCOMPLETE",
+      "start_tick": 4861,
+      "goal_tick": null,
+      "observed_end_tick": 5775,
+      "physical": {
+        "duration_s": 7.616666666666667,
+        "physics_samples": 915,
+        "rate_RMS_rad_s": 0.17249480101636755,
+        "peak_tilt_rad": 0.49862570983170734,
+        "body_collider_min_world_z_m": {
+          "n": 915,
+          "minimum": 0.04999601130930531,
+          "maximum": 0.12566451761143094,
+          "mean": 0.0629373890073525,
+          "first": 0.12566451761143094,
+          "last": 0.050009217872934233
+        },
+        "conservative_body_obstacle_AABB_separation_m": {
+          "n": 915,
+          "minimum": 0.0,
+          "maximum": 0.07566451761143093,
+          "mean": 0.012937393366577224,
+          "first": 0.07566451761143093,
+          "last": 9.217872934230709e-06
+        },
+        "com_world_displacement_m": [
+          -0.005399651491846735,
+          -0.054915153196370414,
+          -0.005566756564193809
+        ],
+        "com_displacement_toward_initial_FL_direction_m": -0.034579129405637114,
+        "actual_contact_ticks": {
+          "FL": {
+            "ground": 0,
+            "obstacle": 0,
+            "air": 915
+          },
+          "FR": {
+            "ground": 0,
+            "obstacle": 915,
+            "air": 0
+          },
+          "RL": {
+            "ground": 913,
+            "obstacle": 0,
+            "air": 2
+          },
+          "RR": {
+            "ground": 817,
+            "obstacle": 0,
+            "air": 98
+          }
+        },
+        "joints": {
+          "front_left_hip": {
+            "actual_deg": {
+              "n": 915,
+              "minimum": 37.30063451844694,
+              "maximum": 46.67684841856823,
+              "mean": 41.8621084008563,
+              "first": 44.09658395015042,
+              "last": 40.972578367191645
+            },
+            "minimum_negative_margin_deg": 172.30063451844694,
+            "minimum_positive_margin_deg": 88.32315158143177,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_left_hip": {
+            "actual_deg": {
+              "n": 915,
+              "minimum": 15.235070942631898,
+              "maximum": 23.891936149556614,
+              "mean": 19.734185128870593,
+              "first": 16.241492486644105,
+              "last": 19.944660545179524
+            },
+            "minimum_negative_margin_deg": 150.2350709426319,
+            "minimum_positive_margin_deg": 111.10806385044339,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_right_hip": {
+            "actual_deg": {
+              "n": 915,
+              "minimum": 16.91188591902653,
+              "maximum": 70.21355692814029,
+              "mean": 63.6502951749974,
+              "first": 16.91188591902653,
+              "last": 68.81488445028342
+            },
+            "minimum_negative_margin_deg": 151.91188591902653,
+            "minimum_positive_margin_deg": 64.78644307185971,
+            "hard_limits_deg": [
+              -135.0,
+              135.0
+            ]
+          },
+          "rear_right_knee": {
+            "actual_deg": {
+              "n": 915,
+              "minimum": -12.433419405904116,
+              "maximum": -7.956413112521056,
+              "mean": -10.403889199993415,
+              "first": -9.722062262972603,
+              "last": -8.078804979805806
+            },
+            "minimum_negative_margin_deg": 47.56658059409588,
+            "minimum_positive_margin_deg": 217.95641311252106,
+            "hard_limits_deg": [
+              -60.0,
+              210.0
+            ]
+          }
+        },
+        "body_forward_displacement_m": 0.003971278667449951,
+        "wheel_bottom_gap_above_top_m": {
+          "FL": {
+            "n": 915,
+            "minimum": 0.08344021452305221,
+            "maximum": 0.2195101305069147,
+            "mean": 0.1852477304572621,
+            "first": 0.08344021452305221,
+            "last": 0.20582757355920595
+          },
+          "FR": {
+            "n": 915,
+            "minimum": -0.0019123240438648145,
+            "maximum": 1.5822306012866494e-05,
+            "mean": -0.0009583177348663029,
+            "first": -0.0009574205502952821,
+            "last": -0.0013421378594262734
+          },
+          "RL": {
+            "n": 915,
+            "minimum": -0.050986990693319884,
+            "maximum": -0.049854630493261,
+            "mean": -0.0503262862776665,
+            "first": -0.05026711864889555,
+            "last": -0.050721893401808424
+          },
+          "RR": {
+            "n": 915,
+            "minimum": -0.05100762491541833,
+            "maximum": -0.0014027619415190942,
+            "mean": -0.047618623185078854,
+            "first": -0.04189192369307286,
+            "last": -0.050300366187739656
+          }
+        },
+        "wheel_center_forward_displacement_m": {
+          "FL": 0.012162744998931885,
+          "FR": 0.03751266002655029,
+          "RL": 0.006598711013793945,
+          "RR": -0.053472936153411865
+        },
+        "wheel_measured_canonical_qd_rad_s": {
+          "FL": {
+            "n": 915,
+            "minimum": -0.4700917601585388,
+            "maximum": 0.23180115222930908,
+            "mean": -0.11872943659176888,
+            "first": -0.2676183879375458,
+            "last": -0.1747569441795349
+          },
+          "FR": {
+            "n": 915,
+            "minimum": -0.8848854303359985,
+            "maximum": 0.4666908085346222,
+            "mean": -0.00952361154903103,
+            "first": -0.3961874842643738,
+            "last": 0.037944722920656204
+          },
+          "RL": {
+            "n": 915,
+            "minimum": -0.4161973297595978,
+            "maximum": 0.5107651948928833,
+            "mean": 0.08565668337622179,
+            "first": 0.04041241854429245,
+            "last": 0.13048726320266724
+          },
+          "RR": {
+            "n": 915,
+            "minimum": -1.232189416885376,
+            "maximum": 0.8086386919021606,
+            "mean": -0.06805907537132665,
+            "first": -0.1751032918691635,
+            "last": -0.09010826051235199
+          }
+        },
+        "wheel_command_canonical_rad_s": {
+          "FL": {
+            "n": 915,
+            "minimum": -0.4699949469887292,
+            "maximum": 0.2312662127960995,
+            "mean": -0.1191763096540399,
+            "first": -0.2729773786760863,
+            "last": -0.17418460285224574
+          },
+          "FR": {
+            "n": 915,
+            "minimum": -0.06320335237139069,
+            "maximum": 0.19864813599807185,
+            "mean": 0.05495559541560201,
+            "first": 0.06093883097418839,
+            "last": 0.011268545252965566
+          },
+          "RL": {
+            "n": 915,
+            "minimum": -0.0917350779172709,
+            "maximum": 0.3824176879082877,
+            "mean": 0.12146919926751744,
+            "first": 0.2761612520439574,
+            "last": 0.0706562277823951
+          },
+          "RR": {
+            "n": 915,
+            "minimum": -0.20943061849421055,
+            "maximum": -0.06986913103192628,
+            "mean": -0.13089829518657792,
+            "first": -0.17426018102284271,
+            "last": -0.0892679017344645
+          }
+        },
+        "RR_mount_world_z_m_sampled": {
+          "n": 115,
+          "minimum": 0.09325638855712973,
+          "maximum": 0.1874252053015187,
+          "mean": 0.10810380796275483,
+          "first": 0.1874252053015187,
+          "last": 0.09325638855712973
+        },
+        "other_hip_mount_world_z_m": null,
+        "hip_absence_reason": "Only independently recorded RR USD mount is read; other mounts are not inferred from base/CoM."
+      },
+      "current_support_samples": {
+        "sample_ticks": [
+          4864,
+          4872,
+          4880,
+          4888,
+          4896,
+          4904,
+          4912,
+          4920,
+          4928,
+          4936,
+          4944,
+          4952,
+          4960,
+          4968,
+          4976,
+          4984,
+          4992,
+          5000,
+          5008,
+          5016,
+          5024,
+          5032,
+          5040,
+          5048,
+          5056,
+          5064,
+          5072,
+          5080,
+          5088,
+          5096,
+          5104,
+          5112,
+          5120,
+          5128,
+          5136,
+          5144,
+          5152,
+          5160,
+          5168,
+          5176,
+          5184,
+          5192,
+          5200,
+          5208,
+          5216,
+          5224,
+          5232,
+          5240,
+          5248,
+          5256,
+          5264,
+          5272,
+          5280,
+          5288,
+          5296,
+          5304,
+          5312,
+          5320,
+          5328,
+          5336,
+          5344,
+          5352,
+          5360,
+          5368,
+          5376,
+          5384,
+          5392,
+          5400,
+          5408,
+          5416,
+          5424,
+          5432,
+          5440,
+          5448,
+          5456,
+          5464,
+          5472,
+          5480,
+          5488,
+          5496,
+          5504,
+          5512,
+          5520,
+          5528,
+          5536,
+          5544,
+          5552,
+          5560,
+          5568,
+          5576,
+          5584,
+          5592,
+          5600,
+          5608,
+          5616,
+          5624,
+          5632,
+          5640,
+          5648,
+          5656,
+          5664,
+          5672,
+          5680,
+          5688,
+          5696,
+          5704,
+          5712,
+          5720,
+          5728,
+          5736,
+          5744,
+          5752,
+          5760,
+          5768,
+          5775
+        ],
+        "sampling": "completed decision endpoints plus exact manifest terminal; not 120Hz contact durations",
+        "FL": {
+          "air_samples": 115,
+          "ground_samples": 0,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 0,
+          "current_lift_valid_samples": null
+        },
+        "FR": {
+          "air_samples": 0,
+          "ground_samples": 0,
+          "top_verified_bearing_samples": 115,
+          "support_samples": 115,
+          "current_lift_valid_samples": null
+        },
+        "RL": {
+          "air_samples": 1,
+          "ground_samples": 114,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 114,
+          "current_lift_valid_samples": null
+        },
+        "RR": {
+          "air_samples": 11,
+          "ground_samples": 104,
+          "top_verified_bearing_samples": 0,
+          "support_samples": 104,
+          "current_lift_valid_samples": 9
+        }
+      },
+      "reason": null,
+      "stable_success_claim": false
+    }
+  }
+}

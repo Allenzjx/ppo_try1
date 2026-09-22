@@ -1,0 +1,115 @@
+{
+  "schema": "wlr50_clean.block14_first128_receiving_readonly_audit.v1",
+  "status": "PASS",
+  "scope": "one sealed actual rollout/update; no model forward, optimization, simulation or file mutation",
+  "source": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000197120.pt",
+    "sha256": "1a7d0d7cdfc7a8130ad8f61f61122ccfae4c6fcc0c5a3f42c462857824d4ccbd",
+    "policy_version": "task_conditioned_hip_wheel_sigma_v1"
+  },
+  "checkpoint": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000197248.pt",
+    "sha256": "f05f522486b0f6f3e2ed4f8e01fd88bf4949e6e2ebadeb302dbb30e620b667ff",
+    "policy_version": "task_conditioned_receiving_wheel_sigma_x3_v1",
+    "global_policy_decisions": 197248,
+    "ppo_updates": 1506,
+    "optimizer_steps": 30120
+  },
+  "migration": {
+    "plan": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoint197120_receiving_sigma_migration.json",
+    "sha256": "57652a879eea57a26fb6e399a23ab08c2c05c00c16106d6036e75c3ab7dfcbe0",
+    "official_revalidation_passed": true,
+    "persisted_receipt_exact": true,
+    "all_source_saved_tensor_hashes_verified": true,
+    "source_actual_Adam_LR": 0.00001,
+    "post_update_Adam_LR": 0.00001,
+    "Adam_groups": 1,
+    "Adam_parameter_states": 12,
+    "Adam_steps_each_increment": 20,
+    "pre_update_actor_hash_equals_source": true,
+    "Identity_state_unchanged": true,
+    "AUX_accepted_attempted": [
+      7,
+      8
+    ],
+    "original_branch_quantity_receipt_preserved": true,
+    "stage_spending_after": {
+      "full_episode": 102656,
+      "phase_suffix": 84480,
+      "smoke": 0
+    },
+    "all_inherited_branch_counters_increment": [
+      128,
+      1,
+      20
+    ],
+    "restore_evidence_limit": "Full actor/critic/Adam/Identity hashes and RNG restore are enforced by live loader before sampling; first-update actor-before hash and surviving Adam steps independently corroborate. No separate pre-update Adam/RNG memory snapshot was saved; no GPU RNG replay was performed.",
+    "fresh_rollout_evidence": "loader requires step=0/transition.actions=None; first snapshot is 128 new decisions 197121..197248 with new profile/runtime and natural-P01 state, no source rollout imported"
+  },
+  "actual_new_credit": {
+    "policy_decisions": 128,
+    "PPO_updates": 1,
+    "optimizer_steps": 20,
+    "auxiliary_updates": 0,
+    "phase_counts": {
+      "P01": 2,
+      "P02": 126,
+      "P03": 0,
+      "P04": 0,
+      "P05": 0,
+      "P06": 0,
+      "P07": 0,
+      "P08": 0,
+      "P09": 0,
+      "P10": 0,
+      "P11": 0,
+      "P12": 0,
+      "P13": 0
+    },
+    "terminal_decisions": 0
+  },
+  "sampling": {
+    "rows": 128,
+    "stored_raw_mean_sigma_logp_exact": true,
+    "full12_positive_sigma": true,
+    "receiving_x3_active_samples": 0,
+    "request_sigma_identity_max_abs_error": 1.4901161193847656e-8,
+    "one_draw_no_extra_forward_or_rng": true,
+    "native_physics_ticks": 1024,
+    "verified_native_ticks": 1024,
+    "observed_mask_values": {
+      "native.phase_mask_full12": [
+        [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      ]
+    }
+  },
+  "actual_update": {
+    "minibatches": 20,
+    "each_saved_sample_seen": 5,
+    "current_mean_max_abs_error": 0,
+    "current_sigma_max_abs_error": 7.450580596923828e-9,
+    "current_logp_CPU_reconstruction_max_abs_error": 0.000003814697265625,
+    "first_minibatch_ratio_max_error_from_one": 0.0000057220458984375,
+    "reported_entropy": -26.318200874328614,
+    "CPU_same_sigma_entropy": -26.318201637268068,
+    "mean_KL": 0.013769994037295641,
+    "clip_fraction": 0.28125
+  },
+  "limits": [
+    "This is migration/probability/credit evidence, not physical success or improved receiving support.",
+    "If receiving_x3_active_samples is zero, this first batch verifies the unchanged branch of the new profile only; actual P10-P12 activation remains to be observed."
+  ]
+}

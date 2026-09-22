@@ -1,0 +1,245 @@
+{
+  "schema": "training_FR_quality_readonly.v1",
+  "source_run": "runs\\ppo_task_conditioned_hip_wheel_v1\\train\\20260921T0459512815083Z_gee5a9651591d_8e120f68dc7c4598b08dc79fcd3d34a4",
+  "classification": "stochastic_learning_rollout_with_in_episode_optimizer_update_NOT_fixed_checkpoint_evaluation",
+  "action_audit": {
+    "decisions": 204,
+    "sampling_modes": ["training_style_conditional_gaussian"],
+    "all_full12_masks_one": true,
+    "all_native_verified": true,
+    "nonzero_projected_REQUEST_counts_full12": [204, 204, 204, 204, 204, 204, 204, 204, 204, 204, 204, 204]
+  },
+  "global_decision_span": [
+    185857,
+    186060
+  ],
+  "FR_events": {
+    "active_lift": {
+      "FR": 19
+    },
+    "front_edge_crossed": {
+      "FR": 1611
+    },
+    "placed": {
+      "FR": 1628
+    }
+  },
+  "FR_placed_tick": 1628,
+  "FR_placed_time_s": 13.566666666666666,
+  "last_complete_decision_read_tick": 1632,
+  "extra_decision_ticks_after_capture": 4,
+  "optimizer_updates_before_FR_capture": [
+    {
+      "ppo_update": 1418,
+      "global_policy_decisions": 185984,
+      "actor_parameters_changed": true
+    }
+  ],
+  "all_consumed_objective_profiles": [
+    "task_conditioned_hip_wheel_quality_v1"
+  ],
+  "all_consumed_quality_epsilons": [
+    0.06
+  ],
+  "physical_front_P01_P02": {
+    "tick_interval": [
+      1,
+      1599
+    ],
+    "physics_intervals": 1599,
+    "duration_s": 13.324999999999884,
+    "phase_counts": {
+      "P01": 15,
+      "P02": 1584
+    },
+    "rate_RMS_rad_s": 0.08212778174720534,
+    "roll_RMS_rad": 0.20470672425607697,
+    "pitch_RMS_rad": 0.17649522532429576,
+    "tilt_peak_rad": 0.3037500826514931,
+    "weighted_front_cost": 0.016791569717623217,
+    "beta_per_s": {
+      "n": 1599,
+      "minimum": 0.015,
+      "maximum": 0.03,
+      "mean": 0.015050422138837108,
+      "first": 0.03,
+      "last": 0.015
+    }
+  },
+  "geometry_P01_P02": {
+    "eligible_120Hz_samples": 1599,
+    "all_valid": true,
+    "invalid_eligible_count": 0,
+    "body_collider_min_world_z_m": {
+      "n": 1599,
+      "minimum": 0.08926940797041111,
+      "maximum": 0.1423843203291149,
+      "mean": 0.09450937591899253,
+      "first": 0.1423843203291149,
+      "last": 0.09273438874250009
+    },
+    "conservative_obstacle_separation_lower_bound_m": {
+      "n": 1599,
+      "minimum": 0.2611236420733907,
+      "maximum": 0.4245278639020424,
+      "mean": 0.3456210564704538,
+      "first": 0.3960973602469498,
+      "last": 0.2611236420733907
+    },
+    "margin_m": 0.02,
+    "beta_per_s": {
+      "n": 1599,
+      "minimum": 0.03,
+      "maximum": 0.03,
+      "mean": 0.03000000000000066,
+      "first": 0.03,
+      "last": 0.03
+    },
+    "nonzero_geometry_cost_samples": 0,
+    "weighted_geometry_cost": 0.0,
+    "expected_weighted_formula_max_error": 0.0
+  },
+  "emitted_geometry_audit_samples_through_capture": 1628,
+  "outside_quality_phase_count": 29,
+  "outside_quality_phase_reason_counts": {
+    "outside_declared_task_space_window": 29
+  },
+  "full_FR_120Hz_rate_RMS": null,
+  "full_FR_120Hz_geometry_minimum": null,
+  "full_FR_missing_reason": "P03 has no front tilt/rate audit and is outside task_space_quality phases; do not fill its29 physical ticks with zeros",
+  "sampled_full_FR": {
+    "decision_samples": 203,
+    "last_sample_tick": 1624,
+    "body_collider_min_world_z_m_15Hz": {
+      "n": 203,
+      "minimum": 0.08928444517889546,
+      "maximum": 0.140855580753169,
+      "mean": 0.09448251809876815,
+      "first": 0.140855580753169,
+      "last": 0.10426117746041717
+    },
+    "first_sampled_AIR_with_15mm_top_gap_tick": 64,
+    "FR_top_gap_after_first_safe_before_cross_m_15Hz": {
+      "n": 194,
+      "minimum": 0.02345698449235062,
+      "maximum": 0.10720038898633981,
+      "mean": 0.08889255336600727,
+      "first": 0.02345698449235062,
+      "last": 0.08203516128052678
+    },
+    "FR_top_gap_all_samples_m_15Hz": {
+      "n": 203,
+      "minimum": -0.04993451790332194,
+      "maximum": 0.10720038898633981,
+      "mean": 0.08433371206897224,
+      "first": -0.04993451790332194,
+      "last": 0.01121579926086673
+    },
+    "missing_exact_capture_tick_in_decision_stream": true,
+    "exact_120Hz_full_FR_gap": null,
+    "hip_world_z": null,
+    "absence_reason": "matched decision-endpoint slice only; no120Hz gap interpolation or reconstructed hip height; B dense raw stream exists separately"
+  },
+  "max_body_reward_decomposition_error": 1.0842021724855044e-19,
+  "body_family_reward_through_last_complete_decision": -0.016791569717623224,
+  "reference_B": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fl_capture_quality_v1\\video_eval\\prior_B\\20260918T0555572376368Z_gf2e552406ea7_1894338b350241fcbbac4868c5f7f3fb\\source",
+    "classification": "fixed nominal zero residual independent full success retained",
+    "FR_events": {
+      "active_lift": {
+        "FR": 24
+      },
+      "front_edge_crossed": {
+        "FR": 1486
+      },
+      "placed": {
+        "FR": 1502
+      }
+    },
+    "FR_placed_tick": 1502,
+    "FR_placed_time_s": 12.516666666666667,
+    "physical_front_P01_P02": {
+      "tick_interval": [
+        1,
+        1471
+      ],
+      "physics_intervals": 1471,
+      "duration_s": 12.258333333333278,
+      "phase_counts": {
+        "P01": 15,
+        "P02": 1456
+      },
+      "rate_RMS_rad_s": 0.08101502474974331,
+      "roll_RMS_rad": 0.23268798957743386,
+      "pitch_RMS_rad": 0.18442800846323212,
+      "tilt_peak_rad": 0.30946430168919103,
+      "weighted_front_cost": 0.018081925039469246,
+      "beta_per_s": {
+        "n": 1471,
+        "minimum": 0.015,
+        "maximum": 0.03,
+        "mean": 0.015114859506005301,
+        "first": 0.03,
+        "last": 0.015
+      }
+    },
+    "geometry_P01_P02": {
+      "body_collider_min_world_z_m": {
+        "n": 1471,
+        "minimum": 0.09127162544163327,
+        "maximum": 0.14237362685157495,
+        "mean": 0.09427412864586414,
+        "first": 0.14237362685157495,
+        "last": 0.0913544785583934
+      },
+      "conservative_obstacle_separation_lower_bound_m": {
+        "n": 1471,
+        "minimum": 0.25706198728353474,
+        "maximum": 0.41926887513504457,
+        "mean": 0.3432246322585753,
+        "first": 0.3960148527687214,
+        "last": 0.25706198728353474
+      }
+    },
+    "sampled_full_FR": {
+      "decision_samples": 187,
+      "last_sample_tick": 1496,
+      "body_collider_min_world_z_m_15Hz": {
+        "n": 187,
+        "minimum": 0.09127209046063518,
+        "maximum": 0.1412289809119167,
+        "mean": 0.09422679606519196,
+        "first": 0.1412289809119167,
+        "last": 0.10327894412176525
+      },
+      "first_sampled_AIR_with_15mm_top_gap_tick": 72,
+      "FR_top_gap_after_first_safe_before_cross_m_15Hz": {
+        "n": 177,
+        "minimum": 0.027458129560515535,
+        "maximum": 0.1020462525769416,
+        "mean": 0.09894020807302652,
+        "first": 0.027458129560515535,
+        "last": 0.08912142112382214
+      },
+      "FR_top_gap_all_samples_m_15Hz": {
+        "n": 187,
+        "minimum": -0.049938129095800615,
+        "maximum": 0.1020462525769416,
+        "mean": 0.0929125242983471,
+        "first": -0.049938129095800615,
+        "last": 0.017627587405615805
+      },
+      "missing_exact_capture_tick_in_decision_stream": true,
+      "exact_120Hz_full_FR_gap": null,
+      "hip_world_z": null,
+      "absence_reason": "matched decision-endpoint slice only; no120Hz gap interpolation or reconstructed hip height; B dense raw stream exists separately"
+    }
+  },
+  "differences": {
+    "FR_placement_delay_s": 1.05,
+    "P01_P02_rate_RMS_fraction": 0.01373519295833514,
+    "P01_P02_peak_tilt_fraction": -0.018464873028996354
+  },
+  "not_full_task_success_claim": true,
+  "no_fixed_checkpoint_improvement_claim": true
+}

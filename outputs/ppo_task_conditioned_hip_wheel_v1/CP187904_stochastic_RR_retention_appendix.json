@@ -1,0 +1,53 @@
+{
+  "schema": "stochastic_RR_lift_retention_appendix.v1",
+  "source": "runs/ppo_task_conditioned_hip_wheel_v1/video_eval/validation/20260921T0645542948633Z_gee5a9651591d_1fce0b96ce7e4f8d96d88e6a3cd9346e/source",
+  "policy_sampling_mode": "training_style_conditional_gaussian",
+  "policy_seed": 4101,
+  "optimizer_updates": 0,
+  "terminal": {
+    "physics_tick": 5046,
+    "simulation_time_s": 42.05,
+    "physical_task_success": false,
+    "physical_termination_reason": "TASK_FAILURE_BODY_COLLISION",
+    "physical_reason": "central body/obstacle collision",
+    "final_decision_start_tick": 5040,
+    "final_decision_physics_ticks": 6,
+    "environment_step_returned": false,
+    "stop_reason": "TASK_FAILURE_BODY_COLLISION",
+    "raw_body_collision": {
+      "detected": true,
+      "real_pair_active": true,
+      "persistent": true,
+      "geometry_penetration_m": 0.0,
+      "reason": "exact base_link/obstacle pair persisted"
+    }
+  },
+  "RR_events": {
+    "initial_free_air_lift_tick": 4993,
+    "qualified_tick": 5001,
+    "first_raw_ground_after_qualified_tick": 5018,
+    "qualification_revoked_ground_before_cross_tick": 5018,
+    "current_lift_revoked_ground_tick": 5018,
+    "front_edge_crossed_tick": null,
+    "placed_tick": null
+  },
+  "RR_current_validity_samples": [
+    {"tick": 5000, "air": true, "current_lift_valid": false, "unsupported_free_lift_m": 0.007979970754581234},
+    {"tick": 5008, "air": true, "current_lift_valid": true, "unsupported_free_lift_m": 0.00802573201265503},
+    {"tick": 5016, "air": true, "current_lift_valid": false, "unsupported_free_lift_m": 0.001678771370896115},
+    {"tick": 5024, "air": false, "current_lift_valid": false, "unsupported_free_lift_m": null}
+  ],
+  "RR_current_validity_loss": {
+    "exact_tick": null,
+    "sampled_lower_exclusive_tick": 5008,
+    "sampled_upper_inclusive_tick": 5016,
+    "reason": "Current validity is only saved at decision endpoints here; no evaluator replay or invented intervening tick. It was already false while AIR at 5016, before ground revocation at 5018."
+  },
+  "RR_raw_contact_checks": {
+    "tick_5016": {"ground_active": false, "ground_pair_verified": true, "wheel_bottom_world_z_m": 0.001687715950281013},
+    "tick_5018": {"ground_active": true, "ground_pair_verified": true, "ground_normal_force_n": 28.94708633422878, "wheel_bottom_world_z_m": -0.00009089023289009235},
+    "tick_5046": {"ground_active": false, "ground_pair_verified": true, "wheel_bottom_world_z_m": 0.0017428418494904313}
+  },
+  "final_RR_history": {"active_lift": false, "front_edge_crossed": false, "placed": false, "retained_old_qualified_event_tick": 5001},
+  "interpretation": "Initial lift qualification did occur, then current validity was lost before regrounding and history qualification was revoked. The retained event timestamp is an event record, not current valid lift, crossing or placement. Final AIR near ground after bounce is not renewed qualification."
+}

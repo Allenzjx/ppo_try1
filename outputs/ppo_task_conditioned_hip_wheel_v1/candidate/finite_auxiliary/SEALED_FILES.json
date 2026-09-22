@@ -1,0 +1,21 @@
+{
+  "schema": "wlr50_clean.finite_auxiliary_output_candidate_seal.v1",
+  "production_changed": false,
+  "actual_auxiliary_optimizer_steps": 0,
+  "actual_PPO_decisions_added": 0,
+  "actual_PPO_updates_added": 0,
+  "candidate_maximum_steps": 16,
+  "candidate_independent_SGD_initial_lr": 0.05,
+  "candidate_trust_bounds": {"train_request_deg": 1.0, "non_P05_holdout_request_deg": 0.25, "per_state_conditional_KL": 0.1},
+  "helper_bundle_sha256": {
+    "finite_auxiliary_mean.py": "f0e12560681f5427705ac76602c12faeb28005ef959984418c710a9552d2a65d",
+    "reviewed_data.py": "78a9cd09ec5d0ad9ace99ffa1a82c828baaaf5fb7fe404c960c848d17950ad52",
+    "auxiliary_cli.py": "bffb60e020e853ed0a8ee63e53571bb270d01858cfeeccc671e91b72c7eed7e7"
+  },
+  "test_sha256": "eca30c3d09c57e8e2b9f07f8abcd3a78b10aa771cd3b2c2b1cadea6a437a4be0",
+  "README_sha256": "2afa5e40f4b2be53aea89dfd6dda133624d1dfcf6bae1d82523c76c310492aac",
+  "CPU_test_result": {"path": "finite_auxiliary_tests.xml", "tests": 23, "failures": 0, "errors": 0, "seconds": 6.610},
+  "current_readonly_inspection": {"path": "CP192512_readonly_final.json", "sha256": "e911d720c409f7de90e5f1dced30201821f5a6c1c663f98b307614f05d2ad27b"},
+  "checkpoint_readonly_source_sha256": "97284bfa095cc40719b5ba0b9a309ed954dc90d8454c0af9119cb76614e8052d",
+  "limitation": "Bounded synthetic CPU optimizer/save/load tests and real-state CPU forward/analytic first-gradient prediction only. No real checkpoint auxiliary optimization or physical rollout performed. Root must independently decide any execution."
+}

@@ -1,0 +1,4994 @@
+{
+  "PPO_credit_added": 0,
+  "inputs_count": 12,
+  "new_optimizer_steps": 0,
+  "physical_calls": 0,
+  "rows": [
+    {
+      "CPU_vs_saved_GPU_old_mu_max_abs_full12": 0.0,
+      "FL_air": true,
+      "FL_bearing_N": 0.0,
+      "FL_gap_mm": 5.507080465407918,
+      "FL_placed_history": false,
+      "FL_top_contact": false,
+      "actual_normalized_advantage": -0.05037504434585571,
+      "actual_optimizer_appearances": [
+        {
+          "actual_normalized_advantage": -0.05037504434585571,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.00254470924846828,
+            0.002785306191071868
+          ],
+          "minibatch": 0
+        },
+        {
+          "actual_normalized_advantage": -0.05037504434585571,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.0025082046631723642,
+            0.002705831779167056
+          ],
+          "minibatch": 4
+        },
+        {
+          "actual_normalized_advantage": -0.05037504434585571,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.002397975418716669,
+            0.002625718479976058
+          ],
+          "minibatch": 8
+        },
+        {
+          "actual_normalized_advantage": -0.05037504434585571,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.0023880316875874996,
+            0.0026488371659070253
+          ],
+          "minibatch": 12
+        },
+        {
+          "actual_normalized_advantage": -0.05037504434585571,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.0024059051647782326,
+            0.0026877124328166246
+          ],
+          "minibatch": 16
+        }
+      ],
+      "done": false,
+      "end_phase": "P05",
+      "episode": 0,
+      "global": 192893,
+      "input_float32_sha256": "56f773ea766cf27a0c25ddb779eb633c5ee1e51d851d2f84eafaae3b8833ea39",
+      "old_mu_FL_hip_knee": [
+        -0.2248723804950714,
+        -0.3501884937286377
+      ],
+      "old_value": -21.867456436157227,
+      "phase": "P05",
+      "raw_GAE": -0.6240234375,
+      "raw_action_FL_hip_knee": [
+        -0.4409294128417969,
+        -0.14414429664611816
+      ],
+      "raw_action_minus_old_mu_FL_hip_knee": [
+        -0.21605703234672546,
+        0.20604419708251953
+      ],
+      "return": -22.491479873657227,
+      "reward": -0.009445256553590298,
+      "reward_breakdown": {
+        "cost_components": {
+          "actual_drive_first_difference": 0.01958323424355904,
+          "actual_drive_second_difference": 0.015869497810111346,
+          "angular_acceleration": 0.0,
+          "confirmed_post_touchdown_rebound": 0.0,
+          "contact_chatter_diagnostic": 0.0,
+          "contact_quality": 0.0,
+          "euler_rate": 0.0,
+          "gravity_attitude": 0.0,
+          "nominal_first_difference": 0.0027777777777777775,
+          "residual_first_difference": 0.017016423317572173,
+          "task_space_raw_geometry_cost": 0.0,
+          "task_space_weighted_geometry_cost": 0.0,
+          "touchdown_events": 0.0
+        },
+        "discount_convention": "one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",
+        "elapsed_physics_s": 0.06666666666666667,
+        "families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.0,
+          "task_progress": -0.009445256185916942
+        },
+        "front_quality_sample_audit": [],
+        "front_quality_semantics": "P01_P02_tilt_rate_only_positive_transfer_floor_v1",
+        "objective_profile": "task_conditioned_hip_wheel_quality_v1",
+        "potential_after": 0.40976342519756387,
+        "potential_before": 0.4107711646302843,
+        "potential_shaping": -0.008111922852583608,
+        "quality_epsilon": 0.06,
+        "task_space_quality_sample_audit": [
+          {
+            "body_collider_maximum_w_m": [
+              0.5128322925841243,
+              0.05260105305566509,
+              0.22950750557171165
+            ],
+            "body_collider_minimum_w_m": [
+              0.18303526038279988,
+              -0.32109873264205097,
+              0.13244763502986528
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.0828825729994208,
+            "sim_time_s": 25.341666666666665,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5128021752537165,
+              0.05262025483656327,
+              0.22945327145601024
+            ],
+            "body_collider_minimum_w_m": [
+              0.18300196176368608,
+              -0.3210787159364509,
+              0.1324639666215643
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.0829019050792544,
+            "sim_time_s": 25.35,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5127943628030477,
+              0.05263111825272286,
+              0.22936739187994823
+            ],
+            "body_collider_minimum_w_m": [
+              0.18299089246505448,
+              -0.32106561477816375,
+              0.1324700742403949
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08290878270090042,
+            "sim_time_s": 25.358333333333334,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5128391245967948,
+              0.0526508632258232,
+              0.22926824246661875
+            ],
+            "body_collider_minimum_w_m": [
+              0.1830280876254113,
+              -0.32104659437746524,
+              0.13247569668987028
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08290978896867886,
+            "sim_time_s": 25.366666666666667,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5128978118782713,
+              0.05266343149650263,
+              0.2292063032843393
+            ],
+            "body_collider_minimum_w_m": [
+              0.18308422086897277,
+              -0.3210326262313445,
+              0.13248163427761597
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08290971884653081,
+            "sim_time_s": 25.375,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5129789915012335,
+              0.05267579648597896,
+              0.22913555607249
+            ],
+            "body_collider_minimum_w_m": [
+              0.18316106779882027,
+              -0.3210201881834364,
+              0.1324806465720268
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08290053670346727,
+            "sim_time_s": 25.383333333333333,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5130624342464907,
+              0.052694471503649476,
+              0.22904416875571867
+            ],
+            "body_collider_minimum_w_m": [
+              0.1832395076788031,
+              -0.3210010875776819,
+              0.13247859358440547
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08289014779770595,
+            "sim_time_s": 25.391666666666666,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5131503334950992,
+              0.05271126372130314,
+              0.228953601262894
+            ],
+            "body_collider_minimum_w_m": [
+              0.18332264684961494,
+              -0.32098381521781516,
+              0.1324740617979315
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08287693591210796,
+            "sim_time_s": 25.4,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          }
+        ],
+        "task_space_quality_semantics": "bounded_current_collider_obstacle_AABB_separation_deficit_v1",
+        "terminal_bootstrap_allowed": true,
+        "terminal_event": 0.0,
+        "total": -0.009445256185916942,
+        "unweighted_families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.01772636602683519,
+          "task_progress": -0.009445256185916942
+        }
+      },
+      "rollout_row_0based": 124,
+      "rollout_sha256": "bfef7a0c7511979fbe3a9eadd5f6fd33765878933563196b4d138ce84347fb99",
+      "same_CPU_postupdate_mu_FL_hip_knee": [
+        -0.22417306900024414,
+        -0.350616991519928
+      ],
+      "same_CPU_preupdate_mu_FL_hip_knee": [
+        -0.2248723804950714,
+        -0.3501884937286377
+      ],
+      "same_CPU_update_mu_difference_FL_hip_knee": [
+        0.0006993114948272705,
+        -0.0004284977912902832
+      ],
+      "source_line_1based": 381,
+      "tick": 3048,
+      "update": 1472
+    },
+    {
+      "CPU_vs_saved_GPU_old_mu_max_abs_full12": 1.862645149230957e-09,
+      "FL_air": false,
+      "FL_bearing_N": 8.16794204711914,
+      "FL_gap_mm": -0.9632974050073906,
+      "FL_placed_history": false,
+      "FL_top_contact": true,
+      "actual_normalized_advantage": -1.6424107551574707,
+      "actual_optimizer_appearances": [
+        {
+          "actual_normalized_advantage": -1.6424107551574707,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.012238336727023125,
+            0.0498972125351429
+          ],
+          "minibatch": 1
+        },
+        {
+          "actual_normalized_advantage": -1.6424107551574707,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.011400467716157436,
+            0.04591209813952446
+          ],
+          "minibatch": 5
+        },
+        {
+          "actual_normalized_advantage": -1.6424107551574707,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 9
+        },
+        {
+          "actual_normalized_advantage": -1.6424107551574707,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 13
+        },
+        {
+          "actual_normalized_advantage": -1.6424107551574707,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 17
+        }
+      ],
+      "done": false,
+      "end_phase": "P05",
+      "episode": 0,
+      "global": 192894,
+      "input_float32_sha256": "6a583c29a40fbc4860c52b2010d7a16a746cef5aba0a6479b104646cdd000f19",
+      "old_mu_FL_hip_knee": [
+        -0.3994992673397064,
+        -0.1527659296989441
+      ],
+      "old_value": -21.558042526245117,
+      "phase": "P05",
+      "raw_GAE": -0.9674396514892578,
+      "raw_action_FL_hip_knee": [
+        -0.4416157007217407,
+        -0.025651738047599792
+      ],
+      "raw_action_minus_old_mu_FL_hip_knee": [
+        -0.0421164333820343,
+        0.1271141916513443
+      ],
+      "return": -22.525482177734375,
+      "reward": 0.09387882798910141,
+      "reward_breakdown": {
+        "cost_components": {
+          "actual_drive_first_difference": 0.017534264093679502,
+          "actual_drive_second_difference": 0.014482276340604833,
+          "angular_acceleration": 0.0,
+          "confirmed_post_touchdown_rebound": 0.0,
+          "contact_chatter_diagnostic": 0.004166666666666667,
+          "contact_quality": 0.0,
+          "euler_rate": 0.0,
+          "gravity_attitude": 0.0,
+          "nominal_first_difference": 0.0027777777777777775,
+          "residual_first_difference": 0.014407085023394828,
+          "task_space_raw_geometry_cost": 0.0,
+          "task_space_weighted_geometry_cost": 0.0,
+          "touchdown_events": 1.0
+        },
+        "discount_convention": "one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",
+        "elapsed_physics_s": 0.06666666666666667,
+        "families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.0,
+          "task_progress": 0.09387883079914296
+        },
+        "front_quality_sample_audit": [],
+        "front_quality_semantics": "P01_P02_tilt_rate_only_positive_transfer_floor_v1",
+        "objective_profile": "task_conditioned_hip_wheel_quality_v1",
+        "potential_after": 0.42945003307366963,
+        "potential_before": 0.40976342519756387,
+        "potential_shaping": 0.0952121641324763,
+        "quality_epsilon": 0.06,
+        "task_space_quality_sample_audit": [
+          {
+            "body_collider_maximum_w_m": [
+              0.513279695272645,
+              0.05269388147036018,
+              0.22893605246364657
+            ],
+            "body_collider_minimum_w_m": [
+              0.18345480554369725,
+              -0.32099977610162495,
+              0.1324337403686906
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08282416472286261,
+            "sim_time_s": 25.40833333333333,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5134552375156982,
+              0.052678874364589776,
+              0.22890516679916564
+            ],
+            "body_collider_minimum_w_m": [
+              0.18363303079962945,
+              -0.32101337608414793,
+              0.1323828608684831
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.0827566747292053,
+            "sim_time_s": 25.416666666666668,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.513660020292561,
+              0.05266714681854988,
+              0.2288799231071317
+            ],
+            "body_collider_minimum_w_m": [
+              0.1838398963573457,
+              -0.32102436817082547,
+              0.13233584948907262
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08269067398433476,
+            "sim_time_s": 25.425,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5138300307470862,
+              0.05267085833247723,
+              0.22887099766221272
+            ],
+            "body_collider_minimum_w_m": [
+              0.18400739964889296,
+              -0.3210236625255005,
+              0.13231072190755083
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08265009017061227,
+            "sim_time_s": 25.433333333333334,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.513957325504804,
+              0.05268504198469254,
+              0.22883783365328725
+            ],
+            "body_collider_minimum_w_m": [
+              0.18413312649003336,
+              -0.3210098499316739,
+              0.13230159996321114
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08262957793405717,
+            "sim_time_s": 25.441666666666666,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5140857789824176,
+              0.052686697528903745,
+              0.22882826655434357
+            ],
+            "body_collider_minimum_w_m": [
+              0.18426177333977328,
+              -0.32100859748579585,
+              0.13228394442937727
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08260065552121165,
+            "sim_time_s": 25.45,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.514205022879982,
+              0.05268453692488491,
+              0.2288261993741336
+            ],
+            "body_collider_minimum_w_m": [
+              0.1843821764584899,
+              -0.32101074425746856,
+              0.13226569337732072
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08257212544603063,
+            "sim_time_s": 25.458333333333332,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5142283091275923,
+              0.05261851589749639,
+              0.22899303345485816
+            ],
+            "body_collider_minimum_w_m": [
+              0.18442365181248394,
+              -0.3210707878940122,
+              0.13224451330873344
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08254902245158574,
+            "sim_time_s": 25.466666666666665,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          }
+        ],
+        "task_space_quality_semantics": "bounded_current_collider_obstacle_AABB_separation_deficit_v1",
+        "terminal_bootstrap_allowed": true,
+        "terminal_event": 0.0,
+        "total": 0.09387883079914296,
+        "unweighted_families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.016008270217142167,
+          "task_progress": 0.09387883079914296
+        }
+      },
+      "rollout_row_0based": 125,
+      "rollout_sha256": "bfef7a0c7511979fbe3a9eadd5f6fd33765878933563196b4d138ce84347fb99",
+      "same_CPU_postupdate_mu_FL_hip_knee": [
+        -0.3988078832626343,
+        -0.1531854122877121
+      ],
+      "same_CPU_preupdate_mu_FL_hip_knee": [
+        -0.3994992673397064,
+        -0.1527659296989441
+      ],
+      "same_CPU_update_mu_difference_FL_hip_knee": [
+        0.0006913840770721436,
+        -0.00041948258876800537
+      ],
+      "source_line_1based": 382,
+      "tick": 3056,
+      "update": 1472
+    },
+    {
+      "CPU_vs_saved_GPU_old_mu_max_abs_full12": 3.725290298461914e-09,
+      "FL_air": false,
+      "FL_bearing_N": 5.314937114715576,
+      "FL_gap_mm": -0.8752153513968477,
+      "FL_placed_history": true,
+      "FL_top_contact": true,
+      "actual_normalized_advantage": -1.0662418603897095,
+      "actual_optimizer_appearances": [
+        {
+          "actual_normalized_advantage": -1.0662418603897095,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.028602296486496925,
+            0.054596494883298874
+          ],
+          "minibatch": 2
+        },
+        {
+          "actual_normalized_advantage": -1.0662418603897095,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.028854424133896828,
+            0.05477229878306389
+          ],
+          "minibatch": 6
+        },
+        {
+          "actual_normalized_advantage": -1.0662418603897095,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.028217649087309837,
+            0.05522399768233299
+          ],
+          "minibatch": 10
+        },
+        {
+          "actual_normalized_advantage": -1.0662418603897095,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.028183242306113243,
+            0.05580456927418709
+          ],
+          "minibatch": 14
+        },
+        {
+          "actual_normalized_advantage": -1.0662418603897095,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.028374722227454185,
+            0.05674179270863533
+          ],
+          "minibatch": 18
+        }
+      ],
+      "done": false,
+      "end_phase": "P06",
+      "episode": 0,
+      "global": 192895,
+      "input_float32_sha256": "157c58a51457ef1de6c5f1c9c6ffc60ee30dfcb91c1d0239a9e9f61f36758db1",
+      "old_mu_FL_hip_knee": [
+        -0.40179696679115295,
+        -0.04339499771595001
+      ],
+      "old_value": -21.818618774414062,
+      "phase": "P05",
+      "raw_GAE": -0.8431549072265625,
+      "raw_action_FL_hip_knee": [
+        -0.34548038244247437,
+        0.12262919545173645
+      ],
+      "raw_action_minus_old_mu_FL_hip_knee": [
+        0.05631658434867859,
+        0.16602419316768646
+      ],
+      "return": -22.661773681640625,
+      "reward": 0.17939217388629913,
+      "reward_breakdown": {
+        "cost_components": {
+          "actual_drive_first_difference": 0.01822812558335182,
+          "actual_drive_second_difference": 0.009792114828025266,
+          "angular_acceleration": 0.0,
+          "confirmed_post_touchdown_rebound": 0.0,
+          "contact_chatter_diagnostic": 0.020833333333333332,
+          "contact_quality": 7.261501652376897e-05,
+          "euler_rate": 0.0,
+          "gravity_attitude": 0.0,
+          "nominal_first_difference": 0.0,
+          "residual_first_difference": 0.018228125583351816,
+          "task_space_raw_geometry_cost": 0.0,
+          "task_space_weighted_geometry_cost": 0.0,
+          "touchdown_events": 1.0
+        },
+        "discount_convention": "one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",
+        "elapsed_physics_s": 0.06666666666666667,
+        "families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.0,
+          "task_progress": 0.17939216749238637
+        },
+        "front_quality_sample_audit": [],
+        "front_quality_semantics": "P01_P02_tilt_rate_only_positive_transfer_floor_v1",
+        "objective_profile": "task_conditioned_hip_wheel_quality_v1",
+        "potential_after": 0.46629457510146577,
+        "potential_before": 0.42945003307366963,
+        "potential_shaping": 0.1807255008257197,
+        "quality_epsilon": 0.06,
+        "task_space_quality_sample_audit": [
+          {
+            "body_collider_maximum_w_m": [
+              0.5140817360450478,
+              0.05246370561137796,
+              0.2292957188518453
+            ],
+            "body_collider_minimum_w_m": [
+              0.18429084233297752,
+              -0.3212286601297004,
+              0.13220511673626092
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.0825224844958497,
+            "sim_time_s": 25.475,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5138920816948556,
+              0.05236134169375718,
+              0.22945985171643035
+            ],
+            "body_collider_minimum_w_m": [
+              0.18412184395385264,
+              -0.3213210498846903,
+              0.13219744442329462
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08253167656225471,
+            "sim_time_s": 25.483333333333334,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5137349466261347,
+              0.052295666805353316,
+              0.22953096996008954
+            ],
+            "body_collider_minimum_w_m": [
+              0.18396817403084034,
+              -0.3213858404197477,
+              0.1321997123710958
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08254821067191047,
+            "sim_time_s": 25.491666666666667,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5136157582074277,
+              0.052256765477948317,
+              0.2295607185307754
+            ],
+            "body_collider_minimum_w_m": [
+              0.18384777313943823,
+              -0.3214260128660004,
+              0.13219742694704026
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08255696099833237,
+            "sim_time_s": 25.5,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5135239344044387,
+              0.05221287838285904,
+              0.2296114436494869
+            ],
+            "body_collider_minimum_w_m": [
+              0.1837531344257149,
+              -0.32147311855173516,
+              0.13220407707106527
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08257219241110117,
+            "sim_time_s": 25.508333333333333,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5134477717507194,
+              0.052173555465552066,
+              0.22964917324627596
+            ],
+            "body_collider_minimum_w_m": [
+              0.1836721949630938,
+              -0.32151689348240314,
+              0.13220664135674973
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08258196354128225,
+            "sim_time_s": 25.516666666666666,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5133616359513766,
+              0.05212384381674491,
+              0.22972699948628514
+            ],
+            "body_collider_minimum_w_m": [
+              0.18359688129067586,
+              -0.3215609971328192,
+              0.1321924624835471
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08257609787808333,
+            "sim_time_s": 25.525,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.513261453661691,
+              0.0520693554598939,
+              0.22980881626052296
+            ],
+            "body_collider_minimum_w_m": [
+              0.18350011451850648,
+              -0.3216155625623944,
+              0.13218927552798482
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08258263198841621,
+            "sim_time_s": 25.53333333333333,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          }
+        ],
+        "task_space_quality_semantics": "bounded_current_collider_obstacle_AABB_separation_deficit_v1",
+        "terminal_bootstrap_allowed": true,
+        "terminal_event": 0.0,
+        "total": 0.17939216749238637,
+        "unweighted_families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -7.261501652376897e-05,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.014010120205688542,
+          "task_progress": 0.17939216749238637
+        }
+      },
+      "rollout_row_0based": 126,
+      "rollout_sha256": "bfef7a0c7511979fbe3a9eadd5f6fd33765878933563196b4d138ce84347fb99",
+      "same_CPU_postupdate_mu_FL_hip_knee": [
+        -0.401206374168396,
+        -0.04371119663119316
+      ],
+      "same_CPU_preupdate_mu_FL_hip_knee": [
+        -0.40179696679115295,
+        -0.04339500144124031
+      ],
+      "same_CPU_update_mu_difference_FL_hip_knee": [
+        0.000590592622756958,
+        -0.00031619518995285034
+      ],
+      "source_line_1based": 383,
+      "tick": 3064,
+      "update": 1472
+    },
+    {
+      "CPU_vs_saved_GPU_old_mu_max_abs_full12": 2.9802322387695312e-08,
+      "FL_air": true,
+      "FL_bearing_N": 0.0,
+      "FL_gap_mm": 0.35629720613519766,
+      "FL_placed_history": true,
+      "FL_top_contact": false,
+      "actual_normalized_advantage": 3.1528751850128174,
+      "actual_optimizer_appearances": [
+        {
+          "actual_normalized_advantage": 3.1528751850128174,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.4810548424720764,
+            -0.15112565457820892
+          ],
+          "minibatch": 2
+        },
+        {
+          "actual_normalized_advantage": 3.1528751850128174,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.5267868041992188,
+            -0.16443400084972382
+          ],
+          "minibatch": 6
+        },
+        {
+          "actual_normalized_advantage": 3.1528751850128174,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 10
+        },
+        {
+          "actual_normalized_advantage": 3.1528751850128174,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 14
+        },
+        {
+          "actual_normalized_advantage": 3.1528751850128174,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 18
+        }
+      ],
+      "done": false,
+      "end_phase": "P06",
+      "episode": 0,
+      "global": 192896,
+      "input_float32_sha256": "7b8d090b64e47c362ead46c6df2461b871f8c41f2d9b0a28db7f169551fd9c53",
+      "old_mu_FL_hip_knee": [
+        -0.17411787807941437,
+        0.054821111261844635
+      ],
+      "old_value": -22.941755294799805,
+      "phase": "P06",
+      "raw_GAE": 0.06694602966308594,
+      "raw_action_FL_hip_knee": [
+        -0.14451082050800323,
+        0.06752695888280869
+      ],
+      "raw_action_minus_old_mu_FL_hip_knee": [
+        0.029607057571411133,
+        0.01270584762096405
+      ],
+      "return": -22.87480926513672,
+      "reward": -0.11437961459159851,
+      "reward_breakdown": {
+        "cost_components": {
+          "actual_drive_first_difference": 0.017879607079514474,
+          "actual_drive_second_difference": 0.012505999775544176,
+          "angular_acceleration": 0.0,
+          "confirmed_post_touchdown_rebound": 0.0,
+          "contact_chatter_diagnostic": 0.025,
+          "contact_quality": 3.8112323666630272e-06,
+          "euler_rate": 0.0,
+          "gravity_attitude": 0.0,
+          "nominal_first_difference": 0.0027777777777777775,
+          "residual_first_difference": 0.015101829301736699,
+          "task_space_raw_geometry_cost": 0.0,
+          "task_space_weighted_geometry_cost": 0.0,
+          "touchdown_events": 1.0
+        },
+        "discount_convention": "one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",
+        "elapsed_physics_s": 0.06666666666666667,
+        "families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.0,
+          "task_progress": -0.11437961348291685
+        },
+        "front_quality_sample_audit": [],
+        "front_quality_semantics": "P01_P02_tilt_rate_only_positive_transfer_floor_v1",
+        "objective_profile": "task_conditioned_hip_wheel_quality_v1",
+        "potential_after": 0.4443518468418118,
+        "potential_before": 0.46629457510146577,
+        "potential_shaping": -0.11304628014958351,
+        "quality_epsilon": 0.06,
+        "task_space_quality_sample_audit": [
+          {
+            "body_collider_maximum_w_m": [
+              0.5132318811272326,
+              0.05201707109337801,
+              0.22985983358081882
+            ],
+            "body_collider_minimum_w_m": [
+              0.18348087809860003,
+              -0.3216612077482095,
+              0.1321755189779428
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.0825718296305953,
+            "sim_time_s": 25.541666666666668,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5133072558788883,
+              0.052006963024088,
+              0.22978959565597462
+            ],
+            "body_collider_minimum_w_m": [
+              0.18355016760622797,
+              -0.32167342590244197,
+              0.13216178385023664
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08255081729427621,
+            "sim_time_s": 25.55,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5135131359437051,
+              0.052050527550579276,
+              0.22968719960357922
+            ],
+            "body_collider_minimum_w_m": [
+              0.18373226327719208,
+              -0.32164591585405433,
+              0.13211324294016324
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08248278400503538,
+            "sim_time_s": 25.558333333333334,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.513757388942434,
+              0.05210404829025271,
+              0.2295801423807572
+            ],
+            "body_collider_minimum_w_m": [
+              0.18397514725849204,
+              -0.3215897999928176,
+              0.1321156546307546
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08246244908612366,
+            "sim_time_s": 25.566666666666666,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.51399813379969,
+              0.05212184460219449,
+              0.22953200797944695
+            ],
+            "body_collider_minimum_w_m": [
+              0.18421220051769474,
+              -0.3215743578599715,
+              0.13209207118776967
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08241725142612305,
+            "sim_time_s": 25.575,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5142257367314781,
+              0.052142268879227835,
+              0.2294877344837748
+            ],
+            "body_collider_minimum_w_m": [
+              0.18443794576015346,
+              -0.321554860540661,
+              0.13207300598393412
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08237837034798552,
+            "sim_time_s": 25.583333333333332,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5144437179536602,
+              0.05215487558649816,
+              0.22943729839233398
+            ],
+            "body_collider_minimum_w_m": [
+              0.18465223581905102,
+              -0.32154458742483777,
+              0.13204231561538857
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08232932185366611,
+            "sim_time_s": 25.591666666666665,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5146433578050964,
+              0.05217046293904691,
+              0.22937926173142376
+            ],
+            "body_collider_minimum_w_m": [
+              0.18484867143062017,
+              -0.3215303733592745,
+              0.13201593060125716
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08228660874535464,
+            "sim_time_s": 25.6,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          }
+        ],
+        "task_space_quality_semantics": "bounded_current_collider_obstacle_AABB_separation_deficit_v1",
+        "terminal_bootstrap_allowed": true,
+        "terminal_event": 0.0,
+        "total": -0.11437961348291685,
+        "unweighted_families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -3.8112323666630272e-06,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.015192803427529326,
+          "task_progress": -0.11437961348291685
+        }
+      },
+      "rollout_row_0based": 127,
+      "rollout_sha256": "bfef7a0c7511979fbe3a9eadd5f6fd33765878933563196b4d138ce84347fb99",
+      "same_CPU_postupdate_mu_FL_hip_knee": [
+        -0.17360690236091614,
+        0.054593488574028015
+      ],
+      "same_CPU_preupdate_mu_FL_hip_knee": [
+        -0.17411787807941437,
+        0.05482110381126404
+      ],
+      "same_CPU_update_mu_difference_FL_hip_knee": [
+        0.00051097571849823,
+        -0.00022761523723602295
+      ],
+      "source_line_1based": 384,
+      "tick": 3072,
+      "update": 1472
+    },
+    {
+      "CPU_vs_saved_GPU_old_mu_max_abs_full12": 0.0,
+      "FL_air": true,
+      "FL_bearing_N": 0.0,
+      "FL_gap_mm": 2.645808527963464,
+      "FL_placed_history": true,
+      "FL_top_contact": false,
+      "actual_normalized_advantage": -0.18476304411888123,
+      "actual_optimizer_appearances": [
+        {
+          "actual_normalized_advantage": -0.18476304411888123,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 3
+        },
+        {
+          "actual_normalized_advantage": -0.18476304411888123,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 7
+        },
+        {
+          "actual_normalized_advantage": -0.18476304411888123,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 11
+        },
+        {
+          "actual_normalized_advantage": -0.18476304411888123,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 15
+        },
+        {
+          "actual_normalized_advantage": -0.18476304411888123,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 19
+        }
+      ],
+      "done": false,
+      "end_phase": "P06",
+      "episode": 0,
+      "global": 192897,
+      "input_float32_sha256": "6fbf19a32ff5b7a0eeb4b5f25bed399d0700cafae261dc03aae3d4d03a802d59",
+      "old_mu_FL_hip_knee": [
+        -0.1331840306520462,
+        0.0407261922955513
+      ],
+      "old_value": -23.084197998046875,
+      "phase": "P06",
+      "raw_GAE": 0.6178989410400391,
+      "raw_action_FL_hip_knee": [
+        -0.13087770342826843,
+        0.08553434908390045
+      ],
+      "raw_action_minus_old_mu_FL_hip_knee": [
+        0.002306327223777771,
+        0.04480815678834915
+      ],
+      "return": -22.466299057006836,
+      "reward": -0.043007828295230865,
+      "reward_breakdown": {
+        "cost_components": {
+          "actual_drive_first_difference": 0.012291606272910602,
+          "actual_drive_second_difference": 0.007048366969116043,
+          "angular_acceleration": 0.0,
+          "confirmed_post_touchdown_rebound": 0.0,
+          "contact_chatter_diagnostic": 0.0,
+          "contact_quality": 0.0,
+          "euler_rate": 0.0,
+          "gravity_attitude": 0.0,
+          "nominal_first_difference": 0.0,
+          "residual_first_difference": 0.012291606272910602,
+          "task_space_raw_geometry_cost": 0.0,
+          "task_space_weighted_geometry_cost": 0.0,
+          "touchdown_events": 0.0
+        },
+        "discount_convention": "one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",
+        "elapsed_physics_s": 0.06666666666666667,
+        "families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.0,
+          "task_progress": -0.04300782853133304
+        },
+        "front_quality_sample_audit": [],
+        "front_quality_semantics": "P01_P02_tilt_rate_only_positive_transfer_floor_v1",
+        "objective_profile": "task_conditioned_hip_wheel_quality_v1",
+        "potential_after": 0.4366719557358155,
+        "potential_before": 0.4443518468418118,
+        "potential_shaping": -0.041674495197999706,
+        "quality_epsilon": 0.06,
+        "task_space_quality_sample_audit": [
+          {
+            "body_collider_maximum_w_m": [
+              0.514797934384831,
+              0.05216154809456783,
+              0.22935854251383503
+            ],
+            "body_collider_minimum_w_m": [
+              0.18500812297501132,
+              -0.32153650806093487,
+              0.13197444242067213
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08223286766855073,
+            "sim_time_s": 25.608333333333334,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5149387374666883,
+              0.05214200864985517,
+              0.22936158073090968
+            ],
+            "body_collider_minimum_w_m": [
+              0.1851525717884051,
+              -0.32155525130253954,
+              0.1319296285699661
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08217715453804653,
+            "sim_time_s": 25.616666666666667,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5150531126600119,
+              0.0521320796516479,
+              0.22940063773861769
+            ],
+            "body_collider_minimum_w_m": [
+              0.18526928035312903,
+              -0.3215664417234818,
+              0.13190893723178387
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08214773182786651,
+            "sim_time_s": 25.625,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5151233089916465,
+              0.05211122914806603,
+              0.22945472757357108
+            ],
+            "body_collider_minimum_w_m": [
+              0.18534552199810697,
+              -0.3215859349941025,
+              0.1318915531632324
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08212507854958169,
+            "sim_time_s": 25.633333333333333,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5152011088277575,
+              0.052090618193959395,
+              0.2294986338784636
+            ],
+            "body_collider_minimum_w_m": [
+              0.18542783957027215,
+              -0.3216059542647048,
+              0.1318714823934618
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08209923717108694,
+            "sim_time_s": 25.641666666666666,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5152839848464779,
+              0.05207319185272086,
+              0.22953738565661702
+            ],
+            "body_collider_minimum_w_m": [
+              0.18551482474074807,
+              -0.32162282663173614,
+              0.13185339384850128
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08207507018734805,
+            "sim_time_s": 25.65,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.515370256472979,
+              0.052055227665870216,
+              0.2295726437472277
+            ],
+            "body_collider_minimum_w_m": [
+              0.18560660777733154,
+              -0.32163901723568933,
+              0.1318361120669554
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08205154245620175,
+            "sim_time_s": 25.65833333333333,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5154611870383923,
+              0.05203977521099201,
+              0.22960170578611447
+            ],
+            "body_collider_minimum_w_m": [
+              0.18570058496447323,
+              -0.3216543651046484,
+              0.1318162538319423
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08202520001114033,
+            "sim_time_s": 25.666666666666668,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          }
+        ],
+        "task_space_quality_semantics": "bounded_current_collider_obstacle_AABB_separation_deficit_v1",
+        "terminal_bootstrap_allowed": true,
+        "terminal_event": 0.0,
+        "total": -0.04300782853133304,
+        "unweighted_families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.009669986621013326,
+          "task_progress": -0.04300782853133304
+        }
+      },
+      "rollout_row_0based": 0,
+      "rollout_sha256": "52096dd5a06602ac61bcb2ade67f2657fd70f13451132859e6a54258ba040ae7",
+      "same_CPU_postupdate_mu_FL_hip_knee": [
+        -0.13237228989601135,
+        0.039867185056209564
+      ],
+      "same_CPU_preupdate_mu_FL_hip_knee": [
+        -0.1331840306520462,
+        0.0407261922955513
+      ],
+      "same_CPU_update_mu_difference_FL_hip_knee": [
+        0.0008117407560348511,
+        -0.0008590072393417358
+      ],
+      "source_line_1based": 385,
+      "tick": 3080,
+      "update": 1473
+    },
+    {
+      "CPU_vs_saved_GPU_old_mu_max_abs_full12": 1.4901161193847656e-08,
+      "FL_air": true,
+      "FL_bearing_N": 0.0,
+      "FL_gap_mm": 6.131147627393231,
+      "FL_placed_history": true,
+      "FL_top_contact": false,
+      "actual_normalized_advantage": 0.2406018227338791,
+      "actual_optimizer_appearances": [
+        {
+          "actual_normalized_advantage": 0.2406018227338791,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.006335421930998564,
+            0.004987742286175489
+          ],
+          "minibatch": 2
+        },
+        {
+          "actual_normalized_advantage": 0.2406018227338791,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.005526625085622072,
+            0.0043870857916772366
+          ],
+          "minibatch": 6
+        },
+        {
+          "actual_normalized_advantage": 0.2406018227338791,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.005366213154047728,
+            0.004262419883161783
+          ],
+          "minibatch": 10
+        },
+        {
+          "actual_normalized_advantage": 0.2406018227338791,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.005399217363446951,
+            0.004277194384485483
+          ],
+          "minibatch": 14
+        },
+        {
+          "actual_normalized_advantage": 0.2406018227338791,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.005460065323859453,
+            0.00430618692189455
+          ],
+          "minibatch": 18
+        }
+      ],
+      "done": false,
+      "end_phase": "P06",
+      "episode": 0,
+      "global": 192898,
+      "input_float32_sha256": "10f4cd478fc958ee3ed2ec6dd668e27ce7413c9451af386fb1c2e616497afbf9",
+      "old_mu_FL_hip_knee": [
+        -0.12094157189130783,
+        0.057658787816762924
+      ],
+      "old_value": -23.193626403808594,
+      "phase": "P06",
+      "raw_GAE": 0.7440891265869141,
+      "raw_action_FL_hip_knee": [
+        -0.07780863344669342,
+        0.0235447995364666
+      ],
+      "raw_action_minus_old_mu_FL_hip_knee": [
+        0.04313293844461441,
+        -0.034113988280296326
+      ],
+      "return": -22.44953727722168,
+      "reward": -0.02590763196349144,
+      "reward_breakdown": {
+        "cost_components": {
+          "actual_drive_first_difference": 0.016430486159911644,
+          "actual_drive_second_difference": 0.01079577228662231,
+          "angular_acceleration": 0.0,
+          "confirmed_post_touchdown_rebound": 0.0,
+          "contact_chatter_diagnostic": 0.0,
+          "contact_quality": 0.0,
+          "euler_rate": 0.0,
+          "gravity_attitude": 0.0,
+          "nominal_first_difference": 0.0,
+          "residual_first_difference": 0.016430486159911644,
+          "task_space_raw_geometry_cost": 0.0,
+          "task_space_weighted_geometry_cost": 0.0,
+          "touchdown_events": 0.0
+        },
+        "discount_convention": "one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",
+        "elapsed_physics_s": 0.06666666666666667,
+        "families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.0,
+          "task_progress": -0.025907631891364115
+        },
+        "front_quality_sample_audit": [],
+        "front_quality_semantics": "P01_P02_tilt_rate_only_positive_transfer_floor_v1",
+        "objective_profile": "task_conditioned_hip_wheel_quality_v1",
+        "potential_after": 0.43240570458108096,
+        "potential_before": 0.4366719557358155,
+        "potential_shaping": -0.024574298558030783,
+        "quality_epsilon": 0.06,
+        "task_space_quality_sample_audit": [
+          {
+            "body_collider_maximum_w_m": [
+              0.5156005721527899,
+              0.05201287400887242,
+              0.2296141112568003
+            ],
+            "body_collider_minimum_w_m": [
+              0.18584697473437636,
+              -0.32168029414826965,
+              0.13173462707207925
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08193394690655345,
+            "sim_time_s": 25.675,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5157612482358406,
+              0.05197992929004763,
+              0.22964647048839543
+            ],
+            "body_collider_minimum_w_m": [
+              0.18601605092590626,
+              -0.32171249784397754,
+              0.13164467787486497
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08183316075782143,
+            "sim_time_s": 25.683333333333334,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.515970147377588,
+              0.05195105529611593,
+              0.22967973513338447
+            ],
+            "body_collider_minimum_w_m": [
+              0.18623313361105642,
+              -0.3217408018823025,
+              0.1315602192917692
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08173497792828006,
+            "sim_time_s": 25.691666666666666,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5162334263488411,
+              0.05192839577943664,
+              0.229717498684934
+            ],
+            "body_collider_minimum_w_m": [
+              0.18650400278021068,
+              -0.3217637467625171,
+              0.1314798883852931
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08163801741029489,
+            "sim_time_s": 25.7,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5165353284247065,
+              0.051914648636674623,
+              0.22975804679777892
+            ],
+            "body_collider_minimum_w_m": [
+              0.18681210246775176,
+              -0.3217788315051016,
+              0.1314106963297385
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.0815507187483929,
+            "sim_time_s": 25.708333333333332,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5168514617434168,
+              0.05190918401973066,
+              0.22980364723012164
+            ],
+            "body_collider_minimum_w_m": [
+              0.18713628064928256,
+              -0.32178410907689936,
+              0.13135426276169393
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08147646298971466,
+            "sim_time_s": 25.716666666666665,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5171731271744413,
+              0.0519093270325757,
+              0.2298418886823824
+            ],
+            "body_collider_minimum_w_m": [
+              0.18746143762034784,
+              -0.3217866147809471,
+              0.1313077252880438
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08141300816371687,
+            "sim_time_s": 25.724999999999998,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5174920599024987,
+              0.05191514078113396,
+              0.2298742216743097
+            ],
+            "body_collider_minimum_w_m": [
+              0.1877835525849475,
+              -0.32178305644710037,
+              0.13127053812953202
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08136027063531295,
+            "sim_time_s": 25.733333333333334,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          }
+        ],
+        "task_space_quality_semantics": "bounded_current_collider_obstacle_AABB_separation_deficit_v1",
+        "terminal_bootstrap_allowed": true,
+        "terminal_event": 0.0,
+        "total": -0.025907631891364115,
+        "unweighted_families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.013613129223266978,
+          "task_progress": -0.025907631891364115
+        }
+      },
+      "rollout_row_0based": 1,
+      "rollout_sha256": "52096dd5a06602ac61bcb2ade67f2657fd70f13451132859e6a54258ba040ae7",
+      "same_CPU_postupdate_mu_FL_hip_knee": [
+        -0.12013529986143112,
+        0.05679231882095337
+      ],
+      "same_CPU_preupdate_mu_FL_hip_knee": [
+        -0.12094157189130783,
+        0.057658784091472626
+      ],
+      "same_CPU_update_mu_difference_FL_hip_knee": [
+        0.000806272029876709,
+        -0.0008664652705192566
+      ],
+      "source_line_1based": 386,
+      "tick": 3088,
+      "update": 1473
+    },
+    {
+      "CPU_vs_saved_GPU_old_mu_max_abs_full12": 2.9802322387695312e-08,
+      "FL_air": true,
+      "FL_bearing_N": 0.0,
+      "FL_gap_mm": 5.614788588907141,
+      "FL_placed_history": false,
+      "FL_top_contact": false,
+      "actual_normalized_advantage": -2.513820171356201,
+      "actual_optimizer_appearances": [
+        {
+          "actual_normalized_advantage": -2.513820171356201,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.0010296310065314174,
+            -0.011404483579099178
+          ],
+          "minibatch": 2
+        },
+        {
+          "actual_normalized_advantage": -2.513820171356201,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.001039906870573759,
+            -0.009937528520822525
+          ],
+          "minibatch": 6
+        },
+        {
+          "actual_normalized_advantage": -2.513820171356201,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 10
+        },
+        {
+          "actual_normalized_advantage": -2.513820171356201,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 14
+        },
+        {
+          "actual_normalized_advantage": -2.513820171356201,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 18
+        }
+      ],
+      "done": false,
+      "end_phase": "P05",
+      "episode": 1,
+      "global": 193988,
+      "input_float32_sha256": "11c9d606409d76a8f70d507c6aed0708d6f166e6264941f67eecd0f14bd21eeb",
+      "old_mu_FL_hip_knee": [
+        -0.39657872915267944,
+        -0.8875135183334351
+      ],
+      "old_value": -21.447181701660156,
+      "phase": "P05",
+      "raw_GAE": -0.5303192138671875,
+      "raw_action_FL_hip_knee": [
+        -0.4003817141056061,
+        -0.918938159942627
+      ],
+      "raw_action_minus_old_mu_FL_hip_knee": [
+        -0.0038029849529266357,
+        -0.031424641609191895
+      ],
+      "return": -21.977500915527344,
+      "reward": -0.002204618416726589,
+      "reward_breakdown": {
+        "cost_components": {
+          "actual_drive_first_difference": 0.015101976460642645,
+          "actual_drive_second_difference": 0.008434746759102555,
+          "angular_acceleration": 0.0,
+          "confirmed_post_touchdown_rebound": 0.0,
+          "contact_chatter_diagnostic": 0.0,
+          "contact_quality": 0.0,
+          "euler_rate": 0.0,
+          "gravity_attitude": 0.0,
+          "nominal_first_difference": 0.0,
+          "residual_first_difference": 0.014268647637713303,
+          "task_space_raw_geometry_cost": 0.0,
+          "task_space_weighted_geometry_cost": 0.0,
+          "touchdown_events": 0.0
+        },
+        "discount_convention": "one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",
+        "elapsed_physics_s": 0.06666666666666667,
+        "families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.0,
+          "task_progress": -0.0022046183552972077
+        },
+        "front_quality_sample_audit": [],
+        "front_quality_semantics": "P01_P02_tilt_rate_only_positive_transfer_floor_v1",
+        "objective_profile": "task_conditioned_hip_wheel_quality_v1",
+        "potential_after": 0.4268771702319066,
+        "potential_before": 0.4264111114809515,
+        "potential_shaping": -0.0008712850219638746,
+        "quality_epsilon": 0.06,
+        "task_space_quality_sample_audit": [
+          {
+            "body_collider_maximum_w_m": [
+              0.5016602864731224,
+              0.05319055102620664,
+              0.22708695785112493
+            ],
+            "body_collider_minimum_w_m": [
+              0.17103661007817664,
+              -0.32097490674409046,
+              0.13390582020762853
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08617646627231143,
+            "sim_time_s": 29.075,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5018493435592847,
+              0.053175785353172314,
+              0.22721531617831262
+            ],
+            "body_collider_minimum_w_m": [
+              0.17123083043212317,
+              -0.3209912384727937,
+              0.13390291632826956
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08613072116461797,
+            "sim_time_s": 29.083333333333332,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5019886726955445,
+              0.05315345323952511,
+              0.22734441758151158
+            ],
+            "body_collider_minimum_w_m": [
+              0.17137479697371202,
+              -0.3210154438719137,
+              0.13390149326643147
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08609795738719925,
+            "sim_time_s": 29.091666666666665,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.502071974683445,
+              0.053128717269029443,
+              0.22746223945062255
+            ],
+            "body_collider_minimum_w_m": [
+              0.17146290909479334,
+              -0.32104131952046316,
+              0.1339027317699547
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08608050684961782,
+            "sim_time_s": 29.099999999999998,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5020950152822744,
+              0.05311016539271711,
+              0.2275380599119463
+            ],
+            "body_collider_minimum_w_m": [
+              0.1714903959724643,
+              -0.32105964691161465,
+              0.13390028772800386
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08607297753255605,
+            "sim_time_s": 29.108333333333334,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5020688840674163,
+              0.05307671222764203,
+              0.2276340849584088
+            ],
+            "body_collider_minimum_w_m": [
+              0.17147011285595615,
+              -0.3210925562537515,
+              0.13389661012042725
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08607523098088336,
+            "sim_time_s": 29.116666666666667,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5020114168952694,
+              0.053041894065544964,
+              0.22771859733893507
+            ],
+            "body_collider_minimum_w_m": [
+              0.1714163368851612,
+              -0.3211277457719903,
+              0.13389823852759566
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.0860896837263739,
+            "sim_time_s": 29.125,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5019257285399626,
+              0.05300975168676013,
+              0.22779031799022725
+            ],
+            "body_collider_minimum_w_m": [
+              0.1713350103345772,
+              -0.32115907609878236,
+              0.13390162933416513
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08611223875687922,
+            "sim_time_s": 29.133333333333333,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          }
+        ],
+        "task_space_quality_semantics": "bounded_current_collider_obstacle_AABB_separation_deficit_v1",
+        "terminal_bootstrap_allowed": true,
+        "terminal_event": 0.0,
+        "total": -0.0022046183552972077,
+        "unweighted_families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.011768361609872598,
+          "task_progress": -0.0022046183552972077
+        }
+      },
+      "rollout_row_0based": 67,
+      "rollout_sha256": "218ef68e2ce77da64da2ff0a170b9d1626d66635762f60845a751f659d363f89",
+      "same_CPU_postupdate_mu_FL_hip_knee": [
+        -0.3952105641365051,
+        -0.8862654566764832
+      ],
+      "same_CPU_preupdate_mu_FL_hip_knee": [
+        -0.39657872915267944,
+        -0.8875135183334351
+      ],
+      "same_CPU_update_mu_difference_FL_hip_knee": [
+        0.0013681650161743164,
+        0.0012480616569519043
+      ],
+      "source_line_1based": 1476,
+      "tick": 3496,
+      "update": 1481
+    },
+    {
+      "CPU_vs_saved_GPU_old_mu_max_abs_full12": 9.313225746154785e-10,
+      "FL_air": true,
+      "FL_bearing_N": 0.0,
+      "FL_gap_mm": 3.9756454769077005,
+      "FL_placed_history": false,
+      "FL_top_contact": false,
+      "actual_normalized_advantage": -2.73008131980896,
+      "actual_optimizer_appearances": [
+        {
+          "actual_normalized_advantage": -2.73008131980896,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.0711842030286789,
+            0.012443630956113338
+          ],
+          "minibatch": 2
+        },
+        {
+          "actual_normalized_advantage": -2.73008131980896,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 6
+        },
+        {
+          "actual_normalized_advantage": -2.73008131980896,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 10
+        },
+        {
+          "actual_normalized_advantage": -2.73008131980896,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 14
+        },
+        {
+          "actual_normalized_advantage": -2.73008131980896,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 18
+        }
+      ],
+      "done": false,
+      "end_phase": "P05",
+      "episode": 1,
+      "global": 193989,
+      "input_float32_sha256": "38da1bae11cd5422cf2cd7ab8e24bb5e53c1c341534bb414c4fb58db78a83ca6",
+      "old_mu_FL_hip_knee": [
+        -0.37001731991767883,
+        -0.8695318102836609
+      ],
+      "old_value": -21.406396865844727,
+      "phase": "P05",
+      "raw_GAE": -0.6079921722412109,
+      "raw_action_FL_hip_knee": [
+        -0.6170546412467957,
+        -0.8366949558258057
+      ],
+      "raw_action_minus_old_mu_FL_hip_knee": [
+        -0.24703732132911682,
+        0.032836854457855225
+      ],
+      "return": -22.014389038085938,
+      "reward": 0.002302271081134677,
+      "reward_breakdown": {
+        "cost_components": {
+          "actual_drive_first_difference": 0.013823503894333825,
+          "actual_drive_second_difference": 0.010096638249080468,
+          "angular_acceleration": 0.0,
+          "confirmed_post_touchdown_rebound": 0.0,
+          "contact_chatter_diagnostic": 0.0,
+          "contact_quality": 0.0,
+          "euler_rate": 0.0,
+          "gravity_attitude": 0.0,
+          "nominal_first_difference": 0.0,
+          "residual_first_difference": 0.013823503894333825,
+          "task_space_raw_geometry_cost": 0.0,
+          "task_space_weighted_geometry_cost": 0.0,
+          "touchdown_events": 0.0
+        },
+        "discount_convention": "one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",
+        "elapsed_physics_s": 0.06666666666666667,
+        "families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.0,
+          "task_progress": 0.0023022710223681497
+        },
+        "front_quality_sample_audit": [],
+        "front_quality_semantics": "P01_P02_tilt_rate_only_positive_transfer_floor_v1",
+        "objective_profile": "task_conditioned_hip_wheel_quality_v1",
+        "potential_after": 0.4282466610946889,
+        "potential_before": 0.4268771702319066,
+        "potential_shaping": 0.0036356043557014828,
+        "quality_epsilon": 0.06,
+        "task_space_quality_sample_audit": [
+          {
+            "body_collider_maximum_w_m": [
+              0.5018438182077236,
+              0.05296350344239402,
+              0.22784308548111282
+            ],
+            "body_collider_minimum_w_m": [
+              0.17126054203971403,
+              -0.3212023197535037,
+              0.1338767637805408
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08610649435863321,
+            "sim_time_s": 29.141666666666666,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5017915114336214,
+              0.052912499686388975,
+              0.22791843810673662
+            ],
+            "body_collider_minimum_w_m": [
+              0.1712154204130608,
+              -0.3212516322011681,
+              0.13384720547852455
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08608954712824704,
+            "sim_time_s": 29.15,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5017774862326588,
+              0.05287075848560159,
+              0.22797698013377826
+            ],
+            "body_collider_minimum_w_m": [
+              0.17120853669119637,
+              -0.3212909288470043,
+              0.13382225773333667
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08606843154626098,
+            "sim_time_s": 29.15833333333333,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5017769781991104,
+              0.05283102075710616,
+              0.22803048798782602
+            ],
+            "body_collider_minimum_w_m": [
+              0.17121429019231998,
+              -0.3213288043874918,
+              0.1337947512286517
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.0860417584641462,
+            "sim_time_s": 29.166666666666668,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5017977712971122,
+              0.052791273476212375,
+              0.22808797362173913
+            ],
+            "body_collider_minimum_w_m": [
+              0.1712422115018935,
+              -0.3213661465268594,
+              0.1337689238293981
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08601188582717592,
+            "sim_time_s": 29.175,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5018232393812182,
+              0.052756081175587416,
+              0.22813204160649764
+            ],
+            "body_collider_minimum_w_m": [
+              0.17127320845732055,
+              -0.321399688770592,
+              0.13374132106947012
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08597922666672421,
+            "sim_time_s": 29.183333333333334,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5018377649116419,
+              0.052730702195580556,
+              0.22814414860111937
+            ],
+            "body_collider_minimum_w_m": [
+              0.17129074642848593,
+              -0.3214239065063682,
+              0.13371741698902867
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.0859526527097036,
+            "sim_time_s": 29.191666666666666,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5018204165975956,
+              0.05270828403315153,
+              0.2281955066392994
+            ],
+            "body_collider_minimum_w_m": [
+              0.17128053174964897,
+              -0.3214430252926775,
+              0.1337122005137705
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.0859515044235023,
+            "sim_time_s": 29.2,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          }
+        ],
+        "task_space_quality_semantics": "bounded_current_collider_obstacle_AABB_separation_deficit_v1",
+        "terminal_bootstrap_allowed": true,
+        "terminal_event": 0.0,
+        "total": 0.0023022710223681497,
+        "unweighted_families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.011960071071707146,
+          "task_progress": 0.0023022710223681497
+        }
+      },
+      "rollout_row_0based": 68,
+      "rollout_sha256": "218ef68e2ce77da64da2ff0a170b9d1626d66635762f60845a751f659d363f89",
+      "same_CPU_postupdate_mu_FL_hip_knee": [
+        -0.3686416745185852,
+        -0.868281900882721
+      ],
+      "same_CPU_preupdate_mu_FL_hip_knee": [
+        -0.37001731991767883,
+        -0.8695318102836609
+      ],
+      "same_CPU_update_mu_difference_FL_hip_knee": [
+        0.001375645399093628,
+        0.0012499094009399414
+      ],
+      "source_line_1based": 1477,
+      "tick": 3504,
+      "update": 1481
+    },
+    {
+      "CPU_vs_saved_GPU_old_mu_max_abs_full12": 0.0,
+      "FL_air": false,
+      "FL_bearing_N": 11.344045639038086,
+      "FL_gap_mm": -0.29608648353425526,
+      "FL_placed_history": true,
+      "FL_top_contact": true,
+      "actual_normalized_advantage": -2.941626787185669,
+      "actual_optimizer_appearances": [
+        {
+          "actual_normalized_advantage": -2.941626787185669,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.026908546686172485,
+            0.027168257161974907
+          ],
+          "minibatch": 3
+        },
+        {
+          "actual_normalized_advantage": -2.941626787185669,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.02539943717420101,
+            0.02503042295575142
+          ],
+          "minibatch": 7
+        },
+        {
+          "actual_normalized_advantage": -2.941626787185669,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.0237285103648901,
+            0.02329460345208645
+          ],
+          "minibatch": 11
+        },
+        {
+          "actual_normalized_advantage": -2.941626787185669,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.022501911967992783,
+            0.022052237764000893
+          ],
+          "minibatch": 15
+        },
+        {
+          "actual_normalized_advantage": -2.941626787185669,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            -0.02141161449253559,
+            0.020954208448529243
+          ],
+          "minibatch": 19
+        }
+      ],
+      "done": false,
+      "end_phase": "P06",
+      "episode": 1,
+      "global": 193990,
+      "input_float32_sha256": "65ffc05707d58645922fc418a7ec34b279c2b0c76ba4889a2f6e958808864c83",
+      "old_mu_FL_hip_knee": [
+        -0.5617549419403076,
+        -0.7934845685958862
+      ],
+      "old_value": -21.372634887695312,
+      "phase": "P05",
+      "raw_GAE": -0.6839714050292969,
+      "raw_action_FL_hip_knee": [
+        -0.6996999979019165,
+        -0.7166649103164673
+      ],
+      "raw_action_minus_old_mu_FL_hip_knee": [
+        -0.1379450559616089,
+        0.07681965827941895
+      ],
+      "return": -22.05660629272461,
+      "reward": 0.20367448031902313,
+      "reward_breakdown": {
+        "cost_components": {
+          "actual_drive_first_difference": 0.014198109980530772,
+          "actual_drive_second_difference": 0.010133682506480793,
+          "angular_acceleration": 0.0,
+          "confirmed_post_touchdown_rebound": 0.0,
+          "contact_chatter_diagnostic": 0.008333333333333333,
+          "contact_quality": 0.0,
+          "euler_rate": 0.0,
+          "gravity_attitude": 0.0,
+          "nominal_first_difference": 0.0,
+          "residual_first_difference": 0.013481239224554594,
+          "task_space_raw_geometry_cost": 0.0,
+          "task_space_weighted_geometry_cost": 0.0,
+          "touchdown_events": 1.0
+        },
+        "discount_convention": "one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",
+        "elapsed_physics_s": 0.06666666666666667,
+        "families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.0,
+          "task_progress": 0.20367448727552265
+        },
+        "front_quality_sample_audit": [],
+        "front_quality_semantics": "P01_P02_tilt_rate_only_positive_transfer_floor_v1",
+        "objective_profile": "task_conditioned_hip_wheel_quality_v1",
+        "potential_after": 0.4699531549488834,
+        "potential_before": 0.4282466610946889,
+        "potential_shaping": 0.20500782060885597,
+        "quality_epsilon": 0.06,
+        "task_space_quality_sample_audit": [
+          {
+            "body_collider_maximum_w_m": [
+              0.5018079316054727,
+              0.05270487835202323,
+              0.2282492152045773
+            ],
+            "body_collider_minimum_w_m": [
+              0.1712692174819144,
+              -0.32144696259616296,
+              0.13373341261432004
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08597499549630824,
+            "sim_time_s": 29.208333333333332,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5017900276783512,
+              0.052711755960553275,
+              0.22826577124964384
+            ],
+            "body_collider_minimum_w_m": [
+              0.1712488463800453,
+              -0.32144173954047006,
+              0.13375956850551718
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08600453188287205,
+            "sim_time_s": 29.216666666666665,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5017570358090131,
+              0.0527264157320403,
+              0.22825719118441914
+            ],
+            "body_collider_minimum_w_m": [
+              0.1712151030522512,
+              -0.3214263030191405,
+              0.13378605916898223
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08603782384439711,
+            "sim_time_s": 29.224999999999998,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5017395037265258,
+              0.05273855941058886,
+              0.2282315781037548
+            ],
+            "body_collider_minimum_w_m": [
+              0.1711947154286644,
+              -0.3214148244462246,
+              0.1337991466741326
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08605455476662296,
+            "sim_time_s": 29.233333333333334,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5017376608887582,
+              0.05274484445014327,
+              0.2282494645712061
+            ],
+            "body_collider_minimum_w_m": [
+              0.17119317992429128,
+              -0.3214081930606502,
+              0.1338217910176542
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08607702483289847,
+            "sim_time_s": 29.241666666666667,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5017480855829475,
+              0.05275925909636586,
+              0.228223699653458
+            ],
+            "body_collider_minimum_w_m": [
+              0.17120101833276496,
+              -0.32139422534838247,
+              0.1338359277628181
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08608842158258782,
+            "sim_time_s": 29.25,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5017994486090221,
+              0.052739209924197436,
+              0.22834324443103504
+            ],
+            "body_collider_minimum_w_m": [
+              0.17125595793573062,
+              -0.32141594208960045,
+              0.13384980862196555
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P05",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08609028312931659,
+            "sim_time_s": 29.258333333333333,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5019045449050675,
+              0.05260866043844137,
+              0.2287461791639242
+            ],
+            "body_collider_minimum_w_m": [
+              0.17137962218487102,
+              -0.32154846134645154,
+              0.13385001485847758
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08606672440649124,
+            "sim_time_s": 29.266666666666666,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          }
+        ],
+        "task_space_quality_semantics": "bounded_current_collider_obstacle_AABB_separation_deficit_v1",
+        "terminal_bootstrap_allowed": true,
+        "terminal_event": 0.0,
+        "total": 0.20367448727552265,
+        "unweighted_families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.012165896243505784,
+          "task_progress": 0.20367448727552265
+        }
+      },
+      "rollout_row_0based": 69,
+      "rollout_sha256": "218ef68e2ce77da64da2ff0a170b9d1626d66635762f60845a751f659d363f89",
+      "same_CPU_postupdate_mu_FL_hip_knee": [
+        -0.560382068157196,
+        -0.7922086119651794
+      ],
+      "same_CPU_preupdate_mu_FL_hip_knee": [
+        -0.5617549419403076,
+        -0.7934845685958862
+      ],
+      "same_CPU_update_mu_difference_FL_hip_knee": [
+        0.0013728737831115723,
+        0.0012759566307067871
+      ],
+      "source_line_1based": 1478,
+      "tick": 3512,
+      "update": 1481
+    },
+    {
+      "CPU_vs_saved_GPU_old_mu_max_abs_full12": 2.9802322387695312e-08,
+      "FL_air": false,
+      "FL_bearing_N": 2.0674779415130615,
+      "FL_gap_mm": -0.242057402632119,
+      "FL_placed_history": true,
+      "FL_top_contact": true,
+      "actual_normalized_advantage": -0.042341288179159164,
+      "actual_optimizer_appearances": [
+        {
+          "actual_normalized_advantage": -0.042341288179159164,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.001069019315764308,
+            0.002566153649240732
+          ],
+          "minibatch": 0
+        },
+        {
+          "actual_normalized_advantage": -0.042341288179159164,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0011639284202829003,
+            0.0027859003748744726
+          ],
+          "minibatch": 4
+        },
+        {
+          "actual_normalized_advantage": -0.042341288179159164,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0012092989636585116,
+            0.0028944716323167086
+          ],
+          "minibatch": 8
+        },
+        {
+          "actual_normalized_advantage": -0.042341288179159164,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0011946153827011585,
+            0.0028679557144641876
+          ],
+          "minibatch": 12
+        },
+        {
+          "actual_normalized_advantage": -0.042341288179159164,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0011471849866211414,
+            0.00276708765886724
+          ],
+          "minibatch": 16
+        }
+      ],
+      "done": false,
+      "end_phase": "P06",
+      "episode": 1,
+      "global": 193991,
+      "input_float32_sha256": "63327d510b068f0240f51f39b3bae37d7a22e4770a2cd6abcee86373cfb3bddd",
+      "old_mu_FL_hip_knee": [
+        -0.3224444091320038,
+        -0.4294032156467438
+      ],
+      "old_value": -22.647491455078125,
+      "phase": "P06",
+      "raw_GAE": 0.3573436737060547,
+      "raw_action_FL_hip_knee": [
+        -0.29562097787857056,
+        -0.3802415132522583
+      ],
+      "raw_action_minus_old_mu_FL_hip_knee": [
+        0.026823431253433228,
+        0.049161702394485474
+      ],
+      "return": -22.29014778137207,
+      "reward": 0.012574923224747181,
+      "reward_breakdown": {
+        "cost_components": {
+          "actual_drive_first_difference": 0.01965942523538794,
+          "actual_drive_second_difference": 0.011639923062984482,
+          "angular_acceleration": 0.0,
+          "confirmed_post_touchdown_rebound": 0.0,
+          "contact_chatter_diagnostic": 0.0,
+          "contact_quality": 0.0,
+          "euler_rate": 0.0,
+          "gravity_attitude": 0.0,
+          "nominal_first_difference": 0.0,
+          "residual_first_difference": 0.01965942523538794,
+          "task_space_raw_geometry_cost": 0.0,
+          "task_space_weighted_geometry_cost": 0.0,
+          "touchdown_events": 0.0
+        },
+        "discount_convention": "one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",
+        "elapsed_physics_s": 0.06666666666666667,
+        "families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.0,
+          "task_progress": 0.012574922841482724
+        },
+        "front_quality_sample_audit": [],
+        "front_quality_semantics": "P01_P02_tilt_rate_only_positive_transfer_floor_v1",
+        "objective_profile": "task_conditioned_hip_wheel_quality_v1",
+        "potential_after": 0.47344497364431304,
+        "potential_before": 0.4699531549488834,
+        "potential_shaping": 0.013908256174816058,
+        "quality_epsilon": 0.06,
+        "task_space_quality_sample_audit": [
+          {
+            "body_collider_maximum_w_m": [
+              0.5020235065559291,
+              0.05249484630729988,
+              0.22911698272858036
+            ],
+            "body_collider_minimum_w_m": [
+              0.17152324961004284,
+              -0.3216584980633229,
+              0.13385062642538786
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08604057319056709,
+            "sim_time_s": 29.275,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5021186232236734,
+              0.05235402077623365,
+              0.229460651661434
+            ],
+            "body_collider_minimum_w_m": [
+              0.17164508228623676,
+              -0.3217936102075065,
+              0.13382050482084873
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08598993784816832,
+            "sim_time_s": 29.28333333333333,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5021309606664907,
+              0.05218070682491849,
+              0.2297781131646513
+            ],
+            "body_collider_minimum_w_m": [
+              0.17168995884093427,
+              -0.32195676443007387,
+              0.1337441285237815
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08591273478632443,
+            "sim_time_s": 29.291666666666668,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5020902819039303,
+              0.051976956628878954,
+              0.23006964175343433
+            ],
+            "body_collider_minimum_w_m": [
+              0.1716906848910517,
+              -0.3221429465503702,
+              0.13363205363121256
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08581259535534758,
+            "sim_time_s": 29.3,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5020510458980176,
+              0.05178481462469117,
+              0.23032956973508356
+            ],
+            "body_collider_minimum_w_m": [
+              0.1716774389922929,
+              -0.32232815798909936,
+              0.13351089155414422
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08570332581180792,
+            "sim_time_s": 29.308333333333334,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5020499494906975,
+              0.05163014417718721,
+              0.23056919991167982
+            ],
+            "body_collider_minimum_w_m": [
+              0.1717067961413779,
+              -0.3224715234568593,
+              0.13340097177492005
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08559646825262815,
+            "sim_time_s": 29.316666666666666,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5020615527601092,
+              0.05146391066710748,
+              0.23078863718095388
+            ],
+            "body_collider_minimum_w_m": [
+              0.17174087608626354,
+              -0.3226313128290468,
+              0.13330426511098636
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08549963154940425,
+            "sim_time_s": 29.325,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5020840024530003,
+              0.05133715853952313,
+              0.23099610115200186
+            ],
+            "body_collider_minimum_w_m": [
+              0.17179343363507044,
+              -0.3227449885258202,
+              0.1332144798576068
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08540709707222059,
+            "sim_time_s": 29.333333333333332,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          }
+        ],
+        "task_space_quality_semantics": "bounded_current_collider_obstacle_AABB_separation_deficit_v1",
+        "terminal_bootstrap_allowed": true,
+        "terminal_event": 0.0,
+        "total": 0.012574922841482724,
+        "unweighted_families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.01564967414918621,
+          "task_progress": 0.012574922841482724
+        }
+      },
+      "rollout_row_0based": 70,
+      "rollout_sha256": "218ef68e2ce77da64da2ff0a170b9d1626d66635762f60845a751f659d363f89",
+      "same_CPU_postupdate_mu_FL_hip_knee": [
+        -0.3211791515350342,
+        -0.4282281994819641
+      ],
+      "same_CPU_preupdate_mu_FL_hip_knee": [
+        -0.3224444091320038,
+        -0.4294031858444214
+      ],
+      "same_CPU_update_mu_difference_FL_hip_knee": [
+        0.0012652575969696045,
+        0.0011749863624572754
+      ],
+      "source_line_1based": 1479,
+      "tick": 3520,
+      "update": 1481
+    },
+    {
+      "CPU_vs_saved_GPU_old_mu_max_abs_full12": 1.4901161193847656e-08,
+      "FL_air": true,
+      "FL_bearing_N": 0.0,
+      "FL_gap_mm": 1.4940180092355009,
+      "FL_placed_history": true,
+      "FL_top_contact": false,
+      "actual_normalized_advantage": -0.5509054064750671,
+      "actual_optimizer_appearances": [
+        {
+          "actual_normalized_advantage": -0.5509054064750671,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.02198794297873974,
+            0.0077961646020412445
+          ],
+          "minibatch": 2
+        },
+        {
+          "actual_normalized_advantage": -0.5509054064750671,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.023475252091884613,
+            0.00796839501708746
+          ],
+          "minibatch": 6
+        },
+        {
+          "actual_normalized_advantage": -0.5509054064750671,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.02364196442067623,
+            0.00789502914994955
+          ],
+          "minibatch": 10
+        },
+        {
+          "actual_normalized_advantage": -0.5509054064750671,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.023406436666846275,
+            0.007727401796728373
+          ],
+          "minibatch": 14
+        },
+        {
+          "actual_normalized_advantage": -0.5509054064750671,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.022973712533712387,
+            0.007486955728381872
+          ],
+          "minibatch": 18
+        }
+      ],
+      "done": false,
+      "end_phase": "P06",
+      "episode": 1,
+      "global": 193992,
+      "input_float32_sha256": "8a7f17789862c5d7ff1b3e07a06df5a046577b1797aff9d0d2dde1c305c20f62",
+      "old_mu_FL_hip_knee": [
+        -0.2720669209957123,
+        -0.38029003143310547
+      ],
+      "old_value": -22.509166717529297,
+      "phase": "P06",
+      "raw_GAE": 0.17468643188476562,
+      "raw_action_FL_hip_knee": [
+        -0.2393420934677124,
+        -0.37007975578308105
+      ],
+      "raw_action_minus_old_mu_FL_hip_knee": [
+        0.03272482752799988,
+        0.010210275650024414
+      ],
+      "return": -22.33448028564453,
+      "reward": -0.13385747373104095,
+      "reward_breakdown": {
+        "cost_components": {
+          "actual_drive_first_difference": 0.015264172365444008,
+          "actual_drive_second_difference": 0.0104378138128234,
+          "angular_acceleration": 0.0,
+          "confirmed_post_touchdown_rebound": 0.0,
+          "contact_chatter_diagnostic": 0.008333333333333333,
+          "contact_quality": 0.0,
+          "euler_rate": 0.0,
+          "gravity_attitude": 0.0,
+          "nominal_first_difference": 0.0,
+          "residual_first_difference": 0.015264172365444008,
+          "task_space_raw_geometry_cost": 0.0,
+          "task_space_weighted_geometry_cost": 0.0,
+          "touchdown_events": 0.0
+        },
+        "discount_convention": "one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",
+        "elapsed_physics_s": 0.06666666666666667,
+        "families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.0,
+          "task_progress": -0.13385747730713896
+        },
+        "front_quality_sample_audit": [],
+        "front_quality_semantics": "P01_P02_tilt_rate_only_positive_transfer_floor_v1",
+        "objective_profile": "task_conditioned_hip_wheel_quality_v1",
+        "potential_after": 0.44761156219284115,
+        "potential_before": 0.47344497364431304,
+        "potential_shaping": -0.13252414397380563,
+        "quality_epsilon": 0.06,
+        "task_space_quality_sample_audit": [
+          {
+            "body_collider_maximum_w_m": [
+              0.5021175985540736,
+              0.05117190130159402,
+              0.23116801245133897
+            ],
+            "body_collider_minimum_w_m": [
+              0.17185525507478594,
+              -0.3228976364931455,
+              0.13308831093041623
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08527660365613139,
+            "sim_time_s": 29.341666666666665,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5022059255222854,
+              0.051021294183767274,
+              0.23134245790904928
+            ],
+            "body_collider_minimum_w_m": [
+              0.17196751449905873,
+              -0.32304057906371186,
+              0.13292314370405528
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08509580767582864,
+            "sim_time_s": 29.349999999999998,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5022958214062588,
+              0.05084883632734373,
+              0.23153608324478878
+            ],
+            "body_collider_minimum_w_m": [
+              0.1720936905827496,
+              -0.32319712077123164,
+              0.13275215969581358
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08490901949544394,
+            "sim_time_s": 29.358333333333334,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5023810472162213,
+              0.05068666508241265,
+              0.23175350653187096
+            ],
+            "body_collider_minimum_w_m": [
+              0.1722144654597372,
+              -0.3233444674772727,
+              0.13260308676411742
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08474466057333153,
+            "sim_time_s": 29.366666666666667,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5025014709824395,
+              0.050545896265296694,
+              0.23198519696767766
+            ],
+            "body_collider_minimum_w_m": [
+              0.1723540178375116,
+              -0.32348303987434746,
+              0.13247080621527724
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08458886698196505,
+            "sim_time_s": 29.375,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.502626852702835,
+              0.0504056705001385,
+              0.23219792321515847
+            ],
+            "body_collider_minimum_w_m": [
+              0.17250846694010294,
+              -0.3236122729347199,
+              0.1323615908102477
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08445456094438986,
+            "sim_time_s": 29.383333333333333,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5027422010054013,
+              0.05027634897107858,
+              0.23240132106239514
+            ],
+            "body_collider_minimum_w_m": [
+              0.17264894069307132,
+              -0.3237331173464451,
+              0.1322521018379319
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08432231107700135,
+            "sim_time_s": 29.391666666666666,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5028509337674438,
+              0.050158844515383855,
+              0.23258802694659078
+            ],
+            "body_collider_minimum_w_m": [
+              0.17278427015083922,
+              -0.32384008438861545,
+              0.13215171127719394
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08420048128326688,
+            "sim_time_s": 29.4,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          }
+        ],
+        "task_space_quality_semantics": "bounded_current_collider_obstacle_AABB_separation_deficit_v1",
+        "terminal_bootstrap_allowed": true,
+        "terminal_event": 0.0,
+        "total": -0.13385747730713896,
+        "unweighted_families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.012850993089133705,
+          "task_progress": -0.13385747730713896
+        }
+      },
+      "rollout_row_0based": 71,
+      "rollout_sha256": "218ef68e2ce77da64da2ff0a170b9d1626d66635762f60845a751f659d363f89",
+      "same_CPU_postupdate_mu_FL_hip_knee": [
+        -0.27081137895584106,
+        -0.3791242837905884
+      ],
+      "same_CPU_preupdate_mu_FL_hip_knee": [
+        -0.2720669209957123,
+        -0.38029003143310547
+      ],
+      "same_CPU_update_mu_difference_FL_hip_knee": [
+        0.0012555420398712158,
+        0.0011657476425170898
+      ],
+      "source_line_1based": 1480,
+      "tick": 3528,
+      "update": 1481
+    },
+    {
+      "CPU_vs_saved_GPU_old_mu_max_abs_full12": 1.4901161193847656e-08,
+      "FL_air": true,
+      "FL_bearing_N": 0.0,
+      "FL_gap_mm": 6.102049526825561,
+      "FL_placed_history": true,
+      "FL_top_contact": false,
+      "actual_normalized_advantage": -0.12381032109260559,
+      "actual_optimizer_appearances": [
+        {
+          "actual_normalized_advantage": -0.12381032109260559,
+          "clipped_branch_strictly_active": false,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.003495713695883751,
+            -0.002198238857090473
+          ],
+          "minibatch": 1
+        },
+        {
+          "actual_normalized_advantage": -0.12381032109260559,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 5
+        },
+        {
+          "actual_normalized_advantage": -0.12381032109260559,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 9
+        },
+        {
+          "actual_normalized_advantage": -0.12381032109260559,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 13
+        },
+        {
+          "actual_normalized_advantage": -0.12381032109260559,
+          "clipped_branch_strictly_active": true,
+          "direct_loss_gradient_wrt_FL_network_mean_hip_knee": [
+            0.0,
+            0.0
+          ],
+          "minibatch": 17
+        }
+      ],
+      "done": false,
+      "end_phase": "P06",
+      "episode": 1,
+      "global": 193993,
+      "input_float32_sha256": "789c1838f49065e51280b6b066c1958b8cc9d5f9df8d9887675af52275e945a1",
+      "old_mu_FL_hip_knee": [
+        -0.22203105688095093,
+        -0.37311822175979614
+      ],
+      "old_value": -22.55877685546875,
+      "phase": "P06",
+      "raw_GAE": 0.3280830383300781,
+      "raw_action_FL_hip_knee": [
+        -0.13606978952884674,
+        -0.4243975877761841
+      ],
+      "raw_action_minus_old_mu_FL_hip_knee": [
+        0.08596126735210419,
+        -0.05127936601638794
+      ],
+      "return": -22.230693817138672,
+      "reward": -0.05525239184498787,
+      "reward_breakdown": {
+        "cost_components": {
+          "actual_drive_first_difference": 0.020055419678369615,
+          "actual_drive_second_difference": 0.00929539362250027,
+          "angular_acceleration": 0.0,
+          "confirmed_post_touchdown_rebound": 0.0,
+          "contact_chatter_diagnostic": 0.0,
+          "contact_quality": 0.0,
+          "euler_rate": 0.0,
+          "gravity_attitude": 0.0,
+          "nominal_first_difference": 0.0,
+          "residual_first_difference": 0.020055419678369615,
+          "task_space_raw_geometry_cost": 0.0,
+          "task_space_weighted_geometry_cost": 0.0,
+          "touchdown_events": 0.0
+        },
+        "discount_convention": "one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",
+        "elapsed_physics_s": 0.06666666666666667,
+        "families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.0,
+          "task_progress": -0.05525239122389795
+        },
+        "front_quality_sample_audit": [],
+        "front_quality_semantics": "P01_P02_tilt_rate_only_positive_transfer_floor_v1",
+        "objective_profile": "task_conditioned_hip_wheel_quality_v1",
+        "potential_after": 0.4374839765795976,
+        "potential_before": 0.44761156219284115,
+        "potential_shaping": -0.053919057890564615,
+        "quality_epsilon": 0.06,
+        "task_space_quality_sample_audit": [
+          {
+            "body_collider_maximum_w_m": [
+              0.5029140595930693,
+              0.05000940714675378,
+              0.2327747569468476
+            ],
+            "body_collider_minimum_w_m": [
+              0.17287402460055834,
+              -0.3239793979019423,
+              0.13200498920599033
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08404349385926244,
+            "sim_time_s": 29.40833333333333,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5028875661962968,
+              0.04982282766206053,
+              0.23300394950131767
+            ],
+            "body_collider_minimum_w_m": [
+              0.17288318661348995,
+              -0.32415137723382503,
+              0.13181732294078488
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08386620593285322,
+            "sim_time_s": 29.416666666666668,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5027929022228361,
+              0.0496147602313788,
+              0.2332612254762821
+            ],
+            "body_collider_minimum_w_m": [
+              0.17282744391368426,
+              -0.32434336414304316,
+              0.13161148040688148
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08368630206294912,
+            "sim_time_s": 29.425,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5026342716757954,
+              0.049403129258993206,
+              0.23352447249329836
+            ],
+            "body_collider_minimum_w_m": [
+              0.1727107592848782,
+              -0.32453512119549116,
+              0.13142211614815566
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08353696801306792,
+            "sim_time_s": 29.433333333333334,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5024439912766702,
+              0.04920348113702473,
+              0.23375659999806442
+            ],
+            "body_collider_minimum_w_m": [
+              0.1725562659413844,
+              -0.3247172655523167,
+              0.1312480243190961
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08341012987935736,
+            "sim_time_s": 29.441666666666666,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5022213655982708,
+              0.0490164287079341,
+              0.2339450991371874
+            ],
+            "body_collider_minimum_w_m": [
+              0.17236856501689307,
+              -0.32488556031540794,
+              0.1310703234417883
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08328779202104435,
+            "sim_time_s": 29.45,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5019756173983627,
+              0.04881398148024345,
+              0.23415225200008769
+            ],
+            "body_collider_minimum_w_m": [
+              0.17216197263620853,
+              -0.32506535015430227,
+              0.13089377166740226
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08317274016784502,
+            "sim_time_s": 29.458333333333332,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          },
+          {
+            "body_collider_maximum_w_m": [
+              0.5017946668375483,
+              0.048653387038757004,
+              0.23432871503981276
+            ],
+            "body_collider_minimum_w_m": [
+              0.17201014699153802,
+              -0.32520926456199534,
+              0.13076220155296928
+            ],
+            "clearance_margin_m": 0.02,
+            "dt_s": 0.008333333333333333,
+            "effective_beta_per_s": 0.03,
+            "eligible": true,
+            "measurement": "current_collider_obstacle_AABB_Euclidean_separation_lower_bound_not_exact_mesh_clearance",
+            "obstacle_planes_world_m": [
+              0.5213121737735307,
+              2.5786877308590377,
+              1.0,
+              -1.0,
+              0.0,
+              0.05
+            ],
+            "phase": "P06",
+            "raw_geometry_cost": 0.0,
+            "reason": null,
+            "schema": "wlr50_clean.task_space_quality_sample.v1",
+            "separation_lower_bound_m": 0.08308710054321643,
+            "sim_time_s": 29.466666666666665,
+            "terminal_measurement_omitted": false,
+            "valid": true,
+            "weighted_geometry_cost": 0.0
+          }
+        ],
+        "task_space_quality_semantics": "bounded_current_collider_obstacle_AABB_separation_deficit_v1",
+        "terminal_bootstrap_allowed": true,
+        "terminal_event": 0.0,
+        "total": -0.05525239122389795,
+        "unweighted_families": {
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_regularization": -0.0,
+          "control_smoothness": -0.014675406650434944,
+          "task_progress": -0.05525239122389795
+        }
+      },
+      "rollout_row_0based": 72,
+      "rollout_sha256": "218ef68e2ce77da64da2ff0a170b9d1626d66635762f60845a751f659d363f89",
+      "same_CPU_postupdate_mu_FL_hip_knee": [
+        -0.22074690461158752,
+        -0.3719300329685211
+      ],
+      "same_CPU_preupdate_mu_FL_hip_knee": [
+        -0.22203105688095093,
+        -0.37311822175979614
+      ],
+      "same_CPU_update_mu_difference_FL_hip_knee": [
+        0.0012841522693634033,
+        0.0011881887912750244
+      ],
+      "source_line_1based": 1481,
+      "tick": 3536,
+      "update": 1481
+    }
+  ],
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\train\\20260921T1043344171428Z_g97ecd305afb5_0168bb1943e74402accb92ea31b10de3",
+  "schema": "wlr50_clean.block10_FL_capture_credit_readonly.v1",
+  "semantics": "fixed real372/H; normalized advantages verified at actual five official minibatches; postupdate means compared on identical CPU inputs, not joint logp attribution or causal explanation",
+  "sources": {
+    "192768": {
+      "actor_sha256": "5dfba32d1d9313931f47abbc39e850be19d8ea85722a45c1ed96cde2584b642c",
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000192768.pt",
+      "sha256": "fe1f2d9bfbba6bc86954532b0273b6b7e30c6a9c3ed6e45775b09f1327de3d45"
+    },
+    "192896": {
+      "actor_sha256": "1e371ed7f3c31a47ec8292a3b30b996f356da17fccf7b12f35f548f71f3e60a1",
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000192896.pt",
+      "sha256": "bda020bc214bfb6ea654f120b21afcb442fb3da65bdec634cf9d5688b071436c"
+    },
+    "193024": {
+      "actor_sha256": "f45d9e385f45f9a27e5d5e6211a1f4af822f3c942223c367625070d81240c448",
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000193024.pt",
+      "sha256": "344b9ff49500caa5021ba53ec3f3c620ae9bd2411fe2647ae5da3bc2610c8427"
+    },
+    "193920": {
+      "actor_sha256": "b7856236930fb17deb14b95d726c09866172e781e82dfc86e9b25578c0b4389c",
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000193920.pt",
+      "sha256": "109b1df9604e4b817c7fb6e94596b1f567e15fcdcbf4df5d553810b2a1f9f53c"
+    },
+    "194048": {
+      "actor_sha256": "fe2c1dd651228997b5476fba867c4d75933229a6b8b59716056570ba4c931efd",
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000194048.pt",
+      "sha256": "17d569a01d12a4b70a28975fcdf16ebab45807ec92d98bb432a5567de31fe642"
+    }
+  }
+}

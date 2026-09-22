@@ -1,0 +1,77 @@
+{
+  "schema": "sealed_video_dual_termination_appendix.v1",
+  "source": "runs/ppo_task_conditioned_hip_wheel_v1/video_eval/validation/20260921T0627142354953Z_gee5a9651591d_91d8d06aaced49ebb0ad9d5a5c067b31/source",
+  "physical_evaluator_provenance": "semantic_video_source_manifest.json:physical_episode.physical_task_evaluation",
+  "semantic_provenance": "video_policy_decisions.jsonl:last complete row, step_info.semantic_task",
+  "final_decision": {
+    "start_tick": 6096,
+    "end_tick": 6099,
+    "physics_ticks": 3,
+    "environment_step_returned": true
+  },
+  "physical_evaluator": {
+    "physics_tick": 6099,
+    "simulation_time_s": 50.825,
+    "valid": true,
+    "success": false,
+    "termination_reason": null,
+    "termination_source": null,
+    "reason": "",
+    "run_validity": "VALID",
+    "physical_evidence_status": "VERIFIED"
+  },
+  "semantic_task": {
+    "stage_id": "P05",
+    "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "termination_source": "LOCAL_BOUNDED_RECOVERY_EXHAUSTED",
+    "local_timeout": {
+      "nominal_limit_s": 30.0,
+      "current_progress_allowance_s": 7.225,
+      "fixed_post_window_allowance_s": 0.0,
+      "effective_limit_s": 37.225,
+      "nominal_limit_exceeded": true,
+      "classification": "finite_task_terminal_not_external_truncation",
+      "timer_inputs_observable_in_existing372": true
+    },
+    "stage_age_s": 37.225,
+    "stage_elapsed_s": 37.225,
+    "remaining_task_time_s": 149.175,
+    "completion_values": {"placed_FL": 0.85},
+    "stall_diagnostic": true,
+    "completed_stage_ids": ["P01", "P02", "P03", "P04"]
+  },
+  "environment_step_outcome": {
+    "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "task_success": false,
+    "time_outs": false,
+    "task_outcome_label": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "full_task_success": false,
+    "terminal_bootstrap_allowed": false,
+    "episode_elapsed_s": 50.825
+  },
+  "final_FL": {
+    "front_distance_m": 0.15953976256680136,
+    "clearance_m": 0.008077880417104347,
+    "air": true,
+    "top_contact": false,
+    "top_surface_contact": false,
+    "support": false,
+    "bearing_force_n": 0.0,
+    "bearing_verified": true,
+    "ground_contact": false
+  },
+  "history_event_ticks": {
+    "active_lift": {"FR": 23, "FL": 1660},
+    "front_edge_crossed": {"FR": 1607, "FL": 2728},
+    "placed": {"FR": 1620}
+  },
+  "video_source": {
+    "physical_task_success": false,
+    "success_candidate": false,
+    "diagnostic_only": true,
+    "source_acceptance_error": "SemanticVideoError: episode did not meet common physical task",
+    "policy_sampling_mode": "deterministic_conditional_mean",
+    "optimizer_updates": 0
+  },
+  "interpretation": "Task incomplete: semantic P05 bounded recovery exhausted before FL placement. Physical termination null means no independent physical failure trigger recorded, not success. This is not an external wall-clock truncation. Video source acceptance error preserves the unmet physical task and is not by itself evidence of an encoding failure."
+}

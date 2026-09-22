@@ -1,0 +1,771 @@
+{
+  "schema": "training_P06_wheel_readonly.v1",
+  "source_run": "runs\\ppo_task_conditioned_hip_wheel_v1\\train\\20260921T0509408527373Z_gee5a9651591d_35cb60975d944752a3227f41558c2fca",
+  "classification": "stochastic_training_rollout_with_updates_NOT_fixed_checkpoint_evaluation_or_causal_traction_experiment",
+  "window": {
+    "episode_tick_endpoints": [
+      2800,
+      4000
+    ],
+    "sim_time_s": [
+      23.333333333333332,
+      33.333333333333336
+    ],
+    "duration_s": 10.0,
+    "physical_endpoint_samples": 151,
+    "action_intervals": 150,
+    "action_interval_end_ticks": [
+      2808,
+      4000
+    ],
+    "verified_dispatch_physics_ticks": 1200,
+    "global_decision_endpoints": [
+      186530,
+      186680
+    ],
+    "optimizer_updates": [
+      {
+        "ppo_update": 1423,
+        "global_policy_decisions": 186624,
+        "actor_parameters_changed": true
+      }
+    ],
+    "native_command_tick_minus_episode_poststep_tick": [
+      179
+    ],
+    "tick_alignment": "episode readback is after physics; native command tick has separate reset/settle offset and refers to preceding dispatch, never same clock label"
+  },
+  "wheels": {
+    "FL": {
+      "canonical_channel": 8,
+      "native_forward_sign": -1,
+      "source_P06_rolling_rad_s": {
+        "n": 150,
+        "minimum": 0.3,
+        "maximum": 0.3,
+        "mean": 0.29999999999999954,
+        "first": 0.3,
+        "last": 0.3
+      },
+      "nominal_rad_s": {
+        "n": 150,
+        "minimum": 0.3,
+        "maximum": 0.3,
+        "mean": 0.29999999999999954,
+        "first": 0.3,
+        "last": 0.3
+      },
+      "same_dispatch_mapped_baseline_rad_s": {
+        "n": 150,
+        "minimum": 0.3,
+        "maximum": 0.3,
+        "mean": 0.29999999999999954,
+        "first": 0.3,
+        "last": 0.3
+      },
+      "policy_raw_unitless": {
+        "n": 150,
+        "minimum": -0.35507091879844666,
+        "maximum": 0.6691680550575256,
+        "mean": 0.0663005074299872,
+        "first": 0.27143749594688416,
+        "last": 0.0815451517701149
+      },
+      "residual_permission_mask_values": [
+        1
+      ],
+      "projected_REQUEST_rad_s": {
+        "n": 150,
+        "minimum": -0.40903799994083767,
+        "maximum": 0.6236880513009968,
+        "mean": 0.07565652350178959,
+        "first": 0.3179543047512499,
+        "last": 0.09763786004841879
+      },
+      "effective_same_dispatch_residual_rad_s": {
+        "n": 150,
+        "minimum": -0.40903799994083767,
+        "maximum": 0.6236880513009968,
+        "mean": 0.07565652350178959,
+        "first": 0.3179543047512499,
+        "last": 0.09763786004841879
+      },
+      "final_canonical_target_rad_s": {
+        "n": 150,
+        "minimum": -0.10903799994083768,
+        "maximum": 0.9236880513009968,
+        "mean": 0.3756565235017895,
+        "first": 0.6179543047512499,
+        "last": 0.3976378600484188
+      },
+      "native_target_buffer_rad_s": {
+        "n": 150,
+        "minimum": -0.9236880540847778,
+        "maximum": 0.10903800278902054,
+        "mean": -0.3756565246793131,
+        "first": -0.6179543137550354,
+        "last": -0.39763787388801575
+      },
+      "measured_canonical_velocity_rad_s": {
+        "n": 150,
+        "minimum": -0.10907053202390671,
+        "maximum": 0.9233372807502747,
+        "mean": 0.3745024183827142,
+        "first": 0.6183988451957703,
+        "last": 0.39786842465400696
+      },
+      "measured_raw_native_velocity_rad_s": null,
+      "raw_native_absence_reason": "Training audit logs canonical physical readback only; native target buffer is not measured qd.",
+      "zero_final_target_count": 0,
+      "reverse_final_target_count": 8,
+      "near_zero_actual_count_0_01_rad_s": 2,
+      "reverse_actual_count": 8,
+      "cancellation_below_half_nominal_count": 20,
+      "final_minus_mapped_minus_effective_max_abs": 0.0,
+      "target_native_sign_mapping_max_abs": 2.9231946863106373e-08,
+      "same_endpoint_actual_minus_target_RMS_rad_s": 0.013089543094858174
+    },
+    "FR": {
+      "canonical_channel": 9,
+      "native_forward_sign": 1,
+      "source_P06_rolling_rad_s": {
+        "n": 150,
+        "minimum": 0.3,
+        "maximum": 0.3,
+        "mean": 0.29999999999999954,
+        "first": 0.3,
+        "last": 0.3
+      },
+      "nominal_rad_s": {
+        "n": 150,
+        "minimum": 0.3,
+        "maximum": 0.3,
+        "mean": 0.29999999999999954,
+        "first": 0.3,
+        "last": 0.3
+      },
+      "same_dispatch_mapped_baseline_rad_s": {
+        "n": 150,
+        "minimum": 0.3,
+        "maximum": 0.3,
+        "mean": 0.29999999999999954,
+        "first": 0.3,
+        "last": 0.3
+      },
+      "policy_raw_unitless": {
+        "n": 150,
+        "minimum": -0.06374479085206985,
+        "maximum": 0.19385208189487457,
+        "mean": 0.09326815482849876,
+        "first": 0.1518283188343048,
+        "last": 0.08166305720806122
+      },
+      "residual_permission_mask_values": [
+        1
+      ],
+      "projected_REQUEST_rad_s": {
+        "n": 150,
+        "minimum": -0.07639030895504895,
+        "maximum": 0.22975176363712574,
+        "mean": 0.11136958003986881,
+        "first": 0.18080680326398374,
+        "last": 0.09777840854961378
+      },
+      "effective_same_dispatch_residual_rad_s": {
+        "n": 150,
+        "minimum": -0.07639030895504895,
+        "maximum": 0.22975176363712574,
+        "mean": 0.11136958003986881,
+        "first": 0.18080680326398374,
+        "last": 0.09777840854961378
+      },
+      "final_canonical_target_rad_s": {
+        "n": 150,
+        "minimum": 0.22360969104495104,
+        "maximum": 0.5297517636371257,
+        "mean": 0.41136958003986857,
+        "first": 0.48080680326398373,
+        "last": 0.39777840854961377
+      },
+      "native_target_buffer_rad_s": {
+        "n": 150,
+        "minimum": 0.22360968589782715,
+        "maximum": 0.5297517776489258,
+        "mean": 0.4113695804278056,
+        "first": 0.48080679774284363,
+        "last": 0.3977784216403961
+      },
+      "measured_canonical_velocity_rad_s": {
+        "n": 150,
+        "minimum": 0.11288809031248093,
+        "maximum": 0.6236535310745239,
+        "mean": 0.33129719252387685,
+        "first": 0.27243906259536743,
+        "last": 0.4735312759876251
+      },
+      "measured_raw_native_velocity_rad_s": null,
+      "raw_native_absence_reason": "Training audit logs canonical physical readback only; native target buffer is not measured qd.",
+      "zero_final_target_count": 0,
+      "reverse_final_target_count": 0,
+      "near_zero_actual_count_0_01_rad_s": 0,
+      "reverse_actual_count": 0,
+      "cancellation_below_half_nominal_count": 0,
+      "final_minus_mapped_minus_effective_max_abs": 0.0,
+      "target_native_sign_mapping_max_abs": 1.4814094950743595e-08,
+      "same_endpoint_actual_minus_target_RMS_rad_s": 0.1121054815397022
+    },
+    "RL": {
+      "canonical_channel": 10,
+      "native_forward_sign": -1,
+      "source_P06_rolling_rad_s": {
+        "n": 150,
+        "minimum": 0.3,
+        "maximum": 0.3,
+        "mean": 0.29999999999999954,
+        "first": 0.3,
+        "last": 0.3
+      },
+      "nominal_rad_s": {
+        "n": 150,
+        "minimum": 0.3,
+        "maximum": 0.3,
+        "mean": 0.29999999999999954,
+        "first": 0.3,
+        "last": 0.3
+      },
+      "same_dispatch_mapped_baseline_rad_s": {
+        "n": 150,
+        "minimum": 0.3,
+        "maximum": 0.3,
+        "mean": 0.29999999999999954,
+        "first": 0.3,
+        "last": 0.3
+      },
+      "policy_raw_unitless": {
+        "n": 150,
+        "minimum": -0.17068839073181152,
+        "maximum": 0.42321836948394775,
+        "mean": 0.13405060453340412,
+        "first": 0.19313761591911316,
+        "last": 0.146465003490448
+      },
+      "residual_permission_mask_values": [
+        1
+      ],
+      "projected_REQUEST_rad_s": {
+        "n": 150,
+        "minimum": -0.1690498415999608,
+        "maximum": 0.3996382667269897,
+        "mean": 0.13083287240764174,
+        "first": 0.19077143308565442,
+        "last": 0.14542659070844322
+      },
+      "effective_same_dispatch_residual_rad_s": {
+        "n": 150,
+        "minimum": -0.1690498415999608,
+        "maximum": 0.3996382667269897,
+        "mean": 0.13083287240764174,
+        "first": 0.19077143308565442,
+        "last": 0.14542659070844322
+      },
+      "final_canonical_target_rad_s": {
+        "n": 150,
+        "minimum": 0.13095015840003918,
+        "maximum": 0.6996382667269897,
+        "mean": 0.4308328724076417,
+        "first": 0.4907714330856544,
+        "last": 0.4454265907084432
+      },
+      "native_target_buffer_rad_s": {
+        "n": 150,
+        "minimum": -0.6996382474899292,
+        "maximum": -0.13095015287399292,
+        "mean": -0.43083287129799525,
+        "first": -0.49077144265174866,
+        "last": -0.4454265832901001
+      },
+      "measured_canonical_velocity_rad_s": {
+        "n": 150,
+        "minimum": 0.10932596772909164,
+        "maximum": 0.778879702091217,
+        "mean": 0.47601315860946974,
+        "first": 0.5498383045196533,
+        "last": 0.4030146896839142
+      },
+      "measured_raw_native_velocity_rad_s": null,
+      "raw_native_absence_reason": "Training audit logs canonical physical readback only; native target buffer is not measured qd.",
+      "zero_final_target_count": 0,
+      "reverse_final_target_count": 0,
+      "near_zero_actual_count_0_01_rad_s": 0,
+      "reverse_actual_count": 0,
+      "cancellation_below_half_nominal_count": 1,
+      "final_minus_mapped_minus_effective_max_abs": 0.0,
+      "target_native_sign_mapping_max_abs": 2.8099365723122105e-08,
+      "same_endpoint_actual_minus_target_RMS_rad_s": 0.06831463339606435
+    },
+    "RR": {
+      "canonical_channel": 11,
+      "native_forward_sign": 1,
+      "source_P06_rolling_rad_s": {
+        "n": 150,
+        "minimum": 0.3,
+        "maximum": 0.3,
+        "mean": 0.29999999999999954,
+        "first": 0.3,
+        "last": 0.3
+      },
+      "nominal_rad_s": {
+        "n": 150,
+        "minimum": 0.3,
+        "maximum": 0.3,
+        "mean": 0.29999999999999954,
+        "first": 0.3,
+        "last": 0.3
+      },
+      "same_dispatch_mapped_baseline_rad_s": {
+        "n": 150,
+        "minimum": 0.3,
+        "maximum": 0.3,
+        "mean": 0.29999999999999954,
+        "first": 0.3,
+        "last": 0.3
+      },
+      "policy_raw_unitless": {
+        "n": 150,
+        "minimum": -0.37271803617477417,
+        "maximum": -0.08725040405988693,
+        "mean": -0.2559623343249162,
+        "first": -0.26482242345809937,
+        "last": -0.21881194412708282
+      },
+      "residual_permission_mask_values": [
+        1
+      ],
+      "projected_REQUEST_rad_s": {
+        "n": 150,
+        "minimum": -0.21382011603134016,
+        "maximum": -0.052217804640259685,
+        "mean": -0.14964644883813089,
+        "first": -0.15528032920869872,
+        "last": -0.12923124656318374
+      },
+      "effective_same_dispatch_residual_rad_s": {
+        "n": 150,
+        "minimum": -0.21382011603134016,
+        "maximum": -0.052217804640259685,
+        "mean": -0.14964644883813089,
+        "first": -0.15528032920869872,
+        "last": -0.12923124656318374
+      },
+      "final_canonical_target_rad_s": {
+        "n": 150,
+        "minimum": 0.08617988396865983,
+        "maximum": 0.2477821953597403,
+        "mean": 0.15035355116186905,
+        "first": 0.14471967079130127,
+        "last": 0.17076875343681625
+      },
+      "native_target_buffer_rad_s": {
+        "n": 150,
+        "minimum": 0.08617988228797913,
+        "maximum": 0.24778220057487488,
+        "mean": 0.15035355110963186,
+        "first": 0.1447196751832962,
+        "last": 0.17076875269412994
+      },
+      "measured_canonical_velocity_rad_s": {
+        "n": 150,
+        "minimum": 0.030892368406057358,
+        "maximum": 0.4298873543739319,
+        "mean": 0.16961997804542384,
+        "first": 0.15449965000152588,
+        "last": 0.4298873543739319
+      },
+      "measured_raw_native_velocity_rad_s": null,
+      "raw_native_absence_reason": "Training audit logs canonical physical readback only; native target buffer is not measured qd.",
+      "zero_final_target_count": 0,
+      "reverse_final_target_count": 0,
+      "near_zero_actual_count_0_01_rad_s": 0,
+      "reverse_actual_count": 0,
+      "cancellation_below_half_nominal_count": 80,
+      "final_minus_mapped_minus_effective_max_abs": 0.0,
+      "target_native_sign_mapping_max_abs": 7.410680652464308e-09,
+      "same_endpoint_actual_minus_target_RMS_rad_s": 0.04740248924271421
+    }
+  },
+  "dispatch": {
+    "all_full12_masks_one": true,
+    "all_final_native_verified": true,
+    "all_1200_tick_dispatches_verified": true,
+    "handoff_hold_ticks": 0,
+    "clipped_servo_indices": [],
+    "native_buffer_read_sources": [
+      "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    ],
+    "source_owner_evidence": "P06 source layer present; live measured retirement wheel_gain1; finite source before endpoint; captured FR/FL servo owners held, later cooperation not blocked",
+    "source_tail_statuses": [
+      "finite_source_before_endpoint"
+    ],
+    "source_wheel_gains": [
+      1.0
+    ],
+    "retirement_wheel_gains": [
+      1.0
+    ],
+    "stop_owner_active_count": 0,
+    "raw_joint_ids": null,
+    "complete_per_channel_owner_ledger": null,
+    "owner_evidence_limit": "Named source layer and verified last dispatcher/buffer are logged, not numeric joint IDs or a full source-event owner ledger."
+  },
+  "body_and_progress": {
+    "body_forward_from_obstacle_front_m": {
+      "n": 151,
+      "minimum": -0.1636957194106614,
+      "maximum": 0.034152749608274746,
+      "mean": -0.07225963408861608,
+      "first": -0.1636957194106614,
+      "last": 0.03329331023525839
+    },
+    "body_forward_displacement_m": 0.1969890296459198,
+    "nearest_rear_center_from_front_m": {
+      "n": 151,
+      "minimum": -0.47624290766287203,
+      "maximum": -0.2758914347188508,
+      "mean": -0.38029493889549587,
+      "first": -0.47624290766287203,
+      "last": -0.27724618868995066
+    },
+    "nearest_rear_center_forward_displacement_m": 0.19899671897292137,
+    "mass_weighted_CoM_world_displacement_m": [
+      0.19533461318254813,
+      -0.0054092462506219186,
+      0.003129551430437083
+    ],
+    "collider_min_world_z_m_120Hz": {
+      "n": 1200,
+      "minimum": 0.11375123192242888,
+      "maximum": 0.12735832656189316,
+      "mean": 0.12276080949970108,
+      "first": 0.12735832656189316,
+      "last": 0.12584211538266699
+    },
+    "conservative_body_obstacle_AABB_separation_m_120Hz": {
+      "n": 1200,
+      "minimum": 0.06375123192242887,
+      "maximum": 0.08191031529468844,
+      "mean": 0.07301260550168726,
+      "first": 0.08191031529468844,
+      "last": 0.07584211538266698
+    },
+    "geometry_quality_cost_sum": 0.0,
+    "hip_mount_world_z_m": null,
+    "hip_absence_reason": "No four_hip_geometry records in this training stream; not inferred from base height."
+  },
+  "current_contact_and_wheel_end_motion": {
+    "FL": {
+      "samples": 151,
+      "mode_counts": {
+        "AIR": 145,
+        "TOP": 6
+      },
+      "mode_transition_count": 6,
+      "mode_transitions": [
+        {
+          "tick": 3576,
+          "previous": "AIR",
+          "current": "TOP"
+        },
+        {
+          "tick": 3584,
+          "previous": "TOP",
+          "current": "AIR"
+        },
+        {
+          "tick": 3640,
+          "previous": "AIR",
+          "current": "TOP"
+        },
+        {
+          "tick": 3656,
+          "previous": "TOP",
+          "current": "AIR"
+        },
+        {
+          "tick": 3664,
+          "previous": "AIR",
+          "current": "TOP"
+        },
+        {
+          "tick": 3688,
+          "previous": "TOP",
+          "current": "AIR"
+        }
+      ],
+      "current_support_count": 6,
+      "ground_pair_contact_count": 0,
+      "obstacle_pair_contact_count": 6,
+      "actual_TOP_verified_bearing_count": 6,
+      "bearing_force_n": {
+        "n": 151,
+        "minimum": 0.0,
+        "maximum": 3.4176905155181885,
+        "mean": 0.08090422485048408,
+        "first": 0.0,
+        "last": 0.0
+      },
+      "wheel_center_front_distance_m": {
+        "n": 151,
+        "minimum": 0.09123272044491415,
+        "maximum": 0.28746629102062826,
+        "mean": 0.18051592231308508,
+        "first": 0.09814972026180868,
+        "last": 0.28746629102062826
+      },
+      "wheel_center_forward_displacement_m": 0.18931657075881958,
+      "wheel_bottom_gap_above_obstacle_top_m": {
+        "n": 151,
+        "minimum": -0.0006387184894773093,
+        "maximum": 0.03845174115224573,
+        "mean": 0.013830515357873554,
+        "first": 0.02690419248300409,
+        "last": 0.037510463343164505
+      },
+      "placed_history_count": 151
+    },
+    "FR": {
+      "samples": 151,
+      "mode_counts": {
+        "TOP": 151
+      },
+      "mode_transition_count": 0,
+      "mode_transitions": [],
+      "current_support_count": 151,
+      "ground_pair_contact_count": 0,
+      "obstacle_pair_contact_count": 151,
+      "actual_TOP_verified_bearing_count": 151,
+      "bearing_force_n": {
+        "n": 151,
+        "minimum": 9.659134864807129,
+        "maximum": 13.137330055236816,
+        "mean": 11.995646502008501,
+        "first": 11.815290451049805,
+        "last": 11.582901954650879
+      },
+      "wheel_center_front_distance_m": {
+        "n": 151,
+        "minimum": 0.22002268178295736,
+        "maximum": 0.4131676588757003,
+        "mean": 0.31769258322027466,
+        "first": 0.22002268178295736,
+        "last": 0.4131676588757003
+      },
+      "wheel_center_forward_displacement_m": 0.19314497709274292,
+      "wheel_bottom_gap_above_obstacle_top_m": {
+        "n": 151,
+        "minimum": -0.0015213370078429322,
+        "maximum": 2.210344115556595e-05,
+        "mean": -0.00038980576212691324,
+        "first": -0.0006645954029839418,
+        "last": -1.8373970001366036e-05
+      },
+      "placed_history_count": 151
+    },
+    "RL": {
+      "samples": 151,
+      "mode_counts": {
+        "GROUND": 151
+      },
+      "mode_transition_count": 0,
+      "mode_transitions": [],
+      "current_support_count": 151,
+      "ground_pair_contact_count": 151,
+      "obstacle_pair_contact_count": 0,
+      "actual_TOP_verified_bearing_count": 0,
+      "bearing_force_n": {
+        "n": 151,
+        "minimum": 10.491992950439453,
+        "maximum": 15.375683784484863,
+        "mean": 14.273688973180505,
+        "first": 14.295496940612793,
+        "last": 14.65827465057373
+      },
+      "wheel_center_front_distance_m": {
+        "n": 151,
+        "minimum": -0.47624290766287203,
+        "maximum": -0.2801263596313035,
+        "mean": -0.3867828066595883,
+        "first": -0.47624290766287203,
+        "last": -0.2801263596313035
+      },
+      "wheel_center_forward_displacement_m": 0.19611654803156853,
+      "wheel_bottom_gap_above_obstacle_top_m": {
+        "n": 151,
+        "minimum": -0.05159689105882611,
+        "maximum": -0.04999334511675003,
+        "mean": -0.05061084606813821,
+        "first": -0.050471798834283405,
+        "last": -0.05083752755349165
+      },
+      "placed_history_count": 0
+    },
+    "RR": {
+      "samples": 151,
+      "mode_counts": {
+        "GROUND": 151
+      },
+      "mode_transition_count": 0,
+      "mode_transitions": [],
+      "current_support_count": 151,
+      "ground_pair_contact_count": 151,
+      "obstacle_pair_contact_count": 0,
+      "actual_TOP_verified_bearing_count": 0,
+      "bearing_force_n": {
+        "n": 151,
+        "minimum": 1.1378703117370605,
+        "maximum": 5.106391906738281,
+        "mean": 2.3507803362726376,
+        "first": 2.2510366439819336,
+        "last": 2.8369035720825195
+      },
+      "wheel_center_front_distance_m": {
+        "n": 151,
+        "minimum": -0.47722573237586374,
+        "maximum": -0.2758914347188508,
+        "mean": -0.3803226429666261,
+        "first": -0.47722573237586374,
+        "last": -0.27724618868995066
+      },
+      "wheel_center_forward_displacement_m": 0.19997954368591309,
+      "wheel_bottom_gap_above_obstacle_top_m": {
+        "n": 151,
+        "minimum": -0.05123309546316167,
+        "maximum": -0.04998877467850082,
+        "mean": -0.05032099835495928,
+        "first": -0.04999379957156294,
+        "last": -0.050995986245893576
+      },
+      "placed_history_count": 0
+    }
+  },
+  "linkage": {
+    "nominal_servo_unique_vectors": [
+      [
+        22.8,
+        -13.4,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0
+      ]
+    ],
+    "measured_positions_deg": {
+      "rear_right_hip": {
+        "n": 151,
+        "minimum": 7.887788761186897,
+        "maximum": 13.065160090742154,
+        "mean": 11.0605483418697,
+        "first": 10.4795177021266,
+        "last": 13.065160090742154,
+        "net_change": 2.585642388615554,
+        "sampled_total_variation": 42.31233632799115,
+        "reversals_excluding_steps_below_0_05_deg": 42
+      },
+      "rear_right_knee": {
+        "n": 151,
+        "minimum": -11.342824318107958,
+        "maximum": -7.434630202388043,
+        "mean": -9.931395223721594,
+        "first": -7.434630202388043,
+        "last": -10.0766327507136,
+        "net_change": -2.642002548325557,
+        "sampled_total_variation": 20.141237484937953,
+        "reversals_excluding_steps_below_0_05_deg": 32
+      },
+      "rear_left_hip": {
+        "n": 151,
+        "minimum": -2.284902369291359,
+        "maximum": 1.8471008238306013,
+        "mean": -0.4912450190405553,
+        "first": 0.4661396668218174,
+        "last": -0.654513002438307,
+        "net_change": -1.1206526692601244,
+        "sampled_total_variation": 28.517838305679987,
+        "reversals_excluding_steps_below_0_05_deg": 48
+      },
+      "rear_left_knee": {
+        "n": 151,
+        "minimum": 4.857686019659866,
+        "maximum": 7.499940004324245,
+        "mean": 6.143560546890344,
+        "first": 4.857686019659866,
+        "last": 6.717418891494219,
+        "net_change": 1.8597328718343533,
+        "sampled_total_variation": 19.757948186171234,
+        "reversals_excluding_steps_below_0_05_deg": 23
+      },
+      "front_right_hip": {
+        "n": 151,
+        "minimum": 1.5635174943170682,
+        "maximum": 11.982123916271036,
+        "mean": 6.510741827070409,
+        "first": 3.133049502139329,
+        "last": 2.7708987850801066,
+        "net_change": -0.3621507170592224,
+        "sampled_total_variation": 74.42693085956776,
+        "reversals_excluding_steps_below_0_05_deg": 37
+      },
+      "front_right_knee": {
+        "n": 151,
+        "minimum": 41.69887739151851,
+        "maximum": 55.142636282017065,
+        "mean": 49.968776399078,
+        "first": 49.94615322939049,
+        "last": 47.77248650716895,
+        "net_change": -2.1736667222215402,
+        "sampled_total_variation": 73.50853124404979,
+        "reversals_excluding_steps_below_0_05_deg": 47
+      },
+      "front_left_hip": {
+        "n": 151,
+        "minimum": 20.075025497721725,
+        "maximum": 27.47851342590866,
+        "mean": 23.589470159840427,
+        "first": 25.643897294086543,
+        "last": 24.099654701996485,
+        "net_change": -1.5442425920900575,
+        "sampled_total_variation": 62.26373980400584,
+        "reversals_excluding_steps_below_0_05_deg": 51
+      },
+      "front_left_knee": {
+        "n": 151,
+        "minimum": -28.45907907203932,
+        "maximum": -13.118989875473012,
+        "mean": -20.894200886660652,
+        "first": -18.8448074661337,
+        "last": -20.43770832587093,
+        "net_change": -1.5929008597372274,
+        "sampled_total_variation": 97.11013893045491,
+        "reversals_excluding_steps_below_0_05_deg": 41
+      }
+    },
+    "minimum_to_either_joint_limit_deg": {
+      "rear_right_hip": 121.93483990925786,
+      "rear_right_knee": 48.65717568189204,
+      "rear_left_hip": 132.71509763070864,
+      "rear_left_knee": 64.85768601965987,
+      "front_right_hip": 123.01787608372896,
+      "front_right_knee": 101.69887739151851,
+      "front_left_hip": 107.52148657409134,
+      "front_left_knee": 31.54092092796068
+    },
+    "position_source": "Saved measured joint_range_margin_deg + verified physical lower limit; validated against positive margin, not reconstructed from targets.",
+    "limitation": "15Hz sampled total variation/reversals show back-and-forth joint motion, not exact 120Hz path length, periodic gait, work, or propulsion attribution."
+  },
+  "conclusions": [
+    "All four wheel targets and measured canonical rotations are present; no RR-only dispatch or nominal deletion by residual mask in this window.",
+    "FL historical capture is not current load bearing; its airborne rotation cannot establish ground traction.",
+    "Positive body and rear-wheel-center motion coexist with source rolling commands and residual joint oscillations. No torque/work/slip or wheel-off controlled comparison: main propulsion fraction remains unproven."
+  ]
+}

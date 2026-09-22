@@ -1,0 +1,5547 @@
+{
+  "schema": "block10.closed_RR_retention_5200_6600.v1",
+  "source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\train\\20260921T1043344171428Z_g97ecd305afb5_0168bb1943e74402accb92ea31b10de3\\residual_and_projection_audit.jsonl",
+  "bounded_prefix": {
+    "end_tick": 6600,
+    "complete_lines": 825,
+    "bytes": 81108220,
+    "sha256": "fafaf7be6a7a8a9a5e03ec62e03f468cb042804b89f1b673aff0a72011ec0cd5",
+    "not_whole_active_file_hash": true
+  },
+  "classification": "ongoing stochastic training with updates; not fixed checkpoint comparison or episode final result",
+  "wheel_order": [
+    "FL",
+    "FR",
+    "RL",
+    "RR"
+  ],
+  "wheel_velocity_units": "rad/s canonical; raw native measured qd absent/null",
+  "event_ticks": {
+    "active_lift": {
+      "FR": 27,
+      "FL": 1755,
+      "RR": 4759
+    },
+    "front_edge_crossed": {
+      "FR": 1694,
+      "FL": 2463,
+      "RR": 5322
+    },
+    "placed": {
+      "FR": 1709,
+      "FL": 3057,
+      "RR": 5542
+    }
+  },
+  "RR_events": [
+    {
+      "leg": "RR",
+      "event": "whole_body_initial_clearance",
+      "physics_tick": 4749,
+      "simulation_time_s": 39.575,
+      "upward_excursion_m": 0.003080583331868225,
+      "whole_body_joint_motion_deg": 6.031878580812361,
+      "command_motion_deg": 8.57483021182677,
+      "evidence": "continuous_unsupported_AIR_free_rise_v3",
+      "unsupported_free_lift_m": 0.003080583331868225
+    },
+    {
+      "leg": "RR",
+      "event": "qualified_measured_upward_lift",
+      "physics_tick": 4759,
+      "simulation_time_s": 39.65833333333333,
+      "upward_excursion_m": 0.008277832102859317,
+      "joint_motion_deg": 2.381346307898591,
+      "airborne_clearance_above_top_m": -0.04183597013366441,
+      "qualification_evidence": "continuous_unsupported_AIR_free_rise_v3",
+      "unsupported_free_lift_m": 0.008277832102859317
+    },
+    {
+      "leg": "RR",
+      "event": "current_lift_revoked_ground",
+      "physics_tick": 6212,
+      "simulation_time_s": 51.766666666666666,
+      "completed_crossing_history_retained": true
+    }
+  ],
+  "transitions": [
+    {
+      "from_stage": "P09",
+      "to_stage": "P10",
+      "sim_time_s": 46.333333333333336,
+      "physics_tick": 5560,
+      "reason": "current physical goal set satisfied",
+      "continuous_takeover": false,
+      "entry": {
+        "valid": true,
+        "reasons": [],
+        "values": {
+          "physical_valid": 1.0,
+          "placed_FR": 1.0,
+          "placed_FL": 1.0
+        }
+      },
+      "completion_values": {
+        "placed_RR": 1.0
+      },
+      "history": {
+        "active_lift": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": true
+        },
+        "front_edge_crossed": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": true
+        },
+        "placed": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": true
+        },
+        "event_ticks": {
+          "active_lift": {
+            "FR": 27,
+            "FL": 1755,
+            "RR": 4759
+          },
+          "front_edge_crossed": {
+            "FR": 1694,
+            "FL": 2463,
+            "RR": 5322
+          },
+          "placed": {
+            "FR": 1709,
+            "FL": 3057,
+            "RR": 5542
+          }
+        },
+        "active_lift_semantics": "RR_same_attempt_establishment_with_separate_current_validity_and_contact_mode",
+        "lift_attempt_events": [
+          {
+            "leg": "RL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 8,
+            "simulation_time_s": 0.06666666666666667,
+            "upward_excursion_m": 0.003274752644471475,
+            "whole_body_joint_motion_deg": 5.145914817460273,
+            "command_motion_deg": 7.871121280018704,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 18,
+            "simulation_time_s": 0.15,
+            "upward_excursion_m": 0.0030870854150214302,
+            "whole_body_joint_motion_deg": 16.154133010626712,
+            "command_motion_deg": 27.141265479441373,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 27,
+            "simulation_time_s": 0.225,
+            "upward_excursion_m": 0.008641470336969832,
+            "joint_motion_deg": 6.793586737368211,
+            "airborne_clearance_above_top_m": -0.042189104513498964
+          },
+          {
+            "leg": "RL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 1707,
+            "simulation_time_s": 14.225,
+            "upward_excursion_m": 0.0031787813559408934,
+            "whole_body_joint_motion_deg": 20.871746707238323,
+            "command_motion_deg": 11.368659394314568,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 1749,
+            "simulation_time_s": 14.575,
+            "upward_excursion_m": 0.003675189427230406,
+            "whole_body_joint_motion_deg": 10.68708258865036,
+            "command_motion_deg": 17.453395537323196,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FL",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 1755,
+            "simulation_time_s": 14.625,
+            "upward_excursion_m": 0.008882179811820504,
+            "joint_motion_deg": 10.892502809114944,
+            "airborne_clearance_above_top_m": -0.041878343813455544
+          },
+          {
+            "leg": "RR",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 4749,
+            "simulation_time_s": 39.575,
+            "upward_excursion_m": 0.003080583331868225,
+            "whole_body_joint_motion_deg": 6.031878580812361,
+            "command_motion_deg": 8.57483021182677,
+            "evidence": "continuous_unsupported_AIR_free_rise_v3",
+            "unsupported_free_lift_m": 0.003080583331868225
+          },
+          {
+            "leg": "RR",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 4759,
+            "simulation_time_s": 39.65833333333333,
+            "upward_excursion_m": 0.008277832102859317,
+            "joint_motion_deg": 2.381346307898591,
+            "airborne_clearance_above_top_m": -0.04183597013366441,
+            "qualification_evidence": "continuous_unsupported_AIR_free_rise_v3",
+            "unsupported_free_lift_m": 0.008277832102859317
+          }
+        ]
+      }
+    },
+    {
+      "from_stage": "P10",
+      "to_stage": "P11",
+      "sim_time_s": 46.666666666666664,
+      "physics_tick": 5600,
+      "reason": "current physical goal set satisfied",
+      "continuous_takeover": false,
+      "entry": {
+        "valid": true,
+        "reasons": [],
+        "values": {
+          "physical_valid": 1.0,
+          "placed_FR": 1.0,
+          "placed_FL": 1.0,
+          "placed_RR": 1.0
+        }
+      },
+      "completion_values": {
+        "edge_proximity_RL": 1.0,
+        "role_prepared_RL": 1.0
+      },
+      "history": {
+        "active_lift": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": true
+        },
+        "front_edge_crossed": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": true
+        },
+        "placed": {
+          "FL": true,
+          "FR": true,
+          "RL": false,
+          "RR": true
+        },
+        "event_ticks": {
+          "active_lift": {
+            "FR": 27,
+            "FL": 1755,
+            "RR": 4759
+          },
+          "front_edge_crossed": {
+            "FR": 1694,
+            "FL": 2463,
+            "RR": 5322
+          },
+          "placed": {
+            "FR": 1709,
+            "FL": 3057,
+            "RR": 5542
+          }
+        },
+        "active_lift_semantics": "RR_same_attempt_establishment_with_separate_current_validity_and_contact_mode",
+        "lift_attempt_events": [
+          {
+            "leg": "RL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 8,
+            "simulation_time_s": 0.06666666666666667,
+            "upward_excursion_m": 0.003274752644471475,
+            "whole_body_joint_motion_deg": 5.145914817460273,
+            "command_motion_deg": 7.871121280018704,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 18,
+            "simulation_time_s": 0.15,
+            "upward_excursion_m": 0.0030870854150214302,
+            "whole_body_joint_motion_deg": 16.154133010626712,
+            "command_motion_deg": 27.141265479441373,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FR",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 27,
+            "simulation_time_s": 0.225,
+            "upward_excursion_m": 0.008641470336969832,
+            "joint_motion_deg": 6.793586737368211,
+            "airborne_clearance_above_top_m": -0.042189104513498964
+          },
+          {
+            "leg": "RL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 1707,
+            "simulation_time_s": 14.225,
+            "upward_excursion_m": 0.0031787813559408934,
+            "whole_body_joint_motion_deg": 20.871746707238323,
+            "command_motion_deg": 11.368659394314568,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FL",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 1749,
+            "simulation_time_s": 14.575,
+            "upward_excursion_m": 0.003675189427230406,
+            "whole_body_joint_motion_deg": 10.68708258865036,
+            "command_motion_deg": 17.453395537323196,
+            "evidence": "active_air_or_early_top"
+          },
+          {
+            "leg": "FL",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 1755,
+            "simulation_time_s": 14.625,
+            "upward_excursion_m": 0.008882179811820504,
+            "joint_motion_deg": 10.892502809114944,
+            "airborne_clearance_above_top_m": -0.041878343813455544
+          },
+          {
+            "leg": "RR",
+            "event": "whole_body_initial_clearance",
+            "physics_tick": 4749,
+            "simulation_time_s": 39.575,
+            "upward_excursion_m": 0.003080583331868225,
+            "whole_body_joint_motion_deg": 6.031878580812361,
+            "command_motion_deg": 8.57483021182677,
+            "evidence": "continuous_unsupported_AIR_free_rise_v3",
+            "unsupported_free_lift_m": 0.003080583331868225
+          },
+          {
+            "leg": "RR",
+            "event": "qualified_measured_upward_lift",
+            "physics_tick": 4759,
+            "simulation_time_s": 39.65833333333333,
+            "upward_excursion_m": 0.008277832102859317,
+            "joint_motion_deg": 2.381346307898591,
+            "airborne_clearance_above_top_m": -0.04183597013366441,
+            "qualification_evidence": "continuous_unsupported_AIR_free_rise_v3",
+            "unsupported_free_lift_m": 0.008277832102859317
+          }
+        ]
+      }
+    }
+  ],
+  "first_postcapture_saved": {
+    "capture_tick": 5542,
+    "first_endpoint": 5544,
+    "first_non_TOP_bearing_tick": 5544,
+    "first_AIR_tick": 5544,
+    "first_GROUND_tick": 6216,
+    "first_outside_top_xy_tick": 5632
+  },
+  "postcapture_body_front_peak": {
+    "tick": 5544,
+    "phase": "P09",
+    "end_phase": "P09",
+    "body_front_m": 0.2529866133434737,
+    "RR": {
+      "contact_mode": "AIR",
+      "current_lift_valid": true,
+      "support": false,
+      "bearing_force_n": 0.0,
+      "within_top_xy": true,
+      "front_distance_m": 0.04687208278011923,
+      "clearance_m": -0.0008503960068457425,
+      "placed_on_top": true
+    },
+    "RR_current_TOP_verified_bearing": false,
+    "FL": {
+      "air": true,
+      "support": false,
+      "top_surface_contact": false,
+      "bearing_force_n": 0.0,
+      "front_distance_m": 0.37383491141628866,
+      "clearance_m": 0.004741663749958394
+    },
+    "nominal_wheels": [
+      -1.07,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "mapped_wheels": [
+      -1.07,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "policy_raw_wheels": [
+      0.7638201117515564,
+      -0.17204785346984863,
+      -0.12549586594104767,
+      -0.31836530566215515
+    ],
+    "REQUEST_wheels": [
+      0.5402529602543722,
+      -0.20444417948962498,
+      -0.12484116966421505,
+      -0.1848168448521872
+    ],
+    "effective_wheels": [
+      0.5402529602543722,
+      -0.20444417948962498,
+      -0.12484116966421505,
+      -0.1848168448521872
+    ],
+    "final_wheels": [
+      -0.5297470397456279,
+      -0.20444417948962498,
+      -0.12484116966421505,
+      -0.1848168448521872
+    ],
+    "measured_canonical_wheels": [
+      -0.5301727056503296,
+      -0.21678157150745392,
+      -0.06130923330783844,
+      -0.22354649007320404
+    ],
+    "final_stop_owner_active": false,
+    "source_rr_wheel_owner": {
+      "source_joint_owners_continued": true,
+      "added_rolling_suggestion": false,
+      "ordered_source_wheel_owner": true,
+      "late_reconfiguration_waiting": false,
+      "current_TOP_continuation_eligible": false,
+      "reason": "finite_ordered_source_wheel_owner",
+      "fixed_lift_timer_gate": false,
+      "above_top_15mm_action_gate": false
+    },
+    "p06_retirement": {
+      "schema": "wlr50_clean.p06_rolling_retirement.v1",
+      "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+      "enabled": true,
+      "layer_present": true,
+      "status": "live_measured",
+      "origin": "current_live_P06_layer",
+      "source_observation_tick": 5544,
+      "source_sim_time_s": 46.2,
+      "front_distance_rl_m": -0.1279512013690507,
+      "front_distance_rr_m": 0.04687208278011923,
+      "lateral_valid": true,
+      "measured_fraction": 1.0,
+      "peak_fraction": 1.0,
+      "wheel_gain": 0.0,
+      "gain_semantics": "bounded_current_geometry_recoverable"
+    },
+    "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+  },
+  "postcapture_RR_front_peak": {
+    "tick": 5560,
+    "phase": "P09",
+    "end_phase": "P10",
+    "body_front_m": 0.2506825361950362,
+    "RR": {
+      "contact_mode": "AIR",
+      "current_lift_valid": true,
+      "support": false,
+      "bearing_force_n": 0.0,
+      "within_top_xy": true,
+      "front_distance_m": 0.049313131402250576,
+      "clearance_m": 0.00457460811879612,
+      "placed_on_top": true
+    },
+    "RR_current_TOP_verified_bearing": false,
+    "FL": {
+      "air": true,
+      "support": false,
+      "top_surface_contact": false,
+      "bearing_force_n": 0.0,
+      "front_distance_m": 0.3614859019024337,
+      "clearance_m": 0.01073277374855161
+    },
+    "nominal_wheels": [
+      -1.07,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "mapped_wheels": [
+      -1.07,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "policy_raw_wheels": [
+      0.8746766448020935,
+      -0.14449825882911682,
+      -0.006826288998126984,
+      -0.40138328075408936
+    ],
+    "REQUEST_wheels": [
+      0.7802529602543724,
+      -0.1722010706646553,
+      -0.006826182969127735,
+      -0.228679157056326
+    ],
+    "effective_wheels": [
+      0.7802529602543724,
+      -0.1722010706646553,
+      -0.006826182969127735,
+      -0.228679157056326
+    ],
+    "final_wheels": [
+      -0.28974703974562765,
+      -0.1722010706646553,
+      -0.006826182969127735,
+      -0.228679157056326
+    ],
+    "measured_canonical_wheels": [
+      -0.2899978756904602,
+      -0.31085559725761414,
+      0.06589892506599426,
+      -0.2293281853199005
+    ],
+    "final_stop_owner_active": false,
+    "source_rr_wheel_owner": {
+      "source_joint_owners_continued": true,
+      "added_rolling_suggestion": false,
+      "ordered_source_wheel_owner": true,
+      "late_reconfiguration_waiting": false,
+      "current_TOP_continuation_eligible": false,
+      "reason": "finite_ordered_source_wheel_owner",
+      "fixed_lift_timer_gate": false,
+      "above_top_15mm_action_gate": false
+    },
+    "p06_retirement": {
+      "schema": "wlr50_clean.p06_rolling_retirement.v1",
+      "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+      "enabled": true,
+      "layer_present": true,
+      "status": "live_measured",
+      "origin": "current_live_P06_layer",
+      "source_observation_tick": 5560,
+      "source_sim_time_s": 46.333333333333336,
+      "front_distance_rl_m": -0.127961602379564,
+      "front_distance_rr_m": 0.049313131402250576,
+      "lateral_valid": true,
+      "measured_fraction": 1.0,
+      "peak_fraction": 1.0,
+      "wheel_gain": 0.0,
+      "gain_semantics": "bounded_current_geometry_recoverable"
+    },
+    "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+  },
+  "source_or_phase_changes": [
+    {
+      "tick": 5200,
+      "phase": "P09",
+      "end_phase": "P09",
+      "body_front_m": 0.20660639149975424,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.032876905371431064,
+        "clearance_m": 0.0419415116099191,
+        "placed_on_top": false
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": false,
+        "support": true,
+        "top_surface_contact": true,
+        "bearing_force_n": 2.504209518432617,
+        "front_distance_m": 0.4839180145962203,
+        "clearance_m": -0.00019390596136544674
+      },
+      "nominal_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "policy_raw_wheels": [
+        -0.07533589005470276,
+        -0.030392218381166458,
+        0.023505546152591705,
+        -0.24355725944042206
+      ],
+      "REQUEST_wheels": [
+        -0.0902324280149498,
+        -0.03645943704668403,
+        0.023501218087191134,
+        -0.1433117418534024
+      ],
+      "effective_wheels": [
+        -0.0902324280149498,
+        -0.03645943704668403,
+        0.023501218087191134,
+        -0.1433117418534024
+      ],
+      "final_wheels": [
+        0.2097675719850502,
+        0.26354056295331596,
+        0.3235012180871911,
+        0.1566882581465976
+      ],
+      "measured_canonical_wheels": [
+        0.19689658284187317,
+        0.31183281540870667,
+        0.39705583453178406,
+        0.15734435617923737
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5200,
+        "source_sim_time_s": 43.333333333333336,
+        "front_distance_rl_m": -0.15227388994861002,
+        "front_distance_rr_m": -0.032876905371431064,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5384,
+      "phase": "P09",
+      "end_phase": "P09",
+      "body_front_m": 0.23893255336117392,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": true,
+        "front_distance_m": 0.04173994405102377,
+        "clearance_m": 0.026883652406090183,
+        "placed_on_top": false
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": false,
+        "support": true,
+        "top_surface_contact": true,
+        "bearing_force_n": 2.16916823387146,
+        "front_distance_m": 0.5144521628124679,
+        "clearance_m": -0.0001711727433389293
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.130634143948555,
+        0.016284368932247162,
+        0.15130096673965454,
+        -0.2502678334712982
+      ],
+      "REQUEST_wheels": [
+        -0.24556346288988307,
+        0.019539515581942175,
+        0.15015691508031254,
+        -0.1471022479941044
+      ],
+      "effective_wheels": [
+        -0.24556346288988307,
+        0.019539515581942175,
+        0.15015691508031254,
+        -0.1471022479941044
+      ],
+      "final_wheels": [
+        -0.24556346288988307,
+        0.019539515581942175,
+        0.15015691508031254,
+        -0.1471022479941044
+      ],
+      "measured_canonical_wheels": [
+        0.061296992003917694,
+        -0.08235926926136017,
+        0.3163648247718811,
+        -0.1453656107187271
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5384,
+        "source_sim_time_s": 44.86666666666667,
+        "front_distance_rl_m": -0.11780672924685831,
+        "front_distance_rr_m": 0.04173994405102377,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5392,
+      "phase": "P09",
+      "end_phase": "P09",
+      "body_front_m": 0.2424508367283309,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": true,
+        "front_distance_m": 0.04806757314037924,
+        "clearance_m": 0.025299674513704976,
+        "placed_on_top": false
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": false,
+        "support": true,
+        "top_surface_contact": true,
+        "bearing_force_n": 1.1024048328399658,
+        "front_distance_m": 0.5092963610393966,
+        "clearance_m": -0.0001983995291897217
+      },
+      "nominal_wheels": [
+        -1.07,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        -1.07,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.08085475862026215,
+        0.07704287767410278,
+        0.10337738692760468,
+        -0.31294143199920654
+      ],
+      "REQUEST_wheels": [
+        -0.1255634628898823,
+        0.09226896802468511,
+        0.10301069365277064,
+        -0.18186639474776567
+      ],
+      "effective_wheels": [
+        -0.1255634628898823,
+        0.09226896802468511,
+        0.10301069365277064,
+        -0.18186639474776567
+      ],
+      "final_wheels": [
+        -1.1955634628898824,
+        0.09226896802468511,
+        0.10301069365277064,
+        -0.18186639474776567
+      ],
+      "measured_canonical_wheels": [
+        -1.2266476154327393,
+        -0.04283793270587921,
+        0.2340105026960373,
+        -0.18257004022598267
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5392,
+        "source_sim_time_s": 44.93333333333333,
+        "front_distance_rl_m": -0.11720919268298502,
+        "front_distance_rr_m": 0.04806757314037924,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5560,
+      "phase": "P09",
+      "end_phase": "P10",
+      "body_front_m": 0.2506825361950362,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": true,
+        "front_distance_m": 0.049313131402250576,
+        "clearance_m": 0.00457460811879612,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.3614859019024337,
+        "clearance_m": 0.01073277374855161
+      },
+      "nominal_wheels": [
+        -1.07,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        -1.07,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.8746766448020935,
+        -0.14449825882911682,
+        -0.006826288998126984,
+        -0.40138328075408936
+      ],
+      "REQUEST_wheels": [
+        0.7802529602543724,
+        -0.1722010706646553,
+        -0.006826182969127735,
+        -0.228679157056326
+      ],
+      "effective_wheels": [
+        0.7802529602543724,
+        -0.1722010706646553,
+        -0.006826182969127735,
+        -0.228679157056326
+      ],
+      "final_wheels": [
+        -0.28974703974562765,
+        -0.1722010706646553,
+        -0.006826182969127735,
+        -0.228679157056326
+      ],
+      "measured_canonical_wheels": [
+        -0.2899978756904602,
+        -0.31085559725761414,
+        0.06589892506599426,
+        -0.2293281853199005
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5560,
+        "source_sim_time_s": 46.333333333333336,
+        "front_distance_rl_m": -0.127961602379564,
+        "front_distance_rr_m": 0.049313131402250576,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5568,
+      "phase": "P10",
+      "end_phase": "P10",
+      "body_front_m": 0.24851286752056723,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": true,
+        "front_distance_m": 0.04648012263607626,
+        "clearance_m": 0.012351364122405839,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.3554150496227706,
+        "clearance_m": 0.015512607699625702
+      },
+      "nominal_wheels": [
+        -1.07,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        -1.07,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.3172582983970642,
+        -0.2048877477645874,
+        -0.007391538470983505,
+        -0.4009424149990082
+      ],
+      "REQUEST_wheels": [
+        0.6752529602543723,
+        -0.2424817095991215,
+        -0.007391403862082282,
+        -0.22845302412618657
+      ],
+      "effective_wheels": [
+        0.6752529602543723,
+        -0.2424817095991215,
+        -0.007391403862082282,
+        -0.22845302412618657
+      ],
+      "final_wheels": [
+        -0.39474703974562775,
+        -0.2424817095991215,
+        -0.007391403862082282,
+        -0.22845302412618657
+      ],
+      "measured_canonical_wheels": [
+        -0.3958980143070221,
+        -0.353680282831192,
+        -0.1735515147447586,
+        -0.22700683772563934
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5568,
+        "source_sim_time_s": 46.4,
+        "front_distance_rl_m": -0.1277133192317521,
+        "front_distance_rr_m": 0.04648012263607626,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5600,
+      "phase": "P10",
+      "end_phase": "P11",
+      "body_front_m": 0.24374431712460165,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": true,
+        "front_distance_m": 0.030593756268736172,
+        "clearance_m": 0.03789996807876837,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": false,
+        "support": true,
+        "top_surface_contact": true,
+        "bearing_force_n": 6.100162982940674,
+        "front_distance_m": 0.37300658566784506,
+        "clearance_m": -0.0003066549289481857
+      },
+      "nominal_wheels": [
+        -1.07,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        -1.07,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.7064312696456909,
+        -0.20421680808067322,
+        -0.04135905206203461,
+        -0.47394075989723206
+      ],
+      "REQUEST_wheels": [
+        0.7301209167926562,
+        -0.24170935196088703,
+        -0.041335485652445644,
+        -0.2648267220426649
+      ],
+      "effective_wheels": [
+        0.7301209167926562,
+        -0.24170935196088703,
+        -0.041335485652445644,
+        -0.2648267220426649
+      ],
+      "final_wheels": [
+        -0.33987908320734384,
+        -0.24170935196088703,
+        -0.041335485652445644,
+        -0.2648267220426649
+      ],
+      "measured_canonical_wheels": [
+        -0.13317537307739258,
+        -0.21291956305503845,
+        0.08449336886405945,
+        -0.2636435925960541
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5600,
+        "source_sim_time_s": 46.666666666666664,
+        "front_distance_rl_m": -0.12624433295894022,
+        "front_distance_rr_m": 0.030593756268736172,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5608,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.23658168656658773,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": true,
+        "front_distance_m": 0.02290165765118246,
+        "clearance_m": 0.03253324642796547,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.37696802956890707,
+        "clearance_m": 6.95478363556476e-05
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.630486011505127,
+        -0.13653868436813354,
+        0.016765698790550232,
+        -0.3848271667957306
+      ],
+      "REQUEST_wheels": [
+        0.6700641377865135,
+        -0.1628357710903678,
+        0.01676412808457343,
+        -0.22013533728911386
+      ],
+      "effective_wheels": [
+        0.6700641377865135,
+        -0.1628357710903678,
+        0.01676412808457343,
+        -0.22013533728911386
+      ],
+      "final_wheels": [
+        0.6700641377865135,
+        -0.1628357710903678,
+        0.01676412808457343,
+        -0.22013533728911386
+      ],
+      "measured_canonical_wheels": [
+        0.6696006059646606,
+        -0.296511173248291,
+        0.09816677123308182,
+        -0.22136196494102478
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5608,
+        "source_sim_time_s": 46.733333333333334,
+        "front_distance_rl_m": -0.12777772205043192,
+        "front_distance_rr_m": 0.02290165765118246,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    }
+  ],
+  "postcapture_contact_or_validity_changes": [
+    {
+      "tick": 5544,
+      "phase": "P09",
+      "end_phase": "P09",
+      "body_front_m": 0.2529866133434737,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": true,
+        "front_distance_m": 0.04687208278011923,
+        "clearance_m": -0.0008503960068457425,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.37383491141628866,
+        "clearance_m": 0.004741663749958394
+      },
+      "nominal_wheels": [
+        -1.07,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        -1.07,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.7638201117515564,
+        -0.17204785346984863,
+        -0.12549586594104767,
+        -0.31836530566215515
+      ],
+      "REQUEST_wheels": [
+        0.5402529602543722,
+        -0.20444417948962498,
+        -0.12484116966421505,
+        -0.1848168448521872
+      ],
+      "effective_wheels": [
+        0.5402529602543722,
+        -0.20444417948962498,
+        -0.12484116966421505,
+        -0.1848168448521872
+      ],
+      "final_wheels": [
+        -0.5297470397456279,
+        -0.20444417948962498,
+        -0.12484116966421505,
+        -0.1848168448521872
+      ],
+      "measured_canonical_wheels": [
+        -0.5301727056503296,
+        -0.21678157150745392,
+        -0.06130923330783844,
+        -0.22354649007320404
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5544,
+        "source_sim_time_s": 46.2,
+        "front_distance_rl_m": -0.1279512013690507,
+        "front_distance_rr_m": 0.04687208278011923,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5632,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.21226668698620443,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.011346634794954014,
+        "clearance_m": 0.021396987874955642,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.36601972920727377,
+        "clearance_m": 0.002943837129252183
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.5567278265953064,
+        -0.13355398178100586,
+        0.11536522209644318,
+        -0.36602550745010376
+      ],
+      "REQUEST_wheels": [
+        0.6066546973277428,
+        -0.15931866465933553,
+        0.1148561284119769,
+        -0.21030623066131174
+      ],
+      "effective_wheels": [
+        0.6066546973277428,
+        -0.15931866465933553,
+        0.1148561284119769,
+        -0.21030623066131174
+      ],
+      "final_wheels": [
+        0.6066546973277428,
+        -0.15931866465933553,
+        0.1148561284119769,
+        -0.21030623066131174
+      ],
+      "measured_canonical_wheels": [
+        0.6081490516662598,
+        -0.11690694838762283,
+        0.41259974241256714,
+        -0.20973186194896698
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5632,
+        "source_sim_time_s": 46.93333333333333,
+        "front_distance_rl_m": -0.1325068141715562,
+        "front_distance_rr_m": -0.011346634794954014,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5664,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.1959894929630721,
+      "RR": {
+        "contact_mode": "TOP",
+        "current_lift_valid": true,
+        "support": true,
+        "bearing_force_n": 2.2876038551330566,
+        "within_top_xy": false,
+        "front_distance_m": -0.02412151949572916,
+        "clearance_m": -0.007397171152679016,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": true,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.3547770415050948,
+        "clearance_m": 0.03210106794838412
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.2364616096019745,
+        -0.15298184752464294,
+        0.11208093911409378,
+        -0.23098132014274597
+      ],
+      "REQUEST_wheels": [
+        0.27858098253889607,
+        -0.18215937690701287,
+        0.11161396010800405,
+        -0.13617559868488352
+      ],
+      "effective_wheels": [
+        0.27858098253889607,
+        -0.18215937690701287,
+        0.11161396010800405,
+        -0.13617559868488352
+      ],
+      "final_wheels": [
+        0.27858098253889607,
+        -0.18215937690701287,
+        0.11161396010800405,
+        -0.13617559868488352
+      ],
+      "measured_canonical_wheels": [
+        0.2783544361591339,
+        -0.2253059446811676,
+        0.08907801657915115,
+        -0.052935175597667694
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5664,
+        "source_sim_time_s": 47.2,
+        "front_distance_rl_m": -0.13957029240298624,
+        "front_distance_rr_m": -0.02412151949572916,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5688,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.1927343044979537,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.028692599703553867,
+        "clearance_m": -0.009720954120728043,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.35462463242840414,
+        "clearance_m": 0.037804193928690416
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.05517539754509926,
+        -0.1594926416873932,
+        0.21253427863121033,
+        -0.2127840220928192
+      ],
+      "REQUEST_wheels": [
+        0.06614337004544787,
+        -0.18978465131014444,
+        0.2093909453626929,
+        -0.12577783586299807
+      ],
+      "effective_wheels": [
+        0.06614337004544787,
+        -0.18978465131014444,
+        0.2093909453626929,
+        -0.12577783586299807
+      ],
+      "final_wheels": [
+        0.06614337004544787,
+        -0.18978465131014444,
+        0.2093909453626929,
+        -0.12577783586299807
+      ],
+      "measured_canonical_wheels": [
+        0.06427482515573502,
+        -0.38370972871780396,
+        -0.05033891648054123,
+        -0.10496874898672104
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5688,
+        "source_sim_time_s": 47.4,
+        "front_distance_rl_m": -0.14035468952823038,
+        "front_distance_rr_m": -0.028692599703553867,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5696,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.19327450139355307,
+      "RR": {
+        "contact_mode": "TOP",
+        "current_lift_valid": true,
+        "support": true,
+        "bearing_force_n": 2.030048370361328,
+        "within_top_xy": false,
+        "front_distance_m": -0.030079629589799595,
+        "clearance_m": -0.010552998690986706,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": true,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.3537672792179549,
+        "clearance_m": 0.03852598519883503
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.15139243006706238,
+        -0.15073959529399872,
+        0.2573050260543823,
+        -0.19339360296726227
+      ],
+      "REQUEST_wheels": [
+        -0.05385662995455212,
+        -0.17952978567941696,
+        0.2517731098935672,
+        -0.11461085505410602
+      ],
+      "effective_wheels": [
+        -0.05385662995455212,
+        -0.17952978567941696,
+        0.2517731098935672,
+        -0.11461085505410602
+      ],
+      "final_wheels": [
+        -0.05385662995455212,
+        -0.17952978567941696,
+        0.2517731098935672,
+        -0.11461085505410602
+      ],
+      "measured_canonical_wheels": [
+        -0.054319363087415695,
+        -0.33034342527389526,
+        0.15575166046619415,
+        -0.12507975101470947
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5696,
+        "source_sim_time_s": 47.46666666666667,
+        "front_distance_rl_m": -0.1401981677310502,
+        "front_distance_rr_m": -0.030079629589799595,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5776,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.21044522864651327,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.009656425883058262,
+        "clearance_m": -0.0006538184779712325,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.36242038352322226,
+        "clearance_m": 0.005789684575945732
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.655450701713562,
+        -0.0076019251719117165,
+        0.22115513682365417,
+        -0.1698445826768875
+      ],
+      "REQUEST_wheels": [
+        -0.6903934900712898,
+        -0.009122134486484626,
+        0.21761876963496035,
+        -0.10093801860981194
+      ],
+      "effective_wheels": [
+        -0.6903934900712898,
+        -0.009122134486484626,
+        0.21761876963496035,
+        -0.10093801860981194
+      ],
+      "final_wheels": [
+        -0.6903934900712898,
+        -0.009122134486484626,
+        0.21761876963496035,
+        -0.10093801860981194
+      ],
+      "measured_canonical_wheels": [
+        -0.6901407837867737,
+        -0.03630836680531502,
+        0.4214976131916046,
+        -0.10023167729377747
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5776,
+        "source_sim_time_s": 48.13333333333333,
+        "front_distance_rl_m": -0.137811478544954,
+        "front_distance_rr_m": -0.009656425883058262,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5784,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.2178260718090499,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": true,
+        "front_distance_m": -0.0021974410312211035,
+        "clearance_m": -0.0007377046717324809,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": false,
+        "support": true,
+        "top_surface_contact": true,
+        "bearing_force_n": 2.8061046600341797,
+        "front_distance_m": 0.3729863200886214,
+        "clearance_m": -0.0010858876762354086
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.5715322494506836,
+        -0.010480323806405067,
+        0.1705479770898819,
+        -0.1040140688419342
+      ],
+      "REQUEST_wheels": [
+        -0.6197804167278774,
+        -0.012575928136200407,
+        0.16891343744096413,
+        -0.062184346925962926
+      ],
+      "effective_wheels": [
+        -0.6197804167278774,
+        -0.012575928136200407,
+        0.16891343744096413,
+        -0.062184346925962926
+      ],
+      "final_wheels": [
+        -0.6197804167278774,
+        -0.012575928136200407,
+        0.16891343744096413,
+        -0.062184346925962926
+      ],
+      "measured_canonical_wheels": [
+        -0.3873322606086731,
+        -0.07337543368339539,
+        -0.00017273426055908203,
+        -0.056619178503751755
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5784,
+        "source_sim_time_s": 48.2,
+        "front_distance_rl_m": -0.13564023034739847,
+        "front_distance_rr_m": -0.0021974410312211035,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5792,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.21899670703243856,
+      "RR": {
+        "contact_mode": "TOP",
+        "current_lift_valid": true,
+        "support": true,
+        "bearing_force_n": 5.928452014923096,
+        "within_top_xy": true,
+        "front_distance_m": -0.0016326870219742773,
+        "clearance_m": -0.0007915185109906159,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": true,
+      "FL": {
+        "air": false,
+        "support": true,
+        "top_surface_contact": true,
+        "bearing_force_n": 4.330900192260742,
+        "front_distance_m": 0.37756514890026693,
+        "clearance_m": -0.0005308350122764927
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.48686254024505615,
+        0.006326676346361637,
+        0.15268848836421967,
+        -0.1136699914932251
+      ],
+      "REQUEST_wheels": [
+        -0.5420672696881722,
+        0.007591910322527219,
+        0.15151286873959688,
+        -0.06790976219537423
+      ],
+      "effective_wheels": [
+        -0.5420672696881722,
+        0.007591910322527219,
+        0.15151286873959688,
+        -0.06790976219537423
+      ],
+      "final_wheels": [
+        -0.5420672696881722,
+        0.007591910322527219,
+        0.15151286873959688,
+        -0.06790976219537423
+      ],
+      "measured_canonical_wheels": [
+        -0.45340651273727417,
+        0.0480060949921608,
+        0.2534506618976593,
+        0.017753543332219124
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5792,
+        "source_sim_time_s": 48.266666666666666,
+        "front_distance_rl_m": -0.1351669098632371,
+        "front_distance_rr_m": -0.0016326870219742773,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5824,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.22250402314495688,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": true,
+        "front_distance_m": 0.0004618201954329493,
+        "clearance_m": -0.0005902309430375341,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.38911527736019735,
+        "clearance_m": 0.00048146431734887724
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.1622842699289322,
+        -0.006040624342858791,
+        0.02699628472328186,
+        -0.15526115894317627
+      ],
+      "REQUEST_wheels": [
+        -0.1930493641069527,
+        -0.007248661045836526,
+        0.02698972834265376,
+        -0.09241529745680892
+      ],
+      "effective_wheels": [
+        -0.1930493641069527,
+        -0.007248661045836526,
+        0.02698972834265376,
+        -0.09241529745680892
+      ],
+      "final_wheels": [
+        -0.1930493641069527,
+        -0.007248661045836526,
+        0.02698972834265376,
+        -0.09241529745680892
+      ],
+      "measured_canonical_wheels": [
+        -0.19256716966629028,
+        -0.027257662266492844,
+        0.22972361743450165,
+        -0.08713937550783157
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5824,
+        "source_sim_time_s": 48.53333333333333,
+        "front_distance_rl_m": -0.133363213707689,
+        "front_distance_rr_m": 0.0004618201954329493,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5872,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.22446394307446127,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.008720990587953281,
+        "clearance_m": 0.00013891546579093694,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.37220830066036825,
+        "clearance_m": -0.00010164229662220498
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.13948272168636322,
+        0.013573992997407913,
+        0.05783981457352638,
+        -0.1379805952310562
+      ],
+      "REQUEST_wheels": [
+        -0.16630216889112742,
+        0.016287791249491358,
+        0.05777540081277694,
+        -0.0822669349431726
+      ],
+      "effective_wheels": [
+        -0.16630216889112742,
+        0.016287791249491358,
+        0.05777540081277694,
+        -0.0822669349431726
+      ],
+      "final_wheels": [
+        -0.16630216889112742,
+        0.016287791249491358,
+        0.05777540081277694,
+        -0.0822669349431726
+      ],
+      "measured_canonical_wheels": [
+        -0.0587540864944458,
+        0.004265997558832169,
+        0.04382342845201492,
+        -0.08006620407104492
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5872,
+        "source_sim_time_s": 48.93333333333333,
+        "front_distance_rl_m": -0.13193499701190348,
+        "front_distance_rr_m": -0.008720990587953281,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5880,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.22239631755184774,
+      "RR": {
+        "contact_mode": "TOP",
+        "current_lift_valid": true,
+        "support": true,
+        "bearing_force_n": 0.7043742537498474,
+        "within_top_xy": false,
+        "front_distance_m": -0.01198005335498209,
+        "clearance_m": -0.0017274169595843589,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": true,
+      "FL": {
+        "air": false,
+        "support": true,
+        "top_surface_contact": true,
+        "bearing_force_n": 0.9589630961418152,
+        "front_distance_m": 0.36909288508724813,
+        "clearance_m": -0.00012434152320468794
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.10337304323911667,
+        -0.0383586622774601,
+        0.0899164229631424,
+        -0.12956039607524872
+      ],
+      "REQUEST_wheels": [
+        -0.12360767526494408,
+        -0.04600783183798795,
+        0.08967488042362093,
+        -0.07730418092431317
+      ],
+      "effective_wheels": [
+        -0.12360767526494408,
+        -0.04600783183798795,
+        0.08967488042362093,
+        -0.07730418092431317
+      ],
+      "final_wheels": [
+        -0.12360767526494408,
+        -0.04600783183798795,
+        0.08967488042362093,
+        -0.07730418092431317
+      ],
+      "measured_canonical_wheels": [
+        -0.14363247156143188,
+        0.061474867165088654,
+        -0.09530197083950043,
+        0.05571678653359413
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5880,
+        "source_sim_time_s": 49.0,
+        "front_distance_rl_m": -0.13251971857715006,
+        "front_distance_rr_m": -0.01198005335498209,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5888,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.220819953511473,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.01239424603152628,
+        "clearance_m": -0.0017999430844498066,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.3700971637470687,
+        "clearance_m": 0.0002159242099658773
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.036027032881975174,
+        -0.013347579166293144,
+        0.10365590453147888,
+        -0.15915913879871368
+      ],
+      "REQUEST_wheels": [
+        -0.04321374469112228,
+        -0.016016143876824276,
+        0.1032862479369513,
+        -0.09469721871254791
+      ],
+      "effective_wheels": [
+        -0.04321374469112228,
+        -0.016016143876824276,
+        0.1032862479369513,
+        -0.09469721871254791
+      ],
+      "final_wheels": [
+        -0.04321374469112228,
+        -0.016016143876824276,
+        0.1032862479369513,
+        -0.09469721871254791
+      ],
+      "measured_canonical_wheels": [
+        -0.04432537779211998,
+        0.11239694058895111,
+        0.030972789973020554,
+        -0.09289795160293579
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5888,
+        "source_sim_time_s": 49.06666666666666,
+        "front_distance_rl_m": -0.13291042702365274,
+        "front_distance_rr_m": -0.01239424603152628,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5896,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.21659666640591269,
+      "RR": {
+        "contact_mode": "TOP",
+        "current_lift_valid": true,
+        "support": true,
+        "bearing_force_n": 9.118906021118164,
+        "within_top_xy": false,
+        "front_distance_m": -0.014379021097902012,
+        "clearance_m": -0.0025108172291797848,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": true,
+      "FL": {
+        "air": false,
+        "support": true,
+        "top_surface_contact": true,
+        "bearing_force_n": 12.526235580444336,
+        "front_distance_m": 0.3690018687946761,
+        "clearance_m": 4.549239638218516e-06
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.07356476783752441,
+        -0.006736326031386852,
+        0.15650147199630737,
+        -0.1933545619249344
+      ],
+      "REQUEST_wheels": [
+        -0.08811881898327587,
+        -0.008083468967244321,
+        0.15523615190514317,
+        -0.11458828497605894
+      ],
+      "effective_wheels": [
+        -0.08811881898327587,
+        -0.008083468967244321,
+        0.15523615190514317,
+        -0.11458828497605894
+      ],
+      "final_wheels": [
+        -0.08811881898327587,
+        -0.008083468967244321,
+        0.15523615190514317,
+        -0.11458828497605894
+      ],
+      "measured_canonical_wheels": [
+        0.009101010859012604,
+        -0.5668453574180603,
+        0.33408963680267334,
+        -0.3369210660457611
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5896,
+        "source_sim_time_s": 49.13333333333333,
+        "front_distance_rl_m": -0.1337989236609971,
+        "front_distance_rr_m": -0.014379021097902012,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5928,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.20582670314144735,
+      "RR": {
+        "contact_mode": "TOP",
+        "current_lift_valid": false,
+        "support": true,
+        "bearing_force_n": 8.834939956665039,
+        "within_top_xy": false,
+        "front_distance_m": -0.022957410980943393,
+        "clearance_m": -0.006998058395505477,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": true,
+      "FL": {
+        "air": false,
+        "support": true,
+        "top_surface_contact": true,
+        "bearing_force_n": 15.705037117004395,
+        "front_distance_m": 0.3614795242054427,
+        "clearance_m": 9.051109321825401e-06
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.3030509054660797,
+        0.0581810399889946,
+        0.09139326959848404,
+        -0.15612244606018066
+      ],
+      "REQUEST_wheels": [
+        -0.3529225451183395,
+        0.06973857660140974,
+        0.09113965581843562,
+        -0.09291974285291099
+      ],
+      "effective_wheels": [
+        -0.3529225451183395,
+        0.06973857660140974,
+        0.09113965581843562,
+        -0.09291974285291099
+      ],
+      "final_wheels": [
+        -0.3529225451183395,
+        0.06973857660140974,
+        0.09113965581843562,
+        -0.09291974285291099
+      ],
+      "measured_canonical_wheels": [
+        -0.10468967258930206,
+        0.0704691931605339,
+        0.08888203650712967,
+        0.10625201463699341
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5928,
+        "source_sim_time_s": 49.4,
+        "front_distance_rl_m": -0.14161413567233438,
+        "front_distance_rr_m": -0.022957410980943393,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5944,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.20172918183636313,
+      "RR": {
+        "contact_mode": "TOP",
+        "current_lift_valid": true,
+        "support": true,
+        "bearing_force_n": 10.993583679199219,
+        "within_top_xy": false,
+        "front_distance_m": -0.027391340901139927,
+        "clearance_m": -0.009998660855918468,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": true,
+      "FL": {
+        "air": false,
+        "support": true,
+        "top_surface_contact": true,
+        "bearing_force_n": 13.221871376037598,
+        "front_distance_m": 0.3583580289585555,
+        "clearance_m": -0.0004629885560163277
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.19090962409973145,
+        0.07240459322929382,
+        0.03898872435092926,
+        -0.17506617307662964
+      ],
+      "REQUEST_wheels": [
+        -0.22634834024720205,
+        0.08673399932115093,
+        0.0389689805013598,
+        -0.10397960657614679
+      ],
+      "effective_wheels": [
+        -0.22634834024720205,
+        0.08673399932115093,
+        0.0389689805013598,
+        -0.10397960657614679
+      ],
+      "final_wheels": [
+        -0.22634834024720205,
+        0.08673399932115093,
+        0.0389689805013598,
+        -0.10397960657614679
+      ],
+      "measured_canonical_wheels": [
+        -0.2215176820755005,
+        0.08684562891721725,
+        0.2902020812034607,
+        -0.202167347073555
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5944,
+        "source_sim_time_s": 49.53333333333333,
+        "front_distance_rl_m": -0.1475173200862443,
+        "front_distance_rr_m": -0.027391340901139927,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5968,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.20019454104733114,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.029848840405229282,
+        "clearance_m": -0.011513669431431645,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.35665548188519125,
+        "clearance_m": -0.0005444609873715284
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.04464780166745186,
+        -0.07334937155246735,
+        0.0309281162917614,
+        -0.18460126221179962
+      ],
+      "REQUEST_wheels": [
+        -0.05354178952617954,
+        -0.08786173315906753,
+        0.030918258650317394,
+        -0.10951951940736403
+      ],
+      "effective_wheels": [
+        -0.05354178952617954,
+        -0.08786173315906753,
+        0.030918258650317394,
+        -0.10951951940736403
+      ],
+      "final_wheels": [
+        -0.05354178952617954,
+        -0.08786173315906753,
+        0.030918258650317394,
+        -0.10951951940736403
+      ],
+      "measured_canonical_wheels": [
+        -0.053356628865003586,
+        -0.009674153290688992,
+        0.02019200474023819,
+        -0.1089843288064003
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5968,
+        "source_sim_time_s": 49.733333333333334,
+        "front_distance_rl_m": -0.14794370191264505,
+        "front_distance_rr_m": -0.029848840405229282,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5976,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.1996530924541915,
+      "RR": {
+        "contact_mode": "TOP",
+        "current_lift_valid": true,
+        "support": true,
+        "bearing_force_n": 11.439183235168457,
+        "within_top_xy": false,
+        "front_distance_m": -0.03017186777758951,
+        "clearance_m": -0.012102518500110723,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": true,
+      "FL": {
+        "air": false,
+        "support": true,
+        "top_surface_contact": true,
+        "bearing_force_n": 12.232548713684082,
+        "front_distance_m": 0.35486966712307577,
+        "clearance_m": -0.0005916133940635018
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.15019917488098145,
+        -0.07235252857208252,
+        0.07137426733970642,
+        -0.17067407071590424
+      ],
+      "REQUEST_wheels": [
+        0.06645821047382046,
+        -0.0866718478914249,
+        0.07125331349192762,
+        -0.10142155847137842
+      ],
+      "effective_wheels": [
+        0.06645821047382046,
+        -0.0866718478914249,
+        0.07125331349192762,
+        -0.10142155847137842
+      ],
+      "final_wheels": [
+        0.06645821047382046,
+        -0.0866718478914249,
+        0.07125331349192762,
+        -0.10142155847137842
+      ],
+      "measured_canonical_wheels": [
+        -0.08775278180837631,
+        -0.1610635221004486,
+        0.16173706948757172,
+        -0.0769648551940918
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5976,
+        "source_sim_time_s": 49.8,
+        "front_distance_rl_m": -0.1479552354114091,
+        "front_distance_rr_m": -0.03017186777758951,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6056,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.2034723792774642,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.0178178514735734,
+        "clearance_m": -0.0031879543881271205,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.34561366183590536,
+        "clearance_m": 0.0016960005122137745
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.30866312980651855,
+        -0.07988746464252472,
+        0.1967979371547699,
+        -0.15963825583457947
+      ],
+      "REQUEST_wheels": [
+        0.3959863173075754,
+        -0.09566153989681332,
+        0.1942960646058152,
+        -0.09497750686381615
+      ],
+      "effective_wheels": [
+        0.3959863173075754,
+        -0.09566153989681332,
+        0.1942960646058152,
+        -0.09497750686381615
+      ],
+      "final_wheels": [
+        0.3959863173075754,
+        -0.09566153989681332,
+        0.1942960646058152,
+        -0.09497750686381615
+      ],
+      "measured_canonical_wheels": [
+        0.3961983919143677,
+        -0.1741126924753189,
+        0.3524327278137207,
+        -0.09431762993335724
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6056,
+        "source_sim_time_s": 50.46666666666667,
+        "front_distance_rl_m": -0.14316603200602884,
+        "front_distance_rr_m": -0.0178178514735734,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6064,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.20474720341992025,
+      "RR": {
+        "contact_mode": "TOP",
+        "current_lift_valid": true,
+        "support": true,
+        "bearing_force_n": 0.9345524907112122,
+        "within_top_xy": false,
+        "front_distance_m": -0.01458543198275919,
+        "clearance_m": -0.0032470077349012264,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": true,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.35054421765637045,
+        "clearance_m": 0.003438124745933656
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.15077278017997742,
+        -0.013309784233570099,
+        0.16531333327293396,
+        -0.1948927342891693
+      ],
+      "REQUEST_wheels": [
+        0.2759863173075753,
+        -0.015970798013901943,
+        0.16382369329778407,
+        -0.11547726498951168
+      ],
+      "effective_wheels": [
+        0.2759863173075753,
+        -0.015970798013901943,
+        0.16382369329778407,
+        -0.11547726498951168
+      ],
+      "final_wheels": [
+        0.2759863173075753,
+        -0.015970798013901943,
+        0.16382369329778407,
+        -0.11547726498951168
+      ],
+      "measured_canonical_wheels": [
+        0.2761160433292389,
+        -0.09184390306472778,
+        0.28296273946762085,
+        -0.09904851019382477
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6064,
+        "source_sim_time_s": 50.53333333333333,
+        "front_distance_rl_m": -0.1425613726871049,
+        "front_distance_rr_m": -0.01458543198275919,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6072,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.20496052844357138,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.014465269018892002,
+        "clearance_m": -0.0026394003636364544,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.35483241422009115,
+        "clearance_m": 0.007601973879956814
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.17390964925289154,
+        -0.01854940876364708,
+        0.09251322597265244,
+        -0.1873064637184143
+      ],
+      "REQUEST_wheels": [
+        0.20661279549651881,
+        -0.022256737871279453,
+        0.0922501955258796,
+        -0.11108778275150388
+      ],
+      "effective_wheels": [
+        0.20661279549651881,
+        -0.022256737871279453,
+        0.0922501955258796,
+        -0.11108778275150388
+      ],
+      "final_wheels": [
+        0.20661279549651881,
+        -0.022256737871279453,
+        0.0922501955258796,
+        -0.11108778275150388
+      ],
+      "measured_canonical_wheels": [
+        0.20672938227653503,
+        -0.11352071166038513,
+        0.21122202277183533,
+        -0.11133759468793869
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6072,
+        "source_sim_time_s": 50.6,
+        "front_distance_rl_m": -0.14226555483508463,
+        "front_distance_rr_m": -0.014465269018892002,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6104,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.18896168811154013,
+      "RR": {
+        "contact_mode": "TOP",
+        "current_lift_valid": true,
+        "support": true,
+        "bearing_force_n": 1.4435890913009644,
+        "within_top_xy": false,
+        "front_distance_m": -0.02597081320453043,
+        "clearance_m": -0.007786354898525624,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": true,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.3472927842838729,
+        "clearance_m": 0.004375604421925965
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.1495203971862793,
+        0.13103124499320984,
+        -0.054091908037662506,
+        -0.3051754832267761
+      ],
+      "REQUEST_wheels": [
+        0.06537806408753305,
+        0.15634375143582474,
+        -0.05403921324916418,
+        -0.17762502973912445
+      ],
+      "effective_wheels": [
+        0.06537806408753305,
+        0.15634375143582474,
+        -0.05403921324916418,
+        -0.17762502973912445
+      ],
+      "final_wheels": [
+        0.06537806408753305,
+        0.15634375143582474,
+        -0.05403921324916418,
+        -0.17762502973912445
+      ],
+      "measured_canonical_wheels": [
+        0.06543635576963425,
+        0.1504841297864914,
+        0.008373635821044445,
+        -0.1373138129711151
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6104,
+        "source_sim_time_s": 50.86666666666667,
+        "front_distance_rl_m": -0.14572193877864237,
+        "front_distance_rr_m": -0.02597081320453043,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6112,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.18601030452084188,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.032006617953065586,
+        "clearance_m": -0.00982591722417897,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.34318751437496786,
+        "clearance_m": 0.0017286702683528
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.34925538301467896,
+        0.08043260872364044,
+        -0.07049691677093506,
+        -0.30425843596458435
+      ],
+      "REQUEST_wheels": [
+        -0.054621935912466946,
+        0.09631152724570383,
+        -0.07038036291465605,
+        -0.17712288759604838
+      ],
+      "effective_wheels": [
+        -0.054621935912466946,
+        0.09631152724570383,
+        -0.07038036291465605,
+        -0.17712288759604838
+      ],
+      "final_wheels": [
+        -0.054621935912466946,
+        0.09631152724570383,
+        -0.07038036291465605,
+        -0.17712288759604838
+      ],
+      "measured_canonical_wheels": [
+        -0.05481278523802757,
+        0.07886920124292374,
+        -0.0625639408826828,
+        -0.17664146423339844
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6112,
+        "source_sim_time_s": 50.93333333333333,
+        "front_distance_rl_m": -0.14633041279483194,
+        "front_distance_rr_m": -0.032006617953065586,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6152,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.1798909936649764,
+      "RR": {
+        "contact_mode": "OBSTACLE_AMBIGUOUS",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.04801070349383707,
+        "clearance_m": -0.038080848463488706,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.3189124499065841,
+        "clearance_m": 0.04897017725846824
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.31615403294563293,
+        0.06982093304395676,
+        -0.1222728043794632,
+        -0.2647092342376709
+      ],
+      "REQUEST_wheels": [
+        -0.3672302994331345,
+        0.0836492348424908,
+        -0.12166707436862592,
+        -0.15521696251430353
+      ],
+      "effective_wheels": [
+        -0.3672302994331345,
+        0.0836492348424908,
+        -0.12166707436862592,
+        -0.15521696251430353
+      ],
+      "final_wheels": [
+        -0.3672302994331345,
+        0.0836492348424908,
+        -0.12166707436862592,
+        -0.15521696251430353
+      ],
+      "measured_canonical_wheels": [
+        -0.3674118220806122,
+        0.06247616559267044,
+        -0.042077772319316864,
+        -0.10386310517787933
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6152,
+        "source_sim_time_s": 51.266666666666666,
+        "front_distance_rl_m": -0.15047958152461405,
+        "front_distance_rr_m": -0.04801070349383707,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6200,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.17408109052013998,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.049395945240739536,
+        "clearance_m": -0.042425114573249545,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.2956463132603133,
+        "clearance_m": 0.06144908094948266
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.6101281642913818,
+        -0.07751423865556717,
+        0.02875237539410591,
+        -0.19753803312778473
+      ],
+      "REQUEST_wheels": [
+        -0.6314868011615674,
+        -0.0928312366480179,
+        0.02874445482573402,
+        -0.1170048712338277
+      ],
+      "effective_wheels": [
+        -0.6314868011615674,
+        -0.0928312366480179,
+        0.02874445482573402,
+        -0.1170048712338277
+      ],
+      "final_wheels": [
+        -0.6314868011615674,
+        -0.0928312366480179,
+        0.02874445482573402,
+        -0.1170048712338277
+      ],
+      "measured_canonical_wheels": [
+        -0.6311764717102051,
+        -0.1233682855963707,
+        0.1878923922777176,
+        -0.11674933135509491
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6200,
+        "source_sim_time_s": 51.666666666666664,
+        "front_distance_rl_m": -0.1525076295630967,
+        "front_distance_rr_m": -0.049395945240739536,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6216,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.16921729190182333,
+      "RR": {
+        "contact_mode": "GROUND",
+        "current_lift_valid": false,
+        "support": true,
+        "bearing_force_n": 4.392739295959473,
+        "within_top_xy": false,
+        "front_distance_m": -0.05277341263461466,
+        "clearance_m": -0.05088613741338467,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.28712767703365927,
+        "clearance_m": 0.08101441521157708
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.6298302412033081,
+        -0.05865974351763725,
+        0.008133664727210999,
+        -0.16117621958255768
+      ],
+      "REQUEST_wheels": [
+        -0.6695223748320388,
+        -0.07031106473221263,
+        0.008133485367022021,
+        -0.09587694284812545
+      ],
+      "effective_wheels": [
+        -0.6695223748320388,
+        -0.07031106473221263,
+        0.008133485367022021,
+        -0.09587694284812545
+      ],
+      "final_wheels": [
+        -0.6695223748320388,
+        -0.07031106473221263,
+        0.008133485367022021,
+        -0.09587694284812545
+      ],
+      "measured_canonical_wheels": [
+        -0.6701383590698242,
+        -0.2324226200580597,
+        0.14054186642169952,
+        0.13658137619495392
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6216,
+        "source_sim_time_s": 51.8,
+        "front_distance_rl_m": -0.1534316505687272,
+        "front_distance_rr_m": -0.05277341263461466,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6224,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.17077076775860434,
+      "RR": {
+        "contact_mode": "GROUND_AND_OBSTACLE",
+        "current_lift_valid": false,
+        "support": true,
+        "bearing_force_n": 5.4851250648498535,
+        "within_top_xy": false,
+        "front_distance_m": -0.04927006023097391,
+        "clearance_m": -0.05108676675852854,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.29000777346920614,
+        "clearance_m": 0.0811296205800917
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.5862484574317932,
+        -0.07016786932945251,
+        0.0646454393863678,
+        -0.16491784155368805
+      ],
+      "REQUEST_wheels": [
+        -0.6326305157763104,
+        -0.08406352536532062,
+        0.06455553785937469,
+        -0.09806327456836414
+      ],
+      "effective_wheels": [
+        -0.6326305157763104,
+        -0.08406352536532062,
+        0.06455553785937469,
+        -0.09806327456836414
+      ],
+      "final_wheels": [
+        -0.6326305157763104,
+        -0.08406352536532062,
+        0.06455553785937469,
+        -0.09806327456836414
+      ],
+      "measured_canonical_wheels": [
+        -0.6322736144065857,
+        -0.1670636385679245,
+        0.036293331533670425,
+        -0.06836209446191788
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6224,
+        "source_sim_time_s": 51.86666666666667,
+        "front_distance_rl_m": -0.15304547207522745,
+        "front_distance_rr_m": -0.04927006023097391,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6264,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.17490101201367025,
+      "RR": {
+        "contact_mode": "OBSTACLE_AMBIGUOUS",
+        "current_lift_valid": false,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.04921224372554178,
+        "clearance_m": -0.05100959275404929,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.30240780455898886,
+        "clearance_m": 0.0657508130289216
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.5625371336936951,
+        -0.06520167738199234,
+        0.15044128894805908,
+        -0.18486090004444122
+      ],
+      "REQUEST_wheels": [
+        -0.5940705496432669,
+        -0.07813132539883108,
+        0.14931651225143572,
+        -0.10967010457946551
+      ],
+      "effective_wheels": [
+        -0.5940705496432669,
+        -0.07813132539883108,
+        0.14931651225143572,
+        -0.10967010457946551
+      ],
+      "final_wheels": [
+        -0.5940705496432669,
+        -0.07813132539883108,
+        0.14931651225143572,
+        -0.10967010457946551
+      ],
+      "measured_canonical_wheels": [
+        -0.5939154624938965,
+        -0.19936557114124298,
+        0.1077217161655426,
+        -0.2947174906730652
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6264,
+        "source_sim_time_s": 52.199999999999996,
+        "front_distance_rl_m": -0.1533621813552415,
+        "front_distance_rr_m": -0.04921224372554178,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6280,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.18032330615353231,
+      "RR": {
+        "contact_mode": "GROUND_AND_OBSTACLE",
+        "current_lift_valid": false,
+        "support": true,
+        "bearing_force_n": 3.5964674949645996,
+        "within_top_xy": false,
+        "front_distance_m": -0.04922845618892069,
+        "clearance_m": -0.05103792575376745,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.3083614741070235,
+        "clearance_m": 0.0766219850181296
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.21758738160133362,
+        -0.05797286331653595,
+        0.14042344689369202,
+        -0.20563554763793945
+      ],
+      "REQUEST_wheels": [
+        -0.3540705496432667,
+        -0.0694896053032687,
+        0.13950767798714586,
+        -0.12167114934267492
+      ],
+      "effective_wheels": [
+        -0.3540705496432667,
+        -0.0694896053032687,
+        0.13950767798714586,
+        -0.12167114934267492
+      ],
+      "final_wheels": [
+        -0.3540705496432667,
+        -0.0694896053032687,
+        0.13950767798714586,
+        -0.12167114934267492
+      ],
+      "measured_canonical_wheels": [
+        -0.35436543822288513,
+        -0.16618746519088745,
+        0.15217961370944977,
+        0.016087956726551056
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6280,
+        "source_sim_time_s": 52.333333333333336,
+        "front_distance_rl_m": -0.1530536081092393,
+        "front_distance_rr_m": -0.04922845618892069,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6368,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.1739296351177657,
+      "RR": {
+        "contact_mode": "OBSTACLE_AMBIGUOUS",
+        "current_lift_valid": false,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.049365189244035435,
+        "clearance_m": -0.05144724508049143,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.29736465556454306,
+        "clearance_m": 0.058667493175848545
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.09473289549350739,
+        -0.11788411438465118,
+        0.34269922971725464,
+        -0.04827247932553291
+      ],
+      "REQUEST_wheels": [
+        0.11334062553252573,
+        -0.14080928097012196,
+        0.3298850211965414,
+        -0.028941011327336036
+      ],
+      "effective_wheels": [
+        0.11334062553252573,
+        -0.14080928097012196,
+        0.3298850211965414,
+        -0.028941011327336036
+      ],
+      "final_wheels": [
+        0.11334062553252573,
+        -0.14080928097012196,
+        0.3298850211965414,
+        -0.028941011327336036
+      ],
+      "measured_canonical_wheels": [
+        0.11347620189189911,
+        -0.2656087875366211,
+        0.3393228054046631,
+        -0.047921814024448395
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6368,
+        "source_sim_time_s": 53.06666666666666,
+        "front_distance_rl_m": -0.15398537771869059,
+        "front_distance_rr_m": -0.049365189244035435,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6400,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.177240851948973,
+      "RR": {
+        "contact_mode": "GROUND_AND_OBSTACLE",
+        "current_lift_valid": false,
+        "support": true,
+        "bearing_force_n": 5.73297643661499,
+        "within_top_xy": false,
+        "front_distance_m": -0.04935139076876993,
+        "clearance_m": -0.0515263718433095,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.30258268458675985,
+        "clearance_m": 0.050621429031316265
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.094575434923172,
+        -0.07582743465900421,
+        0.3113086223602295,
+        -0.04819146543741226
+      ],
+      "REQUEST_wheels": [
+        0.11315335569273577,
+        -0.09081892472982156,
+        0.30162713149671533,
+        -0.02889251589803969
+      ],
+      "effective_wheels": [
+        0.11315335569273577,
+        -0.09081892472982156,
+        0.30162713149671533,
+        -0.02889251589803969
+      ],
+      "final_wheels": [
+        0.11315335569273577,
+        -0.09081892472982156,
+        0.30162713149671533,
+        -0.02889251589803969
+      ],
+      "measured_canonical_wheels": [
+        0.11433028429746628,
+        -0.2870864272117615,
+        0.08024141192436218,
+        0.18997548520565033
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6400,
+        "source_sim_time_s": 53.333333333333336,
+        "front_distance_rl_m": -0.153722282816652,
+        "front_distance_rr_m": -0.04935139076876993,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6440,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.17455667598080282,
+      "RR": {
+        "contact_mode": "OBSTACLE_AMBIGUOUS",
+        "current_lift_valid": false,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.049208339621308994,
+        "clearance_m": -0.051205748965459714,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.3163506422741378,
+        "clearance_m": 0.04579971085923035
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.16926297545433044,
+        -0.01674829050898552,
+        0.3036390542984009,
+        -0.052958887070417404
+      ],
+      "REQUEST_wheels": [
+        -0.06047211976763393,
+        -0.020096069628342254,
+        0.29463930422736906,
+        -0.03174565936853621
+      ],
+      "effective_wheels": [
+        -0.06047211976763393,
+        -0.020096069628342254,
+        0.29463930422736906,
+        -0.03174565936853621
+      ],
+      "final_wheels": [
+        -0.06047211976763393,
+        -0.020096069628342254,
+        0.29463930422736906,
+        -0.03174565936853621
+      ],
+      "measured_canonical_wheels": [
+        -0.06165190413594246,
+        -0.0625070333480835,
+        0.08035041391849518,
+        0.029040053486824036
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6440,
+        "source_sim_time_s": 53.666666666666664,
+        "front_distance_rl_m": -0.15420779245066996,
+        "front_distance_rr_m": -0.049208339621308994,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6464,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.17664409024548178,
+      "RR": {
+        "contact_mode": "GROUND_AND_OBSTACLE",
+        "current_lift_valid": false,
+        "support": true,
+        "bearing_force_n": 0.8026878833770752,
+        "within_top_xy": false,
+        "front_distance_m": -0.049245562721971226,
+        "clearance_m": -0.0514456959807698,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.3228026662571395,
+        "clearance_m": 0.056413564765345356
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.007671050727367401,
+        0.0219182837754488,
+        0.28590500354766846,
+        -0.10800111293792725
+      ],
+      "REQUEST_wheels": [
+        -0.009461762124365142,
+        0.026297729424476047,
+        0.2783614397091418,
+        -0.06454988757310237
+      ],
+      "effective_wheels": [
+        -0.009461762124365142,
+        0.026297729424476047,
+        0.2783614397091418,
+        -0.06454988757310237
+      ],
+      "final_wheels": [
+        -0.009461762124365142,
+        0.026297729424476047,
+        0.2783614397091418,
+        -0.06454988757310237
+      ],
+      "measured_canonical_wheels": [
+        -0.009442429058253765,
+        -0.08199036866426468,
+        0.1434505730867386,
+        0.22969885170459747
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6464,
+        "source_sim_time_s": 53.86666666666667,
+        "front_distance_rl_m": -0.1537344123618638,
+        "front_distance_rr_m": -0.049245562721971226,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6496,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.17678612811398153,
+      "RR": {
+        "contact_mode": "GROUND",
+        "current_lift_valid": false,
+        "support": true,
+        "bearing_force_n": 2.3127400875091553,
+        "within_top_xy": false,
+        "front_distance_m": -0.049475338627580356,
+        "clearance_m": -0.051593662142499816,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.32643479449581747,
+        "clearance_m": 0.07939773524787973
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.08094101399183273,
+        0.03363035246729851,
+        0.18771913647651672,
+        -0.1286301165819168
+      ],
+      "REQUEST_wheels": [
+        -0.09691765884775927,
+        0.04034121546097509,
+        0.18554480080121444,
+        -0.07675521307389364
+      ],
+      "effective_wheels": [
+        -0.09691765884775927,
+        0.04034121546097509,
+        0.18554480080121444,
+        -0.07675521307389364
+      ],
+      "final_wheels": [
+        -0.09691765884775927,
+        0.04034121546097509,
+        0.18554480080121444,
+        -0.07675521307389364
+      ],
+      "measured_canonical_wheels": [
+        -0.09661030024290085,
+        0.10814173519611359,
+        0.12976305186748505,
+        -0.04892044886946678
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6496,
+        "source_sim_time_s": 54.13333333333333,
+        "front_distance_rl_m": -0.15397268192935343,
+        "front_distance_rr_m": -0.049475338627580356,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6536,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.1749439869625533,
+      "RR": {
+        "contact_mode": "GROUND_AND_OBSTACLE",
+        "current_lift_valid": false,
+        "support": true,
+        "bearing_force_n": 5.431514263153076,
+        "within_top_xy": false,
+        "front_distance_m": -0.04924845354724283,
+        "clearance_m": -0.05174514280293141,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.3109537993175948,
+        "clearance_m": 0.06895565866149361
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.1334071010351181,
+        0.04356466978788376,
+        0.07142198830842972,
+        -0.20352287590503693
+      ],
+      "REQUEST_wheels": [
+        -0.15914551121495613,
+        0.052244556618926595,
+        0.07130079201816139,
+        -0.12045515334785842
+      ],
+      "effective_wheels": [
+        -0.15914551121495613,
+        0.052244556618926595,
+        0.07130079201816139,
+        -0.12045515334785842
+      ],
+      "final_wheels": [
+        -0.15914551121495613,
+        0.052244556618926595,
+        0.07130079201816139,
+        -0.12045515334785842
+      ],
+      "measured_canonical_wheels": [
+        -0.15975162386894226,
+        -0.06149010732769966,
+        -0.08063626289367676,
+        -0.0719260647892952
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6536,
+        "source_sim_time_s": 54.46666666666667,
+        "front_distance_rl_m": -0.15569814698863382,
+        "front_distance_rr_m": -0.04924845354724283,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6592,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.1742677722675765,
+      "RR": {
+        "contact_mode": "GROUND",
+        "current_lift_valid": false,
+        "support": true,
+        "bearing_force_n": 1.3025540113449097,
+        "within_top_xy": false,
+        "front_distance_m": -0.04961314456630106,
+        "clearance_m": -0.0516043037333474,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.30168748242687826,
+        "clearance_m": 0.08120571404983006
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.46914923191070557,
+        0.05946945771574974,
+        0.10594098269939423,
+        -0.20666350424289703
+      ],
+      "REQUEST_wheels": [
+        -0.5250139846515737,
+        0.0712793398367321,
+        0.10554641140775656,
+        -0.122262436950041
+      ],
+      "effective_wheels": [
+        -0.5250139846515737,
+        0.0712793398367321,
+        0.10554641140775656,
+        -0.122262436950041
+      ],
+      "final_wheels": [
+        -0.5250139846515737,
+        0.0712793398367321,
+        0.10554641140775656,
+        -0.122262436950041
+      ],
+      "measured_canonical_wheels": [
+        -0.5251203179359436,
+        0.0343916080892086,
+        0.01212581992149353,
+        -0.4168105721473694
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6592,
+        "source_sim_time_s": 54.93333333333333,
+        "front_distance_rl_m": -0.15765460984874125,
+        "front_distance_rr_m": -0.04961314456630106,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    }
+  ],
+  "selected_snapshots": [
+    {
+      "tick": 5200,
+      "phase": "P09",
+      "end_phase": "P09",
+      "body_front_m": 0.20660639149975424,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.032876905371431064,
+        "clearance_m": 0.0419415116099191,
+        "placed_on_top": false
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": false,
+        "support": true,
+        "top_surface_contact": true,
+        "bearing_force_n": 2.504209518432617,
+        "front_distance_m": 0.4839180145962203,
+        "clearance_m": -0.00019390596136544674
+      },
+      "nominal_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "policy_raw_wheels": [
+        -0.07533589005470276,
+        -0.030392218381166458,
+        0.023505546152591705,
+        -0.24355725944042206
+      ],
+      "REQUEST_wheels": [
+        -0.0902324280149498,
+        -0.03645943704668403,
+        0.023501218087191134,
+        -0.1433117418534024
+      ],
+      "effective_wheels": [
+        -0.0902324280149498,
+        -0.03645943704668403,
+        0.023501218087191134,
+        -0.1433117418534024
+      ],
+      "final_wheels": [
+        0.2097675719850502,
+        0.26354056295331596,
+        0.3235012180871911,
+        0.1566882581465976
+      ],
+      "measured_canonical_wheels": [
+        0.19689658284187317,
+        0.31183281540870667,
+        0.39705583453178406,
+        0.15734435617923737
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5200,
+        "source_sim_time_s": 43.333333333333336,
+        "front_distance_rl_m": -0.15227388994861002,
+        "front_distance_rr_m": -0.032876905371431064,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5536,
+      "phase": "P09",
+      "end_phase": "P09",
+      "body_front_m": 0.2556096945507491,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": true,
+        "front_distance_m": 0.048492673466917324,
+        "clearance_m": 0.0019550044902115413,
+        "placed_on_top": false
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.3832528625233138,
+        "clearance_m": 0.0026165536413686533
+      },
+      "nominal_wheels": [
+        -1.07,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        -1.07,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.36568400263786316,
+        -0.10462739318609238,
+        -0.14547976851463318,
+        -0.28219690918922424
+      ],
+      "REQUEST_wheels": [
+        0.4202529602543721,
+        -0.12509673116367606,
+        -0.14446205447594299,
+        -0.16496228913227898
+      ],
+      "effective_wheels": [
+        0.4202529602543721,
+        -0.12509673116367606,
+        -0.14446205447594299,
+        -0.16496228913227898
+      ],
+      "final_wheels": [
+        -0.649747039745628,
+        -0.12509673116367606,
+        -0.14446205447594299,
+        -0.16496228913227898
+      ],
+      "measured_canonical_wheels": [
+        -0.6495168209075928,
+        -0.002062304876744747,
+        -0.2131132185459137,
+        -0.16536222398281097
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5536,
+        "source_sim_time_s": 46.13333333333333,
+        "front_distance_rl_m": -0.12674417751002665,
+        "front_distance_rr_m": 0.048492673466917324,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5544,
+      "phase": "P09",
+      "end_phase": "P09",
+      "body_front_m": 0.2529866133434737,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": true,
+        "front_distance_m": 0.04687208278011923,
+        "clearance_m": -0.0008503960068457425,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.37383491141628866,
+        "clearance_m": 0.004741663749958394
+      },
+      "nominal_wheels": [
+        -1.07,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        -1.07,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.7638201117515564,
+        -0.17204785346984863,
+        -0.12549586594104767,
+        -0.31836530566215515
+      ],
+      "REQUEST_wheels": [
+        0.5402529602543722,
+        -0.20444417948962498,
+        -0.12484116966421505,
+        -0.1848168448521872
+      ],
+      "effective_wheels": [
+        0.5402529602543722,
+        -0.20444417948962498,
+        -0.12484116966421505,
+        -0.1848168448521872
+      ],
+      "final_wheels": [
+        -0.5297470397456279,
+        -0.20444417948962498,
+        -0.12484116966421505,
+        -0.1848168448521872
+      ],
+      "measured_canonical_wheels": [
+        -0.5301727056503296,
+        -0.21678157150745392,
+        -0.06130923330783844,
+        -0.22354649007320404
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5544,
+        "source_sim_time_s": 46.2,
+        "front_distance_rl_m": -0.1279512013690507,
+        "front_distance_rr_m": 0.04687208278011923,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5560,
+      "phase": "P09",
+      "end_phase": "P10",
+      "body_front_m": 0.2506825361950362,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": true,
+        "front_distance_m": 0.049313131402250576,
+        "clearance_m": 0.00457460811879612,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.3614859019024337,
+        "clearance_m": 0.01073277374855161
+      },
+      "nominal_wheels": [
+        -1.07,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        -1.07,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.8746766448020935,
+        -0.14449825882911682,
+        -0.006826288998126984,
+        -0.40138328075408936
+      ],
+      "REQUEST_wheels": [
+        0.7802529602543724,
+        -0.1722010706646553,
+        -0.006826182969127735,
+        -0.228679157056326
+      ],
+      "effective_wheels": [
+        0.7802529602543724,
+        -0.1722010706646553,
+        -0.006826182969127735,
+        -0.228679157056326
+      ],
+      "final_wheels": [
+        -0.28974703974562765,
+        -0.1722010706646553,
+        -0.006826182969127735,
+        -0.228679157056326
+      ],
+      "measured_canonical_wheels": [
+        -0.2899978756904602,
+        -0.31085559725761414,
+        0.06589892506599426,
+        -0.2293281853199005
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5560,
+        "source_sim_time_s": 46.333333333333336,
+        "front_distance_rl_m": -0.127961602379564,
+        "front_distance_rr_m": 0.049313131402250576,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5624,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.22169339997601156,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": true,
+        "front_distance_m": 0.0020550523502791407,
+        "clearance_m": 0.026523962847809293,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": false,
+        "support": true,
+        "top_surface_contact": true,
+        "bearing_force_n": 1.1113194227218628,
+        "front_distance_m": 0.37376666409802084,
+        "clearance_m": -1.6967408134754836e-07
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.6698562502861023,
+        -0.15309792757034302,
+        0.12654560804367065,
+        -0.3821421265602112
+      ],
+      "REQUEST_wheels": [
+        0.7018623798933507,
+        -0.18229546075285938,
+        0.12587441541527208,
+        -0.21873980154149608
+      ],
+      "effective_wheels": [
+        0.7018623798933507,
+        -0.18229546075285938,
+        0.12587441541527208,
+        -0.21873980154149608
+      ],
+      "final_wheels": [
+        0.7018623798933507,
+        -0.18229546075285938,
+        0.12587441541527208,
+        -0.21873980154149608
+      ],
+      "measured_canonical_wheels": [
+        0.8005985021591187,
+        -0.19364595413208008,
+        0.12849420309066772,
+        -0.2180030643939972
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5624,
+        "source_sim_time_s": 46.86666666666667,
+        "front_distance_rl_m": -0.1303409899966752,
+        "front_distance_rr_m": 0.0020550523502791407,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 5632,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.21226668698620443,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.011346634794954014,
+        "clearance_m": 0.021396987874955642,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.36601972920727377,
+        "clearance_m": 0.002943837129252183
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        0.5567278265953064,
+        -0.13355398178100586,
+        0.11536522209644318,
+        -0.36602550745010376
+      ],
+      "REQUEST_wheels": [
+        0.6066546973277428,
+        -0.15931866465933553,
+        0.1148561284119769,
+        -0.21030623066131174
+      ],
+      "effective_wheels": [
+        0.6066546973277428,
+        -0.15931866465933553,
+        0.1148561284119769,
+        -0.21030623066131174
+      ],
+      "final_wheels": [
+        0.6066546973277428,
+        -0.15931866465933553,
+        0.1148561284119769,
+        -0.21030623066131174
+      ],
+      "measured_canonical_wheels": [
+        0.6081490516662598,
+        -0.11690694838762283,
+        0.41259974241256714,
+        -0.20973186194896698
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 5632,
+        "source_sim_time_s": 46.93333333333333,
+        "front_distance_rl_m": -0.1325068141715562,
+        "front_distance_rr_m": -0.011346634794954014,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6208,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.17069685799908285,
+      "RR": {
+        "contact_mode": "AIR",
+        "current_lift_valid": true,
+        "support": false,
+        "bearing_force_n": 0.0,
+        "within_top_xy": false,
+        "front_distance_m": -0.05319168822932596,
+        "clearance_m": -0.04659500303393933,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.28980183942150717,
+        "clearance_m": 0.07321304080713305
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.618082582950592,
+        -0.07593649625778198,
+        0.051154136657714844,
+        -0.17380787432193756
+      ],
+      "REQUEST_wheels": [
+        -0.6597499213868816,
+        -0.09094904795006722,
+        0.05110956418872919,
+        -0.10324714202423478
+      ],
+      "effective_wheels": [
+        -0.6597499213868816,
+        -0.09094904795006722,
+        0.05110956418872919,
+        -0.10324714202423478
+      ],
+      "final_wheels": [
+        -0.6597499213868816,
+        -0.09094904795006722,
+        0.05110956418872919,
+        -0.10324714202423478
+      ],
+      "measured_canonical_wheels": [
+        -0.6597413420677185,
+        -0.13318414986133575,
+        0.17600013315677643,
+        -0.1031397134065628
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6208,
+        "source_sim_time_s": 51.733333333333334,
+        "front_distance_rl_m": -0.15316101567912455,
+        "front_distance_rr_m": -0.05319168822932596,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6216,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.16921729190182333,
+      "RR": {
+        "contact_mode": "GROUND",
+        "current_lift_valid": false,
+        "support": true,
+        "bearing_force_n": 4.392739295959473,
+        "within_top_xy": false,
+        "front_distance_m": -0.05277341263461466,
+        "clearance_m": -0.05088613741338467,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.28712767703365927,
+        "clearance_m": 0.08101441521157708
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.6298302412033081,
+        -0.05865974351763725,
+        0.008133664727210999,
+        -0.16117621958255768
+      ],
+      "REQUEST_wheels": [
+        -0.6695223748320388,
+        -0.07031106473221263,
+        0.008133485367022021,
+        -0.09587694284812545
+      ],
+      "effective_wheels": [
+        -0.6695223748320388,
+        -0.07031106473221263,
+        0.008133485367022021,
+        -0.09587694284812545
+      ],
+      "final_wheels": [
+        -0.6695223748320388,
+        -0.07031106473221263,
+        0.008133485367022021,
+        -0.09587694284812545
+      ],
+      "measured_canonical_wheels": [
+        -0.6701383590698242,
+        -0.2324226200580597,
+        0.14054186642169952,
+        0.13658137619495392
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6216,
+        "source_sim_time_s": 51.8,
+        "front_distance_rl_m": -0.1534316505687272,
+        "front_distance_rr_m": -0.05277341263461466,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 6600,
+      "phase": "P11",
+      "end_phase": "P11",
+      "body_front_m": 0.17508817059826498,
+      "RR": {
+        "contact_mode": "GROUND",
+        "current_lift_valid": false,
+        "support": true,
+        "bearing_force_n": 0.5124942660331726,
+        "within_top_xy": false,
+        "front_distance_m": -0.05152958290744181,
+        "clearance_m": -0.05166437300154234,
+        "placed_on_top": true
+      },
+      "RR_current_TOP_verified_bearing": false,
+      "FL": {
+        "air": true,
+        "support": false,
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "front_distance_m": 0.3023672137958968,
+        "clearance_m": 0.07355075976784203
+      },
+      "nominal_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mapped_wheels": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "policy_raw_wheels": [
+        -0.39394843578338623,
+        0.057193316519260406,
+        0.12018459290266037,
+        -0.23027147352695465
+      ],
+      "REQUEST_wheels": [
+        -0.44971096759646473,
+        0.06855724414647409,
+        0.11960925459732745,
+        -0.13577156443944577
+      ],
+      "effective_wheels": [
+        -0.44971096759646473,
+        0.06855724414647409,
+        0.11960925459732745,
+        -0.13577156443944577
+      ],
+      "final_wheels": [
+        -0.44971096759646473,
+        0.06855724414647409,
+        0.11960925459732745,
+        -0.13577156443944577
+      ],
+      "measured_canonical_wheels": [
+        -0.4550616145133972,
+        -1.2443385124206543,
+        -0.021348172798752785,
+        0.007830195128917694
+      ],
+      "final_stop_owner_active": false,
+      "source_rr_wheel_owner": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": true,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "finite_ordered_source_wheel_owner",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "p06_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "live_measured",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": 6600,
+        "source_sim_time_s": 55.0,
+        "front_distance_rl_m": -0.1573941077487504,
+        "front_distance_rr_m": -0.05152958290744181,
+        "lateral_valid": true,
+        "measured_fraction": 1.0,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "last_target_source": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    }
+  ],
+  "windows": [
+    {
+      "ticks": [
+        5200,
+        5544
+      ],
+      "body_net_advance_m": 0.04638022184371948,
+      "wheel_center_net_forward_m": {
+        "FL": -0.11008310317993164,
+        "FR": 0.03660380840301514,
+        "RL": 0.024322688579559326,
+        "RR": 0.07974898815155029
+      },
+      "RR_TOP_bearing_endpoints": 0,
+      "RR_ground_endpoints": 0,
+      "RR_AIR_endpoints": 44,
+      "FL_TOP_bearing_endpoints": 30,
+      "FL_AIR_endpoints": 14,
+      "n": 44,
+      "RR_target": {
+        "n": 44,
+        "minimum": -0.1848168448521872,
+        "maximum": 0.24192185554715717,
+        "mean": 0.033958306957121424,
+        "first": 0.1566882581465976,
+        "last": -0.1848168448521872
+      },
+      "RR_actual_canonical_qd": {
+        "n": 44,
+        "minimum": -0.22354649007320404,
+        "maximum": 0.24153688549995422,
+        "mean": 0.03326390514319593,
+        "first": 0.15734435617923737,
+        "last": -0.22354649007320404
+      },
+      "RR_negative_target_count": 21,
+      "RR_negative_actual_count": 21
+    },
+    {
+      "ticks": [
+        5544,
+        6600
+      ],
+      "body_net_advance_m": -0.07789844274520874,
+      "wheel_center_net_forward_m": {
+        "FL": -0.07146769762039185,
+        "FR": -0.06464016437530518,
+        "RL": -0.029442906379699707,
+        "RR": -0.09840166568756104
+      },
+      "RR_TOP_bearing_endpoints": 39,
+      "RR_ground_endpoints": 40,
+      "RR_AIR_endpoints": 39,
+      "FL_TOP_bearing_endpoints": 24,
+      "FL_AIR_endpoints": 109,
+      "n": 133,
+      "RR_target": {
+        "n": 133,
+        "minimum": -0.3125041299994079,
+        "maximum": 0.015255179451150888,
+        "mean": -0.11202340555145097,
+        "first": -0.1848168448521872,
+        "last": -0.13577156443944577
+      },
+      "RR_actual_canonical_qd": {
+        "n": 133,
+        "minimum": -0.6575865149497986,
+        "maximum": 0.2913300395011902,
+        "mean": -0.09107658439280844,
+        "first": -0.22354649007320404,
+        "last": 0.007830195128917694
+      },
+      "RR_negative_target_count": 132,
+      "RR_negative_actual_count": 102
+    }
+  ],
+  "dispatch": {
+    "all_full12_masks_one": true,
+    "all_final_dispatch_verified": true,
+    "all_interval_tick_dispatch_verified": true,
+    "handoff_hold_used_count": 2,
+    "final_stop_owner_active_count": 0,
+    "final_minus_same_dispatch_mapped_effective_max_abs": 0.0,
+    "full_last_source_event_owner_ledger": null,
+    "raw_native_measured_qd": null
+  },
+  "endpoint_physical": {
+    "tick": 6600,
+    "terminal": false,
+    "valid": true,
+    "termination": null,
+    "success": false
+  },
+  "limitations": "15Hz current evaluator endpoints are not full contact time. Exact current contact loss lies between last prior and first changed endpoint unless explicit event tick exists. Wheel spin/body translation/leg endpoint motion distinct; no traction causality or optimizer-start gate. Future ticks not read."
+}

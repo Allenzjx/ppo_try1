@@ -1,0 +1,1981 @@
+{
+  "action_dimension": 12,
+  "allowed_changed_files": [
+    "configs/ppo_task_conditioned_hip_wheel_v1/execution_profile.yaml",
+    "src/wlr50_clean/ppo/semantic_cli.py",
+    "src/wlr50_clean/ppo/semantic_migration.py",
+    "src/wlr50_clean/ppo/semantic_training.py"
+  ],
+  "changed_file_hashes": {
+    "configs/ppo_task_conditioned_hip_wheel_v1/execution_profile.yaml": {
+      "after": "f19351620b476ad4cfff2f1628f51a7aceb23eae11875d7f0161be4aa40d6c74",
+      "before": "1650f1b1befa496fc33e1e9aa6489155c33c949ee8748d1b3d8eb59980565d73"
+    },
+    "src/wlr50_clean/ppo/semantic_cli.py": {
+      "after": "1d8e22dbf5d66b5280064db7f6f1686afbd4072e24d5a33e5232f111818e6e31",
+      "before": "d292687bc58c7359ceb019556546e2a7e5cc8794f96e170eddb41d3b615b8924"
+    },
+    "src/wlr50_clean/ppo/semantic_migration.py": {
+      "after": "1f9d1b2cdccf170a1ece2800d5b7562d29916c6ef6dd2f9503e647e36750936f",
+      "before": "14d8bc675c8f21f1bf1362a4b7948935840e9c73647133847b9639b6163d5484"
+    },
+    "src/wlr50_clean/ppo/semantic_training.py": {
+      "after": "fca3291421712c0971269c1a00a77b752a9bda79232ae6e215b2b64cf964935a",
+      "before": "fe35c17db7c20a1c227b429ce3058da9d32354e0386b474ba7e0169eb5e2ea74"
+    }
+  },
+  "discard_old_rollout_storage": true,
+  "geometric_factor": null,
+  "observation_dimension": 372,
+  "physics_resume": "fresh_legal_P01_reset",
+  "preserve_actor_critic_optimizer_normalizer_rng_and_budget": true,
+  "reason": "Continue user-authorized real PPO beyond the historical full_episode quantity ceiling; preserve the 210000 entropy horizon, all control/MDP semantics, weights, full Adam, Identity normalization, training RNG and original lifetime/branch counters.",
+  "schema": "wlr50_clean.semantic_checkpoint_migration.v1",
+  "source_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000192000.pt",
+  "source_checkpoint_sha256": "d54f6f5450ddca5a94c674051a1d7d3759a228d7128a067a42618c0da97660b0",
+  "source_contract_sha256": "23213dd832ea40dfb6bf250f2bd9cbec91e89e80f36ad864a16c72dc4e070017",
+  "source_git_commit": "ee5a9651591d20bea48be8ceba075fa66594cb36",
+  "source_manifest_sha256": "1144e6434bc87b5704ff4596193334fdc99f2135124f64d09271ebc38d4d763b",
+  "source_runtime_content_sha256": "1ea3b145476491674487233768e9e2c610995f50d98632c0dfe52a7bf0861959",
+  "target_contract_sha256": "73cdc5a4d9274c27a837490d6eb3610a42db127f5bcf78d669c2f81ec645c356",
+  "target_git_commit": "97ecd305afb5c43b095e1206ce8917e6e742b1bb",
+  "target_runtime_content_sha256": "9e338c54b4af9891416593f9af8d587282a64ce334ea7f6b6ea24df90b95db2f",
+  "training_quantity_budget_factor": {
+    "action_execution_changed": false,
+    "budget_field": "training_budgets.full_episode",
+    "code_scope": {
+      "src/wlr50_clean/ppo/semantic_cli.py": {
+        "exact_reviewed_regions": {
+          "_preflight_checkpoint": {
+            "after": "6409d586389423ac2be321b3d100089e726c87fd2d2714f079409655557cddbe",
+            "before": "e242a01d0e79f877e93edc889afbb48cb1a50c20490db9c9744ca7a1225c1cec"
+          },
+          "dispatch_live": {
+            "after": "3243056158bc6b8ffcb2fc45db5400ea934d2bdc137ba71d28e1dac181faa30a",
+            "before": "d353a50b81c1801fcc2a95f65437e675265021db43661a748d26dd548733b3de"
+          },
+          "dispatch_vector": {
+            "after": "b77892b89f96cbe6736feaba24ce5ecb97ccc318817b59b90973c02a0f05487e",
+            "before": "ab82830e4b91746e7bad7926c2341f25cbadd6a9ea0a7bcc6505fb6be984133b"
+          },
+          "runtime_contract": {
+            "after": "0f8d37f76cc53ab9939a63c0a7e2fe4353e647d39f94cd6a2526fd8c9e8b6336",
+            "before": "bf3af97f8bfb7acb9f961cab2f9cf09c4540e1b3e31bd25b39e7382d4a77de89"
+          },
+          "validate_request": {
+            "after": "8bb59f1ba95c3df64fe51398799a87dc9589325ae618179f4ed9a456a816972d",
+            "before": "0312487aa05813b5235174823d4d98833855ec3fa574f2edfd52d357d2673bb4"
+          }
+        },
+        "protected_ast_sha256": "a02248112249a187b1206eb1e89124c331c4947f22afc75d00f73143a4960b25"
+      },
+      "src/wlr50_clean/ppo/semantic_migration.py": {
+        "exact_reviewed_regions": {
+          "existing_routes_preserved": true,
+          "new_factor_helpers": [
+            "_build_training_quantity_budget_plan",
+            "_training_quantity_budget_code_scope"
+          ]
+        },
+        "protected_ast_sha256": "f05884dfa8dfafd74747808c55d101d1b2caab72c316c0cb307b8490180795b3"
+      },
+      "src/wlr50_clean/ppo/semantic_training.py": {
+        "exact_reviewed_regions": {
+          "load_semantic_checkpoint": {
+            "after": "3dba6ef72f595a737fafd1dd2f0ea9b90f0af1c63600c6e83c4eccb17967134e",
+            "before": "ffd7f35d9e5a3e40ff484815aff99306e1801b7d4823e27699e10b3682a33a35"
+          },
+          "train_semantic": {
+            "after": "a6beba47341cdbf3f348a61912fda1867a53447161f0f9806be94f5647ff04dd",
+            "before": "c08e29bb05e65555af58a23c10f2bcee4613422f1e2a49f56b5e8268b7c823b1"
+          },
+          "training_quantity_budgets": {
+            "after": "2ba090cfe6659c62acf38f1aa87c798f27f29f5cf9931e691a338c7f6f113855",
+            "before": null
+          }
+        },
+        "protected_ast_sha256": "29980ffcd7124e34f742f51576a523a60f817d7f78dbab460d892a5c32e5c60f"
+      }
+    },
+    "configuration_bindings": {
+      "action_schema.json": {
+        "bytes_identical": true,
+        "source": {
+          "path": "configs/ppo_task_conditioned_hip_wheel_v1/action_schema.json",
+          "sha256": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7"
+        },
+        "target": {
+          "path": "configs/ppo_task_conditioned_hip_wheel_v1/action_schema.json",
+          "sha256": "9e4e91c08661902096551095ef15a36c112987f02324223c6d5327251ac494d7"
+        }
+      },
+      "execution_profile.yaml": {
+        "bytes_identical": false,
+        "source": {
+          "path": "configs/ppo_task_conditioned_hip_wheel_v1/execution_profile.yaml",
+          "sha256": "1650f1b1befa496fc33e1e9aa6489155c33c949ee8748d1b3d8eb59980565d73"
+        },
+        "target": {
+          "path": "configs/ppo_task_conditioned_hip_wheel_v1/execution_profile.yaml",
+          "sha256": "f19351620b476ad4cfff2f1628f51a7aceb23eae11875d7f0161be4aa40d6c74"
+        }
+      },
+      "observation_schema.json": {
+        "bytes_identical": true,
+        "source": {
+          "path": "configs/ppo_task_conditioned_hip_wheel_v1/observation_schema.json",
+          "sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b"
+        },
+        "target": {
+          "path": "configs/ppo_task_conditioned_hip_wheel_v1/observation_schema.json",
+          "sha256": "089ad08daafed91efb76bfdcd640c73c23ab1c0de5f8455f538dd96dcfdd4a7b"
+        }
+      },
+      "quality_score.yaml": {
+        "bytes_identical": true,
+        "source": {
+          "path": "configs/ppo_task_conditioned_hip_wheel_v1/quality_score.yaml",
+          "sha256": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6"
+        },
+        "target": {
+          "path": "configs/ppo_task_conditioned_hip_wheel_v1/quality_score.yaml",
+          "sha256": "d0cc366b82360f0c23c5d4ec60c5bb20c235e226194fb1e0800f764788a103f6"
+        }
+      },
+      "reward_config.yaml": {
+        "bytes_identical": true,
+        "source": {
+          "path": "configs/ppo_task_conditioned_hip_wheel_v1/reward_config.yaml",
+          "sha256": "681f42fabe639edae78746c1fcdb9f7555bd73ac1634891b41bcb548e0d03aba"
+        },
+        "target": {
+          "path": "configs/ppo_task_conditioned_hip_wheel_v1/reward_config.yaml",
+          "sha256": "681f42fabe639edae78746c1fcdb9f7555bd73ac1634891b41bcb548e0d03aba"
+        }
+      },
+      "stage_task_spec.yaml": {
+        "bytes_identical": true,
+        "source": {
+          "path": "configs/ppo_task_conditioned_hip_wheel_v1/stage_task_spec.yaml",
+          "sha256": "cacf4c5cb1c9e3f1c319de8e303be74124826ba01ab27b67c7149bcd2561b936"
+        },
+        "target": {
+          "path": "configs/ppo_task_conditioned_hip_wheel_v1/stage_task_spec.yaml",
+          "sha256": "cacf4c5cb1c9e3f1c319de8e303be74124826ba01ab27b67c7149bcd2561b936"
+        }
+      }
+    },
+    "counter_origin": {
+      "global_policy_decisions": 192000,
+      "optimizer_steps": 29300,
+      "ppo_updates": 1465
+    },
+    "entropy_schedule_denominator": 210000,
+    "first_target_execution": "train_v3_N1_full_episode_fresh_natural_P01_no_offset_no_prefix",
+    "kernel_changed": false,
+    "lifetime_counters_preserved": true,
+    "lifetime_stage_budget_counters_reset": false,
+    "migration_added_policy_decisions": 0,
+    "migration_added_updates": 0,
+    "new_mdp": false,
+    "nominal_control_changed": false,
+    "normalizers": "preserve_verified_identity_RSL_state",
+    "observation_contract": {
+      "action_dimension": 12,
+      "num_envs": 1,
+      "observation_dimension": 372,
+      "observation_layout": "diagonal_transfer_state_v1",
+      "parameter_mapping": "identity_all_parameters_and_buffers",
+      "source_policy_contract": {
+        "B_units": "canonical_servo_degrees_first8_wheel_rad_per_second_last4_not_actual_sigma_or_capacity",
+        "activation": "elu",
+        "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticTaskConditionedHipWheelHistoryMLPModel",
+        "actor_hidden_dims": [
+          256,
+          256
+        ],
+        "base_observation_dimension": 324,
+        "completed_stages_slice": [
+          158,
+          171
+        ],
+        "conditional_mean": "(1-rho)*base_mean+rho*observable_cap_entry_request_or_raw_history_center",
+        "conditional_std": "0.25*learned_sigma*positive_current_observation_B_over_current_cap",
+        "contact_proxy_limitations": "pair_active_near_top_is_not_classified_TOP_or_current_lateral_ROI;not_physical_acceptance",
+        "deterministic_output": "conditional_mean",
+        "directional_bias": false,
+        "distribution_class": "HeteroscedasticGaussianDistribution",
+        "effective_log_std": "learned_log_std+log(0.25)+log(B/current_cap)",
+        "exploration_std_temperature": 0.25,
+        "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+        "extra_filter_or_sampling_rejection": false,
+        "history_center_semantics": "entry_age_zero_predecessor_completed_increased_cap_filtered_request_inverse_tanh_v1",
+        "history_clip": 20.0,
+        "history_feature": "previous_raw_else_cap_entry_previous_filtered_request",
+        "history_request_scales": [
+          4.0,
+          4.0,
+          4.0,
+          6.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          0.12,
+          0.12,
+          0.12,
+          0.12
+        ],
+        "history_request_slice": [
+          207,
+          219
+        ],
+        "history_slice": [
+          195,
+          207
+        ],
+        "history_state": "stored_observation_only; no_actor_mutable_history",
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "observation_dimension": 372,
+        "observation_layout": "diagonal_transfer_state_v1",
+        "phase_caps_full12": [
+          [
+            18.0,
+            24.0,
+            18.0,
+            24.0,
+            12.0,
+            18.0,
+            12.0,
+            18.0,
+            0.6,
+            0.6,
+            0.6,
+            0.6
+          ],
+          [
+            18.0,
+            24.0,
+            18.0,
+            24.0,
+            12.0,
+            18.0,
+            12.0,
+            18.0,
+            0.6,
+            0.6,
+            0.6,
+            0.6
+          ],
+          [
+            18.0,
+            24.0,
+            18.0,
+            24.0,
+            12.0,
+            18.0,
+            12.0,
+            18.0,
+            1.0,
+            0.6,
+            1.0,
+            0.6
+          ],
+          [
+            18.0,
+            24.0,
+            18.0,
+            24.0,
+            12.0,
+            18.0,
+            12.0,
+            18.0,
+            1.0,
+            0.6,
+            1.0,
+            0.6
+          ],
+          [
+            18.0,
+            24.0,
+            18.0,
+            24.0,
+            12.0,
+            18.0,
+            12.0,
+            18.0,
+            1.0,
+            0.6,
+            1.0,
+            0.6
+          ],
+          [
+            32.0,
+            36.0,
+            24.0,
+            112.0,
+            24.0,
+            36.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          [
+            32.0,
+            36.0,
+            24.0,
+            112.0,
+            24.0,
+            36.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          [
+            32.0,
+            36.0,
+            24.0,
+            112.0,
+            24.0,
+            36.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          [
+            32.0,
+            36.0,
+            24.0,
+            112.0,
+            24.0,
+            36.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          [
+            32.0,
+            36.0,
+            24.0,
+            112.0,
+            24.0,
+            36.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          [
+            32.0,
+            36.0,
+            24.0,
+            112.0,
+            24.0,
+            36.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          [
+            32.0,
+            36.0,
+            24.0,
+            112.0,
+            24.0,
+            36.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          [
+            32.0,
+            36.0,
+            24.0,
+            112.0,
+            24.0,
+            36.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ]
+        ],
+        "phase_entry_clock": "120Hz_physics_15Hz_decision_aligned_forward_adjacent_stage_graph",
+        "physical_equivalent_B_full12": {
+          "FL_crossed_air_pending": [
+            24.0,
+            24.0,
+            9.0,
+            12.0,
+            6.0,
+            9.0,
+            6.0,
+            9.0,
+            1.0,
+            0.6,
+            1.0,
+            0.6
+          ],
+          "FR_air_approach_proxy": [
+            9.0,
+            12.0,
+            12.0,
+            18.0,
+            12.0,
+            12.0,
+            6.0,
+            9.0,
+            0.6,
+            0.6,
+            0.6,
+            0.6
+          ],
+          "P06_front_support_recovery_proxy": [
+            24.0,
+            24.0,
+            12.0,
+            18.0,
+            12.0,
+            12.0,
+            12.0,
+            18.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          "P06_front_support_rolling_proxy": [
+            12.0,
+            12.0,
+            12.0,
+            12.0,
+            12.0,
+            12.0,
+            12.0,
+            12.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          "RR_current_valid_lift": [
+            24.0,
+            24.0,
+            12.0,
+            18.0,
+            24.0,
+            24.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          "RR_preparation": [
+            24.0,
+            24.0,
+            12.0,
+            18.0,
+            24.0,
+            24.0,
+            12.0,
+            18.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ]
+        },
+        "raw_action_dimension": 12,
+        "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+        "request_history_scope": "previous_filtered_REQUEST_not_effective_final_drive_or_actual_motion",
+        "rho": 0.9,
+        "role_observation_fields": [
+          "valid",
+          "workspace_progress",
+          "preparation_progress",
+          "transfer_progress",
+          "motion_fraction",
+          "preparation_ready",
+          "transfer_ready",
+          "fixed_direction_world_x",
+          "fixed_direction_world_y",
+          "short_support_continuity_fraction",
+          "continued_response_fraction",
+          "window_evidence_fraction"
+        ],
+        "role_observation_group": "transfer_role_context_full48",
+        "role_observation_leg_order": [
+          "FL",
+          "FR",
+          "RL",
+          "RR"
+        ],
+        "role_observation_slice": [
+          324,
+          372
+        ],
+        "schema": "wlr50_clean.semantic_policy_distribution.v1",
+        "sigma_fallback": "unchanged_e735_B_equals_current_cap_except_P06plus_FR_knee_B24",
+        "sigma_scaling_scope": "official_raw_Gaussian_sample_logprob_entropy_KL;mean_history_caps_unchanged",
+        "sigma_scaling_semantics": "current_observation_task_physical_B_over_cap_sigma_same372_v1",
+        "stage_elapsed_index": 20,
+        "stage_elapsed_scale_s": 200.0,
+        "stage_one_hot_slice": [
+          0,
+          13
+        ],
+        "state_dependent_std": true,
+        "state_gate_semantics": "FR_current_AIR_gap0to15mm_after_lift;FL_crossed_pending_AIR_gap0to3mm;P06_front_support_rolling_or_recovery_proxy;nearest_rear_max_distance_blend_minus270to220mm;RR_current_qualification149_overrides_preparation",
+        "std_type": "log",
+        "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; no_deterministic_output_scaling",
+        "version": "task_conditioned_hip_wheel_sigma_v1"
+      },
+      "target_policy_contract": {
+        "B_units": "canonical_servo_degrees_first8_wheel_rad_per_second_last4_not_actual_sigma_or_capacity",
+        "activation": "elu",
+        "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticTaskConditionedHipWheelHistoryMLPModel",
+        "actor_hidden_dims": [
+          256,
+          256
+        ],
+        "base_observation_dimension": 324,
+        "completed_stages_slice": [
+          158,
+          171
+        ],
+        "conditional_mean": "(1-rho)*base_mean+rho*observable_cap_entry_request_or_raw_history_center",
+        "conditional_std": "0.25*learned_sigma*positive_current_observation_B_over_current_cap",
+        "contact_proxy_limitations": "pair_active_near_top_is_not_classified_TOP_or_current_lateral_ROI;not_physical_acceptance",
+        "deterministic_output": "conditional_mean",
+        "directional_bias": false,
+        "distribution_class": "HeteroscedasticGaussianDistribution",
+        "effective_log_std": "learned_log_std+log(0.25)+log(B/current_cap)",
+        "exploration_std_temperature": 0.25,
+        "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+        "extra_filter_or_sampling_rejection": false,
+        "history_center_semantics": "entry_age_zero_predecessor_completed_increased_cap_filtered_request_inverse_tanh_v1",
+        "history_clip": 20.0,
+        "history_feature": "previous_raw_else_cap_entry_previous_filtered_request",
+        "history_request_scales": [
+          4.0,
+          4.0,
+          4.0,
+          6.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          0.12,
+          0.12,
+          0.12,
+          0.12
+        ],
+        "history_request_slice": [
+          207,
+          219
+        ],
+        "history_slice": [
+          195,
+          207
+        ],
+        "history_state": "stored_observation_only; no_actor_mutable_history",
+        "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+        "observation_dimension": 372,
+        "observation_layout": "diagonal_transfer_state_v1",
+        "phase_caps_full12": [
+          [
+            18.0,
+            24.0,
+            18.0,
+            24.0,
+            12.0,
+            18.0,
+            12.0,
+            18.0,
+            0.6,
+            0.6,
+            0.6,
+            0.6
+          ],
+          [
+            18.0,
+            24.0,
+            18.0,
+            24.0,
+            12.0,
+            18.0,
+            12.0,
+            18.0,
+            0.6,
+            0.6,
+            0.6,
+            0.6
+          ],
+          [
+            18.0,
+            24.0,
+            18.0,
+            24.0,
+            12.0,
+            18.0,
+            12.0,
+            18.0,
+            1.0,
+            0.6,
+            1.0,
+            0.6
+          ],
+          [
+            18.0,
+            24.0,
+            18.0,
+            24.0,
+            12.0,
+            18.0,
+            12.0,
+            18.0,
+            1.0,
+            0.6,
+            1.0,
+            0.6
+          ],
+          [
+            18.0,
+            24.0,
+            18.0,
+            24.0,
+            12.0,
+            18.0,
+            12.0,
+            18.0,
+            1.0,
+            0.6,
+            1.0,
+            0.6
+          ],
+          [
+            32.0,
+            36.0,
+            24.0,
+            112.0,
+            24.0,
+            36.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          [
+            32.0,
+            36.0,
+            24.0,
+            112.0,
+            24.0,
+            36.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          [
+            32.0,
+            36.0,
+            24.0,
+            112.0,
+            24.0,
+            36.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          [
+            32.0,
+            36.0,
+            24.0,
+            112.0,
+            24.0,
+            36.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          [
+            32.0,
+            36.0,
+            24.0,
+            112.0,
+            24.0,
+            36.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          [
+            32.0,
+            36.0,
+            24.0,
+            112.0,
+            24.0,
+            36.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          [
+            32.0,
+            36.0,
+            24.0,
+            112.0,
+            24.0,
+            36.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          [
+            32.0,
+            36.0,
+            24.0,
+            112.0,
+            24.0,
+            36.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ]
+        ],
+        "phase_entry_clock": "120Hz_physics_15Hz_decision_aligned_forward_adjacent_stage_graph",
+        "physical_equivalent_B_full12": {
+          "FL_crossed_air_pending": [
+            24.0,
+            24.0,
+            9.0,
+            12.0,
+            6.0,
+            9.0,
+            6.0,
+            9.0,
+            1.0,
+            0.6,
+            1.0,
+            0.6
+          ],
+          "FR_air_approach_proxy": [
+            9.0,
+            12.0,
+            12.0,
+            18.0,
+            12.0,
+            12.0,
+            6.0,
+            9.0,
+            0.6,
+            0.6,
+            0.6,
+            0.6
+          ],
+          "P06_front_support_recovery_proxy": [
+            24.0,
+            24.0,
+            12.0,
+            18.0,
+            12.0,
+            12.0,
+            12.0,
+            18.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          "P06_front_support_rolling_proxy": [
+            12.0,
+            12.0,
+            12.0,
+            12.0,
+            12.0,
+            12.0,
+            12.0,
+            12.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          "RR_current_valid_lift": [
+            24.0,
+            24.0,
+            12.0,
+            18.0,
+            24.0,
+            24.0,
+            24.0,
+            36.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ],
+          "RR_preparation": [
+            24.0,
+            24.0,
+            12.0,
+            18.0,
+            24.0,
+            24.0,
+            12.0,
+            18.0,
+            1.2,
+            1.2,
+            1.0,
+            0.6
+          ]
+        },
+        "raw_action_dimension": 12,
+        "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+        "request_history_scope": "previous_filtered_REQUEST_not_effective_final_drive_or_actual_motion",
+        "rho": 0.9,
+        "role_observation_fields": [
+          "valid",
+          "workspace_progress",
+          "preparation_progress",
+          "transfer_progress",
+          "motion_fraction",
+          "preparation_ready",
+          "transfer_ready",
+          "fixed_direction_world_x",
+          "fixed_direction_world_y",
+          "short_support_continuity_fraction",
+          "continued_response_fraction",
+          "window_evidence_fraction"
+        ],
+        "role_observation_group": "transfer_role_context_full48",
+        "role_observation_leg_order": [
+          "FL",
+          "FR",
+          "RL",
+          "RR"
+        ],
+        "role_observation_slice": [
+          324,
+          372
+        ],
+        "schema": "wlr50_clean.semantic_policy_distribution.v1",
+        "sigma_fallback": "unchanged_e735_B_equals_current_cap_except_P06plus_FR_knee_B24",
+        "sigma_scaling_scope": "official_raw_Gaussian_sample_logprob_entropy_KL;mean_history_caps_unchanged",
+        "sigma_scaling_semantics": "current_observation_task_physical_B_over_cap_sigma_same372_v1",
+        "stage_elapsed_index": 20,
+        "stage_elapsed_scale_s": 200.0,
+        "stage_one_hot_slice": [
+          0,
+          13
+        ],
+        "state_dependent_std": true,
+        "state_gate_semantics": "FR_current_AIR_gap0to15mm_after_lift;FL_crossed_pending_AIR_gap0to3mm;P06_front_support_rolling_or_recovery_proxy;nearest_rear_max_distance_blend_minus270to220mm;RR_current_qualification149_overrides_preparation",
+        "std_type": "log",
+        "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; no_deterministic_output_scaling",
+        "version": "task_conditioned_hip_wheel_sigma_v1"
+      }
+    },
+    "observation_semantics_changed": [],
+    "old_rollout_inherited": false,
+    "optimizer": "preserve_complete_verified_Adam_state_and_effective_learning_rate",
+    "optimizer_lr_scope": "all_parameter_groups_and_algorithm_learning_rate_scalar",
+    "original_branch_origin_preserved": true,
+    "physical_trajectory_equivalence_claimed": false,
+    "prefix_samples_have_optimizer_credit": false,
+    "preserved_branch_metadata": {
+      "fl_capture_quality_branch": {
+        "branch_id": "fl_capture_quality_v1",
+        "counter_origin": {
+          "global_policy_decisions": 178432,
+          "optimizer_steps": 27180,
+          "ppo_updates": 1359
+        },
+        "migration_added_updates": 0,
+        "schema": "wlr50_clean.fl_capture_quality_branch.v1",
+        "source_checkpoint_sha256": "19acb91f64a2b728e54f02d50dcaf187e11fd432ff68901ba91ff0af58f6a665",
+        "source_manifest_sha256": "78dc71b80f897fa843f365c0ae3ba7150ade970eaf5ff57325141e465a91453a"
+      },
+      "fl_capture_quality_branch_counts": {
+        "global_policy_decisions": 13568,
+        "optimizer_steps": 2120,
+        "ppo_updates": 106
+      },
+      "new_mdp_origin_global_policy_decisions": 10112,
+      "rr_task_branch": {
+        "branch_id": "residual_rr_fix_v1",
+        "counter_origin": {
+          "global_policy_decisions": 177792,
+          "optimizer_steps": 27080,
+          "ppo_updates": 1354
+        },
+        "migration_added_updates": 0,
+        "schema": "wlr50_clean.rr_task_continuation_branch.v1",
+        "source_checkpoint_sha256": "e4552bb18ef223fb51da31a616cf57cf3291ba1a108b08e7da40c07bee0db0ba",
+        "source_manifest_sha256": "9f78b80a8128c3a44c4b13c3e6ea4fbf47e01b491eff8a62c73f0aae50dd1b0c"
+      },
+      "rr_task_branch_counts": {
+        "global_policy_decisions": 14208,
+        "optimizer_steps": 2220,
+        "ppo_updates": 111
+      },
+      "source_stage_requested_decisions": {
+        "full_episode": 73088,
+        "phase_suffix": 68992,
+        "smoke": 0
+      },
+      "task_conditioned_hip_wheel_branch": {
+        "branch_id": "task_conditioned_hip_wheel_v1",
+        "counter_origin": {
+          "global_policy_decisions": 185856,
+          "optimizer_steps": 28340,
+          "ppo_updates": 1417
+        },
+        "migration_added_updates": 0,
+        "schema": "wlr50_clean.task_conditioned_hip_wheel_branch.v1",
+        "source_checkpoint_sha256": "cfb5dd3f8304198b07fda3c72a01e54183a4a76e8ce8f8a98927693361155450",
+        "source_manifest_sha256": "bd96ace32db0c4eb512953bb35099de1d98cee3cf39653fa982bd25cf3f7914b"
+      },
+      "task_conditioned_hip_wheel_branch_counts": {
+        "global_policy_decisions": 6144,
+        "optimizer_steps": 960,
+        "ppo_updates": 48
+      },
+      "task_recovery_branch": {
+        "Adam_shared_scalar_step": "preserved_for_sigma_and_shared_parameter; mean_moment_bias_correction_uses_existing_age",
+        "actor_feature_parameters": "preserved_exactly",
+        "actor_parameter_sha256_after": "67ca847d3c1535a973bc3a7b7d717cdd45c55346bd59eb4a407d97a2d17d312f",
+        "actor_parameter_sha256_before": "570caf101cc40bb104990138347b7734b9adf59bc00acc924002aaf624f3bce2",
+        "all12_channels_remain_learnable": true,
+        "branch_counter_semantics": "absolute_checkpoint_counters_minus_origin_lifetime_counters",
+        "branch_id": "mean_head_recovery_v1",
+        "branch_optimizer_steps": 0,
+        "branch_policy_decisions": 0,
+        "branch_ppo_updates": 0,
+        "changed_parameter_rows": [
+          {
+            "cleared_moment_fields": [
+              "exp_avg",
+              "exp_avg_sq"
+            ],
+            "mean_rows": [
+              0,
+              12
+            ],
+            "parameter": "mlp.4.weight",
+            "preserved_log_sigma_rows": [
+              12,
+              24
+            ],
+            "shared_Adam_step_preserved": 3820.0
+          },
+          {
+            "cleared_moment_fields": [
+              "exp_avg",
+              "exp_avg_sq"
+            ],
+            "mean_rows": [
+              0,
+              12
+            ],
+            "parameter": "mlp.4.bias",
+            "preserved_log_sigma_rows": [
+              12,
+              24
+            ],
+            "shared_Adam_step_preserved": 3820.0
+          }
+        ],
+        "counter_origin": {
+          "global_policy_decisions": 176640,
+          "optimizer_steps": 26900,
+          "ppo_updates": 1345
+        },
+        "critic": "preserve_parameters_and_Adam_then_refit_only_on_new_reward_on_policy_data; source_values_not_ground_truth",
+        "critic_parameter_sha256_after": "ed861cde9ce9d211f5f37eed9ba97ab4af9e6615b2d1cd3f7aeab0cb6c8a9279",
+        "critic_parameter_sha256_before": "ed861cde9ce9d211f5f37eed9ba97ab4af9e6615b2d1cd3f7aeab0cb6c8a9279",
+        "history": "kernel_unchanged; fresh_legal_episode_reset_has_zero_previous_raw",
+        "initialization_is_not_PPO_learning_success": true,
+        "log_sigma_parameters": "preserved_exactly_not_exp0",
+        "mean_output_parameters": "zero_first12_rows_only",
+        "normalizer": "identity_state_preserved",
+        "old_model_and_old_optimizer_preserved_on_disk": true,
+        "old_rollout_inherited": false,
+        "optimizer": "preserve_all_other_states_and_groups; clear_only_mean_row_moments",
+        "optimizer_state_sha256_after": "c7e288cdfa04e2d9d719bd0e4b737f6c54d6c091100f6e45af5ef668294e9732",
+        "optimizer_state_sha256_before": "8952d58aa37b2886d096bd3e52d82ce8ba608bf5c00205cf1dcf32d88857740b",
+        "reason": "Saved/reloaded natural P01 evaluation 20260916T0417200243144Z: 817 ticks, P02 RR knee hard limit, FR not crossed or placed; final FL/FR/RL/RR targets -0.224238/0.002450/0.029583/0.797650 rad_s still adverse after 2048 task-first decisions and 16 updates.",
+        "schema": "wlr50_clean.task_recovery_mean_head_branch.v1",
+        "source_checkpoint": {
+          "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000176640.pt",
+          "checkpoint_sha256": "a7e04ee3083c84303153a5fba38c26853c6a97fbe71602e2762997068aa3a875",
+          "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_first_recovery_v1\\checkpoints\\history\\checkpoint_step_000176640_manifest.json",
+          "manifest_sha256": "be33c0caa1f8917536e7645d2bb65683e6efc62dd793bacf4d86fc0e925c6c23"
+        },
+        "training_rng": "preserved_no_sampling_during_initialization"
+      },
+      "task_recovery_branch_counts": {
+        "global_policy_decisions": 15360,
+        "optimizer_steps": 2400,
+        "ppo_updates": 120
+      }
+    },
+    "review_reason": "Continue user-authorized real PPO beyond the historical full_episode quantity ceiling; preserve the 210000 entropy horizon, all control/MDP semantics, weights, full Adam, Identity normalization, training RNG and original lifetime/branch counters.",
+    "reviewed_code_sha256": {
+      "src/wlr50_clean/ppo/semantic_cli.py": "1d8e22dbf5d66b5280064db7f6f1686afbd4072e24d5a33e5232f111818e6e31",
+      "src/wlr50_clean/ppo/semantic_migration.py": "1f9d1b2cdccf170a1ece2800d5b7562d29916c6ef6dd2f9503e647e36750936f",
+      "src/wlr50_clean/ppo/semantic_training.py": "fca3291421712c0971269c1a00a77b752a9bda79232ae6e215b2b64cf964935a"
+    },
+    "reward_changed": false,
+    "same_mdp_claimed": true,
+    "schema": "wlr50_clean.training_quantity_budget_same372.v1",
+    "source_effective_learning_rate": 1e-05,
+    "source_policy_contract": {
+      "B_units": "canonical_servo_degrees_first8_wheel_rad_per_second_last4_not_actual_sigma_or_capacity",
+      "activation": "elu",
+      "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticTaskConditionedHipWheelHistoryMLPModel",
+      "actor_hidden_dims": [
+        256,
+        256
+      ],
+      "base_observation_dimension": 324,
+      "completed_stages_slice": [
+        158,
+        171
+      ],
+      "conditional_mean": "(1-rho)*base_mean+rho*observable_cap_entry_request_or_raw_history_center",
+      "conditional_std": "0.25*learned_sigma*positive_current_observation_B_over_current_cap",
+      "contact_proxy_limitations": "pair_active_near_top_is_not_classified_TOP_or_current_lateral_ROI;not_physical_acceptance",
+      "deterministic_output": "conditional_mean",
+      "directional_bias": false,
+      "distribution_class": "HeteroscedasticGaussianDistribution",
+      "effective_log_std": "learned_log_std+log(0.25)+log(B/current_cap)",
+      "exploration_std_temperature": 0.25,
+      "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+      "extra_filter_or_sampling_rejection": false,
+      "history_center_semantics": "entry_age_zero_predecessor_completed_increased_cap_filtered_request_inverse_tanh_v1",
+      "history_clip": 20.0,
+      "history_feature": "previous_raw_else_cap_entry_previous_filtered_request",
+      "history_request_scales": [
+        4.0,
+        4.0,
+        4.0,
+        6.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        0.12,
+        0.12,
+        0.12,
+        0.12
+      ],
+      "history_request_slice": [
+        207,
+        219
+      ],
+      "history_slice": [
+        195,
+        207
+      ],
+      "history_state": "stored_observation_only; no_actor_mutable_history",
+      "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+      "observation_dimension": 372,
+      "observation_layout": "diagonal_transfer_state_v1",
+      "phase_caps_full12": [
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          0.6,
+          0.6,
+          0.6,
+          0.6
+        ],
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          0.6,
+          0.6,
+          0.6,
+          0.6
+        ],
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          1.0,
+          0.6,
+          1.0,
+          0.6
+        ],
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          1.0,
+          0.6,
+          1.0,
+          0.6
+        ],
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          1.0,
+          0.6,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ]
+      ],
+      "phase_entry_clock": "120Hz_physics_15Hz_decision_aligned_forward_adjacent_stage_graph",
+      "physical_equivalent_B_full12": {
+        "FL_crossed_air_pending": [
+          24.0,
+          24.0,
+          9.0,
+          12.0,
+          6.0,
+          9.0,
+          6.0,
+          9.0,
+          1.0,
+          0.6,
+          1.0,
+          0.6
+        ],
+        "FR_air_approach_proxy": [
+          9.0,
+          12.0,
+          12.0,
+          18.0,
+          12.0,
+          12.0,
+          6.0,
+          9.0,
+          0.6,
+          0.6,
+          0.6,
+          0.6
+        ],
+        "P06_front_support_recovery_proxy": [
+          24.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          12.0,
+          12.0,
+          18.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        "P06_front_support_rolling_proxy": [
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        "RR_current_valid_lift": [
+          24.0,
+          24.0,
+          12.0,
+          18.0,
+          24.0,
+          24.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        "RR_preparation": [
+          24.0,
+          24.0,
+          12.0,
+          18.0,
+          24.0,
+          24.0,
+          12.0,
+          18.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ]
+      },
+      "raw_action_dimension": 12,
+      "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+      "request_history_scope": "previous_filtered_REQUEST_not_effective_final_drive_or_actual_motion",
+      "rho": 0.9,
+      "role_observation_fields": [
+        "valid",
+        "workspace_progress",
+        "preparation_progress",
+        "transfer_progress",
+        "motion_fraction",
+        "preparation_ready",
+        "transfer_ready",
+        "fixed_direction_world_x",
+        "fixed_direction_world_y",
+        "short_support_continuity_fraction",
+        "continued_response_fraction",
+        "window_evidence_fraction"
+      ],
+      "role_observation_group": "transfer_role_context_full48",
+      "role_observation_leg_order": [
+        "FL",
+        "FR",
+        "RL",
+        "RR"
+      ],
+      "role_observation_slice": [
+        324,
+        372
+      ],
+      "schema": "wlr50_clean.semantic_policy_distribution.v1",
+      "sigma_fallback": "unchanged_e735_B_equals_current_cap_except_P06plus_FR_knee_B24",
+      "sigma_scaling_scope": "official_raw_Gaussian_sample_logprob_entropy_KL;mean_history_caps_unchanged",
+      "sigma_scaling_semantics": "current_observation_task_physical_B_over_cap_sigma_same372_v1",
+      "stage_elapsed_index": 20,
+      "stage_elapsed_scale_s": 200.0,
+      "stage_one_hot_slice": [
+        0,
+        13
+      ],
+      "state_dependent_std": true,
+      "state_gate_semantics": "FR_current_AIR_gap0to15mm_after_lift;FL_crossed_pending_AIR_gap0to3mm;P06_front_support_rolling_or_recovery_proxy;nearest_rear_max_distance_blend_minus270to220mm;RR_current_qualification149_overrides_preparation",
+      "std_type": "log",
+      "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; no_deterministic_output_scaling",
+      "version": "task_conditioned_hip_wheel_sigma_v1"
+    },
+    "source_policy_version": "task_conditioned_hip_wheel_sigma_v1",
+    "source_remaining_full_episode": 32,
+    "source_runner_config": {
+      "actor": {
+        "activation": "elu",
+        "class_name": "wlr50_clean.ppo.semantic_history_actor:SemanticTaskConditionedHipWheelHistoryMLPModel",
+        "distribution_cfg": {
+          "class_name": "HeteroscedasticGaussianDistribution",
+          "init_std": 0.15,
+          "std_type": "log"
+        },
+        "exploration_std_temperature": 0.25,
+        "hidden_dims": [
+          256,
+          256
+        ],
+        "obs_normalization": false,
+        "observation_layout": "diagonal_transfer_state_v1"
+      },
+      "algorithm": {
+        "class_name": "PPO",
+        "clip_param": 0.2,
+        "desired_kl": 0.01,
+        "entropy_coef": 0.005,
+        "gamma": 0.9985,
+        "lam": 0.99,
+        "learning_rate": 3e-05,
+        "max_grad_norm": 1.0,
+        "normalize_advantage_per_mini_batch": false,
+        "num_learning_epochs": 5,
+        "num_mini_batches": 4,
+        "optimizer": "adam",
+        "rnd_cfg": null,
+        "schedule": "adaptive",
+        "share_cnn_encoders": false,
+        "symmetry_cfg": null,
+        "use_clipped_value_loss": true,
+        "value_loss_coef": 1.0
+      },
+      "check_for_nan": true,
+      "class_name": "OnPolicyRunner",
+      "critic": {
+        "activation": "elu",
+        "class_name": "MLPModel",
+        "distribution_cfg": null,
+        "hidden_dims": [
+          256,
+          256
+        ],
+        "obs_normalization": false
+      },
+      "device": "cuda:0",
+      "experiment_name": "wlr50_semantic_residual_v3",
+      "logger": "tensorboard",
+      "max_iterations": 2000,
+      "multi_gpu": null,
+      "num_steps_per_env": 128,
+      "obs_groups": {
+        "actor": [
+          "policy"
+        ],
+        "critic": [
+          "critic"
+        ]
+      },
+      "run_name": "",
+      "save_interval": 1,
+      "seed": 1001,
+      "semantic_return_profile": "v3_gamma_09985_lambda_099_v1"
+    },
+    "source_stage_requested_decisions": {
+      "full_episode": 99968,
+      "phase_suffix": 81920,
+      "smoke": 0
+    },
+    "source_training_budgets": {
+      "full_episode": 100000,
+      "phase_suffix": 100000,
+      "smoke": 10000
+    },
+    "target_effective_learning_rate": 1e-05,
+    "target_policy_contract": {
+      "B_units": "canonical_servo_degrees_first8_wheel_rad_per_second_last4_not_actual_sigma_or_capacity",
+      "activation": "elu",
+      "actor_class": "wlr50_clean.ppo.semantic_history_actor:SemanticTaskConditionedHipWheelHistoryMLPModel",
+      "actor_hidden_dims": [
+        256,
+        256
+      ],
+      "base_observation_dimension": 324,
+      "completed_stages_slice": [
+        158,
+        171
+      ],
+      "conditional_mean": "(1-rho)*base_mean+rho*observable_cap_entry_request_or_raw_history_center",
+      "conditional_std": "0.25*learned_sigma*positive_current_observation_B_over_current_cap",
+      "contact_proxy_limitations": "pair_active_near_top_is_not_classified_TOP_or_current_lateral_ROI;not_physical_acceptance",
+      "deterministic_output": "conditional_mean",
+      "directional_bias": false,
+      "distribution_class": "HeteroscedasticGaussianDistribution",
+      "effective_log_std": "learned_log_std+log(0.25)+log(B/current_cap)",
+      "exploration_std_temperature": 0.25,
+      "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+      "extra_filter_or_sampling_rejection": false,
+      "history_center_semantics": "entry_age_zero_predecessor_completed_increased_cap_filtered_request_inverse_tanh_v1",
+      "history_clip": 20.0,
+      "history_feature": "previous_raw_else_cap_entry_previous_filtered_request",
+      "history_request_scales": [
+        4.0,
+        4.0,
+        4.0,
+        6.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        0.12,
+        0.12,
+        0.12,
+        0.12
+      ],
+      "history_request_slice": [
+        207,
+        219
+      ],
+      "history_slice": [
+        195,
+        207
+      ],
+      "history_state": "stored_observation_only; no_actor_mutable_history",
+      "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+      "observation_dimension": 372,
+      "observation_layout": "diagonal_transfer_state_v1",
+      "phase_caps_full12": [
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          0.6,
+          0.6,
+          0.6,
+          0.6
+        ],
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          0.6,
+          0.6,
+          0.6,
+          0.6
+        ],
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          1.0,
+          0.6,
+          1.0,
+          0.6
+        ],
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          1.0,
+          0.6,
+          1.0,
+          0.6
+        ],
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          1.0,
+          0.6,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ]
+      ],
+      "phase_entry_clock": "120Hz_physics_15Hz_decision_aligned_forward_adjacent_stage_graph",
+      "physical_equivalent_B_full12": {
+        "FL_crossed_air_pending": [
+          24.0,
+          24.0,
+          9.0,
+          12.0,
+          6.0,
+          9.0,
+          6.0,
+          9.0,
+          1.0,
+          0.6,
+          1.0,
+          0.6
+        ],
+        "FR_air_approach_proxy": [
+          9.0,
+          12.0,
+          12.0,
+          18.0,
+          12.0,
+          12.0,
+          6.0,
+          9.0,
+          0.6,
+          0.6,
+          0.6,
+          0.6
+        ],
+        "P06_front_support_recovery_proxy": [
+          24.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          12.0,
+          12.0,
+          18.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        "P06_front_support_rolling_proxy": [
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        "RR_current_valid_lift": [
+          24.0,
+          24.0,
+          12.0,
+          18.0,
+          24.0,
+          24.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        "RR_preparation": [
+          24.0,
+          24.0,
+          12.0,
+          18.0,
+          24.0,
+          24.0,
+          12.0,
+          18.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ]
+      },
+      "raw_action_dimension": 12,
+      "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+      "request_history_scope": "previous_filtered_REQUEST_not_effective_final_drive_or_actual_motion",
+      "rho": 0.9,
+      "role_observation_fields": [
+        "valid",
+        "workspace_progress",
+        "preparation_progress",
+        "transfer_progress",
+        "motion_fraction",
+        "preparation_ready",
+        "transfer_ready",
+        "fixed_direction_world_x",
+        "fixed_direction_world_y",
+        "short_support_continuity_fraction",
+        "continued_response_fraction",
+        "window_evidence_fraction"
+      ],
+      "role_observation_group": "transfer_role_context_full48",
+      "role_observation_leg_order": [
+        "FL",
+        "FR",
+        "RL",
+        "RR"
+      ],
+      "role_observation_slice": [
+        324,
+        372
+      ],
+      "schema": "wlr50_clean.semantic_policy_distribution.v1",
+      "sigma_fallback": "unchanged_e735_B_equals_current_cap_except_P06plus_FR_knee_B24",
+      "sigma_scaling_scope": "official_raw_Gaussian_sample_logprob_entropy_KL;mean_history_caps_unchanged",
+      "sigma_scaling_semantics": "current_observation_task_physical_B_over_cap_sigma_same372_v1",
+      "stage_elapsed_index": 20,
+      "stage_elapsed_scale_s": 200.0,
+      "stage_one_hot_slice": [
+        0,
+        13
+      ],
+      "state_dependent_std": true,
+      "state_gate_semantics": "FR_current_AIR_gap0to15mm_after_lift;FL_crossed_pending_AIR_gap0to3mm;P06_front_support_rolling_or_recovery_proxy;nearest_rear_max_distance_blend_minus270to220mm;RR_current_qualification149_overrides_preparation",
+      "std_type": "log",
+      "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; no_deterministic_output_scaling",
+      "version": "task_conditioned_hip_wheel_sigma_v1"
+    },
+    "target_policy_version": "task_conditioned_hip_wheel_sigma_v1",
+    "target_remaining_full_episode": 31104,
+    "target_runner_config": {
+      "actor": {
+        "activation": "elu",
+        "class_name": "wlr50_clean.ppo.semantic_history_actor:SemanticTaskConditionedHipWheelHistoryMLPModel",
+        "distribution_cfg": {
+          "class_name": "HeteroscedasticGaussianDistribution",
+          "init_std": 0.15,
+          "std_type": "log"
+        },
+        "exploration_std_temperature": 0.25,
+        "hidden_dims": [
+          256,
+          256
+        ],
+        "obs_normalization": false,
+        "observation_layout": "diagonal_transfer_state_v1"
+      },
+      "algorithm": {
+        "class_name": "PPO",
+        "clip_param": 0.2,
+        "desired_kl": 0.01,
+        "entropy_coef": 0.005,
+        "gamma": 0.9985,
+        "lam": 0.99,
+        "learning_rate": 3e-05,
+        "max_grad_norm": 1.0,
+        "normalize_advantage_per_mini_batch": false,
+        "num_learning_epochs": 5,
+        "num_mini_batches": 4,
+        "optimizer": "adam",
+        "rnd_cfg": null,
+        "schedule": "adaptive",
+        "share_cnn_encoders": false,
+        "symmetry_cfg": null,
+        "use_clipped_value_loss": true,
+        "value_loss_coef": 1.0
+      },
+      "check_for_nan": true,
+      "class_name": "OnPolicyRunner",
+      "critic": {
+        "activation": "elu",
+        "class_name": "MLPModel",
+        "distribution_cfg": null,
+        "hidden_dims": [
+          256,
+          256
+        ],
+        "obs_normalization": false
+      },
+      "device": "cuda:0",
+      "experiment_name": "wlr50_semantic_residual_v3",
+      "logger": "tensorboard",
+      "max_iterations": 2000,
+      "multi_gpu": null,
+      "num_steps_per_env": 128,
+      "obs_groups": {
+        "actor": [
+          "policy"
+        ],
+        "critic": [
+          "critic"
+        ]
+      },
+      "run_name": "",
+      "save_interval": 1,
+      "seed": 1001,
+      "semantic_return_profile": "v3_gamma_09985_lambda_099_v1"
+    },
+    "target_stage_requested_decisions": {
+      "full_episode": 99968,
+      "phase_suffix": 81920,
+      "smoke": 0
+    },
+    "target_training_budgets": {
+      "full_episode": 131072,
+      "phase_suffix": 100000,
+      "smoke": 10000
+    },
+    "task_acceptance_changed": false,
+    "training_quantity_only": true,
+    "training_rng": "preserve_verified_training_rng"
+  }
+}

@@ -1,0 +1,173 @@
+{
+  "schema": "wlr50_clean.block11_first_rollout_prefix_handoff_readonly.v1",
+  "result": "PASS_WITH_PREFIX_SCOPE_NOT_FULL_SUCCESS",
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\train\\20260921T1200165967039Z_g97ecd305afb5_4ee14f50dcfc4e2d9d5787e6fb08ecbf",
+  "source_checkpoint": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000194560.pt",
+    "sha256": "20d327d6c9b62a1b459dad61abbae7181a7b1dcae23ca26a5f51ba63e7399aca"
+  },
+  "first_checkpoint": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_task_conditioned_hip_wheel_v1\\checkpoints\\history\\checkpoint_step_000194688.pt",
+    "sha256": "5a6afb7cc5dabbe979df7af3014f068439e53a84ee20b41a3f739eedbff54405"
+  },
+  "rollout": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\train\\20260921T1200165967039Z_g97ecd305afb5_4ee14f50dcfc4e2d9d5787e6fb08ecbf\\rollouts\\rollout_001486.pt",
+    "sha256": "5119e9305c76bd25f1540f717c19bbd7863cfc2d1a05688bd6d0e7d139629998",
+    "update": 1486,
+    "sample_count": 128,
+    "observation_shape": [
+      128,
+      1,
+      372
+    ],
+    "action_shape": [
+      128,
+      1,
+      12
+    ],
+    "first_global_decision": 194561,
+    "last_global_decision": 194688,
+    "phase_counts": {
+      "P04": 1,
+      "P05": 127
+    },
+    "done_count": 0,
+    "raw_actions_means_sigmas_logprob_exactly_match_actual_audit": true
+  },
+  "prefix": {
+    "source": "successful_nominal",
+    "decision_count": 188,
+    "physics_ticks": 1504,
+    "PPO_credit": 0,
+    "all_raw_and_filtered_residuals_zero": true,
+    "end_time_s": 12.533333333333333,
+    "remaining_task_time_s": 187.46666666666667,
+    "learner_start_phase": "P04",
+    "fallback_used": false
+  },
+  "handoff": {
+    "first_learner_interval_episode_ticks": [
+      1504,
+      1512
+    ],
+    "first_native_command_tick": 1684,
+    "last_prefix_native_command_tick": 1683,
+    "physics_clock_continuous": true,
+    "history_initial_max_absolute_errors": {
+      "previous_raw_full12": 0,
+      "previous_residual_full12": 0,
+      "previous_applied_full12": 3.8146972514141453e-7,
+      "previous_nominal_full12": 8.583068833445395e-7,
+      "mapper_requested_servo_deg": 8.583068833445395e-7,
+      "mapper_tracking_compensation_deg": 2.7912960831599776e-9,
+      "mapper_applied_drive_command_deg": 3.8146972514141453e-7
+    },
+    "history_127_successor_max_absolute_errors": {
+      "previous_raw_full12": 0,
+      "previous_residual_full12": 8.554726491638576e-7,
+      "previous_applied_full12": 0.000002680216873329755,
+      "previous_nominal_full12": 0.0000012636184720804522
+    },
+    "previous_nominal_full12": [
+      0,
+      -22.9,
+      0,
+      45.9,
+      17.5,
+      0,
+      0,
+      0,
+      -0.79,
+      0.3,
+      0.51911,
+      0.3
+    ],
+    "current_nominal_full12_from_first_actual_input": [
+      0,
+      -22.900000512599945,
+      0,
+      45.899999141693115,
+      17.500000298023224,
+      0,
+      0,
+      0,
+      0.3000000134110451,
+      0.3000000134110451,
+      0.3000000134110451,
+      0.3000000134110451
+    ],
+    "mapper_tracking_compensation_deg_from_first_actual_input": [
+      0,
+      -3.75,
+      0,
+      0.05897580413147807,
+      -3.75,
+      0,
+      0,
+      0
+    ],
+    "nominal_continuity_semantics": "retained previous N/drive/mapper state; next phase N need not remain numerically identical",
+    "first_P04_to_P05_done": false,
+    "first_to_second_history_is_real_nonzero_policy_action": true,
+    "live_active_controller": "SemanticControllerAdapter",
+    "live_nominal_provider": "NominalMotionProvider",
+    "live_identity_tick": 1504
+  },
+  "execution": {
+    "actual_masks_all12_for_all128": true,
+    "all128_training_style_conditional_gaussian_single_draw_nonzero": true,
+    "all1024_learner_physics_ticks_native_audit_verified": true,
+    "final_native_changed_channel_count_min_max": [
+      11,
+      12
+    ],
+    "first_action_changed_native_channels": 12,
+    "prefix_teacher_samples_in_storage": false,
+    "prefix_checkpoint_policy_samples_in_storage": false,
+    "result_scope": "successful_nominal_initialized_suffix"
+  },
+  "learning": {
+    "PPO_delta": {
+      "global_policy_decisions": 128,
+      "ppo_updates": 1,
+      "optimizer_steps": 20
+    },
+    "stage_requested_delta": {
+      "smoke": 0,
+      "phase_suffix": 128,
+      "full_episode": 0
+    },
+    "auxiliary_ledger_unchanged": true,
+    "accepted_auxiliary_updates_total": 7,
+    "attempted_auxiliary_optimizer_steps_total": 8,
+    "auxiliary_new_updates": 0,
+    "source_adam_per_parameter_steps": [
+      6620
+    ],
+    "target_adam_per_parameter_steps": [
+      6640
+    ],
+    "adam_parameter_keys_and_non_LR_groups_preserved": true,
+    "source_effective_LR": 0.00001,
+    "target_effective_LR": 0.000022500000000000005,
+    "actual_update_record_LR": 0.000022500000000000005,
+    "schedule": "adaptive",
+    "desired_kl": 0.01,
+    "actual_KL_mean": 0.014184395247158699,
+    "LR_interpretation": "existing official adaptive KL schedule; no manual constant LR restoration; minibatch-by-minibatch LR not independently logged",
+    "normalizer_hash_unchanged": true,
+    "source_actor_hash_matches_actual_first_update_before": true,
+    "curriculum_exact_saved_epoch_with_checkpoint_boundary_flag": true
+  },
+  "bounded_source_hashes": {
+    "prefix_file_bytes_through_first_credit_start": "6fa4a1a2fdf8cd0437e81ff8ef63fa68107b36555f6d4e64c16d8b6f85485d4d",
+    "actual_audit_first128_lines": "2d12d48d5375c7a9b6f587e1b565469847e22f3edb0113f7bf1e3d4779361641",
+    "live_identity": "aa95728acb4106efc48d959170ae36ceae6f9eb50aecf6df93a5fc7e6e347538",
+    "likelihood_audit": "3d8c295132a14943c83616c4e6ce0775b62f542a26f83d19fafabe76b8f27679"
+  },
+  "production_changed": false,
+  "simulator_calls": 0,
+  "optimizer_calls": 0,
+  "network_forward_calls": 0,
+  "audit_does_not_prove_full_task_success": true
+}

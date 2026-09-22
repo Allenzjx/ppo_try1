@@ -1,0 +1,4282 @@
+{
+  "schema": "RR_direction_diagnostic_readonly.v1",
+  "source_manifest_path": "runs\\ppo_task_conditioned_hip_wheel_v1\\diagnostics\\RR_lift_FL_RL_minus3_N_20260921_01\\run_manifest.json",
+  "source_manifest": {
+    "schema": "wlr50_clean.task_direction_probe.v1",
+    "case": "RR_lift_FL_RL_minus3",
+    "baseline": "nominal",
+    "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_fl_capture_quality_v1\\checkpoints\\history\\checkpoint_step_000185856.pt",
+    "checkpoint_sha256": "cfb5dd3f8304198b07fda3c72a01e54183a4a76e8ce8f8a98927693361155450",
+    "actual_head": "73c128d0f43c628a0d0c3bdb8e60c5f3414a6233",
+    "source_head": "e73542cb57ad327a6246fcffb70d652a548627a3",
+    "all_checkpoint_runtime_files_identical": true,
+    "new_PPO_decisions": 0,
+    "new_PPO_updates": 0,
+    "new_optimizer_steps": 0,
+    "diagnostic_only": true,
+    "source_N_changed": false,
+    "state_injection": false,
+    "max_seconds": 60.0,
+    "harness_sha256": "47d49535071af1b0f76cd13a249675a2c8cb93575b1b9751e3c702cdd16c1167",
+    "lifecycle": "DIAGNOSTIC_SEALED",
+    "endpoint_tick": 6872,
+    "final_phase": "P13",
+    "original_task_reason": "SUCCESS",
+    "probe_started": true,
+    "probe_complete": true,
+    "actual_diagnostic_decisions": 859,
+    "external_budget_stop": false,
+    "learned_state_unchanged": true,
+    "completed_at_utc": "2026-09-21T04:56:52.902069+00:00"
+  },
+  "diagnostic_only": true,
+  "new_PPO_decisions": 0,
+  "new_PPO_updates": 0,
+  "reference": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fl_capture_quality_v1\\video_eval\\prior_B\\20260918T0555572376368Z_gf2e552406ea7_1894338b350241fcbbac4868c5f7f3fb\\source",
+    "events": {
+      "P08": 5168,
+      "P09": 5176,
+      "P10": 6160,
+      "initial": 5428,
+      "qualified": 5434,
+      "crossed": 6155,
+      "placed": 6155,
+      "lift_attempt_events": [
+        {
+          "leg": "RR",
+          "event": "whole_body_initial_clearance",
+          "physics_tick": 5428,
+          "simulation_time_s": 45.233333333333334,
+          "upward_excursion_m": 0.0031986191959188018,
+          "whole_body_joint_motion_deg": 5.993607713963611,
+          "command_motion_deg": 3.5280705992203845,
+          "evidence": "continuous_unsupported_AIR_free_rise_v3",
+          "unsupported_free_lift_m": 0.0031986191959188018
+        },
+        {
+          "leg": "RR",
+          "event": "qualified_measured_upward_lift",
+          "physics_tick": 5434,
+          "simulation_time_s": 45.28333333333333,
+          "upward_excursion_m": 0.008005516523405365,
+          "joint_motion_deg": 4.134547598670349,
+          "airborne_clearance_above_top_m": -0.04199086196616338,
+          "qualification_evidence": "continuous_unsupported_AIR_free_rise_v3",
+          "unsupported_free_lift_m": 0.008005516523405365
+        }
+      ]
+    },
+    "analysis_endpoint_tick": 6872,
+    "final_history_event_ticks": {
+      "active_lift": {
+        "FR": 24,
+        "FL": 1559,
+        "RR": 5434,
+        "RL": 6251
+      },
+      "front_edge_crossed": {
+        "FR": 1486,
+        "FL": 2468,
+        "RR": 6155,
+        "RL": 6658
+      },
+      "placed": {
+        "FR": 1502,
+        "FL": 2677,
+        "RR": 6155,
+        "RL": 6727
+      }
+    },
+    "analysis_endpoint_semantics": "common bounded horizon no longer than 60s; B's full success retained independently",
+    "actual_run_final_tick": 8857,
+    "actual_run_final_phase": "P13",
+    "actual_run_reason": null,
+    "actual_run_full_success": true,
+    "windows": {
+      "P08_to_placed_or_budget": {
+        "physical_120Hz": {
+          "ticks": [
+            5168,
+            6155
+          ],
+          "duration_s": 8.225000000000001,
+          "physics_samples": 988,
+          "rate_RMS_rad_s": 0.05209293939206265,
+          "peak_tilt_rad": 0.21047425321213958,
+          "RR_gap_m": {
+            "n": 988,
+            "minimum": -0.05092519545788415,
+            "maximum": 0.08544230091761,
+            "mean": -0.008265409020247118,
+            "first": -0.05092519545788415,
+            "last": -0.00026886062488543083
+          },
+          "FL_gap_m": {
+            "n": 988,
+            "minimum": -0.0014359717574551692,
+            "maximum": 0.08666744795075025,
+            "mean": 0.015313262715601359,
+            "first": 0.004486899687386553,
+            "last": -0.00017283040061942534
+          },
+          "body_collider_min_world_z_m": {
+            "n": 988,
+            "minimum": 0.08654406542691231,
+            "maximum": 0.13346714394579282,
+            "mean": 0.09819165641934903,
+            "first": 0.13145561124305696,
+            "last": 0.08916765758081857
+          },
+          "conservative_body_obstacle_AABB_separation_m": {
+            "n": 988,
+            "minimum": 0.03654406542691231,
+            "maximum": 0.08346714394579281,
+            "mean": 0.04819165641934903,
+            "first": 0.08145561124305696,
+            "last": 0.03916765758081857
+          },
+          "com_world_z_m": {
+            "n": 988,
+            "minimum": 0.15029041542407828,
+            "maximum": 0.174620016295804,
+            "mean": 0.15753727627152794,
+            "first": 0.16242132366727868,
+            "last": 0.15281650636947308
+          },
+          "com_world_displacement_m": [
+            0.10876260899711898,
+            0.012852320944640477,
+            -0.009604817297805601
+          ],
+          "initial_com_toward_FL_fixed_world_xy": [
+            0.8430996348332969,
+            0.5377573855782564
+          ],
+          "com_displacement_toward_initial_FL_direction_m": 0.0986091464387902,
+          "com_displacement_does_not_imply_FL_bearing": true,
+          "actual_contact_ticks": {
+            "FL": {
+              "ground": 0,
+              "obstacle": 677,
+              "air": 311
+            },
+            "FR": {
+              "ground": 0,
+              "obstacle": 988,
+              "air": 0
+            },
+            "RL": {
+              "ground": 988,
+              "obstacle": 0,
+              "air": 0
+            },
+            "RR": {
+              "ground": 227,
+              "obstacle": 216,
+              "air": 545
+            }
+          },
+          "RR_contact_free_runs": {
+            "count": 9,
+            "total_samples": 545,
+            "longest_observed_duration_s": 4.383333333333334,
+            "runs": [
+              {
+                "first_tick": 5229,
+                "last_tick": 5229,
+                "samples": 1
+              },
+              {
+                "first_tick": 5245,
+                "last_tick": 5245,
+                "samples": 1
+              },
+              {
+                "first_tick": 5385,
+                "last_tick": 5388,
+                "samples": 4
+              },
+              {
+                "first_tick": 5391,
+                "last_tick": 5392,
+                "samples": 2
+              },
+              {
+                "first_tick": 5395,
+                "last_tick": 5396,
+                "samples": 2
+              },
+              {
+                "first_tick": 5400,
+                "last_tick": 5400,
+                "samples": 1
+              },
+              {
+                "first_tick": 5402,
+                "last_tick": 5404,
+                "samples": 3
+              },
+              {
+                "first_tick": 5406,
+                "last_tick": 5409,
+                "samples": 4
+              },
+              {
+                "first_tick": 5413,
+                "last_tick": 5939,
+                "samples": 527
+              }
+            ],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "RR_ground_contact_runs": {
+            "count": 9,
+            "total_samples": 227,
+            "longest_observed_duration_s": 1.15,
+            "runs": [
+              {
+                "first_tick": 5168,
+                "last_tick": 5228,
+                "samples": 61
+              },
+              {
+                "first_tick": 5230,
+                "last_tick": 5244,
+                "samples": 15
+              },
+              {
+                "first_tick": 5246,
+                "last_tick": 5384,
+                "samples": 139
+              },
+              {
+                "first_tick": 5389,
+                "last_tick": 5390,
+                "samples": 2
+              },
+              {
+                "first_tick": 5393,
+                "last_tick": 5394,
+                "samples": 2
+              },
+              {
+                "first_tick": 5397,
+                "last_tick": 5399,
+                "samples": 3
+              },
+              {
+                "first_tick": 5401,
+                "last_tick": 5401,
+                "samples": 1
+              },
+              {
+                "first_tick": 5405,
+                "last_tick": 5405,
+                "samples": 1
+              },
+              {
+                "first_tick": 5410,
+                "last_tick": 5412,
+                "samples": 3
+              }
+            ],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "FL_obstacle_normal_force_n": {
+            "n": 988,
+            "minimum": 0.0,
+            "maximum": 6.507254123687889,
+            "mean": 1.4702746372327855,
+            "first": 0.0,
+            "last": 5.412696838379014
+          },
+          "RR_total_normal_force_n": {
+            "n": 988,
+            "minimum": 0.0,
+            "maximum": 7.158218870179555,
+            "mean": 1.460888460751196,
+            "first": 1.683827042579666,
+            "last": 6.214657306671282
+          },
+          "joints": {
+            "front_left_hip": {
+              "actual_deg": {
+                "n": 988,
+                "minimum": 25.552089306357825,
+                "maximum": 50.03280039555146,
+                "mean": 40.25484913224105,
+                "first": 25.552089306357825,
+                "last": 38.9547526561677
+              },
+              "minimum_negative_margin_deg": 160.55208930635783,
+              "minimum_positive_margin_deg": 84.96719960444854,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_left_hip": {
+              "actual_deg": {
+                "n": 988,
+                "minimum": 7.660487629509783,
+                "maximum": 30.011963230806458,
+                "mean": 24.677929997926658,
+                "first": 7.660487629509783,
+                "last": 29.27822332902867
+              },
+              "minimum_negative_margin_deg": 142.6604876295098,
+              "minimum_positive_margin_deg": 104.98803676919354,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_hip": {
+              "actual_deg": {
+                "n": 988,
+                "minimum": -8.379334690668543,
+                "maximum": 46.728791580319346,
+                "mean": 3.207163536904982,
+                "first": 0.12964422084240873,
+                "last": -8.228361896801873
+              },
+              "minimum_negative_margin_deg": 126.62066530933146,
+              "minimum_positive_margin_deg": 88.27120841968065,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_knee": {
+              "actual_deg": {
+                "n": 988,
+                "minimum": -39.47647425468074,
+                "maximum": 0.25293243372885815,
+                "mean": -23.20762649539382,
+                "first": -0.08932705491485149,
+                "last": -39.44699174312838
+              },
+              "minimum_negative_margin_deg": 20.52352574531926,
+              "minimum_positive_margin_deg": 209.74706756627114,
+              "hard_limits_deg": [
+                -60.0,
+                210.0
+              ]
+            }
+          },
+          "exact_cartesian_feasibility": null,
+          "exact_mesh_obstacle_clearance_m": null
+        },
+        "sampled_15Hz": {
+          "decision_samples": 124,
+          "RR_current_lift_valid_samples": 90,
+          "RR_air_samples": 69,
+          "RR_current_support_samples": 55,
+          "RR_load_fraction_valid_samples": 124,
+          "RR_load_fraction": {
+            "n": 124,
+            "minimum": 0.0,
+            "maximum": 0.23016874440130472,
+            "mean": 0.04828951876296587,
+            "first": 0.05637326706401571,
+            "last": 0.2207345555044979
+          },
+          "RR_contact_mode_counts": {
+            "AIR": 69,
+            "GROUND": 28,
+            "TOP": 27
+          },
+          "FL_current_support_samples": 84,
+          "FL_top_bearing_samples": 84,
+          "FL_air_samples": 40,
+          "FL_bearing_force_n": {
+            "n": 124,
+            "minimum": 0.0,
+            "maximum": 6.277793884277344,
+            "mean": 1.4416710289735948,
+            "first": 0.0,
+            "last": 5.9276580810546875
+          },
+          "FL_toward_CoM_rolling_context_m": {
+            "n": 124,
+            "minimum": -0.004112909405480172,
+            "maximum": 0.031177666498015302,
+            "mean": 0.006126957141536418,
+            "first": 0.0063769882176240075,
+            "last": 0.006017994395413448
+          },
+          "positive_CoM_toward_FL_while_FL_air_samples": 29,
+          "RR_mount_world_z_m": {
+            "n": 124,
+            "minimum": 0.1933325731310862,
+            "maximum": 0.20837714841937777,
+            "mean": 0.19783351521343204,
+            "first": 0.20504140253385733,
+            "last": 0.19777131550682406
+          },
+          "four_hip_world_z_m": null,
+          "last_RR_current_state": {
+            "air": false,
+            "current_lift_valid": true,
+            "contact_mode": "TOP",
+            "clearance_m": -0.00030073245116338937,
+            "front_distance_m": -0.00026917116809244135,
+            "support": true,
+            "bearing_force_n": 6.4842753410339355,
+            "load_fraction": 0.2207345555044979,
+            "load_fraction_valid": true,
+            "placed_on_top": false
+          }
+        }
+      },
+      "P08_to_common_budget": {
+        "physical_120Hz": {
+          "ticks": [
+            5168,
+            6872
+          ],
+          "duration_s": 14.200000000000003,
+          "physics_samples": 1705,
+          "rate_RMS_rad_s": 0.09803011416957726,
+          "peak_tilt_rad": 0.24963540812765345,
+          "RR_gap_m": {
+            "n": 1705,
+            "minimum": -0.05092519545788415,
+            "maximum": 0.08544230091761,
+            "mean": -0.004886633242666287,
+            "first": -0.05092519545788415,
+            "last": -0.0008981790076708629
+          },
+          "FL_gap_m": {
+            "n": 1705,
+            "minimum": -0.0014359717574551692,
+            "maximum": 0.08666744795075025,
+            "mean": 0.008750382439009144,
+            "first": 0.004486899687386553,
+            "last": -0.00028196961558737965
+          },
+          "body_collider_min_world_z_m": {
+            "n": 1705,
+            "minimum": 0.08654406542691231,
+            "maximum": 0.17334134490232722,
+            "mean": 0.12666081154071532,
+            "first": 0.13145561124305696,
+            "last": 0.17256824765664455
+          },
+          "conservative_body_obstacle_AABB_separation_m": {
+            "n": 1705,
+            "minimum": 0.03654406542691231,
+            "maximum": 0.12334134490232722,
+            "mean": 0.07666081154071569,
+            "first": 0.08145561124305696,
+            "last": 0.12256824765664455
+          },
+          "com_world_z_m": {
+            "n": 1705,
+            "minimum": 0.15029041542407828,
+            "maximum": 0.1995357463048522,
+            "mean": 0.1702824282621938,
+            "first": 0.16242132366727868,
+            "last": 0.1876645926107689
+          },
+          "com_world_displacement_m": [
+            0.20626948398802303,
+            -0.026057972889999226,
+            0.025243268943490216
+          ],
+          "initial_com_toward_FL_fixed_world_xy": [
+            0.8430996348332969,
+            0.5377573855782564
+          ],
+          "com_displacement_toward_initial_FL_direction_m": 0.15989285925275973,
+          "com_displacement_does_not_imply_FL_bearing": true,
+          "actual_contact_ticks": {
+            "FL": {
+              "ground": 0,
+              "obstacle": 1365,
+              "air": 340
+            },
+            "FR": {
+              "ground": 0,
+              "obstacle": 1536,
+              "air": 169
+            },
+            "RL": {
+              "ground": 1052,
+              "obstacle": 147,
+              "air": 506
+            },
+            "RR": {
+              "ground": 227,
+              "obstacle": 932,
+              "air": 546
+            }
+          },
+          "RR_contact_free_runs": {
+            "count": 10,
+            "total_samples": 546,
+            "longest_observed_duration_s": 4.383333333333334,
+            "runs": [
+              {
+                "first_tick": 5229,
+                "last_tick": 5229,
+                "samples": 1
+              },
+              {
+                "first_tick": 5245,
+                "last_tick": 5245,
+                "samples": 1
+              },
+              {
+                "first_tick": 5385,
+                "last_tick": 5388,
+                "samples": 4
+              },
+              {
+                "first_tick": 5391,
+                "last_tick": 5392,
+                "samples": 2
+              },
+              {
+                "first_tick": 5395,
+                "last_tick": 5396,
+                "samples": 2
+              },
+              {
+                "first_tick": 5400,
+                "last_tick": 5400,
+                "samples": 1
+              },
+              {
+                "first_tick": 5402,
+                "last_tick": 5404,
+                "samples": 3
+              },
+              {
+                "first_tick": 5406,
+                "last_tick": 5409,
+                "samples": 4
+              },
+              {
+                "first_tick": 5413,
+                "last_tick": 5939,
+                "samples": 527
+              },
+              {
+                "first_tick": 6272,
+                "last_tick": 6272,
+                "samples": 1
+              }
+            ],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "RR_ground_contact_runs": {
+            "count": 9,
+            "total_samples": 227,
+            "longest_observed_duration_s": 1.15,
+            "runs": [
+              {
+                "first_tick": 5168,
+                "last_tick": 5228,
+                "samples": 61
+              },
+              {
+                "first_tick": 5230,
+                "last_tick": 5244,
+                "samples": 15
+              },
+              {
+                "first_tick": 5246,
+                "last_tick": 5384,
+                "samples": 139
+              },
+              {
+                "first_tick": 5389,
+                "last_tick": 5390,
+                "samples": 2
+              },
+              {
+                "first_tick": 5393,
+                "last_tick": 5394,
+                "samples": 2
+              },
+              {
+                "first_tick": 5397,
+                "last_tick": 5399,
+                "samples": 3
+              },
+              {
+                "first_tick": 5401,
+                "last_tick": 5401,
+                "samples": 1
+              },
+              {
+                "first_tick": 5405,
+                "last_tick": 5405,
+                "samples": 1
+              },
+              {
+                "first_tick": 5410,
+                "last_tick": 5412,
+                "samples": 3
+              }
+            ],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "FL_obstacle_normal_force_n": {
+            "n": 1705,
+            "minimum": 0.0,
+            "maximum": 19.03446960449221,
+            "mean": 5.751819447008735,
+            "first": 0.0,
+            "last": 0.3146412670612411
+          },
+          "RR_total_normal_force_n": {
+            "n": 1705,
+            "minimum": 0.0,
+            "maximum": 17.20756530761738,
+            "mean": 5.6479178242246295,
+            "first": 1.683827042579666,
+            "last": 3.346210722713537
+          },
+          "joints": {
+            "front_left_hip": {
+              "actual_deg": {
+                "n": 1705,
+                "minimum": -22.93501038511791,
+                "maximum": 50.03280039555146,
+                "mean": 17.27335303291435,
+                "first": 25.552089306357825,
+                "last": -18.633567274160857
+              },
+              "minimum_negative_margin_deg": 112.0649896148821,
+              "minimum_positive_margin_deg": 84.96719960444854,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_left_hip": {
+              "actual_deg": {
+                "n": 1705,
+                "minimum": -5.986236735478041,
+                "maximum": 32.10349692825859,
+                "mean": 17.337855887484324,
+                "first": 7.660487629509783,
+                "last": -5.986236735478041
+              },
+              "minimum_negative_margin_deg": 129.01376326452197,
+              "minimum_positive_margin_deg": 102.8965030717414,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_hip": {
+              "actual_deg": {
+                "n": 1705,
+                "minimum": -8.937424325108408,
+                "maximum": 46.728791580319346,
+                "mean": -1.5071598054243565,
+                "first": 0.12964422084240873,
+                "last": -8.584178894066396
+              },
+              "minimum_negative_margin_deg": 126.06257567489159,
+              "minimum_positive_margin_deg": 88.27120841968065,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_knee": {
+              "actual_deg": {
+                "n": 1705,
+                "minimum": -39.47647425468074,
+                "maximum": 0.25293243372885815,
+                "mean": -25.4308518259679,
+                "first": -0.08932705491485149,
+                "last": -27.57228781442726
+              },
+              "minimum_negative_margin_deg": 20.52352574531926,
+              "minimum_positive_margin_deg": 209.74706756627114,
+              "hard_limits_deg": [
+                -60.0,
+                210.0
+              ]
+            }
+          },
+          "exact_cartesian_feasibility": null,
+          "exact_mesh_obstacle_clearance_m": null
+        },
+        "sampled_15Hz": {
+          "decision_samples": 214,
+          "RR_current_lift_valid_samples": 170,
+          "RR_air_samples": 70,
+          "RR_current_support_samples": 144,
+          "RR_load_fraction_valid_samples": 214,
+          "RR_load_fraction": {
+            "n": 214,
+            "minimum": 0.0,
+            "maximum": 0.5077312721984811,
+            "mean": 0.19292992926807578,
+            "first": 0.05637326706401571,
+            "last": 0.11641126924140548
+          },
+          "RR_contact_mode_counts": {
+            "AIR": 70,
+            "GROUND": 28,
+            "TOP": 116
+          },
+          "FL_current_support_samples": 172,
+          "FL_top_bearing_samples": 172,
+          "FL_air_samples": 42,
+          "FL_bearing_force_n": {
+            "n": 214,
+            "minimum": 0.0,
+            "maximum": 15.511423110961914,
+            "mean": 5.695304596535514,
+            "first": 0.0,
+            "last": 0.3146412670612335
+          },
+          "FL_toward_CoM_rolling_context_m": {
+            "n": 214,
+            "minimum": -0.011287282585021215,
+            "maximum": 0.05539874336234437,
+            "mean": 0.00562921818877692,
+            "first": 0.0063769882176240075,
+            "last": 0.004083011883066298
+          },
+          "positive_CoM_toward_FL_while_FL_air_samples": 31,
+          "RR_mount_world_z_m": {
+            "n": 214,
+            "minimum": 0.1933325731310862,
+            "maximum": 0.24092630374721735,
+            "mean": 0.21416402588055397,
+            "first": 0.20504140253385733,
+            "last": 0.240400916504682
+          },
+          "four_hip_world_z_m": null,
+          "last_RR_current_state": {
+            "air": false,
+            "current_lift_valid": true,
+            "contact_mode": "TOP",
+            "clearance_m": -0.0008981790076708629,
+            "front_distance_m": 0.05117816073727255,
+            "support": true,
+            "bearing_force_n": 3.324357748031616,
+            "load_fraction": 0.11641126924140548,
+            "load_fraction_valid": true,
+            "placed_on_top": true
+          }
+        }
+      },
+      "P08_to_first_qualified": {
+        "physical_120Hz": {
+          "ticks": [
+            5168,
+            5434
+          ],
+          "duration_s": 2.2166666666666686,
+          "physics_samples": 267,
+          "rate_RMS_rad_s": 0.09510162003911564,
+          "peak_tilt_rad": 0.18863373554048843,
+          "RR_gap_m": {
+            "n": 267,
+            "minimum": -0.05092519545788415,
+            "maximum": -0.04199086196616338,
+            "mean": -0.049948368758897875,
+            "first": -0.05092519545788415,
+            "last": -0.04199086196616338
+          },
+          "FL_gap_m": {
+            "n": 267,
+            "minimum": 0.004486899687386553,
+            "maximum": 0.08666744795075025,
+            "mean": 0.05634208124229899,
+            "first": 0.004486899687386553,
+            "last": 0.013065953848047929
+          },
+          "body_collider_min_world_z_m": {
+            "n": 267,
+            "minimum": 0.09546148499419826,
+            "maximum": 0.13346714394579282,
+            "mean": 0.12521432020647227,
+            "first": 0.13145561124305696,
+            "last": 0.09546148499419826
+          },
+          "conservative_body_obstacle_AABB_separation_m": {
+            "n": 267,
+            "minimum": 0.04546148499419826,
+            "maximum": 0.08346714394579281,
+            "mean": 0.07521432020647219,
+            "first": 0.08145561124305696,
+            "last": 0.04546148499419826
+          },
+          "com_world_z_m": {
+            "n": 267,
+            "minimum": 0.15570588649527425,
+            "maximum": 0.174620016295804,
+            "mean": 0.16727973491611098,
+            "first": 0.16242132366727868,
+            "last": 0.1557215529452269
+          },
+          "com_world_displacement_m": [
+            0.03898393502785058,
+            0.013100118678661107,
+            -0.006699770722051773
+          ],
+          "initial_com_toward_FL_fixed_world_xy": [
+            0.8430996348332969,
+            0.5377573855782564
+          ],
+          "com_displacement_toward_initial_FL_direction_m": 0.039912026957747475,
+          "com_displacement_does_not_imply_FL_bearing": true,
+          "actual_contact_ticks": {
+            "FL": {
+              "ground": 0,
+              "obstacle": 0,
+              "air": 267
+            },
+            "FR": {
+              "ground": 0,
+              "obstacle": 267,
+              "air": 0
+            },
+            "RL": {
+              "ground": 267,
+              "obstacle": 0,
+              "air": 0
+            },
+            "RR": {
+              "ground": 227,
+              "obstacle": 0,
+              "air": 40
+            }
+          },
+          "RR_contact_free_runs": {
+            "count": 9,
+            "total_samples": 40,
+            "longest_observed_duration_s": 0.175,
+            "runs": [
+              {
+                "first_tick": 5229,
+                "last_tick": 5229,
+                "samples": 1
+              },
+              {
+                "first_tick": 5245,
+                "last_tick": 5245,
+                "samples": 1
+              },
+              {
+                "first_tick": 5385,
+                "last_tick": 5388,
+                "samples": 4
+              },
+              {
+                "first_tick": 5391,
+                "last_tick": 5392,
+                "samples": 2
+              },
+              {
+                "first_tick": 5395,
+                "last_tick": 5396,
+                "samples": 2
+              },
+              {
+                "first_tick": 5400,
+                "last_tick": 5400,
+                "samples": 1
+              },
+              {
+                "first_tick": 5402,
+                "last_tick": 5404,
+                "samples": 3
+              },
+              {
+                "first_tick": 5406,
+                "last_tick": 5409,
+                "samples": 4
+              },
+              {
+                "first_tick": 5413,
+                "last_tick": 5434,
+                "samples": 22
+              }
+            ],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "RR_ground_contact_runs": {
+            "count": 9,
+            "total_samples": 227,
+            "longest_observed_duration_s": 1.15,
+            "runs": [
+              {
+                "first_tick": 5168,
+                "last_tick": 5228,
+                "samples": 61
+              },
+              {
+                "first_tick": 5230,
+                "last_tick": 5244,
+                "samples": 15
+              },
+              {
+                "first_tick": 5246,
+                "last_tick": 5384,
+                "samples": 139
+              },
+              {
+                "first_tick": 5389,
+                "last_tick": 5390,
+                "samples": 2
+              },
+              {
+                "first_tick": 5393,
+                "last_tick": 5394,
+                "samples": 2
+              },
+              {
+                "first_tick": 5397,
+                "last_tick": 5399,
+                "samples": 3
+              },
+              {
+                "first_tick": 5401,
+                "last_tick": 5401,
+                "samples": 1
+              },
+              {
+                "first_tick": 5405,
+                "last_tick": 5405,
+                "samples": 1
+              },
+              {
+                "first_tick": 5410,
+                "last_tick": 5412,
+                "samples": 3
+              }
+            ],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "FL_obstacle_normal_force_n": {
+            "n": 267,
+            "minimum": 0.0,
+            "maximum": 0.0,
+            "mean": 0.0,
+            "first": 0.0,
+            "last": 0.0
+          },
+          "RR_total_normal_force_n": {
+            "n": 267,
+            "minimum": 0.0,
+            "maximum": 3.6172380447388024,
+            "mean": 1.3063648938016577,
+            "first": 1.683827042579666,
+            "last": 0.0
+          },
+          "joints": {
+            "front_left_hip": {
+              "actual_deg": {
+                "n": 267,
+                "minimum": 25.552089306357825,
+                "maximum": 50.03280039555146,
+                "mean": 44.49811706630995,
+                "first": 25.552089306357825,
+                "last": 38.54557309846516
+              },
+              "minimum_negative_margin_deg": 160.55208930635783,
+              "minimum_positive_margin_deg": 84.96719960444854,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_left_hip": {
+              "actual_deg": {
+                "n": 267,
+                "minimum": 7.660487629509783,
+                "maximum": 27.829944894777288,
+                "mean": 11.296499707670437,
+                "first": 7.660487629509783,
+                "last": 27.829944894777288
+              },
+              "minimum_negative_margin_deg": 142.6604876295098,
+              "minimum_positive_margin_deg": 107.17005510522272,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_hip": {
+              "actual_deg": {
+                "n": 267,
+                "minimum": -0.21014132192410143,
+                "maximum": 4.305651227857294,
+                "mean": 0.10305455351345832,
+                "first": 0.12964422084240873,
+                "last": 4.305651227857294
+              },
+              "minimum_negative_margin_deg": 134.7898586780759,
+              "minimum_positive_margin_deg": 130.69434877214272,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_knee": {
+              "actual_deg": {
+                "n": 267,
+                "minimum": -0.08932705491485149,
+                "maximum": 0.25293243372885815,
+                "mean": 0.17933741839944076,
+                "first": -0.08932705491485149,
+                "last": 0.13308698302963892
+              },
+              "minimum_negative_margin_deg": 59.910672945085146,
+              "minimum_positive_margin_deg": 209.74706756627114,
+              "hard_limits_deg": [
+                -60.0,
+                210.0
+              ]
+            }
+          },
+          "exact_cartesian_feasibility": null,
+          "exact_mesh_obstacle_clearance_m": null
+        },
+        "sampled_15Hz": {
+          "decision_samples": 34,
+          "RR_current_lift_valid_samples": 0,
+          "RR_air_samples": 6,
+          "RR_current_support_samples": 28,
+          "RR_load_fraction_valid_samples": 34,
+          "RR_load_fraction": {
+            "n": 34,
+            "minimum": 0.0,
+            "maximum": 0.11348555401624305,
+            "mean": 0.040987117471950364,
+            "first": 0.05637326706401571,
+            "last": 0.0
+          },
+          "RR_contact_mode_counts": {
+            "AIR": 6,
+            "GROUND": 28
+          },
+          "FL_current_support_samples": 0,
+          "FL_top_bearing_samples": 0,
+          "FL_air_samples": 34,
+          "FL_bearing_force_n": {
+            "n": 34,
+            "minimum": 0.0,
+            "maximum": 0.0,
+            "mean": 0.0,
+            "first": 0.0,
+            "last": 0.0
+          },
+          "FL_toward_CoM_rolling_context_m": {
+            "n": 34,
+            "minimum": -0.004112909405480172,
+            "maximum": 0.031177666498015302,
+            "mean": 0.007448949463127271,
+            "first": 0.0063769882176240075,
+            "last": 0.028047894028601583
+          },
+          "positive_CoM_toward_FL_while_FL_air_samples": 23,
+          "RR_mount_world_z_m": {
+            "n": 34,
+            "minimum": 0.19739596857589745,
+            "maximum": 0.20837714841937777,
+            "mean": 0.20474134661101773,
+            "first": 0.20504140253385733,
+            "last": 0.19739596857589745
+          },
+          "four_hip_world_z_m": null,
+          "last_RR_current_state": {
+            "air": true,
+            "current_lift_valid": false,
+            "contact_mode": "AIR",
+            "clearance_m": -0.043999491573635634,
+            "front_distance_m": -0.1806744004981553,
+            "support": false,
+            "bearing_force_n": 0.0,
+            "load_fraction": 0.0,
+            "load_fraction_valid": true,
+            "placed_on_top": false
+          }
+        }
+      },
+      "qualified_to_placed_or_budget": {
+        "physical_120Hz": {
+          "ticks": [
+            5434,
+            6155
+          ],
+          "duration_s": 6.008333333333333,
+          "physics_samples": 722,
+          "rate_RMS_rad_s": 0.019444716773352126,
+          "peak_tilt_rad": 0.21047425321213958,
+          "RR_gap_m": {
+            "n": 722,
+            "minimum": -0.04199086196616338,
+            "maximum": 0.08544230091761,
+            "mean": 0.007102492361018555,
+            "first": -0.04199086196616338,
+            "last": -0.00026886062488543083
+          },
+          "FL_gap_m": {
+            "n": 722,
+            "minimum": -0.0014359717574551692,
+            "maximum": 0.013065953848047929,
+            "mean": 0.0001374429711473042,
+            "first": 0.013065953848047929,
+            "last": -0.00017283040061942534
+          },
+          "body_collider_min_world_z_m": {
+            "n": 722,
+            "minimum": 0.08654406542691231,
+            "maximum": 0.09546148499419826,
+            "mean": 0.08819472926895158,
+            "first": 0.09546148499419826,
+            "last": 0.08916765758081857
+          },
+          "conservative_body_obstacle_AABB_separation_m": {
+            "n": 722,
+            "minimum": 0.03654406542691231,
+            "maximum": 0.04546148499419826,
+            "mean": 0.03819472926895142,
+            "first": 0.04546148499419826,
+            "last": 0.03916765758081857
+          },
+          "com_world_z_m": {
+            "n": 722,
+            "minimum": 0.15029041542407828,
+            "maximum": 0.16468101084720083,
+            "mean": 0.15393194084018427,
+            "first": 0.1557215529452269,
+            "last": 0.15281650636947308
+          },
+          "com_world_displacement_m": [
+            0.0697786739692684,
+            -0.00024779773402063,
+            -0.002905046575753828
+          ],
+          "initial_com_toward_FL_fixed_world_xy": [
+            0.8684877693748562,
+            0.4957105954549355
+          ],
+          "com_displacement_toward_initial_FL_direction_m": 0.06047908894322151,
+          "com_displacement_does_not_imply_FL_bearing": true,
+          "actual_contact_ticks": {
+            "FL": {
+              "ground": 0,
+              "obstacle": 677,
+              "air": 45
+            },
+            "FR": {
+              "ground": 0,
+              "obstacle": 722,
+              "air": 0
+            },
+            "RL": {
+              "ground": 722,
+              "obstacle": 0,
+              "air": 0
+            },
+            "RR": {
+              "ground": 0,
+              "obstacle": 216,
+              "air": 506
+            }
+          },
+          "RR_contact_free_runs": {
+            "count": 1,
+            "total_samples": 506,
+            "longest_observed_duration_s": 4.208333333333333,
+            "runs": [
+              {
+                "first_tick": 5434,
+                "last_tick": 5939,
+                "samples": 506
+              }
+            ],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "RR_ground_contact_runs": {
+            "count": 0,
+            "total_samples": 0,
+            "longest_observed_duration_s": 0.0,
+            "runs": [],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "FL_obstacle_normal_force_n": {
+            "n": 722,
+            "minimum": 0.0,
+            "maximum": 6.507254123687889,
+            "mean": 2.011954766739601,
+            "first": 0.0,
+            "last": 5.412696838379014
+          },
+          "RR_total_normal_force_n": {
+            "n": 722,
+            "minimum": 0.0,
+            "maximum": 7.158218870179555,
+            "mean": 1.516008826284126,
+            "first": 0.0,
+            "last": 6.214657306671282
+          },
+          "joints": {
+            "front_left_hip": {
+              "actual_deg": {
+                "n": 722,
+                "minimum": 38.53964790936018,
+                "maximum": 38.98160895998419,
+                "mean": 38.68329537264249,
+                "first": 38.54557309846516,
+                "last": 38.9547526561677
+              },
+              "minimum_negative_margin_deg": 173.53964790936018,
+              "minimum_positive_margin_deg": 96.01839104001581,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_left_hip": {
+              "actual_deg": {
+                "n": 722,
+                "minimum": 27.829944894777288,
+                "maximum": 30.011963230806458,
+                "mean": 29.63083013974834,
+                "first": 27.829944894777288,
+                "last": 29.27822332902867
+              },
+              "minimum_negative_margin_deg": 162.8299448947773,
+              "minimum_positive_margin_deg": 104.98803676919354,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_hip": {
+              "actual_deg": {
+                "n": 722,
+                "minimum": -8.379334690668543,
+                "maximum": 46.728791580319346,
+                "mean": 4.356603407066323,
+                "first": 4.305651227857294,
+                "last": -8.228361896801873
+              },
+              "minimum_negative_margin_deg": 126.62066530933146,
+              "minimum_positive_margin_deg": 88.27120841968065,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_knee": {
+              "actual_deg": {
+                "n": 722,
+                "minimum": -39.47647425468074,
+                "maximum": 0.13308698302963892,
+                "mean": -31.823940417145035,
+                "first": 0.13308698302963892,
+                "last": -39.44699174312838
+              },
+              "minimum_negative_margin_deg": 20.52352574531926,
+              "minimum_positive_margin_deg": 209.86691301697036,
+              "hard_limits_deg": [
+                -60.0,
+                210.0
+              ]
+            }
+          },
+          "exact_cartesian_feasibility": null,
+          "exact_mesh_obstacle_clearance_m": null
+        },
+        "sampled_15Hz": {
+          "decision_samples": 90,
+          "RR_current_lift_valid_samples": 90,
+          "RR_air_samples": 63,
+          "RR_current_support_samples": 27,
+          "RR_load_fraction_valid_samples": 90,
+          "RR_load_fraction": {
+            "n": 90,
+            "minimum": 0.0,
+            "maximum": 0.23016874440130472,
+            "mean": 0.05104820369512728,
+            "first": 0.0,
+            "last": 0.2207345555044979
+          },
+          "RR_contact_mode_counts": {
+            "AIR": 63,
+            "TOP": 27
+          },
+          "FL_current_support_samples": 84,
+          "FL_top_bearing_samples": 84,
+          "FL_air_samples": 6,
+          "FL_bearing_force_n": {
+            "n": 90,
+            "minimum": 0.0,
+            "maximum": 6.277793884277344,
+            "mean": 1.9863023065858416,
+            "first": 0.0,
+            "last": 5.9276580810546875
+          },
+          "FL_toward_CoM_rolling_context_m": {
+            "n": 90,
+            "minimum": 0.0004919706615198986,
+            "maximum": 0.023398017861230754,
+            "mean": 0.005627537820046538,
+            "first": 0.023398017861230754,
+            "last": 0.006017994395413448
+          },
+          "positive_CoM_toward_FL_while_FL_air_samples": 6,
+          "RR_mount_world_z_m": {
+            "n": 90,
+            "minimum": 0.1933325731310862,
+            "maximum": 0.19822789668172972,
+            "mean": 0.19522389001878857,
+            "first": 0.19703016436890375,
+            "last": 0.19777131550682406
+          },
+          "four_hip_world_z_m": null,
+          "last_RR_current_state": {
+            "air": false,
+            "current_lift_valid": true,
+            "contact_mode": "TOP",
+            "clearance_m": -0.00030073245116338937,
+            "front_distance_m": -0.00026917116809244135,
+            "support": true,
+            "bearing_force_n": 6.4842753410339355,
+            "load_fraction": 0.2207345555044979,
+            "load_fraction_valid": true,
+            "placed_on_top": false
+          }
+        }
+      },
+      "post_placed_to_common_budget": {
+        "physical_120Hz": {
+          "ticks": [
+            6155,
+            6872
+          ],
+          "duration_s": 5.975000000000001,
+          "physics_samples": 718,
+          "rate_RMS_rad_s": 0.13821374219919777,
+          "peak_tilt_rad": 0.24963540812765345,
+          "RR_gap_m": {
+            "n": 718,
+            "minimum": -0.0010925617954653521,
+            "maximum": 2.092811286152907e-05,
+            "mean": -0.00023085574842166893,
+            "first": -0.00026886062488543083,
+            "last": -0.0008981790076708629
+          },
+          "FL_gap_m": {
+            "n": 718,
+            "minimum": -0.0011485542856786574,
+            "maximum": 1.3136768988425418e-05,
+            "mean": -0.00029286119067433147,
+            "first": -0.00017283040061942534,
+            "last": -0.00028196961558737965
+          },
+          "body_collider_min_world_z_m": {
+            "n": 718,
+            "minimum": 0.08916765758081857,
+            "maximum": 0.17334134490232722,
+            "mean": 0.1657834189306188,
+            "first": 0.08916765758081857,
+            "last": 0.17256824765664455
+          },
+          "conservative_body_obstacle_AABB_separation_m": {
+            "n": 718,
+            "minimum": 0.03916765758081857,
+            "maximum": 0.12334134490232722,
+            "mean": 0.11578341893061855,
+            "first": 0.03916765758081857,
+            "last": 0.12256824765664455
+          },
+          "com_world_z_m": {
+            "n": 718,
+            "minimum": 0.15281650636947308,
+            "maximum": 0.1995357463048522,
+            "mean": 0.18779599963389956,
+            "first": 0.15281650636947308,
+            "last": 0.1876645926107689
+          },
+          "com_world_displacement_m": [
+            0.09750687499090405,
+            -0.0389102938346397,
+            0.03484808624129582
+          ],
+          "initial_com_toward_FL_fixed_world_xy": [
+            0.8651781865331345,
+            0.5014645606094581
+          ],
+          "com_displacement_toward_initial_FL_direction_m": 0.0648486878781709,
+          "com_displacement_does_not_imply_FL_bearing": true,
+          "actual_contact_ticks": {
+            "FL": {
+              "ground": 0,
+              "obstacle": 689,
+              "air": 29
+            },
+            "FR": {
+              "ground": 0,
+              "obstacle": 549,
+              "air": 169
+            },
+            "RL": {
+              "ground": 65,
+              "obstacle": 147,
+              "air": 506
+            },
+            "RR": {
+              "ground": 0,
+              "obstacle": 717,
+              "air": 1
+            }
+          },
+          "RR_contact_free_runs": {
+            "count": 1,
+            "total_samples": 1,
+            "longest_observed_duration_s": 0.0,
+            "runs": [
+              {
+                "first_tick": 6272,
+                "last_tick": 6272,
+                "samples": 1
+              }
+            ],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "RR_ground_contact_runs": {
+            "count": 0,
+            "total_samples": 0,
+            "longest_observed_duration_s": 0.0,
+            "runs": [],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "FL_obstacle_normal_force_n": {
+            "n": 718,
+            "minimum": 0.0,
+            "maximum": 19.03446960449221,
+            "mean": 11.642943610588132,
+            "first": 5.412696838379014,
+            "last": 0.3146412670612411
+          },
+          "RR_total_normal_force_n": {
+            "n": 718,
+            "minimum": 0.0,
+            "maximum": 17.20756530761738,
+            "mean": 11.410246167670605,
+            "first": 6.214657306671282,
+            "last": 3.346210722713537
+          },
+          "joints": {
+            "front_left_hip": {
+              "actual_deg": {
+                "n": 718,
+                "minimum": -22.93501038511791,
+                "maximum": 38.9547526561677,
+                "mean": -14.3200129093022,
+                "first": 38.9547526561677,
+                "last": -18.633567274160857
+              },
+              "minimum_negative_margin_deg": 112.0649896148821,
+              "minimum_positive_margin_deg": 96.0452473438323,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_left_hip": {
+              "actual_deg": {
+                "n": 718,
+                "minimum": -5.986236735478041,
+                "maximum": 32.10349692825859,
+                "mean": 7.254216815512966,
+                "first": 29.27822332902867,
+                "last": -5.986236735478041
+              },
+              "minimum_negative_margin_deg": 129.01376326452197,
+              "minimum_positive_margin_deg": 102.8965030717414,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_hip": {
+              "actual_deg": {
+                "n": 718,
+                "minimum": -8.937424325108408,
+                "maximum": -6.24098943796608,
+                "mean": -8.003639839286151,
+                "first": -8.228361896801873,
+                "last": -8.584178894066396
+              },
+              "minimum_negative_margin_deg": 126.06257567489159,
+              "minimum_positive_margin_deg": 141.24098943796608,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_knee": {
+              "actual_deg": {
+                "n": 718,
+                "minimum": -39.44699174312838,
+                "maximum": -27.12077303670169,
+                "mean": -28.509630052324926,
+                "first": -39.44699174312838,
+                "last": -27.57228781442726
+              },
+              "minimum_negative_margin_deg": 20.55300825687162,
+              "minimum_positive_margin_deg": 237.12077303670168,
+              "hard_limits_deg": [
+                -60.0,
+                210.0
+              ]
+            }
+          },
+          "exact_cartesian_feasibility": null,
+          "exact_mesh_obstacle_clearance_m": null
+        },
+        "sampled_15Hz": {
+          "decision_samples": 90,
+          "RR_current_lift_valid_samples": 80,
+          "RR_air_samples": 1,
+          "RR_current_support_samples": 89,
+          "RR_load_fraction_valid_samples": 90,
+          "RR_load_fraction": {
+            "n": 90,
+            "minimum": 0.0,
+            "maximum": 0.5077312721984811,
+            "mean": 0.3922122726306717,
+            "first": 0.31385662888767063,
+            "last": 0.11641126924140548
+          },
+          "RR_contact_mode_counts": {
+            "AIR": 1,
+            "TOP": 89
+          },
+          "FL_current_support_samples": 88,
+          "FL_top_bearing_samples": 88,
+          "FL_air_samples": 2,
+          "FL_bearing_force_n": {
+            "n": 90,
+            "minimum": 0.0,
+            "maximum": 15.511423110961914,
+            "mean": 11.555866400731935,
+            "first": 10.13767147064209,
+            "last": 0.3146412670612335
+          },
+          "FL_toward_CoM_rolling_context_m": {
+            "n": 90,
+            "minimum": -0.011287282585021215,
+            "maximum": 0.05539874336234437,
+            "mean": 0.004943444520530507,
+            "first": 0.005607739309343172,
+            "last": 0.004083011883066298
+          },
+          "positive_CoM_toward_FL_while_FL_air_samples": 2,
+          "RR_mount_world_z_m": {
+            "n": 90,
+            "minimum": 0.19887811158658614,
+            "maximum": 0.24092630374721735,
+            "mean": 0.2366638405774774,
+            "first": 0.19887811158658614,
+            "last": 0.240400916504682
+          },
+          "four_hip_world_z_m": null,
+          "last_RR_current_state": {
+            "air": false,
+            "current_lift_valid": true,
+            "contact_mode": "TOP",
+            "clearance_m": -0.0008981790076708629,
+            "front_distance_m": 0.05117816073727255,
+            "support": true,
+            "bearing_force_n": 3.324357748031616,
+            "load_fraction": 0.11641126924140548,
+            "load_fraction_valid": true,
+            "placed_on_top": true
+          }
+        }
+      }
+    },
+    "last_completed_decision_tick": 8856,
+    "full_episode_result_provenance": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_fl_capture_quality_v1\\video_eval\\prior_B\\20260918T0555572376368Z_gf2e552406ea7_1894338b350241fcbbac4868c5f7f3fb\\source\\semantic_video_source_manifest.json",
+    "four_hip_validation": null,
+    "first_sampled_current_lift_loss_before_placed": null,
+    "first_raw_ground_after_qualified_before_placed_tick": null,
+    "physical_event_snapshots": {
+      "P08": {
+        "tick": 5168,
+        "body_min_world_z_m": 0.13145561124305696,
+        "conservative_body_obstacle_AABB_separation_m": 0.08145561124305696,
+        "com_world_m": [
+          0.594007966658887,
+          -0.13035877553603847,
+          0.16242132366727868
+        ],
+        "joint_actual_deg": {
+          "front_left_hip": 25.552089306357825,
+          "rear_left_hip": 7.660487629509783,
+          "rear_right_hip": 0.12964422084240873,
+          "rear_right_knee": -0.08932705491485149
+        },
+        "RR_gap_m": -0.05092519545788415,
+        "FL_gap_m": 0.004486899687386553,
+        "contacts": {
+          "FL": {
+            "ground": false,
+            "obstacle": false
+          },
+          "FR": {
+            "ground": false,
+            "obstacle": true
+          },
+          "RL": {
+            "ground": true,
+            "obstacle": false
+          },
+          "RR": {
+            "ground": true,
+            "obstacle": false
+          }
+        }
+      },
+      "P09": {
+        "tick": 5176,
+        "body_min_world_z_m": 0.13111724356506188,
+        "conservative_body_obstacle_AABB_separation_m": 0.08111724356506188,
+        "com_world_m": [
+          0.5951010696420035,
+          -0.1300982664007338,
+          0.163820963064162
+        ],
+        "joint_actual_deg": {
+          "front_left_hip": 30.9744279318165,
+          "rear_left_hip": 7.753099872013278,
+          "rear_right_hip": -0.012508370886967657,
+          "rear_right_knee": -0.036120441569407524
+        },
+        "RR_gap_m": -0.050891025821756336,
+        "FL_gap_m": 0.018851284049486064,
+        "contacts": {
+          "FL": {
+            "ground": false,
+            "obstacle": false
+          },
+          "FR": {
+            "ground": false,
+            "obstacle": true
+          },
+          "RL": {
+            "ground": true,
+            "obstacle": false
+          },
+          "RR": {
+            "ground": true,
+            "obstacle": false
+          }
+        }
+      },
+      "P10": {
+        "tick": 6160,
+        "body_min_world_z_m": 0.09206930540109842,
+        "conservative_body_obstacle_AABB_separation_m": 0.04206930540109842,
+        "com_world_m": [
+          0.7034358078491297,
+          -0.11829418276914694,
+          0.15419606039375708
+        ],
+        "joint_actual_deg": {
+          "front_left_hip": 37.85167027502147,
+          "rear_left_hip": 27.892606757770277,
+          "rear_right_hip": -8.059831247900041,
+          "rear_right_knee": -39.357106453651014
+        },
+        "RR_gap_m": -0.0002667574837663944,
+        "FL_gap_m": -0.00028761291940261613,
+        "contacts": {
+          "FL": {
+            "ground": false,
+            "obstacle": true
+          },
+          "FR": {
+            "ground": false,
+            "obstacle": true
+          },
+          "RL": {
+            "ground": true,
+            "obstacle": false
+          },
+          "RR": {
+            "ground": false,
+            "obstacle": true
+          }
+        }
+      },
+      "initial": {
+        "tick": 5428,
+        "body_min_world_z_m": 0.09683940686081215,
+        "conservative_body_obstacle_AABB_separation_m": 0.046839406860812144,
+        "com_world_m": [
+          0.6325764360880517,
+          -0.11784471221465348,
+          0.15590864656376258
+        ],
+        "joint_actual_deg": {
+          "front_left_hip": 38.55076404223437,
+          "rear_left_hip": 27.308150885586873,
+          "rear_right_hip": 2.337909373026352,
+          "rear_right_knee": 0.14029876899888646
+        },
+        "RR_gap_m": -0.046797759293649946,
+        "FL_gap_m": 0.01515069276965382,
+        "contacts": {
+          "FL": {
+            "ground": false,
+            "obstacle": false
+          },
+          "FR": {
+            "ground": false,
+            "obstacle": true
+          },
+          "RL": {
+            "ground": true,
+            "obstacle": false
+          },
+          "RR": {
+            "ground": false,
+            "obstacle": false
+          }
+        }
+      },
+      "qualified": {
+        "tick": 5434,
+        "body_min_world_z_m": 0.09546148499419826,
+        "conservative_body_obstacle_AABB_separation_m": 0.04546148499419826,
+        "com_world_m": [
+          0.6329919016867376,
+          -0.11725865685737737,
+          0.1557215529452269
+        ],
+        "joint_actual_deg": {
+          "front_left_hip": 38.54557309846516,
+          "rear_left_hip": 27.829944894777288,
+          "rear_right_hip": 4.305651227857294,
+          "rear_right_knee": 0.13308698302963892
+        },
+        "RR_gap_m": -0.04199086196616338,
+        "FL_gap_m": 0.013065953848047929,
+        "contacts": {
+          "FL": {
+            "ground": false,
+            "obstacle": false
+          },
+          "FR": {
+            "ground": false,
+            "obstacle": true
+          },
+          "RL": {
+            "ground": true,
+            "obstacle": false
+          },
+          "RR": {
+            "ground": false,
+            "obstacle": false
+          }
+        }
+      },
+      "crossed": {
+        "tick": 6155,
+        "body_min_world_z_m": 0.08916765758081857,
+        "conservative_body_obstacle_AABB_separation_m": 0.03916765758081857,
+        "com_world_m": [
+          0.702770575656006,
+          -0.117506454591398,
+          0.15281650636947308
+        ],
+        "joint_actual_deg": {
+          "front_left_hip": 38.9547526561677,
+          "rear_left_hip": 29.27822332902867,
+          "rear_right_hip": -8.228361896801873,
+          "rear_right_knee": -39.44699174312838
+        },
+        "RR_gap_m": -0.00026886062488543083,
+        "FL_gap_m": -0.00017283040061942534,
+        "contacts": {
+          "FL": {
+            "ground": false,
+            "obstacle": true
+          },
+          "FR": {
+            "ground": false,
+            "obstacle": true
+          },
+          "RL": {
+            "ground": true,
+            "obstacle": false
+          },
+          "RR": {
+            "ground": false,
+            "obstacle": true
+          }
+        }
+      },
+      "placed": {
+        "tick": 6155,
+        "body_min_world_z_m": 0.08916765758081857,
+        "conservative_body_obstacle_AABB_separation_m": 0.03916765758081857,
+        "com_world_m": [
+          0.702770575656006,
+          -0.117506454591398,
+          0.15281650636947308
+        ],
+        "joint_actual_deg": {
+          "front_left_hip": 38.9547526561677,
+          "rear_left_hip": 29.27822332902867,
+          "rear_right_hip": -8.228361896801873,
+          "rear_right_knee": -39.44699174312838
+        },
+        "RR_gap_m": -0.00026886062488543083,
+        "FL_gap_m": -0.00017283040061942534,
+        "contacts": {
+          "FL": {
+            "ground": false,
+            "obstacle": true
+          },
+          "FR": {
+            "ground": false,
+            "obstacle": true
+          },
+          "RL": {
+            "ground": true,
+            "obstacle": false
+          },
+          "RR": {
+            "ground": false,
+            "obstacle": true
+          }
+        }
+      }
+    },
+    "intervention": null
+  },
+  "probe": {
+    "path": "runs\\ppo_task_conditioned_hip_wheel_v1\\diagnostics\\RR_lift_FL_RL_minus3_N_20260921_01",
+    "events": {
+      "P08": 5168,
+      "P09": 5176,
+      "P10": 6184,
+      "initial": 5428,
+      "qualified": 5434,
+      "crossed": 6177,
+      "placed": 6177,
+      "lift_attempt_events": [
+        {
+          "leg": "RR",
+          "event": "whole_body_initial_clearance",
+          "physics_tick": 5428,
+          "simulation_time_s": 45.233333333333334,
+          "upward_excursion_m": 0.0031986191959188018,
+          "whole_body_joint_motion_deg": 5.993607713963611,
+          "command_motion_deg": 3.5280705992203845,
+          "evidence": "continuous_unsupported_AIR_free_rise_v3",
+          "unsupported_free_lift_m": 0.0031986191959188018
+        },
+        {
+          "leg": "RR",
+          "event": "qualified_measured_upward_lift",
+          "physics_tick": 5434,
+          "simulation_time_s": 45.28333333333333,
+          "upward_excursion_m": 0.008005516523405365,
+          "joint_motion_deg": 4.134547598670349,
+          "airborne_clearance_above_top_m": -0.04199086196616338,
+          "qualification_evidence": "continuous_unsupported_AIR_free_rise_v3",
+          "unsupported_free_lift_m": 0.008005516523405365
+        }
+      ]
+    },
+    "analysis_endpoint_tick": 6872,
+    "final_history_event_ticks": {
+      "active_lift": {
+        "FR": 24,
+        "FL": 1559,
+        "RR": 5434,
+        "RL": 6278
+      },
+      "front_edge_crossed": {
+        "FR": 1486,
+        "FL": 2468,
+        "RR": 6177,
+        "RL": 6682
+      },
+      "placed": {
+        "FR": 1502,
+        "FL": 2677,
+        "RR": 6177,
+        "RL": 6751
+      }
+    },
+    "analysis_endpoint_semantics": "common bounded horizon no longer than 60s; B's full success retained independently",
+    "actual_run_final_tick": 6872,
+    "actual_run_final_phase": "P13",
+    "actual_run_reason": "SUCCESS",
+    "actual_run_full_success": true,
+    "windows": {
+      "P08_to_placed_or_budget": {
+        "physical_120Hz": {
+          "ticks": [
+            5168,
+            6177
+          ],
+          "duration_s": 8.408333333333339,
+          "physics_samples": 1010,
+          "rate_RMS_rad_s": 0.05156891447164004,
+          "peak_tilt_rad": 0.20630254770928794,
+          "RR_gap_m": {
+            "n": 1010,
+            "minimum": -0.05092519545788415,
+            "maximum": 0.08268673720218313,
+            "mean": -0.0085574845256964,
+            "first": -0.05092519545788415,
+            "last": -8.463611747935862e-05
+          },
+          "FL_gap_m": {
+            "n": 1010,
+            "minimum": -0.0014465146989427538,
+            "maximum": 0.08666744795075025,
+            "mean": 0.01495690331125787,
+            "first": 0.004486899687386553,
+            "last": 3.7592829668364747e-06
+          },
+          "body_collider_min_world_z_m": {
+            "n": 1010,
+            "minimum": 0.09050746625950645,
+            "maximum": 0.13346714394579282,
+            "mean": 0.1026263494659984,
+            "first": 0.13145561124305696,
+            "last": 0.09657991326802237
+          },
+          "conservative_body_obstacle_AABB_separation_m": {
+            "n": 1010,
+            "minimum": 0.04050746625950645,
+            "maximum": 0.08346714394579281,
+            "mean": 0.052626349465998284,
+            "first": 0.08145561124305696,
+            "last": 0.04657991326802237
+          },
+          "com_world_z_m": {
+            "n": 1010,
+            "minimum": 0.15351085718576643,
+            "maximum": 0.174620016295804,
+            "mean": 0.159257169654952,
+            "first": 0.16242132366727868,
+            "last": 0.15598501366274234
+          },
+          "com_world_displacement_m": [
+            0.10885675583806809,
+            0.010852799715802997,
+            -0.006436310004536344
+          ],
+          "initial_com_toward_FL_fixed_world_xy": [
+            0.8430996348332969,
+            0.5377573855782564
+          ],
+          "com_displacement_toward_initial_FL_direction_m": 0.09761326429758722,
+          "com_displacement_does_not_imply_FL_bearing": true,
+          "actual_contact_ticks": {
+            "FL": {
+              "ground": 0,
+              "obstacle": 665,
+              "air": 345
+            },
+            "FR": {
+              "ground": 0,
+              "obstacle": 1010,
+              "air": 0
+            },
+            "RL": {
+              "ground": 1010,
+              "obstacle": 0,
+              "air": 0
+            },
+            "RR": {
+              "ground": 227,
+              "obstacle": 220,
+              "air": 563
+            }
+          },
+          "RR_contact_free_runs": {
+            "count": 9,
+            "total_samples": 563,
+            "longest_observed_duration_s": 4.533333333333333,
+            "runs": [
+              {
+                "first_tick": 5229,
+                "last_tick": 5229,
+                "samples": 1
+              },
+              {
+                "first_tick": 5245,
+                "last_tick": 5245,
+                "samples": 1
+              },
+              {
+                "first_tick": 5385,
+                "last_tick": 5388,
+                "samples": 4
+              },
+              {
+                "first_tick": 5391,
+                "last_tick": 5392,
+                "samples": 2
+              },
+              {
+                "first_tick": 5395,
+                "last_tick": 5396,
+                "samples": 2
+              },
+              {
+                "first_tick": 5400,
+                "last_tick": 5400,
+                "samples": 1
+              },
+              {
+                "first_tick": 5402,
+                "last_tick": 5404,
+                "samples": 3
+              },
+              {
+                "first_tick": 5406,
+                "last_tick": 5409,
+                "samples": 4
+              },
+              {
+                "first_tick": 5413,
+                "last_tick": 5957,
+                "samples": 545
+              }
+            ],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "RR_ground_contact_runs": {
+            "count": 9,
+            "total_samples": 227,
+            "longest_observed_duration_s": 1.15,
+            "runs": [
+              {
+                "first_tick": 5168,
+                "last_tick": 5228,
+                "samples": 61
+              },
+              {
+                "first_tick": 5230,
+                "last_tick": 5244,
+                "samples": 15
+              },
+              {
+                "first_tick": 5246,
+                "last_tick": 5384,
+                "samples": 139
+              },
+              {
+                "first_tick": 5389,
+                "last_tick": 5390,
+                "samples": 2
+              },
+              {
+                "first_tick": 5393,
+                "last_tick": 5394,
+                "samples": 2
+              },
+              {
+                "first_tick": 5397,
+                "last_tick": 5399,
+                "samples": 3
+              },
+              {
+                "first_tick": 5401,
+                "last_tick": 5401,
+                "samples": 1
+              },
+              {
+                "first_tick": 5405,
+                "last_tick": 5405,
+                "samples": 1
+              },
+              {
+                "first_tick": 5410,
+                "last_tick": 5412,
+                "samples": 3
+              }
+            ],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "FL_obstacle_normal_force_n": {
+            "n": 1010,
+            "minimum": 0.0,
+            "maximum": 7.759642601013203,
+            "mean": 1.2846805223822015,
+            "first": 0.0,
+            "last": 4.804515838623148
+          },
+          "RR_total_normal_force_n": {
+            "n": 1010,
+            "minimum": 0.0,
+            "maximum": 7.015871047973806,
+            "mean": 1.387303757053642,
+            "first": 1.683827042579666,
+            "last": 5.3072437805422865
+          },
+          "joints": {
+            "front_left_hip": {
+              "actual_deg": {
+                "n": 1010,
+                "minimum": 25.552089306357825,
+                "maximum": 50.03280039555146,
+                "mean": 38.18921152041244,
+                "first": 25.552089306357825,
+                "last": 35.93119183514314
+              },
+              "minimum_negative_margin_deg": 160.55208930635783,
+              "minimum_positive_margin_deg": 84.96719960444854,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_left_hip": {
+              "actual_deg": {
+                "n": 1010,
+                "minimum": 7.660487629509783,
+                "maximum": 28.934709210006634,
+                "mean": 22.881415306057825,
+                "first": 7.660487629509783,
+                "last": 26.28114656651083
+              },
+              "minimum_negative_margin_deg": 142.6604876295098,
+              "minimum_positive_margin_deg": 106.06529078999337,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_hip": {
+              "actual_deg": {
+                "n": 1010,
+                "minimum": -8.376483940463709,
+                "maximum": 46.73678290164826,
+                "mean": 2.953091034064241,
+                "first": 0.12964422084240873,
+                "last": -8.264128182390646
+              },
+              "minimum_negative_margin_deg": 126.62351605953629,
+              "minimum_positive_margin_deg": 88.26321709835173,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_knee": {
+              "actual_deg": {
+                "n": 1010,
+                "minimum": -39.47398806582285,
+                "maximum": 0.25293243372885815,
+                "mean": -23.546431829314372,
+                "first": -0.08932705491485149,
+                "last": -39.46867759374317
+              },
+              "minimum_negative_margin_deg": 20.52601193417715,
+              "minimum_positive_margin_deg": 209.74706756627114,
+              "hard_limits_deg": [
+                -60.0,
+                210.0
+              ]
+            }
+          },
+          "exact_cartesian_feasibility": null,
+          "exact_mesh_obstacle_clearance_m": null
+        },
+        "sampled_15Hz": {
+          "decision_samples": 127,
+          "RR_current_lift_valid_samples": 93,
+          "RR_air_samples": 71,
+          "RR_current_support_samples": 56,
+          "RR_load_fraction_valid_samples": 125,
+          "RR_load_fraction": {
+            "n": 125,
+            "minimum": 0.0,
+            "maximum": 0.2349686554533261,
+            "mean": 0.04755948182324874,
+            "first": 0.05637326706401571,
+            "last": 0.1832390809996193
+          },
+          "RR_contact_mode_counts": {
+            "AIR": 71,
+            "GROUND": 28,
+            "TOP": 28
+          },
+          "FL_current_support_samples": 81,
+          "FL_top_bearing_samples": 81,
+          "FL_air_samples": 44,
+          "FL_bearing_force_n": {
+            "n": 127,
+            "minimum": 0.0,
+            "maximum": 6.091301441192627,
+            "mean": 1.2394857293977513,
+            "first": 0.0,
+            "last": 4.941076755523682
+          },
+          "FL_toward_CoM_rolling_context_m": {
+            "n": 127,
+            "minimum": -0.004112909405480172,
+            "maximum": 0.031177666498015302,
+            "mean": 0.005931326085726391,
+            "first": 0.0063769882176240075,
+            "last": 0.005918413076983539
+          },
+          "positive_CoM_toward_FL_while_FL_air_samples": 33,
+          "RR_mount_world_z_m": {
+            "n": 127,
+            "minimum": 0.1950097087696098,
+            "maximum": 0.20837714841937777,
+            "mean": 0.19908322804825734,
+            "first": 0.20504140253385733,
+            "last": 0.2003983134203804
+          },
+          "four_hip_world_z_m": {
+            "FL": {
+              "n": 127,
+              "minimum": 0.1708203593134222,
+              "maximum": 0.21210460945964937,
+              "mean": 0.18207689074065778,
+              "first": 0.20473598714842495,
+              "last": 0.17620822571600211
+            },
+            "FR": {
+              "n": 127,
+              "minimum": 0.1998267248346839,
+              "maximum": 0.22666624210916417,
+              "mean": 0.21730052637199435,
+              "first": 0.21468339399116748,
+              "last": 0.21947434087825055
+            },
+            "RL": {
+              "n": 127,
+              "minimum": 0.1505718416022168,
+              "maximum": 0.19609696532909715,
+              "mean": 0.16380853494152336,
+              "first": 0.19507957683809035,
+              "last": 0.15706948289882838
+            },
+            "RR": {
+              "n": 127,
+              "minimum": 0.1950097087696098,
+              "maximum": 0.20837714841937777,
+              "mean": 0.19908322804825734,
+              "first": 0.20504140253385733,
+              "last": 0.2003983134203804
+            }
+          },
+          "last_RR_current_state": {
+            "air": false,
+            "current_lift_valid": true,
+            "contact_mode": "TOP",
+            "clearance_m": -9.109097855775072e-05,
+            "front_distance_m": -5.286591220254877e-05,
+            "support": true,
+            "bearing_force_n": 5.247697353363037,
+            "load_fraction": 0.1832390809996193,
+            "load_fraction_valid": true,
+            "placed_on_top": false
+          }
+        }
+      },
+      "P08_to_common_budget": {
+        "physical_120Hz": {
+          "ticks": [
+            5168,
+            6872
+          ],
+          "duration_s": 14.200000000000003,
+          "physics_samples": 1705,
+          "rate_RMS_rad_s": 0.09624936149300044,
+          "peak_tilt_rad": 0.23676218136950758,
+          "RR_gap_m": {
+            "n": 1705,
+            "minimum": -0.05092519545788415,
+            "maximum": 0.08268673720218313,
+            "mean": -0.005211914375326296,
+            "first": -0.05092519545788415,
+            "last": -0.000825486526432051
+          },
+          "FL_gap_m": {
+            "n": 1705,
+            "minimum": -0.0014465146989427538,
+            "maximum": 0.08666744795075025,
+            "mean": 0.008723125404280052,
+            "first": 0.004486899687386553,
+            "last": -0.0012636234640899802
+          },
+          "body_collider_min_world_z_m": {
+            "n": 1705,
+            "minimum": 0.09050746625950645,
+            "maximum": 0.1900455211709574,
+            "mean": 0.1297222285347838,
+            "first": 0.13145561124305696,
+            "last": 0.18995408642890518
+          },
+          "conservative_body_obstacle_AABB_separation_m": {
+            "n": 1705,
+            "minimum": 0.04050746625950645,
+            "maximum": 0.14004552117095742,
+            "mean": 0.07972222853478367,
+            "first": 0.08145561124305696,
+            "last": 0.13995408642890517
+          },
+          "com_world_z_m": {
+            "n": 1705,
+            "minimum": 0.15351085718576643,
+            "maximum": 0.20275278940949243,
+            "mean": 0.17174767237705604,
+            "first": 0.16242132366727868,
+            "last": 0.20275278940949243
+          },
+          "com_world_displacement_m": [
+            0.23217410253954673,
+            0.004363941811072608,
+            0.040331465742213746
+          ],
+          "initial_com_toward_FL_fixed_world_xy": [
+            0.8430996348332969,
+            0.5377573855782564
+          ],
+          "com_displacement_toward_initial_FL_direction_m": 0.19809264300797833,
+          "com_displacement_does_not_imply_FL_bearing": true,
+          "actual_contact_ticks": {
+            "FL": {
+              "ground": 0,
+              "obstacle": 1343,
+              "air": 362
+            },
+            "FR": {
+              "ground": 0,
+              "obstacle": 1559,
+              "air": 146
+            },
+            "RL": {
+              "ground": 1069,
+              "obstacle": 140,
+              "air": 496
+            },
+            "RR": {
+              "ground": 227,
+              "obstacle": 914,
+              "air": 564
+            }
+          },
+          "RR_contact_free_runs": {
+            "count": 10,
+            "total_samples": 564,
+            "longest_observed_duration_s": 4.533333333333333,
+            "runs": [
+              {
+                "first_tick": 5229,
+                "last_tick": 5229,
+                "samples": 1
+              },
+              {
+                "first_tick": 5245,
+                "last_tick": 5245,
+                "samples": 1
+              },
+              {
+                "first_tick": 5385,
+                "last_tick": 5388,
+                "samples": 4
+              },
+              {
+                "first_tick": 5391,
+                "last_tick": 5392,
+                "samples": 2
+              },
+              {
+                "first_tick": 5395,
+                "last_tick": 5396,
+                "samples": 2
+              },
+              {
+                "first_tick": 5400,
+                "last_tick": 5400,
+                "samples": 1
+              },
+              {
+                "first_tick": 5402,
+                "last_tick": 5404,
+                "samples": 3
+              },
+              {
+                "first_tick": 5406,
+                "last_tick": 5409,
+                "samples": 4
+              },
+              {
+                "first_tick": 5413,
+                "last_tick": 5957,
+                "samples": 545
+              },
+              {
+                "first_tick": 6756,
+                "last_tick": 6756,
+                "samples": 1
+              }
+            ],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "RR_ground_contact_runs": {
+            "count": 9,
+            "total_samples": 227,
+            "longest_observed_duration_s": 1.15,
+            "runs": [
+              {
+                "first_tick": 5168,
+                "last_tick": 5228,
+                "samples": 61
+              },
+              {
+                "first_tick": 5230,
+                "last_tick": 5244,
+                "samples": 15
+              },
+              {
+                "first_tick": 5246,
+                "last_tick": 5384,
+                "samples": 139
+              },
+              {
+                "first_tick": 5389,
+                "last_tick": 5390,
+                "samples": 2
+              },
+              {
+                "first_tick": 5393,
+                "last_tick": 5394,
+                "samples": 2
+              },
+              {
+                "first_tick": 5397,
+                "last_tick": 5399,
+                "samples": 3
+              },
+              {
+                "first_tick": 5401,
+                "last_tick": 5401,
+                "samples": 1
+              },
+              {
+                "first_tick": 5405,
+                "last_tick": 5405,
+                "samples": 1
+              },
+              {
+                "first_tick": 5410,
+                "last_tick": 5412,
+                "samples": 3
+              }
+            ],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "FL_obstacle_normal_force_n": {
+            "n": 1705,
+            "minimum": 0.0,
+            "maximum": 26.635423660278665,
+            "mean": 6.259158846536001,
+            "first": 0.0,
+            "last": 14.820358679111404
+          },
+          "RR_total_normal_force_n": {
+            "n": 1705,
+            "minimum": 0.0,
+            "maximum": 19.380274931853183,
+            "mean": 5.973006468749447,
+            "first": 1.683827042579666,
+            "last": 13.796946731034177
+          },
+          "joints": {
+            "front_left_hip": {
+              "actual_deg": {
+                "n": 1705,
+                "minimum": -25.24477374919383,
+                "maximum": 50.03280039555146,
+                "mean": 16.72011341588171,
+                "first": 25.552089306357825,
+                "last": -0.6738199061693109
+              },
+              "minimum_negative_margin_deg": 109.75522625080617,
+              "minimum_positive_margin_deg": 84.96719960444854,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_left_hip": {
+              "actual_deg": {
+                "n": 1705,
+                "minimum": -5.144634486327409,
+                "maximum": 32.09367511623211,
+                "mean": 16.315498402904176,
+                "first": 7.660487629509783,
+                "last": -2.981752632805321
+              },
+              "minimum_negative_margin_deg": 129.85536551367258,
+              "minimum_positive_margin_deg": 102.9063248837679,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_hip": {
+              "actual_deg": {
+                "n": 1705,
+                "minimum": -8.823662401839968,
+                "maximum": 46.73678290164826,
+                "mean": -1.2014686707873854,
+                "first": 0.12964422084240873,
+                "last": -0.9543211545080426
+              },
+              "minimum_negative_margin_deg": 126.17633759816003,
+              "minimum_positive_margin_deg": 88.26321709835173,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_knee": {
+              "actual_deg": {
+                "n": 1705,
+                "minimum": -39.47398806582285,
+                "maximum": 0.25293243372885815,
+                "mean": -24.72260953602948,
+                "first": -0.08932705491485149,
+                "last": -7.502804881814877
+              },
+              "minimum_negative_margin_deg": 20.52601193417715,
+              "minimum_positive_margin_deg": 209.74706756627114,
+              "hard_limits_deg": [
+                -60.0,
+                210.0
+              ]
+            }
+          },
+          "exact_cartesian_feasibility": null,
+          "exact_mesh_obstacle_clearance_m": null
+        },
+        "sampled_15Hz": {
+          "decision_samples": 214,
+          "RR_current_lift_valid_samples": 171,
+          "RR_air_samples": 71,
+          "RR_current_support_samples": 143,
+          "RR_load_fraction_valid_samples": 210,
+          "RR_load_fraction": {
+            "n": 210,
+            "minimum": 0.0,
+            "maximum": 0.5046700373823081,
+            "mean": 0.20641155805711112,
+            "first": 0.05637326706401571,
+            "last": 0.4607632322725517
+          },
+          "RR_contact_mode_counts": {
+            "AIR": 71,
+            "GROUND": 28,
+            "TOP": 115
+          },
+          "FL_current_support_samples": 166,
+          "FL_top_bearing_samples": 166,
+          "FL_air_samples": 46,
+          "FL_bearing_force_n": {
+            "n": 214,
+            "minimum": 0.0,
+            "maximum": 20.57270050048828,
+            "mean": 6.231792171424795,
+            "first": 0.0,
+            "last": 14.820354461669922
+          },
+          "FL_toward_CoM_rolling_context_m": {
+            "n": 214,
+            "minimum": -0.01071069102393767,
+            "maximum": 0.061013046990562425,
+            "mean": 0.007070631304862049,
+            "first": 0.0063769882176240075,
+            "last": 0.0063450641263475775
+          },
+          "positive_CoM_toward_FL_while_FL_air_samples": 33,
+          "RR_mount_world_z_m": {
+            "n": 214,
+            "minimum": 0.1950097087696098,
+            "maximum": 0.2552531482225201,
+            "mean": 0.2152296654437533,
+            "first": 0.20504140253385733,
+            "last": 0.25511670978734524
+          },
+          "four_hip_world_z_m": {
+            "FL": {
+              "n": 214,
+              "minimum": 0.1708203593134222,
+              "maximum": 0.2593768651750183,
+              "mean": 0.20610135361231932,
+              "first": 0.20473598714842495,
+              "last": 0.25926802294790496
+            },
+            "FR": {
+              "n": 214,
+              "minimum": 0.1998267248346839,
+              "maximum": 0.2837844510504171,
+              "mean": 0.22821101658836518,
+              "first": 0.21468339399116748,
+              "last": 0.2563102653682995
+            },
+            "RL": {
+              "n": 214,
+              "minimum": 0.1505718416022168,
+              "maximum": 0.2581736871496789,
+              "mean": 0.19308795404106555,
+              "first": 0.19507957683809035,
+              "last": 0.2580787547524337
+            },
+            "RR": {
+              "n": 214,
+              "minimum": 0.1950097087696098,
+              "maximum": 0.2552531482225201,
+              "mean": 0.2152296654437533,
+              "first": 0.20504140253385733,
+              "last": 0.25511670978734524
+            }
+          },
+          "last_RR_current_state": {
+            "air": false,
+            "current_lift_valid": true,
+            "contact_mode": "TOP",
+            "clearance_m": -0.000825486526432051,
+            "front_distance_m": 0.036762538979765225,
+            "support": true,
+            "bearing_force_n": 13.796796798706055,
+            "load_fraction": 0.4607632322725517,
+            "load_fraction_valid": true,
+            "placed_on_top": true
+          }
+        }
+      },
+      "P08_to_first_qualified": {
+        "physical_120Hz": {
+          "ticks": [
+            5168,
+            5434
+          ],
+          "duration_s": 2.2166666666666686,
+          "physics_samples": 267,
+          "rate_RMS_rad_s": 0.09510162003911564,
+          "peak_tilt_rad": 0.18863373554048843,
+          "RR_gap_m": {
+            "n": 267,
+            "minimum": -0.05092519545788415,
+            "maximum": -0.04199086196616338,
+            "mean": -0.049948368758897875,
+            "first": -0.05092519545788415,
+            "last": -0.04199086196616338
+          },
+          "FL_gap_m": {
+            "n": 267,
+            "minimum": 0.004486899687386553,
+            "maximum": 0.08666744795075025,
+            "mean": 0.05634208124229899,
+            "first": 0.004486899687386553,
+            "last": 0.013065953848047929
+          },
+          "body_collider_min_world_z_m": {
+            "n": 267,
+            "minimum": 0.09546148499419826,
+            "maximum": 0.13346714394579282,
+            "mean": 0.12521432020647227,
+            "first": 0.13145561124305696,
+            "last": 0.09546148499419826
+          },
+          "conservative_body_obstacle_AABB_separation_m": {
+            "n": 267,
+            "minimum": 0.04546148499419826,
+            "maximum": 0.08346714394579281,
+            "mean": 0.07521432020647219,
+            "first": 0.08145561124305696,
+            "last": 0.04546148499419826
+          },
+          "com_world_z_m": {
+            "n": 267,
+            "minimum": 0.15570588649527425,
+            "maximum": 0.174620016295804,
+            "mean": 0.16727973491611098,
+            "first": 0.16242132366727868,
+            "last": 0.1557215529452269
+          },
+          "com_world_displacement_m": [
+            0.03898393502785058,
+            0.013100118678661107,
+            -0.006699770722051773
+          ],
+          "initial_com_toward_FL_fixed_world_xy": [
+            0.8430996348332969,
+            0.5377573855782564
+          ],
+          "com_displacement_toward_initial_FL_direction_m": 0.039912026957747475,
+          "com_displacement_does_not_imply_FL_bearing": true,
+          "actual_contact_ticks": {
+            "FL": {
+              "ground": 0,
+              "obstacle": 0,
+              "air": 267
+            },
+            "FR": {
+              "ground": 0,
+              "obstacle": 267,
+              "air": 0
+            },
+            "RL": {
+              "ground": 267,
+              "obstacle": 0,
+              "air": 0
+            },
+            "RR": {
+              "ground": 227,
+              "obstacle": 0,
+              "air": 40
+            }
+          },
+          "RR_contact_free_runs": {
+            "count": 9,
+            "total_samples": 40,
+            "longest_observed_duration_s": 0.175,
+            "runs": [
+              {
+                "first_tick": 5229,
+                "last_tick": 5229,
+                "samples": 1
+              },
+              {
+                "first_tick": 5245,
+                "last_tick": 5245,
+                "samples": 1
+              },
+              {
+                "first_tick": 5385,
+                "last_tick": 5388,
+                "samples": 4
+              },
+              {
+                "first_tick": 5391,
+                "last_tick": 5392,
+                "samples": 2
+              },
+              {
+                "first_tick": 5395,
+                "last_tick": 5396,
+                "samples": 2
+              },
+              {
+                "first_tick": 5400,
+                "last_tick": 5400,
+                "samples": 1
+              },
+              {
+                "first_tick": 5402,
+                "last_tick": 5404,
+                "samples": 3
+              },
+              {
+                "first_tick": 5406,
+                "last_tick": 5409,
+                "samples": 4
+              },
+              {
+                "first_tick": 5413,
+                "last_tick": 5434,
+                "samples": 22
+              }
+            ],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "RR_ground_contact_runs": {
+            "count": 9,
+            "total_samples": 227,
+            "longest_observed_duration_s": 1.15,
+            "runs": [
+              {
+                "first_tick": 5168,
+                "last_tick": 5228,
+                "samples": 61
+              },
+              {
+                "first_tick": 5230,
+                "last_tick": 5244,
+                "samples": 15
+              },
+              {
+                "first_tick": 5246,
+                "last_tick": 5384,
+                "samples": 139
+              },
+              {
+                "first_tick": 5389,
+                "last_tick": 5390,
+                "samples": 2
+              },
+              {
+                "first_tick": 5393,
+                "last_tick": 5394,
+                "samples": 2
+              },
+              {
+                "first_tick": 5397,
+                "last_tick": 5399,
+                "samples": 3
+              },
+              {
+                "first_tick": 5401,
+                "last_tick": 5401,
+                "samples": 1
+              },
+              {
+                "first_tick": 5405,
+                "last_tick": 5405,
+                "samples": 1
+              },
+              {
+                "first_tick": 5410,
+                "last_tick": 5412,
+                "samples": 3
+              }
+            ],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "FL_obstacle_normal_force_n": {
+            "n": 267,
+            "minimum": 0.0,
+            "maximum": 0.0,
+            "mean": 0.0,
+            "first": 0.0,
+            "last": 0.0
+          },
+          "RR_total_normal_force_n": {
+            "n": 267,
+            "minimum": 0.0,
+            "maximum": 3.6172380447388024,
+            "mean": 1.3063648938016577,
+            "first": 1.683827042579666,
+            "last": 0.0
+          },
+          "joints": {
+            "front_left_hip": {
+              "actual_deg": {
+                "n": 267,
+                "minimum": 25.552089306357825,
+                "maximum": 50.03280039555146,
+                "mean": 44.49811706630995,
+                "first": 25.552089306357825,
+                "last": 38.54557309846516
+              },
+              "minimum_negative_margin_deg": 160.55208930635783,
+              "minimum_positive_margin_deg": 84.96719960444854,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_left_hip": {
+              "actual_deg": {
+                "n": 267,
+                "minimum": 7.660487629509783,
+                "maximum": 27.829944894777288,
+                "mean": 11.296499707670437,
+                "first": 7.660487629509783,
+                "last": 27.829944894777288
+              },
+              "minimum_negative_margin_deg": 142.6604876295098,
+              "minimum_positive_margin_deg": 107.17005510522272,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_hip": {
+              "actual_deg": {
+                "n": 267,
+                "minimum": -0.21014132192410143,
+                "maximum": 4.305651227857294,
+                "mean": 0.10305455351345832,
+                "first": 0.12964422084240873,
+                "last": 4.305651227857294
+              },
+              "minimum_negative_margin_deg": 134.7898586780759,
+              "minimum_positive_margin_deg": 130.69434877214272,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_knee": {
+              "actual_deg": {
+                "n": 267,
+                "minimum": -0.08932705491485149,
+                "maximum": 0.25293243372885815,
+                "mean": 0.17933741839944076,
+                "first": -0.08932705491485149,
+                "last": 0.13308698302963892
+              },
+              "minimum_negative_margin_deg": 59.910672945085146,
+              "minimum_positive_margin_deg": 209.74706756627114,
+              "hard_limits_deg": [
+                -60.0,
+                210.0
+              ]
+            }
+          },
+          "exact_cartesian_feasibility": null,
+          "exact_mesh_obstacle_clearance_m": null
+        },
+        "sampled_15Hz": {
+          "decision_samples": 34,
+          "RR_current_lift_valid_samples": 0,
+          "RR_air_samples": 6,
+          "RR_current_support_samples": 28,
+          "RR_load_fraction_valid_samples": 34,
+          "RR_load_fraction": {
+            "n": 34,
+            "minimum": 0.0,
+            "maximum": 0.11348555401624305,
+            "mean": 0.040987117471950364,
+            "first": 0.05637326706401571,
+            "last": 0.0
+          },
+          "RR_contact_mode_counts": {
+            "AIR": 6,
+            "GROUND": 28
+          },
+          "FL_current_support_samples": 0,
+          "FL_top_bearing_samples": 0,
+          "FL_air_samples": 34,
+          "FL_bearing_force_n": {
+            "n": 34,
+            "minimum": 0.0,
+            "maximum": 0.0,
+            "mean": 0.0,
+            "first": 0.0,
+            "last": 0.0
+          },
+          "FL_toward_CoM_rolling_context_m": {
+            "n": 34,
+            "minimum": -0.004112909405480172,
+            "maximum": 0.031177666498015302,
+            "mean": 0.007448949463127271,
+            "first": 0.0063769882176240075,
+            "last": 0.028047894028601583
+          },
+          "positive_CoM_toward_FL_while_FL_air_samples": 23,
+          "RR_mount_world_z_m": {
+            "n": 34,
+            "minimum": 0.19739596857589745,
+            "maximum": 0.20837714841937777,
+            "mean": 0.20474134661101773,
+            "first": 0.20504140253385733,
+            "last": 0.19739596857589745
+          },
+          "four_hip_world_z_m": {
+            "FL": {
+              "n": 34,
+              "minimum": 0.17910051604243155,
+              "maximum": 0.21210460945964937,
+              "mean": 0.20075824944118237,
+              "first": 0.20473598714842495,
+              "last": 0.17910051604243155
+            },
+            "FR": {
+              "n": 34,
+              "minimum": 0.1998267248346839,
+              "maximum": 0.22666624210916417,
+              "mean": 0.2173818516541179,
+              "first": 0.21468339399116748,
+              "last": 0.22052479501750016
+            },
+            "RL": {
+              "n": 34,
+              "minimum": 0.15591164423125473,
+              "maximum": 0.19609696532909715,
+              "mean": 0.18809364823794242,
+              "first": 0.19507957683809035,
+              "last": 0.15591164423125473
+            },
+            "RR": {
+              "n": 34,
+              "minimum": 0.19739596857589745,
+              "maximum": 0.20837714841937777,
+              "mean": 0.20474134661101773,
+              "first": 0.20504140253385733,
+              "last": 0.19739596857589745
+            }
+          },
+          "last_RR_current_state": {
+            "air": true,
+            "current_lift_valid": false,
+            "contact_mode": "AIR",
+            "clearance_m": -0.043999491573635634,
+            "front_distance_m": -0.1806744004981553,
+            "support": false,
+            "bearing_force_n": 0.0,
+            "load_fraction": 0.0,
+            "load_fraction_valid": true,
+            "placed_on_top": false
+          }
+        }
+      },
+      "qualified_to_placed_or_budget": {
+        "physical_120Hz": {
+          "ticks": [
+            5434,
+            6177
+          ],
+          "duration_s": 6.19166666666667,
+          "physics_samples": 744,
+          "rate_RMS_rad_s": 0.01932572998035429,
+          "peak_tilt_rad": 0.20630254770928794,
+          "RR_gap_m": {
+            "n": 744,
+            "minimum": -0.04199086196616338,
+            "maximum": 0.08268673720218313,
+            "mean": 0.0062515648194975924,
+            "first": -0.04199086196616338,
+            "last": -8.463611747935862e-05
+          },
+          "FL_gap_m": {
+            "n": 744,
+            "minimum": -0.0014465146989427538,
+            "maximum": 0.013065953848047929,
+            "mean": 0.00010242285823205926,
+            "first": 0.013065953848047929,
+            "last": 3.7592829668364747e-06
+          },
+          "body_collider_min_world_z_m": {
+            "n": 744,
+            "minimum": 0.09050746625950645,
+            "maximum": 0.09657991326802237,
+            "mean": 0.09451055235285542,
+            "first": 0.09546148499419826,
+            "last": 0.09657991326802237
+          },
+          "conservative_body_obstacle_AABB_separation_m": {
+            "n": 744,
+            "minimum": 0.04050746625950645,
+            "maximum": 0.04657991326802237,
+            "mean": 0.04451055235285539,
+            "first": 0.04546148499419826,
+            "last": 0.04657991326802237
+          },
+          "com_world_z_m": {
+            "n": 744,
+            "minimum": 0.15351085718576643,
+            "maximum": 0.16537609206794407,
+            "mean": 0.15637335172291025,
+            "first": 0.1557215529452269,
+            "last": 0.15598501366274234
+          },
+          "com_world_displacement_m": [
+            0.0698728208102175,
+            -0.002247318962858111,
+            0.0002634607175154291
+          ],
+          "initial_com_toward_FL_fixed_world_xy": [
+            0.8684877693748562,
+            0.4957105954549355
+          ],
+          "com_displacement_toward_initial_FL_direction_m": 0.05956967046413927,
+          "com_displacement_does_not_imply_FL_bearing": true,
+          "actual_contact_ticks": {
+            "FL": {
+              "ground": 0,
+              "obstacle": 665,
+              "air": 79
+            },
+            "FR": {
+              "ground": 0,
+              "obstacle": 744,
+              "air": 0
+            },
+            "RL": {
+              "ground": 744,
+              "obstacle": 0,
+              "air": 0
+            },
+            "RR": {
+              "ground": 0,
+              "obstacle": 220,
+              "air": 524
+            }
+          },
+          "RR_contact_free_runs": {
+            "count": 1,
+            "total_samples": 524,
+            "longest_observed_duration_s": 4.358333333333333,
+            "runs": [
+              {
+                "first_tick": 5434,
+                "last_tick": 5957,
+                "samples": 524
+              }
+            ],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "RR_ground_contact_runs": {
+            "count": 0,
+            "total_samples": 0,
+            "longest_observed_duration_s": 0.0,
+            "runs": [],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "FL_obstacle_normal_force_n": {
+            "n": 744,
+            "minimum": 0.0,
+            "maximum": 7.759642601013203,
+            "mean": 1.7439883435564834,
+            "first": 0.0,
+            "last": 4.804515838623148
+          },
+          "RR_total_normal_force_n": {
+            "n": 744,
+            "minimum": 0.0,
+            "maximum": 7.015871047973806,
+            "mean": 1.4144857096493761,
+            "first": 0.0,
+            "last": 5.3072437805422865
+          },
+          "joints": {
+            "front_left_hip": {
+              "actual_deg": {
+                "n": 744,
+                "minimum": 35.555012336415516,
+                "maximum": 38.54557309846516,
+                "mean": 35.92560746237934,
+                "first": 38.54557309846516,
+                "last": 35.93119183514314
+              },
+              "minimum_negative_margin_deg": 170.55501233641553,
+              "minimum_positive_margin_deg": 96.45442690153484,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_left_hip": {
+              "actual_deg": {
+                "n": 744,
+                "minimum": 26.221571949022685,
+                "maximum": 28.934709210006634,
+                "mean": 27.045556427506913,
+                "first": 27.829944894777288,
+                "last": 26.28114656651083
+              },
+              "minimum_negative_margin_deg": 161.2215719490227,
+              "minimum_positive_margin_deg": 106.06529078999337,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_hip": {
+              "actual_deg": {
+                "n": 744,
+                "minimum": -8.376483940463709,
+                "maximum": 46.73678290164826,
+                "mean": 3.9777043411890407,
+                "first": 4.305651227857294,
+                "last": -8.264128182390646
+              },
+              "minimum_negative_margin_deg": 126.62351605953629,
+              "minimum_positive_margin_deg": 88.26321709835173,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_knee": {
+              "actual_deg": {
+                "n": 744,
+                "minimum": -39.47398806582285,
+                "maximum": 0.13308698302963892,
+                "mean": -32.02909428943163,
+                "first": 0.13308698302963892,
+                "last": -39.46867759374317
+              },
+              "minimum_negative_margin_deg": 20.52601193417715,
+              "minimum_positive_margin_deg": 209.86691301697036,
+              "hard_limits_deg": [
+                -60.0,
+                210.0
+              ]
+            }
+          },
+          "exact_cartesian_feasibility": null,
+          "exact_mesh_obstacle_clearance_m": null
+        },
+        "sampled_15Hz": {
+          "decision_samples": 93,
+          "RR_current_lift_valid_samples": 93,
+          "RR_air_samples": 65,
+          "RR_current_support_samples": 28,
+          "RR_load_fraction_valid_samples": 91,
+          "RR_load_fraction": {
+            "n": 91,
+            "minimum": 0.0,
+            "maximum": 0.2349686554533261,
+            "mean": 0.050015090481975596,
+            "first": 0.0,
+            "last": 0.1832390809996193
+          },
+          "RR_contact_mode_counts": {
+            "AIR": 65,
+            "TOP": 28
+          },
+          "FL_current_support_samples": 81,
+          "FL_top_bearing_samples": 81,
+          "FL_air_samples": 10,
+          "FL_bearing_force_n": {
+            "n": 93,
+            "minimum": 0.0,
+            "maximum": 6.091301441192627,
+            "mean": 1.6926310498227355,
+            "first": 0.0,
+            "last": 4.941076755523682
+          },
+          "FL_toward_CoM_rolling_context_m": {
+            "n": 93,
+            "minimum": 0.0004470018155620074,
+            "maximum": 0.023398017861230754,
+            "mean": 0.0053764960337733805,
+            "first": 0.023398017861230754,
+            "last": 0.005918413076983539
+          },
+          "positive_CoM_toward_FL_while_FL_air_samples": 10,
+          "RR_mount_world_z_m": {
+            "n": 93,
+            "minimum": 0.1950097087696098,
+            "maximum": 0.2003983134203804,
+            "mean": 0.19701466857369995,
+            "first": 0.19703016436890375,
+            "last": 0.2003983134203804
+          },
+          "four_hip_world_z_m": {
+            "FL": {
+              "n": 93,
+              "minimum": 0.1708203593134222,
+              "maximum": 0.17743090820815288,
+              "mean": 0.17524714669960573,
+              "first": 0.17743090820815288,
+              "last": 0.17620822571600211
+            },
+            "FR": {
+              "n": 93,
+              "minimum": 0.21583588226758088,
+              "maximum": 0.2199428794186171,
+              "mean": 0.21727079454842246,
+              "first": 0.2199428794186171,
+              "last": 0.21947434087825055
+            },
+            "RL": {
+              "n": 93,
+              "minimum": 0.1505718416022168,
+              "maximum": 0.15706948289882838,
+              "mean": 0.15493010642455282,
+              "first": 0.1544565711232251,
+              "last": 0.15706948289882838
+            },
+            "RR": {
+              "n": 93,
+              "minimum": 0.1950097087696098,
+              "maximum": 0.2003983134203804,
+              "mean": 0.19701466857369995,
+              "first": 0.19703016436890375,
+              "last": 0.2003983134203804
+            }
+          },
+          "last_RR_current_state": {
+            "air": false,
+            "current_lift_valid": true,
+            "contact_mode": "TOP",
+            "clearance_m": -9.109097855775072e-05,
+            "front_distance_m": -5.286591220254877e-05,
+            "support": true,
+            "bearing_force_n": 5.247697353363037,
+            "load_fraction": 0.1832390809996193,
+            "load_fraction_valid": true,
+            "placed_on_top": false
+          }
+        }
+      },
+      "post_placed_to_common_budget": {
+        "physical_120Hz": {
+          "ticks": [
+            6177,
+            6872
+          ],
+          "duration_s": 5.791666666666664,
+          "physics_samples": 696,
+          "rate_RMS_rad_s": 0.13730429337938946,
+          "peak_tilt_rad": 0.23676218136950758,
+          "RR_gap_m": {
+            "n": 696,
+            "minimum": -0.0010950609236143882,
+            "maximum": 1.9217048611526455e-05,
+            "mean": -0.00034962539525207635,
+            "first": -8.463611747935862e-05,
+            "last": -0.000825486526432051
+          },
+          "FL_gap_m": {
+            "n": 696,
+            "minimum": -0.0013684574025878415,
+            "maximum": 0.001068185504329626,
+            "mean": -0.0003355456476867657,
+            "first": 3.7592829668364747e-06,
+            "last": -0.0012636234640899802
+          },
+          "body_collider_min_world_z_m": {
+            "n": 696,
+            "minimum": 0.09657991326802237,
+            "maximum": 0.1900455211709574,
+            "mean": 0.1689947796040462,
+            "first": 0.09657991326802237,
+            "last": 0.18995408642890518
+          },
+          "conservative_body_obstacle_AABB_separation_m": {
+            "n": 696,
+            "minimum": 0.04657991326802237,
+            "maximum": 0.14004552117095742,
+            "mean": 0.11899477960404616,
+            "first": 0.04657991326802237,
+            "last": 0.13995408642890517
+          },
+          "com_world_z_m": {
+            "n": 696,
+            "minimum": 0.15598501366274234,
+            "maximum": 0.20275278940949243,
+            "mean": 0.18985061072563464,
+            "first": 0.15598501366274234,
+            "last": 0.20275278940949243
+          },
+          "com_world_displacement_m": [
+            0.12331734670147865,
+            -0.0064888579047303885,
+            0.04676777574675009
+          ],
+          "initial_com_toward_FL_fixed_world_xy": [
+            0.8632575167860499,
+            0.5047637662435595
+          ],
+          "com_displacement_toward_initial_FL_direction_m": 0.10317928613555183,
+          "com_displacement_does_not_imply_FL_bearing": true,
+          "actual_contact_ticks": {
+            "FL": {
+              "ground": 0,
+              "obstacle": 679,
+              "air": 17
+            },
+            "FR": {
+              "ground": 0,
+              "obstacle": 550,
+              "air": 146
+            },
+            "RL": {
+              "ground": 60,
+              "obstacle": 140,
+              "air": 496
+            },
+            "RR": {
+              "ground": 0,
+              "obstacle": 695,
+              "air": 1
+            }
+          },
+          "RR_contact_free_runs": {
+            "count": 1,
+            "total_samples": 1,
+            "longest_observed_duration_s": 0.0,
+            "runs": [
+              {
+                "first_tick": 6756,
+                "last_tick": 6756,
+                "samples": 1
+              }
+            ],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "RR_ground_contact_runs": {
+            "count": 0,
+            "total_samples": 0,
+            "longest_observed_duration_s": 0.0,
+            "runs": [],
+            "semantics": "inclusive 120Hz observations; duration last-first, not an unseen interval"
+          },
+          "FL_obstacle_normal_force_n": {
+            "n": 696,
+            "minimum": 0.0,
+            "maximum": 26.635423660278665,
+            "mean": 13.475780203414494,
+            "first": 4.804515838623148,
+            "last": 14.820358679111404
+          },
+          "RR_total_normal_force_n": {
+            "n": 696,
+            "minimum": 0.0,
+            "maximum": 19.380274931853183,
+            "mean": 12.626589767778992,
+            "first": 5.3072437805422865,
+            "last": 13.796946731034177
+          },
+          "joints": {
+            "front_left_hip": {
+              "actual_deg": {
+                "n": 696,
+                "minimum": -25.24477374919383,
+                "maximum": 35.93119183514314,
+                "mean": -14.407153835780452,
+                "first": 35.93119183514314,
+                "last": -0.6738199061693109
+              },
+              "minimum_negative_margin_deg": 109.75522625080617,
+              "minimum_positive_margin_deg": 99.06880816485686,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_left_hip": {
+              "actual_deg": {
+                "n": 696,
+                "minimum": -5.144634486327409,
+                "maximum": 32.09367511623211,
+                "mean": 6.801690322413367,
+                "first": 26.28114656651083,
+                "last": -2.981752632805321
+              },
+              "minimum_negative_margin_deg": 129.85536551367258,
+              "minimum_positive_margin_deg": 102.9063248837679,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_hip": {
+              "actual_deg": {
+                "n": 696,
+                "minimum": -8.823662401839968,
+                "maximum": -0.9525392755474624,
+                "mean": -7.240503098103112,
+                "first": -8.264128182390646,
+                "last": -0.9543211545080426
+              },
+              "minimum_negative_margin_deg": 126.17633759816003,
+              "minimum_positive_margin_deg": 135.95253927554745,
+              "hard_limits_deg": [
+                -135.0,
+                135.0
+              ]
+            },
+            "rear_right_knee": {
+              "actual_deg": {
+                "n": 696,
+                "minimum": -39.46867759374317,
+                "maximum": -7.453510552801249,
+                "mean": -26.450606018558176,
+                "first": -39.46867759374317,
+                "last": -7.502804881814877
+              },
+              "minimum_negative_margin_deg": 20.531322406256827,
+              "minimum_positive_margin_deg": 217.45351055280125,
+              "hard_limits_deg": [
+                -60.0,
+                210.0
+              ]
+            }
+          },
+          "exact_cartesian_feasibility": null,
+          "exact_mesh_obstacle_clearance_m": null
+        },
+        "sampled_15Hz": {
+          "decision_samples": 87,
+          "RR_current_lift_valid_samples": 78,
+          "RR_air_samples": 0,
+          "RR_current_support_samples": 87,
+          "RR_load_fraction_valid_samples": 85,
+          "RR_load_fraction": {
+            "n": 85,
+            "minimum": 0.1210296602653157,
+            "maximum": 0.5046700373823081,
+            "mean": 0.44001755251867325,
+            "first": 0.3607596499838132,
+            "last": 0.4607632322725517
+          },
+          "RR_contact_mode_counts": {
+            "TOP": 87
+          },
+          "FL_current_support_samples": 85,
+          "FL_top_bearing_samples": 85,
+          "FL_air_samples": 2,
+          "FL_bearing_force_n": {
+            "n": 87,
+            "minimum": 0.0,
+            "maximum": 20.57270050048828,
+            "mean": 13.519411920130938,
+            "first": 10.864730834960938,
+            "last": 14.820354461669922
+          },
+          "FL_toward_CoM_rolling_context_m": {
+            "n": 87,
+            "minimum": -0.01071069102393767,
+            "maximum": 0.061013046990562425,
+            "mean": 0.008733755015554324,
+            "first": 0.005211220107798341,
+            "last": 0.0063450641263475775
+          },
+          "positive_CoM_toward_FL_while_FL_air_samples": 0,
+          "RR_mount_world_z_m": {
+            "n": 87,
+            "minimum": 0.20216961760033098,
+            "maximum": 0.2552531482225201,
+            "mean": 0.23879975221648847,
+            "first": 0.20216961760033098,
+            "last": 0.25511670978734524
+          },
+          "four_hip_world_z_m": {
+            "FL": {
+              "n": 87,
+              "minimum": 0.1820576126236548,
+              "maximum": 0.2593768651750183,
+              "mean": 0.2411715465399171,
+              "first": 0.1820576126236548,
+              "last": 0.25926802294790496
+            },
+            "FR": {
+              "n": 87,
+              "minimum": 0.22189419700228102,
+              "maximum": 0.2837844510504171,
+              "mean": 0.24413782414559546,
+              "first": 0.22189419700228102,
+              "last": 0.2563102653682995
+            },
+            "RL": {
+              "n": 87,
+              "minimum": 0.16227528914166794,
+              "maximum": 0.2581736871496789,
+              "mean": 0.23582917502545492,
+              "first": 0.16227528914166794,
+              "last": 0.2580787547524337
+            },
+            "RR": {
+              "n": 87,
+              "minimum": 0.20216961760033098,
+              "maximum": 0.2552531482225201,
+              "mean": 0.23879975221648847,
+              "first": 0.20216961760033098,
+              "last": 0.25511670978734524
+            }
+          },
+          "last_RR_current_state": {
+            "air": false,
+            "current_lift_valid": true,
+            "contact_mode": "TOP",
+            "clearance_m": -0.000825486526432051,
+            "front_distance_m": 0.036762538979765225,
+            "support": true,
+            "bearing_force_n": 13.796796798706055,
+            "load_fraction": 0.4607632322725517,
+            "load_fraction_valid": true,
+            "placed_on_top": true
+          }
+        }
+      }
+    },
+    "four_hip_validation": {
+      "samples": 859,
+      "all_clocks_aligned": true,
+      "all_four_available": true,
+      "RR_max_xyz_error_vs_independent_height_stream_m": 0.0
+    },
+    "first_sampled_current_lift_loss_before_placed": null,
+    "first_raw_ground_after_qualified_before_placed_tick": null,
+    "physical_event_snapshots": {
+      "P08": {
+        "tick": 5168,
+        "body_min_world_z_m": 0.13145561124305696,
+        "conservative_body_obstacle_AABB_separation_m": 0.08145561124305696,
+        "com_world_m": [
+          0.594007966658887,
+          -0.13035877553603847,
+          0.16242132366727868
+        ],
+        "joint_actual_deg": {
+          "front_left_hip": 25.552089306357825,
+          "rear_left_hip": 7.660487629509783,
+          "rear_right_hip": 0.12964422084240873,
+          "rear_right_knee": -0.08932705491485149
+        },
+        "RR_gap_m": -0.05092519545788415,
+        "FL_gap_m": 0.004486899687386553,
+        "contacts": {
+          "FL": {
+            "ground": false,
+            "obstacle": false
+          },
+          "FR": {
+            "ground": false,
+            "obstacle": true
+          },
+          "RL": {
+            "ground": true,
+            "obstacle": false
+          },
+          "RR": {
+            "ground": true,
+            "obstacle": false
+          }
+        }
+      },
+      "P09": {
+        "tick": 5176,
+        "body_min_world_z_m": 0.13111724356506188,
+        "conservative_body_obstacle_AABB_separation_m": 0.08111724356506188,
+        "com_world_m": [
+          0.5951010696420035,
+          -0.1300982664007338,
+          0.163820963064162
+        ],
+        "joint_actual_deg": {
+          "front_left_hip": 30.9744279318165,
+          "rear_left_hip": 7.753099872013278,
+          "rear_right_hip": -0.012508370886967657,
+          "rear_right_knee": -0.036120441569407524
+        },
+        "RR_gap_m": -0.050891025821756336,
+        "FL_gap_m": 0.018851284049486064,
+        "contacts": {
+          "FL": {
+            "ground": false,
+            "obstacle": false
+          },
+          "FR": {
+            "ground": false,
+            "obstacle": true
+          },
+          "RL": {
+            "ground": true,
+            "obstacle": false
+          },
+          "RR": {
+            "ground": true,
+            "obstacle": false
+          }
+        }
+      },
+      "P10": {
+        "tick": 6184,
+        "body_min_world_z_m": 0.10162355812586024,
+        "conservative_body_obstacle_AABB_separation_m": 0.05162355812586024,
+        "com_world_m": [
+          0.7038396905286015,
+          -0.12120687392339007,
+          0.158267042696081
+        ],
+        "joint_actual_deg": {
+          "front_left_hip": 33.974690977582156,
+          "rear_left_hip": 23.825958229721582,
+          "rear_right_hip": -7.972035996308697,
+          "rear_right_knee": -39.35767335935212
+        },
+        "RR_gap_m": -6.411282004788188e-05,
+        "FL_gap_m": -4.554145203022886e-05,
+        "contacts": {
+          "FL": {
+            "ground": false,
+            "obstacle": true
+          },
+          "FR": {
+            "ground": false,
+            "obstacle": true
+          },
+          "RL": {
+            "ground": true,
+            "obstacle": false
+          },
+          "RR": {
+            "ground": false,
+            "obstacle": true
+          }
+        }
+      },
+      "initial": {
+        "tick": 5428,
+        "body_min_world_z_m": 0.09683940686081215,
+        "conservative_body_obstacle_AABB_separation_m": 0.046839406860812144,
+        "com_world_m": [
+          0.6325764360880517,
+          -0.11784471221465348,
+          0.15590864656376258
+        ],
+        "joint_actual_deg": {
+          "front_left_hip": 38.55076404223437,
+          "rear_left_hip": 27.308150885586873,
+          "rear_right_hip": 2.337909373026352,
+          "rear_right_knee": 0.14029876899888646
+        },
+        "RR_gap_m": -0.046797759293649946,
+        "FL_gap_m": 0.01515069276965382,
+        "contacts": {
+          "FL": {
+            "ground": false,
+            "obstacle": false
+          },
+          "FR": {
+            "ground": false,
+            "obstacle": true
+          },
+          "RL": {
+            "ground": true,
+            "obstacle": false
+          },
+          "RR": {
+            "ground": false,
+            "obstacle": false
+          }
+        }
+      },
+      "qualified": {
+        "tick": 5434,
+        "body_min_world_z_m": 0.09546148499419826,
+        "conservative_body_obstacle_AABB_separation_m": 0.04546148499419826,
+        "com_world_m": [
+          0.6329919016867376,
+          -0.11725865685737737,
+          0.1557215529452269
+        ],
+        "joint_actual_deg": {
+          "front_left_hip": 38.54557309846516,
+          "rear_left_hip": 27.829944894777288,
+          "rear_right_hip": 4.305651227857294,
+          "rear_right_knee": 0.13308698302963892
+        },
+        "RR_gap_m": -0.04199086196616338,
+        "FL_gap_m": 0.013065953848047929,
+        "contacts": {
+          "FL": {
+            "ground": false,
+            "obstacle": false
+          },
+          "FR": {
+            "ground": false,
+            "obstacle": true
+          },
+          "RL": {
+            "ground": true,
+            "obstacle": false
+          },
+          "RR": {
+            "ground": false,
+            "obstacle": false
+          }
+        }
+      },
+      "crossed": {
+        "tick": 6177,
+        "body_min_world_z_m": 0.09657991326802237,
+        "conservative_body_obstacle_AABB_separation_m": 0.04657991326802237,
+        "com_world_m": [
+          0.7028647224969551,
+          -0.11950597582023548,
+          0.15598501366274234
+        ],
+        "joint_actual_deg": {
+          "front_left_hip": 35.93119183514314,
+          "rear_left_hip": 26.28114656651083,
+          "rear_right_hip": -8.264128182390646,
+          "rear_right_knee": -39.46867759374317
+        },
+        "RR_gap_m": -8.463611747935862e-05,
+        "FL_gap_m": 3.7592829668364747e-06,
+        "contacts": {
+          "FL": {
+            "ground": false,
+            "obstacle": true
+          },
+          "FR": {
+            "ground": false,
+            "obstacle": true
+          },
+          "RL": {
+            "ground": true,
+            "obstacle": false
+          },
+          "RR": {
+            "ground": false,
+            "obstacle": true
+          }
+        }
+      },
+      "placed": {
+        "tick": 6177,
+        "body_min_world_z_m": 0.09657991326802237,
+        "conservative_body_obstacle_AABB_separation_m": 0.04657991326802237,
+        "com_world_m": [
+          0.7028647224969551,
+          -0.11950597582023548,
+          0.15598501366274234
+        ],
+        "joint_actual_deg": {
+          "front_left_hip": 35.93119183514314,
+          "rear_left_hip": 26.28114656651083,
+          "rear_right_hip": -8.264128182390646,
+          "rear_right_knee": -39.46867759374317
+        },
+        "RR_gap_m": -8.463611747935862e-05,
+        "FL_gap_m": 3.7592829668364747e-06,
+        "contacts": {
+          "FL": {
+            "ground": false,
+            "obstacle": true
+          },
+          "FR": {
+            "ground": false,
+            "obstacle": true
+          },
+          "RL": {
+            "ground": true,
+            "obstacle": false
+          },
+          "RR": {
+            "ground": false,
+            "obstacle": true
+          }
+        }
+      }
+    },
+    "intervention": {
+      "start_tick": 5440,
+      "release_start_tick": 6376,
+      "last_indexed_end_tick": 6712,
+      "first_receipt": {
+        "kind": "labelled_direction_probe_not_PPO",
+        "case": "RR_lift_FL_RL_minus3",
+        "index": 0,
+        "anchor_full12": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "delta_deg": {
+          "0": -3.0,
+          "4": -3.0
+        },
+        "requested_selected_deg": {
+          "0": -0.015263310185185182,
+          "4": 0.0
+        },
+        "release_age": null,
+        "capture_age": null,
+        "not_added_recursively_to_HISTORY": true
+      },
+      "last_receipt": {
+        "kind": "labelled_direction_probe_not_PPO",
+        "case": "RR_lift_FL_RL_minus3",
+        "index": 158,
+        "anchor_full12": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "delta_deg": {
+          "0": -3.0,
+          "4": -3.0
+        },
+        "requested_selected_deg": {
+          "0": 0.0,
+          "4": 0.0
+        },
+        "release_age": 117,
+        "capture_age": 93,
+        "not_added_recursively_to_HISTORY": true
+      },
+      "full12_masks_all_one": true,
+      "native_verified": true,
+      "selected_clip_count": 0,
+      "max_REQUEST_vs_effective_difference": 0.0,
+      "examples": [
+        {
+          "start": 5440,
+          "end": 5448,
+          "receipt": {
+            "kind": "labelled_direction_probe_not_PPO",
+            "case": "RR_lift_FL_RL_minus3",
+            "index": 0,
+            "anchor_full12": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "delta_deg": {
+              "0": -3.0,
+              "4": -3.0
+            },
+            "requested_selected_deg": {
+              "0": -0.015263310185185182,
+              "4": 0.0
+            },
+            "release_age": null,
+            "capture_age": null,
+            "not_added_recursively_to_HISTORY": true
+          },
+          "channels": {
+            "front_left_hip": {
+              "nominal": 38.6,
+              "mapped_same_dispatch": 38.6,
+              "REQUEST": -0.015263310185183343,
+              "effective": -0.015263310185183343,
+              "final": 38.58473668981482,
+              "actual": 38.53323094663495
+            },
+            "rear_left_hip": {
+              "nominal": 28.199999999999996,
+              "mapped_same_dispatch": 28.199999999999996,
+              "REQUEST": 0.0,
+              "effective": 0.0,
+              "final": 28.199999999999996,
+              "actual": 28.48274876243772
+            }
+          }
+        },
+        {
+          "start": 5528,
+          "end": 5536,
+          "receipt": {
+            "kind": "labelled_direction_probe_not_PPO",
+            "case": "RR_lift_FL_RL_minus3",
+            "index": 11,
+            "anchor_full12": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "delta_deg": {
+              "0": -3.0,
+              "4": -3.0
+            },
+            "requested_selected_deg": {
+              "0": -3.0,
+              "4": -2.893518518518518
+            },
+            "release_age": null,
+            "capture_age": null,
+            "not_added_recursively_to_HISTORY": true
+          },
+          "channels": {
+            "front_left_hip": {
+              "nominal": 38.6,
+              "mapped_same_dispatch": 38.6,
+              "REQUEST": -3.0,
+              "effective": -3.0,
+              "final": 35.6,
+              "actual": 35.7949022404447
+            },
+            "rear_left_hip": {
+              "nominal": 28.199999999999996,
+              "mapped_same_dispatch": 28.199999999999996,
+              "REQUEST": -2.893518518518519,
+              "effective": -2.893518518518519,
+              "final": 25.306481481481477,
+              "actual": 27.31418535771858
+            }
+          }
+        },
+        {
+          "start": 5544,
+          "end": 5552,
+          "receipt": {
+            "kind": "labelled_direction_probe_not_PPO",
+            "case": "RR_lift_FL_RL_minus3",
+            "index": 13,
+            "anchor_full12": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "delta_deg": {
+              "0": -3.0,
+              "4": -3.0
+            },
+            "requested_selected_deg": {
+              "0": -3.0,
+              "4": -3.0
+            },
+            "release_age": null,
+            "capture_age": null,
+            "not_added_recursively_to_HISTORY": true
+          },
+          "channels": {
+            "front_left_hip": {
+              "nominal": 38.6,
+              "mapped_same_dispatch": 38.6,
+              "REQUEST": -3.0,
+              "effective": -3.0,
+              "final": 35.6,
+              "actual": 35.682279251220365
+            },
+            "rear_left_hip": {
+              "nominal": 28.199999999999996,
+              "mapped_same_dispatch": 28.199999999999996,
+              "REQUEST": -3.0,
+              "effective": -3.0,
+              "final": 25.199999999999996,
+              "actual": 27.080070378632637
+            }
+          }
+        },
+        {
+          "start": 6368,
+          "end": 6376,
+          "receipt": {
+            "kind": "labelled_direction_probe_not_PPO",
+            "case": "RR_lift_FL_RL_minus3",
+            "index": 116,
+            "anchor_full12": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "delta_deg": {
+              "0": -3.0,
+              "4": -3.0
+            },
+            "requested_selected_deg": {
+              "0": -3.0,
+              "4": -3.0
+            },
+            "release_age": null,
+            "capture_age": 93,
+            "not_added_recursively_to_HISTORY": true
+          },
+          "channels": {
+            "front_left_hip": {
+              "nominal": -18.5,
+              "mapped_same_dispatch": -17.41976785499324,
+              "REQUEST": -3.0,
+              "effective": -3.0,
+              "final": -20.41976785499324,
+              "actual": -21.49185117764945
+            },
+            "rear_left_hip": {
+              "nominal": 0.5,
+              "mapped_same_dispatch": -0.75,
+              "REQUEST": -3.0000000000000004,
+              "effective": -3.0000000000000004,
+              "final": -3.7500000000000004,
+              "actual": -4.130923849810328
+            }
+          }
+        },
+        {
+          "start": 6704,
+          "end": 6712,
+          "receipt": {
+            "kind": "labelled_direction_probe_not_PPO",
+            "case": "RR_lift_FL_RL_minus3",
+            "index": 158,
+            "anchor_full12": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "delta_deg": {
+              "0": -3.0,
+              "4": -3.0
+            },
+            "requested_selected_deg": {
+              "0": 0.0,
+              "4": 0.0
+            },
+            "release_age": 117,
+            "capture_age": 93,
+            "not_added_recursively_to_HISTORY": true
+          },
+          "channels": {
+            "front_left_hip": {
+              "nominal": -18.5,
+              "mapped_same_dispatch": -18.466784853742865,
+              "REQUEST": 0.0,
+              "effective": 0.0,
+              "final": -18.466784853742865,
+              "actual": -18.926621663142132
+            },
+            "rear_left_hip": {
+              "nominal": 15.4,
+              "mapped_same_dispatch": 14.15,
+              "REQUEST": 0.0,
+              "effective": 0.0,
+              "final": 14.15,
+              "actual": 17.66746693816081
+            }
+          }
+        }
+      ]
+    }
+  },
+  "first_physical_difference_vs_B": {
+    "tick": 5441,
+    "fields": [
+      "full12",
+      "base"
+    ],
+    "max_full12_absolute_difference_mixed_units": 0.0011782076318311852
+  },
+  "first_dispatch_difference_vs_B": {
+    "start_tick": 5440,
+    "end_tick": 5448,
+    "fields": [
+      "projected_residual_full12",
+      "actual_drive_target_full12"
+    ],
+    "values": {
+      "projected_residual_full12": {
+        "probe": [
+          -0.015263310185183343,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "B": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "actual_drive_target_full12": {
+        "probe": [
+          38.58473668981482,
+          -12.15,
+          0.0,
+          29.99420710727569,
+          28.199999999999996,
+          0.0,
+          23.4,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "B": [
+          38.6,
+          -12.15,
+          0.0,
+          29.99420710727569,
+          28.199999999999996,
+          0.0,
+          23.4,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "all_preceding_fields_identical": true
+  },
+  "rate_metric": "sqrt(time_mean((roll_rate^2+pitch_rate^2)/2)), wrapped adjacent120Hz Euler derivatives",
+  "qualification_not_equal_to_clearance_or_placement": true,
+  "CoM_direction_not_equal_to_FL_bearing": true
+}

@@ -1,0 +1,56 @@
+{
+  "schema": "block07.RR_retention.bounded_readonly.v1",
+  "source_run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_task_conditioned_hip_wheel_v1/train/20260921T0849405935866Z_gee5a9651591d_12b59026033c4ad08c274c684926dadc",
+  "read_limit_episode_tick": 7208,
+  "global_decision_at_limit": 190171,
+  "classification": "training_rollout_with_real_nominal_prefix_and_actor_update_not_frozen_policy_evaluation",
+  "nominal_prefix_endpoint": 5456,
+  "actor_update_inside_window": {"ppo_update":1450,"global_policy_decisions":190080,"episode_tick":6480,"actor_parameters_changed":true},
+  "RR_events": {
+    "front_edge_crossed":6311,"first_placed":6403,
+    "first_saved_placed_TOP_endpoint":6408,
+    "last_saved_TOP_endpoint":6784,
+    "first_saved_non_TOP_endpoint":6792,
+    "exact_TOP_exit_tick":null,
+    "TOP_exit_interval_open_closed":[6784,6792],
+    "ground_current_lift_revoked_exact_event":6808,
+    "current_lift_valid_first_false_after_place_endpoint":6424,
+    "first_invalid_reason_evidence":"TOP and within_top_xy still true; body_control_evidence false",
+    "current_lift_valid_last_true_endpoint":6704
+  },
+  "RR_contact_endpoints_6408_7208":{"samples":101,"TOP":48,"OBSTACLE_AMBIGUOUS":2,"GROUND":51},
+  "RL_events":{
+    "qualified_ticks":[6428,6568,6773],
+    "ground_qualification_revocation_ticks":[6497,6626,6821],
+    "front_edge_crossed":null,"placed":null,
+    "maximum_saved_wheel_gap_above_top_m":0.0231636145407057
+  },
+  "displacement":{
+    "saved_endpoint_ticks":[6408,7208],
+    "exact_6403_start_base_position":null,
+    "base_source":"goal_features.body_forward_m = measured base_position[0] - obstacle front; static front",
+    "base_forward_displacement_m":-0.13368672132492065,
+    "wheel_center_forward_displacement_m":{"FL":-0.09440279006958008,"FR":-0.12722057104110718,"RL":0.05287256836891174,"RR":-0.1135111153125763},
+    "FL_distance_not_used_as_base_displacement":true
+  },
+  "RR_wheel_response":{
+    "units":"canonical rad/s, rotation not wheel-center displacement or traction",
+    "negative_target_endpoint_count":98,"negative_measured_endpoint_count":93,"total_endpoints":101,
+    "all_examined_native_dispatch_mapping_verified":true,
+    "selected_target_actual":{
+      "6408":[-0.0651102248153391,-0.03489401564002037],
+      "6480":[-0.1801144096584689,-0.5434972643852234],
+      "6800":[-0.09228810020667574,2.285313606262207],
+      "7208":[-0.1382390288183191,-0.16735658049583435]
+    }
+  },
+  "at7208":{
+    "phase":"P12","physical_valid":true,"physical_success":false,"physical_termination":null,
+    "final_region_valid":false,"final_support_available":false,"traversal_task_complete":false,
+    "RR":{"history_placed":true,"ground_contact":true,"top_surface_contact":false,"support":true,"current_lift_valid":false,"bearing_force_n":4.754632472991943,"gap_m":-0.05057322399571805,"front_distance_m":-0.06836822288203592},
+    "RL":{"ground_contact":true,"contact_surface":"FRONT_WALL","active_attempt":false,"history_active_lift":false,"front_edge_crossed":false,"placed":false}
+  },
+  "interpretation":"Historical RR placed_on_top field is backed by history.placed, not current TOP. Current contact/ground revocation are consistent with lost capture retention; no evidence in this bounded record of false current TOP or false success. Causes cannot be isolated to wheel, one joint, or one frozen actor.",
+  "unavailable":{"exact_TOP_exit_tick":null,"independent_120Hz_contact_stream_in_this_training_run":null,"four_hip_mount_geometry":null,"future_episode_result":null},
+  "mutations":"outputs only; no simulator, production, scoring or running process changes"
+}
