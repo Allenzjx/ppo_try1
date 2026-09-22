@@ -171,14 +171,59 @@ def build_actuator_target_effect_audit(
     if maximum_delta != float(adapter.servo_target_mapper.maximum_delta_deg):
         raise ActuatorTargetEffectError("actual dispatch slew limit differs from the frozen mapper")
 
+    assist_snapshot = None
+    assist_receipt = raw_ack.get("capture_assist_evidence")
+    if assist_receipt is not None:
+        import json
+        from .semantic_capture_assist import (CAPTURE_ASSIST_FEATURE_NAMES, HipOnlyCaptureAssist,
+            apply_capture_assist_snapshot, capture_assist_features)
+        if not isinstance(assist_receipt, Mapping):
+            raise ActuatorTargetEffectError("invalid capture assist receipt")
+        try:
+            before = assist_receipt["state_before"]
+            capture_assist_features(before)
+            replay = HipOnlyCaptureAssist()
+            replay.state = {key: float(before[key]) for key in CAPTURE_ASSIST_FEATURE_NAMES}
+            replay.last_tick = int(raw_ack["physics_tick"])-1
+            context = assist_receipt["context"]
+            if context["dispatch_physics_tick"] != raw_ack["physics_tick"]:
+                raise ValueError("assist dispatch clock differs")
+            # Knee/hip anchors come from independent pre-dispatch final state.
+            # Wheel values are unused by this deliberately two-channel layer.
+            recomputed = replay.advance(context=context,
+                previous_final_full12=previous+(0.,)*4, physics_dt_s=float(raw_ack["physics_dt_s"]))
+            assist_snapshot = recomputed["state_after"]
+            if json.dumps(assist_snapshot,sort_keys=True,allow_nan=False) != json.dumps(
+                    assist_receipt["state_after"],sort_keys=True,allow_nan=False):
+                raise ValueError("assist state transition differs from reconstruction")
+            requested_candidate = tuple(a+b for a,b in zip(corrected_native,actual_bias,strict=True))
+            assisted_candidate = apply_capture_assist_snapshot(requested_candidate,assist_snapshot)
+            if (_finite_values(assist_receipt["candidate_before_assist_full12"],12,"assist input") != requested_candidate
+                    or _finite_values(assist_receipt["candidate_after_assist_full12"],12,"assist output") != assisted_candidate
+                    or _finite_values(assist_receipt["assist_correction_full12"],12,"assist correction") !=
+                    tuple(a-b for a,b in zip(assisted_candidate,requested_candidate,strict=True))):
+                raise ValueError("assist transformation differs from independent reconstruction")
+            owner_indices = [0,1] if assist_snapshot["active"] else []
+            if assist_receipt["owner_indices"] != owner_indices:
+                raise ValueError("assist owners differ from current state")
+        except (TypeError,ValueError,KeyError) as exc:
+            raise ActuatorTargetEffectError(f"invalid capture assist reconstruction: {exc}") from exc
+
     def physical_targets(bias: Sequence[float], native_targets: Sequence[float] = corrected_native) -> Any:
         servo = []
+        assisted = None
+        if assist_snapshot is not None:
+            assisted = apply_capture_assist_snapshot(
+                tuple(a+b for a,b in zip(native_targets,bias,strict=True)),assist_snapshot)
         for index, name in enumerate(SERVO_ORDER):
             lower, upper = servo_limits_deg(name)
+            native_target, effective_bias = native_targets[index], bias[index]
+            if assisted is not None and index < 2 and assist_snapshot["active"]:
+                native_target, effective_bias = assisted[index], 0.
             servo.append(bounded_drive_feedback_step(
                 previous_deg=previous[index],
-                native_deg=native_targets[index],
-                bias_deg=bias[index],
+                native_deg=native_target,
+                bias_deg=effective_bias,
                 maximum_delta_deg=maximum_delta,
                 lower_deg=lower,
                 upper_deg=upper,
@@ -280,6 +325,13 @@ def build_actuator_target_effect_audit(
         result.update(tracking_reference_mode=tracking_reference_mode,
                       tracking_reference_evidence=reference_evidence,
                       tracking_reference_previous_ack_independently_verified=True)
+    if assist_snapshot is not None:
+        result.update(capture_assist_evidence=dict(assist_receipt),
+            capture_assist_state_transition_independently_reconstructed=True,
+            capture_assist_owned_channels_full12=[bool(i<2 and assist_snapshot["active"]) for i in range(12)],
+            counterfactual_scope="same_pre_tick_state_and_same_capture_assist_without_current_ppo_residual",
+            policy_request_execution_semantics="sample_unchanged_state_dependent_FL_target_transform",
+            all12_policy_channels_unmodified_at_actuator=not assist_snapshot["active"])
     if geometry_enabled:
         # Remove geometry only in this third, zero-current-policy branch.
         # The existing actual-minus-counterfactual fields remain PPO-only.

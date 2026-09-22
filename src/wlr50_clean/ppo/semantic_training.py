@@ -28,6 +28,8 @@ from .semantic_policy_distribution import (
     LEGACY_POLICY, STATE_DEPENDENT_POLICY, configure_policy_distribution, policy_contract,
 )
 from .semantic_receiving_wheel_profile import RECEIVING_WHEEL_POLICY, RECEIVING_WHEEL_SIGMA_SEMANTICS
+from .semantic_p05_capture_profile import (P05_CAPTURE_POLICY, P05_CAPTURE_OBSERVATION_LAYOUT,
+    P05_CAPTURE_OBSERVATION_DIM, P05_CAPTURE_HISTORY_SEMANTICS)
 from .semantic_return_profile import (
     RETURN_PROFILE, RUNNER_PROFILE_KEY, profile_parameters,
     reward_return_profile, runner_return_profile,
@@ -42,7 +44,7 @@ ROLLOUT_LENGTH = 128
 def training_quantity_budgets(experiment_id: str | None = None) -> dict[str, int]:
     """Explicit quantity ceiling; historical entropy horizon stays 210000."""
     budgets = dict(STAGE_BUDGETS)
-    if experiment_id == "task_conditioned_hip_wheel_v1":
+    if experiment_id in ("task_conditioned_hip_wheel_v1","p05_hip_only_continuation_v1"):
         budgets["full_episode"] = 131_072
     return budgets
 
@@ -123,12 +125,14 @@ def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_versio
     from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
     if policy_version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
                           HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
-                          TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY) and semantic_version != "v3":
+                          TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY, P05_CAPTURE_POLICY) and semantic_version != "v3":
         raise ValueError("history-conditioned policy requires the v3 semantic runtime")
     if policy_version in (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
                           HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
                           TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY) and observation_layout != ROLE_OBSERVATION_LAYOUT:
         raise ValueError("tempered history policy requires the explicit role372 observation layout")
+    if policy_version == P05_CAPTURE_POLICY and observation_layout != P05_CAPTURE_OBSERVATION_LAYOUT:
+        raise ValueError("P05 capture actor requires the explicit observable 389 layout")
     if return_profile is None:
         from .semantic_reward import load_semantic_reward_config
         path = Path(__file__).resolve().parents[3] / "configs" / f"ppo_semantic_{semantic_version}" / "reward_config.yaml"
@@ -358,7 +362,7 @@ def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None
     likelihood_rows = []
     sample_lookup = {}
     task_head_audit = (likelihood_audit_path is not None and
-        getattr(runner, "_semantic_policy_version", None) in (TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY))
+        getattr(runner, "_semantic_policy_version", None) in (TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY, P05_CAPTURE_POLICY))
     if likelihood_audit_path is not None:
         # Index immutable saved observations/raw samples, never the shuffled
         # neighbor or global history. No forward pass or RNG draw is added.
@@ -415,13 +419,15 @@ def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None
                     "current_conditional_mean": jsonable(alg.actor.output_distribution_params[0]),
                     "current_conditional_sigma": jsonable(alg.actor.output_distribution_params[1]),
                     "sigma_source": ("current_official_Gaussian_cache_after_B_over_cap_and_receiving_FR_RR_sigma_x3"
-                        if getattr(runner, "_semantic_policy_version", None) == RECEIVING_WHEEL_POLICY
+                        if getattr(runner, "_semantic_policy_version", None) in (RECEIVING_WHEEL_POLICY,P05_CAPTURE_POLICY)
                         else "current_official_Gaussian_cache_after_current_observation_B_over_cap"
                         if getattr(runner, "_semantic_policy_version", None) == TASK_CONDITIONED_HIP_WHEEL_POLICY
                         else "current_official_Gaussian_cache_after_P06plus_FR_knee_24_over_112"
                         if getattr(runner, "_semantic_policy_version", None) == FR_KNEE_PHYSICAL_INNOVATION_POLICY
                         else "current_official_Gaussian_cache"),
-                    "history_source": ("this_saved_observation_stage0_13_age20_completed158_171_raw195_207_request207_219_not_shuffled_neighbor"
+                    "history_source": ("this_saved_observation_legacy372_plus_pending384_advanced386_no_fake_completion"
+                        if getattr(runner,"_semantic_policy_version",None) == P05_CAPTURE_POLICY
+                        else "this_saved_observation_stage0_13_age20_completed158_171_raw195_207_request207_219_not_shuffled_neighbor"
                         if getattr(runner, "_semantic_policy_version", None) in
                         (HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
                          TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY)
@@ -535,7 +541,7 @@ def save_semantic_checkpoint(runner: Any, checkpoint: Path, infos: Mapping[str, 
                 "training_rng_state": capture_training_rng_state(seed=int(infos["seed"])),
                 "physical_env_state_saved": False,
                 "resume_physics": "legal_reset_not_bitwise_continuation"}
-    if runner.alg.storage.observations["policy"].shape[-1] in (324, 372):
+    if runner.alg.storage.observations["policy"].shape[-1] in (324, 372, P05_CAPTURE_OBSERVATION_DIM):
         metadata["policy_contract"] = _runner_policy_contract(runner)
     elif runner._semantic_policy_version != LEGACY_POLICY:
         raise RuntimeError("state-dependent checkpoint has an unsupported observation layout")
@@ -807,6 +813,11 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
                              migration: Mapping[str, Any] | None = None,
                              warm_start: Mapping[str, Any] | None = None,
                              policy_migration: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    if migration is not None and migration.get("p05_capture_assist_factor") is not None:
+        if warm_start is not None or policy_migration is not None:
+            raise ValueError("P05 capture boundary cannot mix another migration")
+        from .semantic_p05_capture_migration import load_p05_capture_migration
+        return load_p05_capture_migration(runner,checkpoint,contract=contract,seed=seed,record=migration)
     if policy_migration is not None:
         if migration is not None or warm_start is not None:
             raise ValueError("policy distribution, new-MDP and exact runtime migrations are separate operations")
@@ -851,7 +862,7 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
     else:
         if policy_version_from_metadata(metadata) != runner._semantic_policy_version:
             raise RuntimeError("checkpoint policy distribution differs from the constructed actor")
-        if runner.alg.storage.observations["policy"].shape[-1] in (324, 372):
+        if runner.alg.storage.observations["policy"].shape[-1] in (324, 372, P05_CAPTURE_OBSERVATION_DIM):
             if metadata.get("policy_contract") != _runner_policy_contract(runner):
                 raise RuntimeError("checkpoint observation layout differs; explicit append migration is required")
     source_return = runner_return_profile(metadata["runner_config"],
@@ -1608,9 +1619,10 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
         TASK_CONDITIONED_HIP_WHEEL_POLICY, TASK_CONDITIONED_HIP_WHEEL_SIGMA_SEMANTICS)
     from .semantic_receiving_wheel_sigma import (
         SemanticReceivingWheelSigmaHistoryMLPModel, receiving_wheel_effective_log_std)
+    from .semantic_p05_capture_actor import SemanticP05CaptureHistoryMLPModel, p05_capture_request_history
     if type(actor) not in (SemanticQuarterTemperedHistoryMLPModel, SemanticCapTransitionQuarterHistoryMLPModel,
                           SemanticFRKneePhysicalInnovationHistoryMLPModel, SemanticTaskConditionedHipWheelHistoryMLPModel,
-                          SemanticReceivingWheelSigmaHistoryMLPModel):
+                          SemanticReceivingWheelSigmaHistoryMLPModel, SemanticP05CaptureHistoryMLPModel):
         raise ValueError("request audit requires an exact supported quarter HISTORY actor")
     heads = []
     handle = actor.mlp.register_forward_hook(lambda _module, _inputs, output: heads.append(output.detach().clone()))
@@ -1626,6 +1638,8 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
     if type(actor) in (SemanticCapTransitionQuarterHistoryMLPModel, SemanticFRKneePhysicalInnovationHistoryMLPModel,
                       SemanticTaskConditionedHipWheelHistoryMLPModel, SemanticReceivingWheelSigmaHistoryMLPModel):
         center, request_evidence = cap_transition_request_history(observation["policy"])
+    if type(actor) is SemanticP05CaptureHistoryMLPModel:
+        center, request_evidence = p05_capture_request_history(observation["policy"])
     conditional = history_conditioned_head(head, center, HISTORY_RHO)
     sigma_multiplier = None
     task_sigma_evidence = None
@@ -1639,6 +1653,9 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
     if type(actor) is SemanticReceivingWheelSigmaHistoryMLPModel:
         effective_log_std, task_sigma_evidence = receiving_wheel_effective_log_std(
             head[...,1,:], observation["policy"], actor.exploration_std_temperature)
+    if type(actor) is SemanticP05CaptureHistoryMLPModel:
+        effective_log_std, task_sigma_evidence = receiving_wheel_effective_log_std(
+            head[...,1,:], observation["policy"][...,:372], actor.exploration_std_temperature)
     effective_std = effective_log_std.exp()
     if stochastic:
         mean, std = actor.output_distribution_params
@@ -1692,7 +1709,7 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
             current_RR_qualification=bool(task_sigma_evidence["current_RR_qualification"][0]),
             current_rear_front_distance_m=float(task_sigma_evidence["current_rear_front_distance_m"][0]),
             task_state_audit_topology="one_actual_N1_request_not_a_batched_N8_summary")
-    if type(actor) is SemanticReceivingWheelSigmaHistoryMLPModel:
+    if type(actor) in (SemanticReceivingWheelSigmaHistoryMLPModel,SemanticP05CaptureHistoryMLPModel):
         record.update(schema="wlr50_clean.actual_receiving_wheel_sigma_policy_request.v1",
             policy_version=RECEIVING_WHEEL_POLICY, sigma_scaling_semantics=RECEIVING_WHEEL_SIGMA_SEMANTICS,
             receiving_continuation_active=bool(task_sigma_evidence["receiving_continuation_active"][0]),
@@ -1701,6 +1718,14 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
             receiving_sigma_multiplier_full12=vector(task_sigma_evidence["receiving_sigma_multiplier_full12"]),
             effective_innovation_sigma_multiplier_full12=vector(task_sigma_evidence["effective_innovation_sigma_multiplier_full12"]),
             receiving_state_semantics="historical_RR_placed_continuation_or_recovery_not_current_bearing")
+    if type(actor) is SemanticP05CaptureHistoryMLPModel:
+        record.update(schema="wlr50_clean.actual_p05_capture_assist_policy_request.v1",
+            policy_version=P05_CAPTURE_POLICY,history_center_semantics=P05_CAPTURE_HISTORY_SEMANTICS,
+            capture_assist_observed_features=vector(observation["policy"][...,372:384]),
+            capture_continuation_observed_features=vector(observation["policy"][...,384:389]),
+            pending_scheduler_handoff=bool(request_evidence["pending_scheduler_handoff"][0]),
+            physical_predecessor_completed=bool(request_evidence["physical_predecessor_completed"][0]),
+            transformed_actuator_targets_are_not_policy_samples=True)
     return raw, record
 
 
@@ -1819,7 +1844,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     budgets = training_quantity_budgets(contract.get("experiment_id"))
     declared_budgets = contract.get("training_budgets", budgets)
     if (declared_budgets != budgets or any(type(value) is not int for value in declared_budgets.values())
-            or (contract.get("experiment_id") == "task_conditioned_hip_wheel_v1"
+            or (contract.get("experiment_id") in ("task_conditioned_hip_wheel_v1","p05_hip_only_continuation_v1")
                 and "training_budgets" not in contract)):
         raise ValueError("training quantity budgets differ from the explicit experiment declaration")
     stage_spent = {name: int(previous.get("stage_requested_decisions", {}).get(name, 0)) for name in STAGE_BUDGETS}
@@ -1862,7 +1887,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                         raise RuntimeError("curriculum must remain fixed throughout this on-policy epoch")
                     assert_semantic_return_consistency(runner, env)
                     policy_request = None
-                    if contract.get("experiment_id") in ("fl_capture_quality_v1", "task_conditioned_hip_wheel_v1"):
+                    if contract.get("experiment_id") in ("fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1"):
                         raw, policy_request = audited_history_policy_request(
                             runner.alg.actor, obs, lambda: runner.alg.act(obs), stochastic=True)
                     else:
@@ -1955,7 +1980,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
             snapshot["schema"] = "wlr50_clean.semantic_on_policy_rollout.v1"
             snapshot["runtime_contract"] = dict(contract)
             snapshot["curriculum_epoch"] = copy.deepcopy(curriculum)
-            if storage.observations["policy"].shape[-1] in (324, 372):
+            if storage.observations["policy"].shape[-1] in (324, 372, P05_CAPTURE_OBSERVATION_DIM):
                 snapshot["policy_contract"] = _runner_policy_contract(runner)
             advantage_row = _rollout_advantage_audit(snapshot, rollout_requests,
                 first_global_decision=base_global+iteration*batch+1,
@@ -1968,7 +1993,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
             torch.save(snapshot, rollout_dir / f"rollout_{base_updates + iteration + 1:06d}.pt")
             global_step = base_global + (iteration + 1) * batch
             runner.alg.entropy_coef = 0.005 + (0.001 - 0.005) * min(global_step / sum(STAGE_BUDGETS.values()), 1.0)
-            if contract.get("experiment_id") in ("task_first_recovery_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1"):
+            if contract.get("experiment_id") in ("task_first_recovery_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1"):
                 update = audited_ppo_update(runner, likelihood_audit_path=rollout_dir /
                     f"update_{base_updates + iteration + 1:06d}_likelihood.json")
             else:
@@ -2014,7 +2039,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             "observation_scale_compensation_evidence", "observation_append_evidence",
                             "task_recovery_branch", "rr_task_branch", "fl_capture_quality_branch",
                             "task_conditioned_hip_wheel_branch", "training_quantity_budget_extension",
-                            "receiving_wheel_sigma_migration"):
+                            "receiving_wheel_sigma_migration", "p05_capture_assist_migration", "p05_capture_assist_branch"):
                     if key in previous:
                         infos[key] = previous[key]
                 if "task_recovery_branch" in infos:
@@ -2071,7 +2096,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     result["phase_suffix_curriculum_implemented"] = prefix_request is not None
     result["semantic_version"] = semantic_version
     result["runner_config"] = copy.deepcopy(runner._semantic_runner_config)
-    if runner.alg.storage.observations["policy"].shape[-1] in (324, 372):
+    if runner.alg.storage.observations["policy"].shape[-1] in (324, 372, P05_CAPTURE_OBSERVATION_DIM):
         result["policy_contract"] = _runner_policy_contract(runner)
     result["curriculum_epoch"] = copy.deepcopy(curriculum)
     result["implemented_sampling"] = env.cfg.get("reset_sampling", "P01_only")

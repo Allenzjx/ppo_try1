@@ -49,6 +49,69 @@ P09_LIFT_MODE = "functional_lift_edge_v2"
 P09_FREE_AIR_LIFT_MODE = "functional_free_air_lift_v3"
 FUNCTIONAL_RR_MODES = (P09_LIFT_MODE, P09_FREE_AIR_LIFT_MODE)
 RR_CARRY_SOURCE_MODE = "current_free_lift_before_pending_knee_and_roll_v1"
+CAPTURE_CONTINUATION_MODE = "p05_hip_only_continuation_v1"
+
+
+def _capture_continuation_enabled(spec: Mapping[str, Any]) -> bool:
+    mode = spec.get("capture_continuation_semantics")
+    if mode not in (None, CAPTURE_CONTINUATION_MODE):
+        raise ValueError("unknown FL capture continuation semantics")
+    if mode is not None and (spec.get("physical_acceptance_version") != "all_stage_v1"
+            or spec.get("potential_definition") != "global_physical_progress_v3"
+            or spec.get("reference_nominal_semantics") != "successful_fsm_derived_v2"
+            or spec["nominal"].get("continuous_channel_inheritance") is not True
+            or spec["nominal"].get("sequence_semantics") != "source_partial_order_physical_ready_v1"):
+        raise ValueError("FL capture continuation requires continuous source and measured all-stage progress")
+    return mode is not None
+
+
+def placement_predecessors_satisfied(spec: Mapping[str, Any], history: Mapping[str, Any], leg: str) -> bool:
+    """Credit real rear motion without manufacturing a missing FL placement.
+
+    This is only progress eligibility. Hard Q/C/P measurements and RR_FIRST
+    remain in TaskEvaluator, and whole-task success still requires all four.
+    """
+    predecessors = PLACEMENT_PREDECESSORS[leg]
+    if spec.get("capture_continuation_semantics") == CAPTURE_CONTINUATION_MODE and leg in ("RR", "RL"):
+        predecessors = tuple(p for p in predecessors if p != "FL")
+    return all(history["placed"][p] for p in predecessors)
+
+
+def _capture_continuation_status(spec: Mapping[str, Any], evaluation: Mapping[str, Any],
+                                 stage_id: str) -> dict[str, Any]:
+    """Current recoverability, never a substituted touchdown or support flag."""
+    history = evaluation.get("history", {})
+    placed = history.get("placed", {})
+    legs = evaluation.get("current_legs", {})
+    fl = legs.get("FL", {})
+    pending = bool(history.get("active_lift", {}).get("FL") is True
+        and history.get("front_edge_crossed", {}).get("FL") is True
+        and placed.get("FL") is False)
+    contact = bool(fl.get("top_surface_contact") is True and fl.get("obstacle_pair_active") is True
+        and fl.get("air") is False and fl.get("ground_contact") is False)
+    # During rear swing, its own loaded wheel is not an 'other support'.
+    excluded = {"FL"}
+    if stage_id in ("P07", "P08", "P09", "P10", "P11", "P12"):
+        excluded.add(spec["stages"][stage_id]["active_leg"])
+    supports = tuple(leg for leg, row in legs.items() if leg not in excluded
+        and row.get("support") is True and row.get("bearing_verified") is True
+        and row.get("air") is False
+        and (row.get("ground_contact") is True or row.get("top_surface_contact") is True))
+    gap = fl.get("clearance_m")
+    legal_path = bool(pending and fl.get("within_top_xy") is True
+        and fl.get("within_lateral_span") is True and fl.get("ground_contact") is False
+        and (fl.get("air") is True or contact)
+        and isinstance(gap, (int, float)) and not isinstance(gap, bool) and math.isfinite(gap)
+        and gap >= spec["geometry"]["top_gap_min_m"])
+    allow = bool(evaluation.get("valid") is True and evaluation.get("termination_reason") is None
+        and evaluation.get("physical_evidence_status") in ("VERIFIED", "CONTACT_BEARING_UNVERIFIED")
+        and placed.get("FR") is True and legal_path
+        and len(supports) >= spec["support"]["minimum_other_supports"])
+    return {"mode": CAPTURE_CONTINUATION_MODE, "fl_contact_observed": contact,
+        "fl_capture_pending": pending, "allow_capture_continuation": allow,
+        "legal_capture_path": legal_path, "observed_other_support_contacts": supports,
+        "excluded_support_legs": tuple(sorted(excluded)), "placed_FL": placed.get("FL") is True,
+        "support_or_placement_awarded": False}
 
 
 class SemanticObservationError(ValueError):
@@ -241,6 +304,7 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
                 or spec.get("p09_lift_semantics") != P09_FREE_AIR_LIFT_MODE):
             raise ValueError("rolling retention requires its explicit current-contact task-quality version")
     _capture_approach_enabled(spec)
+    _capture_continuation_enabled(spec)
     _workspace_potential_enabled(spec)
     validate_transfer_roles(spec)
     if spec.get("physical_acceptance_version") not in (None, "all_stage_v1"):
@@ -445,7 +509,7 @@ class TaskEvaluator:
             self._soft_air_actuation_earned[leg]=False; self._soft_air_earned_tick[leg]=None
             return
         if self._soft_air_actuation_earned[leg]: return  # No sliding-window expiry.
-        if not in_task_region or not all(self._history["placed"][p] for p in PLACEMENT_PREDECESSORS[leg]): return
+        if not in_task_region or not placement_predecessors_satisfied(self.spec, self._history, leg): return
         suffix=[]
         for sample in reversed(self._samples[leg]):
             if not sample[4]: break  # Exclude all earlier ground/wall motion.
@@ -1008,6 +1072,9 @@ class TaskStageSupervisor:
         self._snapshot: dict[str, Any] = {}
         self._last_observation_tick: int | None = None
         self._progress_samples: deque = deque()
+        self._capture_continuation = _capture_continuation_enabled(self.spec)
+        self._fl_pending_handoff: dict[str, Any] | None = None
+        self._p05_local_deadline_warning = False
 
     def predicate(self, name: str, evaluation: Mapping[str, Any]) -> float:
         if name == "physical_valid":
@@ -1145,7 +1212,18 @@ class TaskStageSupervisor:
         ev = self.evaluator.snapshot if evaluation is None else evaluation
         conditions = self.spec["stages"][stage_id]["valid_start_conditions"]
         values = {name: self.predicate(name, ev) if ev["valid"] else 0. for name in conditions}
-        return {"valid": all(v >= 1. for v in values.values()), "reasons": [k for k,v in values.items() if v < 1.], "values": values}
+        waived = []
+        if (self._capture_continuation and stage_id in PHASE_IDS[5:]
+                and values.get("placed_FL", 1.) < 1.
+                and _capture_continuation_status(self.spec, ev, stage_id)["allow_capture_continuation"]):
+            waived.append("placed_FL")
+        reasons = [k for k, v in values.items() if v < 1. and k not in waived]
+        result = {"valid": not reasons, "reasons": reasons, "values": values}
+        if self._capture_continuation:
+            result.update(continuation_waived_conditions=waived,
+                          actual_conditions_satisfied=all(v >= 1. for v in values.values()),
+                          waiver_semantics="scheduling_only_no_physical_completion_credit")
+        return result
 
     def physical_potential(self, evaluation: Mapping[str,Any]) -> float:
         """One phase-label-independent potential over physical progress/history."""
@@ -1161,7 +1239,7 @@ class TaskStageSupervisor:
                 retention = (self._current_capture_retention(leg,evaluation)
                     if self.spec.get("capture_retention_semantics") == CAPTURE_RETENTION_MODE else 1.)
                 values.append(.8+.2*retention); continue
-            if not all(history["placed"][p] for p in PLACEMENT_PREDECESSORS[leg]):
+            if not placement_predecessors_satisfied(self.spec, history, leg):
                 # Workspace preparation can precede another leg's placement.
                 # Reuse only its existing weight; unload/lift/carry/capture
                 # remain predecessor-gated and no history is awarded here.
@@ -1340,6 +1418,20 @@ class TaskStageSupervisor:
         now = _number(_get(observation,"simulation_time_s") if sim_time_s is None else sim_time_s,"task time")
         if self.stage_started_s is None: self.stage_started_s = now
         if self.episode_started_s is None: self.episode_started_s = now
+        continuation = (_capture_continuation_status(self.spec, evaluation, self.stage_id)
+                        if self._capture_continuation else None)
+        # A delayed true measurement completes the old task in place. It does
+        # not rewind the scheduler, duplicate a source layer, or claim touchdown
+        # at the earlier permission-to-continue tick.
+        if (self._fl_pending_handoff is not None and evaluation["history"]["placed"]["FL"]
+                and "P05" not in self.completed_stage_ids):
+            self.completed_stage_ids.append("P05")
+            self.completed_stage_ids.sort(key=PHASE_IDS.index)
+            self.transition_evidence.append({"from_stage": "P05", "to_stage": self.stage_id,
+                "sim_time_s": now, "physics_tick": _get(observation, "physics_tick"),
+                "reason": "late measured FL placement completes pending capture without scheduler rewind",
+                "event_kind": "pending_capture_physically_completed", "scheduler_transition": False,
+                "physical_completion_awarded": True, "history": evaluation["history"]})
         stage = self.spec["stages"][self.stage_id]
         entry = self.entry_report(self.stage_id, evaluation)
         goal_values = {name: self.predicate(name,evaluation) if evaluation["valid"] else 0. for name in stage["completion_predicates"]}
@@ -1356,18 +1448,30 @@ class TaskStageSupervisor:
         if evaluation["termination_reason"] is not None:
             self.termination_reason = evaluation["termination_reason"]
             self.termination_source = evaluation.get("termination_source", "PHYSICAL_EVALUATOR")
-        # Each physical observation can credit at most one unique task. No loops,
-        # label-only success, reference clock or endpoint participates here.
-        if self.termination_reason is None and entry["valid"] and (takeover or all(v >= 1. for v in goal_values.values())) and _get(observation,"physics_tick") % 8 == 0:
+        pending_handoff = bool(continuation and self.stage_id == "P05"
+            and continuation["allow_capture_continuation"]
+            and now-self.stage_started_s >= float(stage["maximum_task_duration"]))
+        if continuation and self.stage_id == "P05" and now-self.stage_started_s >= float(stage["maximum_task_duration"]):
+            self._p05_local_deadline_warning = True
+        # At most one forward scheduler transition per physical observation.
+        # Late physical completion above is separate, never replayed source
+        # motion or a phase-label success bonus.
+        if self.termination_reason is None and entry["valid"] and (pending_handoff or takeover or all(v >= 1. for v in goal_values.values())) and _get(observation,"physics_tick") % 8 == 0:
             previous = self.stage_id
-            if previous not in self.completed_stage_ids:
+            if not pending_handoff and previous not in self.completed_stage_ids:
                 self.completed_stage_ids.append(previous)
             next_stage = stage["next_phase"]
             self.transition_evidence.append({"from_stage": previous, "to_stage": next_stage, "sim_time_s": now,
                 "physics_tick": _get(observation,"physics_tick"), "reason": (
+                    "P05 local warning escalated to measured pending-capture continuation; FL not placed" if pending_handoff else
                     "qualified downstream motion already active; continuous takeover" if takeover else "current physical goal set satisfied"),
                 "continuous_takeover": takeover,
                 "entry": entry, "completion_values": goal_values, "history": evaluation["history"]})
+            if self._capture_continuation:
+                self.transition_evidence[-1].update(scheduler_transition=True,
+                    physical_completion_awarded=not pending_handoff, fl_capture_pending=bool(pending_handoff))
+            if pending_handoff:
+                self._fl_pending_handoff = {"physics_tick": _get(observation, "physics_tick"), "sim_time_s": now}
             if next_stage == "SUCCESS":
                 self.termination_reason = "SUCCESS"
                 self.termination_source = "COMMON_PHYSICAL_TASK_COMPLETE"
@@ -1377,6 +1481,11 @@ class TaskStageSupervisor:
                 goal_values = {name:self.predicate(name,evaluation) for name in stage["completion_predicates"]}
                 progress = sum(goal_values.values())/len(goal_values)
         age = now-self.stage_started_s; episode_age = now-self.episode_started_s
+        if self._capture_continuation:
+            continuation = _capture_continuation_status(self.spec, evaluation, self.stage_id)
+        local_warning_only = bool(self._capture_continuation and
+            (self.stage_id == "P05" or (self.stage_id in PHASE_IDS[5:]
+                and continuation["fl_capture_pending"])))
         local_limit = float(stage["maximum_task_duration"])
         allowance = 0.
         post_window_allowance = 0.
@@ -1398,7 +1507,7 @@ class TaskStageSupervisor:
             if episode_age >= self.spec["episode_maximum_duration_s"]:
                 self.termination_reason = TaskResult.INCOMPLETE_CONTROLLER_BLOCKED.value
                 self.termination_source = "GLOBAL_FINITE_TASK_DEADLINE"
-            elif age >= local_limit + allowance + post_window_allowance:
+            elif not local_warning_only and age >= local_limit + allowance + post_window_allowance:
                 self.termination_reason = TaskResult.INCOMPLETE_CONTROLLER_BLOCKED.value
                 self.termination_source = "LOCAL_BOUNDED_RECOVERY_EXHAUSTED" if allowance else "LOCAL_TASK_DEADLINE"
         self._progress_samples.append((now,progress))
@@ -1436,7 +1545,7 @@ class TaskStageSupervisor:
             # or a prescribed support-leg posture/contact template.
             unfinished=[v for leg,v in evaluation.get("current_legs",{}).items()
                 if not histories["placed"][leg]
-                and all(histories["placed"][p] for p in PLACEMENT_PREDECESSORS[leg])]
+                and placement_predecessors_satisfied(self.spec, histories, leg)]
             self._snapshot["physical_transfer_fraction"] = max((
                 _clip(1.-v["load_fraction"]/.35) for v in unfinished),default=0.)
         if self.spec.get("transfer_roles"):
@@ -1445,7 +1554,7 @@ class TaskStageSupervisor:
             self._snapshot.update(transfer_roles_version=TRANSFER_ROLES_MODE, transfer_roles=roles,
                                   transfer_role_context=active, pending_capture=bool(active.get("pending_capture")))
             eligible = [leg for leg in LEG_ORDER if not histories["placed"][leg]
-                        and all(histories["placed"][p] for p in PLACEMENT_PREDECESSORS[leg])]
+                        and placement_predecessors_satisfied(self.spec, histories, leg)]
             self._snapshot["physical_transfer_fraction"] = max((roles.get(leg, {}).get("motion_fraction", 0.)
                                                                 for leg in eligible), default=0.)
         if self.spec.get("p09_lift_semantics") in FUNCTIONAL_RR_MODES and evaluation["valid"]:
@@ -1457,6 +1566,32 @@ class TaskStageSupervisor:
                 **histories["active_lift"], "RR": bool(rr.get("current_lift_valid"))}
             self._snapshot["p09_lift_semantics"] = self.spec["p09_lift_semantics"]
             self._snapshot["rr_placed_currently_usable"] = _current_rr_placement_usable(evaluation)
+        if continuation is not None:
+            cross_tick = histories.get("event_ticks", {}).get("front_edge_crossed", {}).get("FL")
+            pending_elapsed = (max(0., now-cross_tick/self.spec["physics_hz"])
+                if continuation["fl_capture_pending"] and type(cross_tick) is int else 0.)
+            continuation.update(scheduler_advanced_pending=self._fl_pending_handoff is not None,
+                submode="P06_CAPTURE_PENDING" if self.stage_id == "P06" and continuation["fl_capture_pending"] else "FL_CAPTURE_PENDING" if continuation["fl_capture_pending"] else "NO_PENDING_FL_CAPTURE",
+                pending_handoff=self._fl_pending_handoff,
+                strict_historical_predecessors={leg: all(histories["placed"][p]
+                    for p in PLACEMENT_PREDECESSORS[leg]) for leg in LEG_ORDER},
+                recovery_action=("P06_source_wheel_overlap" if self.stage_id == "P06" and continuation["allow_capture_continuation"]
+                    else "continue_current_physical_tasks_and_FL_recovery" if self.stage_id != "P05"
+                    else "hip_only_capture_recovery_before_local_escalation" if age < local_limit
+                    else "local_warning_waiting_current_safe_capture_path"))
+            self._snapshot.update(capture_continuation=continuation,
+                fl_contact_observed=continuation["fl_contact_observed"],
+                fl_capture_pending=continuation["fl_capture_pending"],
+                allow_capture_continuation=continuation["allow_capture_continuation"],
+                p05_local_deadline_warning=self._p05_local_deadline_warning,
+                capture_pending_elapsed_s=pending_elapsed,
+                pending_capture=bool(self._snapshot.get("pending_capture") or continuation["fl_capture_pending"]))
+            self._snapshot["local_timeout"].update(
+                classification="scheduler_warning_not_episode_end" if local_warning_only else "finite_task_terminal_not_external_truncation",
+                local_episode_terminal_enabled=not local_warning_only,
+                timer_inputs_observable_in_existing372=False,
+                observation_semantics="legacy372_times_plus_explicit_capture_append17",
+                current_schema_observable=True)
         self._last_observation_tick = _get(observation, "physics_tick")
         return dict(self._snapshot)
 
@@ -1507,6 +1642,8 @@ class NominalMotionProvider:
         self.state_id: str | None=None; self.elapsed_s=0.; self.endpoint_issued=False
         self.tracking_servo_names: tuple[str,...]=()
         nominal=self.spec["nominal"]
+        self._capture_continuation = _capture_continuation_enabled(self.spec)
+        self._capture_continuation_diagnostic: dict[str, Any] = {}
         reference_mode = self.spec.get("reference_nominal_semantics")
         if reference_mode not in (None, "successful_fsm_derived_v2"):
             raise ValueError("unknown successful-FSM nominal semantics")
@@ -1668,6 +1805,8 @@ class NominalMotionProvider:
             result["rr_carry_continuation"] = dict(self._rr_carry_diagnostic)
         if self._height_candidate is not None:
             result["height_recovery"] = dict(self._height_diagnostic)
+        if self._capture_continuation:
+            result["capture_continuation"] = dict(self._capture_continuation_diagnostic)
         if self._all_stage_acceptance:
             result["capture_owner_hold"] = {
                 "schema": "wlr50_clean.nominal_capture_owner_hold.v1",
@@ -1803,6 +1942,12 @@ class NominalMotionProvider:
         but do not consume a pending owner's clock. Physical waits hold existing
         targets while the mapper, residual and simulation continue normally.
         """
+        if self._capture_continuation and layer["stage"] == "P06":
+            status = _capture_continuation_status(self.spec, task.get("physical_evaluator", {}), task["stage_id"])
+            if status["fl_capture_pending"] and not status["allow_capture_continuation"]:
+                layer["sequence_diagnostic"] = {"status": "holding", "wait_reason": "current_FL_capture_path_or_other_support_unavailable",
+                    "observation_tick": task.get("physical_evaluator", {}).get("physics_tick")}
+                return False  # Resume this clock, never catch up expired events.
         if not self._sequence_mode or layer["stage"] not in ("P07", "P08", "P09"):
             return True
         ev = task.get("physical_evaluator", {})
@@ -2109,6 +2254,14 @@ class NominalMotionProvider:
         tracking=set() if self._reference_nominal else set(self.tracking_servo_names)
         normal_bias=list(ZERO12)
         ev=task.get("physical_evaluator",{}); legs=ev.get("current_legs",{}); history=ev.get("history",{})
+        pending_status = (_capture_continuation_status(self.spec, ev, stage_id)
+                          if self._capture_continuation else None)
+        if pending_status is not None:
+            self._capture_continuation_diagnostic = {**pending_status,
+                "source_observation_tick": ev.get("physics_tick"), "P06_layer_present": False,
+                "P06_wheel_contribution_enabled": False,
+                "semantics": "current_measured_P06_owner_permission_before_later_source_owners_and_residual",
+                "policy_residual_restricted": False, "source_clock_catch_up": False}
         if self._height_candidate is not None:
             from .semantic_height_recovery import current_rr_recovery_permission
             permitted = current_rr_recovery_permission(task, support_spec=self.spec["support"])
@@ -2171,6 +2324,12 @@ class NominalMotionProvider:
                     self._retirement_diagnostic["gain_semantics"] = "bounded_current_geometry_recoverable"
                 self._retirement_diagnostic.update(retirement,layer_present=True,
                     origin="current_live_P06_layer",peak_fraction=peak,wheel_gain=gain)
+            if layer["stage"] == "P06" and pending_status is not None:
+                if pending_status["fl_capture_pending"] and not pending_status["allow_capture_continuation"]:
+                    gain = 0.  # Only this source owner's contribution; no residual mask.
+                self._capture_continuation_diagnostic.update(P06_layer_present=True,
+                    P06_source_tick=layer["ticks"], P06_source_advanced=advance,
+                    P06_wheel_contribution_enabled=gain > 0., P06_wheel_gain=gain)
             replace_tail = False
             if self._p06_tail_source is not None and layer["stage"] == "P06":
                 live = (retirement is not None and retirement["status"] == "live_measured"
@@ -2495,7 +2654,12 @@ class NominalMotionProvider:
                     and len([leg for leg in role.get("observed_support_contacts", ()) if leg != "FL"]) >= 2
                     and current.get("clearance_m", -1.) >= self.spec["geometry"]["top_gap_min_m"]
                     and current.get("front_distance_m", 1.) < self.spec["geometry"]["approach_max_m"]):
-                proposed = proposed[:8]+self._approach_wheel_prior
+                if not self._capture_continuation or (
+                        (captured_handoff or _capture_continuation_status(self.spec, ev, stage_id)["allow_capture_continuation"])
+                        and not any(set(group.channels).intersection(WHEEL_ORDER)
+                            for layer in self._continuous_layers if layer.get("advanced_this_tick", True)
+                            and layer["sample"] is not None for group in layer["sample"].atomic_groups)):
+                    proposed = proposed[:8]+self._approach_wheel_prior
         if stage_id=="P13" and self.endpoint_issued and not final_stop:
             proposed=tuple(self.spec["final"]["home_servo_pose_deg"])+(0.,)*4
         if final_stop:

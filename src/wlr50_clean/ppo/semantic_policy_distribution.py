@@ -25,6 +25,8 @@ from .semantic_transfer_roles import (
 from .semantic_receiving_wheel_profile import (
     RECEIVING_WHEEL_POLICY, RECEIVING_WHEEL_ACTOR_CLASS, receiving_wheel_policy_contract,
 )
+from .semantic_p05_capture_profile import (P05_CAPTURE_POLICY, P05_CAPTURE_ACTOR_CLASS,
+    P05_CAPTURE_OBSERVATION_LAYOUT, p05_capture_policy_contract)
 
 LEGACY_POLICY = "gaussian_scalar_v1"
 STATE_DEPENDENT_POLICY = "heteroscedastic_log_v1"
@@ -78,6 +80,8 @@ NORMALIZATION = "fixed_versioned_observation_schema; identity_RSL_normalizer"
 
 
 def policy_contract(version: str, *, observation_layout: str | None = None) -> dict[str, Any]:
+    if version == P05_CAPTURE_POLICY:
+        return p05_capture_policy_contract(observation_layout=observation_layout)
     if version == RECEIVING_WHEEL_POLICY:
         return receiving_wheel_policy_contract(observation_layout=observation_layout)
     if version not in (LEGACY_POLICY, STATE_DEPENDENT_POLICY, HISTORY_POLICY,
@@ -222,6 +226,9 @@ def configure_policy_distribution(config: dict[str, Any], version: str, *,
     if version == RECEIVING_WHEEL_POLICY:
         config["actor"]["class_name"] = RECEIVING_WHEEL_ACTOR_CLASS
         config["actor"]["exploration_std_temperature"] = contract["exploration_std_temperature"]
+    if version == P05_CAPTURE_POLICY:
+        config["actor"]["class_name"] = P05_CAPTURE_ACTOR_CLASS
+        config["actor"]["exploration_std_temperature"] = contract["exploration_std_temperature"]
     if observation_layout is not None:
         config["actor"]["observation_layout"] = observation_layout
 
@@ -243,6 +250,8 @@ def _same_json(left: Any, right: Any) -> bool:
 def supported_heteroscedastic_contract_version(contract: Mapping[str, Any]) -> str:
     """Accept only a complete, exact supported heteroscedastic policy contract."""
     if isinstance(contract, Mapping):
+        if _same_json(dict(contract),policy_contract(P05_CAPTURE_POLICY,observation_layout=P05_CAPTURE_OBSERVATION_LAYOUT)):
+            return P05_CAPTURE_POLICY
         for version in (STATE_DEPENDENT_POLICY, HISTORY_POLICY, HISTORY_TEMPERED_POLICY,
                         HISTORY_QUARTER_TEMPERED_POLICY, HISTORY_REQUEST_CAP_TRANSITION_POLICY,
                         FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY,
@@ -290,12 +299,14 @@ def policy_version_from_metadata(metadata: Mapping[str, Any]) -> str:
                 TASK_CONDITIONED_HIP_WHEEL_POLICY,
             (RECEIVING_WHEEL_ACTOR_CLASS, "HeteroscedasticGaussianDistribution", "log"):
                 RECEIVING_WHEEL_POLICY,
+            (P05_CAPTURE_ACTOR_CLASS, "HeteroscedasticGaussianDistribution", "log"):
+                P05_CAPTURE_POLICY,
         }[pair]
     except (KeyError, TypeError) as error:
         raise ValueError("checkpoint has an unsupported policy distribution") from error
     if version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
                    HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
-                   TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY) and semantic_version != "v3":
+                   TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY, P05_CAPTURE_POLICY) and semantic_version != "v3":
         raise ValueError("history-conditioned policy requires semantic v3")
     declared = metadata.get("policy_contract")
     if declared is None:

@@ -18,6 +18,7 @@ from .semantic_policy_distribution import (
     HISTORY_POLICY, supported_heteroscedastic_contract_version,
 )
 from .semantic_receiving_wheel_profile import RECEIVING_WHEEL_POLICY
+from .semantic_p05_capture_profile import P05_CAPTURE_POLICY
 
 
 def _tensor_hash(items: Any) -> str:
@@ -120,6 +121,15 @@ def _source_record(source: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("source_runtime_content_sha256 must be a lowercase SHA256")
     from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
         HISTORY_QUARTER_TEMPERED_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY)
+    if record["policy_contract"]["version"] == P05_CAPTURE_POLICY:
+        # Prefixes begin only from the already saved/reloaded migrated model,
+        # never by pretending a 372 source hash names a different 389 actor.
+        if (record.get("source_policy_contract") != record["policy_contract"]
+                or record.get("effective_policy_contract") != record["policy_contract"]
+                or record.get("effective_runtime_content_sha256") != runtime_hash
+                or runtime_hash is None):
+            raise ValueError("P05 prefix requires an exact saved389 checkpoint/runtime, not an implicit remapping")
+        return record
     if (record["policy_contract"]["version"] in (TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY)
             or record.get("archive_only_exact_bytes_migration") is not None):
         _task_conditioned_source_record(record)
@@ -188,6 +198,7 @@ class FrozenCheckpointPrefixPolicy:
             SemanticCapTransitionQuarterHistoryMLPModel, SemanticFRKneePhysicalInnovationHistoryMLPModel,
             SemanticTaskConditionedHipWheelHistoryMLPModel)
         from .semantic_receiving_wheel_sigma import SemanticReceivingWheelSigmaHistoryMLPModel
+        from .semantic_p05_capture_actor import SemanticP05CaptureHistoryMLPModel
         from .semantic_policy_distribution import (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
             HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY)
 
@@ -201,7 +212,8 @@ class FrozenCheckpointPrefixPolicy:
             HISTORY_REQUEST_CAP_TRANSITION_POLICY: SemanticCapTransitionQuarterHistoryMLPModel,
             FR_KNEE_PHYSICAL_INNOVATION_POLICY: SemanticFRKneePhysicalInnovationHistoryMLPModel,
             TASK_CONDITIONED_HIP_WHEEL_POLICY: SemanticTaskConditionedHipWheelHistoryMLPModel,
-            RECEIVING_WHEEL_POLICY: SemanticReceivingWheelSigmaHistoryMLPModel}
+            RECEIVING_WHEEL_POLICY: SemanticReceivingWheelSigmaHistoryMLPModel,
+            P05_CAPTURE_POLICY:SemanticP05CaptureHistoryMLPModel}
         expected_class = history_classes.get(version, MLPModel)
         if not isinstance(actor, torch.nn.Module) or getattr(actor, "is_recurrent", False):
             raise ValueError("checkpoint prefix requires a nonrecurrent torch actor")

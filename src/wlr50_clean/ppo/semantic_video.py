@@ -30,9 +30,9 @@ from .semantic_training import verified_native_effect, write_json
 HZ, FPS, STRIDE = 120, 15, 8
 PRE_TICKS, POST_TICKS, MAX_FRAMES = 64, 184, 3000
 TASK_WINDOW_EXPERIMENT = "fsm_reference_p09_stable_v2"
-TASK_WINDOW_EXPERIMENTS = (TASK_WINDOW_EXPERIMENT, "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1")
+TASK_WINDOW_EXPERIMENTS = (TASK_WINDOW_EXPERIMENT, "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1")
 CAMERA = {"eye_m": [1.45, -1.25, .8], "target_m": [.45, 0., .12]}
-REVIEW_CAMERA_EXPERIMENTS = ("non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1")
+REVIEW_CAMERA_EXPERIMENTS = ("non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1")
 REVIEW_CAMERA = {"eye_m": [1.85, -1.65, 1.15], "target_m": [.70, -.15, .15]}
 ROLES = {"A": "legacy_fsm_eval", "B": "semantic_prior_eval",
          "C": "semantic_residual_eval"}
@@ -443,12 +443,38 @@ def common_post_success_tick(backend, evaluator, *, episode_ticks, post_index):
             "physical_evaluation": result}
 
 
+def capture_assist_tick_evidence(after):
+    """Measured response and actual dispatch, without another sensor read/step."""
+    info = after.info
+    task = info.get("semantic_task", {})
+    ev = task.get("physical_evaluator", {})
+    ack = info.get("atomic_ack", {})
+    raw = measured_observation(info["raw_observation"])
+    return {"episode_physics_tick": after.physics_tick, "sim_time_s": after.sim_time_s,
+        "phase": after.state_id, "capture_assist": info.get("capture_assist"),
+        "capture_continuation": task.get("capture_continuation"),
+        "fl_capture_pending": task.get("fl_capture_pending"),
+        "placed_history": ev.get("history", {}).get("placed"),
+        "current_legs": ev.get("current_legs"),
+        "policy_permission_mask_full12": list(after.action_mask_full12),
+        "nominal_full12": list(after.nominal_action_full12),
+        "actual_full12": raw.get("actual_full12"), "joints": raw.get("joints"),
+        "wheels": raw.get("wheels"), "body": raw.get("base"), "support": raw.get("support"),
+        "dispatch": {key: ack.get(key) for key in (
+            "physics_tick", "drive_target_full12", "native_drive_target_full12",
+            "independent_policy_residual_requested_full12", "independent_policy_residual_effective_full12",
+            "servo_tracking_compensation_deg", "tracking_reference_evidence",
+            "capture_assist_evidence", "servo_tracking_feedback_sample_tick")}}
+
+
 class EndpointObserver:
     """Common physical metrics first; exact-tick endpoint then native-grid render."""
-    def __init__(self, physical, recorder, backend, *, task_window=False, height_diagnostics=None):
+    def __init__(self, physical, recorder, backend, *, task_window=False, height_diagnostics=None,
+                 capture_assist_stream=None):
         self.physical, self.recorder, self.backend = physical, recorder, backend
         self.task_window = task_window
         self.height_diagnostics = height_diagnostics
+        self.capture_assist_stream = capture_assist_stream
         self.last_captured_tick = None
         self.last_frame = None
         self.last_global_tick = 0
@@ -456,6 +482,8 @@ class EndpointObserver:
 
     def __call__(self, before, after, projection):
         self.physical.observe(before, after, projection)
+        if self.capture_assist_stream is not None:
+            jsonl(self.capture_assist_stream, capture_assist_tick_evidence(after))
         self.last_frame = after
         self.last_global_tick = (0 if self.task_window else PRE_TICKS) + after.physics_tick
         result = self.physical.evaluator.snapshot
@@ -577,6 +605,7 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
     physical_summary = None
     height_diagnostics = None
     height_diagnostic_receipt = None
+    capture_assist_stream = None
     load_provenance = None
     check_model = lambda: None
     issued_decisions, completed_decisions, partial_ticks = 0, 0, 0
@@ -589,6 +618,8 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
     try:
         roll = (root/"physical_video_roll_ticks.jsonl").open("x", encoding="utf-8")
         decisions = (root/"video_policy_decisions.jsonl").open("x", encoding="utf-8")
+        if experiment_id == "p05_hip_only_continuation_v1":
+            capture_assist_stream = (root/"capture_assist_ticks.jsonl").open("x", encoding="utf-8")
         if semantic_version == "v3" and not task_window:
             settle_evidence = reset_with_existing_settle_tail(core, recorder, roll, seed=seed)
         else:
@@ -653,7 +684,8 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
         else:
             action = lambda _observation, _decision: ZERO12
         observer = EndpointObserver(physical, recorder, backend, task_window=task_window,
-                                    height_diagnostics=height_diagnostics)
+                                    height_diagnostics=height_diagnostics,
+                                    capture_assist_stream=capture_assist_stream)
         if role == "A":
             core.tick_callback = observer
         else:
@@ -727,6 +759,12 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
             roll.close()
         if decisions is not None:
             decisions.close()
+        if capture_assist_stream is not None:
+            capture_assist_stream.close()
+            try:
+                check_model()  # Failure videos also verify no learned-state mutation.
+            except Exception as exc:
+                error = error or f"checkpoint state verification failed: {type(exc).__name__}: {exc}"
         recorder_manifest = recorder.finalize()  # MUST precede SimulationApp.close.
     endpoint = None if observer is None else observer.last_frame
     if not recorder_manifest.get("valid"):
@@ -737,7 +775,7 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
              "video_policy_decisions.jsonl", "physical_observations.jsonl",
              "native_tick_audit.jsonl", "stage_transition_evidence.jsonl",
              "phase_metrics.csv", "physics_quality_metrics.csv",
-             "height_diagnostics_startup.json", "height_diagnostics.jsonl")
+             "height_diagnostics_startup.json", "height_diagnostics.jsonl", "capture_assist_ticks.jsonl")
     payload = {"schema": "wlr50_clean.semantic_video_source.v1",
         "semantic_version": semantic_version,
         "evaluation_configuration": {name: file_record(path) for name, path in configs.items()},
@@ -773,6 +811,10 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
         "artifacts": {name: file_record(root/name) for name in names if (root/name).is_file()}}
     if experiment_id is not None:
         payload["experiment_id"] = experiment_id
+    if experiment_id == "p05_hip_only_continuation_v1":
+        payload["control_method"] = "PPO_PLUS_CAPTURE_ASSIST_WITH_INHERITED_LIMITED_AUX" if role == "C" else "N_PLUS_ZERO_WITH_COMMON_CAPTURE_ASSIST"
+        payload["capture_assist_enabled_in_training_and_evaluation"] = True
+        payload["capture_assist_is_policy_learning"] = False
     if task_window:
         payload["natural_reset_proof"] = natural_reset_proof
         payload["height_diagnostics"] = height_diagnostic_receipt
