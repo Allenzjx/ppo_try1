@@ -9,7 +9,7 @@ from types import SimpleNamespace as NS
 import pytest
 
 from wlr50_clean.ppo import semantic_cli as cli
-from wlr50_clean.ppo.semantic_training import semantic_curriculum_epoch
+from wlr50_clean.ppo.semantic_training import semantic_curriculum_epoch, training_quantity_budgets
 
 
 def args_for(tmp_path, *extra):
@@ -137,5 +137,5 @@ def test_dispatch_loads_actor_then_installs_prefix_without_teacher_backend(tmp_p
         events.append("PPO_collection_stub")
         return {"scope": "plumbing only; no actual physics or optimization"}
     monkeypatch.setattr(cli, "train_semantic", train)
-    cli.dispatch_live(args, {"current": True})
+    cli.dispatch_live(args, {"current": True, "training_budgets": training_quantity_budgets(None)})
     assert events == ["normal_backend", "bootstrap", "load_source", "clone_loaded_actor", "real_rollin_stub", "PPO_collection_stub"]

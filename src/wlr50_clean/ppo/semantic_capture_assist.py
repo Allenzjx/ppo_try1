@@ -12,6 +12,7 @@ from collections.abc import Mapping, Sequence
 from wlr50_clean.infrastructure.command_batch import SERVO_ORDER, servo_limits_deg
 
 CAPTURE_ASSIST_MODE = "p05_hip_only_continuation_v1"
+CAPTURE_ASSIST_FEEDBACK_REVISION = "hold_to_air_progress_window_v2"
 CAPTURE_ASSIST_FEATURE_NAMES = (
     "mode", "initialized", "knee_hold_deg", "hip_entry_deg", "hip_target_deg",
     "best_gap_m", "window_start_gap_m", "window_elapsed_s", "hold_elapsed_s",
@@ -77,6 +78,7 @@ class HipOnlyCaptureAssist:
         state = dict(self.state)
         mode = int(state["mode"])
         return {"schema": "wlr50_clean.capture_assist_state.v1", "version": CAPTURE_ASSIST_MODE,
+                "feedback_revision": CAPTURE_ASSIST_FEEDBACK_REVISION,
                 **state, "mode_name": _MODES[mode],
                 "reason": _REASONS[int(state["blocked_reason"])],
                 "active": mode in (1, 2, 3, 4),
@@ -135,6 +137,14 @@ class HipOnlyCaptureAssist:
             state["window_elapsed_s"] = 0.
             state["window_start_gap_m"] = gap
         else:
+            # A newly lost contact starts a new local approach window, not a
+            # new search budget. Keep the original knee/hip anchors and total
+            # travel; do not demand that a decreasing reopened gap already
+            # beat the old (often negative) contact gap before crediting it.
+            # This edge is identified by the existing observable mode. AIR,
+            # BLOCKED and ordinary phase changes never renew the window.
+            if state["mode"] == 2:
+                state.update(window_start_gap_m=gap, window_elapsed_s=0.)
             state["best_gap_m"] = min(state["best_gap_m"], gap)
             improved = state["window_start_gap_m"]-gap >= .0002
             if improved:
