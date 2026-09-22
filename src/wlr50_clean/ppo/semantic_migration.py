@@ -3823,7 +3823,8 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                             project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     path = Path(plan_path).resolve(strict=True)
     supplied = json.loads(path.read_text(encoding="utf-8"))
-    if supplied.get("schema") == "wlr50_clean.rr_postcross_workspace_same389.v1":
+    if supplied.get("schema") in ("wlr50_clean.rr_postcross_workspace_same389.v1",
+                                 "wlr50_clean.rr_postcross_workspace_same389.v2"):
         from .semantic_rr_workspace_migration import validate_rr_workspace_migration
         return validate_rr_workspace_migration(checkpoint,current_contract,path,project_root=project_root)
     if supplied.get("schema") == "wlr50_clean.capture_feedback_semantics_same389.v1":

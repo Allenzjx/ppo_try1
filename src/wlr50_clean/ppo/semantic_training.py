@@ -2055,7 +2055,8 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             "task_conditioned_hip_wheel_branch", "training_quantity_budget_extension",
                             "receiving_wheel_sigma_migration", "p05_capture_assist_migration", "p05_capture_assist_branch",
                             "capture_feedback_semantics_migration", "capture_feedback_semantics_branch",
-                            "rr_postcross_workspace_migration", "rr_postcross_workspace_branch"):
+                            "rr_postcross_workspace_migration", "rr_postcross_workspace_branch",
+                            "rr_receiver_retirement_v2_migration", "rr_receiver_retirement_v2_branch"):
                     if key in previous:
                         infos[key] = previous[key]
                 if "task_recovery_branch" in infos:

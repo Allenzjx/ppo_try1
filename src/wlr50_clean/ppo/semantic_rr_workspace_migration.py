@@ -13,9 +13,13 @@ import subprocess
 from .semantic_p05_capture_profile import P05_CAPTURE_POLICY, P05_CAPTURE_OBSERVATION_LAYOUT
 
 SCHEMA = "wlr50_clean.rr_postcross_workspace_same389.v1"
+SCHEMA_V2 = "wlr50_clean.rr_postcross_workspace_same389.v2"
 FACTOR_KEY = "rr_postcross_workspace_factor"
 MODE_KEY = "rr_postcross_workspace_semantics"
 MODE = "current_qualified_RR_over_top_receiver_retirement_v1"
+MODE_V2 = "established_RR_over_top_receiver_retirement_v2"
+V2_BRANCH = "rr_receiver_retirement_v2_branch"
+V2_MIGRATION = "rr_receiver_retirement_v2_migration"
 EXPERIMENT = "p05_hip_only_continuation_v1"
 SUPERVISOR = "src/wlr50_clean/ppo/semantic_supervisor.py"
 MODULE = "src/wlr50_clean/ppo/semantic_rr_workspace_migration.py"
@@ -42,6 +46,8 @@ def rr_workspace_factor(metadata, old, new, *, reason, reviewed_code_sha256,
                         source_task_spec, target_task_spec):
     from .semantic_policy_distribution import policy_contract, CONFIG_NAMES
     from .semantic_migration import source_num_envs, digest
+    v2 = target_task_spec.get(MODE_KEY) == MODE_V2
+    schema, mode = (SCHEMA_V2, MODE_V2) if v2 else (SCHEMA, MODE)
     canonical = policy_contract(P05_CAPTURE_POLICY, observation_layout=P05_CAPTURE_OBSERVATION_LAYOUT)
     if (not isinstance(reason, str) or not reason.strip()
             or metadata.get("semantic_version") != "v3" or source_num_envs(metadata) != 1
@@ -55,7 +61,10 @@ def rr_workspace_factor(metadata, old, new, *, reason, reviewed_code_sha256,
     if set(old["files"]) - set(new["files"]) or set(new["files"]) - set(old["files"]) - {MODULE}:
         raise ValueError("RR workspace retirement may add only its dedicated module and delete nothing")
     delta = sorted(path for path in new["files"] if old["files"].get(path) != new["files"][path])
-    if (not {SUPERVISOR, TASK_SPEC}.issubset(delta) or not set(delta) <= ALLOWED_FILES
+    if v2 and (MODULE not in old["files"] or set(old["files"]) != set(new["files"])):
+        raise ValueError("RR receiver v2 cannot add or remove runtime files")
+    allowed = ALLOWED_FILES - {"src/wlr50_clean/ppo/semantic_capture_feedback_migration.py"} if v2 else ALLOWED_FILES
+    if (not {SUPERVISOR, TASK_SPEC}.issubset(delta) or not set(delta) <= allowed
             or dict(reviewed_code_sha256) != {path:new["files"][path] for path in delta}):
         raise ValueError("RR workspace retirement needs exact reviewed hashes within its narrow scope")
     for contract in (old, new):
@@ -69,23 +78,47 @@ def rr_workspace_factor(metadata, old, new, *, reason, reviewed_code_sha256,
            for name in CONFIG_NAMES if name != "stage_task_spec.yaml"):
         raise ValueError("only the explicit task-spec opt-in may change; all other configs must be identical")
     target_without_mode = dict(target_task_spec)
-    if (MODE_KEY in source_task_spec or target_without_mode.pop(MODE_KEY, None) != MODE
+    target_mode = target_without_mode.pop(MODE_KEY, None)
+    if v2:
+        source_without_mode = dict(source_task_spec)
+        if (source_without_mode.pop(MODE_KEY, None) != MODE or target_mode != MODE_V2
+                or source_without_mode != target_without_mode):
+            raise ValueError("RR receiver v2 requires only the exact v1-to-v2 task mode change")
+    elif (MODE_KEY in source_task_spec or target_mode != MODE
             or target_without_mode != dict(source_task_spec)):
         raise ValueError("task spec must differ only by the exact RR workspace opt-in")
     if (any(key not in metadata for key in REQUIRED)
             or metadata["capture_feedback_semantics_branch"].get("feedback_revision")
                 != "hold_to_air_progress_window_v2"
-            or metadata.get("rr_postcross_workspace_branch") is not None):
+            or (not v2 and metadata.get("rr_postcross_workspace_branch") is not None)):
         raise ValueError("RR workspace retirement requires intact P05/feedback-v2/AUX lineage and no prior application")
+    if v2:
+        prior = metadata.get("rr_postcross_workspace_branch")
+        receipt = metadata.get("rr_postcross_workspace_migration")
+        if (not isinstance(prior, dict) or prior.get("schema") != SCHEMA
+                or prior.get("semantics") != MODE or not isinstance(receipt, dict)
+                or receipt.get("schema") != SCHEMA
+                or receipt.get(FACTOR_KEY, {}).get("target_semantics") != MODE
+                or not isinstance(prior.get("front_rehearsal_auxiliary"), dict)
+                or not isinstance(metadata["task_conditioned_hip_wheel_branch"].get("auxiliary_mean_learning"), dict)
+                or V2_BRANCH in metadata or V2_MIGRATION in metadata):
+            raise ValueError("RR receiver v2 requires intact unrepeated v1 branch and migration")
+        origin = prior.get("counter_origin", {})
+        if (set(origin) != set(COUNTERS)
+                or any(type(origin[key]) is not int or origin[key] < 0
+                    or type(metadata[key]) is not int or origin[key] > metadata[key] for key in COUNTERS)
+                or metadata.get("rr_postcross_workspace_branch_counts") !=
+                    {key:metadata[key]-origin[key] for key in COUNTERS}):
+            raise ValueError("RR receiver v2 must preserve the original v1 origin and actual branch counts")
     if any(type(metadata[key]) is not int or metadata[key] < 0 for key in COUNTERS):
         raise ValueError("RR workspace source counters must be actual nonnegative integers")
     rate = metadata["optimizer_learning_rate"]
     if type(rate) not in (int,float) or not math.isfinite(rate) or rate <= 0:
         raise ValueError("RR workspace source needs its actual finite positive Adam LR")
-    return {"schema":SCHEMA, "review_reason":reason.strip(), "target_semantics":MODE,
-        "source_semantics":"RR_receiver_preparation_share_remains_active_after_crossing",
+    return {"schema":schema, "review_reason":reason.strip(), "target_semantics":mode,
+        "source_semantics":MODE if v2 else "RR_receiver_preparation_share_remains_active_after_crossing",
         "reviewed_code_sha256":dict(reviewed_code_sha256),
-        "task_spec_change":{MODE_KEY:MODE}, "source_task_spec_sha256":digest(source_task_spec),
+        "task_spec_change":{MODE_KEY:mode}, "source_task_spec_sha256":digest(source_task_spec),
         "target_task_spec_sha256":digest(target_task_spec),
         "observation_contract":{"source_policy_contract":canonical,
             "target_policy_contract":copy.deepcopy(canonical), "observation_layout":P05_CAPTURE_OBSERVATION_LAYOUT,
@@ -132,7 +165,7 @@ def build_rr_workspace_migration(checkpoint, current_contract, *, reason, review
         if name != "stage_task_spec.yaml" and _version_bytes(root,old,binding["path"]) != (root/binding["path"]).read_bytes():
             raise ValueError("RR workspace changed another configuration's exact bytes")
     delta = sorted(reviewed_code_sha256)
-    return {"schema":SCHEMA, "reason":reason.strip(), "source_checkpoint":str(checkpoint),
+    return {"schema":factor["schema"], "reason":reason.strip(), "source_checkpoint":str(checkpoint),
         "source_checkpoint_sha256":file_sha(checkpoint),
         "source_manifest_sha256":file_sha(checkpoint.with_name(checkpoint.stem+"_manifest.json")),
         "source_contract_sha256":digest(old), "target_contract_sha256":digest(new),
@@ -160,12 +193,24 @@ def record_loaded_rr_workspace(runner,infos,verified):
     from .rl_library_wrapper import optimizer_learning_rate
     from .semantic_migration import digest
     factor = verified[FACTOR_KEY]
+    if verified.get("schema") not in (SCHEMA, SCHEMA_V2) or factor.get("schema") != verified["schema"]:
+        raise RuntimeError("unknown RR workspace transfer schema")
     if (any(type(getattr(runner.alg,role).obs_normalizer) is not torch.nn.Identity for role in ("actor","critic"))
             or optimizer_learning_rate(runner) != factor["source_effective_learning_rate"]
             or any(key not in infos or digest(infos[key]) != value
                    for key,value in factor["preserved_metadata_sha256"].items())
             or runner.alg.storage.step != 0 or runner.alg.transition.actions is not None):
         raise RuntimeError("RR workspace transfer changed source state or reused partial rollout")
+    if verified["schema"] == SCHEMA_V2:
+        if V2_BRANCH in infos or V2_MIGRATION in infos:
+            raise RuntimeError("RR receiver v2 cannot replace existing revision lineage")
+        # Never rebuild the v1 branch: it owns all front-rehearsal AUX events,
+        # including events added after this migration implementation was reviewed.
+        return {**infos, V2_MIGRATION:copy.deepcopy(verified),
+            V2_BRANCH:{"schema":SCHEMA_V2, "semantics":MODE_V2,
+                "counter_origin":copy.deepcopy(factor["counter_origin"]),
+                "source_checkpoint_sha256":verified["source_checkpoint_sha256"],
+                "migration_added_updates":0}}
     return {**infos, "rr_postcross_workspace_migration":copy.deepcopy(verified),
         "rr_postcross_workspace_branch":{"schema":SCHEMA,"semantics":MODE,
             "counter_origin":copy.deepcopy(factor["counter_origin"]),
@@ -180,6 +225,14 @@ def rr_workspace_branch_counts(infos):
         if any(type(value) is not int or value < 0 for value in counts.values()):
             raise RuntimeError("RR workspace lineage has invalid counter origin")
         result["rr_postcross_workspace_branch_counts"] = counts
+    if V2_BRANCH in result:
+        origin = result[V2_BRANCH]["counter_origin"]
+        if (set(origin) != set(COUNTERS)
+                or any(type(origin[key]) is not int or origin[key] < 0
+                    or type(result[key]) is not int or result[key] < origin[key] for key in COUNTERS)):
+            raise RuntimeError("RR receiver v2 lineage has invalid counter origin")
+        result["rr_receiver_retirement_v2_branch_counts"] = {
+            key:result[key]-origin[key] for key in COUNTERS}
     return result
 
 
@@ -187,7 +240,10 @@ def publish_rr_workspace_checkpoint(checkpoint,current_contract,plan_path,output
     from .semantic_capture_feedback_migration import _publish_same389_identity_checkpoint
     from .semantic_migration import checkpoint_metadata
     metadata = checkpoint_metadata(Path(checkpoint))
+    count_keys = ("p05_capture_assist_branch_counts","capture_feedback_semantics_branch_counts",
+                  "rr_postcross_workspace_branch_counts")
+    if "rr_postcross_workspace_branch" in metadata:
+        count_keys += ("rr_receiver_retirement_v2_branch_counts",)
     return _publish_same389_identity_checkpoint(checkpoint,current_contract,plan_path,output_checkpoint,
         validate_migration=validate_rr_workspace_migration, preserved_keys=preserved_keys(metadata),
-        branch_count_keys=("p05_capture_assist_branch_counts","capture_feedback_semantics_branch_counts",
-                           "rr_postcross_workspace_branch_counts"))
+        branch_count_keys=count_keys)

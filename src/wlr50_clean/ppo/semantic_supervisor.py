@@ -50,6 +50,7 @@ P09_FREE_AIR_LIFT_MODE = "functional_free_air_lift_v3"
 FUNCTIONAL_RR_MODES = (P09_LIFT_MODE, P09_FREE_AIR_LIFT_MODE)
 RR_CARRY_SOURCE_MODE = "current_free_lift_before_pending_knee_and_roll_v1"
 RR_WORKSPACE_RETIREMENT_MODE = "current_qualified_RR_over_top_receiver_retirement_v1"
+RR_WORKSPACE_RETIREMENT_MODE_V2 = "established_RR_over_top_receiver_retirement_v2"
 CAPTURE_CONTINUATION_MODE = "p05_hip_only_continuation_v1"
 
 
@@ -241,7 +242,7 @@ def _rr_workspace_retirement_enabled(spec: Mapping[str, Any]) -> bool:
     mode = spec.get("rr_postcross_workspace_semantics")
     if mode is None:
         return False
-    if mode != RR_WORKSPACE_RETIREMENT_MODE:
+    if mode not in (RR_WORKSPACE_RETIREMENT_MODE, RR_WORKSPACE_RETIREMENT_MODE_V2):
         raise ValueError("unknown RR post-cross workspace semantics")
     if (spec.get("workspace_potential_semantics") != WORKSPACE_POTENTIAL_MODE
             or spec.get("potential_definition") != "global_physical_progress_v3"
@@ -260,9 +261,24 @@ def _current_rr_receiver_preparation_retired(spec: Mapping[str, Any], leg: str,
             or evaluation.get("termination_reason") is not None):
         return False
     history, current = evaluation["history"], evaluation["current_legs"]["RR"]
+    eligible = current.get("current_lift_valid") is True
+    if spec.get("rr_postcross_workspace_semantics") == RR_WORKSPACE_RETIREMENT_MODE_V2:
+        # Preserve only already-earned receiver preparation, not current lift
+        # or support validity. GROUND revokes lift_established in the evaluator.
+        # Keep currentQ's independent geometry condition; only its short-window
+        # other-support/body-control conjunction is irrelevant to this credit.
+        for key in ("ground_relative_lift_m", "front_distance_m", "clearance_m"):
+            value = current.get(key)
+            if (isinstance(value, bool) or not isinstance(value, (int, float))
+                    or not math.isfinite(value)):
+                return False
+        eligible = bool(current.get("lift_established") is True
+            and current.get("motion_continuation_allowed") is True
+            and current["ground_relative_lift_m"] >=
+                spec["history"]["minimum_initial_clearance_gain_m"])
     return bool(history["active_lift"]["RR"] is True
         and history["front_edge_crossed"]["RR"] is True
-        and current.get("current_lift_valid") is True
+        and eligible
         and current.get("ground_contact") is False
         and current.get("within_top_xy") is True
         and current.get("within_lateral_span") is True

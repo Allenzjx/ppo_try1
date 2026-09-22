@@ -15,6 +15,7 @@ import yaml
 from wlr50_clean.ppo.semantic_supervisor import (
     TaskStageSupervisor, load_task_spec,
     RR_WORKSPACE_RETIREMENT_MODE as MODE,
+    RR_WORKSPACE_RETIREMENT_MODE_V2 as MODE_V2,
     _rr_workspace_retirement_enabled as validate_candidate_mode,
     _current_rr_receiver_preparation_retired as current_rr_receiver_preparation_retired,
 )
@@ -26,8 +27,9 @@ ROOT = Path(__file__).resolve().parents[1]
 class RetirementTests(unittest.TestCase):
     def setUp(self):
         spec = load_task_spec(ROOT / "configs/ppo_p05_hip_only_continuation_v1/stage_task_spec.yaml")
-        self.assertEqual(spec.get(KEY), MODE, "adopted config must explicitly enable its new semantics")
+        self.assertEqual(spec.get(KEY), MODE_V2, "adopted config must explicitly enable v2")
         self.assertTrue(validate_candidate_mode(spec))
+        spec[KEY] = MODE  # This suite remains the exact v1-vs-disabled regression.
         self.old = TaskStageSupervisor.__new__(TaskStageSupervisor)
         self.old.spec = deepcopy(spec)
         self.old.spec.pop(KEY, None)  # Config under test is NEW; old control must opt out explicitly.
