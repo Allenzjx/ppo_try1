@@ -171,11 +171,23 @@ def publish_capture_feedback_checkpoint(checkpoint,current_contract,plan_path,ou
     Source CUDA visibility and complete runner configuration remain unchanged.
     The existing strict loader verifies the source state plus the new factor.
     """
+    return _publish_same389_identity_checkpoint(checkpoint,current_contract,plan_path,output_checkpoint,
+        validate_migration=validate_capture_feedback_migration, preserved_keys=PRESERVED,
+        branch_count_keys=("p05_capture_assist_branch_counts","capture_feedback_semantics_branch_counts"))
+
+
+def _publish_same389_identity_checkpoint(checkpoint,current_contract,plan_path,output_checkpoint,*,
+                                        validate_migration,preserved_keys,branch_count_keys):
+    """Shared exact-state save/reload mechanics, not a generic migration validator.
+
+    Each caller supplies its own narrow immutable factor validator. No simulator,
+    optimizer or configuration changes; preserve original device/CUDA visibility.
+    """
     from .semantic_p05_capture_migration import _ObservationOnlyEnv
     from .semantic_migration import checkpoint_metadata
     from .semantic_training import construct_semantic_runner,load_semantic_checkpoint,save_semantic_checkpoint
     metadata = checkpoint_metadata(Path(checkpoint))
-    verified = validate_capture_feedback_migration(checkpoint,current_contract,plan_path)
+    verified = validate_migration(checkpoint,current_contract,plan_path)
     device = metadata["runner_config"]["device"]
     class SourceDeviceObservationOnlyEnv(_ObservationOnlyEnv):
         def __init__(self):
@@ -199,12 +211,10 @@ def publish_capture_feedback_checkpoint(checkpoint,current_contract,plan_path,ou
     fresh = make()
     loaded = load_semantic_checkpoint(fresh,path,contract=current_contract,seed=metadata["seed"])
     for key in ("actor_parameter_sha256","critic_parameter_sha256","optimizer_state_sha256",
-                "normalizer_state_sha256","training_rng_state","runner_config",*PRESERVED):
+                "normalizer_state_sha256","training_rng_state","runner_config",*preserved_keys):
         if loaded[key] != metadata[key]:
             raise RuntimeError("same389 publication changed source state: "+key)
     return {"checkpoint":str(path),"manifest":str(manifest),"save_load_round_trip":True,
         **{k:loaded[k] for k in COUNTERS},"migration_added_policy_decisions":0,"migration_added_ppo_updates":0,
         "migration_added_optimizer_steps":0,"migration_added_auxiliary_updates":0,
-        "p05_capture_assist_branch_counts":loaded["p05_capture_assist_branch_counts"],
-        "capture_feedback_semantics_branch_counts":loaded["capture_feedback_semantics_branch_counts"]}
-
+        **{key:loaded[key] for key in branch_count_keys}}

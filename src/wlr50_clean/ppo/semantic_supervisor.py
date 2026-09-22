@@ -49,6 +49,7 @@ P09_LIFT_MODE = "functional_lift_edge_v2"
 P09_FREE_AIR_LIFT_MODE = "functional_free_air_lift_v3"
 FUNCTIONAL_RR_MODES = (P09_LIFT_MODE, P09_FREE_AIR_LIFT_MODE)
 RR_CARRY_SOURCE_MODE = "current_free_lift_before_pending_knee_and_roll_v1"
+RR_WORKSPACE_RETIREMENT_MODE = "current_qualified_RR_over_top_receiver_retirement_v1"
 CAPTURE_CONTINUATION_MODE = "p05_hip_only_continuation_v1"
 
 
@@ -236,6 +237,42 @@ def _workspace_potential_enabled(spec: Mapping[str, Any]) -> bool:
     return True
 
 
+def _rr_workspace_retirement_enabled(spec: Mapping[str, Any]) -> bool:
+    mode = spec.get("rr_postcross_workspace_semantics")
+    if mode is None:
+        return False
+    if mode != RR_WORKSPACE_RETIREMENT_MODE:
+        raise ValueError("unknown RR post-cross workspace semantics")
+    if (spec.get("workspace_potential_semantics") != WORKSPACE_POTENTIAL_MODE
+            or spec.get("potential_definition") != "global_physical_progress_v3"
+            or not spec.get("transfer_roles")
+            or spec.get("physical_acceptance_version") != "all_stage_v1"
+            or spec.get("p09_lift_semantics") not in FUNCTIONAL_RR_MODES):
+        raise ValueError("RR post-cross workspace retirement requires measured functional RR progress")
+    return True
+
+
+def _current_rr_receiver_preparation_retired(spec: Mapping[str, Any], leg: str,
+                                           evaluation: Mapping[str, Any]) -> bool:
+    # Stateless potential only: no evaluator/event/contact/nominal mutation.
+    if (leg != "RR" or not _rr_workspace_retirement_enabled(spec)
+            or evaluation.get("valid") is not True
+            or evaluation.get("termination_reason") is not None):
+        return False
+    history, current = evaluation["history"], evaluation["current_legs"]["RR"]
+    return bool(history["active_lift"]["RR"] is True
+        and history["front_edge_crossed"]["RR"] is True
+        and current.get("current_lift_valid") is True
+        and current.get("ground_contact") is False
+        and current.get("within_top_xy") is True
+        and current.get("within_lateral_span") is True
+        and current["front_distance_m"] >= 0.
+        and ((current.get("air") is True
+              and current["clearance_m"] >= spec["geometry"]["top_gap_min_m"])
+             or (current.get("top_surface_contact") is True
+                 and current.get("top_contact") is True)))
+
+
 def _verified_p06_rolling_source(contract: Any, expected: tuple[float, ...]) -> tuple[float, ...]:
     """Bind the advisory extension to the frozen wheel-only source, not a pose gate."""
     phase = contract.phase("P06")
@@ -306,6 +343,7 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
     _capture_approach_enabled(spec)
     _capture_continuation_enabled(spec)
     _workspace_potential_enabled(spec)
+    _rr_workspace_retirement_enabled(spec)
     validate_transfer_roles(spec)
     if spec.get("physical_acceptance_version") not in (None, "all_stage_v1"):
         raise ValueError("unknown physical acceptance version")
@@ -1328,7 +1366,13 @@ class TaskStageSupervisor:
         if self.spec.get("transfer_roles"):
             # Replace part of the existing .1 preparation budget, not a new reward.
             role = evaluation.get("transfer_roles", {}).get(leg, {})
-            return .5*edge+.5*float(role.get("workspace_progress", 0.))
+            receiver = float(role.get("workspace_progress", 0.))
+            if _current_rr_receiver_preparation_retired(self.spec, leg, evaluation):
+                # Qualified current crossing has demonstrated usable space.
+                # Preserve its existing credit, not ongoing FL contraction.
+                # Keep the independent current RR edge/capture/lift goals.
+                receiver = 1.
+            return .5*edge+.5*receiver
         return edge
 
     def _current_capture_progress(self, leg: str, evaluation: Mapping[str,Any], contact_fraction: float) -> float:

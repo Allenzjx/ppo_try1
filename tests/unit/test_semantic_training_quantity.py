@@ -40,17 +40,19 @@ def test_entropy_retains_original_210000_horizon_and_formula():
 
 @pytest.mark.parametrize("declared", [OLD, {}, {**NEW, "full_episode": 131073},
     {**NEW, "full_episode": 131072.0}, {**NEW, "phase_suffix": 100001}])
-def test_runtime_profile_budget_guard_requires_exact_explicit_declaration(tmp_path, declared):
+@pytest.mark.parametrize("experiment_id", [EXPERIMENT, "p05_hip_only_continuation_v1"])
+def test_runtime_profile_budget_guard_requires_exact_explicit_declaration(tmp_path, declared, experiment_id):
     import yaml
     # Only the actual guard is isolated; this is not a substitute for runtime
     # inventory and checkpoint migration validation or a claim of physical execution.
     tree = ast.parse(inspect.getsource(cli.runtime_contract))
     guard = next(n for n in tree.body[0].body if isinstance(n, ast.If)
         and isinstance(n.test, ast.Compare)
-        and any(isinstance(c, ast.Constant) and c.value == EXPERIMENT for c in n.test.comparators))
+        and any(isinstance(c, ast.Constant) and c.value == experiment_id
+                for comparator in n.test.comparators for c in ast.walk(comparator)))
     code = compile(ast.Module(body=[guard], type_ignores=[]), "<actual profile guard>", "exec")
     profile = tmp_path / "execution_profile.yaml"
-    scope = {"experiment_id": EXPERIMENT, "config_root": tmp_path, "contract": {"training_budgets": NEW}}
+    scope = {"experiment_id": experiment_id, "config_root": tmp_path, "contract": {"training_budgets": NEW}}
     profile.write_text(yaml.safe_dump({"training_budgets": declared}), encoding="utf-8")
     with pytest.raises(ValueError, match="execution profile quantity budget"):
         exec(code, scope)
