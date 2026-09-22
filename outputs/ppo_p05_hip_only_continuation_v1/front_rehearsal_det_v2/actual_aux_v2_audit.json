@@ -1,0 +1,97 @@
+{
+  "schema": "wlr50_clean.actual_det_P02_aux_event2_cpu_audit.v1",
+  "result": "PASS",
+  "receipt_path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_p05_hip_only_continuation_v1\\front_rehearsal_det_v2\\CP211968_actual_detP02_AUX_execution.json",
+  "receipt_sha256": "5b8bd9cb76f412bb6830aa9484f34a16f868abb026962aad72969f7d08f10dc1",
+  "source_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_p05_hip_only_continuation_v1\\checkpoints\\history\\checkpoint_step_000211968.pt",
+  "source_sha256": "5d0658331204c2bc79d71fd223582637e68dbb986ce4bf57596648f02c77d881",
+  "target_checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_p05_hip_only_continuation_v1\\checkpoints\\history\\checkpoint_aux_detP02_step_000211968_v2.pt",
+  "target_sha256": "27bc7cbdd98775c4602057d7776dd3becc9eef9b42ec62f4691d2dae7bb06d55",
+  "actual_event": {
+    "event_index": 2,
+    "accepted": 32,
+    "attempted": 32,
+    "changed_scalars": 256,
+    "only_parameter_scope": "actor.mlp.0.weight[:,1]",
+    "maximum_parameter_change": 0.14538075029850006
+  },
+  "PPO_counters_unchanged": {
+    "global_policy_decisions": 211968,
+    "ppo_updates": 1621,
+    "optimizer_steps": 32420
+  },
+  "PPO_added": 0,
+  "actor_hash_before": "b1dd3f99d09df8caf2e1337d86cc819a77e8bc78c7bc86a22c79dab553629cee",
+  "actor_hash_after": "e961e98f0ae65347aa81a7924fd12c61b47a38f5f8ca11dcbb6ecb5667c7c989",
+  "full_Adam_exact": true,
+  "critic_exact": true,
+  "full_CPU_CUDA_RNG_exact": true,
+  "Identity_LR_runner_runtime_policy_exact": true,
+  "source_device": "cuda:0",
+  "event1_full_record_exact": true,
+  "old_AUX_7_8_full_record_exact": true,
+  "new_front_AUX_total_accepted_attempted": [
+    64,
+    64
+  ],
+  "historical_lineage_fields_exact": [
+    "capture_feedback_semantics_branch",
+    "capture_feedback_semantics_branch_counts",
+    "capture_feedback_semantics_migration",
+    "fl_capture_quality_branch",
+    "fl_capture_quality_branch_counts",
+    "p05_capture_assist_branch",
+    "p05_capture_assist_branch_counts",
+    "p05_capture_assist_migration",
+    "policy_distribution_migration",
+    "receiving_wheel_sigma_migration",
+    "rr_postcross_workspace_branch",
+    "rr_postcross_workspace_branch_counts",
+    "rr_postcross_workspace_migration",
+    "rr_task_branch",
+    "rr_task_branch_counts",
+    "task_conditioned_hip_wheel_branch",
+    "task_conditioned_hip_wheel_branch_counts",
+    "task_recovery_branch",
+    "task_recovery_branch_counts"
+  ],
+  "actual_source_device_official_save_and_fresh_independent_reload_recorded": true,
+  "latest_pointer_still_source": true,
+  "MSE": {
+    "train": {
+      "before": 0.00036006001755595207,
+      "after": 0.0002322194050066173
+    },
+    "validation": {
+      "before": 0.000361353944754228,
+      "after": 0.00023318744206335396
+    }
+  },
+  "cumulative_max_requested_residual_delta_full12": [
+    0.057673513889312744,
+    0.30345797538757324,
+    0.07001930475234985,
+    0.10266077518463135,
+    0.04129147529602051,
+    0.033277034759521484,
+    0.07147336006164551,
+    0.0600130558013916,
+    0.005948089063167572,
+    0.0003235861659049988,
+    0.001445374102331698,
+    0.0012086499482393265
+  ],
+  "cumulative_max_absolute_log_sigma_change": 0.14874887466430664,
+  "cumulative_max_KL_original_to_candidate": 0.3413330176534762,
+  "cumulative_max_KL_candidate_to_original": 0.3316609465618876,
+  "reported_same_input_entire_Gaussian_invariance": {
+    "real_P01": true,
+    "real_P03plus": true,
+    "synthetic_P01_P03_P13": true
+  },
+  "independent_algebraic_scope_proof": "Every actor weight/buffer except P02 first-layer column is exactly equal. Any same input with P02 onehot=0 retains the entire Gaussian; future state trajectories are not thereby fixed.",
+  "new_normal_PPO_carry_after_event2_not_yet_verified": true,
+  "physical_success_claimed": false,
+  "historical_inputs_reconstructed_not_direct389": true,
+  "this_audit_optimization_or_checkpoint_writes": 0
+}

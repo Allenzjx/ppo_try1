@@ -1,0 +1,65 @@
+{
+  "schema": "wlr50_clean.front_mean_rehearsal_data_composition.v3",
+  "status": "READONLY_COMPOSITION_NOT_OPTIMIZATION_AUTHORIZATION",
+  "runtime_head": "5fd88852bf20c94cd74405c791a13a9fd9e0a3d8",
+  "runtime_content_sha256": "992515c30a3ecb868198f38fb986b0a04d690557861e78d9595f8071a8fbc76e",
+  "reference_checkpoint": {
+    "relative_path": "checkpoints/history/checkpoint_aux_detP02_step_000211968_v2.pt",
+    "sha256": "27bc7cbdd98775c4602057d7776dd3becc9eef9b42ec62f4691d2dae7bb06d55",
+    "manifest_sha256": "ff213bfd89901b5aeed2f3a72fe90553db9033dbf020c1a291de3cb0c2561176",
+    "role": "frozen_current_runtime_and_two_event_lineage_reference_not_automatic_training_source"
+  },
+  "bindings": {
+    "P02_manifest": {
+      "relative_path": "det_front_rehearsal_data_v1/candidate_manifest.json",
+      "sha256": "2cc855dffc6608d3118e5fb38ee76799d63beb4bf775130c6b5339423fa7c8b4"
+    },
+    "P01_manifest": {
+      "relative_path": "det_P01_second_decision_v1/candidate_manifest.json",
+      "sha256": "e19407549b6135f0773eb2ef31a296f694276593a912518bd50f25e94c71c205"
+    },
+    "P02_current_semantics": {
+      "relative_path": "det_P02_current_semantics_admission.json",
+      "sha256": "08a44852a26b98aaddaded707cb6f52ebd76f25e14cee69ce510e851f8c7915b"
+    },
+    "frozen_det_loader": {
+      "relative_path": "front_rehearsal_det_v2/inspect_det_rehearsal.py",
+      "sha256": "f688c3a7c4424fb7aba500f99e8a362aed8c91b57cabbd72fdb3d475b5a42d80"
+    }
+  },
+  "positive_labels": {
+    "kind": "actually_executed_deterministic_raw_equal_to_recorded_conditional_mean",
+    "source_checkpoint_sha256": "a4eb243ce07ad4a9ed1cf2f7f9a22e951181bdb6e0716361b8eaeb173acfd5b6",
+    "observations_directly_saved389": false,
+    "input_kind": "explicit_field_reconstructed389_with_original_actor_numeric_checks",
+    "P01": {"source_decision": 2, "input_tick": 8, "train_rows": 1, "independent_validation_rows": 0},
+    "P02": {"source_rows": 254, "train_range": [0, 254, 3], "validation_range": [1, 254, 3], "source_only_range": [2, 254, 3], "train_rows": 85, "validation_rows": 85, "source_only_rows": 84},
+    "composed_train_order": "P01_single_row_then_85_P02_train_rows",
+    "loss_weights_selected_by_data_loader": false
+  },
+  "protection_only": {
+    "source": "block03_episode0_directly_saved389",
+    "P03_P06_rows": 13,
+    "additional_P07_P12_max_rows": 6,
+    "additional_selection": "first_input_per_phase_P07_to_P12_with_unearned_RR_qualification_or_crossing_or_already_placed_and_verified_unchanged_old_current_Phi",
+    "stochastic_P01_rows": 2,
+    "stochastic_P01_raw_used_as_deterministic_label": false,
+    "P13_physical_holdout_coverage": false,
+    "mean_head_P03plus_mathematical_invariance_claimed": false,
+    "new_mean_head_requires_explicit_protection_loss_or_trust_checks": true
+  },
+  "limitations": [
+    "P01 has only one historical deterministic state and no independent validation set.",
+    "P02 train/validation are correlated interleaved rows of one historical episode, not independent trajectory validation.",
+    "P01 decision1/reset input is not reconstructed or labelled.",
+    "Current same5fd fixed-input semantics compatibility is not current actor equality or future trajectory equivalence.",
+    "The old CP211968 admission reference remains labelled as that reference; a caller must bind its actual later compatible checkpoint separately.",
+    "Historical targets are for possible separately authorized off-policy supervised use, never new on-policy PPO samples or current success.",
+    "Mean-head changes may alter P03+ means; protection observations are not an algebraic invariance guarantee."
+  ],
+  "AUX_updates": 0,
+  "PPO_decisions_added": 0,
+  "PPO_updates_added": 0,
+  "teacher_deployed": false,
+  "physical_success_claimed": false
+}

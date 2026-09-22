@@ -1,0 +1,92 @@
+{
+  "schema": "wlr50_clean.explicit_det_P02_aux_budget.v2",
+  "binding": {
+    "source_checkpoint": {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_p05_hip_only_continuation_v1\\checkpoints\\history\\checkpoint_step_000211968.pt",
+      "sha256": "5d0658331204c2bc79d71fd223582637e68dbb986ce4bf57596648f02c77d881",
+      "manifest_sha256": "0992935347b117c1dee6c598441f51d0f44bbd455bde831808e8d7f7a546fe55",
+      "PPO_counters": {
+        "global_policy_decisions": 211968,
+        "ppo_updates": 1621,
+        "optimizer_steps": 32420
+      },
+      "runtime_contract_sha256": "79eed3f2b862b752a2538a4f094ae197856d7a0ff914739cc0e84320d60694d7"
+    },
+    "helpers": {
+      "execute_det_rehearsal.py": "c45ec81da6e16a7ae1de8f1fb54863a6a0749e1bef4d34462ceb6001ad1e7e86",
+      "inspect_det_rehearsal.py": "f688c3a7c4424fb7aba500f99e8a362aed8c91b57cabbd72fdb3d475b5a42d80",
+      "front_rehearsal_v1/front_rehearsal.py": "d72ff9dd9de8f2e302d2d41d9660a70ba1c880eeb2505b6cd8db26da37895321",
+      "front_rehearsal_v1/reviewed_data.py": "3ee15f8ce3bb6c1a88ce9204298cfaa8d6b8b4c162349ee0c459b0071ce3c0dd",
+      "det_front_rehearsal_data_v1/read_candidate.py": "b336419401b5a34354cef070cdc095133343233c6af1df15cddebeea045c490d",
+      "audit_det_P02_current_semantics.py": "c3f28334e31cca93d24ec8aff68ff39384ef033591226a50fd42021d08d463c1"
+    },
+    "inspection": {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_p05_hip_only_continuation_v1\\front_rehearsal_det_v2\\CP211968_readonly_candidate_v2.json",
+      "sha256": "e1075c4bfec2c5393adf51b700274effae369cc17d27bc3bb8c3a8ccb0d5f63b",
+      "schema": "wlr50_clean.deterministic_front_rehearsal_readonly_inspection.v2"
+    },
+    "data_receipt_sha256": "1c5e59ca1cc16037d3fcb2500e4dae823a817d00cb964e701523b271864f2b55",
+    "data_manifest_sha256": "2cc855dffc6608d3118e5fb38ee76799d63beb4bf775130c6b5339423fa7c8b4",
+    "admission": {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_p05_hip_only_continuation_v1\\det_P02_current_semantics_admission.json",
+      "sha256": "08a44852a26b98aaddaded707cb6f52ebd76f25e14cee69ce510e851f8c7915b",
+      "schema": "wlr50_clean.det_front_current_semantics_admission.v1",
+      "result": "PASS_BOUNDED_P02_HISTORICAL_SUPERVISED_DATA_SEMANTICS_ONLY",
+      "rows_checked": 254,
+      "current_checkpoint_sha256": "5d0658331204c2bc79d71fd223582637e68dbb986ce4bf57596648f02c77d881",
+      "candidate_manifest_sha256": "2cc855dffc6608d3118e5fb38ee76799d63beb4bf775130c6b5339423fa7c8b4",
+      "candidate_npz_sha256": "fb9e6f82bf43bf6ac5026c473f6e8bee9c595d3542d938533bb2707c4cf67b9d",
+      "audit_script": {
+        "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_p05_hip_only_continuation_v1\\audit_det_P02_current_semantics.py",
+        "sha256": "c3f28334e31cca93d24ec8aff68ff39384ef033591226a50fd42021d08d463c1"
+      },
+      "inspection_receipt": {
+        "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_p05_hip_only_continuation_v1\\front_rehearsal_det_v2\\CP211968_readonly_candidate_v2.json",
+        "sha256": "e1075c4bfec2c5393adf51b700274effae369cc17d27bc3bb8c3a8ccb0d5f63b"
+      },
+      "restrictions": [
+        "Historical off-policy supervised targets only; not on-policy PPO samples or new-reward return/value ground truth.",
+        "389 was reconstructed with explicit source-field provenance, not directly stored or proven bitwise by12 outputs.",
+        "No claim CP211968 matches the old actor or will traverse the same states/actions in a current rollout.",
+        "No P01/reset admission, no other stages admitted, no pure-policy FL/full-task success label.",
+        "This check authorizes no optimization; any bounded AUX needs separate explicit execution approval and latest-checkpoint binding."
+      ],
+      "admission_itself_authorizes_optimization": false
+    },
+    "expected_head": "5fd88852bf20c94cd74405c791a13a9fd9e0a3d8"
+  },
+  "budget": {
+    "max_attempts": 32,
+    "learning_rate": 500,
+    "maximum_train_request_shift_full12": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      0.15,
+      0.15,
+      0.15,
+      0.15
+    ],
+    "maximum_validation_request_shift_full12": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      0.15,
+      0.15,
+      0.15,
+      0.15
+    ],
+    "maximum_per_state_full_gaussian_kl": 0.5,
+    "maximum_abs_log_sigma_change": 0.25
+  }
+}

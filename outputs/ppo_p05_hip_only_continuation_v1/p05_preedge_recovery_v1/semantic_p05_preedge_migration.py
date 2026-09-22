@@ -1,0 +1,197 @@
+"""One explicit P05-only nominal recovery control revision; exact state transfer."""
+from __future__ import annotations
+
+import copy
+import json
+import math
+from pathlib import Path
+import subprocess
+
+from .semantic_p05_capture_profile import P05_CAPTURE_POLICY, P05_CAPTURE_OBSERVATION_LAYOUT
+
+SCHEMA = "wlr50_clean.p05_preedge_approach_recovery_same389.v1"
+FACTOR_KEY = "p05_preedge_approach_recovery_factor"
+MODE_KEY = "p05_preedge_approach_recovery"
+MODE = "p05_preedge_approach_recovery_v1"
+BRANCH = "p05_preedge_approach_recovery_branch"
+MIGRATION = "p05_preedge_approach_recovery_migration"
+COUNTS = "p05_preedge_approach_recovery_branch_counts"
+EXPERIMENT = "p05_hip_only_continuation_v1"
+SUPERVISOR = "src/wlr50_clean/ppo/semantic_supervisor.py"
+MODULE = "src/wlr50_clean/ppo/semantic_p05_preedge_migration.py"
+TASK_SPEC = f"configs/ppo_{EXPERIMENT}/stage_task_spec.yaml"
+ALLOWED_FILES = frozenset({SUPERVISOR, MODULE, TASK_SPEC,
+    "src/wlr50_clean/ppo/semantic_migration.py", "src/wlr50_clean/ppo/semantic_training.py"})
+COUNTERS = ("global_policy_decisions", "ppo_updates", "optimizer_steps")
+PRIOR_BRANCHES = ("p05_capture_assist", "capture_feedback_semantics",
+                  "rr_postcross_workspace", "rr_receiver_retirement_v2")
+
+
+def preserved_keys(metadata):
+    from .semantic_rr_workspace_migration import preserved_keys as previous_keys
+    return tuple(sorted(set(previous_keys(metadata)) | {
+        name + suffix for name in PRIOR_BRANCHES for suffix in ("_branch", "_branch_counts", "_migration")}))
+
+
+def p05_preedge_factor(metadata, old, new, *, reason, reviewed_code_sha256,
+                       source_task_spec, target_task_spec):
+    from .semantic_policy_distribution import policy_contract, CONFIG_NAMES
+    from .semantic_migration import source_num_envs, digest
+    canonical = policy_contract(P05_CAPTURE_POLICY, observation_layout=P05_CAPTURE_OBSERVATION_LAYOUT)
+    if (not isinstance(reason, str) or not reason.strip() or metadata.get("semantic_version") != "v3"
+            or source_num_envs(metadata) != 1 or old.get("experiment_id") != EXPERIMENT
+            or new.get("experiment_id") != EXPERIMENT or metadata.get("policy_contract") != canonical):
+        raise ValueError("P05 pre-edge recovery requires exact same389 P05 v3 N1 profile")
+    variable = {"files", "runtime_content_sha256", "source_git_commit", "selected_configuration"}
+    if ({k:v for k,v in old.items() if k not in variable}
+            != {k:v for k,v in new.items() if k not in variable}):
+        raise ValueError("P05 pre-edge recovery cannot change physical rates, budgets or runtime profile")
+    if (MODULE in old["files"] or set(old["files"]) - set(new["files"])
+            or set(new["files"]) - set(old["files"]) != {MODULE}):
+        raise ValueError("P05 pre-edge recovery must add only its dedicated module and delete nothing")
+    delta = sorted(path for path in new["files"] if old["files"].get(path) != new["files"][path])
+    if (not {SUPERVISOR, TASK_SPEC, MODULE}.issubset(delta) or not set(delta) <= ALLOWED_FILES
+            or dict(reviewed_code_sha256) != {p:new["files"][p] for p in delta}):
+        raise ValueError("P05 pre-edge recovery requires exact reviewed hashes within its narrow scope")
+    for contract in (old,new):
+        selected = contract.get("selected_configuration", {})
+        if set(selected) != CONFIG_NAMES or any(binding != {
+                "path":f"configs/ppo_{EXPERIMENT}/{name}",
+                "sha256":contract["files"].get(f"configs/ppo_{EXPERIMENT}/{name}")}
+                for name,binding in selected.items()):
+            raise ValueError("P05 pre-edge recovery requires intact six-config bindings")
+    if any(old["selected_configuration"][name] != new["selected_configuration"][name]
+           for name in CONFIG_NAMES if name != "stage_task_spec.yaml"):
+        raise ValueError("only exact task-spec recovery opt-in may change; other five configs must be identical")
+    target_without_mode = copy.deepcopy(dict(target_task_spec))
+    source_nominal = source_task_spec.get("nominal")
+    target_nominal = target_without_mode.get("nominal")
+    if (not isinstance(source_nominal,dict) or not isinstance(target_nominal,dict)
+            or MODE_KEY in source_nominal or target_nominal.pop(MODE_KEY,None) != MODE
+            or target_without_mode != dict(source_task_spec)
+            or source_task_spec.get("rr_postcross_workspace_semantics") != "established_RR_over_top_receiver_retirement_v2"):
+        raise ValueError("task spec must differ only by P05 recovery opt-in, preserving receiver-v2 and all physical rules")
+    if BRANCH in metadata or MIGRATION in metadata or COUNTS in metadata:
+        raise ValueError("P05 pre-edge recovery cannot overwrite existing revision lineage")
+    if any(key not in metadata for key in preserved_keys(metadata)):
+        raise ValueError("P05 pre-edge recovery requires complete prior training/optimizer/RNG/lineage state")
+    if any(type(metadata[k]) is not int or metadata[k] < 0 for k in COUNTERS):
+        raise ValueError("P05 source counters must be actual nonnegative integers")
+    for name in PRIOR_BRANCHES:
+        branch = metadata.get(name + "_branch")
+        origin = branch.get("counter_origin", {}) if isinstance(branch,dict) else {}
+        if (set(origin) != set(COUNTERS) or not isinstance(metadata.get(name + "_migration"),dict)
+                or any(type(origin[k]) is not int or origin[k] < 0 or origin[k] > metadata[k] for k in COUNTERS)
+                or metadata.get(name + "_branch_counts") != {k:metadata[k]-origin[k] for k in COUNTERS}):
+            raise ValueError("P05 recovery requires all four intact prior origins and actual branch counts")
+    v2 = metadata["rr_receiver_retirement_v2_branch"]
+    v2_receipt = metadata["rr_receiver_retirement_v2_migration"]
+    if (v2.get("schema") != "wlr50_clean.rr_postcross_workspace_same389.v2"
+            or v2.get("semantics") != "established_RR_over_top_receiver_retirement_v2"
+            or v2_receipt.get("schema") != v2["schema"]
+            or v2_receipt.get("rr_postcross_workspace_factor",{}).get("target_semantics") != v2["semantics"]
+            or metadata["capture_feedback_semantics_branch"].get("feedback_revision") != "hold_to_air_progress_window_v2"):
+        raise ValueError("P05 recovery requires the actual existing receiver-v2 and capture-feedback-v2 source")
+    auxiliary = metadata["rr_postcross_workspace_branch"].get("front_rehearsal_auxiliary")
+    historical = metadata["task_conditioned_hip_wheel_branch"].get("auxiliary_mean_learning")
+    if (not isinstance(auxiliary,dict) or not isinstance(auxiliary.get("events"),list)
+            or len(auxiliary["events"]) < 4 or not isinstance(historical,dict)):
+        raise ValueError("P05 recovery requires complete existing four-event-or-later AUX and historical AUX objects")
+    rate = metadata["optimizer_learning_rate"]
+    if type(rate) not in (int,float) or not math.isfinite(rate) or rate <= 0:
+        raise ValueError("P05 recovery requires actual finite positive effective Adam LR")
+    return {"schema":SCHEMA,"review_reason":reason.strip(),"source_semantics":"authored_P05_endpoint_without_preedge_recovery",
+        "target_semantics":MODE,"reviewed_code_sha256":dict(reviewed_code_sha256),"task_spec_change":{"nominal":{MODE_KEY:MODE}},
+        "source_task_spec_sha256":digest(source_task_spec),"target_task_spec_sha256":digest(target_task_spec),
+        "observation_contract":{"source_policy_contract":canonical,"target_policy_contract":copy.deepcopy(canonical),
+            "observation_layout":P05_CAPTURE_OBSERVATION_LAYOUT,"observation_dimension":389,"action_dimension":12,
+            "num_envs":1,"parameter_mapping":"identity_all_parameters_and_buffers"},
+        "observation_shape_changed":False,"observation_codec_changed":False,"observation_semantics_changed":[],
+        "same_numeric_input_policy_mapping_preserved":True,"same_physical_state_action_equivalence_claimed":False,
+        "controller_transition_semantics_changed":True,"nominal_changed":True,"affected_control_phases":["P05"],
+        "same_mdp_claimed":False,"reward_changed":False,"physical_dynamics_changed":False,
+        "policy_kernel_changed":False,"capture_assist_changed":False,"caps_changed":False,"sigma_changed":False,
+        "physical_task_acceptance_rules_changed":False,"added_mutable_state":False,
+        "preserved_metadata_sha256":{k:digest(metadata[k]) for k in preserved_keys(metadata)},
+        "source_resume_migration":copy.deepcopy(metadata.get("resume_migration")),
+        "source_resume_migration_sha256":digest(metadata.get("resume_migration")),
+        "counter_origin":{k:metadata[k] for k in COUNTERS},"source_effective_learning_rate":rate,"target_effective_learning_rate":rate,
+        "parameter_mapping":"identity_all_parameters_and_buffers",
+        "optimizer_mapping":"identity_all_Adam_moments_steps_groups_and_effective_LR","normalizer_mapping":"identity_Identity",
+        "rng_mapping":"restore_exact_source_training_rng","critic_semantics":"preserve_all_weights_and_Adam; recalibrate_from_fresh_control_MDP_data",
+        "old_rollout_is_new_MDP_onpolicy":False,"discard_old_rollout_storage":True,"physical_state_inherited":False,
+        "added_policy_decisions":0,"added_ppo_updates":0,"added_optimizer_steps":0,"added_auxiliary_updates":0}
+
+
+def build_p05_preedge_migration(checkpoint,current_contract,*,reason,reviewed_code_sha256,project_root=None):
+    import yaml
+    from .semantic_migration import PROJECT_ROOT, checkpoint_metadata, _contract, _version_bytes, file_sha, digest
+    root=Path(project_root or PROJECT_ROOT).resolve();checkpoint=Path(checkpoint).resolve(strict=True)
+    metadata=checkpoint_metadata(checkpoint);old,new=_contract(metadata["runtime_contract"]),_contract(current_contract)
+    source_task=yaml.safe_load(_version_bytes(root,old,TASK_SPEC));target_task=yaml.safe_load((root/TASK_SPEC).read_bytes())
+    factor=p05_preedge_factor(metadata,old,new,reason=reason,reviewed_code_sha256=reviewed_code_sha256,
+        source_task_spec=source_task,target_task_spec=target_task)
+    head=subprocess.run(["git","-C",str(root),"rev-parse","HEAD"],check=True,capture_output=True,text=True).stdout.strip()
+    if new["source_git_commit"]!=head or new["source_git_commit"]==old["source_git_commit"]:
+        raise ValueError("P05 recovery target must name a new actual committed runtime HEAD")
+    for path,expected in new["files"].items():
+        if file_sha(root/path)!=expected:raise ValueError("P05 recovery target runtime bytes differ: "+path)
+    for name,binding in old["selected_configuration"].items():
+        if name!="stage_task_spec.yaml" and _version_bytes(root,old,binding["path"])!=(root/binding["path"]).read_bytes():
+            raise ValueError("P05 recovery changed another configuration's exact bytes")
+    delta=sorted(reviewed_code_sha256)
+    return {"schema":SCHEMA,"reason":reason.strip(),"source_checkpoint":str(checkpoint),"source_checkpoint_sha256":file_sha(checkpoint),
+        "source_manifest_sha256":file_sha(checkpoint.with_name(checkpoint.stem+"_manifest.json")),
+        "source_contract_sha256":digest(old),"target_contract_sha256":digest(new),
+        "source_git_commit":old["source_git_commit"],"target_git_commit":new["source_git_commit"],
+        "source_runtime_content_sha256":old["runtime_content_sha256"],"target_runtime_content_sha256":new["runtime_content_sha256"],
+        "allowed_changed_files":delta,"changed_file_hashes":{p:{"before":old["files"].get(p),"after":new["files"][p]} for p in delta},
+        "observation_dimension":389,"action_dimension":12,"preserve_actor_critic_optimizer_normalizer_rng_and_budget":True,
+        "discard_old_rollout_storage":True,"physics_resume":"fresh_legal_P01_reset",FACTOR_KEY:factor}
+
+
+def validate_p05_preedge_migration(checkpoint,current_contract,plan_path,*,project_root=None):
+    from .semantic_migration import file_sha
+    path=Path(plan_path).resolve(strict=True);supplied=json.loads(path.read_text(encoding="utf-8"))
+    expected=build_p05_preedge_migration(checkpoint,current_contract,reason=supplied.get("reason"),
+        reviewed_code_sha256=supplied.get(FACTOR_KEY,{}).get("reviewed_code_sha256",{}),project_root=project_root)
+    if supplied!=expected:raise ValueError("P05 recovery plan differs from immutable source/target")
+    return {**expected,"plan_path":str(path),"plan_sha256":file_sha(path)}
+
+
+def record_loaded_p05_preedge(runner,infos,verified):
+    import torch
+    from .rl_library_wrapper import optimizer_learning_rate
+    from .semantic_migration import digest
+    factor=verified[FACTOR_KEY]
+    if (verified.get("schema")!=SCHEMA or factor.get("schema")!=SCHEMA
+            or BRANCH in infos or MIGRATION in infos or COUNTS in infos):
+        raise RuntimeError("P05 recovery revision must be explicit and unrepeated")
+    if (any(type(getattr(runner.alg,role).obs_normalizer) is not torch.nn.Identity for role in ("actor","critic"))
+            or optimizer_learning_rate(runner)!=factor["source_effective_learning_rate"]
+            or any(k not in infos or digest(infos[k])!=v for k,v in factor["preserved_metadata_sha256"].items())
+            or runner.alg.storage.step!=0 or runner.alg.transition.actions is not None):
+        raise RuntimeError("P05 recovery changed exact source state or reused partial rollout")
+    return {**infos,MIGRATION:copy.deepcopy(verified),BRANCH:{"schema":SCHEMA,"semantics":MODE,
+        "counter_origin":copy.deepcopy(factor["counter_origin"]),"source_checkpoint_sha256":verified["source_checkpoint_sha256"],
+        "migration_added_updates":0}}
+
+
+def p05_preedge_branch_counts(infos):
+    result=dict(infos)
+    if BRANCH in result:
+        origin=result[BRANCH]["counter_origin"]
+        if (set(origin)!=set(COUNTERS) or any(type(origin[k]) is not int or origin[k]<0
+                or type(result[k]) is not int or result[k]<origin[k] for k in COUNTERS)):
+            raise RuntimeError("P05 recovery lineage has invalid counter origin")
+        result[COUNTS]={k:result[k]-origin[k] for k in COUNTERS}
+    return result
+
+
+def publish_p05_preedge_checkpoint(checkpoint,current_contract,plan_path,output_checkpoint):
+    from .semantic_capture_feedback_migration import _publish_same389_identity_checkpoint
+    from .semantic_migration import checkpoint_metadata
+    metadata=checkpoint_metadata(Path(checkpoint))
+    return _publish_same389_identity_checkpoint(checkpoint,current_contract,plan_path,output_checkpoint,
+        validate_migration=validate_p05_preedge_migration,preserved_keys=preserved_keys(metadata),
+        branch_count_keys=tuple(name+"_branch_counts" for name in PRIOR_BRANCHES)+(COUNTS,))

@@ -1,0 +1,63 @@
+{
+  "schema": "wlr50_clean.rr_receiver_v2_patch_static.v1",
+  "base_head": "5fd88852bf20c94cd74405c791a13a9fd9e0a3d8",
+  "patch_sha256": "12d51ed035e71d1d51d80a4701a602d69b87cc17e8a86f09b82b08a2a2180599",
+  "target_count": 8,
+  "production_edited": false,
+  "imports_of_candidate": 0,
+  "tests_executed": 0,
+  "fit_steps": 0,
+  "Isaac_started": false,
+  "checks": {
+    "src/wlr50_clean/ppo/semantic_supervisor.py": {
+      "syntax_or_exact_config_change": true,
+      "before_sha256": "a58f12abb5dfde98ecfa857e03126f8007a925c46805caa2afa0b19eb6a06b7a",
+      "candidate_lf_sha256": "20da1fd7c88917859590dfba5e6b82d9547d40c1eb56112a10699583364550ce",
+      "candidate_lines": 2825
+    },
+    "configs/ppo_p05_hip_only_continuation_v1/stage_task_spec.yaml": {
+      "syntax_or_exact_config_change": true,
+      "before_sha256": "16662e2c62e0c4831297c53e3e3aae544bd91a110b548d95ac9dbade22554394",
+      "candidate_lf_sha256": "170a38f0286fa47a2cd665c0f45c0ce6cd768a91753771e031233ec0b366fb99",
+      "candidate_lines": 281
+    },
+    "src/wlr50_clean/ppo/semantic_rr_workspace_migration.py": {
+      "syntax_or_exact_config_change": true,
+      "before_sha256": "7a2e3c13b92b248ec2b5df6f55d57bd7d86cc78a8dd5a79efcf112c11b95d835",
+      "candidate_lf_sha256": "a773fe2ae54f30ec410bdaa8a49c798f5e59d11058462ae0a0bbd1af5d2c1c16",
+      "candidate_lines": 249
+    },
+    "src/wlr50_clean/ppo/semantic_migration.py": {
+      "syntax_or_exact_config_change": true,
+      "before_sha256": "e0968ace58f9ca473d2380ea400a01cd55a066a7c09fe31eb07378dec810dddf",
+      "candidate_lf_sha256": "30ea5a852acf6f8fc682eac439ada299d86d7c2fa0e67dce1315bc211e761674",
+      "candidate_lines": 4040
+    },
+    "src/wlr50_clean/ppo/semantic_training.py": {
+      "syntax_or_exact_config_change": true,
+      "before_sha256": "634e591c03a96e76db6ee4c25f384e930913f49ecdbcd952a8333b4f63debec7",
+      "candidate_lf_sha256": "00c708277613d4914831a21e9b570ae7faf45a05ede17f83249b2cc728ad6176",
+      "candidate_lines": 2124
+    },
+    "tests/test_semantic_rr_workspace_retirement.py": {
+      "syntax_or_exact_config_change": true,
+      "before_sha256": "08d41f33e223854a5d3432e7a5cb342651fd7c4464c21e49a6308fca3ddc0c69",
+      "candidate_lf_sha256": "7c8ab6422c8a7690cfbb4d08ce499a91a4c73badea8db62bd55fb3fc8f743721",
+      "candidate_lines": 252
+    },
+    "tests/unit/test_semantic_rr_receiver_retirement_v2.py": {
+      "syntax_or_exact_config_change": true,
+      "before_sha256": null,
+      "candidate_lf_sha256": "a9518bd5018f180b3f1f25e11846ca8a1dff279232bfe1a933320f5b2d05b5aa",
+      "candidate_lines": 142
+    },
+    "tests/unit/test_semantic_rr_receiver_v2_migration.py": {
+      "syntax_or_exact_config_change": true,
+      "before_sha256": null,
+      "candidate_lf_sha256": "af7a22a13c4a922e69d1afdcf2ad7c8aba3f5ff624b0b071641157c11fe84ffc",
+      "candidate_lines": 230
+    }
+  },
+  "independent_review": "read-only separate-agent review found no blocking defect; no tests/fit/Isaac executed",
+  "missing_evidence_scope": "New finite numeric fields and required current flags fail closed. Missing trusted top-level evaluator/history/current_legs objects retain the existing schema-error contract, not guaranteed False."
+}

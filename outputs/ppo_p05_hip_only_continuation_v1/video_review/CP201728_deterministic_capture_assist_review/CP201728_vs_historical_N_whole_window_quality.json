@@ -1,0 +1,109 @@
+{
+  "schema": "wlr50_clean.p05_capture_historical_N_whole_window_descriptive_quality.v1",
+  "comparison_scope": "descriptive_whole_physical_window_only",
+  "metric_source": "semantic_video_source_manifest.json:physical_episode.quality_metrics.global",
+  "units": {
+    "roll_rms_rad": "rad",
+    "roll_peak_rad": "rad",
+    "pitch_rms_rad": "rad",
+    "pitch_peak_rad": "rad",
+    "roll_rate_rms_rad_s": "rad/s",
+    "pitch_rate_rms_rad_s": "rad/s",
+    "duration_s": "s"
+  },
+  "candidate_CP201728": {
+    "source_manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_p05_hip_only_continuation_v1\\video_eval\\validation\\20260922T0450447593129Z_g0001c3138b0b_f412423658e844e386aef04f0f53bcdc\\source\\semantic_video_source_manifest.json",
+    "source_manifest_sha256": "f31ccd04230ddf25091ce06ea78b68c75c59f7aa643cbad721e296ee217497b6",
+    "experiment_id": "p05_hip_only_continuation_v1",
+    "runtime_git_commit": "0001c3138b0b38a7278edc288b8ddc7444815770",
+    "role": "C",
+    "control_method": "PPO_PLUS_CAPTURE_ASSIST_WITH_INHERITED_LIMITED_AUX",
+    "policy_sampling_mode": "deterministic_conditional_mean",
+    "checkpoint_global_policy_decisions": 201728,
+    "checkpoint_sha256": "a4eb243ce07ad4a9ed1cf2f7f9a22e951181bdb6e0716361b8eaeb173acfd5b6",
+    "checkpoint_is_migrated_warm_start": false,
+    "p05_added_ppo_updates": 16,
+    "real_task_result": "DIAGNOSTIC_FAILURE",
+    "physical_task_success": false,
+    "physical_evaluator_valid": true,
+    "physical_evaluator_run_validity": "VALID",
+    "whole_physical_window": {
+      "start": "natural_P01_episode_tick_1",
+      "endpoint_request_phase": "P09",
+      "physics_ticks": 10084,
+      "duration_s": 84.03333333333332
+    },
+    "metrics": {
+      "roll_rms_rad": 0.13195183019723716,
+      "roll_peak_rad": 0.19969858163253634,
+      "pitch_rms_rad": 0.07849295344641727,
+      "pitch_peak_rad": 0.17674623903668596,
+      "roll_rate_rms_rad_s": 0.05202761508310652,
+      "pitch_rate_rms_rad_s": 0.05487912007798694
+    },
+    "exact_terminal_evidence": {
+      "source": "last JSON row of sealed video_policy_decisions.jsonl",
+      "video_policy_decisions": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_p05_hip_only_continuation_v1\\video_eval\\validation\\20260922T0450447593129Z_g0001c3138b0b_f412423658e844e386aef04f0f53bcdc\\source\\video_policy_decisions.jsonl",
+      "video_policy_decisions_sha256": "50908c2b912e7b00d1f5a77523b87090fd02aa20ae0a6ec195200945eb12b491",
+      "video_policy_decisions_bytes": 124915378,
+      "artifact_record_hash_and_size_verified": true,
+      "decision": 1261,
+      "request_phase": "P09",
+      "start_tick": 10080,
+      "end_tick": 10084,
+      "physics_ticks": 4,
+      "environment_step_returned": true,
+      "step_info_termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED"
+    },
+    "video_source_acceptance_error": "SemanticVideoError: episode did not meet common physical task"
+  },
+  "historical_N_ref": {
+    "source_manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\video_eval\\prior_B\\20260921T0701155546642Z_gee5a9651591d_64985c63292d4a9b966716c3a54659a1\\source\\semantic_video_source_manifest.json",
+    "source_manifest_sha256": "03549f2590759fe22c09ec83ec12282f17f06de722a15ece547873140a083a20",
+    "experiment_id": "task_conditioned_hip_wheel_v1",
+    "runtime_git_commit": "ee5a9651591d20bea48be8ceba075fa66594cb36",
+    "role": "B",
+    "control_method": null,
+    "control_method_description": "historical_N_ref_nominal_zero_residual",
+    "policy_sampling_mode": "nominal_without_learned_residual",
+    "real_task_result": "SUCCESS",
+    "physical_task_success": true,
+    "physical_evaluator_valid": true,
+    "physical_evaluator_run_validity": "VALID",
+    "whole_physical_window": {
+      "start": "natural_P01_episode_tick_1",
+      "endpoint": "successful_common_physical_task",
+      "physics_ticks": 8857,
+      "duration_s": 73.80833333333332
+    },
+    "metrics": {
+      "roll_rms_rad": 0.1190309979011186,
+      "roll_peak_rad": 0.24337851366511265,
+      "pitch_rms_rad": 0.08130831280442194,
+      "pitch_peak_rad": 0.19162604211523557,
+      "roll_rate_rms_rad_s": 0.06766358381355832,
+      "pitch_rate_rms_rad_s": 0.0653420192280765
+    }
+  },
+  "candidate_minus_historical_N_raw_differences": {
+    "roll_rms_rad": 0.012920832296118567,
+    "roll_peak_rad": -0.04367993203257631,
+    "pitch_rms_rad": -0.002815359358004671,
+    "pitch_peak_rad": -0.014879803078549608,
+    "roll_rate_rms_rad_s": -0.015635968730451796,
+    "pitch_rate_rms_rad_s": -0.010462899150089564,
+    "duration_s": 10.224999999999994
+  },
+  "interpretation_limits": {
+    "same_runtime_version": false,
+    "same_experiment_version": false,
+    "same_control_method": false,
+    "same_task_outcome": false,
+    "same_window_duration": false,
+    "event_aligned_window": false,
+    "causal_counterfactual": false,
+    "stability_improvement_claimed": false,
+    "policy_improvement_claimed": false,
+    "reason": "CP201728 is an incomplete P09 diagnostic after 16 P05 PPO updates; historical N_ref is a successful older-version episode with a shorter and different physical window. Raw whole-window values, including lower values, are descriptive only."
+  }
+}

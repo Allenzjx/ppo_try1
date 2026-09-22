@@ -1,0 +1,381 @@
+*** Begin Patch
+*** Update File: src/wlr50_clean/ppo/semantic_supervisor.py
+@@
+ RR_WORKSPACE_RETIREMENT_MODE = "current_qualified_RR_over_top_receiver_retirement_v1"
+ RR_WORKSPACE_RETIREMENT_MODE_V2 = "established_RR_over_top_receiver_retirement_v2"
+ CAPTURE_CONTINUATION_MODE = "p05_hip_only_continuation_v1"
++P05_PREEDGE_RECOVERY_MODE = "p05_preedge_approach_recovery_v1"
+ 
+ 
+ def _capture_continuation_enabled(spec: Mapping[str, Any]) -> bool:
+@@
+             or spec["nominal"].get("continuous_channel_inheritance") is not True
+             or spec["nominal"].get("sequence_semantics") != "source_partial_order_physical_ready_v1"):
+         raise ValueError("FL capture continuation requires continuous source and measured all-stage progress")
++    return mode is not None
++
++
++def _p05_preedge_recovery_enabled(spec: Mapping[str, Any]) -> bool:
++    mode = spec.get("nominal", {}).get("p05_preedge_approach_recovery")
++    if mode not in (None, P05_PREEDGE_RECOVERY_MODE):
++        raise ValueError("unknown P05 pre-edge approach recovery semantics")
++    if mode is not None and (not _capture_continuation_enabled(spec)
++            or spec["nominal"].get("p05_pending_capture") != "current_FL_capture_wheel_continuation_to_handoff_v2"
++            or spec.get("local_timeout_policy", {}).get("mode") != "bounded_current_progress_allowance_v1"
++            or not 0. < _number(spec["local_timeout_policy"].get("maximum_extension_s"), "pre-edge window") <= 10.):
++        raise ValueError("P05 pre-edge recovery requires the existing finite continuous capture schedule")
+     return mode is not None
+ 
+ 
+@@
+             raise ValueError("rolling retention requires its explicit current-contact task-quality version")
+     _capture_approach_enabled(spec)
+     _capture_continuation_enabled(spec)
++    _p05_preedge_recovery_enabled(spec)
+     _workspace_potential_enabled(spec)
+     _rr_workspace_retirement_enabled(spec)
+     validate_transfer_roles(spec)
+@@
+         nominal=self.spec["nominal"]
+         self._capture_continuation = _capture_continuation_enabled(self.spec)
+         self._capture_continuation_diagnostic: dict[str, Any] = {}
++        self._p05_preedge_recovery = _p05_preedge_recovery_enabled(self.spec)
++        self._p05_preedge_diagnostic: dict[str, Any] = {}
+         reference_mode = self.spec.get("reference_nominal_semantics")
+         if reference_mode not in (None, "successful_fsm_derived_v2"):
+             raise ValueError("unknown successful-FSM nominal semantics")
+@@
+             result["height_recovery"] = dict(self._height_diagnostic)
+         if self._capture_continuation:
+             result["capture_continuation"] = dict(self._capture_continuation_diagnostic)
++        if self._p05_preedge_recovery:
++            result["p05_preedge_approach_recovery"] = dict(self._p05_preedge_diagnostic)
+         if self._all_stage_acceptance:
+             result["capture_owner_hold"] = {
+                 "schema": "wlr50_clean.nominal_capture_owner_hold.v1",
+@@
+                 proposed[8:]=self._approach_wheel_prior
+         return tuple(proposed),tuple(name for name in SERVO_ORDER if name in tracking)
+ 
++    def _p05_preedge_recovery_status(self, task: Mapping[str, Any], *,
++            prior_source_endpoint_issued: bool, prior_observation_tick: Any) -> dict[str, Any]:
++        """Finite P05-only wheel advice, not a capture/handoff or residual gate.
++
++        The prior endpoint plus a subsequent physical tick uses the backend's
++        established one-write/one-step order. This is NOT an independent ACK
++        verification. No recovery latch or renewed clock is introduced.
++        """
++        ev = task.get("physical_evaluator", {})
++        legs = ev.get("current_legs", {})
++        fl = legs.get("FL", {})
++        history = ev.get("history", {})
++        tick, now = ev.get("physics_tick"), ev.get("simulation_time_s")
++        age = task.get("stage_elapsed_s")
++        start = self.spec["stages"]["P05"]["maximum_task_duration"]
++        end = start + self.spec["local_timeout_policy"]["maximum_extension_s"]
++        finite = lambda value: type(value) in (int, float) and math.isfinite(value)
++        gap, distance = fl.get("clearance_m"), fl.get("front_distance_m")
++        geometry = self.spec["geometry"]
++        supports = tuple(leg for leg in LEG_ORDER if leg != "FL"
++            and legs.get(leg, {}).get("support") is True
++            and legs[leg].get("bearing_verified") is True and legs[leg].get("air") is False
++            and (legs[leg].get("ground_contact") is True or legs[leg].get("top_surface_contact") is True))
++        fresh = tuple({"stage": layer["stage"], "source_tick": layer["sample"].tick_index,
++                       "channels": tuple(name for name in group.channels if name in WHEEL_ORDER)}
++            for layer in self._continuous_layers if layer.get("advanced_this_tick", True)
++            and layer.get("sample") is not None for group in layer["sample"].atomic_groups
++            if set(group.channels).intersection(WHEEL_ORDER))
++        consecutive = bool(type(tick) is int and tick >= 0 and type(prior_observation_tick) is int
++            and tick == prior_observation_tick + 1 and finite(now)
++            and math.isclose(now, tick/self.physics_hz, rel_tol=0., abs_tol=1e-9))
++        checks = {
++            "P05_only": task.get("stage_id") == "P05",
++            "absolute_stage_age_window": finite(age) and start <= age < end,
++            "valid_no_abort": ev.get("valid") is True and ev.get("termination_reason") is None
++                and task.get("termination_reason") is None
++                and ev.get("physical_evidence_status") in ("VERIFIED", "CONTACT_BEARING_UNVERIFIED"),
++            "prior_qualified_FL_lift": history.get("active_lift", {}).get("FL") is True,
++            "FR_placement_history": history.get("placed", {}).get("FR") is True,
++            "not_crossed_or_placed_FL": history.get("front_edge_crossed", {}).get("FL") is False
++                and history.get("placed", {}).get("FL") is False,
++            "current_FL_AIR_no_contact": fl.get("air") is True and fl.get("ground_contact") is False
++                and fl.get("obstacle_pair_active") is False and fl.get("top_surface_contact") is False,
++            "positive_conservative_top_gap": finite(gap) and gap > 0.,
++            "current_lateral_valid": fl.get("within_lateral_span") is True,
++            "bounded_preedge_distance": finite(distance)
++                and -geometry["approach_max_m"] <= distance <= geometry["xy_measurement_tolerance_m"],
++            "verified_other_supports": len(supports) >= self.spec["support"]["minimum_other_supports"],
++            "source_endpoint_issued_then_subsequent_tick": prior_source_endpoint_issued is True
++                and self.endpoint_issued is True and consecutive,
++            "fresh_source_wheel_owner_absent": not fresh,
++        }
++        return {"mode": P05_PREEDGE_RECOVERY_MODE, "eligible": all(checks.values()), "checks": checks,
++            "reasons": tuple(key for key, passed in checks.items() if not passed),
++            "source_observation_tick": tick, "prior_source_observation_tick": prior_observation_tick,
++            "stage_elapsed_s": age, "absolute_window_s": (start, end), "window_end_exclusive": True,
++            "source_endpoint_issued": self.endpoint_issued,
++            "prior_source_endpoint_issued": prior_source_endpoint_issued,
++            "source_elapsed_s": self.elapsed_s, "source_tick_consecutive": consecutive,
++            "endpoint_evidence": "issued_source_endpoint_then_one_write_one_step_subsequent_tick",
++            "independent_ack_verified": False, "fresh_source_wheel_owners": fresh,
++            "current_FL_gap_m": gap, "current_FL_front_distance_m": distance,
++            "observed_other_support_contacts": supports, "wheel_prior_rad_s": self._approach_wheel_prior,
++            "timing": "nominal_suggestion_before_mapper_residual_and_actuator_dispatch",
++            "actor_observability": "current_nominal_recovery_advice_encoded_source_internals_and_full_contact_classes_not_individually_encoded",
++            "recovery_clock_reset_or_latch": False, "policy_residual_restricted": False,
++            "phase_or_capture_credit_awarded": False}
++
+     def _approach_assist_required(self, task: Mapping[str,Any]) -> bool:
+         evaluation=task.get("physical_evaluator")
+         if (task.get("termination_reason") is not None or not isinstance(evaluation,Mapping)
+@@
+ 
+     def evaluate(self, stage: str | Mapping[str,Any], observation: Any=None) -> tuple[float,...]:
+         stage_id=stage if isinstance(stage,str) else str(stage["stage_id"])
++        prior_endpoint = bool(self.state_id == "P05" and self.endpoint_issued)
++        prior_tick = self._capture_continuation_diagnostic.get("source_observation_tick")
+         # Validate before any layer/source clock, ownership or nominal mutation.
+         retirement=self._retirement_measurement(stage,observation) if isinstance(stage,Mapping) else None
+         capture=self._capture_hold_measurement(stage,observation) if isinstance(stage,Mapping) else None
+@@
+                             for layer in self._continuous_layers if layer.get("advanced_this_tick", True)
+                             and layer["sample"] is not None for group in layer["sample"].atomic_groups)):
+                     proposed = proposed[:8]+self._approach_wheel_prior
++        if self._p05_preedge_recovery and isinstance(stage, Mapping):
++            self._p05_preedge_diagnostic = self._p05_preedge_recovery_status(stage,
++                prior_source_endpoint_issued=prior_endpoint, prior_observation_tick=prior_tick)
++            if self._p05_preedge_diagnostic["eligible"]:
++                proposed = proposed[:8]+self._approach_wheel_prior
+         if stage_id=="P13" and self.endpoint_issued and not final_stop:
+             proposed=tuple(self.spec["final"]["home_servo_pose_deg"])+(0.,)*4
+         if final_stop:
+*** Update File: configs/ppo_p05_hip_only_continuation_v1/stage_task_spec.yaml
+@@
+     recovery_rate_deg_s: 15.0
+   sequence_semantics: source_partial_order_physical_ready_v1
+   p05_pending_capture: current_FL_capture_wheel_continuation_to_handoff_v2
++  p05_preedge_approach_recovery: p05_preedge_approach_recovery_v1
+   continuous_channel_inheritance: true
+   # Retire only P06's rolling contribution inside the existing workspace margin.
+   p06_rolling_retirement: measured_workspace_interior_peak
+*** Add File: tests/unit/test_semantic_p05_preedge_recovery.py
++"""Finite P05 nominal recovery: synthetic CPU wiring, never physical success."""
++from copy import deepcopy
++from dataclasses import replace
++import math
++from pathlib import Path
++
++import pytest
++
++from wlr50_clean.fsm import state_spec
++from wlr50_clean.fsm.state_spec import load_fsm_spec
++from wlr50_clean.infrastructure.command_batch import WHEEL_ORDER
++from wlr50_clean.ppo.semantic_supervisor import (
++    LEG_ORDER, NominalMotionProvider, P05_PREEDGE_RECOVERY_MODE,
++    _capture_continuation_status, _p05_preedge_recovery_enabled, load_task_spec,
++)
++from wlr50_clean.reference.motion_contract import load_motion_contract
++
++ROOT = Path(state_spec.__file__).resolve().parents[3]
++CFG = ROOT / "configs/ppo_p05_hip_only_continuation_v1/stage_task_spec.yaml"
++KEY = "p05_preedge_approach_recovery"
++ROLL = (.3,) * 4
++
++
++def configured(enabled):
++    spec = load_task_spec(CFG)
++    spec["nominal"].pop(KEY, None)
++    if enabled:
++        spec["nominal"][KEY] = P05_PREEDGE_RECOVERY_MODE
++    return spec
++
++
++def task(tick=3600, age=30.):
++    legs = {leg: dict(support=True, bearing_verified=True, air=False,
++        ground_contact=True, top_surface_contact=False, top_contact=False,
++        obstacle_pair_active=False, within_top_xy=False, within_lateral_span=True,
++        clearance_m=.0077, front_distance_m=-.034) for leg in LEG_ORDER}
++    legs["FL"].update(support=False, air=True, ground_contact=False)
++    legs["FR"].update(ground_contact=False, top_surface_contact=True,
++                      top_contact=True, obstacle_pair_active=True, within_top_xy=True)
++    ev = dict(valid=True, physics_tick=tick, simulation_time_s=tick/120.,
++        termination_reason=None, physical_evidence_status="VERIFIED", current_legs=legs,
++        history=dict(placed={leg: leg == "FR" for leg in LEG_ORDER},
++            active_lift={leg: leg in ("FR", "FL") for leg in LEG_ORDER},
++            front_edge_crossed={leg: leg == "FR" for leg in LEG_ORDER}))
++    return dict(stage_id="P05", stage_elapsed_s=age, physical_evaluator=ev,
++        termination_reason=None, transfer_roles={}, fl_capture_pending=False,
++        allow_capture_continuation=False,
++        p05_local_deadline_warning=type(age) in (int, float) and age >= 30.)
++
++
++@pytest.fixture(scope="module")
++def mature():
++    contract = load_motion_contract(ROOT / "configs/recording_motion_contract.json")
++    fsm = load_fsm_spec(ROOT / "configs/fsm_states.yaml")
++    provider = NominalMotionProvider(contract, spec=configured(True), fsm_spec=fsm)
++    last_stop = None
++    for tick in range(3600):
++        command = provider.evaluate(task(tick, tick/120.))
++        sample = provider._continuous_layers[-1]["sample"]
++        if sample.atomic_groups and sample.full12[8:] == (0.,)*4:
++            if any(set(group.channels).intersection(WHEEL_ORDER) for group in sample.atomic_groups):
++                last_stop = sample
++    assert provider.endpoint_issued and command[8:] == (0.,)*4 and last_stop is not None
++    return provider, last_stop
++
++
++def status(provider, value=None, *, previous_tick=3599, previous_endpoint=True):
++    return provider._p05_preedge_recovery_status(task() if value is None else value,
++        prior_source_endpoint_issued=previous_endpoint, prior_observation_tick=previous_tick)
++
++
++def clone(provider):
++    # The immutable parsed source contains mappingproxy guards.
++    return deepcopy(provider, {id(provider.contract): provider.contract,
++        id(provider._reference_fsm_spec): provider._reference_fsm_spec})
++
++
++def test_opt_in_is_explicit_and_old_mode_default_off():
++    assert not _p05_preedge_recovery_enabled(configured(False))
++    assert _p05_preedge_recovery_enabled(configured(True))
++    value = configured(True)
++    value["nominal"][KEY] = "unknown"
++    with pytest.raises(ValueError):
++        _p05_preedge_recovery_enabled(value)
++    value = configured(True)
++    value.pop("capture_continuation_semantics")
++    with pytest.raises(ValueError):
++        _p05_preedge_recovery_enabled(value)
++
++
++@pytest.mark.parametrize("phase", [f"P{i:02}" for i in range(1, 14)])
++def test_only_p05(mature, phase):
++    provider, _ = mature
++    value = task(); value["stage_id"] = phase
++    assert status(provider, value)["eligible"] is (phase == "P05")
++
++
++@pytest.mark.parametrize("age,eligible", [(29.999, False), (30., True),
++    (39.999, True), (40., False), (100., False), (math.nan, False), (True, False), (None, False)])
++def test_absolute_window_never_renews(mature, age, eligible):
++    provider, _ = mature
++    assert status(provider, task(age=age))["eligible"] is eligible
++
++
++@pytest.mark.parametrize("key,value", [
++    ("clearance_m", 0.), ("clearance_m", -.001), ("clearance_m", math.nan),
++    ("clearance_m", None), ("clearance_m", True), ("front_distance_m", -.10001),
++    ("front_distance_m", .00501), ("front_distance_m", math.nan),
++    ("within_lateral_span", False), ("air", False), ("ground_contact", True),
++    ("top_surface_contact", True), ("obstacle_pair_active", True)])
++def test_current_geometry_or_contact_rejects(mature, key, value):
++    provider, _ = mature
++    item = task(); item["physical_evaluator"]["current_legs"]["FL"][key] = value
++    assert not status(provider, item)["eligible"]
++
++
++@pytest.mark.parametrize("distance", [-.1, -.005, 0., .005])
++def test_preedge_boundaries_have_no_minus5mm_dead_zone(mature, distance):
++    provider, _ = mature
++    item = task(); item["physical_evaluator"]["current_legs"]["FL"]["front_distance_m"] = distance
++    assert status(provider, item)["eligible"]
++
++
++@pytest.mark.parametrize("field,leg,value", [("active_lift", "FL", False),
++    ("placed", "FR", False), ("placed", "FL", True), ("front_edge_crossed", "FL", True)])
++def test_history_is_not_fabricated(mature, field, leg, value):
++    provider, _ = mature
++    item = task(); item["physical_evaluator"]["history"][field][leg] = value
++    assert not status(provider, item)["eligible"]
++
++
++@pytest.mark.parametrize("fault", ["one_support", "unverified", "airborne_support",
++    "invalid", "task_abort", "eval_abort", "unverified_evidence", "missing_FL"])
++def test_safety_support_and_missing_evidence(mature, fault):
++    provider, _ = mature
++    item = task(); ev = item["physical_evaluator"]
++    if fault == "one_support":
++        for leg in ("RL", "RR"): ev["current_legs"][leg]["support"] = False
++    elif fault in ("unverified", "airborne_support"):
++        for leg in ("RL", "RR"):
++            ev["current_legs"][leg]["bearing_verified" if fault == "unverified" else "air"] = fault != "unverified"
++    elif fault == "invalid": ev["valid"] = False
++    elif fault == "task_abort": item["termination_reason"] = "TASK_FAILURE_BODY_COLLISION"
++    elif fault == "eval_abort": ev["termination_reason"] = "TASK_FAILURE_BODY_COLLISION"
++    elif fault == "unverified_evidence": ev["physical_evidence_status"] = "UNVERIFIED"
++    else: ev["current_legs"].pop("FL")
++    assert not status(provider, item)["eligible"]
++
++
++@pytest.mark.parametrize("previous_tick", [None, True, 3600, 3601, 3598])
++def test_missing_nonincreasing_or_skipped_tick_is_not_endpoint_evidence(mature, previous_tick):
++    provider, _ = mature
++    assert not status(provider, previous_tick=previous_tick)["eligible"]
++
++
++def test_endpoint_needs_prior_issue_and_explicitly_is_not_ack_verification(mature):
++    provider, _ = mature
++    assert not status(provider, previous_endpoint=False)["eligible"]
++    value = clone(provider); value.endpoint_issued = False
++    assert not status(value)["eligible"]
++    info = status(provider)
++    assert info["eligible"] and not info["independent_ack_verified"]
++    assert info["absolute_window_s"] == (30., 40.) and info["source_tick_consecutive"]
++
++
++def test_nominal_intercept_changes_only_wheels_no_phase_or_source_replay(mature):
++    enabled = clone(mature[0]); disabled = clone(enabled)
++    disabled._p05_preedge_recovery = False
++    item = task(); original = deepcopy(item)
++    expected, actual = disabled.evaluate(deepcopy(item)), enabled.evaluate(item)
++    assert actual[:8] == expected[:8] and actual[8:] == ROLL and expected[8:] == (0.,)*4
++    assert enabled.tracking_servo_names == disabled.tracking_servo_names
++    assert enabled.normal_drive_bias_full12 == disabled.normal_drive_bias_full12
++    assert item == original and enabled.state_id == "P05"
++    assert [layer["stage"] for layer in enabled._continuous_layers] == ["P05"]
++    assert enabled._source_motion._tick_index == disabled._source_motion._tick_index
++    assert enabled._continuous_layers[-1]["sample"] == disabled._continuous_layers[-1]["sample"]
++    assert not _capture_continuation_status(enabled.spec, item["physical_evaluator"], "P05")["allow_capture_continuation"]
++    info = enabled.nominal_suggestion_diagnostics[KEY]
++    assert info["eligible"] and not info["policy_residual_restricted"]
++    assert not info["phase_or_capture_credit_awarded"] and not info["recovery_clock_reset_or_latch"]
++
++
++def test_fresh_authored_stop_wins_at_interception(mature, monkeypatch):
++    provider, authored_stop = clone(mature[0]), mature[1]
++    original = provider._continuous_advisory
++    def with_stop(*args, **kwargs):
++        proposed, tracking = original(*args, **kwargs)
++        layer = provider._continuous_layers[-1]
++        layer["sample"] = replace(layer["sample"], atomic_groups=authored_stop.atomic_groups)
++        return proposed[:8] + (0.,)*4, tracking
++    monkeypatch.setattr(provider, "_continuous_advisory", with_stop)
++    assert provider.evaluate(task())[8:] == (0.,)*4
++    info = provider.nominal_suggestion_diagnostics[KEY]
++    assert not info["eligible"] and info["fresh_source_wheel_owners"]
++    assert "fresh_source_wheel_owner_absent" in info["reasons"]
++
++
++def test_loss_and_expiry_remove_advice_without_renewal(mature):
++    provider = clone(mature[0])
++    assert provider.evaluate(task())[8:] == ROLL
++    value = task(3601, 30. + 1/120.)
++    value["physical_evaluator"]["current_legs"]["FL"]["clearance_m"] = 0.
++    assert provider.evaluate(value)[8:] == (0.,)*4
++    assert provider.evaluate(task(3602, 30. + 2/120.))[8:] == ROLL
++    assert provider.evaluate(task(3603, 40.))[8:] == (0.,)*4
++    assert provider.evaluate(task(3604, 40. + 1/120.))[8:] == (0.,)*4
++    assert provider._continuous_layers[-1]["ticks"] == 3605
++
++
++def test_postcross_existing_capture_branch_remains_separate(mature):
++    enabled = clone(mature[0]); disabled = clone(enabled)
++    disabled._p05_preedge_recovery = False
++    value = task()
++    value["physical_evaluator"]["history"]["front_edge_crossed"]["FL"] = True
++    value["physical_evaluator"]["current_legs"]["FL"]["within_top_xy"] = True
++    value["transfer_roles"] = {"FL": {"pending_capture": True, "observed_support_contacts": ("FR", "RL", "RR")}}
++    assert enabled.evaluate(deepcopy(value)) == disabled.evaluate(deepcopy(value))
++    assert not enabled.nominal_suggestion_diagnostics[KEY]["eligible"]
+*** End Patch

@@ -1,0 +1,21 @@
+# Finite front rehearsal: preparation and actual AUX status
+
+All files are output-only helpers. Production/runtime/config changes: zero. During helper preparation, real AUX updates and new real PPO credit were zero, and no Isaac/GPU process was launched by the preparation worker. This is a historical preparation statement, not the current total: root subsequently executed the explicitly reviewed CUDA fit, accepting32/32 AUX steps with PPO+0. See `actual_aux_audit.md` for the independent audit of the resulting real checkpoint.
+
+`reviewed_data.py` binds the fixed block03 first-episode source, exact 389 float32 inputs, original raw actions/means/std/logp, actual native masks/owners, and later legal FR TOP bearing capture. Train indices are `[0,1]+range(2,280,3)` (95); validation `range(3,280,3)` (93); 13 real invariance states cover P03–P06 only. All unselected source rows and later episode failures remain in the immutable source. These are local successful-front-segment labels, not whole-episode success. Raw samples are the targets; stored means are not claimed to be executed successful actions.
+
+The current/old RR potential is re-evaluated on 464 adjacent real endpoint evaluators and exactly agrees with each stored index17. Reset0 has no persisted complete evaluator: its saved Phi and exact zero RR history prove the new branch impossible, without inventing reset geometry. The existing 5fd migration plan is revalidated and bound explicitly.
+
+`rehearsal_cli.py` defaults to CPU actor-only inspection. `CP209920_readonly_final.json` is the final same-source/helper/data binding. Candidate01 is retained but is stale after reviewed helper improvements and must not authorize execution.
+
+Final CPU inspection: train raw MSE 0.00171492, validation MSE 0.00142230; selected true-chain gradient norm 5.77467e-5. FR-knee REQUEST mean absolute error is 0.84349° / 0.93608° on train/validation. These are saved-state errors, not a prediction of restored physical task success. The gradient retains the actual HISTORY factor .1.
+
+The reviewed budget file is `budget_root_reviewed_32x500.json`: at most32 attempts, independent SGD LR500, cumulative original-model REQUEST change ≤3° per joint / .15rad/s per wheel, per-state full Gaussian KL in both directions ≤.5, and |Δlogσ|≤.25. No budget was executed during preparation; root later ran exactly this budget once. The conditional first-order response was not a finite-step guarantee.
+
+If root explicitly executes later, the CLI requires `--execute-aux`, the matching final inspection receipt, explicit budget, and a unique `checkpoint_aux_frontrehearsal_*.pt`. It uses the original saved device (CUDA:0 for this real source), exact full-state load, empty rollout, no PPO Adam step, official save and independent freshly constructed official reload. It never publishes a latest pointer. Zero accepted updates saves no learned checkpoint.
+
+New auxiliary lineage is separate at `rr_postcross_workspace_branch.front_rehearsal_auxiliary`, schema `wlr50_clean.front_rehearsal_auxiliary.v1`. Every original branch key, original origin, old7/8 AUX ledger and immutable migration record remains unchanged. The new event truthfully permits P01/P02 mean AND log-sigma changes and uses actual raw targets, not actuator targets or Gaussian PPO samples. Normal training already carries the complete RR branch.
+
+Final tests: **40 CPU tests passed together** (30 kernel +10 protocol), including negative source checks, exact-column restrictions, cumulative bidirectional KL, rollback, synthetic AUX save→independent load→128 synthetic PPO decisions→ordinary-save ledger carry. Those temporary fixture checkpoints and synthetic optimizer steps are not real training evidence. `git diff --check` passed. All CPU processes exited.
+
+The real AUX checkpoint is now `../checkpoints/history/checkpoint_aux_frontrehearsal_step_000209920_v1.pt` (SHA256 `3c45e7325210487431ebe8b5d1cbd92b480734e3d53829b04429869c4773e3e8`). Its independent CPU audit confirms exactly512 allowed actor weights changed; full critic/Adam/RNG/Identity, three origins and old7/8 AUX ledger were preserved. Natural P01 evaluation and the next genuine ordinary PPO save still require their own checks; same-input P03–P13 invariance does not imply unchanged later physical trajectories. Real P13 holdout coverage is not claimed.

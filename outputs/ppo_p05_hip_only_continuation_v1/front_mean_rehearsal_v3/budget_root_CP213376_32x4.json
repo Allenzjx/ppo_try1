@@ -1,0 +1,124 @@
+{
+  "schema": "wlr50_clean.finite_existing_mean_head_aux.v3.explicit_budget",
+  "binding": {
+    "source_checkpoint": {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_p05_hip_only_continuation_v1\\checkpoints\\history\\checkpoint_step_000213376.pt",
+      "sha256": "8e5961e3e78260f12124447bff72a7459b7323d2da8f83cc467a59ddc9290e54",
+      "manifest_sha256": "2aa922e5b160bba30a903dce7ff8be882074771de358e287e639727565b96e3d",
+      "actor_sha256": "256fba51f3c98bfdfec006cc940cae5ac6d80cde47b5dfd60ce4d30a265d6b78",
+      "PPO_counters": {
+        "global_policy_decisions": 213376,
+        "ppo_updates": 1632,
+        "optimizer_steps": 32640
+      },
+      "runtime_contract_sha256": "79eed3f2b862b752a2538a4f094ae197856d7a0ff914739cc0e84320d60694d7"
+    },
+    "helpers": {
+      "front_mean_rehearsal.py": "8a1f0967dcb0e13e6f7561b35e8f727e561c85ff469fcd3434f30c18b0fcc2be",
+      "fit_mean_core.py": "5a1ff1ea803f78e953e17b5d24d59419d61dd7fe4561dcaee785dd6f7503716b",
+      "execute_mean_rehearsal.py": "0d574dee80d75d01b4dd61144fa2272d19c2668c291e252384311cd91e887f7d",
+      "data_v3.py": "4e016816a06a3ff743883faab3309d1058a7c53bcc8495a9a36761908caddf59"
+    },
+    "data_manifest": {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_p05_hip_only_continuation_v1\\front_mean_rehearsal_v3\\data_manifest.json",
+      "sha256": "353e8f74e91dd657526e6961bf82aeab01858177d92bd0a47ea4a6eb4d01558e"
+    },
+    "data_receipt_sha256": "4ecb05c89b3271326f6c5b148471876343e829a6ca5432d206f412240ad1b460",
+    "objective": {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_p05_hip_only_continuation_v1\\front_mean_rehearsal_v3\\objective_root_phase_balanced.json",
+      "sha256": "91368e6a3e9a0e65291f77cdeba9356dd7f911c0f0a0416c3ea2e2078eab3cea",
+      "envelope": {
+        "schema": "wlr50_clean.finite_existing_mean_head_aux.v3.objective",
+        "objective": {
+          "phase_weights": {
+            "P01": 0.25,
+            "P02": 0.75
+          },
+          "protection_weight": 1,
+          "raw_channel_weights_full12": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    "expected_head": "5fd88852bf20c94cd74405c791a13a9fd9e0a3d8",
+    "inspection": {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_p05_hip_only_continuation_v1\\front_mean_rehearsal_v3\\CP213376_readonly_mean_head.json",
+      "sha256": "2cda8a768f855614e3fa15063b9ad865ef584d31f0749233a807b953e7a2ef33",
+      "schema": "wlr50_clean.finite_existing_mean_head_aux.v3.readonly"
+    }
+  },
+  "budget": {
+    "max_attempts": 32,
+    "learning_rate": 4,
+    "maximum_train_request_shift_full12": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      0.15,
+      0.15,
+      0.15,
+      0.15
+    ],
+    "maximum_validation_request_shift_full12": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      0.15,
+      0.15,
+      0.15,
+      0.15
+    ],
+    "maximum_protection_request_shift_full12": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0.03,
+      0.03,
+      0.03,
+      0.03
+    ],
+    "maximum_p01_probe_request_shift_full12": [
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      3,
+      0.15,
+      0.15,
+      0.15,
+      0.15
+    ],
+    "maximum_per_state_full_gaussian_kl": 1.5,
+    "maximum_protection_full_gaussian_kl": 0.5
+  }
+}

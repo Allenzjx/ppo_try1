@@ -1,0 +1,63 @@
+*** Begin Patch
+*** Update File: src/wlr50_clean/ppo/semantic_migration.py
+@@
+     supplied = json.loads(path.read_text(encoding="utf-8"))
++    if supplied.get("schema") == "wlr50_clean.rr_postcross_workspace_same389.v1":
++        from .semantic_rr_workspace_migration import validate_rr_workspace_migration
++        return validate_rr_workspace_migration(checkpoint,current_contract,path,project_root=project_root)
+     if supplied.get("schema") == "wlr50_clean.capture_feedback_semantics_same389.v1":
+*** Update File: src/wlr50_clean/ppo/semantic_training.py
+@@
+         infos = capture_feedback_branch_counts(infos)
++    if "rr_postcross_workspace_branch" in infos:
++        from .semantic_rr_workspace_migration import rr_workspace_branch_counts
++        infos = rr_workspace_branch_counts(infos)
+     assert_semantic_return_consistency(runner, runner.env)
+@@
+         capture_feedback_factor = (verified.get("capture_feedback_semantics_factor") or {}).get("observation_contract")
+-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor, receiving_factor, capture_feedback_factor)) > 1:
++        rr_workspace_factor = (verified.get("rr_postcross_workspace_factor") or {}).get("observation_contract")
++        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor, receiving_factor, capture_feedback_factor, rr_workspace_factor)) > 1:
+             raise RuntimeError("reviewed same-layout migration receipts must be exclusive")
+-        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor or receiving_factor or capture_feedback_factor
++        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor or receiving_factor or capture_feedback_factor or rr_workspace_factor
+@@
+             infos = record_loaded_capture_feedback(runner,infos,verified)
++        if verified.get("rr_postcross_workspace_factor") is not None:
++            from .semantic_rr_workspace_migration import record_loaded_rr_workspace
++            infos = record_loaded_rr_workspace(runner,infos,verified)
+         if receiving_wheel is not None:
+@@
+-                            "capture_feedback_semantics_migration", "capture_feedback_semantics_branch"):
++                            "capture_feedback_semantics_migration", "capture_feedback_semantics_branch",
++                            "rr_postcross_workspace_migration", "rr_postcross_workspace_branch"):
+*** Update File: src/wlr50_clean/ppo/semantic_capture_feedback_migration.py
+@@
+ def publish_capture_feedback_checkpoint(checkpoint,current_contract,plan_path,output_checkpoint):
+@@
+     The existing strict loader verifies the source state plus the new factor.
+     """
++    return _publish_same389_identity_checkpoint(checkpoint,current_contract,plan_path,output_checkpoint,
++        validate_migration=validate_capture_feedback_migration, preserved_keys=PRESERVED,
++        branch_count_keys=("p05_capture_assist_branch_counts","capture_feedback_semantics_branch_counts"))
++
++
++def _publish_same389_identity_checkpoint(checkpoint,current_contract,plan_path,output_checkpoint,*,
++                                        validate_migration,preserved_keys,branch_count_keys):
++    """Shared exact-state save/reload mechanics, not a generic migration validator.
++
++    Each caller supplies its own narrow immutable factor validator. No simulator,
++    optimizer or configuration changes; preserve original device/CUDA visibility.
++    """
+     from .semantic_p05_capture_migration import _ObservationOnlyEnv
+@@
+-    verified = validate_capture_feedback_migration(checkpoint,current_contract,plan_path)
++    verified = validate_migration(checkpoint,current_contract,plan_path)
+@@
+-                "normalizer_state_sha256","training_rng_state","runner_config",*PRESERVED):
++                "normalizer_state_sha256","training_rng_state","runner_config",*preserved_keys):
+@@
+-        "p05_capture_assist_branch_counts":loaded["p05_capture_assist_branch_counts"],
+-        "capture_feedback_semantics_branch_counts":loaded["capture_feedback_semantics_branch_counts"]}
++        **{key:loaded[key] for key in branch_count_keys}}
+*** End Patch

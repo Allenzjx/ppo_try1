@@ -1,0 +1,187 @@
+"""Synthetic CPU-only same389 control migration; no real training credit."""
+import ast
+from copy import deepcopy
+import inspect
+import json
+from pathlib import Path
+import subprocess
+
+import pytest
+import yaml
+
+from test_semantic_rr_workspace_migration import boundary as prior_boundary
+from wlr50_clean.ppo import semantic_p05_preedge_migration as m
+
+
+def boundary():
+    from wlr50_clean.ppo import semantic_rr_workspace_migration as rr
+    meta,old,_,_,source,_=prior_boundary()
+    old['files'].update({rr.MODULE:'7'*64,'src/wlr50_clean/ppo/semantic_migration.py':'1'*64,
+                        'src/wlr50_clean/ppo/semantic_training.py':'2'*64})
+    new=deepcopy(old);new['source_git_commit']='f'*40;new['runtime_content_sha256']='f'*64
+    new['files'].update({m.SUPERVISOR:'d'*64,m.TASK_SPEC:'e'*64,m.MODULE:'f'*64,
+        'src/wlr50_clean/ppo/semantic_migration.py':'3'*64,'src/wlr50_clean/ppo/semantic_training.py':'4'*64})
+    new['selected_configuration']['stage_task_spec.yaml']['sha256']='e'*64
+    meta['runtime_contract']=old
+    source['rr_postcross_workspace_semantics']=rr.MODE_V2
+    source['nominal']={'existing_unchanged_schedule':'preserve'}
+    target=deepcopy(source);target['nominal'][m.MODE_KEY]=m.MODE
+    meta['rr_postcross_workspace_branch']={'schema':rr.SCHEMA,'semantics':rr.MODE,
+        'counter_origin':dict(global_policy_decisions=207872,ppo_updates=1589,optimizer_steps=31780),
+        'front_rehearsal_auxiliary':{'schema':'wlr50_clean.front_rehearsal_auxiliary.v1',
+            'accepted_auxiliary_updates_total':103,'attempted_auxiliary_optimizer_steps_total':104,
+            'events':[{'event_index':i+1,'fit_report':{'accepted_auxiliary_updates':a,'attempted_auxiliary_optimizer_steps':b},
+                'opaque_preserve_this':{'value':i}} for i,(a,b) in enumerate([(32,32),(32,32),(32,32),(7,8)])]}}
+    meta['rr_postcross_workspace_migration']={'schema':rr.SCHEMA,rr.FACTOR_KEY:{'target_semantics':rr.MODE}}
+    meta[rr.V2_BRANCH]={'schema':rr.SCHEMA_V2,'semantics':rr.MODE_V2,
+        'counter_origin':dict(global_policy_decisions=214400,ppo_updates=1640,optimizer_steps=32800)}
+    meta[rr.V2_MIGRATION]={'schema':rr.SCHEMA_V2,rr.FACTOR_KEY:{'target_semantics':rr.MODE_V2}}
+    meta['resume_migration']=deepcopy(meta[rr.V2_MIGRATION])
+    for name in m.PRIOR_BRANCHES:
+        meta[name+'_branch_counts']={k:meta[k]-v for k,v in meta[name+'_branch']['counter_origin'].items()}
+    reviewed={p:s for p,s in new['files'].items() if old['files'].get(p)!=s}
+    return meta,old,new,reviewed,source,target
+
+
+def factor(v):
+    meta,old,new,review,s,t=v
+    return m.p05_preedge_factor(meta,old,new,reason='synthetic explicit P05 control change',
+        reviewed_code_sha256=review,source_task_spec=s,target_task_spec=t)
+
+
+def test_control_factor_preserves_all_four_origins_and_full_AUX_objects():
+    from wlr50_clean.ppo.semantic_migration import digest
+    values=boundary();before=deepcopy(values[0]);f=factor(values)
+    assert values[0]==before and f['schema']==m.SCHEMA and f['counter_origin']=={k:before[k] for k in m.COUNTERS}
+    assert f['controller_transition_semantics_changed'] and f['nominal_changed'] and not f['same_mdp_claimed']
+    assert f['observation_contract']['observation_dimension']==389 and f['observation_semantics_changed']==[]
+    for key in ('reward_changed','physical_dynamics_changed','policy_kernel_changed','capture_assist_changed',
+                'caps_changed','sigma_changed','physical_task_acceptance_rules_changed','added_mutable_state'):
+        assert f[key] is False
+    assert f['affected_control_phases']==['P05'] and f['discard_old_rollout_storage']
+    assert f['source_resume_migration']==before['resume_migration']
+    assert all(f['preserved_metadata_sha256'][k]==digest(before[k]) for k in m.preserved_keys(before))
+    # A later source may carry additional opaque AUX events; do not truncate it.
+    before['rr_postcross_workspace_branch']['front_rehearsal_auxiliary']['events'].append({'opaque_fifth':True})
+    values=(before,*values[1:]);assert factor(values)['preserved_metadata_sha256']['rr_postcross_workspace_branch']==digest(before['rr_postcross_workspace_branch'])
+
+
+@pytest.mark.parametrize('bad',['repeat_branch','repeat_migration','repeat_counts','source_optin','target_mode','task_duration',
+    'reward_config','execution_config','extra_file','deleted_file','existing_module','missing_review','sigma_profile',
+    'missing_origin','wrong_count','negative_origin','not_v2','no_four_events','missing_old_aux','counter','LR','runtime_rate'])
+def test_strict_unrelated_or_repeated_change_rejected(bad):
+    v=boundary();meta,old,new,review,s,t=v
+    if bad=='repeat_branch':meta[m.BRANCH]={}
+    elif bad=='repeat_migration':meta[m.MIGRATION]={}
+    elif bad=='repeat_counts':meta[m.COUNTS]={}
+    elif bad=='source_optin':s['nominal'][m.MODE_KEY]=m.MODE
+    elif bad=='target_mode':t['nominal'][m.MODE_KEY]='unknown'
+    elif bad=='task_duration':t['episode_maximum_duration_s']+=1
+    elif bad in ('reward_config','execution_config'):
+        name='reward_config.yaml' if bad=='reward_config' else 'execution_profile.yaml'
+        path=new['selected_configuration'][name]['path'];new['files'][path]='8'*64
+        new['selected_configuration'][name]['sha256']='8'*64;review[path]='8'*64
+    elif bad=='extra_file':new['files']['src/wlr50_clean/ppo/semantic_backend.py']='8'*64;review['src/wlr50_clean/ppo/semantic_backend.py']='8'*64
+    elif bad=='deleted_file':new['files'].pop('src/wlr50_clean/ppo/semantic_rr_workspace_migration.py')
+    elif bad=='existing_module':old['files'][m.MODULE]='8'*64
+    elif bad=='missing_review':review.pop(m.SUPERVISOR)
+    elif bad=='sigma_profile':meta['policy_contract']['rho']=.8
+    elif bad=='missing_origin':meta.pop('rr_receiver_retirement_v2_branch')
+    elif bad=='wrong_count':meta['rr_receiver_retirement_v2_branch_counts']['ppo_updates']+=1
+    elif bad=='negative_origin':meta['p05_capture_assist_branch']['counter_origin']['ppo_updates']=-1
+    elif bad=='not_v2':s['rr_postcross_workspace_semantics']='old';t['rr_postcross_workspace_semantics']='old'
+    elif bad=='no_four_events':meta['rr_postcross_workspace_branch']['front_rehearsal_auxiliary']['events'].pop()
+    elif bad=='missing_old_aux':meta['task_conditioned_hip_wheel_branch'].pop('auxiliary_mean_learning')
+    elif bad=='counter':meta['global_policy_decisions']=-1
+    elif bad=='LR':meta['optimizer_learning_rate']=0
+    elif bad=='runtime_rate':new['physics_hz']=240
+    with pytest.raises(ValueError):factor(v)
+
+
+def test_branch_counts_are_source_relative_not_filename_bound():
+    v=boundary();meta=v[0];f=factor(v)
+    value={**meta,m.BRANCH:{'counter_origin':f['counter_origin']}}
+    assert m.p05_preedge_branch_counts(value)[m.COUNTS]==dict.fromkeys(m.COUNTERS,0)
+    value.update(global_policy_decisions=300128,ppo_updates=2001,optimizer_steps=40020)
+    assert m.p05_preedge_branch_counts(value)[m.COUNTS]==dict(global_policy_decisions=128,ppo_updates=1,optimizer_steps=20)
+    value['ppo_updates']=1999
+    with pytest.raises(RuntimeError):m.p05_preedge_branch_counts(value)
+
+
+def write(path,text):
+    path.parent.mkdir(parents=True,exist_ok=True);path.write_text(text,encoding='utf-8',newline='\n')
+
+
+def git(root,*args):
+    return subprocess.run(['git','-C',str(root),*args],check=True,capture_output=True,text=True).stdout.strip()
+
+
+def fixture_repo(tmp_path,metadata):
+    from wlr50_clean.ppo import semantic_migration as shared
+    _,old,new,_,source,target=boundary();root=tmp_path/'synthetic_git';root.mkdir()
+    git(root,'init');git(root,'config','user.email','unit-test@example.invalid');git(root,'config','user.name','Synthetic test');git(root,'config','core.autocrlf','false')
+    paths=set(old['files'])
+    for path in paths:write(root/path,yaml.safe_dump(source) if path==m.TASK_SPEC else 'unchanged: true\n' if path.endswith('.yaml') else '# synthetic old code\n')
+    git(root,'add','.');git(root,'commit','-m','synthetic old')
+    def contract(template):
+        result=deepcopy(template);result['files']={p:shared.file_sha(root/p) for p in paths}
+        result['runtime_content_sha256']=shared.digest(result['files']);result['source_git_commit']=git(root,'rev-parse','HEAD')
+        for b in result['selected_configuration'].values():b['sha256']=result['files'][b['path']]
+        return result
+    old=contract(old);paths.add(m.MODULE)
+    for path in m.ALLOWED_FILES:
+        write(root/path,yaml.safe_dump(target) if path==m.TASK_SPEC else '# synthetic new code\n')
+    git(root,'add','.');git(root,'commit','-m','synthetic new');new=contract(new)
+    metadata['runtime_contract']=old
+    return root,old,new
+
+
+def test_generic_loader_official_publish_fresh_reload_and_normal_save_carry(tmp_path,monkeypatch):
+    torch=pytest.importorskip('torch')
+    from wlr50_clean.ppo import semantic_training as training,semantic_migration as shared
+    from wlr50_clean.ppo.semantic_p05_capture_migration import _ObservationOnlyEnv
+    assert not torch.cuda.is_available(),'CPU-only synthetic publication test'
+    def make():
+        return training.construct_semantic_runner(_ObservationOnlyEnv(389),seed=1001,device='cpu',policy_version=m.P05_CAPTURE_POLICY,
+            observation_layout=m.P05_CAPTURE_OBSERVATION_LAYOUT,initialize_actor=False)[0]
+    runner=make()
+    for group in runner.alg.optimizer.param_groups:
+        group['lr']=2.25e-5
+        for p in group['params']:runner.alg.optimizer.state[p]={'step':torch.tensor(9.),'exp_avg':torch.full_like(p,.001),'exp_avg_sq':torch.full_like(p,.002)}
+    runner.alg.learning_rate=2.25e-5
+    metadata=boundary()[0];root,old,new=fixture_repo(tmp_path,metadata)
+    source,_=training.save_semantic_checkpoint(runner,tmp_path/'synthetic_source.pt',metadata)
+    source_meta=shared.checkpoint_metadata(source)
+    review={p:s for p,s in new['files'].items() if old['files'].get(p)!=s}
+    plan=m.build_p05_preedge_migration(source,new,reason='synthetic exact control migration',reviewed_code_sha256=review,project_root=root)
+    path=tmp_path/'plan.json';write(path,json.dumps(plan))
+    original=shared.validate_migration_plan
+    monkeypatch.setattr(shared,'PROJECT_ROOT',root)
+    monkeypatch.setattr(shared,'validate_migration_plan',lambda c,contract,p,**kw:original(c,contract,p,project_root=root))
+    verified=shared.validate_migration_plan(source,new,path)
+    assert verified['schema']==m.SCHEMA
+    bad=deepcopy(plan);bad[m.FACTOR_KEY]['reward_changed']=True;badpath=tmp_path/'bad_plan.json';write(badpath,json.dumps(bad))
+    with pytest.raises(ValueError):shared.validate_migration_plan(source,new,badpath)
+    published=m.publish_p05_preedge_checkpoint(source,new,path,tmp_path/'synthetic_migrated.pt')
+    migrated=shared.checkpoint_metadata(Path(published['checkpoint']))
+    assert all(migrated[k]==source_meta[k] for k in m.preserved_keys(source_meta))
+    assert migrated[m.MIGRATION]==verified and migrated[m.BRANCH]['counter_origin']=={k:source_meta[k] for k in m.COUNTERS}
+    assert migrated[m.COUNTS]==dict.fromkeys(m.COUNTERS,0)
+    fresh=make();loaded=training.load_semantic_checkpoint(fresh,Path(published['checkpoint']),contract=new,seed=1001)
+    assert fresh.alg.storage.step==0 and fresh.alg.transition.actions is None
+    for key in ('actor_parameter_sha256','critic_parameter_sha256','optimizer_state_sha256','normalizer_state_sha256','training_rng_state','runner_config','optimizer_learning_rate'):
+        assert loaded[key]==source_meta[key]
+    # Inspect the actual patched/installed train save whitelist, not a separate
+    # test-only imitation, and exercise a real ordinary save afterward.
+    tree=ast.parse(inspect.getsource(training.train_semantic))
+    carry=[ast.literal_eval(n.iter) for n in ast.walk(tree) if isinstance(n,ast.For) and isinstance(n.iter,ast.Tuple)
+        and any(isinstance(x,ast.Constant) and x.value=='new_mdp_warm_start' for x in n.iter.elts)]
+    assert len(carry)==1 and {m.BRANCH,m.MIGRATION,'rr_receiver_retirement_v2_branch','rr_postcross_workspace_branch'}<=set(carry[0])
+    later={k:v for k,v in loaded.items() if not k.endswith(('_branch','_migration'))}
+    for key in carry[0]:
+        if key in loaded:later[key]=loaded[key]
+    later.update(global_policy_decisions=300128,ppo_updates=2001,optimizer_steps=40020)
+    cp,_=training.save_semantic_checkpoint(fresh,tmp_path/'synthetic_later.pt',later);later_meta=shared.checkpoint_metadata(cp)
+    assert later_meta[m.COUNTS]==dict(global_policy_decisions=128,ppo_updates=1,optimizer_steps=20)
+    for key in (m.BRANCH,m.MIGRATION,'rr_receiver_retirement_v2_branch','rr_receiver_retirement_v2_migration','rr_postcross_workspace_branch','task_conditioned_hip_wheel_branch'):
+        assert later_meta[key]==loaded[key]

@@ -1,0 +1,108 @@
+{
+  "schema": "wlr50_clean.p05_capture_historical_N_whole_window_descriptive_quality.v1",
+  "comparison_scope": "descriptive_whole_physical_window_only",
+  "metric_source": "semantic_video_source_manifest.json:physical_episode.quality_metrics.global",
+  "units": {
+    "roll_rms_rad": "rad",
+    "roll_peak_rad": "rad",
+    "pitch_rms_rad": "rad",
+    "pitch_peak_rad": "rad",
+    "roll_rate_rms_rad_s": "rad/s",
+    "pitch_rate_rms_rad_s": "rad/s",
+    "duration_s": "s"
+  },
+  "candidate_CP199680": {
+    "source_manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_p05_hip_only_continuation_v1\\video_eval\\validation\\20260922T0349194627694Z_g0001c3138b0b_608ca7ebf2074e70af33a21f8423fb00\\source\\semantic_video_source_manifest.json",
+    "source_manifest_sha256": "928888db61c3c40c9e723ee15eae18fdd49078ae2a62ba90303b6ae298666fa2",
+    "experiment_id": "p05_hip_only_continuation_v1",
+    "runtime_git_commit": "0001c3138b0b38a7278edc288b8ddc7444815770",
+    "role": "C",
+    "control_method": "PPO_PLUS_CAPTURE_ASSIST_WITH_INHERITED_LIMITED_AUX",
+    "policy_sampling_mode": "deterministic_conditional_mean",
+    "checkpoint_global_policy_decisions": 199680,
+    "checkpoint_is_migrated_warm_start": true,
+    "p05_added_ppo_updates": 0,
+    "real_task_result": "DIAGNOSTIC_FAILURE",
+    "physical_task_success": false,
+    "physical_evaluator_valid": true,
+    "physical_evaluator_run_validity": "VALID",
+    "whole_physical_window": {
+      "start": "natural_P01_episode_tick_1",
+      "endpoint_request_phase": "P09",
+      "physics_ticks": 8697,
+      "duration_s": 72.47499999999998
+    },
+    "metrics": {
+      "roll_rms_rad": 0.22940650931245446,
+      "roll_peak_rad": 0.3659854318589365,
+      "pitch_rms_rad": 0.22674453552672427,
+      "pitch_peak_rad": 0.3577752780312563,
+      "roll_rate_rms_rad_s": 0.07206873210935709,
+      "pitch_rate_rms_rad_s": 0.060015923885594666
+    },
+    "exact_terminal_evidence": {
+      "source": "last JSON row of sealed video_policy_decisions.jsonl",
+      "video_policy_decisions": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_p05_hip_only_continuation_v1\\video_eval\\validation\\20260922T0349194627694Z_g0001c3138b0b_608ca7ebf2074e70af33a21f8423fb00\\source\\video_policy_decisions.jsonl",
+      "video_policy_decisions_sha256": "b861c867fbc73adc8cdb18a9b017761d70a87cea604d7df18631f3946516c1a7",
+      "video_policy_decisions_bytes": 107568444,
+      "artifact_record_hash_and_size_verified": true,
+      "decision": 1088,
+      "request_phase": "P09",
+      "start_tick": 8696,
+      "end_tick": 8697,
+      "physics_ticks": 1,
+      "environment_step_returned": true,
+      "step_info_termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED"
+    },
+    "video_source_acceptance_error": "SemanticVideoError: episode did not meet common physical task"
+  },
+  "historical_N_ref": {
+    "source_manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\video_eval\\prior_B\\20260921T0701155546642Z_gee5a9651591d_64985c63292d4a9b966716c3a54659a1\\source\\semantic_video_source_manifest.json",
+    "source_manifest_sha256": "03549f2590759fe22c09ec83ec12282f17f06de722a15ece547873140a083a20",
+    "experiment_id": "task_conditioned_hip_wheel_v1",
+    "runtime_git_commit": "ee5a9651591d20bea48be8ceba075fa66594cb36",
+    "role": "B",
+    "control_method": null,
+    "control_method_description": "historical_N_ref_nominal_zero_residual",
+    "policy_sampling_mode": "nominal_without_learned_residual",
+    "real_task_result": "SUCCESS",
+    "physical_task_success": true,
+    "physical_evaluator_valid": true,
+    "physical_evaluator_run_validity": "VALID",
+    "whole_physical_window": {
+      "start": "natural_P01_episode_tick_1",
+      "endpoint": "successful_common_physical_task",
+      "physics_ticks": 8857,
+      "duration_s": 73.80833333333332
+    },
+    "metrics": {
+      "roll_rms_rad": 0.1190309979011186,
+      "roll_peak_rad": 0.24337851366511265,
+      "pitch_rms_rad": 0.08130831280442194,
+      "pitch_peak_rad": 0.19162604211523557,
+      "roll_rate_rms_rad_s": 0.06766358381355832,
+      "pitch_rate_rms_rad_s": 0.0653420192280765
+    }
+  },
+  "candidate_minus_historical_N_raw_differences": {
+    "roll_rms_rad": 0.11037551141133586,
+    "roll_peak_rad": 0.12260691819382386,
+    "pitch_rms_rad": 0.14543622272230233,
+    "pitch_peak_rad": 0.16614923591602074,
+    "roll_rate_rms_rad_s": 0.004405148295798772,
+    "pitch_rate_rms_rad_s": -0.0053260953424818375,
+    "duration_s": -1.3333333333333428
+  },
+  "interpretation_limits": {
+    "same_runtime_version": false,
+    "same_experiment_version": false,
+    "same_control_method": false,
+    "same_task_outcome": false,
+    "same_window_duration": false,
+    "event_aligned_window": false,
+    "causal_counterfactual": false,
+    "stability_improvement_claimed": false,
+    "policy_improvement_claimed": false,
+    "reason": "CP199680 is an incomplete P09 diagnostic from a migrated +0-update capture-assist warm start; historical N_ref is a successful older-version episode with a longer and different physical window. Raw whole-window values are descriptive only."
+  }
+}

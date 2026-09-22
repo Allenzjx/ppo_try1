@@ -1,0 +1,1016 @@
+{
+  "schema": "wlr50_clean.block09_first_episode_failure_readonly.v1",
+  "scope": "Only first 484 immutable learner records plus first completed-episode line; no replay, forward, fit, simulation or production edit.",
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_p05_hip_only_continuation_v1\\train\\20260922T1428131775302Z_g336b7c56d2f0_23b26a4c40a24a178d190def03381413",
+  "bounded_prefix_sha256": "b79fd05a1cbef66571adfc631855c022ecc0478844fa18f97bcbbeb29a7dc3f3",
+  "completed_episode_line_sha256": "448f8cfa9ea1cac530aff478ccec9c99bb7636a924b1e22ae5bbd1b8664ebfcc",
+  "episode": {
+    "episode_index": 0,
+    "seed": 1001,
+    "policy_decisions": 484,
+    "duration_s": 49.85,
+    "termination_reason": "BODY_COLLISION",
+    "task_success": false,
+    "full_task_success": false
+  },
+  "curriculum_start": {
+    "mode": "checkpoint_policy_initialized_suffix",
+    "requested_phase": "P04",
+    "actual_phase": "P04",
+    "physics_tick": 2112,
+    "sim_time_s": 17.6,
+    "from_P01_current_policy": false,
+    "requested_phase_still_active_at_credit": true,
+    "prefix_attempt_index": 0
+  },
+  "terminal_global_policy_decision": 214884,
+  "terminal_physics_tick": 5982,
+  "terminal_physics_ticks_in_decision": 6,
+  "adjudication": {
+    "valid": true,
+    "run_validity": "VALID",
+    "physical_evidence_status": "CONTACT_BEARING_UNVERIFIED",
+    "termination_reason": "TASK_FAILURE_BODY_COLLISION",
+    "termination_source": "BODY_CONTACT",
+    "reason": "central body/obstacle collision"
+  },
+  "exact_body_pair_contract": {
+    "sensor_prim": "/World/WLRRobot/base_link",
+    "other_prim": "/World/Obstacle",
+    "body_role": "BODY",
+    "criterion": "verified exact active pair AND (at least 2 active physics samples OR pose-aware AABB intersection depth >= 0.001 m)",
+    "observed_pair_force_n": null,
+    "observed_contact_point_w_m": null,
+    "observed_subcollider_path": null,
+    "observed_first_contact_tick": null,
+    "observed_detector_reason": null,
+    "observed_pair_streak": null,
+    "interpretation": "Failure is authoritative BODY_CONTACT, not the standalone reward geometry proxy. Raw detector fields and collider-child/contact-point identity are not persisted in these learner logs.",
+    "branch_inference": "Terminal current-pose AABB depth is below 1 mm; given the unchanged detector, persistence is the compatible branch. This is a code-plus-recorded-geometry inference, not a saved raw pair/streak measurement."
+  },
+  "first_positive_soft_geometry_deficit_in_recorded_learner_samples": {
+    "tick": 5482,
+    "sim_time_s": 45.68333333333333,
+    "phase": "P09",
+    "separation_lower_bound_m": 0.019636035171904972,
+    "raw_geometry_cost": 0.00033117599022560807,
+    "body_minimum_w_m": [
+      0.42557085228529345,
+      -0.35502914954534986,
+      0.06963603517190498
+    ],
+    "body_maximum_w_m": [
+      0.7510326941172272,
+      0.013074318122140577,
+      0.31217023881223804
+    ],
+    "obstacle_planes_world_m": [
+      0.5213121737735307,
+      2.5786877308590377,
+      1,
+      -1,
+      0,
+      0.05
+    ],
+    "aabb_intersection_depth_m": 0
+  },
+  "first_positive_soft_geometry_deficit_in_P09": {
+    "tick": 5482,
+    "sim_time_s": 45.68333333333333,
+    "phase": "P09",
+    "separation_lower_bound_m": 0.019636035171904972,
+    "raw_geometry_cost": 0.00033117599022560807,
+    "body_minimum_w_m": [
+      0.42557085228529345,
+      -0.35502914954534986,
+      0.06963603517190498
+    ],
+    "body_maximum_w_m": [
+      0.7510326941172272,
+      0.013074318122140577,
+      0.31217023881223804
+    ],
+    "obstacle_planes_world_m": [
+      0.5213121737735307,
+      2.5786877308590377,
+      1,
+      -1,
+      0,
+      0.05
+    ],
+    "aabb_intersection_depth_m": 0
+  },
+  "first_recorded_positive_AABB_intersection": {
+    "tick": 5982,
+    "sim_time_s": 49.85,
+    "phase": "P09",
+    "separation_lower_bound_m": 0,
+    "raw_geometry_cost": 1,
+    "body_minimum_w_m": [
+      0.47358214985674,
+      -0.3716908066860722,
+      0.04999793051631339
+    ],
+    "body_maximum_w_m": [
+      0.7795896505135596,
+      0.010459672879854956,
+      0.3096285941665162
+    ],
+    "obstacle_planes_world_m": [
+      0.5213121737735307,
+      2.5786877308590377,
+      1,
+      -1,
+      0,
+      0.05
+    ],
+    "aabb_intersection_depth_m": 0.0000020694836866119726
+  },
+  "terminal_six_physics_geometry": [
+    {
+      "tick": 5977,
+      "sim_time_s": 49.80833333333333,
+      "phase": "P09",
+      "separation_lower_bound_m": 0.0014906662289693035,
+      "raw_geometry_cost": 0.8564885916185435,
+      "body_minimum_w_m": [
+        0.471917250386922,
+        -0.37027988143613283,
+        0.051490666228969306
+      ],
+      "body_maximum_w_m": [
+        0.7796083175022469,
+        0.010739930329102705,
+        0.31006642337269397
+      ],
+      "obstacle_planes_world_m": [
+        0.5213121737735307,
+        2.5786877308590377,
+        1,
+        -1,
+        0,
+        0.05
+      ],
+      "aabb_intersection_depth_m": 0
+    },
+    {
+      "tick": 5978,
+      "sim_time_s": 49.81666666666666,
+      "phase": "P09",
+      "separation_lower_bound_m": 0.0010048563994934367,
+      "raw_geometry_cost": 0.9020387010096637,
+      "body_minimum_w_m": [
+        0.4721349238089143,
+        -0.37051075487202884,
+        0.05100485639949344
+      ],
+      "body_maximum_w_m": [
+        0.7796417953323265,
+        0.010633673088995536,
+        0.3102354302355914
+      ],
+      "obstacle_planes_world_m": [
+        0.5213121737735307,
+        2.5786877308590377,
+        1,
+        -1,
+        0,
+        0.05
+      ],
+      "aabb_intersection_depth_m": 0
+    },
+    {
+      "tick": 5979,
+      "sim_time_s": 49.825,
+      "phase": "P09",
+      "separation_lower_bound_m": 0.0005306647304613582,
+      "raw_geometry_cost": 0.9476375395942532,
+      "body_minimum_w_m": [
+        0.4722871100300979,
+        -0.37086644174631167,
+        0.05053066473046136
+      ],
+      "body_maximum_w_m": [
+        0.7796402065039502,
+        0.010383722396629873,
+        0.31040286777586706
+      ],
+      "obstacle_planes_world_m": [
+        0.5213121737735307,
+        2.5786877308590377,
+        1,
+        -1,
+        0,
+        0.05
+      ],
+      "aabb_intersection_depth_m": 0
+    },
+    {
+      "tick": 5980,
+      "sim_time_s": 49.833333333333336,
+      "phase": "P09",
+      "separation_lower_bound_m": 0.00005858430796930325,
+      "raw_geometry_cost": 0.9941501495059203,
+      "body_minimum_w_m": [
+        0.4725461486228836,
+        -0.37123315871027956,
+        0.050058584307969306
+      ],
+      "body_maximum_w_m": [
+        0.7795880423464671,
+        0.010228824480930376,
+        0.3104565413901086
+      ],
+      "obstacle_planes_world_m": [
+        0.5213121737735307,
+        2.5786877308590377,
+        1,
+        -1,
+        0,
+        0.05
+      ],
+      "aabb_intersection_depth_m": 0
+    },
+    {
+      "tick": 5981,
+      "sim_time_s": 49.84166666666667,
+      "phase": "P09",
+      "separation_lower_bound_m": 0.000002950030040402285,
+      "raw_geometry_cost": 0.9997050187526528,
+      "body_minimum_w_m": [
+        0.4729863695880354,
+        -0.3715552047721676,
+        0.050002950030040405
+      ],
+      "body_maximum_w_m": [
+        0.779515995366652,
+        0.010250568234688388,
+        0.31029264014088787
+      ],
+      "obstacle_planes_world_m": [
+        0.5213121737735307,
+        2.5786877308590377,
+        1,
+        -1,
+        0,
+        0.05
+      ],
+      "aabb_intersection_depth_m": 0
+    },
+    {
+      "tick": 5982,
+      "sim_time_s": 49.85,
+      "phase": "P09",
+      "separation_lower_bound_m": 0,
+      "raw_geometry_cost": 1,
+      "body_minimum_w_m": [
+        0.47358214985674,
+        -0.3716908066860722,
+        0.04999793051631339
+      ],
+      "body_maximum_w_m": [
+        0.7795896505135596,
+        0.010459672879854956,
+        0.3096285941665162
+      ],
+      "obstacle_planes_world_m": [
+        0.5213121737735307,
+        2.5786877308590377,
+        1,
+        -1,
+        0,
+        0.05
+      ],
+      "aabb_intersection_depth_m": 0.0000020694836866119726
+    }
+  ],
+  "preceding_endpoints": [
+    {
+      "global_policy_decision": 214879,
+      "tick": 5944,
+      "time_s": 49.53333333333333,
+      "phase": "P09",
+      "terminal": false,
+      "body_bounds": {
+        "valid": true,
+        "minimum_w_m": [
+          0.46957684261711946,
+          -0.36448254907699146,
+          0.0612289958942204
+        ],
+        "maximum_w_m": [
+          0.779792008396279,
+          0.014695175684890656,
+          0.30643699301890603
+        ],
+        "whole_body_in_platform_region": false,
+        "outside_platform_distance_m": 0.04673533115641121
+      },
+      "body_linear_speed_m_s": 0.0664839406787119,
+      "body_angular_speed_rad_s": 0.29840508952604367,
+      "legs": {
+        "FL": {
+          "clearance_m": 0.13623603629212233,
+          "front_distance_m": 0.32884234530758505,
+          "within_top_xy": true,
+          "ground_contact": false,
+          "top_surface_contact": false,
+          "support": false,
+          "bearing_force_n": 0,
+          "contact_mode": null,
+          "ground_relative_lift_m": null,
+          "lift_established": null,
+          "current_lift_valid": null
+        },
+        "FR": {
+          "clearance_m": -0.0008611221336259217,
+          "front_distance_m": 0.4012150798542464,
+          "within_top_xy": true,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "support": true,
+          "bearing_force_n": 14.175954818725586,
+          "contact_mode": null,
+          "ground_relative_lift_m": null,
+          "lift_established": null,
+          "current_lift_valid": null
+        },
+        "RL": {
+          "clearance_m": -0.050022211092006885,
+          "front_distance_m": -0.16973325269389505,
+          "within_top_xy": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "support": true,
+          "bearing_force_n": 13.74184799194336,
+          "contact_mode": null,
+          "ground_relative_lift_m": null,
+          "lift_established": null,
+          "current_lift_valid": null
+        },
+        "RR": {
+          "clearance_m": -0.04998633108068847,
+          "front_distance_m": -0.20792519705462809,
+          "within_top_xy": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "support": true,
+          "bearing_force_n": 1.3041013479232788,
+          "contact_mode": "GROUND",
+          "ground_relative_lift_m": 0,
+          "lift_established": false,
+          "current_lift_valid": false
+        }
+      }
+    },
+    {
+      "global_policy_decision": 214881,
+      "tick": 5960,
+      "time_s": 49.666666666666664,
+      "phase": "P09",
+      "terminal": false,
+      "body_bounds": {
+        "valid": true,
+        "minimum_w_m": [
+          0.467180817910158,
+          -0.368855540001408,
+          0.056286006823755924
+        ],
+        "maximum_w_m": [
+          0.7770475477108265,
+          0.010690720314463657,
+          0.3099312972353918
+        ],
+        "whole_body_in_platform_region": false,
+        "outside_platform_distance_m": 0.049131355863372694
+      },
+      "body_linear_speed_m_s": 0.060758434560023146,
+      "body_angular_speed_rad_s": 0.2631119550242474,
+      "legs": {
+        "FL": {
+          "clearance_m": 0.1466601763160269,
+          "front_distance_m": 0.33400059087109213,
+          "within_top_xy": true,
+          "ground_contact": false,
+          "top_surface_contact": false,
+          "support": false,
+          "bearing_force_n": 0,
+          "contact_mode": null,
+          "ground_relative_lift_m": null,
+          "lift_established": null,
+          "current_lift_valid": null
+        },
+        "FR": {
+          "clearance_m": -0.0010251211041846786,
+          "front_distance_m": 0.4033142958385909,
+          "within_top_xy": true,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "support": true,
+          "bearing_force_n": 12.287508964538574,
+          "contact_mode": null,
+          "ground_relative_lift_m": null,
+          "lift_established": null,
+          "current_lift_valid": null
+        },
+        "RL": {
+          "clearance_m": -0.050017561815052805,
+          "front_distance_m": -0.17040106313395853,
+          "within_top_xy": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "support": true,
+          "bearing_force_n": 12.000913619995117,
+          "contact_mode": null,
+          "ground_relative_lift_m": null,
+          "lift_established": null,
+          "current_lift_valid": null
+        },
+        "RR": {
+          "clearance_m": -0.049976855835624855,
+          "front_distance_m": -0.21004062550235147,
+          "within_top_xy": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "support": true,
+          "bearing_force_n": 4.094638824462891,
+          "contact_mode": "GROUND",
+          "ground_relative_lift_m": 0,
+          "lift_established": false,
+          "current_lift_valid": false
+        }
+      }
+    },
+    {
+      "global_policy_decision": 214883,
+      "tick": 5976,
+      "time_s": 49.8,
+      "phase": "P09",
+      "terminal": false,
+      "body_bounds": {
+        "valid": true,
+        "minimum_w_m": [
+          0.4716568573658817,
+          -0.3701042713678661,
+          0.051887635332736534
+        ],
+        "maximum_w_m": [
+          0.7795401798336181,
+          0.010786540769166263,
+          0.30998887765998673
+        ],
+        "whole_body_in_platform_region": false,
+        "outside_platform_distance_m": 0.04465531640764897
+      },
+      "body_linear_speed_m_s": 0.05610472102643664,
+      "body_angular_speed_rad_s": 0.14987023420948,
+      "legs": {
+        "FL": {
+          "clearance_m": 0.1534343940468612,
+          "front_distance_m": 0.33969372851681356,
+          "within_top_xy": true,
+          "ground_contact": false,
+          "top_surface_contact": false,
+          "support": false,
+          "bearing_force_n": 0,
+          "contact_mode": null,
+          "ground_relative_lift_m": null,
+          "lift_established": null,
+          "current_lift_valid": null
+        },
+        "FR": {
+          "clearance_m": -0.0008947803985815683,
+          "front_distance_m": 0.40583771807980185,
+          "within_top_xy": true,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "support": true,
+          "bearing_force_n": 16.274993896484375,
+          "contact_mode": null,
+          "ground_relative_lift_m": null,
+          "lift_established": null,
+          "current_lift_valid": null
+        },
+        "RL": {
+          "clearance_m": -0.05000978493211827,
+          "front_distance_m": -0.16970660941768045,
+          "within_top_xy": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "support": true,
+          "bearing_force_n": 11.822317123413086,
+          "contact_mode": null,
+          "ground_relative_lift_m": null,
+          "lift_established": null,
+          "current_lift_valid": null
+        },
+        "RR": {
+          "clearance_m": -0.050114055122838175,
+          "front_distance_m": -0.20939838545489664,
+          "within_top_xy": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "support": true,
+          "bearing_force_n": 4.7430596351623535,
+          "contact_mode": "GROUND",
+          "ground_relative_lift_m": 0,
+          "lift_established": false,
+          "current_lift_valid": false
+        }
+      }
+    },
+    {
+      "global_policy_decision": 214884,
+      "tick": 5982,
+      "time_s": 49.85,
+      "phase": "P09",
+      "terminal": true,
+      "body_bounds": {
+        "valid": true,
+        "minimum_w_m": [
+          0.47358214985674,
+          -0.3716908066860722,
+          0.04999793051631339
+        ],
+        "maximum_w_m": [
+          0.7795896505135596,
+          0.010459672879854956,
+          0.3096285941665162
+        ],
+        "whole_body_in_platform_region": false,
+        "outside_platform_distance_m": 0.04273002391679065
+      },
+      "body_linear_speed_m_s": 0.09038878036233573,
+      "body_angular_speed_rad_s": 0.3153692850961555,
+      "legs": {
+        "FL": {
+          "clearance_m": 0.15359300943292614,
+          "front_distance_m": 0.3416133557064498,
+          "within_top_xy": true,
+          "ground_contact": false,
+          "top_surface_contact": false,
+          "support": false,
+          "bearing_force_n": 0,
+          "contact_mode": null,
+          "ground_relative_lift_m": null,
+          "lift_established": null,
+          "current_lift_valid": null
+        },
+        "FR": {
+          "clearance_m": -0.0009692903391137486,
+          "front_distance_m": 0.4085131917698348,
+          "within_top_xy": true,
+          "ground_contact": false,
+          "top_surface_contact": false,
+          "support": false,
+          "bearing_force_n": 0,
+          "contact_mode": null,
+          "ground_relative_lift_m": null,
+          "lift_established": null,
+          "current_lift_valid": null
+        },
+        "RL": {
+          "clearance_m": -0.049980590646346704,
+          "front_distance_m": -0.16979744689631815,
+          "within_top_xy": false,
+          "ground_contact": false,
+          "top_surface_contact": false,
+          "support": false,
+          "bearing_force_n": 0,
+          "contact_mode": null,
+          "ground_relative_lift_m": null,
+          "lift_established": null,
+          "current_lift_valid": null
+        },
+        "RR": {
+          "clearance_m": -0.04754632204497192,
+          "front_distance_m": -0.2098674144046342,
+          "within_top_xy": false,
+          "ground_contact": false,
+          "top_surface_contact": false,
+          "support": false,
+          "bearing_force_n": 0,
+          "contact_mode": "AIR",
+          "ground_relative_lift_m": 0.0026354867989107147,
+          "lift_established": false,
+          "current_lift_valid": false
+        }
+      }
+    }
+  ],
+  "lift_and_placement_history": {
+    "active_lift": {
+      "FL": true,
+      "FR": true,
+      "RL": false,
+      "RR": false
+    },
+    "front_edge_crossed": {
+      "FL": true,
+      "FR": true,
+      "RL": false,
+      "RR": false
+    },
+    "placed": {
+      "FL": true,
+      "FR": true,
+      "RL": false,
+      "RR": false
+    },
+    "event_ticks": {
+      "active_lift": {
+        "FR": 23,
+        "FL": 2143,
+        "RR": 5384
+      },
+      "front_edge_crossed": {
+        "FR": 2095,
+        "FL": 3240
+      },
+      "placed": {
+        "FR": 2107,
+        "FL": 3307
+      }
+    },
+    "active_lift_semantics": "RR_same_attempt_establishment_with_separate_current_validity_and_contact_mode",
+    "lift_attempt_events": [
+      {
+        "leg": "RL",
+        "event": "whole_body_initial_clearance",
+        "physics_tick": 9,
+        "simulation_time_s": 0.075,
+        "upward_excursion_m": 0.0037340162375873037,
+        "whole_body_joint_motion_deg": 4.593209747478095,
+        "command_motion_deg": 9.501361059743282,
+        "evidence": "active_air_or_early_top"
+      },
+      {
+        "leg": "FR",
+        "event": "whole_body_initial_clearance",
+        "physics_tick": 14,
+        "simulation_time_s": 0.11666666666666667,
+        "upward_excursion_m": 0.0032191230756758588,
+        "whole_body_joint_motion_deg": 9.290374417169883,
+        "command_motion_deg": 16.099747581828716,
+        "evidence": "active_air_or_early_top"
+      },
+      {
+        "leg": "FR",
+        "event": "qualified_measured_upward_lift",
+        "physics_tick": 23,
+        "simulation_time_s": 0.19166666666666665,
+        "upward_excursion_m": 0.008038560653195505,
+        "joint_motion_deg": 2.6469437966537717,
+        "airborne_clearance_above_top_m": -0.042789472742396695
+      },
+      {
+        "leg": "FL",
+        "event": "whole_body_initial_clearance",
+        "physics_tick": 2137,
+        "simulation_time_s": 17.808333333333334,
+        "upward_excursion_m": 0.0031013783199497144,
+        "whole_body_joint_motion_deg": 11.134705652652904,
+        "command_motion_deg": 16.22176475913475,
+        "evidence": "active_air_or_early_top"
+      },
+      {
+        "leg": "FL",
+        "event": "qualified_measured_upward_lift",
+        "physics_tick": 2143,
+        "simulation_time_s": 17.858333333333334,
+        "upward_excursion_m": 0.008145788922609122,
+        "joint_motion_deg": 8.362666974700872,
+        "airborne_clearance_above_top_m": -0.042066913328147895
+      },
+      {
+        "leg": "RR",
+        "event": "whole_body_initial_clearance",
+        "physics_tick": 5379,
+        "simulation_time_s": 44.825,
+        "upward_excursion_m": 0.003001119137375885,
+        "whole_body_joint_motion_deg": 13.100021509668023,
+        "command_motion_deg": 22.32053693074882,
+        "evidence": "continuous_unsupported_AIR_free_rise_v3",
+        "unsupported_free_lift_m": 0.003001119137375885
+      },
+      {
+        "leg": "RR",
+        "event": "qualified_measured_upward_lift",
+        "physics_tick": 5384,
+        "simulation_time_s": 44.86666666666667,
+        "upward_excursion_m": 0.008015628104195836,
+        "joint_motion_deg": 1.7841973829163607,
+        "airborne_clearance_above_top_m": -0.04198694758881646,
+        "qualification_evidence": "continuous_unsupported_AIR_free_rise_v3",
+        "unsupported_free_lift_m": 0.008015628104195836
+      },
+      {
+        "leg": "RR",
+        "event": "qualification_revoked_ground_before_cross",
+        "physics_tick": 5450,
+        "simulation_time_s": 45.416666666666664
+      },
+      {
+        "leg": "RR",
+        "event": "current_lift_revoked_ground",
+        "physics_tick": 5450,
+        "simulation_time_s": 45.416666666666664,
+        "completed_crossing_history_retained": false
+      }
+    ]
+  },
+  "phase_transitions": [
+    {
+      "from_stage": "P04",
+      "to_stage": "P05",
+      "physics_tick": 2120,
+      "sim_time_s": 17.666666666666668
+    },
+    {
+      "from_stage": "P05",
+      "to_stage": "P06",
+      "physics_tick": 3312,
+      "sim_time_s": 27.599999999999998
+    },
+    {
+      "from_stage": "P06",
+      "to_stage": "P07",
+      "physics_tick": 5256,
+      "sim_time_s": 43.8
+    },
+    {
+      "from_stage": "P07",
+      "to_stage": "P08",
+      "physics_tick": 5264,
+      "sim_time_s": 43.86666666666667
+    },
+    {
+      "from_stage": "P08",
+      "to_stage": "P09",
+      "physics_tick": 5272,
+      "sim_time_s": 43.93333333333333
+    }
+  ],
+  "capture_assist_endpoint_mode_changes": [
+    {
+      "first_saved_endpoint_tick": 2120,
+      "previous_saved_endpoint_tick": null,
+      "source_observation_tick": 2119,
+      "before_mode": "WAIT",
+      "mode": "WAIT",
+      "stage": "P04",
+      "active": false,
+      "release_fraction": 0,
+      "owners": [
+        "nominal_plus_policy",
+        "nominal_plus_policy"
+      ],
+      "gap_m": -0.05000405964149961
+    },
+    {
+      "first_saved_endpoint_tick": 3296,
+      "previous_saved_endpoint_tick": 3288,
+      "source_observation_tick": 3295,
+      "before_mode": "BLOCKED",
+      "mode": "BLOCKED",
+      "stage": "P05",
+      "active": true,
+      "release_fraction": 0,
+      "owners": [
+        "capture_assist",
+        "capture_assist"
+      ],
+      "gap_m": 0.0007389540114423401
+    },
+    {
+      "first_saved_endpoint_tick": 3312,
+      "previous_saved_endpoint_tick": 3304,
+      "source_observation_tick": 3311,
+      "before_mode": "HOLD",
+      "mode": "HOLD",
+      "stage": "P05",
+      "active": true,
+      "release_fraction": 0,
+      "owners": [
+        "capture_assist",
+        "capture_assist"
+      ],
+      "gap_m": -0.001057641489009671
+    },
+    {
+      "first_saved_endpoint_tick": 3512,
+      "previous_saved_endpoint_tick": 3504,
+      "source_observation_tick": 3511,
+      "before_mode": "DESCEND",
+      "mode": "DESCEND",
+      "stage": "P06",
+      "active": true,
+      "release_fraction": 0,
+      "owners": [
+        "capture_assist",
+        "capture_assist"
+      ],
+      "gap_m": 0.000758782156170347
+    },
+    {
+      "first_saved_endpoint_tick": 3752,
+      "previous_saved_endpoint_tick": 3744,
+      "source_observation_tick": 3751,
+      "before_mode": "BLOCKED",
+      "mode": "BLOCKED",
+      "stage": "P06",
+      "active": true,
+      "release_fraction": 0,
+      "owners": [
+        "capture_assist",
+        "capture_assist"
+      ],
+      "gap_m": 0.015023241738917684
+    },
+    {
+      "first_saved_endpoint_tick": 5264,
+      "previous_saved_endpoint_tick": 5256,
+      "source_observation_tick": 5263,
+      "before_mode": "RELEASE",
+      "mode": "RELEASE",
+      "stage": "P07",
+      "active": true,
+      "release_fraction": 0.08888888888888889,
+      "owners": [
+        "capture_assist_policy_blend",
+        "capture_assist_policy_blend"
+      ],
+      "gap_m": 0.04617520338109614
+    },
+    {
+      "first_saved_endpoint_tick": 5352,
+      "previous_saved_endpoint_tick": 5344,
+      "source_observation_tick": 5351,
+      "before_mode": "RELEASED",
+      "mode": "RELEASED",
+      "stage": "P09",
+      "active": false,
+      "release_fraction": 1,
+      "owners": [
+        "nominal_plus_policy",
+        "nominal_plus_policy"
+      ],
+      "gap_m": 0.095371749644286
+    }
+  ],
+  "terminal_capture_assist": {
+    "owner_indices": [],
+    "assist_correction_full12": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "policy_request_unchanged": true,
+    "nominal_history_receives_assist": false
+  },
+  "terminal_capture_assist_state": {
+    "mode_name": "RELEASED",
+    "active": false,
+    "owners": [
+      "nominal_plus_policy",
+      "nominal_plus_policy"
+    ],
+    "release_fraction": 1
+  },
+  "terminal_drive": {
+    "canonical_order": [
+      "front_left_hip",
+      "front_left_knee",
+      "front_right_hip",
+      "front_right_knee",
+      "rear_left_hip",
+      "rear_left_knee",
+      "rear_right_hip",
+      "rear_right_knee",
+      "front_left_ankle",
+      "front_right_ankle",
+      "rear_left_ankle",
+      "rear_right_ankle"
+    ],
+    "units": "first eight degrees; last four rad/s, canonical FL/FR/RL/RR order",
+    "actual_drive_target_full12": [
+      20.18142260035485,
+      -39.90921331404105,
+      10.92164467776017,
+      -10.155341721097614,
+      23.94920819340552,
+      4.05783746012445,
+      79.7202072408111,
+      -11.142964865087498,
+      -1.1620126925368388,
+      0.003754132659492014,
+      0.27672385922911197,
+      -0.11316271927225663
+    ],
+    "projected_residual_full12": [
+      -18.41857739964515,
+      -27.759213314041048,
+      10.92164467776017,
+      -42.29397490973572,
+      -4.250791806594474,
+      4.05783746012445,
+      20.57938217891813,
+      -11.142964865087498,
+      -1.1620126925368388,
+      0.003754132659492014,
+      0.27672385922911197,
+      -0.11316271927225663
+    ],
+    "measured_wheel_velocity_rad_s": [
+      -1.162121057510376,
+      0.0039416211657226086,
+      0.27669668197631836,
+      -0.11266486346721649
+    ],
+    "effect_verified": true,
+    "last_tick_native_effect": {
+      "episode_physics_tick": 5982,
+      "command_physics_tick": 6161,
+      "source_phase_id": "P09",
+      "verified": true,
+      "changed_target_channel_count": 12,
+      "actual_native_effect": true,
+      "own_phase_request_effect": true,
+      "handoff_hold_used": false
+    }
+  },
+  "terminal_reward": {
+    "total": -42.28680000500012,
+    "potential_before": 0.4568750000000001,
+    "potential_after": 0,
+    "potential_shaping": -2.2843750000000003,
+    "terminal_event": -40,
+    "elapsed_physics_s": 0.049999999999999996,
+    "terminal_bootstrap_allowed": false
+  },
+  "limits": [
+    "No raw pair force or contact point/subcollider is retained here; cannot independently reconstruct the first microscopic contact.",
+    "AABB is a conservative collider aggregate, not exact mesh penetration or exact contact location.",
+    "FL/FR historical placement is not current support; RR terminal absolute wheel-bottom z and relative free-lift gain differ.",
+    "Assist mode onset is bounded by neighboring saved endpoints unless a same-tick before/after transition is present.",
+    "Temporal association does not prove that capture-assist release caused the later collision."
+  ],
+  "code_evidence": [
+    {
+      "path": "src/wlr50_clean/sensing/body_collision_detector.py",
+      "lines": [
+        47,
+        55,
+        57,
+        59
+      ],
+      "meaning": "Requires exact verified active base_link/Obstacle pair plus persistence or >=1 mm geometry; geometry alone insufficient."
+    },
+    {
+      "path": "src/wlr50_clean/sensing/sensor_reader.py",
+      "lines": [
+        97,
+        129,
+        159,
+        285
+      ],
+      "meaning": "Exact body/filter force_matrix sensor; detector evaluated on the same post-physics observation."
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_physical_sensing.py",
+      "lines": [
+        161,
+        170,
+        187
+      ],
+      "meaning": "Pose-aware geometry feeds inherited collision detector and persisted current body bounds."
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_supervisor.py",
+      "lines": [
+        539,
+        628
+      ],
+      "meaning": "Exact base pair required; authoritative collision detected flag triggers TASK_FAILURE_BODY_COLLISION."
+    },
+    {
+      "path": "src/wlr50_clean/ppo/semantic_env.py",
+      "lines": [
+        145,
+        156,
+        190
+      ],
+      "meaning": "Stops first detected terminal tick inside eight-tick decision."
+    }
+  ],
+  "production_head": "336b7c56d2f048d44c866b2357d33e1eb1f21dce"
+}

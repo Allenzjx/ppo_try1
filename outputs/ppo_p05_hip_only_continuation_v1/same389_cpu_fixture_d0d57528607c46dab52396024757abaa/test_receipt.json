@@ -1,0 +1,26 @@
+{
+  "schema": "synthetic_same389_capture_feedback_publication_test.v1",
+  "status": "PASS",
+  "execution": "independent_CPU_process_with_draft_modules_and_existing_loader_changes_patched_only_in_memory",
+  "cuda_available": false,
+  "process_exit_code": 0,
+  "actual_test": "test_actual_same389_state_publish_and_reload_preserves_Adam_rng_and_lineage",
+  "strict_plan_validation": "mocked_exact_synthetic_factor_only; real_runtime_plan_builder_not_exercised",
+  "real_operations_exercised": [
+    "official_RSL_source_checkpoint_save_and_reload",
+    "generic_strict_resume_loader_new_same389_factor_route",
+    "source_Adam_Identity_RNG_LR_and_all_parameter_hash_verification",
+    "zero_update_target_publication_and_independent_target_reload",
+    "complete_runner_config_equality",
+    "ordinary_later_synthetic_checkpoint_save_preserves_two_independent_origins"
+  ],
+  "synthetic_counter_assertions": {
+    "at_zero_update_publication": {"P05_updates_since_original_origin": 32, "feedback_v2_updates_since_new_origin": 0},
+    "at_later_fixture_save": {"P05_updates_since_original_origin": 33, "feedback_v2_updates_since_new_origin": 1},
+    "later_counts_are_fixture_values_not_real_PPO_learning": true
+  },
+  "production_files_modified": false,
+  "real_checkpoints_or_pointers_written": false,
+  "Isaac_started": false,
+  "synthetic_checkpoint_files": ["source.pt", "target.pt", "later_fixture.pt"]
+}
