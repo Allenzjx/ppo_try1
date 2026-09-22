@@ -531,6 +531,9 @@ def save_semantic_checkpoint(runner: Any, checkpoint: Path, infos: Mapping[str, 
     if "rr_postcross_workspace_branch" in infos:
         from .semantic_rr_workspace_migration import rr_workspace_branch_counts
         infos = rr_workspace_branch_counts(infos)
+    if "p05_preedge_approach_recovery_branch" in infos:
+        from .semantic_p05_preedge_migration import p05_preedge_branch_counts
+        infos = p05_preedge_branch_counts(infos)
     assert_semantic_return_consistency(runner, runner.env)
     checkpoint.parent.mkdir(parents=True, exist_ok=True)
     if checkpoint.exists():
@@ -918,9 +921,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         receiving_factor = None if receiving_wheel is None else receiving_wheel["observation_contract"]
         capture_feedback_factor = (verified.get("capture_feedback_semantics_factor") or {}).get("observation_contract")
         rr_workspace_factor = (verified.get("rr_postcross_workspace_factor") or {}).get("observation_contract")
-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor, receiving_factor, capture_feedback_factor, rr_workspace_factor)) > 1:
+        p05_preedge_factor = (verified.get("p05_preedge_approach_recovery_factor") or {}).get("observation_contract")
+        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor, receiving_factor, capture_feedback_factor, rr_workspace_factor, p05_preedge_factor)) > 1:
             raise RuntimeError("reviewed same-layout migration receipts must be exclusive")
-        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor or receiving_factor or capture_feedback_factor or rr_workspace_factor
+        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor or receiving_factor or capture_feedback_factor or rr_workspace_factor or p05_preedge_factor
         if reviewed_factor is not None:
             if factor is not None:
                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")
@@ -983,6 +987,9 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         if verified.get("rr_postcross_workspace_factor") is not None:
             from .semantic_rr_workspace_migration import record_loaded_rr_workspace
             infos = record_loaded_rr_workspace(runner,infos,verified)
+        if verified.get("p05_preedge_approach_recovery_factor") is not None:
+            from .semantic_p05_preedge_migration import record_loaded_p05_preedge
+            infos = record_loaded_p05_preedge(runner,infos,verified)
         if receiving_wheel is not None:
             if (optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate")
                     or optimizer_learning_rate(runner) != receiving_wheel["source_effective_learning_rate"]):
@@ -2056,7 +2063,8 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             "receiving_wheel_sigma_migration", "p05_capture_assist_migration", "p05_capture_assist_branch",
                             "capture_feedback_semantics_migration", "capture_feedback_semantics_branch",
                             "rr_postcross_workspace_migration", "rr_postcross_workspace_branch",
-                            "rr_receiver_retirement_v2_migration", "rr_receiver_retirement_v2_branch"):
+                            "rr_receiver_retirement_v2_migration", "rr_receiver_retirement_v2_branch",
+                            "p05_preedge_approach_recovery_migration", "p05_preedge_approach_recovery_branch"):
                     if key in previous:
                         infos[key] = previous[key]
                 if "task_recovery_branch" in infos:

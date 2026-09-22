@@ -419,12 +419,13 @@ def test_absent_mode_preserves_old_v3_formulas_and_v2_payload_home_gate(tmp_path
     assert not any(key in a for key in PAYLOAD)
 
 
-def test_new_diagnostics_do_not_expand_324_observation_or_change_other_encoder_groups(tmp_path):
+def test_new_diagnostics_do_not_expand_existing_role372_or_change_other_encoder_groups(tmp_path):
     spec = load_task_spec(SPEC)
     spec["final"].pop("stop_progress_semantics")
     old_path = _path(tmp_path, spec)
     built = []
     schema = load_semantic_observation_schema(CONFIG / "observation_schema.json")
+    assert schema.transfer_role_features_version == "diagonal_transfer_state_v1"
     for path in (old_path, SPEC):
         ev, obs = _placed_entry(path)
         obs = _rates(obs, speeds=(.5,)*4, commands=(.08,)*4, linear=.1, angular=.6)
@@ -434,7 +435,7 @@ def test_new_diagnostics_do_not_expand_324_observation_or_change_other_encoder_g
         frame.info["semantic_task"] = task
         data = SemanticObservationBuilder(schema).build(frame, dict.fromkeys(HISTORY_GROUPS, (0.,)*12))
         assert tuple(task["goal_features"]) == GOAL_FEATURE_KEYS == GOAL_KEYS
-        assert schema.dimension == len(schema.encode(data.groups)) == 324
+        assert schema.dimension == len(schema.encode(data.groups)) == 372
         assert len(frame.nominal_action_full12) == 12
         built.append(data.groups)
     assert built[0]["task_progress"] != built[1]["task_progress"]

@@ -52,6 +52,7 @@ RR_CARRY_SOURCE_MODE = "current_free_lift_before_pending_knee_and_roll_v1"
 RR_WORKSPACE_RETIREMENT_MODE = "current_qualified_RR_over_top_receiver_retirement_v1"
 RR_WORKSPACE_RETIREMENT_MODE_V2 = "established_RR_over_top_receiver_retirement_v2"
 CAPTURE_CONTINUATION_MODE = "p05_hip_only_continuation_v1"
+P05_PREEDGE_RECOVERY_MODE = "p05_preedge_approach_recovery_v1"
 
 
 def _capture_continuation_enabled(spec: Mapping[str, Any]) -> bool:
@@ -64,6 +65,18 @@ def _capture_continuation_enabled(spec: Mapping[str, Any]) -> bool:
             or spec["nominal"].get("continuous_channel_inheritance") is not True
             or spec["nominal"].get("sequence_semantics") != "source_partial_order_physical_ready_v1"):
         raise ValueError("FL capture continuation requires continuous source and measured all-stage progress")
+    return mode is not None
+
+
+def _p05_preedge_recovery_enabled(spec: Mapping[str, Any]) -> bool:
+    mode = spec.get("nominal", {}).get("p05_preedge_approach_recovery")
+    if mode not in (None, P05_PREEDGE_RECOVERY_MODE):
+        raise ValueError("unknown P05 pre-edge approach recovery semantics")
+    if mode is not None and (not _capture_continuation_enabled(spec)
+            or spec["nominal"].get("p05_pending_capture") != "current_FL_capture_wheel_continuation_to_handoff_v2"
+            or spec.get("local_timeout_policy", {}).get("mode") != "bounded_current_progress_allowance_v1"
+            or not 0. < _number(spec["local_timeout_policy"].get("maximum_extension_s"), "pre-edge window") <= 10.):
+        raise ValueError("P05 pre-edge recovery requires the existing finite continuous capture schedule")
     return mode is not None
 
 
@@ -358,6 +371,7 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
             raise ValueError("rolling retention requires its explicit current-contact task-quality version")
     _capture_approach_enabled(spec)
     _capture_continuation_enabled(spec)
+    _p05_preedge_recovery_enabled(spec)
     _workspace_potential_enabled(spec)
     _rr_workspace_retirement_enabled(spec)
     validate_transfer_roles(spec)
@@ -1704,6 +1718,8 @@ class NominalMotionProvider:
         nominal=self.spec["nominal"]
         self._capture_continuation = _capture_continuation_enabled(self.spec)
         self._capture_continuation_diagnostic: dict[str, Any] = {}
+        self._p05_preedge_recovery = _p05_preedge_recovery_enabled(self.spec)
+        self._p05_preedge_diagnostic: dict[str, Any] = {}
         reference_mode = self.spec.get("reference_nominal_semantics")
         if reference_mode not in (None, "successful_fsm_derived_v2"):
             raise ValueError("unknown successful-FSM nominal semantics")
@@ -1867,6 +1883,8 @@ class NominalMotionProvider:
             result["height_recovery"] = dict(self._height_diagnostic)
         if self._capture_continuation:
             result["capture_continuation"] = dict(self._capture_continuation_diagnostic)
+        if self._p05_preedge_recovery:
+            result["p05_preedge_approach_recovery"] = dict(self._p05_preedge_diagnostic)
         if self._all_stage_acceptance:
             result["capture_owner_hold"] = {
                 "schema": "wlr50_clean.nominal_capture_owner_hold.v1",
@@ -2495,6 +2513,74 @@ class NominalMotionProvider:
                 proposed[8:]=self._approach_wheel_prior
         return tuple(proposed),tuple(name for name in SERVO_ORDER if name in tracking)
 
+    def _p05_preedge_recovery_status(self, task: Mapping[str, Any], *,
+            prior_source_endpoint_issued: bool, prior_observation_tick: Any) -> dict[str, Any]:
+        """Finite P05-only wheel advice, not a capture/handoff or residual gate.
+
+        The prior endpoint plus a subsequent physical tick uses the backend's
+        established one-write/one-step order. This is NOT an independent ACK
+        verification. No recovery latch or renewed clock is introduced.
+        """
+        ev = task.get("physical_evaluator", {})
+        legs = ev.get("current_legs", {})
+        fl = legs.get("FL", {})
+        history = ev.get("history", {})
+        tick, now = ev.get("physics_tick"), ev.get("simulation_time_s")
+        age = task.get("stage_elapsed_s")
+        start = self.spec["stages"]["P05"]["maximum_task_duration"]
+        end = start + self.spec["local_timeout_policy"]["maximum_extension_s"]
+        finite = lambda value: type(value) in (int, float) and math.isfinite(value)
+        gap, distance = fl.get("clearance_m"), fl.get("front_distance_m")
+        geometry = self.spec["geometry"]
+        supports = tuple(leg for leg in LEG_ORDER if leg != "FL"
+            and legs.get(leg, {}).get("support") is True
+            and legs[leg].get("bearing_verified") is True and legs[leg].get("air") is False
+            and (legs[leg].get("ground_contact") is True or legs[leg].get("top_surface_contact") is True))
+        fresh = tuple({"stage": layer["stage"], "source_tick": layer["sample"].tick_index,
+                       "channels": tuple(name for name in group.channels if name in WHEEL_ORDER)}
+            for layer in self._continuous_layers if layer.get("advanced_this_tick", True)
+            and layer.get("sample") is not None for group in layer["sample"].atomic_groups
+            if set(group.channels).intersection(WHEEL_ORDER))
+        consecutive = bool(type(tick) is int and tick >= 0 and type(prior_observation_tick) is int
+            and tick == prior_observation_tick + 1 and finite(now)
+            and math.isclose(now, tick/self.physics_hz, rel_tol=0., abs_tol=1e-9))
+        checks = {
+            "P05_only": task.get("stage_id") == "P05",
+            "absolute_stage_age_window": finite(age) and start <= age < end,
+            "valid_no_abort": ev.get("valid") is True and ev.get("termination_reason") is None
+                and task.get("termination_reason") is None
+                and ev.get("physical_evidence_status") in ("VERIFIED", "CONTACT_BEARING_UNVERIFIED"),
+            "prior_qualified_FL_lift": history.get("active_lift", {}).get("FL") is True,
+            "FR_placement_history": history.get("placed", {}).get("FR") is True,
+            "not_crossed_or_placed_FL": history.get("front_edge_crossed", {}).get("FL") is False
+                and history.get("placed", {}).get("FL") is False,
+            "current_FL_AIR_no_contact": fl.get("air") is True and fl.get("ground_contact") is False
+                and fl.get("obstacle_pair_active") is False and fl.get("top_surface_contact") is False,
+            "positive_conservative_top_gap": finite(gap) and gap > 0.,
+            "current_lateral_valid": fl.get("within_lateral_span") is True,
+            "bounded_preedge_distance": finite(distance)
+                and -geometry["approach_max_m"] <= distance <= geometry["xy_measurement_tolerance_m"],
+            "verified_other_supports": len(supports) >= self.spec["support"]["minimum_other_supports"],
+            "source_endpoint_issued_then_subsequent_tick": prior_source_endpoint_issued is True
+                and self.endpoint_issued is True and consecutive,
+            "fresh_source_wheel_owner_absent": not fresh,
+        }
+        return {"mode": P05_PREEDGE_RECOVERY_MODE, "eligible": all(checks.values()), "checks": checks,
+            "reasons": tuple(key for key, passed in checks.items() if not passed),
+            "source_observation_tick": tick, "prior_source_observation_tick": prior_observation_tick,
+            "stage_elapsed_s": age, "absolute_window_s": (start, end), "window_end_exclusive": True,
+            "source_endpoint_issued": self.endpoint_issued,
+            "prior_source_endpoint_issued": prior_source_endpoint_issued,
+            "source_elapsed_s": self.elapsed_s, "source_tick_consecutive": consecutive,
+            "endpoint_evidence": "issued_source_endpoint_then_one_write_one_step_subsequent_tick",
+            "independent_ack_verified": False, "fresh_source_wheel_owners": fresh,
+            "current_FL_gap_m": gap, "current_FL_front_distance_m": distance,
+            "observed_other_support_contacts": supports, "wheel_prior_rad_s": self._approach_wheel_prior,
+            "timing": "nominal_suggestion_before_mapper_residual_and_actuator_dispatch",
+            "actor_observability": "current_nominal_recovery_advice_encoded_source_internals_and_full_contact_classes_not_individually_encoded",
+            "recovery_clock_reset_or_latch": False, "policy_residual_restricted": False,
+            "phase_or_capture_credit_awarded": False}
+
     def _approach_assist_required(self, task: Mapping[str,Any]) -> bool:
         evaluation=task.get("physical_evaluator")
         if (task.get("termination_reason") is not None or not isinstance(evaluation,Mapping)
@@ -2658,6 +2744,8 @@ class NominalMotionProvider:
 
     def evaluate(self, stage: str | Mapping[str,Any], observation: Any=None) -> tuple[float,...]:
         stage_id=stage if isinstance(stage,str) else str(stage["stage_id"])
+        prior_endpoint = bool(self.state_id == "P05" and self.endpoint_issued)
+        prior_tick = self._capture_continuation_diagnostic.get("source_observation_tick")
         # Validate before any layer/source clock, ownership or nominal mutation.
         retirement=self._retirement_measurement(stage,observation) if isinstance(stage,Mapping) else None
         capture=self._capture_hold_measurement(stage,observation) if isinstance(stage,Mapping) else None
@@ -2720,6 +2808,11 @@ class NominalMotionProvider:
                             for layer in self._continuous_layers if layer.get("advanced_this_tick", True)
                             and layer["sample"] is not None for group in layer["sample"].atomic_groups)):
                     proposed = proposed[:8]+self._approach_wheel_prior
+        if self._p05_preedge_recovery and isinstance(stage, Mapping):
+            self._p05_preedge_diagnostic = self._p05_preedge_recovery_status(stage,
+                prior_source_endpoint_issued=prior_endpoint, prior_observation_tick=prior_tick)
+            if self._p05_preedge_diagnostic["eligible"]:
+                proposed = proposed[:8]+self._approach_wheel_prior
         if stage_id=="P13" and self.endpoint_issued and not final_stop:
             proposed=tuple(self.spec["final"]["home_servo_pose_deg"])+(0.,)*4
         if final_stop:
