@@ -30,7 +30,8 @@ from .termination import TerminationSignals
 from .semantic_nominal_geometry import MODE as NOMINAL_GEOMETRY_MODE, FUNCTIONAL_RR_MODE, BOUNDED_RR_MODE
 from .semantic_headroom import HEADROOM_MODE, validate_semantic_servo_headroom_config
 from .semantic_capture_assist import CAPTURE_ASSIST_MODE, HipOnlyCaptureAssist, capture_assist_context
-from .semantic_rr_capture_assist import (RR_CAPTURE_ASSIST_MODE, RRHipOnlyCaptureAssist,
+from .semantic_rr_capture_assist import (RR_CAPTURE_ASSIST_MODE, RR_CAPTURE_FEEDBACK_REVISION,
+    RRHipOnlyCaptureAssist,
     rr_capture_assist_context)
 from .semantic_rr_capture_context import rr_capture_transfer_context
 
@@ -76,6 +77,8 @@ def load_execution_profile(path: Path | str = DEFAULT_EXECUTION_PROFILE) -> dict
         raise ValueError("unknown RR capture assist mode")
     if rr_assist is not None and (assist != CAPTURE_ASSIST_MODE or headroom != HEADROOM_MODE):
         raise ValueError("RR capture continuation must preserve the FL and physical headroom path")
+    if rr_assist is not None and profile.get("rr_capture_feedback_revision") != RR_CAPTURE_FEEDBACK_REVISION:
+        raise ValueError("RR capture requires its explicit current feedback revision")
     if profile.get("rr_capture_wheel_mode", "off") != "off":
         raise ValueError("first RR direction-check revision has no wheel intervention")
     return profile
@@ -251,6 +254,7 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                     capture_assist_policy_sample_log_probability_unchanged=True)
             if self._rr_capture_assist is not None:
                 self._reset_metadata.update(rr_capture_assist_mode=RR_CAPTURE_ASSIST_MODE,
+                    rr_capture_feedback_revision=RR_CAPTURE_FEEDBACK_REVISION,
                     rr_capture_assist_applies_identically_B_C_train_det_stoch=True,
                     rr_capture_assist_is_policy_learning=False)
             result = self._build_authoritative_frame(observation, frame, previous_frame=None)

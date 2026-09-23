@@ -3823,6 +3823,9 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                             project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     path = Path(plan_path).resolve(strict=True)
     supplied = json.loads(path.read_text(encoding="utf-8"))
+    if supplied.get("schema") == "wlr50_clean.rr_capture_feedback_same410.v2":
+        from .semantic_rr_capture_feedback_migration import validate_rr_capture_feedback_migration
+        return validate_rr_capture_feedback_migration(checkpoint,current_contract,path,project_root=project_root)
     if supplied.get("schema") == "wlr50_clean.rr_capture_transfer_append.v1":
         from .semantic_rr_capture_migration import validate_rr_capture_migration
         return validate_rr_capture_migration(checkpoint,current_contract,path,project_root=project_root)

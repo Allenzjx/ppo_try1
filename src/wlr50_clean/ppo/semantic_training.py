@@ -934,9 +934,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         capture_feedback_factor = (verified.get("capture_feedback_semantics_factor") or {}).get("observation_contract")
         rr_workspace_factor = (verified.get("rr_postcross_workspace_factor") or {}).get("observation_contract")
         p05_preedge_factor = (verified.get("p05_preedge_approach_recovery_factor") or {}).get("observation_contract")
-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor, receiving_factor, capture_feedback_factor, rr_workspace_factor, p05_preedge_factor)) > 1:
+        rr_capture_feedback_factor = (verified.get("rr_capture_feedback_peak_v2_factor") or {}).get("observation_contract")
+        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor, receiving_factor, capture_feedback_factor, rr_workspace_factor, p05_preedge_factor, rr_capture_feedback_factor)) > 1:
             raise RuntimeError("reviewed same-layout migration receipts must be exclusive")
-        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor or receiving_factor or capture_feedback_factor or rr_workspace_factor or p05_preedge_factor
+        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor or receiving_factor or capture_feedback_factor or rr_workspace_factor or p05_preedge_factor or rr_capture_feedback_factor
         if reviewed_factor is not None:
             if factor is not None:
                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")
@@ -1002,6 +1003,9 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         if verified.get("p05_preedge_approach_recovery_factor") is not None:
             from .semantic_p05_preedge_migration import record_loaded_p05_preedge
             infos = record_loaded_p05_preedge(runner,infos,verified)
+        if verified.get("rr_capture_feedback_peak_v2_factor") is not None:
+            from .semantic_rr_capture_feedback_migration import record_loaded_rr_capture_feedback
+            infos = record_loaded_rr_capture_feedback(runner,infos,verified)
         if receiving_wheel is not None:
             if (optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate")
                     or optimizer_learning_rate(runner) != receiving_wheel["source_effective_learning_rate"]):
@@ -1925,7 +1929,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                         raise RuntimeError("curriculum must remain fixed throughout this on-policy epoch")
                     assert_semantic_return_consistency(runner, env)
                     policy_request = None
-                    if contract.get("experiment_id") in ("fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1"):
+                    if contract.get("experiment_id") in ("fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1"):
                         raw, policy_request = audited_history_policy_request(
                             runner.alg.actor, obs, lambda: runner.alg.act(obs), stochastic=True)
                     else:
@@ -2031,7 +2035,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
             torch.save(snapshot, rollout_dir / f"rollout_{base_updates + iteration + 1:06d}.pt")
             global_step = base_global + (iteration + 1) * batch
             runner.alg.entropy_coef = 0.005 + (0.001 - 0.005) * min(global_step / sum(STAGE_BUDGETS.values()), 1.0)
-            if contract.get("experiment_id") in ("task_first_recovery_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1"):
+            if contract.get("experiment_id") in ("task_first_recovery_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1"):
                 update = audited_ppo_update(runner, likelihood_audit_path=rollout_dir /
                     f"update_{base_updates + iteration + 1:06d}_likelihood.json")
             else:
@@ -2079,6 +2083,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             "task_conditioned_hip_wheel_branch", "training_quantity_budget_extension",
                             "receiving_wheel_sigma_migration", "p05_capture_assist_migration", "p05_capture_assist_branch",
                             "rr_capture_transfer_migration", "rr_capture_transfer_branch",
+                            "rr_capture_feedback_peak_v2_migration",
                             "capture_feedback_semantics_migration", "capture_feedback_semantics_branch",
                             "rr_postcross_workspace_migration", "rr_postcross_workspace_branch",
                             "rr_receiver_retirement_v2_migration", "rr_receiver_retirement_v2_branch",

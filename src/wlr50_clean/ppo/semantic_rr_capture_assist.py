@@ -14,6 +14,8 @@ from wlr50_clean.ppo.semantic_rr_capture_context import verified_current_support
 
 RR_CAPTURE_ASSIST_MODE = "rr_hip_only_capture_v1"
 RR_CAPTURE_ASSIST_SCHEMA = "wlr50_clean.rr_capture_assist_state.v1"
+RR_CAPTURE_FEEDBACK_REVISION = "window_peak_progress_v2"
+RR_CAPTURE_WINDOW_REFERENCE_SEMANTICS = "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed"
 RR_CAPTURE_ASSIST_FEATURE_NAMES = (
     "mode", "initialized", "knee_hold_deg", "hip_entry_deg", "hip_target_deg",
     "travel_used_deg", "descent_elapsed_s", "window_start_gap_m", "window_elapsed_s",
@@ -46,6 +48,8 @@ def _snapshot(state, tick):
     active = mode in (1, 2, 3, 4)
     owner = "rr_capture_assist_policy_blend" if mode == 4 else "rr_capture_assist" if active else "nominal_plus_policy"
     return {"schema": RR_CAPTURE_ASSIST_SCHEMA, "version": RR_CAPTURE_ASSIST_MODE,
+        "feedback_revision": RR_CAPTURE_FEEDBACK_REVISION,
+        "window_reference_semantics": RR_CAPTURE_WINDOW_REFERENCE_SEMANTICS,
         **state, "mode_name": _MODES[mode], "reason": _REASONS[int(state["blocked_reason"])],
         "active": active, "owners": [owner, owner], "owner_indices": [6, 7] if active else [],
         "last_dispatch_physics_tick": tick, "feature_names": list(RR_CAPTURE_ASSIST_FEATURE_NAMES)}
@@ -64,7 +68,8 @@ def _exhaustion_reason(state):
 
 def validate_rr_capture_assist_snapshot(snapshot: Mapping) -> dict:
     """Strict finite state/metadata validation for observation and replay."""
-    metadata = {"schema", "version", "mode_name", "reason", "active", "owners", "owner_indices",
+    metadata = {"schema", "version", "feedback_revision", "window_reference_semantics",
+                "mode_name", "reason", "active", "owners", "owner_indices",
                 "last_dispatch_physics_tick", "feature_names"}
     if not isinstance(snapshot, Mapping) or set(snapshot) != set(RR_CAPTURE_ASSIST_FEATURE_NAMES) | metadata:
         raise ValueError("RR capture assist requires its complete explicit snapshot")
@@ -125,7 +130,13 @@ class RRHipOnlyCaptureAssist:
 
     Total assist descent is <=20 degrees and <=12 seconds, never renewed by
     contact loss or phase changes. At most 2 degrees/s (1 in the last 3 mm),
-    2-second/0.2-mm gap progress windows, 3-degree hip AND knee tracking gates.
+    2-second/0.2-mm local peak-to-current gap progress windows, with 3-degree
+    hip AND knee tracking gates. The publicly versioned window_start_gap_m
+    scalar (feature7 / observation396) stores the current window's peak gap.
+    Rising gap never resets its clock or either total search budget.
+    At the qualified XY candidate, ownership can bridge geometry retirement
+    before the crossing event is latched; this only holds the previous FINAL
+    target. Negative descent still requires the actual crossing history.
     Any physical contact stops descent; only real current TOP bearing starts
     P10/P11 release. First qualified RL lift retires this local controller.
     """
@@ -201,12 +212,17 @@ class RRHipOnlyCaptureAssist:
         if context["rl_qualified_lift"]:
             state["retired"] = 1.
         window = stage in ("P09", "P10", "P11")
-        ready = (context["physical_valid"] and context["within_top_xy"] and support >= 2
-                 and context["qualified_RR"] and context["crossed_RR"] and context["air"] and not contact)
+        reachable = (context["physical_valid"] and context["within_top_xy"] and support >= 2
+                     and context["qualified_RR"] and context["air"] and not contact)
+        ready = reachable and context["crossed_RR"]
         mode = state["mode"]
         if mode == 0:
-            if not state["retired"] and stage == "P09" and ready:
+            if not state["retired"] and stage == "P09" and reachable:
                 self._anchor(state, previous, gap, first=True)
+                if not context["crossed_RR"]:
+                    # Bridge the existing clearance-helper's XY exit without
+                    # spending descent budget or inventing crossing/support.
+                    state.update(mode=3., blocked_reason=9.)
         elif mode == 5:
             if not state["retired"] and window and ready:
                 self._anchor(state, previous, gap)  # finite budgets deliberately retained
@@ -236,17 +252,23 @@ class RRHipOnlyCaptureAssist:
         else:
             if mode == 2:
                 state.update(window_start_gap_m=gap, window_elapsed_s=0.)
-            improved = state["window_start_gap_m"] - gap >= .0002
-            if improved:
-                state.update(window_start_gap_m=gap, window_elapsed_s=0.)
             lower = servo_limits_deg(SERVO_ORDER[6])[0] + 2.
             reason = (1 if not context["physical_valid"] else 2 if not context["within_top_xy"] else
                 3 if support < 2 else 9 if not (context["qualified_RR"] and context["crossed_RR"]) else
                 7 if not context["air"] else
                 5 if state["travel_used_deg"] >= 20. - 1e-9 or state["hip_target_deg"] <= lower + 1e-9 else
                 8 if state["descent_elapsed_s"] >= 12. - 1e-9 else
-                6 if max(abs(hip - state["hip_target_deg"]), abs(knee - state["knee_hold_deg"])) > 3. else
-                4 if state["window_elapsed_s"] >= 2. - 1e-9 and not improved else 0)
+                6 if max(abs(hip - state["hip_target_deg"]), abs(knee - state["knee_hold_deg"])) > 3. else 0)
+            if not reason:
+                # A whole-body reconfiguration can first raise the swing foot.
+                # Recognize subsequent measured descent from the public local
+                # peak, not only a new low below the earlier whole-body pose.
+                # Invalid/support-lost/untracked samples cannot renew permission.
+                state["window_start_gap_m"] = max(state["window_start_gap_m"], gap)
+                if state["window_start_gap_m"] - gap >= .0002:
+                    state.update(window_start_gap_m=gap, window_elapsed_s=0.)
+                elif state["window_elapsed_s"] >= 2. - 1e-9:
+                    reason = 4
             state.update(mode=3. if reason else 1., blocked_reason=float(reason))
             if not reason:
                 exposure = min(dt, 12. - state["descent_elapsed_s"])

@@ -50,10 +50,10 @@ def test_public_14_features_and_fresh_identity():
 
 
 @pytest.mark.parametrize("change", [dict(stage_id="P08"), dict(stage_id="P10"),
-    dict(qualified_RR=False), dict(crossed_RR=False), dict(within_top_xy=False),
+    dict(qualified_RR=False), dict(within_top_xy=False),
     dict(physical_valid=False), dict(other_support_count=1), dict(air=False),
     dict(air=False, obstacle_pair_active=True), dict(rl_qualified_lift=True)])
-def test_first_acquisition_requires_true_P09_air_crossing(change):
+def test_first_acquisition_requires_true_P09_qualified_air_candidate(change):
     assist = RRHipOnlyCaptureAssist()
     step(assist, 1, **change)
     assert assist.snapshot()["mode_name"] == "WAIT"
@@ -100,7 +100,7 @@ def test_flat_or_wrong_direction_stops_and_real_gap_improvement_can_resume():
     held = deepcopy(assist.state)
     assert held["blocked_reason"] == 4.
     assert held["travel_used_deg"] == pytest.approx(4.)
-    step(assist, 350, gap_m=.0201)
+    step(assist, 350, gap_m=.02025)  # less than0.2mm below the public local peak
     assert assist.state["hip_target_deg"] == held["hip_target_deg"]
     step(assist, 351, gap_m=.019)
     assert assist.state["hip_target_deg"] < held["hip_target_deg"]
