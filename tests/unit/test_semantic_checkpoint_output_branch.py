@@ -41,6 +41,17 @@ def bind_v7(meta,contract=None):
     return meta
 
 
+def bind_v8(meta,contract=None):
+    contract=contract or {"source_git_commit":"8"*40,"runtime_content_sha256":"8"*64}
+    meta["runtime_contract"]=deepcopy(contract)
+    meta["rr_signed_wheel_v8_migration"]={"schema":"wlr50_clean.rr_signed_wheel_same410.v8",
+        "target_git_commit":contract["source_git_commit"],"target_contract_sha256":digest(contract),
+        "target_runtime_content_sha256":contract["runtime_content_sha256"],"source_selection":deepcopy(SELECTION),
+        "rr_signed_wheel_v8_factor":{"target_feedback_revision":"signed_band_contact_formation_incremental_v6",
+            "counter_origin":deepcopy(ORIGIN)}}
+    return meta
+
+
 def write_checkpoint(path,meta):
     path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(b"synthetic route only")
     path.with_name(path.stem+"_manifest.json").write_text(json.dumps(meta),encoding="utf-8")
@@ -158,7 +169,7 @@ def test_same_branch_immutable_and_pointer_resolution(paths,command,phase):
         cli.validate_request(args(paths,source=destination/"checkpoints/checkpoint_last.pt",command=command,phase=phase))
 
 
-@pytest.mark.parametrize("version",[6,7])
+@pytest.mark.parametrize("version",[6,7,8])
 def test_cpu_real_update_writes_only_branch_preserves_main_and_roundtrips(tmp_path,version):
     torch=pytest.importorskip("torch");pytest.importorskip("rsl_rl")
     from test_semantic_rr_capture_training_audit import Synthetic410Core
@@ -191,7 +202,8 @@ def test_cpu_real_update_writes_only_branch_preserves_main_and_roundtrips(tmp_pa
         "rr_progress_handoff_v5_migration":{"source_selection":deepcopy(SELECTION)},
         "rr_carry_handoff_v4_migration":{"opaque":"must preserve"}}
     bind_v6(previous,contract)
-    if version==7: bind_v7(previous,contract)
+    if version>=7: bind_v7(previous,contract)
+    if version==8: bind_v8(previous,contract)
     with pytest.raises(ValueError,match="explicit output routing"):
         training.train_semantic(runner,env,run_dir=tmp_path/"ancestor_no_flag",output_root=base,
             stage="full_episode",decisions=128,contract=contract,seed=1001,resume_infos=previous)
@@ -210,7 +222,8 @@ def test_cpu_real_update_writes_only_branch_preserves_main_and_roundtrips(tmp_pa
     assert loaded["rr_progress_handoff_v5_migration"]==previous["rr_progress_handoff_v5_migration"]
     assert loaded["rr_carry_handoff_v4_migration"]==previous["rr_carry_handoff_v4_migration"]
     assert loaded["rr_contact_onset_v6_migration"]==previous["rr_contact_onset_v6_migration"]
-    if version==7: assert loaded["rr_signed_contact_v7_migration"]==previous["rr_signed_contact_v7_migration"]
+    if version>=7: assert loaded["rr_signed_contact_v7_migration"]==previous["rr_signed_contact_v7_migration"]
+    if version==8: assert loaded["rr_signed_wheel_v8_migration"]==previous["rr_signed_wheel_v8_migration"]
     assert loaded["rr_capture_transfer_branch_counts"]==dict(global_policy_decisions=128,ppo_updates=1,optimizer_steps=20)
     assert training.state_hash(fresh.alg.optimizer.state_dict())==training.state_hash(runner.alg.optimizer.state_dict())
     assert {int(s["step"].item()) for s in fresh.alg.optimizer.state.values()}=={33780}
@@ -235,8 +248,10 @@ def test_train_and_video_launchers_forward_explicit_branch():
 
 
 @pytest.mark.parametrize("phase",["P01","P04"])
-def test_v7_formal_ancestor_initial_and_same_branch_resume(paths,phase):
+@pytest.mark.parametrize("version",[7,8])
+def test_current_formal_ancestor_initial_and_same_branch_resume(paths,phase,version):
     meta=bind_v7(metadata());old_receipt=deepcopy(meta["rr_contact_onset_v6_migration"])
+    if version==8: bind_v8(meta)
     write_checkpoint(paths[2],meta)
     with pytest.raises(ValueError,match="explicit output branch"):
         cli.validate_request(args(paths,name=None,phase=phase))
@@ -260,6 +275,19 @@ def test_v7_receipt_never_falls_back_to_v6(paths,bad):
     receipt=meta["rr_signed_contact_v7_migration"]
     if bad=="empty": meta["rr_signed_contact_v7_migration"]={}
     elif bad=="wrong_feedback": receipt["rr_signed_contact_v7_factor"]["target_feedback_revision"]="progress_reserve_contact_onset_incremental_v5"
+    elif bad=="stale_head": receipt["target_git_commit"]="0"*40
+    else: receipt["target_contract_sha256"]="0"*64
+    write_checkpoint(paths[2],meta)
+    with pytest.raises(ValueError,match="formally published"):
+        cli.validate_request(args(paths))
+
+
+@pytest.mark.parametrize("bad",["empty","wrong_feedback","stale_head","stale_contract"])
+def test_v8_receipt_never_falls_back_to_v7(paths,bad):
+    meta=bind_v7(metadata());bind_v8(meta,meta["runtime_contract"])
+    receipt=meta["rr_signed_wheel_v8_migration"]
+    if bad=="empty": meta["rr_signed_wheel_v8_migration"]={}
+    elif bad=="wrong_feedback": receipt["rr_signed_wheel_v8_factor"]["target_feedback_revision"]="unknown"
     elif bad=="stale_head": receipt["target_git_commit"]="0"*40
     else: receipt["target_contract_sha256"]="0"*64
     write_checkpoint(paths[2],meta)

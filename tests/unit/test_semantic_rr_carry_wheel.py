@@ -90,6 +90,45 @@ def test_existing_depth_and_gap_scales_taper_but_zero_gain_keeps_scoped_zero_flo
     assert result["output_full12"][8] == pytest.approx(-.915)
 
 
+@pytest.mark.parametrize("gap", [0., -3.537004e-6, -.0003, -.015])
+def test_signed_air_capture_keeps_zero_floor_without_inventing_contact(gap):
+    kwargs, candidate = fixture()
+    rr = kwargs["task"]["physical_evaluator"]["current_legs"]["RR"]
+    rr.update(clearance_m=gap, front_distance_m=.02)
+    kwargs["source_ack"]["drive_target_full12"][8:11] = [0., .06, 0.]
+    before = deepcopy((kwargs["task"], candidate))
+    result = project(kwargs, candidate)
+    assert result["context"]["action"] == "forward_floor"
+    assert result["context"]["gain"] == result["context"]["forward_floor_rad_s"] == 0.
+    assert result["output_full12"][8:11] == pytest.approx([0., .06, 0.])
+    assert result["output_full12"][11] == candidate[11]  # AIR RR spin is not traction.
+    assert result["raw_policy_and_log_probability_unchanged"]
+    assert (kwargs["task"], candidate) == before
+    assert not rr["top_surface_contact"] and not rr["obstacle_pair_active"]
+
+
+def test_zero_crossing_does_not_switch_owner_or_release_to_negative_policy():
+    kwargs, candidate = fixture()
+    kwargs["source_ack"]["drive_target_full12"][8:11] = [0., .06, 0.]
+    for gap in (2.610613e-6, -3.537004e-6, .000002, -.000011):
+        kwargs["task"]["physical_evaluator"]["current_legs"]["RR"].update(clearance_m=gap)
+        result = project(kwargs, candidate)
+        assert result["context"]["action"] == "forward_floor"
+        assert result["output_full12"][8] >= 0.
+        assert result["output_full12"][10] >= 0.
+        assert candidate[8] == -.93
+
+
+def test_signed_air_outside_existing_band_still_releases_without_new_floor():
+    kwargs, candidate = fixture()
+    kwargs["task"]["physical_evaluator"]["current_legs"]["RR"]["clearance_m"] = -.015001
+    kwargs["source_ack"]["drive_target_full12"][8:11] = [0., .06, 0.]
+    result = project(kwargs, candidate)
+    assert result["context"]["action"] == "release_slew"
+    assert result["desired_before_slew_full12"] == candidate
+    assert result["output_full12"][8] == pytest.approx(-.015)
+
+
 def test_already_forward_policy_can_exceed_advice_and_inputs_are_not_mutated():
     kwargs, candidate = fixture()
     candidate[8:11] = [.4, .5, .6]

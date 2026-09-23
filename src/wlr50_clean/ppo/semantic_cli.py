@@ -88,9 +88,11 @@ def _bind_checkpoint_output_routing(args: argparse.Namespace, base: Path, destin
     from .semantic_migration import digest
     metadata = json.loads(args.checkpoint.with_name(args.checkpoint.stem + "_manifest.json").read_text(encoding="utf-8"))
     selection = (metadata.get("rr_progress_handoff_v5_migration") or {}).get("source_selection")
+    wheel_signed = "rr_signed_wheel_v8_migration" in metadata
     signed = "rr_signed_contact_v7_migration" in metadata
-    contact = metadata.get("rr_signed_contact_v7_migration" if signed else "rr_contact_onset_v6_migration") or {}
+    contact = metadata.get("rr_signed_wheel_v8_migration" if wheel_signed else "rr_signed_contact_v7_migration" if signed else "rr_contact_onset_v6_migration") or {}
     contact_schema, contact_factor, contact_feedback = (
+        ("wlr50_clean.rr_signed_wheel_same410.v8", "rr_signed_wheel_v8_factor", "signed_band_contact_formation_incremental_v6") if wheel_signed else
         ("wlr50_clean.rr_signed_contact_same410.v7", "rr_signed_contact_v7_factor", "signed_band_contact_formation_incremental_v6") if signed else
         ("wlr50_clean.rr_contact_onset_same410.v6", "rr_contact_onset_v6_factor", "progress_reserve_contact_onset_incremental_v5"))
     runtime = metadata.get("runtime_contract") or {}
@@ -106,7 +108,7 @@ def _bind_checkpoint_output_routing(args: argparse.Namespace, base: Path, destin
             or contact.get("source_selection", {}).get("counters") != origin
             or contact.get(contact_factor, {}).get("target_feedback_revision") != contact_feedback
             or contact.get(contact_factor, {}).get("counter_origin") != origin):
-        raise ValueError("checkpoint output branch requires its formally published v6/v7 control receipt and current runtime")
+        raise ValueError("checkpoint output branch requires its formally published v6/v7/v8 control receipt and current runtime")
     route = {"schema":"wlr50_clean.checkpoint_output_routing.v1",
              "branch":args.checkpoint_output_branch, "output_root":str(destination),
              "main_latest_pointer_promotion":False, "source_selection":jsonable(selection)}
@@ -354,7 +356,7 @@ def validate_request(args: argparse.Namespace) -> None:
             metadata = json.loads(args.checkpoint.with_name(args.checkpoint.stem + "_manifest.json").read_text())
             if (not branch_requested and any((metadata.get(key) or {}).get("source_selection", {}).get(
                     "source_role") == "front_validated_ancestor_control_eval" for key in (
-                        "rr_contact_onset_v6_migration", "rr_signed_contact_v7_migration"))):
+                        "rr_contact_onset_v6_migration", "rr_signed_contact_v7_migration", "rr_signed_wheel_v8_migration"))):
                 raise ValueError("published ancestor training requires its explicit output branch")
             source_version = metadata.get("semantic_version", "v2")
             if args.new_mdp_warm_start:

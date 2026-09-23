@@ -13,10 +13,10 @@ from collections.abc import Mapping
 from wlr50_clean.infrastructure.command_batch import (
     PHYSICS_DT_S, WHEEL_ORDER, WHEEL_VELOCITY_LIMIT_RAD_S,
 )
-from wlr50_clean.ppo.semantic_rr_capture_context import verified_current_support
+from wlr50_clean.ppo.semantic_rr_capture_context import verified_current_support, RR_CAPTURE_GAP_MIN_M
 
 MODE = "rr_capture_support_forward_projection_v1"
-SEMANTICS = "P09_post_source_committed_stop_current_RR_AIR_Q_cross_supported_FL_FR_RL_nonnegative_depth_gap_floor_previous_FINAL_1p8_slew_TOP_release"
+SEMANTICS = "P09_post_source_committed_stop_current_RR_AIR_Q_cross_supported_FL_FR_RL_signed_task_band_nonnegative_depth_gap_floor_previous_FINAL_1p8_slew_TOP_release"
 CONTEXT_SCHEMA = "wlr50_clean.rr_carry_wheel_context.v1"
 EVIDENCE_SCHEMA = "wlr50_clean.rr_carry_wheel_evidence.v1"
 ACK_KEY = "rr_carry_wheel_evidence"
@@ -238,8 +238,12 @@ def build_rr_carry_wheel_context(*, task, observation, source_frame, nominal_pro
         return out
     air = (known_air and rr["current_lift_valid"] and rr["within_top_xy"]
         and rr["within_lateral_span"] and not rr["top_surface_contact"]
-        and rr["contact_surface"] == "NONE" and hist.get("active_lift", {}).get("RR") is True and gap >= 0.)
-    # TOP/contact or a lost current AIR geometry condition has NO forward floor.
+        and rr["contact_surface"] == "NONE" and hist.get("active_lift", {}).get("RR") is True
+        and gap >= RR_CAPTURE_GAP_MIN_M)
+    # Signed near-plane AIR is still the same capture attempt, not TOP. Its
+    # tapered gain is zero, but keep the nonnegative floor rather than release
+    # toward an opposing policy request merely on each geometric zero crossing.
+    # Actual TOP or a lost current AIR geometry condition has NO forward floor.
     # Within this P09/source/support scope only, return to the original candidate
     # at the same rate. No phase, contact, or completion history is manufactured.
     gain = _clip((deep-distance)/(deep-near), 0., 1.) * _clip(gap/clear, 0., 1.) if air else 0.
