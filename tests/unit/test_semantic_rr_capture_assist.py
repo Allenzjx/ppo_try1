@@ -22,6 +22,10 @@ def context(assist, tick, **changes):
     return {"dispatch_physics_tick": tick, "stage_id": "P09", "physical_valid": True,
         "within_top_xy": True, "other_support_count": 2,
         "qualified_RR": True, "crossed_RR": True, "rl_qualified_lift": False,
+        "rl_placed_current_top_support": False,
+        "issued_nominal_delta_rr_deg": (0., 0.),
+        "issued_requested_residual_delta_rr_deg": (0., 0.),
+        "release_candidate_rr_deg": (9., -7.),
         "air": True, "ground_contact": False, "top_surface_contact": False,
         "obstacle_pair_active": False, "current_top_bearing": False, "gap_m": .02,
         "hip_actual_deg": assist.state["hip_target_deg"] if initialized else 10.,
@@ -52,7 +56,7 @@ def test_public_14_features_and_fresh_identity():
 @pytest.mark.parametrize("change", [dict(stage_id="P08"), dict(stage_id="P10"),
     dict(qualified_RR=False), dict(within_top_xy=False),
     dict(physical_valid=False), dict(other_support_count=1), dict(air=False),
-    dict(air=False, obstacle_pair_active=True), dict(rl_qualified_lift=True)])
+    dict(air=False, obstacle_pair_active=True), dict(rl_placed_current_top_support=True)])
 def test_first_acquisition_requires_true_P09_qualified_air_candidate(change):
     assist = RRHipOnlyCaptureAssist()
     step(assist, 1, **change)
@@ -115,51 +119,55 @@ def test_any_real_contact_stops_pressing_without_fabricating_bearing(contact):
     step(assist, 3, air=False, **contact)
     assert assist.snapshot()["mode_name"] == "HOLD"
     assert assist.state["hip_target_deg"] == before["hip_target_deg"]
-    assert assist.state["contact_seen"] == 1.
+    assert assist.state["contact_seen"] == float(bool(contact.get("top_surface_contact")))
     step(assist, 4, stage_id="P10", air=False, **contact)
-    assert assist.snapshot()["mode_name"] == "HOLD"  # not historical placed/contact alone
+    assert assist.snapshot()["mode_name"] in ("HOLD", "BLOCKED")  # no invented current bearing
 
 
-def test_real_bearing_release_reanchors_at_previous_final_and_never_returns_zero():
+def test_real_bearing_follow_retains_capture_target_not_previous_FINAL_or_absolute_candidate():
     assist = RRHipOnlyCaptureAssist(); step(assist, 1); step(assist, 2, **top())
     previous = ZERO[:6] + (9.8, -8.1) + ZERO[8:]
     candidate = ZERO[:6] + (9., -7.) + (.3,) * 4
     step(assist, 3, previous=previous, stage_id="P10", **top())
-    assert assist.snapshot()["mode_name"] == "RELEASE"
-    assert apply_rr_capture_assist_snapshot(candidate, assist.snapshot())[6:8] == previous[6:8]
+    assert assist.snapshot()["mode_name"] == "CAPTURED_FOLLOW"
+    assert apply_rr_capture_assist_snapshot(candidate, assist.snapshot())[6:8] == (10., -8.)
     values = []
     for tick in range(4, 94):
         step(assist, tick, stage_id="P10", **top())
         values.append(apply_rr_capture_assist_snapshot(candidate, assist.snapshot())[6])
     assert all(a >= b for a, b in zip(values, values[1:]))
-    assert values[-1] == candidate[6]
-    assert assist.snapshot()["mode_name"] == "RELEASED"
+    assert values == [10.] * 90
+    assert assist.snapshot()["mode_name"] == "CAPTURED_FOLLOW"
 
 
-@pytest.mark.parametrize("finish_release", [False, True])
-def test_true_bearing_loss_recaptures_from_previous_final_not_old_entry(finish_release):
+@pytest.mark.parametrize("long_contact", [False, True])
+def test_true_bearing_loss_keeps_integrator_and_spends_only_remaining_feedback(long_contact):
     assist = RRHipOnlyCaptureAssist(); step(assist, 1); step(assist, 2)
     spent = assist.state["travel_used_deg"]
     step(assist, 3, stage_id="P10", **top())
-    end = 94 if finish_release else 6
+    end = 94 if long_contact else 6
     for tick in range(4, end):
         step(assist, tick, stage_id="P10", **top())
     previous = ZERO[:6] + (9.2, -7.5) + ZERO[8:]
+    pending = assist.state["hip_target_deg"]
     step(assist, end, previous=previous, stage_id="P11", gap_m=.01)
-    assert assist.state["hip_target_deg"] == 9.2 and assist.state["knee_hold_deg"] == -7.5
+    assert assist.state["hip_target_deg"] == pytest.approx(pending - 2*DT)
+    assert assist.state["knee_hold_deg"] == -8.
     assert assist.state["release_fraction"] == 0.
-    assert assist.state["travel_used_deg"] == spent
+    assert assist.state["travel_used_deg"] == pytest.approx(spent + 2*DT)
     step(assist, end + 1, stage_id="P11", gap_m=.009)
-    assert assist.state["hip_target_deg"] < 9.2
+    assert assist.state["hip_target_deg"] == pytest.approx(pending - 4*DT)
     assert assist.state["hip_entry_deg"] == 10.
 
 
-def test_real_RL_lift_retires_even_in_P09_and_cannot_reacquire_afterwards():
+def test_RL_lift_does_not_retire_and_real_placement_release_cannot_reacquire():
     assist = RRHipOnlyCaptureAssist(); step(assist, 1); step(assist, 2)
     step(assist, 3, rl_qualified_lift=True)
+    assert assist.state["retired"] == 0.
+    step(assist, 4, stage_id="P13", rl_placed_current_top_support=True, **top())
     assert assist.state["retired"] == 1. and assist.snapshot()["mode_name"] == "RELEASE"
-    for tick in range(4, 110):
-        step(assist, tick, stage_id="P11")
+    for tick in range(5, 110):
+        step(assist, tick, stage_id="P13", rl_placed_current_top_support=True, **top())
     assert assist.snapshot()["mode_name"] == "RELEASED"
     before = deepcopy(assist.state)
     step(assist, 110, stage_id="P09")
@@ -167,16 +175,16 @@ def test_real_RL_lift_retires_even_in_P09_and_cannot_reacquire_afterwards():
 
 
 def test_P12_P13_do_not_start_new_capture_or_claim_bearing():
-    assist = RRHipOnlyCaptureAssist(); step(assist, 1)
-    for tick in range(2, 110):
+    assist = RRHipOnlyCaptureAssist()
+    for tick in range(1, 110):
         step(assist, tick, stage_id="P12")
-    assert assist.snapshot()["mode_name"] == "RELEASED"
+    assert assist.snapshot()["mode_name"] == "WAIT"
     before = deepcopy(assist.state)
     step(assist, 110, stage_id="P13")
     assert assist.state == before
 
 
-def test_v3_combined_forty_degrees_is_not_replenished_by_contact_losses():
+def test_contact_losses_do_not_replenish_original_budget_and_reserve_needs_near_top_progress():
     assist = RRHipOnlyCaptureAssist(); step(assist, 1)
     for tick in range(2, 5000):
         if tick % 7 == 0:
@@ -186,8 +194,12 @@ def test_v3_combined_forty_degrees_is_not_replenished_by_contact_losses():
     assert assist.state["travel_used_deg"] == pytest.approx(40.)
     assert assist.state["hip_target_deg"] == pytest.approx(-10.)
     assert assist.state["knee_hold_deg"] == pytest.approx(12.)
-    step(assist, 5000, gap_m=.01)
-    assert assist.state["blocked_reason"] == 5.
+    step(assist, 5000, gap_m=.09)
+    assert assist.state["travel_used_deg"] == pytest.approx(40.)
+    assert assist.snapshot()["mode_name"] == "BLOCKED"
+    step(assist, 5001, gap_m=.01)
+    assert assist.snapshot()["mode_name"] == "DESCEND_PROGRESS"
+    assert assist.state["travel_used_deg"] == pytest.approx(40. + DT)
 
 
 def test_twelve_second_exposure_limit_is_independent_of_contact_and_progress():
@@ -292,10 +304,10 @@ def test_old_lift_history_after_reground_cannot_initialize_without_current_valid
     assert task == before
 
 
-def test_current_bearing_release_does_not_need_air_lift_predicate_to_remain_true():
+def test_current_bearing_follow_does_not_need_air_lift_predicate_to_remain_true():
     assist = RRHipOnlyCaptureAssist(); step(assist, 1)
     step(assist, 2, stage_id="P10", qualified_RR=False, **top())
-    assert assist.snapshot()["mode_name"] == "RELEASE"
+    assert assist.snapshot()["mode_name"] == "CAPTURED_FOLLOW"
 
 
 def test_mixed_GROUND_TOP_cannot_be_current_TOP_bearing_or_start_release():
@@ -351,7 +363,7 @@ def test_reacquisition_with_consumed_total_budget_never_advertises_DESCEND():
     step(assist, 2, stage_id="P10", **top())
     for tick in range(3, 93):
         step(assist, tick, stage_id="P10", **top())
-    assert assist.snapshot()["mode_name"] == "RELEASED"
+    assert assist.snapshot()["mode_name"] == "CAPTURED_FOLLOW"
     step(assist, 93, stage_id="P11")
     assert assist.snapshot()["mode_name"] == "BLOCKED"
-    assert assist.state["blocked_reason"] == 5. and assist.state["travel_used_deg"] == 40.
+    assert assist.state["blocked_reason"] == 10. and assist.state["travel_used_deg"] == 40.

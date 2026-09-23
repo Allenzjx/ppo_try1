@@ -80,10 +80,10 @@ def test_many_peak_drops_cannot_refresh_total_travel_budget():
     for tick in range(2, 3700):
         step(assist, tick, gap_m=.06 if tick % 2 else .059)
     assert assist.state['travel_used_deg'] == pytest.approx(40.)
-    assert assist.snapshot()['reason'] == 'finite_search_travel_or_margin'
+    assert assist.snapshot()['reason'] == 'fresh_near_top_progress_required'
     target = assist.state['hip_target_deg']
     knee_target = assist.state['knee_hold_deg']
-    step(assist, 3700, gap_m=.02)
+    step(assist, 3700, gap_m=.04)
     assert assist.state['hip_target_deg'] == target
     assert assist.state['knee_hold_deg'] == knee_target
 
@@ -93,14 +93,14 @@ def test_contact_and_retirement_still_preempt_peak_descent():
     step(assist, 2, **top())
     assert assist.snapshot()['mode_name'] == 'HOLD'
     assert assist.state['travel_used_deg'] == 0.
-    step(assist, 3, rl_qualified_lift=True, gap_m=.001)
+    step(assist, 3, stage_id='P13', rl_placed_current_top_support=True, **top())
     assert assist.snapshot()['mode_name'] == 'RELEASE' and assist.state['retired'] == 1.
 
 
 def test_public_peak_scalar_and_snapshot_replay_are_exact_and_versioned():
     assist = RRHipOnlyCaptureAssist(); step(assist, 1, gap_m=.028); step(assist, 2, gap_m=.07)
     snapshot = assist.snapshot()
-    assert snapshot['feedback_revision'] == RR_CAPTURE_FEEDBACK_REVISION == 'window_peak_hip_then_knee_v3'
+    assert snapshot['feedback_revision'] == RR_CAPTURE_FEEDBACK_REVISION == 'progress_reserve_captured_incremental_v4'
     assert snapshot['window_reference_semantics'] == RR_CAPTURE_WINDOW_REFERENCE_SEMANTICS
     assert RR_CAPTURE_ASSIST_FEATURE_NAMES[7] == 'window_start_gap_m'
     assert rr_capture_assist_features(snapshot)[7] == pytest.approx(.7)

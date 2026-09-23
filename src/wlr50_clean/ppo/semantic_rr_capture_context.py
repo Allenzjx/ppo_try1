@@ -99,7 +99,7 @@ def rr_capture_transfer_context(*, task, observation, support_spec, assist_snaps
         # Local import keeps the sensor helper usable by the actuator module.
         from .semantic_rr_capture_assist import validate_rr_capture_assist_snapshot
         validate_rr_capture_assist_snapshot(snapshot)
-    live_descent = bool(snapshot.get("mode_name") == "DESCEND"
+    live_descent = bool(snapshot.get("mode_name") in ("DESCEND", "DESCEND_PROGRESS")
                         and not snapshot.get("retired"))
     # Confirm actual contact or retain it to the normal scheduler boundary.
     # BLOCKED may be the last bounded search step that physically lands; this
@@ -109,7 +109,7 @@ def rr_capture_transfer_context(*, task, observation, support_spec, assist_snaps
         and rr["within_lateral_span"] and len(other_supports) >= 2
         and snapshot.get("initialized") == 1. and not snapshot.get("retired")
         and snapshot.get("active") is True and snapshot.get("owner_indices") == [6, 7]
-        and snapshot.get("mode_name") in ("DESCEND", "HOLD", "BLOCKED"))
+        and snapshot.get("mode_name") in ("DESCEND", "DESCEND_PROGRESS", "HOLD", "BLOCKED"))
     contact_confirmation = bool(current_owned_capture
         and snapshot["hold_elapsed_s"] <= contact_handoff_window_s + 1e-12)
     goals = task.get("completion_values", {})

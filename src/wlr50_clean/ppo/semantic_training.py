@@ -960,9 +960,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         rr_capture_feedback_factor = (verified.get("rr_capture_feedback_peak_v2_factor") or {}).get("observation_contract")
         rr_capture_knee_factor = (verified.get("rr_capture_knee_v3_factor") or {}).get("observation_contract")
         rr_carry_handoff_factor = (verified.get("rr_carry_handoff_v4_factor") or {}).get("observation_contract")
-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor, receiving_factor, capture_feedback_factor, rr_workspace_factor, p05_preedge_factor, rr_capture_feedback_factor, rr_capture_knee_factor, rr_carry_handoff_factor)) > 1:
+        rr_progress_handoff_factor = (verified.get("rr_progress_handoff_v5_factor") or {}).get("observation_contract")
+        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor, receiving_factor, capture_feedback_factor, rr_workspace_factor, p05_preedge_factor, rr_capture_feedback_factor, rr_capture_knee_factor, rr_carry_handoff_factor, rr_progress_handoff_factor)) > 1:
             raise RuntimeError("reviewed same-layout migration receipts must be exclusive")
-        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor or receiving_factor or capture_feedback_factor or rr_workspace_factor or p05_preedge_factor or rr_capture_feedback_factor or rr_capture_knee_factor or rr_carry_handoff_factor
+        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor or receiving_factor or capture_feedback_factor or rr_workspace_factor or p05_preedge_factor or rr_capture_feedback_factor or rr_capture_knee_factor or rr_carry_handoff_factor or rr_progress_handoff_factor
         if reviewed_factor is not None:
             if factor is not None:
                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")
@@ -1037,6 +1038,9 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         if verified.get("rr_carry_handoff_v4_factor") is not None:
             from .semantic_rr_carry_handoff_migration import record_loaded_rr_carry_handoff
             infos = record_loaded_rr_carry_handoff(runner,infos,verified)
+        if verified.get("rr_progress_handoff_v5_factor") is not None:
+            from .semantic_rr_progress_handoff_migration import record_loaded_rr_progress_handoff
+            infos = record_loaded_rr_progress_handoff(runner,infos,verified)
         if receiving_wheel is not None:
             if (optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate")
                     or optimizer_learning_rate(runner) != receiving_wheel["source_effective_learning_rate"]):
@@ -2117,6 +2121,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             "rr_capture_feedback_peak_v2_migration",
                             "rr_capture_knee_v3_migration",
                             "rr_carry_handoff_v4_migration",
+                            "rr_progress_handoff_v5_migration",
                             "capture_feedback_semantics_migration", "capture_feedback_semantics_branch",
                             "rr_postcross_workspace_migration", "rr_postcross_workspace_branch",
                             "rr_receiver_retirement_v2_migration", "rr_receiver_retirement_v2_branch",

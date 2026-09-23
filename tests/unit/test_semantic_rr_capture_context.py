@@ -166,6 +166,19 @@ def test_only_current_descend_can_claim_local_recovery(mode):
     assert result["rr_capture_recovery_allowed"] is (mode == "DESCEND")
 
 
+def test_earned_near_top_progress_mode_is_live_but_not_support():
+    task, obs = measured()
+    assist = RRHipOnlyCaptureAssist()
+    assist.state.update(mode=6., initialized=1., travel_used_deg=40.,
+                        descent_elapsed_s=30., window_start_gap_m=.014,
+                        window_elapsed_s=.2)
+    result = facts(task, obs, assist_snapshot=assist.snapshot())
+    assert result["rr_capture_recovery_allowed"]
+    assert not result["rr_current_bearing"] and not result["rl_transfer_ready"]
+    task["physical_evaluator"]["current_legs"]["RR"]["ground_contact"] = True
+    assert not facts(task, obs, assist_snapshot=assist.snapshot())["rr_capture_recovery_allowed"]
+
+
 @pytest.mark.parametrize("reason", ["retired", "invalid", "physical_abort", "task_abort", "outside"])
 def test_old_descend_does_not_override_current_ineligibility(reason):
     task, obs = measured()

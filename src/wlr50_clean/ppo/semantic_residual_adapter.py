@@ -250,11 +250,24 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
             raise RobotAdapterError("RR capture assist requires matching current physical context")
         previous_final = tuple(adapter._final_drive_servo_deg[name] for name in SERVO_ORDER)
         previous_wheels = tuple((getattr(adapter, "last_ack", None) or {}).get("drive_target_full12", (0.,)*12)[8:])
-        receipt = rr_capture_assist.advance(context=rr_capture_assist_context,
-            previous_final_full12=previous_final+previous_wheels, physics_dt_s=adapter.physics_dt_s)
         candidate = (assist_targets if assist_targets is not None else
                      tuple(a+b for a,b in zip(corrected_native,effective_combined,strict=True)))
-        rr_assist_targets = apply_rr_capture_assist_snapshot(candidate,receipt["state_after"])
+        if tracking_reference is None:
+            raise RobotAdapterError("RR incremental capture requires verified previous issued N/request history")
+        # Both values are the actual adjacent dispatch inputs, already exposed
+        # by semantic_env HISTORY. Neither mapper compensation nor the clipped
+        # absolute candidate is a baseline for captured-target continuation.
+        rr_context = dict(rr_capture_assist_context)
+        rr_context.update(
+            issued_nominal_delta_rr_deg=[logical_applied.servo_deg[i]
+                - tracking_reference["mapper_pre_state"]["requested_servo_deg"][i] for i in (6,7)],
+            issued_requested_residual_delta_rr_deg=[residual[i]
+                - tracking_reference["previous_requested_full12"][i] for i in (6,7)],
+            release_candidate_rr_deg=[candidate[i] for i in (6,7)])
+        receipt = rr_capture_assist.advance(context=rr_context,
+            previous_final_full12=previous_final+previous_wheels, physics_dt_s=adapter.physics_dt_s)
+        rr_assist_targets = apply_rr_capture_assist_snapshot(candidate,receipt["state_after"],
+            previous_final_full12=previous_final+previous_wheels)
         receipt.update(candidate_before_assist_full12=list(candidate),
             candidate_after_assist_full12=list(rr_assist_targets),
             assist_correction_full12=[a-b for a,b in zip(rr_assist_targets,candidate,strict=True)],

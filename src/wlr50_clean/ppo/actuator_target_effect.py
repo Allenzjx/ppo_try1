@@ -212,6 +212,7 @@ def build_actuator_target_effect_audit(
             raise ActuatorTargetEffectError(f"invalid capture assist reconstruction: {exc}") from exc
 
     rr_assist_snapshot = None
+    rr_replayed_branches = {}
     rr_assist_receipt = raw_ack.get("rr_capture_assist_evidence")
     if rr_assist_receipt is not None:
         import json
@@ -219,22 +220,69 @@ def build_actuator_target_effect_audit(
             apply_rr_capture_assist_snapshot)
         if not isinstance(rr_assist_receipt, Mapping):
             raise ActuatorTargetEffectError("invalid RR capture assist receipt")
+        if reference_evidence is None:
+            raise ActuatorTargetEffectError("RR capture audit requires independently captured previous issued inputs")
         try:
-            replay = RRHipOnlyCaptureAssist.from_snapshot(rr_assist_receipt["state_before"])
-            context = rr_assist_receipt["context"]
-            if context["dispatch_physics_tick"] != raw_ack["physics_tick"]:
+            rr_before = rr_assist_receipt["state_before"]
+            rr_context = rr_assist_receipt["context"]
+            if not isinstance(rr_context, Mapping) or rr_context["dispatch_physics_tick"] != raw_ack["physics_tick"]:
                 raise ValueError("RR assist dispatch clock differs")
-            replay.last_tick = int(raw_ack["physics_tick"])-1
-            recomputed = replay.advance(context=context,
-                previous_final_full12=previous+(0.,)*4, physics_dt_s=float(raw_ack["physics_dt_s"]))
-            rr_assist_snapshot = recomputed["state_after"]
+            rr_requested = _finite_values(actuation.projected_residual_full12, 12, "RR current REQUEST")
+            if _finite_values(raw_ack["independent_policy_residual_requested_full12"], 12, "RR ACK REQUEST") != rr_requested:
+                raise ValueError("RR current requested residual differs from actuation plan")
+            current_nominal = Full12Command.from_full12(actuation.frozen_nominal_full12).clamped().to_full12()
+            if _finite_values(raw_ack["applied_full12"], 12, "RR issued nominal") != current_nominal:
+                raise ValueError("RR current clamped nominal differs from dispatch")
+            # This context was captured BEFORE the real dispatch, validated
+            # against the adjacent ACK and mapper, then independently rebuilt
+            # above. Do not use the new ACK's self-reported past inputs.
+            rr_previous_nominal = tracking_reference_context["mapper_pre_state"]["requested_servo_deg"]
+            rr_previous_requested = tracking_reference_context["previous_requested_full12"]
+            rr_nominal_delta = [current_nominal[i]-rr_previous_nominal[i] for i in (6,7)]
+
+            def replay_rr_branch(bias, native_targets, requested_residual, branch):
+                candidate = tuple(a+b for a,b in zip(native_targets,bias,strict=True))
+                if assist_snapshot is not None:
+                    candidate = apply_capture_assist_snapshot(candidate,assist_snapshot)
+                expected_inputs = {
+                    "issued_nominal_delta_rr_deg": rr_nominal_delta,
+                    "issued_requested_residual_delta_rr_deg": [requested_residual[i]-rr_previous_requested[i] for i in (6,7)],
+                    "release_candidate_rr_deg": [candidate[i] for i in (6,7)],
+                }
+                if branch == "actual":
+                    for key, expected in expected_inputs.items():
+                        declared = rr_context.get(key)
+                        if (not isinstance(declared, (list, tuple)) or len(declared) != 2
+                                or any(isinstance(v,bool) for v in declared)
+                                or _finite_values(declared, 2, "RR "+key) != tuple(expected)):
+                            raise ValueError("RR issued-input evidence differs from independent prestate: "+key)
+                context = dict(rr_context)
+                context.update(expected_inputs)
+                replay = RRHipOnlyCaptureAssist.from_snapshot(rr_before)
+                if (replay.last_tick not in (None, int(raw_ack["physics_tick"])-1)
+                        or (replay.last_tick is None and rr_before["initialized"] != 0.)):
+                    raise ValueError("RR before snapshot is not adjacent to actual dispatch")
+                recomputed = replay.advance(context=context,
+                    previous_final_full12=previous+(0.,)*4, physics_dt_s=float(raw_ack["physics_dt_s"]))
+                snapshot = recomputed["state_after"]
+                assisted = apply_rr_capture_assist_snapshot(candidate,snapshot,
+                    previous_final_full12=previous+(0.,)*4)
+                rr_replayed_branches[branch] = {
+                    "same_before_snapshot": True, "before_dispatch_tick": rr_before["last_dispatch_physics_tick"],
+                    "issued_inputs": expected_inputs, "state_after": snapshot,
+                    "captured_incremental_target": recomputed.get("captured_incremental_target"),
+                }
+                return snapshot, candidate, assisted
+
+            rr_assist_snapshot, requested_candidate, assisted_candidate = replay_rr_branch(
+                actual_bias,corrected_native,rr_requested,"actual")
             if json.dumps(rr_assist_snapshot,sort_keys=True,allow_nan=False) != json.dumps(
                     rr_assist_receipt["state_after"],sort_keys=True,allow_nan=False):
                 raise ValueError("RR assist state transition differs from reconstruction")
-            requested_candidate = tuple(a+b for a,b in zip(corrected_native,actual_bias,strict=True))
-            if assist_snapshot is not None:
-                requested_candidate = apply_capture_assist_snapshot(requested_candidate,assist_snapshot)
-            assisted_candidate = apply_rr_capture_assist_snapshot(requested_candidate,rr_assist_snapshot)
+            if ("captured_incremental_target" not in rr_assist_receipt or json.dumps(
+                    rr_replayed_branches["actual"]["captured_incremental_target"],sort_keys=True,allow_nan=False)
+                    != json.dumps(rr_assist_receipt["captured_incremental_target"],sort_keys=True,allow_nan=False)):
+                raise ValueError("RR captured target increment differs from independent reconstruction")
             if (_finite_values(rr_assist_receipt["candidate_before_assist_full12"],12,"RR assist input") != requested_candidate
                     or _finite_values(rr_assist_receipt["candidate_after_assist_full12"],12,"RR assist output") != assisted_candidate
                     or _finite_values(rr_assist_receipt["assist_correction_full12"],12,"RR assist correction") !=
@@ -261,22 +309,28 @@ def build_actuator_target_effect_audit(
             raise ActuatorTargetEffectError("RR wheel evidence differs from independently captured pre-dispatch state")
 
     def physical_targets(bias: Sequence[float], native_targets: Sequence[float] = corrected_native,
-                         *, verify_wheel_receipt: bool = False) -> Any:
+                         *, verify_wheel_receipt: bool = False, rr_branch: str = "zero_current_policy") -> Any:
         servo = []
         assisted = None
+        branch_rr_snapshot = None
         if assist_snapshot is not None:
             assisted = apply_capture_assist_snapshot(
                 tuple(a+b for a,b in zip(native_targets,bias,strict=True)),assist_snapshot)
         if rr_assist_snapshot is not None:
-            assisted = apply_rr_capture_assist_snapshot(
-                assisted if assisted is not None else tuple(a+b for a,b in zip(native_targets,bias,strict=True)),
-                rr_assist_snapshot)
+            if rr_branch == "actual":
+                branch_rr_snapshot = rr_assist_snapshot
+                assisted = assisted_candidate
+            else:
+                try:
+                    branch_rr_snapshot, _, assisted = replay_rr_branch(bias,native_targets,(0.,)*12,rr_branch)
+                except (TypeError,ValueError,KeyError) as exc:
+                    raise ActuatorTargetEffectError(f"invalid RR {rr_branch} reconstruction: {exc}") from exc
         for index, name in enumerate(SERVO_ORDER):
             lower, upper = servo_limits_deg(name)
             native_target, effective_bias = native_targets[index], bias[index]
             if assist_snapshot is not None and index < 2 and assist_snapshot["active"]:
                 native_target, effective_bias = assisted[index], 0.
-            if rr_assist_snapshot is not None and index in (6,7) and rr_assist_snapshot["active"]:
+            if branch_rr_snapshot is not None and index in (6,7) and branch_rr_snapshot["active"]:
                 native_target, effective_bias = assisted[index], 0.
             servo.append(bounded_drive_feedback_step(
                 previous_deg=previous[index],
@@ -300,7 +354,7 @@ def build_actuator_target_effect_audit(
         command = Full12Command.from_full12(candidate).clamped()
         return build_physical_batch(command, adapter.standing_pose_deg)
 
-    actual_physical = physical_targets(actual_bias, verify_wheel_receipt=True)
+    actual_physical = physical_targets(actual_bias, verify_wheel_receipt=True, rr_branch="actual")
     counterfactual_physical = physical_targets(zero_policy_bias)
     robot = adapter.robot
     servo_ids = list(adapter.joint_map.servo_ids)
@@ -400,6 +454,9 @@ def build_actuator_target_effect_audit(
     if rr_assist_snapshot is not None:
         result.update(rr_capture_assist_evidence=dict(rr_assist_receipt),
             rr_capture_assist_state_transition_independently_reconstructed=True,
+            rr_capture_issued_inputs_independently_verified=True,
+            rr_capture_assist_branch_replays=rr_replayed_branches,
+            rr_capture_counterfactual_state_semantics="same_prestate_distinct_actual_zero_current_policy_and_geometry_zero_replays",
             rr_capture_assist_owned_channels_full12=[bool(i in (6,7) and rr_assist_snapshot["active"]) for i in range(12)],
             counterfactual_scope="same_pre_tick_state_and_same_FL_RR_assists_without_current_ppo_residual",
             policy_request_execution_semantics="sample_unchanged_declared_state_dependent_FL_RR_target_transforms",
@@ -423,7 +480,8 @@ def build_actuator_target_effect_audit(
                 native_full12=native, controller_bias_full12=controller_bias,
                 projected_residual_full12=(0.,)*12)
             raw_zero_bias = tuple(raw_zero["effective_combined_post_mapper_bias_full12"])
-        raw_nominal_servo, raw_nominal_wheel = cast_targets(physical_targets(raw_zero_bias, native))
+        raw_nominal_servo, raw_nominal_wheel = cast_targets(physical_targets(raw_zero_bias, native,
+            rr_branch="zero_current_policy_without_geometry"))
         geometry_changed = torch.cat((nominal_servo != raw_nominal_servo,
                                       nominal_wheel != raw_nominal_wheel), dim=1)
         geometry_channels = [bool(value) for value in geometry_changed.cpu().tolist()[0]]

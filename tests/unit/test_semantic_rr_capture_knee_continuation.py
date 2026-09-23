@@ -128,22 +128,25 @@ def test_contact_before_axis_boundary_does_not_spend_or_switch():
     assert assist.state['descent_elapsed_s'] == pytest.approx(10.)
 
 
-@pytest.mark.parametrize('completed_release', [False, True])
-def test_release_failure_reanchors_latest_final_but_never_restarts_hip(knee_assist, completed_release):
+@pytest.mark.parametrize('long_contact', [False, True])
+def test_contact_loss_preserves_pending_target_and_never_restarts_hip(knee_assist, long_contact):
     assist = knee_assist; advance_search(assist)
     budget = (assist.state['travel_used_deg'], assist.state['descent_elapsed_s'])
     advance_search(assist, stage_id='P10', **top())
-    for _ in range(90 if completed_release else 3):
+    for _ in range(90 if long_contact else 3):
         advance_search(assist, stage_id='P10', **top())
-    assert assist.snapshot()['mode_name'] == ('RELEASED' if completed_release else 'RELEASE')
+    assert assist.snapshot()['mode_name'] == 'CAPTURED_FOLLOW'
+    pending = (assist.state['hip_target_deg'], assist.state['knee_hold_deg'])
     final = ZERO[:6] + (-9., -6.) + (.3,) * 4
     advance_search(assist, stage_id='P11', previous=final)
-    assert (assist.state['hip_target_deg'], assist.state['knee_hold_deg']) == final[6:8]
-    assert (assist.state['travel_used_deg'], assist.state['descent_elapsed_s']) == budget
-    advance_search(assist, stage_id='P11')
-    assert assist.state['hip_target_deg'] == -9.
-    assert assist.state['knee_hold_deg'] == pytest.approx(-6. + DT)
+    assert assist.state['hip_target_deg'] == pending[0]
+    assert assist.state['knee_hold_deg'] == pytest.approx(pending[1] + DT)
     assert assist.state['travel_used_deg'] == pytest.approx(budget[0] + DT)
+    assert assist.state['descent_elapsed_s'] == pytest.approx(budget[1] + DT)
+    advance_search(assist, stage_id='P11')
+    assert assist.state['hip_target_deg'] == pending[0]
+    assert assist.state['knee_hold_deg'] == pytest.approx(pending[1] + 2*DT)
+    assert assist.state['travel_used_deg'] == pytest.approx(budget[0] + 2*DT)
 
 
 def test_knee_upper_margin_remains_two_degrees_and_partial_step_counts_actual_exposure(knee_assist):
@@ -180,7 +183,7 @@ def test_full_twenty_knee_and_total_exposure_limits_cannot_be_recharged(knee_ass
     assert assist.state['hip_target_deg'] == pytest.approx(-10.)
     assert assist.state['knee_hold_deg'] == pytest.approx(12.)
     assert assist.snapshot()['mode_name'] == 'BLOCKED'
-    assert assist.state['blocked_reason'] == 5.
+    assert assist.state['blocked_reason'] == 10.
     budget = (assist.state['travel_used_deg'], assist.state['descent_elapsed_s'])
     advance_search(assist, stage_id='P10', **top())
     for _ in range(90):
@@ -205,7 +208,7 @@ def test_slow_hip_maximum_twelve_plus_knee_twenty_has_exact_thirtytwo_exposure(k
 def test_public_layout_scales_and_serialized_replay_are_versioned_not_expanded(knee_assist):
     advance_search(knee_assist)
     snapshot = knee_assist.snapshot()
-    assert snapshot['feedback_revision'] == RR_CAPTURE_FEEDBACK_REVISION == 'window_peak_hip_then_knee_v3'
+    assert snapshot['feedback_revision'] == RR_CAPTURE_FEEDBACK_REVISION == 'progress_reserve_captured_incremental_v4'
     assert snapshot['capture_search_semantics'] == RR_CAPTURE_SEARCH_SEMANTICS
     assert len(RR_CAPTURE_ASSIST_FEATURE_NAMES) == 14
     values = rr_capture_assist_features(snapshot)
@@ -228,12 +231,12 @@ def test_incompatible_metadata_and_impossible_derived_exposure_fail_closed(knee_
         validate_rr_capture_assist_snapshot(snapshot)
 
 
-def test_knee_axis_RL_lift_retirement_releases_once_and_never_reacquires(knee_assist):
+def test_knee_axis_RL_real_placement_releases_once_and_never_reacquires(knee_assist):
     assist = knee_assist; advance_search(assist)
     budget = (assist.state['travel_used_deg'], assist.state['descent_elapsed_s'])
-    advance_search(assist, rl_qualified_lift=True)
+    advance_search(assist, stage_id='P13', rl_placed_current_top_support=True, **top())
     for _ in range(90):
-        advance_search(assist)
+        advance_search(assist, stage_id='P13', rl_placed_current_top_support=True, **top())
     assert assist.snapshot()['mode_name'] == 'RELEASED'
     advance_search(assist)
     assert assist.snapshot()['mode_name'] == 'RELEASED'
