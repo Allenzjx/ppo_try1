@@ -1,0 +1,221 @@
+"""Strict same410 carry/contact-handoff boundary; no import-time actions."""
+from __future__ import annotations
+import copy
+import json
+import math
+from pathlib import Path
+import re
+import subprocess
+
+from .semantic_rr_capture_profile import RR_CAPTURE_POLICY, RR_CAPTURE_OBSERVATION_LAYOUT
+from .semantic_rr_capture_knee_migration import preserved_keys as ancestor_keys
+
+SCHEMA = "wlr50_clean.rr_carry_handoff_same410.v4"
+FACTOR_KEY = "rr_carry_handoff_v4_factor"
+MIGRATION = "rr_carry_handoff_v4_migration"
+PRIOR = "rr_capture_knee_v3_migration"
+PRIOR_FACTOR = "rr_capture_knee_v3_factor"
+EXPERIMENT = "rr_capture_then_rl_transfer_v1"
+SOURCE_REVISION = "rr_capture_then_rl_transfer_v3_hip_then_knee_feedback"
+TARGET_REVISION = "rr_capture_then_rl_transfer_v4_support_forward_contact_handoff"
+SOURCE_HEAD = "e24a3c2630b0b95439a7a71fe6a8a3f610a9a385"
+SOURCE_CHECKPOINT_SHA256 = "e721e9b52d6f05e8024a397363ca65e1b151a5a19efd2c5c805b59d53e1b0d6b"
+SOURCE_MANIFEST_SHA256 = "849bd97eed1ac1c23fba0fe86ec6624a9ea11427f33a2063268607663179fcf1"
+HANDOFF_KEY = "rr_contact_handoff_semantics"
+HANDOFF_MODE = "current_TOP_cumulative_HOLD_next_decision_v1"
+MODULE = "src/wlr50_clean/ppo/semantic_rr_carry_handoff_migration.py"
+WHEEL = "src/wlr50_clean/ppo/semantic_rr_carry_wheel.py"
+PROFILE = f"configs/ppo_{EXPERIMENT}/execution_profile.yaml"
+TASK = f"configs/ppo_{EXPERIMENT}/stage_task_spec.yaml"
+HOOKS = frozenset({"src/wlr50_clean/ppo/semantic_training.py", "src/wlr50_clean/ppo/semantic_migration.py"})
+CANDIDATE_BEHAVIOR = frozenset({
+    WHEEL, "src/wlr50_clean/ppo/semantic_residual_adapter.py",
+    "src/wlr50_clean/ppo/semantic_backend.py", "src/wlr50_clean/ppo/actuator_target_effect.py",
+    "src/wlr50_clean/ppo/semantic_rr_capture_context.py",
+    "src/wlr50_clean/ppo/semantic_supervisor.py", "src/wlr50_clean/ppo/isaac_fsm_backend.py"})
+# Internal reviewed constants, never caller/plan allowlists.
+REVIEWED_BEHAVIOR_FILES = CANDIDATE_BEHAVIOR
+TARGET_WHEEL_MODE = "rr_capture_support_forward_projection_v1"
+WHEEL_SEMANTICS = "P09_post_source_committed_stop_current_RR_AIR_Q_cross_supported_FL_FR_RL_nonnegative_depth_gap_floor_previous_FINAL_1p8_slew_TOP_release"
+REVIEWED_TARGET_LITERALS = {
+    WHEEL: {"MODE": TARGET_WHEEL_MODE, "SEMANTICS": WHEEL_SEMANTICS},
+    "src/wlr50_clean/ppo/semantic_rr_capture_context.py": {"RR_CONTACT_HANDOFF_MODE": HANDOFF_MODE},
+}
+COUNTERS = ("global_policy_decisions", "ppo_updates", "optimizer_steps")
+
+
+def scope():
+    if (not isinstance(REVIEWED_BEHAVIOR_FILES, frozenset)
+            or not {WHEEL, "src/wlr50_clean/ppo/semantic_rr_capture_context.py",
+                    "src/wlr50_clean/ppo/semantic_supervisor.py"} <= REVIEWED_BEHAVIOR_FILES <= CANDIDATE_BEHAVIOR
+            or not isinstance(TARGET_WHEEL_MODE, str) or not TARGET_WHEEL_MODE or TARGET_WHEEL_MODE == "off"
+            or not isinstance(REVIEWED_TARGET_LITERALS, dict)
+            or WHEEL not in REVIEWED_TARGET_LITERALS or not REVIEWED_TARGET_LITERALS[WHEEL]
+            or any(p not in REVIEWED_BEHAVIOR_FILES or not checks for p, checks in REVIEWED_TARGET_LITERALS.items())):
+        raise ValueError("v4 scope/wheel mode/AST assertions are not yet explicitly frozen")
+    return REVIEWED_BEHAVIOR_FILES | HOOKS | {MODULE, PROFILE, TASK}
+
+
+def preserved_keys(metadata):
+    return tuple(sorted(set(ancestor_keys(metadata)) | {PRIOR, "rr_capture_feedback_peak_v2_migration"}))
+
+
+def factor(metadata, old, new, *, reason, reviewed_code_sha256, source_profile, target_profile,
+           source_task, target_task, expected_source_head, expected_target_head):
+    from .semantic_migration import digest, source_num_envs
+    from .semantic_policy_distribution import policy_contract, CONFIG_NAMES
+    expected_files = scope()
+    canonical = policy_contract(RR_CAPTURE_POLICY, observation_layout=RR_CAPTURE_OBSERVATION_LAYOUT)
+    if (not isinstance(reason, str) or not reason.strip()
+            or any(not isinstance(h, str) or re.fullmatch("[0-9a-f]{40}", h) is None
+                   for h in (expected_source_head, expected_target_head))
+            or expected_source_head != SOURCE_HEAD or expected_source_head == expected_target_head
+            or old.get("source_git_commit") != expected_source_head or new.get("source_git_commit") != expected_target_head
+            or old.get("experiment_id") != EXPERIMENT or new.get("experiment_id") != EXPERIMENT
+            or metadata.get("semantic_version") != "v3" or source_num_envs(metadata) != 1
+            or metadata.get("policy_contract") != canonical):
+        raise ValueError("v4 requires exact explicit source/target revisions and the same410 N1 policy")
+    variable = {"files", "runtime_content_sha256", "source_git_commit", "selected_configuration"}
+    if {k:v for k,v in old.items() if k not in variable} != {k:v for k,v in new.items() if k not in variable}:
+        raise ValueError("v4 may not change runtime rates, physics or budgets")
+    changed = {p for p in new["files"] if old["files"].get(p) != new["files"][p]}
+    if (set(old["files"]) - set(new["files"]) or set(new["files"]) - set(old["files"]) != {MODULE, WHEEL}
+            or changed != expected_files
+            or dict(reviewed_code_sha256) != {p:new["files"][p] for p in sorted(changed)}):
+        raise ValueError("v4 requires the exact frozen changed/addition set and hashes; no broad waiver")
+    for contract in (old, new):
+        selected = contract["selected_configuration"]
+        if set(selected) != CONFIG_NAMES or any(binding != {
+                "path":f"configs/ppo_{EXPERIMENT}/{name}",
+                "sha256":contract["files"].get(f"configs/ppo_{EXPERIMENT}/{name}")}
+                for name,binding in selected.items()):
+            raise ValueError("v4 requires all six exact selected-configuration bindings")
+    if any(old["selected_configuration"][k] != new["selected_configuration"][k]
+           for k in CONFIG_NAMES - {"execution_profile.yaml", "stage_task_spec.yaml"}):
+        raise ValueError("v4 changes a protected configuration")
+    if (source_profile.get("revision") != SOURCE_REVISION or source_profile.get("rr_capture_wheel_mode") != "off"
+            or source_profile.get("rr_capture_feedback_revision") != "window_peak_hip_then_knee_v3"
+            or target_profile != {**source_profile, "revision":TARGET_REVISION, "rr_capture_wheel_mode":TARGET_WHEEL_MODE}
+            or HANDOFF_KEY in source_task or target_task != {**source_task, HANDOFF_KEY:HANDOFF_MODE}):
+        raise ValueError("only profile revision/wheel mode and one task handoff marker may change")
+    if MIGRATION in metadata or any(k not in metadata for k in preserved_keys(metadata)):
+        raise ValueError("v4 requires intact unrepeated prior state/receipts")
+    prior = metadata[PRIOR]
+    if not isinstance(prior, dict) or not isinstance(prior.get(PRIOR_FACTOR), dict):
+        raise ValueError("v4 requires the complete source v3 receipt")
+    prior_factor = prior[PRIOR_FACTOR]
+    origin = prior_factor.get("counter_origin", {})
+    if (prior.get("schema") != "wlr50_clean.rr_capture_knee_same410.v3"
+            or prior.get("target_git_commit") != expected_source_head
+            or prior.get("target_contract_sha256") != digest(old)
+            or prior.get("target_runtime_content_sha256") != old["runtime_content_sha256"]
+            or prior_factor.get("target_feedback_revision") != "window_peak_hip_then_knee_v3"
+            or set(origin) != set(COUNTERS)
+            or any(type(metadata[k]) is not int or type(origin[k]) is not int
+                   or not 0 <= origin[k] <= metadata[k] for k in COUNTERS)):
+        raise ValueError("source must be an intact learned continuation of the actual v3 runtime")
+    for key in metadata:
+        if key.endswith("_branch") and isinstance(metadata[key], dict) and "counter_origin" in metadata[key]:
+            branch_origin = metadata[key]["counter_origin"]
+            if (set(branch_origin) != set(COUNTERS)
+                    or any(type(branch_origin[k]) is not int or not 0 <= branch_origin[k] <= metadata[k] for k in COUNTERS)
+                    or metadata.get(key + "_counts") != {
+                    k:metadata[k] - branch_origin[k] for k in COUNTERS}):
+                raise ValueError("source branch counters are inconsistent: " + key)
+    rate = metadata["optimizer_learning_rate"]
+    if type(rate) not in (int, float) or not math.isfinite(rate) or rate <= 0:
+        raise ValueError("source effective LR must be finite and positive")
+    return {"schema":SCHEMA, "review_reason":reason.strip(),
+        "observation_contract":{"source_policy_contract":canonical, "target_policy_contract":copy.deepcopy(canonical),
+            "observation_layout":RR_CAPTURE_OBSERVATION_LAYOUT, "observation_dimension":410,
+            "action_dimension":12, "num_envs":1, "parameter_mapping":"identity_all_parameters_and_buffers"},
+        "observation_shape_changed":False, "observation_codec_changed":False,
+        "observation_semantics_changed":["X408 bounded current-TOP contact/handoff permission", "X409 current carry-wheel envelope armed, not proof of target correction"],
+        "effective_execution_semantics":{"wheel_mode":TARGET_WHEEL_MODE, "handoff":HANDOFF_MODE,
+            "wheel_semantics":WHEEL_SEMANTICS, "RR_capture_feedback":"window_peak_hip_then_knee_v3",
+            "raw_Gaussian_is_not_projected_target":True},
+        "legacy_action_transform_is_current_execution_semantics":False,
+        "controller_transition_semantics_changed":True, "same_mdp_claimed":False,
+        "same_numeric_input_policy_mapping_preserved":True, "same_physical_state_action_equivalence_claimed":False,
+        **dict.fromkeys(("policy_kernel_changed", "sigma_changed", "caps_changed", "reward_changed",
+                        "physical_dynamics_changed", "physical_task_acceptance_rules_changed"), False),
+        "reviewed_code_sha256":dict(reviewed_code_sha256),
+        "preserved_metadata_sha256":{k:digest(metadata[k]) for k in preserved_keys(metadata)},
+        "source_effective_learning_rate":rate, "target_effective_learning_rate":rate,
+        "source_v3_receipt_sha256":digest(prior), "source_resume_migration_sha256":digest(metadata.get("resume_migration")),
+        "counter_origin":{k:metadata[k] for k in COUNTERS}, "existing_branch_origins_preserved":True,
+        "creates_new_branch":False, "discard_old_rollout_storage":True, "old_rollout_is_new_MDP_onpolicy":False,
+        "parameter_mapping":"identity_all_parameters_and_buffers",
+        "optimizer_mapping":"identity_full_Adam_moments_steps_groups_and_effective_LR",
+        "normalizer_mapping":"identity_Identity", "rng_mapping":"restore_exact_source_training_rng",
+        "physical_state_inherited":False,
+        **dict.fromkeys(("added_policy_decisions", "added_ppo_updates", "added_optimizer_steps", "added_auxiliary_updates"), 0)}
+
+
+def build_rr_carry_handoff_migration(checkpoint, current_contract, *, expected_source_sha256,
+        expected_source_head, expected_target_head, reason, reviewed_code_sha256, project_root=None):
+    import yaml
+    from .semantic_migration import PROJECT_ROOT, checkpoint_metadata, _contract, _version_bytes, file_sha, digest
+    scope()
+    if not isinstance(expected_source_sha256, str) or re.fullmatch("[0-9a-f]{64}", expected_source_sha256) is None:
+        raise ValueError("explicit actual sealed source SHA256 is required")
+    root = Path(project_root or PROJECT_ROOT).resolve(); checkpoint = Path(checkpoint).resolve(strict=True)
+    if (expected_source_sha256 != SOURCE_CHECKPOINT_SHA256 or file_sha(checkpoint) != expected_source_sha256
+            or file_sha(checkpoint.with_name(checkpoint.stem + "_manifest.json")) != SOURCE_MANIFEST_SHA256):
+        raise ValueError("source checkpoint differs from the explicitly selected sealed bytes")
+    metadata = checkpoint_metadata(checkpoint)
+    old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
+    value = factor(metadata, old, new, reason=reason, reviewed_code_sha256=reviewed_code_sha256,
+        source_profile=yaml.safe_load(_version_bytes(root, old, PROFILE)),
+        target_profile=yaml.safe_load((root / PROFILE).read_bytes()),
+        source_task=yaml.safe_load(_version_bytes(root, old, TASK)),
+        target_task=yaml.safe_load((root / TASK).read_bytes()),
+        expected_source_head=expected_source_head, expected_target_head=expected_target_head)
+    head = subprocess.run(["git","-C",str(root),"rev-parse","HEAD"], check=True, capture_output=True, text=True).stdout.strip()
+    dirty = subprocess.run(["git","-C",str(root),"status","--porcelain=v1","--untracked-files=all","--",
+        "src/wlr50_clean","scripts","configs","artifacts/ppo_phase_v1_start","pyproject.toml"],
+        check=True,capture_output=True,text=True).stdout.strip()
+    if head != expected_target_head or dirty:
+        raise ValueError("target must be the explicit actual clean committed revision")
+    if any(file_sha(root / p) != h for p,h in new["files"].items()):
+        raise ValueError("target runtime file bytes differ from the frozen contract")
+    for name,binding in old["selected_configuration"].items():
+        if name not in ("execution_profile.yaml", "stage_task_spec.yaml"):
+            if _version_bytes(root, old, binding["path"]) != (root / binding["path"]).read_bytes():
+                raise ValueError("protected config byte content changed")
+    # Actor/profile/codec/assist are outside the exact delta. Bind new declarations.
+    from .semantic_rr_capture_knee_migration import _literal
+    for path, checks in REVIEWED_TARGET_LITERALS.items():
+        raw = (root / path).read_bytes()
+        if any(_literal(raw, key) != expected for key,expected in checks.items()):
+            raise ValueError("reviewed v4 literal semantics differ: " + path)
+    return {"schema":SCHEMA, "reason":reason.strip(), "source_checkpoint":str(checkpoint),
+        "source_checkpoint_sha256":expected_source_sha256,
+        "source_manifest_sha256":file_sha(checkpoint.with_name(checkpoint.stem + "_manifest.json")),
+        "source_git_commit":expected_source_head, "target_git_commit":expected_target_head,
+        "source_contract_sha256":digest(old), "target_contract_sha256":digest(new),
+        "source_runtime_content_sha256":old["runtime_content_sha256"],
+        "target_runtime_content_sha256":new["runtime_content_sha256"],
+        "allowed_changed_files":sorted(reviewed_code_sha256), "observation_dimension":410, "action_dimension":12,
+        "discard_old_rollout_storage":True, "physics_resume":"fresh_legal_P01_reset", FACTOR_KEY:value}
+
+
+def validate_rr_carry_handoff_migration(checkpoint, current_contract, plan_path, *, project_root=None):
+    from .semantic_migration import file_sha
+    path=Path(plan_path).resolve(strict=True); supplied=json.loads(path.read_text(encoding="utf-8"))
+    expected=build_rr_carry_handoff_migration(checkpoint,current_contract,
+        expected_source_sha256=supplied.get("source_checkpoint_sha256"),
+        expected_source_head=supplied.get("source_git_commit"), expected_target_head=supplied.get("target_git_commit"),
+        reason=supplied.get("reason"), reviewed_code_sha256=supplied.get(FACTOR_KEY,{}).get("reviewed_code_sha256",{}),
+        project_root=project_root)
+    if supplied != expected:
+        raise ValueError("v4 plan differs from the bound actual source and frozen reviewed target")
+    return {**expected,"plan_path":str(path),"plan_sha256":file_sha(path)}
+
+
+def record_loaded_rr_carry_handoff(runner, infos, verified):
+    from .semantic_training import _verify_reviewed_same410_identity_state
+    if (verified.get("schema") != SCHEMA or verified.get(FACTOR_KEY,{}).get("schema") != SCHEMA or MIGRATION in infos):
+        raise RuntimeError("v4 receipt is absent, ambiguous or repeated")
+    _verify_reviewed_same410_identity_state(runner, infos, verified[FACTOR_KEY])
+    return {**infos, MIGRATION:copy.deepcopy(verified)}

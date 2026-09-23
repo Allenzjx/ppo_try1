@@ -96,7 +96,8 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
                             capture_assist: Any = None,
                             capture_assist_context: Mapping[str, Any] | None = None,
                             rr_capture_assist: Any = None,
-                            rr_capture_assist_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
+                            rr_capture_assist_context: Mapping[str, Any] | None = None,
+                            rr_carry_wheel_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Dispatch independent policy residual without treating it as tracking bias."""
     # Keep the original controller envelope, including for the exact-zero path.
     controller = _full12_drive_feedback_bias(controller_bias_full12)
@@ -144,7 +145,7 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
     reference_history_nonzero = (tracking_reference is not None and
         any(tracking_reference["previous_requested_full12"][:8]))
     if (not any(residual) and nominal_geometry_context is None and not reference_history_nonzero
-            and capture_assist is None and rr_capture_assist is None):
+            and capture_assist is None and rr_capture_assist is None and rr_carry_wheel_context is None):
         ack = adapter.apply_full12(command, physics_tick=physics_tick,
             tracking_servo_names=tracking_servo_names, drive_feedback_bias_full12=controller)
         if policy_headroom_mode is not None:
@@ -275,6 +276,20 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
     final_wheels = tuple(max(-WHEEL_VELOCITY_LIMIT_RAD_S,
         min(WHEEL_VELOCITY_LIMIT_RAD_S, target + bias))
         for target, bias in zip(corrected_native[8:], effective_combined[8:], strict=True))
+    if rr_carry_wheel_context is not None:
+        from .semantic_rr_carry_wheel import project_rr_carry_wheels
+        if rr_carry_wheel_context.get("dispatch_physics_tick") != tick:
+            raise RobotAdapterError("RR wheel projection requires current dispatch context")
+        previous_ack = getattr(adapter, "last_ack", None)
+        if (not isinstance(previous_ack, Mapping) or previous_ack.get("write_count") != adapter.write_count
+                or previous_ack.get("physics_tick") != adapter._last_physics_tick):
+            raise RobotAdapterError("RR wheel projection requires adjacent committed final-wheel history")
+        previous_wheels = tuple(previous_ack["drive_target_full12"][8:])
+        wheel_candidate = tuple(final_servo) + final_wheels
+        receipt = project_rr_carry_wheels(wheel_candidate, context=rr_carry_wheel_context,
+            previous_final_wheel_rad_s=previous_wheels, physics_dt_s=adapter.physics_dt_s)
+        final_wheels = tuple(receipt["output_full12"][8:])
+        evidence["rr_carry_wheel_evidence"] = receipt
     if "capture_assist_evidence" in evidence:
         evidence["capture_assist_evidence"].update(final_servo_target_deg=list(final_servo),
             final_slew_or_clamp_indices=[i for i in (0,1) if final_servo[i] != assist_targets[i]],
@@ -343,7 +358,8 @@ class SemanticActuationDispatch:
                  tracking_reference_mode: str | None = None,
                  tracking_reference_bootstrap_tick: int | None = None,
                  capture_assist: Any = None, capture_assist_context: Mapping[str, Any] | None = None,
-                 rr_capture_assist: Any = None, rr_capture_assist_context: Mapping[str, Any] | None = None):
+                 rr_capture_assist: Any = None, rr_capture_assist_context: Mapping[str, Any] | None = None,
+                 rr_carry_wheel_context: Mapping[str, Any] | None = None):
         self.adapter, self.plan = adapter, plan
         self.nominal_geometry_context = nominal_geometry_context
         self.policy_headroom_mode = policy_headroom_mode
@@ -353,6 +369,7 @@ class SemanticActuationDispatch:
         self.capture_assist_context = capture_assist_context
         self.rr_capture_assist = rr_capture_assist
         self.rr_capture_assist_context = rr_capture_assist_context
+        self.rr_carry_wheel_context = rr_carry_wheel_context
 
     def __getattr__(self, name):
         return getattr(self.adapter, name)
@@ -370,4 +387,5 @@ class SemanticActuationDispatch:
             tracking_reference_mode=self.tracking_reference_mode,
             tracking_reference_bootstrap_tick=self.tracking_reference_bootstrap_tick,
             capture_assist=self.capture_assist, capture_assist_context=self.capture_assist_context,
-            rr_capture_assist=self.rr_capture_assist, rr_capture_assist_context=self.rr_capture_assist_context)
+            rr_capture_assist=self.rr_capture_assist, rr_capture_assist_context=self.rr_capture_assist_context,
+            rr_carry_wheel_context=self.rr_carry_wheel_context)

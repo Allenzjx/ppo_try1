@@ -1935,6 +1935,25 @@ class IsaacFSMBackend:
                 self._adapter,
                 source_control_physics_tick=int(getattr(source_frame, "physics_tick")),
             )["final_drive_servo_deg"]
+            audit_rr_wheel_context = None
+            audit_previous_final_wheels = None
+            # Optional semantic-only read evidence; frozen A has no hook.
+            # Capture before _atomic_apply, never from the newly written ACK.
+            rr_wheel_hook = getattr(self, "_rr_carry_pre_dispatch_context", None)
+            if rr_wheel_hook is not None:
+                audit_rr_wheel_context = rr_wheel_hook(physical_tick)
+            if audit_rr_wheel_context is not None:
+                previous_ack = self._adapter.last_ack
+                if (not isinstance(previous_ack, Mapping)
+                        or previous_ack.get("write_count") != self._adapter.write_count
+                        or previous_ack.get("physics_tick") != self._adapter._last_physics_tick):
+                    raise IsaacFSMBackendError("RR wheel audit requires adjacent pre-dispatch ACK")
+                audit_previous_final_wheels = _full12(previous_ack["drive_target_full12"],
+                    "pre-dispatch actual final targets")[8:]
+                observed_previous = _full12(self._authoritative_frame.info["drive_target_full12"],
+                    "observed previous actual targets")[8:]
+                if audit_previous_final_wheels != observed_previous:
+                    raise IsaacFSMBackendError("RR wheel history differs from the actual observed FINAL wheels")
             audit_tracking_reference_context = None
             if getattr(self, "_tracking_reference_mode", None) is not None:
                 from .semantic_tracking_reference import capture_tracking_reference_context
@@ -1986,6 +2005,8 @@ class IsaacFSMBackend:
                 policy_headroom_mode=getattr(self, "_policy_headroom_mode", None),
                 tracking_reference_mode=getattr(self, "_tracking_reference_mode", None),
                 tracking_reference_context=audit_tracking_reference_context,
+                previous_final_drive_wheel_rad_s=audit_previous_final_wheels,
+                rr_carry_wheel_context=audit_rr_wheel_context,
             )
 
         # This is the only physics advance in the episode tick.  In particular,

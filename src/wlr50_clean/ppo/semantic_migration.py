@@ -3823,6 +3823,9 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                             project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     path = Path(plan_path).resolve(strict=True)
     supplied = json.loads(path.read_text(encoding="utf-8"))
+    if supplied.get("schema") == "wlr50_clean.rr_carry_handoff_same410.v4":
+        from .semantic_rr_carry_handoff_migration import validate_rr_carry_handoff_migration
+        return validate_rr_carry_handoff_migration(checkpoint,current_contract,path,project_root=project_root)
     if supplied.get("schema") == "wlr50_clean.rr_capture_knee_same410.v3":
         from .semantic_rr_capture_knee_migration import validate_rr_capture_knee_migration
         return validate_rr_capture_knee_migration(checkpoint,current_contract,path,project_root=project_root)

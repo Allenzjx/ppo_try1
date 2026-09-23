@@ -57,6 +57,8 @@ def build_actuator_target_effect_audit(
     policy_headroom_mode: str | None = None,
     tracking_reference_mode: str | None = None,
     tracking_reference_context: Mapping[str, Any] | None = None,
+    previous_final_drive_wheel_rad_s: Sequence[float] | None = None,
+    rr_carry_wheel_context: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Inspect the already completed dispatch, never simulate another write.
 
@@ -243,7 +245,23 @@ def build_actuator_target_effect_audit(
         except (TypeError,ValueError,KeyError) as exc:
             raise ActuatorTargetEffectError(f"invalid RR capture assist reconstruction: {exc}") from exc
 
-    def physical_targets(bias: Sequence[float], native_targets: Sequence[float] = corrected_native) -> Any:
+    wheel_receipt = raw_ack.get("rr_carry_wheel_evidence")
+    previous_wheels = None
+    if rr_carry_wheel_context is None:
+        if wheel_receipt is not None or previous_final_drive_wheel_rad_s is not None:
+            raise ActuatorTargetEffectError("unexpected RR support-wheel projection evidence")
+    else:
+        import json
+        from .semantic_rr_carry_wheel import project_rr_carry_wheels
+        previous_wheels = _finite_values(previous_final_drive_wheel_rad_s, 4, "previous FINAL wheels")
+        if (not isinstance(wheel_receipt, Mapping)
+                or rr_carry_wheel_context.get("dispatch_physics_tick") != raw_ack["physics_tick"]
+                or wheel_receipt.get("context") != rr_carry_wheel_context
+                or tuple(wheel_receipt.get("previous_final_wheel_rad_s", ())) != previous_wheels):
+            raise ActuatorTargetEffectError("RR wheel evidence differs from independently captured pre-dispatch state")
+
+    def physical_targets(bias: Sequence[float], native_targets: Sequence[float] = corrected_native,
+                         *, verify_wheel_receipt: bool = False) -> Any:
         servo = []
         assisted = None
         if assist_snapshot is not None:
@@ -270,12 +288,19 @@ def build_actuator_target_effect_audit(
             ))
         # Full12Command owns hard wheel limits; build_physical_batch owns all
         # standing offsets, joint signs, and degree-to-radian conversion.
-        command = Full12Command(
-            tuple(servo), tuple(native_targets[index] + bias[index] for index in range(8, 12))
-        ).clamped()
+        candidate = Full12Command(tuple(servo), tuple(native_targets[index] + bias[index]
+            for index in range(8, 12))).clamped().to_full12()
+        if rr_carry_wheel_context is not None:
+            reconstructed = project_rr_carry_wheels(candidate, context=rr_carry_wheel_context,
+                previous_final_wheel_rad_s=previous_wheels, physics_dt_s=float(raw_ack["physics_dt_s"]))
+            if verify_wheel_receipt and json.dumps(reconstructed, sort_keys=True, allow_nan=False) != json.dumps(
+                    wheel_receipt, sort_keys=True, allow_nan=False):
+                raise ActuatorTargetEffectError("RR wheel projection differs from independent reconstruction")
+            candidate = tuple(reconstructed["output_full12"])
+        command = Full12Command.from_full12(candidate).clamped()
         return build_physical_batch(command, adapter.standing_pose_deg)
 
-    actual_physical = physical_targets(actual_bias)
+    actual_physical = physical_targets(actual_bias, verify_wheel_receipt=True)
     counterfactual_physical = physical_targets(zero_policy_bias)
     robot = adapter.robot
     servo_ids = list(adapter.joint_map.servo_ids)
@@ -380,6 +405,15 @@ def build_actuator_target_effect_audit(
             policy_request_execution_semantics="sample_unchanged_declared_state_dependent_FL_RR_target_transforms",
             all12_policy_channels_unmodified_at_actuator=not (
                 rr_assist_snapshot["active"] or (assist_snapshot is not None and assist_snapshot["active"])))
+    if wheel_receipt is not None:
+        result.update(rr_carry_wheel_evidence=dict(wheel_receipt),
+            rr_carry_wheel_context_and_previous_FINAL_independently_verified=True,
+            previous_final_drive_wheel_rad_s=list(previous_wheels),
+            counterfactual_scope="same_pre_tick_state_same_FL_RR_assists_and_support_wheel_projection_without_current_ppo_residual",
+            policy_request_execution_semantics="raw_sample_unchanged_declared_servo_and_support_wheel_transforms",
+            all12_policy_channels_unmodified_at_actuator=bool(
+                result.get("all12_policy_channels_unmodified_at_actuator", True)
+                and not wheel_receipt["envelope_active"]))
     if geometry_enabled:
         # Remove geometry only in this third, zero-current-policy branch.
         # The existing actual-minus-counterfactual fields remain PPO-only.

@@ -33,7 +33,8 @@ from .semantic_capture_assist import CAPTURE_ASSIST_MODE, HipOnlyCaptureAssist, 
 from .semantic_rr_capture_assist import (RR_CAPTURE_ASSIST_MODE, RR_CAPTURE_FEEDBACK_REVISION,
     RRHipOnlyCaptureAssist,
     rr_capture_assist_context)
-from .semantic_rr_capture_context import rr_capture_transfer_context
+from .semantic_rr_capture_context import rr_capture_transfer_context, rr_contact_handoff_window_s
+from .semantic_rr_carry_wheel import MODE as RR_CARRY_WHEEL_MODE, build_rr_carry_wheel_context
 
 CONFIG_ROOT = Path(__file__).resolve().parents[3] / "configs" / "ppo_semantic_v2"
 DEFAULT_EXECUTION_PROFILE = CONFIG_ROOT / "execution_profile.yaml"
@@ -79,8 +80,10 @@ def load_execution_profile(path: Path | str = DEFAULT_EXECUTION_PROFILE) -> dict
         raise ValueError("RR capture continuation must preserve the FL and physical headroom path")
     if rr_assist is not None and profile.get("rr_capture_feedback_revision") != RR_CAPTURE_FEEDBACK_REVISION:
         raise ValueError("RR capture requires its explicit current feedback revision")
-    if profile.get("rr_capture_wheel_mode", "off") != "off":
-        raise ValueError("first RR direction-check revision has no wheel intervention")
+    if profile.get("rr_capture_wheel_mode", "off") not in ("off", RR_CARRY_WHEEL_MODE):
+        raise ValueError("unknown declared RR support-wheel projection")
+    if profile.get("rr_capture_wheel_mode", "off") != "off" and rr_assist != RR_CAPTURE_ASSIST_MODE:
+        raise ValueError("RR support-wheel projection requires the observable RR continuation")
     return profile
 
 
@@ -143,8 +146,11 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         self._tracking_reference_mode = self.execution_profile["residual"].get("tracking_reference_mode")
         self._capture_assist = HipOnlyCaptureAssist() if self.execution_profile.get("capture_assist_mode") else None
         self._rr_capture_assist = RRHipOnlyCaptureAssist() if self.execution_profile.get("rr_capture_assist_mode") else None
+        self._rr_carry_wheel_mode = self.execution_profile.get("rr_capture_wheel_mode", "off")
         self.task_spec_path = Path(task_spec_path).resolve()
-        self._rr_support_spec = yaml.safe_load(self.task_spec_path.read_text(encoding="utf-8"))["support"]
+        rr_task_spec = yaml.safe_load(self.task_spec_path.read_text(encoding="utf-8"))
+        self._rr_support_spec = rr_task_spec["support"]
+        self._rr_contact_handoff_window_s = rr_contact_handoff_window_s(rr_task_spec)
         self._physical_acceptance_version = yaml.safe_load(self.task_spec_path.read_text(encoding="utf-8")).get("physical_acceptance_version")
         self._nominal_geometry_mode = self.execution_profile.get("nominal_geometry_advisory")
         self._nominal_geometry_margin_m = None
@@ -337,12 +343,14 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                     observation=self._raw_observation, source_frame=self._controller_frame,
                     previous_ack=adapter.last_ack or {}, physics_tick=physics_tick,
                     support_spec=active_controller.supervisor.spec["support"])
+            wheel_context = self._rr_carry_pre_dispatch_context(physics_tick)
             adapter = SemanticActuationDispatch(adapter, plan, nominal_geometry_context=geometry,
                 policy_headroom_mode=getattr(self, "_policy_headroom_mode", None),
                 tracking_reference_mode=getattr(self, "_tracking_reference_mode", None),
                 tracking_reference_bootstrap_tick=SETTLE_TICKS + self._reset_prime_tick_count,
                 capture_assist=assist, capture_assist_context=assist_context,
-                rr_capture_assist=rr_assist, rr_capture_assist_context=rr_context)
+                rr_capture_assist=rr_assist, rr_capture_assist_context=rr_context,
+                rr_carry_wheel_context=wheel_context)
         ack = super()._atomic_apply(adapter, command, physics_tick=physics_tick,
             tracking_servo_names=tracking_servo_names,
             drive_feedback_bias_full12=drive_feedback_bias_full12)
@@ -355,6 +363,19 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                     "state": self._rr_capture_assist.snapshot(),
                 }
         return ack
+
+    def _rr_carry_pre_dispatch_context(self, physics_tick):
+        """Read-only shared input, independently captured before native audit/write."""
+        if (getattr(self, "_rr_carry_wheel_mode", "off") == "off"
+                or getattr(self._controller, "mode", None) in ("TEACHER", "TAKEOVER")):
+            return None
+        active = getattr(self._controller, "_semantic", None) or self._controller
+        return build_rr_carry_wheel_context(task=self._controller.task_snapshot,
+            observation=self._raw_observation, source_frame=self._controller_frame,
+            nominal_provider=active.nominal_provider, support_spec=self._rr_support_spec,
+            physics_tick=physics_tick, source_ack=self._adapter.last_ack,
+            previous_write_count=self._adapter.write_count, mode=self._rr_carry_wheel_mode,
+            wheel_rate_rad_s2=self.execution_profile["residual"]["wheel_rate_rad_s2"])
 
     def _termination_signals(self, observation: Any, controller_frame: Any):
         result = _enum_value(_member(_member(controller_frame, "termination"), "result"))
@@ -448,7 +469,13 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                 task=controller.task_snapshot, observation=observation,
                 support_spec=self._rr_support_spec,
                 assist_snapshot=info["rr_capture_assist"],
-                wheel_mode=self.execution_profile.get("rr_capture_wheel_mode", "off"))
+                wheel_mode="off",
+                contact_handoff_window_s=self._rr_contact_handoff_window_s)
+            wheel_context = self._rr_carry_pre_dispatch_context(self._adapter._last_physics_tick + 1)
+            if wheel_context is not None:
+                rear_context["fl_wheel_guidance_active"] = wheel_context["envelope_active"]
+                info["rr_carry_wheel_context"] = wheel_context
+                info["rr_carry_wheel_evidence"] = ack.get("rr_carry_wheel_evidence")
             info["rr_capture_transfer_context"] = {key: rear_context[key] for key in RR_TASK_FIELDS}
             info["rr_capture_transfer_diagnostics"] = rear_context
         unsafe = any((termination.body_collision, termination.wheel_only_climb,

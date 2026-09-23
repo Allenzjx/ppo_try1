@@ -1153,6 +1153,8 @@ class TaskStageSupervisor:
         rr_mode = self.spec.get("rr_capture_continuation_semantics")
         if rr_mode not in (None, "rr_capture_then_rl_transfer_v1"):
             raise ValueError("unknown RR capture continuation semantics")
+        from .semantic_rr_capture_context import rr_contact_handoff_window_s
+        self._rr_contact_handoff_window_s = rr_contact_handoff_window_s(self.spec)
 
     def predicate(self, name: str, evaluation: Mapping[str, Any]) -> float:
         if name == "physical_valid":
@@ -1590,9 +1592,12 @@ class TaskStageSupervisor:
             fresh = bool(isinstance(feedback, Mapping)
                 and feedback.get("episode_observation_tick") == _get(observation, "physics_tick"))
             rr_recovery = rr_capture_transfer_context(
-                task={"physical_evaluator":evaluation,"termination_reason":self.termination_reason},
+                task={"physical_evaluator":evaluation,"termination_reason":self.termination_reason,
+                      "stage_id":self.stage_id,"entry_valid":entry["valid"],
+                      "completion_values":goal_values},
                 observation=observation, support_spec=self.spec["support"],
-                assist_snapshot=feedback["state"] if fresh else None)
+                assist_snapshot=feedback["state"] if fresh else None,
+                contact_handoff_window_s=self._rr_contact_handoff_window_s)
             rr_recovery["committed_feedback_matches_current_tick"] = fresh
             rr_recovery["local_warning_only"] = bool(self.stage_id == "P09" and fresh
                 and rr_recovery["rr_capture_recovery_allowed"])

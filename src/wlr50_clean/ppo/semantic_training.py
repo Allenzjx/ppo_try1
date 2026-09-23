@@ -825,6 +825,29 @@ def _validated_receiving_wheel_sigma_factor(metadata: Mapping[str, Any], record:
     return factor
 
 
+def _verify_reviewed_same410_identity_state(runner, infos, factor):
+    """Non-authorizing leaf: called only after a dedicated factor is verified."""
+    import torch
+    from .semantic_migration import digest
+    from .rl_library_wrapper import optimizer_learning_rate, capture_training_rng_state
+    actual = {
+        "actor_parameter_sha256":parameter_hash(runner.alg.actor),
+        "critic_parameter_sha256":parameter_hash(runner.alg.critic),
+        "optimizer_state_sha256":state_hash(runner.alg.optimizer.state_dict()),
+        "normalizer_state_sha256":state_hash(_normalizers(runner)),
+        "training_rng_state":capture_training_rng_state(seed=infos["seed"])}
+    if (any(type(getattr(runner.alg, role).obs_normalizer) is not torch.nn.Identity for role in ("actor","critic"))
+            or optimizer_learning_rate(runner) != factor["source_effective_learning_rate"]
+            or runner.alg.learning_rate != factor["source_effective_learning_rate"]
+            or any(k not in infos or digest(infos[k]) != expected
+                   for k,expected in factor["preserved_metadata_sha256"].items())
+            or any(infos.get(k) != value for k,value in actual.items())
+            or runner.alg.storage.step != 0 or runner.alg.transition.actions is not None
+            or tuple(runner.alg.storage.actions.shape) != (128,1,12)
+            or any(tuple(runner.alg.storage.observations[k].shape) != (128,1,410) for k in ("policy","critic"))):
+        raise RuntimeError("reviewed same410 load changed exact state/LR/RNG or inherited a rollout")
+
+
 def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping[str, Any], seed: int,
                              migration: Mapping[str, Any] | None = None,
                              warm_start: Mapping[str, Any] | None = None,
@@ -936,9 +959,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         p05_preedge_factor = (verified.get("p05_preedge_approach_recovery_factor") or {}).get("observation_contract")
         rr_capture_feedback_factor = (verified.get("rr_capture_feedback_peak_v2_factor") or {}).get("observation_contract")
         rr_capture_knee_factor = (verified.get("rr_capture_knee_v3_factor") or {}).get("observation_contract")
-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor, receiving_factor, capture_feedback_factor, rr_workspace_factor, p05_preedge_factor, rr_capture_feedback_factor, rr_capture_knee_factor)) > 1:
+        rr_carry_handoff_factor = (verified.get("rr_carry_handoff_v4_factor") or {}).get("observation_contract")
+        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor, receiving_factor, capture_feedback_factor, rr_workspace_factor, p05_preedge_factor, rr_capture_feedback_factor, rr_capture_knee_factor, rr_carry_handoff_factor)) > 1:
             raise RuntimeError("reviewed same-layout migration receipts must be exclusive")
-        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor or receiving_factor or capture_feedback_factor or rr_workspace_factor or p05_preedge_factor or rr_capture_feedback_factor or rr_capture_knee_factor
+        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor or receiving_factor or capture_feedback_factor or rr_workspace_factor or p05_preedge_factor or rr_capture_feedback_factor or rr_capture_knee_factor or rr_carry_handoff_factor
         if reviewed_factor is not None:
             if factor is not None:
                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")
@@ -1010,6 +1034,9 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         if verified.get("rr_capture_knee_v3_factor") is not None:
             from .semantic_rr_capture_knee_migration import record_loaded_rr_capture_knee
             infos = record_loaded_rr_capture_knee(runner,infos,verified)
+        if verified.get("rr_carry_handoff_v4_factor") is not None:
+            from .semantic_rr_carry_handoff_migration import record_loaded_rr_carry_handoff
+            infos = record_loaded_rr_carry_handoff(runner,infos,verified)
         if receiving_wheel is not None:
             if (optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate")
                     or optimizer_learning_rate(runner) != receiving_wheel["source_effective_learning_rate"]):
@@ -2089,6 +2116,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             "rr_capture_transfer_migration", "rr_capture_transfer_branch",
                             "rr_capture_feedback_peak_v2_migration",
                             "rr_capture_knee_v3_migration",
+                            "rr_carry_handoff_v4_migration",
                             "capture_feedback_semantics_migration", "capture_feedback_semantics_branch",
                             "rr_postcross_workspace_migration", "rr_postcross_workspace_branch",
                             "rr_receiver_retirement_v2_migration", "rr_receiver_retirement_v2_branch",
