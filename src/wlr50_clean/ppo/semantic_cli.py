@@ -88,6 +88,16 @@ def _bind_checkpoint_output_routing(args: argparse.Namespace, base: Path, destin
     from .semantic_migration import digest
     metadata = json.loads(args.checkpoint.with_name(args.checkpoint.stem + "_manifest.json").read_text(encoding="utf-8"))
     selection = (metadata.get("rr_progress_handoff_v5_migration") or {}).get("source_selection")
+    if "rr_postcapture_wheel_v9_migration" in metadata:
+        from .semantic_rr_postcapture_wheel_migration import validate_v9_branch_receipt
+        route = {"schema":"wlr50_clean.checkpoint_output_routing.v1",
+                 "branch":args.checkpoint_output_branch,"output_root":str(destination),
+                 "main_latest_pointer_promotion":False,"source_selection":jsonable(selection)}
+        if source_root.resolve() != destination or metadata.get("checkpoint_output_routing") != route:
+            raise ValueError("v9 learned continuation requires its unchanged existing output branch")
+        validate_v9_branch_receipt(metadata, metadata.get("runtime_contract") or {}, route)
+        args._checkpoint_output_routing = route
+        return
     wheel_signed = "rr_signed_wheel_v8_migration" in metadata
     signed = "rr_signed_contact_v7_migration" in metadata
     contact = metadata.get("rr_signed_wheel_v8_migration" if wheel_signed else "rr_signed_contact_v7_migration" if signed else "rr_contact_onset_v6_migration") or {}
@@ -354,6 +364,8 @@ def validate_request(args: argparse.Namespace) -> None:
             _bind_checkpoint_output_routing(args, output_root, checkpoint_output, source_root)
         if args.command == "train":
             metadata = json.loads(args.checkpoint.with_name(args.checkpoint.stem + "_manifest.json").read_text())
+            if not branch_requested and "rr_postcapture_wheel_v9_migration" in metadata:
+                raise ValueError("v9 learned continuation requires its explicit output branch")
             if (not branch_requested and any((metadata.get(key) or {}).get("source_selection", {}).get(
                     "source_role") == "front_validated_ancestor_control_eval" for key in (
                         "rr_contact_onset_v6_migration", "rr_signed_contact_v7_migration", "rr_signed_wheel_v8_migration"))):

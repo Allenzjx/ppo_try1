@@ -1,4 +1,4 @@
-"""Pure P09 support-wheel envelope; no simulator, clock advance or policy edit.
+"""Pure P09 capture / P12 post-stop retention wheel envelope.
 
 Explicit versioned control mapping. Positive canonical wheel targets are an
 actuator direction, not a claim about measured traction. Source evidence is
@@ -16,7 +16,7 @@ from wlr50_clean.infrastructure.command_batch import (
 from wlr50_clean.ppo.semantic_rr_capture_context import verified_current_support, RR_CAPTURE_GAP_MIN_M
 
 MODE = "rr_capture_support_forward_projection_v1"
-SEMANTICS = "P09_post_source_committed_stop_current_RR_AIR_Q_cross_supported_FL_FR_RL_signed_task_band_nonnegative_depth_gap_floor_previous_FINAL_1p8_slew_TOP_release"
+SEMANTICS = "P09_v8_unchanged_P12_RR_placed_RL_unplaced_post_authored_wheel_stop_current_TOP_or_qualified_signed_AIR_bearing_only_depth_floor_previous_FINAL_1p8_slew"
 CONTEXT_SCHEMA = "wlr50_clean.rr_carry_wheel_context.v1"
 EVIDENCE_SCHEMA = "wlr50_clean.rr_carry_wheel_evidence.v1"
 ACK_KEY = "rr_carry_wheel_evidence"
@@ -50,14 +50,14 @@ def _clip(value, lo, hi):
     return max(lo, min(hi, value))
 
 
-def _source_evidence(provider, *, phase, source_tick, dispatch_tick):
+def _source_evidence(provider, *, phase, source_tick, dispatch_tick, source_phase="P09"):
     """Read existing finite-source state; missing evidence cannot arm anything."""
     out = dict(source_control_tick=source_tick, dispatch_physics_tick=dispatch_tick,
-        phase=phase, source_phase="P09", available=False, endpoint_issued=False,
+        phase=phase, source_phase=source_phase, available=False, endpoint_issued=False,
         advanced_this_tick=False, fresh_wheel_owners=[], finite_wheel_owners=[],
         source_wheel_target_rad_s=None, sample_tick=None, endpoint_tick=None,
         last_wheel_stop_tick=None, last_wheel_stop_source_time_s=None,
-        last_wheel_stop_channels=[], reason="P09_source_layer_missing")
+        last_wheel_stop_channels=[], reason=source_phase+"_source_layer_missing")
     layers = _get(provider, "_continuous_layers", ())
     for layer in layers:
         sample = layer.get("sample")
@@ -70,7 +70,7 @@ def _source_evidence(provider, *, phase, source_tick, dispatch_tick):
                 out["fresh_wheel_owners"].append({"stage": layer["stage"], "channels": channels})
         if layer.get("stage") in ("P07", "P09") and sample.endpoint_issued is not True:
             out["finite_wheel_owners"].append(layer["stage"])
-    matches = [layer for layer in layers if layer.get("stage") == "P09"]
+    matches = [layer for layer in layers if layer.get("stage") == source_phase]
     if len(matches) != 1 or matches[0].get("sample") is None:
         return out
     layer = matches[0]
@@ -99,10 +99,27 @@ def _source_evidence(provider, *, phase, source_tick, dispatch_tick):
         last_wheel_stop_source_time_s=last_time, last_wheel_stop_channels=stop_channels,
         authored_final_stop_zero=stop_is_zero and end == (0.,)*4,
         reason="source_state_read_only_not_independent_actuator_ACK")
+    if source_phase == "P12":
+        # The wheel stop is at 2.6667 s, while RL joint source continues to
+        # 4.6667 s. Do not pretend wheel completion is full-source completion.
+        # This reads existing clocks only; it neither latches nor consumes one.
+        pulse_waypoints = [w for w in source.waypoints
+            if motion._scaled_source_tick(w.time_s) < last_tick
+            and set(w.changed_channels).intersection(WHEEL_ORDER)
+            and _vector(w.full12, 12, "P12 authored pulse")[8:] == (-.3,)*4]
+        complete_stop = bool(out["authored_final_stop_zero"]
+            and set(stop_channels) == set(WHEEL_ORDER))
+        out.update(source_full_endpoint_issued=sample.endpoint_issued is True,
+            wheel_stop_endpoint_issued=bool(complete_stop
+                and _tick(sample.tick_index) and sample.tick_index >= last_tick),
+            authored_reverse_pulse_verified=bool(pulse_waypoints),
+            wheel_stop_completion_semantics="P12_all4_authored_final_wheel_stop_not_full_RL_source_endpoint")
+        if sample.tick_index < last_tick:
+            out["finite_wheel_owners"].append("P12")
     return out
 
 
-def _committed_endpoint(source, ack, previous_write_count):
+def _committed_endpoint(source, ack, previous_write_count, *, source_phase="P09", wheel_prior=None):
     reasons = []
     if not isinstance(ack, Mapping):
         return False, ["previous_ACK_missing"]
@@ -115,8 +132,8 @@ def _committed_endpoint(source, ack, previous_write_count):
         "pre_dispatch_write_count": _tick(previous_write_count) and previous_write_count > 0
             and type(ack.get("write_count")) is int and ack["write_count"] == previous_write_count,
         "one_actual_write": ack.get("articulation_writes_this_call") == 1,
-        "previous_committed_source_phase": previous.get("phase") == "P09"
-            and previous.get("source_phase") == "P09",
+        "previous_committed_source_phase": previous.get("phase") == source_phase
+            and previous.get("source_phase") == source_phase,
         "previous_source_tick_adjacent": _tick(source["source_control_tick"])
             and previous.get("source_control_tick") == source["source_control_tick"]-1,
         "previous_dispatch_matches_ACK": previous.get("dispatch_physics_tick") == ack.get("physics_tick"),
@@ -131,10 +148,26 @@ def _committed_endpoint(source, ack, previous_write_count):
         "previous_authored_stop_zero": previous.get("authored_final_stop_zero") is True,
         "previous_source_held_zero": previous.get("source_wheel_target_rad_s") == [0.]*4,
     }
+    if source_phase == "P12":
+        checks.pop("previous_endpoint_issued")
+        checks["previous_wheel_stop_endpoint_issued"] = (
+            previous.get("wheel_stop_endpoint_issued") is True
+            and previous.get("advanced_this_tick") is True
+            and previous.get("authored_reverse_pulse_verified") is True)
     try:
-        checks["previous_requested_wheels_zero"] = _vector(ack.get("requested_full12"), 12, "ACK request")[8:] == (0.,)*4
+        requested = _vector(ack.get("requested_full12"), 12, "ACK request")[8:]
+        if source_phase == "P09":
+            checks["previous_requested_wheels_zero"] = requested == (0.,)*4
+        else:
+            # After the authored stop, live RL approach feedback may legitimately
+            # advise +.3. It is not a new source pulse and must not disarm proof.
+            # On the stop's own tick, however, the actual requested N must be 0.
+            checks["previous_requested_wheels_stop_or_live_prior"] = (
+                requested == (0.,)*4 or (requested == tuple(wheel_prior or ())
+                    and previous.get("sample_tick", -1) > source.get("last_wheel_stop_tick", 0)))
     except ValueError:
-        checks["previous_requested_wheels_zero"] = False
+        checks["previous_requested_wheels_zero" if source_phase == "P09"
+               else "previous_requested_wheels_stop_or_live_prior"] = False
     for name, result in checks.items():
         if not result:
             reasons.append(name)
@@ -154,7 +187,10 @@ def build_rr_carry_wheel_context(*, task, observation, source_frame, nominal_pro
         raise ValueError("unknown RR carry wheel mode")
     ev = task.get("physical_evaluator", {})
     phase, tick = task.get("stage_id"), _get(source_frame, "physics_tick")
-    source = _source_evidence(nominal_provider, phase=phase, source_tick=tick, dispatch_tick=physics_tick)
+    postcapture = phase == "P12"
+    source_phase = "P12" if postcapture else "P09"
+    source = _source_evidence(nominal_provider, phase=phase, source_tick=tick,
+        dispatch_tick=physics_tick, source_phase=source_phase)
     out = dict(schema=CONTEXT_SCHEMA, mode=mode, source_evidence=source,
         dispatch_physics_tick=physics_tick, source_control_tick=tick,
         phase=phase, envelope_active=False, action="bypass", reasons=[], semantics=SEMANTICS,
@@ -165,6 +201,8 @@ def build_rr_carry_wheel_context(*, task, observation, source_frame, nominal_pro
     if mode == "off":
         out["reasons"] = ["mode_off"]
         return out
+    if postcapture:
+        out["source_proof_semantics"] = "prior_committed_P12_wheel_stop_ACK_then_adjacent_tick_full_RL_source_may_continue"
     if (not _tick(tick) or not _tick(physics_tick) or physics_tick < tick
             or _get(observation, "physics_tick") != tick or ev.get("physics_tick") != tick
             or _get(source_frame, "state_id") != phase):
@@ -178,6 +216,7 @@ def build_rr_carry_wheel_context(*, task, observation, source_frame, nominal_pro
     near = _number(geometry["xy_measurement_tolerance_m"], "depth near scale")
     deep = _number(geometry["workspace_max_m"], "depth taper scale")
     clear = _number(geometry["airborne_clearance_above_top_m"], "clearance scale")
+    signed_max = _number(geometry["top_gap_max_m"], "signed TOP band maximum") if postcapture else None
     prior = _vector(spec["nominal"]["approach_wheel_prior_rad_s"], 4, "existing P01 wheel prior")
     if floor < 0. or not 0. <= near < deep or clear <= 0. or prior != (.3,)*4:
         raise ValueError("existing finite support/geometry/.3 wheel prior contract required")
@@ -187,13 +226,15 @@ def build_rr_carry_wheel_context(*, task, observation, source_frame, nominal_pro
         and rr.get("top_surface_contact") is False and rr.get("obstacle_pair_active") is False)
     known_top = (rr.get("air") is False and rr.get("contact_surface") == "TOP"
         and rr.get("top_surface_contact") is True and rr.get("obstacle_pair_active") is True)
-    supported = [leg for leg in SUPPORT_LEGS if verified_current_support(legs.get(leg, {}), floor)]
-    committed, proof_reasons = _committed_endpoint(source, source_ack, previous_write_count)
+    support_legs = SUPPORT_LEGS+("RR",) if postcapture else SUPPORT_LEGS
+    supported = [leg for leg in support_legs if verified_current_support(legs.get(leg, {}), floor)]
+    committed, proof_reasons = _committed_endpoint(source, source_ack, previous_write_count,
+        source_phase=source_phase, wheel_prior=prior)
     out.update(verified_support_legs=supported, source_commit_verified=committed,
         source_commit_reasons=proof_reasons, geometry_scales=dict(depth_near_m=near,
             depth_taper_m=deep, gap_taper_m=clear), existing_wheel_prior_rad_s=list(prior))
     checks = {
-        "P09_only": phase == "P09",
+        "P09_only": phase == "P09" or postcapture,
         "valid_current_physics": ev.get("valid") is True and ev.get("termination_reason") is None
             and task.get("termination_reason") is None,
         "current_source_endpoint": source.get("available") is True
@@ -211,6 +252,14 @@ def build_rr_carry_wheel_context(*, task, observation, source_frame, nominal_pro
             and rr.get("contact_surface") in ("NONE", "TOP"),
         "consistent_current_RR_contact_class": known_air or known_top,
     }
+    if postcapture:
+        checks.pop("P09_only")
+        checks["P12_RR_placed_RL_unplaced"] = hist.get("placed", {}).get("RR") is True
+        checks.pop("current_source_endpoint")
+        checks["current_P12_wheel_stop_endpoint"] = (source.get("available") is True
+            and source.get("wheel_stop_endpoint_issued") is True
+            and source.get("authored_reverse_pulse_verified") is True
+            and source.get("advanced_this_tick") is True)
     out["reasons"] = [name for name, result in checks.items() if not result]
     if out["reasons"]:
         return out
@@ -240,6 +289,11 @@ def build_rr_carry_wheel_context(*, task, observation, source_frame, nominal_pro
         and rr["within_lateral_span"] and not rr["top_surface_contact"]
         and rr["contact_surface"] == "NONE" and hist.get("active_lift", {}).get("RR") is True
         and gap >= RR_CAPTURE_GAP_MIN_M)
+    current_top_retention = bool(postcapture and known_top and "RR" in supported
+        and rr["within_top_xy"] and rr["within_lateral_span"]
+        and RR_CAPTURE_GAP_MIN_M <= gap <= signed_max)
+    if postcapture:
+        air = air and gap <= signed_max
     # Signed near-plane AIR is still the same capture attempt, not TOP. Its
     # tapered gain is zero, but keep the nonnegative floor rather than release
     # toward an opposing policy request merely on each geometric zero crossing.
@@ -247,12 +301,21 @@ def build_rr_carry_wheel_context(*, task, observation, source_frame, nominal_pro
     # Within this P09/source/support scope only, return to the original candidate
     # at the same rate. No phase, contact, or completion history is manufactured.
     gain = _clip((deep-distance)/(deep-near), 0., 1.) * _clip(gap/clear, 0., 1.) if air else 0.
-    out.update(envelope_active=True, action="forward_floor" if air else "release_slew",
+    if current_top_retention:
+        gain = _clip((deep-distance)/(deep-near), 0., 1.)
+    apply_floor = air or current_top_retention
+    out.update(envelope_active=True, action="forward_floor" if apply_floor else "release_slew",
         gain=gain, forward_floor_rad_s=.3*gain, previous_final_wheel_rad_s=list(previous_final),
-        selected_full12_indices=[8+SUPPORT_LEGS.index(leg) for leg in supported],
+        selected_full12_indices=[8+support_legs.index(leg) for leg in supported],
         rr_gap_m=gap, rr_front_distance_m=distance,
         rr_current_air_qualified=air, rr_top_surface_contact=rr["top_surface_contact"],
         reasons=["qualified_RR_AIR_support_forward_envelope" if air else "P09_return_to_original_candidate_no_floor"])
+    if postcapture:
+        out.update(rr_current_TOP_retention=current_top_retention,
+            full_source_endpoint_required=False, signed_top_gap_max_m=signed_max,
+            reasons=["P12_current_TOP_post_stop_retention" if current_top_retention else
+                "P12_qualified_signed_AIR_post_stop_retention" if air else
+                "P12_return_to_original_candidate_no_floor"])
     return out
 
 
@@ -272,10 +335,12 @@ def project_rr_carry_wheels(candidate_full12, *, context, previous_final_wheel_r
     armed = context.get("envelope_active") is True
     indices = tuple(context.get("selected_full12_indices", ())) if armed else ()
     if armed:
-        if (context["mode"] != MODE or context.get("phase") != "P09"
+        phase = context.get("phase")
+        allowed_indices = SUPPORT_INDICES+(11,) if phase == "P12" else SUPPORT_INDICES
+        if (context["mode"] != MODE or phase not in ("P09", "P12")
                 or context.get("action") not in ("forward_floor", "release_slew")
                 or not indices or len(set(indices)) != len(indices)
-                or not set(indices) <= set(SUPPORT_INDICES) or 8 not in indices):
+                or not set(indices) <= set(allowed_indices) or 8 not in indices):
             raise ValueError("invalid armed RR wheel scope")
         previous = _vector(previous_final_wheel_rad_s, 4, "independent previous FINAL wheels")
         recorded = _vector(context.get("previous_final_wheel_rad_s"), 4, "context previous FINAL wheels")
@@ -304,4 +369,5 @@ def project_rr_carry_wheels(candidate_full12, *, context, previous_final_wheel_r
         previous_final_wheel_rad_s=(list(previous_final_wheel_rad_s)
             if previous_final_wheel_rad_s is not None else None),
         raw_policy_and_log_probability_unchanged=True,
-        current_TOP_has_forward_floor=False, added_forward_is_measured_traction=False)
+        current_TOP_has_forward_floor=bool(context.get("rr_current_TOP_retention")
+            and context.get("action") == "forward_floor"), added_forward_is_measured_traction=False)

@@ -964,9 +964,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         rr_contact_onset_factor = (verified.get("rr_contact_onset_v6_factor") or {}).get("observation_contract")
         rr_signed_contact_factor = (verified.get("rr_signed_contact_v7_factor") or {}).get("observation_contract")
         rr_signed_wheel_factor = (verified.get("rr_signed_wheel_v8_factor") or {}).get("observation_contract")
-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor, receiving_factor, capture_feedback_factor, rr_workspace_factor, p05_preedge_factor, rr_capture_feedback_factor, rr_capture_knee_factor, rr_carry_handoff_factor, rr_progress_handoff_factor, rr_contact_onset_factor, rr_signed_contact_factor, rr_signed_wheel_factor)) > 1:
+        rr_postcapture_wheel_factor = (verified.get("rr_postcapture_wheel_v9_factor") or {}).get("observation_contract")
+        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor, receiving_factor, capture_feedback_factor, rr_workspace_factor, p05_preedge_factor, rr_capture_feedback_factor, rr_capture_knee_factor, rr_carry_handoff_factor, rr_progress_handoff_factor, rr_contact_onset_factor, rr_signed_contact_factor, rr_signed_wheel_factor, rr_postcapture_wheel_factor)) > 1:
             raise RuntimeError("reviewed same-layout migration receipts must be exclusive")
-        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor or receiving_factor or capture_feedback_factor or rr_workspace_factor or p05_preedge_factor or rr_capture_feedback_factor or rr_capture_knee_factor or rr_carry_handoff_factor or rr_progress_handoff_factor or rr_contact_onset_factor or rr_signed_contact_factor or rr_signed_wheel_factor
+        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor or receiving_factor or capture_feedback_factor or rr_workspace_factor or p05_preedge_factor or rr_capture_feedback_factor or rr_capture_knee_factor or rr_carry_handoff_factor or rr_progress_handoff_factor or rr_contact_onset_factor or rr_signed_contact_factor or rr_signed_wheel_factor or rr_postcapture_wheel_factor
         if reviewed_factor is not None:
             if factor is not None:
                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")
@@ -1053,6 +1054,9 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         if verified.get("rr_signed_wheel_v8_factor") is not None:
             from .semantic_rr_signed_wheel_migration import record_loaded_rr_signed_wheel
             infos = record_loaded_rr_signed_wheel(runner,infos,verified)
+        if verified.get("rr_postcapture_wheel_v9_factor") is not None:
+            from .semantic_rr_postcapture_wheel_migration import record_loaded_rr_postcapture_wheel
+            infos = record_loaded_rr_postcapture_wheel(runner,infos,verified)
         if receiving_wheel is not None:
             if (optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate")
                     or optimizer_learning_rate(runner) != receiving_wheel["source_effective_learning_rate"]):
@@ -1926,6 +1930,9 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
         raise ValueError("checkpoint cadence must be positive")
     previous = dict(resume_infos or {})
     inherited_routing = previous.get("checkpoint_output_routing")
+    postcapture_wheel = "rr_postcapture_wheel_v9_migration" in previous
+    if postcapture_wheel and checkpoint_output_routing is None:
+        raise ValueError("v9 learned continuation requires its explicit output routing branch")
     wheel_signed = "rr_signed_wheel_v8_migration" in previous
     signed = "rr_signed_contact_v7_migration" in previous
     contact_receipt = previous.get("rr_signed_wheel_v8_migration" if wheel_signed else "rr_signed_contact_v7_migration" if signed else "rr_contact_onset_v6_migration") or {}
@@ -1941,7 +1948,12 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
         from .semantic_migration import digest as metadata_digest
         route = jsonable(checkpoint_output_routing)
         selection = route.get("source_selection")
-        if (route.get("schema") != "wlr50_clean.checkpoint_output_routing.v1"
+        if postcapture_wheel:
+            from .semantic_rr_postcapture_wheel_migration import validate_v9_branch_receipt
+            if route.get("output_root") != str(output_root.resolve()) or inherited_routing != route:
+                raise ValueError("v9 destination must remain the inherited output branch")
+            validate_v9_branch_receipt(previous, contract, route)
+        elif (route.get("schema") != "wlr50_clean.checkpoint_output_routing.v1"
                 or route.get("output_root") != str(output_root.resolve())
                 or output_root.resolve().parent.name != "branches"
                 or output_root.resolve().name != route.get("branch")
@@ -2180,6 +2192,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             "rr_contact_onset_v6_migration",
                             "rr_signed_contact_v7_migration",
                             "rr_signed_wheel_v8_migration",
+                            "rr_postcapture_wheel_v9_migration",
                             "capture_feedback_semantics_migration", "capture_feedback_semantics_branch",
                             "rr_postcross_workspace_migration", "rr_postcross_workspace_branch",
                             "rr_receiver_retirement_v2_migration", "rr_receiver_retirement_v2_branch",
