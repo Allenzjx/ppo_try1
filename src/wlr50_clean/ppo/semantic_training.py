@@ -862,6 +862,11 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
                              migration: Mapping[str, Any] | None = None,
                              warm_start: Mapping[str, Any] | None = None,
                              policy_migration: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    if migration is not None and migration.get("rear_live_swing_same419_factor") is not None:
+        if warm_start is not None or policy_migration is not None:
+            raise ValueError("same419 live-swing migration cannot mix another boundary")
+        from .semantic_rear_live_swing_migration import load_rear_live_swing_migration
+        return load_rear_live_swing_migration(runner, checkpoint, contract=contract, seed=seed, record=migration)
     if migration is not None and migration.get("rear_recapture_same419_factor") is not None:
         if warm_start is not None or policy_migration is not None:
             raise ValueError("same419 recapture migration cannot mix another boundary")
@@ -2230,7 +2235,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                     from .semantic_migration import continuation_topology
                     infos["execution_topology"] = continuation_topology(sampling, prefix_request,
                         observation_layout=getattr(runner, "_semantic_observation_layout", None))
-                for key in ("rear_recapture_migration", "rear_policy_timing_migration", "rear_policy_timing_branch",
+                for key in ("rear_live_swing_migration", "rear_recapture_migration", "rear_policy_timing_migration", "rear_policy_timing_branch",
                             "new_mdp_warm_start", "new_mdp_origin_global_policy_decisions", "source_stage_requested_decisions",
                             "new_mdp_initial_action_comparison", "policy_distribution_migration",
                             "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison",

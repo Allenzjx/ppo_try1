@@ -475,6 +475,14 @@ class TaskEvaluator:
         self._all_stage = version == "all_stage_v1"
         self._functional_rr = self.spec.get("p09_lift_semantics") in FUNCTIONAL_RR_MODES
         self._free_air_rr = self.spec.get("p09_lift_semantics") == P09_FREE_AIR_LIFT_MODE
+        from .semantic_rear_policy_timing import LIVE_SWING_MODE
+        self._live_rl_swing = self.spec.get("nominal", {}).get("rear_policy_timing") == LIVE_SWING_MODE
+        if self._live_rl_swing and not self._all_stage:
+            raise ValueError("live RL swing evidence requires measured all-stage acceptance")
+        # Current attempt state, separate from irreversible crossed/placed events.
+        # Exposed in the existing RL active-lift observation slot in v3.
+        self._rl_current_qualified = False
+        self._rl_current_qualified_tick: int | None = None
         self._rr_last_contact_bottom = None
         self._rr_free_air_count = 0
         self._rr_previous_bottom_sample = None
@@ -697,7 +705,14 @@ class TaskEvaluator:
             air = not ground_active and not top_active
             self._air_count[leg] = self._air_count[leg] + 1 if air else 0
             samples = self._samples[leg]
-            if ground_active and (not self._history["front_edge_crossed"][leg] or (self._functional_rr and leg == "RR")):
+            if self._live_rl_swing and leg == "RL" and ground_active:
+                # Revoke on EVERY real ground return, even after historical
+                # crossing/placement. Old event ticks cannot revive this latch.
+                self._rl_current_qualified = False
+                self._rl_current_qualified_tick = None
+            if ground_active and (not self._history["front_edge_crossed"][leg]
+                    or (self._functional_rr and leg == "RR")
+                    or (self._live_rl_swing and leg == "RL")):
                 if self._all_stage:
                     self._attempt_active[leg] = False
                     self._attempt_joint_demand[leg] = False
@@ -713,7 +728,9 @@ class TaskEvaluator:
             if whole_body:
                 joint_targets = tuple(_number(_get(joints[name], "command_deg"), f"{name} command") for name in SERVO_ORDER)
                 wheel_targets = tuple(_number(_get(wheels[name], "command_rad_s"), f"{name} command") for name in WHEEL_ORDER)
-                if ground_active and (not self._history["front_edge_crossed"][leg] or (self._functional_rr and leg == "RR")):
+                if ground_active and (not self._history["front_edge_crossed"][leg]
+                    or (self._functional_rr and leg == "RR")
+                    or (self._live_rl_swing and leg == "RL")):
                     self._initial_clearance[leg] = False
                     self._obstacle_before_clearance[leg] = bool(top_active)
                 elif top_active and not self._initial_clearance[leg]:
@@ -802,6 +819,13 @@ class TaskEvaluator:
                     self._wall_ascent[leg].append((tick, bottom[2], max(map(abs, wheel_targets))))
                 elif not top_surface:
                     self._wall_ascent[leg].clear()
+            if self._live_rl_swing and leg == "RL" and lift:
+                # Reuse this evaluator's measured same-attempt lift predicate,
+                # not history or a phase label. After ground the sample window,
+                # initial clearance and attempt were reset, requiring new work.
+                if not self._rl_current_qualified:
+                    self._rl_current_qualified_tick = tick
+                self._rl_current_qualified = True
             if lift and not self._history["active_lift"][leg]:
                 self._history["active_lift"][leg] = True
                 self._event_ticks["active_lift"].setdefault(leg, tick)
@@ -897,6 +921,20 @@ class TaskEvaluator:
                         initial_lift_observed=bool(self._initial_clearance[leg]),
                         front_edge_crossed=self._history["front_edge_crossed"][leg],
                         placed_on_top=self._history["placed"][leg])
+                if self._live_rl_swing and leg == "RL":
+                    current_valid = bool(self._rl_current_qualified
+                        and not ground_active and self._failure is None)
+                    current[leg].update(
+                        current_lift_valid=current_valid,
+                        motion_continuation_allowed=self._failure is None,
+                        motion_continuation_reason=("physical_safety_abort" if self._failure is not None
+                            else "same_attempt_measured_RL_lift" if current_valid
+                            else "await_fresh_measured_RL_lift"),
+                        contact_mode=("GROUND_AND_OBSTACLE" if ground_active and top_active
+                            else "GROUND" if ground_active else "AIR" if air
+                            else "TOP" if top_surface else surfaces[1]["surface"]),
+                        current_lift_qualified_tick=self._rl_current_qualified_tick,
+                        current_lift_evidence_semantics="same_attempt_measured_lift_revoked_by_any_ground_v3")
             if self.spec.get("capture_retention_semantics") == CAPTURE_RETENTION_MODE:
                 # Distance to the SAME measured, tolerance-expanded rectangle.
                 # This extra current diagnostic never changes contact/history,
@@ -1464,8 +1502,8 @@ class TaskStageSupervisor:
 
     def _current_capture_retention(self, leg: str, evaluation: Mapping[str,Any]) -> float:
         current=evaluation["current_legs"][leg]
-        from .semantic_rear_policy_timing import RECAPTURE_MODE, rear_dependency
-        if leg == "RR" and self.spec["nominal"].get("rear_policy_timing") == RECAPTURE_MODE:
+        from .semantic_rear_policy_timing import RECAPTURE_MODES, rear_dependency
+        if leg == "RR" and self.spec["nominal"].get("rear_policy_timing") in RECAPTURE_MODES:
             dependency = rear_dependency({"physical_evaluator": evaluation}, self.spec["support"])
             if not (dependency["rl_current_swing"] or evaluation["history"]["placed"].get("RL") is True):
                 # Only the existing .2 retention share changes. Historical .8
@@ -1721,6 +1759,16 @@ class TaskStageSupervisor:
                 **histories["active_lift"], "RR": bool(rr.get("current_lift_valid"))}
             self._snapshot["p09_lift_semantics"] = self.spec["p09_lift_semantics"]
             self._snapshot["rr_placed_currently_usable"] = _current_rr_placement_usable(evaluation)
+        from .semantic_rear_policy_timing import LIVE_SWING_MODE
+        if (self.spec["nominal"].get("rear_policy_timing") == LIVE_SWING_MODE
+                and evaluation["valid"]):
+            # Same 419-dimensional codec, versioned RL slot semantics: current
+            # qualification is observable; complete lift/cross/placed events
+            # remain independently available in the physical history.
+            self._snapshot["active_lift_history"] = {
+                **self._snapshot["active_lift_history"],
+                "RL": bool(evaluation["current_legs"]["RL"].get("current_lift_valid"))}
+            self._snapshot["rl_lift_semantics"] = LIVE_SWING_MODE
         if continuation is not None:
             cross_tick = histories.get("event_ticks", {}).get("front_edge_crossed", {}).get("FL")
             pending_elapsed = (max(0., now-cross_tick/self.spec["physics_hz"])

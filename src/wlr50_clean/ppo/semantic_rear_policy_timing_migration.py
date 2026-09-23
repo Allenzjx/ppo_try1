@@ -147,7 +147,11 @@ def validate_rear_policy_namespace(metadata,contract,output_root, *, checkpoint_
     from .semantic_policy_distribution import policy_contract
     receipt=metadata.get(MIGRATION,{})
     runtime_bound = receipt.get('target_contract_sha256') == digest(contract)
-    if metadata.get('rear_recapture_migration') is not None:
+    if metadata.get('rear_live_swing_migration') is not None:
+        from .semantic_rear_live_swing_migration import validate_rear_live_swing_lineage
+        validate_rear_live_swing_lineage(metadata, contract)
+        runtime_bound = True
+    elif metadata.get('rear_recapture_migration') is not None:
         from .semantic_rear_recapture_migration import validate_rear_recapture_lineage
         validate_rear_recapture_lineage(metadata, contract, receipt)
         runtime_bound = True

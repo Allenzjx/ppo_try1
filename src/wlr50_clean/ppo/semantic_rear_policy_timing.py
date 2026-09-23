@@ -10,7 +10,9 @@ from typing import Mapping, Any
 
 MODE = "rr_capture_before_rl_transfer_v1"
 RECAPTURE_MODE = "rr_recapture_current_support_v2"
-MODES = (MODE, RECAPTURE_MODE)
+LIVE_SWING_MODE = "rr_live_swing_evidence_v3"
+RECAPTURE_MODES = (RECAPTURE_MODE, LIVE_SWING_MODE)
+MODES = (MODE, *RECAPTURE_MODES)
 
 
 def verified_bearing(row: Mapping[str, Any], support: Mapping[str, Any]) -> bool:
@@ -62,7 +64,7 @@ def public_timing(task, layers, support, physics_hz, *, mode=MODE):
     # A task request, not new AIR/lift/support evidence. After first capture,
     # old source clocks and placed history cannot hide current loss of load.
     # Preserve a real ongoing RL swing and the already-placed RL continuation.
-    recapture = bool(mode == RECAPTURE_MODE and rear and live and not swing
+    recapture = bool(mode in RECAPTURE_MODES and rear and live and not swing
         and placed.get("RL") is not True and not dep["rr_current_bearing"]
         and (late_started or placed.get("RR") is True
              or task.get("stage_id") in ("P10", "P11", "P12")))

@@ -357,10 +357,15 @@ def validate_request(args: argparse.Namespace) -> None:
             planned=json.loads(args.resume_migration.read_text(encoding="utf-8"))
             initial_append = isinstance(planned.get("rear_policy_timing_factor"),dict)
             same419 = isinstance(planned.get("rear_recapture_same419_factor"),dict)
-            if initial_append == same419:
+            live_swing = isinstance(planned.get("rear_live_swing_same419_factor"),dict)
+            if sum((initial_append,same419,live_swing)) != 1:
                 raise ValueError("rear timing requires exactly one declared migration boundary")
             if initial_append:
                 source_root=version_paths("v3",experiment_id="rr_capture_then_rl_transfer_v1")[1]
+            elif live_swing:
+                if (planned.get("schema") != "wlr50_clean.rear_live_swing_same419.v3"
+                        or not branch_requested or source_root.resolve()!=checkpoint_output.resolve()):
+                    raise ValueError("live-swing continuation requires the learned checkpoint's existing explicit branch")
             else:
                 if planned.get("schema") != "wlr50_clean.rear_recapture_same419.v1":
                     raise ValueError("unsupported same419 migration schema")
