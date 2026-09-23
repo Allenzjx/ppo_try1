@@ -179,6 +179,31 @@ def parser() -> argparse.ArgumentParser:
     return result
 
 
+def _frozen_media_revision(relative, expected, actual, experiment_id):
+    """Explicit user-authorized media-only revision; never exempt controller/physics.
+
+    Preserve the original frozen inventory and its original Git blob. This
+    exception is bound to exact reviewed callback-wait bytes, not a filename
+    wildcard or permission to mutate any other supposedly frozen component.
+    """
+    if actual == expected:
+        return None
+    if (experiment_id != "rr_rl_timing_policy_learning_v1"
+            or relative != "src/wlr50_clean/infrastructure/video_capture.py"
+            or expected != "4de41b906d506cc98165c66e44afa767a9f8111a1483a09492a25df43346dbd6"
+            or actual != "6ec218b1a64344516aabeb5c32729314724ad6f175147f61086dfc38570c13ae"):
+        raise ValueError(f"frozen A bytes changed: {relative}")
+    preserved = "10aced6093c0efcca042bb9645e30140bffd04ff"
+    blob = subprocess.run(["git", "-C", str(PROJECT_ROOT), "show", preserved+":"+relative],
+                          check=True, capture_output=True).stdout
+    if hashlib.sha256(blob).hexdigest() != expected:
+        raise ValueError("original frozen media source is not preserved")
+    return {"path": relative, "original_sha256": expected, "runtime_sha256": actual,
+            "preserved_original_git_commit": preserved,
+            "scope": "same_capture_callback_wait_only_no_physics_controller_or_actuator_change",
+            "original_frozen_inventory_rewritten": False}
+
+
 def runtime_contract(*, expected_head: str, semantic_version: str = "v2",
                      experiment_id: str | None = None) -> dict[str, Any]:
     experiment_namespace(semantic_version, experiment_id)
@@ -195,9 +220,11 @@ def runtime_contract(*, expected_head: str, semantic_version: str = "v2",
     frozen = json.loads(protected_path.read_text(encoding="utf-8"))
     if frozen.get("algorithm") != "sha256" or not isinstance(frozen.get("protected_files"), dict):
         raise ValueError("frozen A inventory is malformed")
+    media_revisions = []
     for relative, expected in frozen["protected_files"].items():
-        if sha256_file(PROJECT_ROOT / relative) != expected:
-            raise ValueError(f"frozen A bytes changed: {relative}")
+        revision = _frozen_media_revision(relative, expected, sha256_file(PROJECT_ROOT / relative), experiment_id)
+        if revision is not None:
+            media_revisions.append(revision)
     files = {relative: sha256_file(PROJECT_ROOT / relative)
              for relative in sorted(git("ls-files", "--", *paths).splitlines())}
     if not files:
@@ -209,6 +236,8 @@ def runtime_contract(*, expected_head: str, semantic_version: str = "v2",
             "physics_hz": 120.0, "decision_hz": 15.0, "task_timeout_s": 200.0,
             "timeout_bootstrap": False, "training_budgets": training_quantity_budgets(experiment_id),
             "local_runtime_versions": local_versions()}
+    if media_revisions:
+        contract["frozen_A_media_revisions"] = media_revisions
     if semantic_version == "v3":
         config_root = version_paths(semantic_version, experiment_id=experiment_id)[2]
         contract.update(semantic_version="v3", selected_configuration={
