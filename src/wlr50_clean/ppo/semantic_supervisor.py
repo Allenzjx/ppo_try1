@@ -54,6 +54,7 @@ RR_WORKSPACE_RETIREMENT_MODE_V2 = "established_RR_over_top_receiver_retirement_v
 CAPTURE_CONTINUATION_MODE = "p05_hip_only_continuation_v1"
 P05_PREEDGE_RECOVERY_MODE = "p05_preedge_approach_recovery_v1"
 P05_SAME_AIR_RECROSS_MODE = "p05_preedge_same_air_recross_v2"
+P05_COMPLETED_SOURCE_RECOVERY_MODE = "p05_completed_source_first_approach_recross_v3"
 P05_FINITE_RECOVERY_TIMEOUT_MODE = "current_capture_or_completed_handoff_after_original_window_v1"
 
 
@@ -72,11 +73,13 @@ def _capture_continuation_enabled(spec: Mapping[str, Any]) -> bool:
 
 def _p05_preedge_recovery_enabled(spec: Mapping[str, Any]) -> bool:
     mode = spec.get("nominal", {}).get("p05_preedge_approach_recovery")
-    if mode not in (None, P05_PREEDGE_RECOVERY_MODE, P05_SAME_AIR_RECROSS_MODE):
+    if mode not in (None, P05_PREEDGE_RECOVERY_MODE, P05_SAME_AIR_RECROSS_MODE,
+                    P05_COMPLETED_SOURCE_RECOVERY_MODE):
         raise ValueError("unknown P05 pre-edge approach recovery semantics")
     timeout = spec.get("p05_finite_recovery_timeout_semantics")
-    if ((mode == P05_SAME_AIR_RECROSS_MODE and timeout != P05_FINITE_RECOVERY_TIMEOUT_MODE)
-            or (mode != P05_SAME_AIR_RECROSS_MODE and timeout is not None)):
+    recross_mode = mode in (P05_SAME_AIR_RECROSS_MODE, P05_COMPLETED_SOURCE_RECOVERY_MODE)
+    if ((recross_mode and timeout != P05_FINITE_RECOVERY_TIMEOUT_MODE)
+            or (not recross_mode and timeout is not None)):
         raise ValueError("same-AIR P05 recross and finite effective recovery must be explicitly paired")
     if mode is not None and (not _capture_continuation_enabled(spec)
             or spec["nominal"].get("p05_pending_capture") != "current_FL_capture_wheel_continuation_to_handoff_v2"
@@ -1326,6 +1329,16 @@ class TaskStageSupervisor:
                 preparation=(self._workspace_potential_progress(leg,evaluation)
                     if self.spec.get("preparation_credit_semantics") == PREPARATION_CREDIT_MODE else 0.)
                 values.append(.1*preparation); continue
+            if leg == "RL" and self.spec["nominal"].get("rear_policy_timing"):
+                from .semantic_rear_policy_timing import rear_dependency
+                dependency = rear_dependency({"physical_evaluator": evaluation}, self.spec["support"])
+                if not (dependency["support_transfer_permitted"] or dependency["rl_current_swing"]):
+                    # Historical RR placement cannot reward a fresh RL unload
+                    # after losing the support on which that transfer depends.
+                    # Keep the existing small preparation share and allow an
+                    # already qualified live RL swing to continue/land.
+                    values.append(.1*self._workspace_potential_progress(leg, evaluation))
+                    continue
             workspace=self._workspace_potential_progress(leg,evaluation)
             unload=(evaluation.get("transfer_roles", {}).get(leg, {}).get("transfer_progress", 0.)
                     if self.spec.get("transfer_roles") else self.predicate(f"load_ready_{leg}",evaluation))
@@ -1769,6 +1782,12 @@ class NominalMotionProvider:
             raise ValueError("unknown successful-FSM nominal semantics")
         self._reference_nominal = reference_mode is not None
         self._sequence_mode = nominal.get("sequence_semantics")
+        from .semantic_rear_policy_timing import MODE as REAR_TIMING_MODE
+        self._rear_policy_timing_mode = nominal.get("rear_policy_timing")
+        if self._rear_policy_timing_mode not in (None, REAR_TIMING_MODE):
+            raise ValueError("unknown rear policy timing mode")
+        if self._rear_policy_timing_mode and self._sequence_mode != "source_partial_order_physical_ready_v1":
+            raise ValueError("rear policy timing requires existing continuous physical source order")
         self._final_stop_mode = nominal.get("final_stop_owner")
         if self._final_stop_mode not in (None, "current_physical_stop_nominal_owner_v1",
                                          "source_home_after_physical_stop_v1",
@@ -1915,7 +1934,8 @@ class NominalMotionProvider:
                 "RR_contact_backup_enabled": False, "residual_channels_restricted": False,
                 "layers": [{"stage": layer["stage"], "source_ticks": layer["ticks"],
                     **layer.get("sequence_diagnostic", {})} for layer in self._continuous_layers
-                    if layer["stage"] in ("P07", "P08", "P09")],
+                    if layer["stage"] in (("P07", "P08", "P09", "P12")
+                                          if self._rear_policy_timing_mode else ("P07", "P08", "P09"))],
             }
         if self._p06_tail_source is not None:
             result["p06_wheel_tail"] = dict(self._tail_diagnostic)
@@ -1940,6 +1960,10 @@ class NominalMotionProvider:
                     for layer in self._continuous_layers if "capture_suppressed_at_creation" in layer),
             }
         return result
+
+    def rear_policy_timing(self, task: Mapping[str, Any]) -> dict[str, Any]:
+        from .semantic_rear_policy_timing import public_timing
+        return public_timing(task, self._continuous_layers, self.spec["support"], self.physics_hz)
 
     def _start_source_motion(self, motion: MotionExecutor, phase: Any) -> None:
         """Reuse successful source action tuning without importing its gates."""
@@ -2070,6 +2094,20 @@ class NominalMotionProvider:
                 layer["sequence_diagnostic"] = {"status": "holding", "wait_reason": "current_FL_capture_path_or_other_support_unavailable",
                     "observation_tick": task.get("physical_evaluator", {}).get("physics_tick")}
                 return False  # Resume this clock, never catch up expired events.
+        if self._rear_policy_timing_mode and layer["stage"] == "P12":
+            from .semantic_rear_policy_timing import rear_dependency
+            dep = rear_dependency(task, self.spec["support"])
+            permitted = dep["support_transfer_permitted"] or dep["rl_current_swing"]
+            layer["rl_dependency_wait"] = not permitted
+            layer["sequence_diagnostic"] = dict(dep,
+                observation_tick=task.get("physical_evaluator", {}).get("physics_tick"),
+                status="active" if permitted else "holding_RL_joint_lane",
+                wait_reason=None if permitted else "current_RR_support_before_new_RL_unload",
+                wheel_source_clock_continues_after_start=layer["ticks"] > 0)
+            # Synchronize the initial source knee/wheel sequence. Once started,
+            # wheel pulses and explicit stops must complete even after drop-load.
+            # Only the independent RL joint cursor pauses, without catch-up.
+            return bool(layer["ticks"] > 0 or permitted)
         if not self._sequence_mode or layer["stage"] not in ("P07", "P08", "P09"):
             return True
         ev = task.get("physical_evaluator", {})
@@ -2150,8 +2188,13 @@ class NominalMotionProvider:
                 ready, reason = pending["ready"], pending["reason"]
                 diag["current_free_lift_source_readiness"] = pending
             elif layer["ticks"] == group_tick:
-                ready = self._rr_late_reconfiguration_ready(task)
-                reason = "current_RR_over_top_before_late_reconfiguration"
+                if self._rear_policy_timing_mode:
+                    from .semantic_rear_policy_timing import rear_dependency
+                    ready = rear_dependency(task, self.spec["support"])["support_transfer_permitted"]
+                    reason = "current_RR_bearing_before_FL_RL_transfer"
+                else:
+                    ready = self._rr_late_reconfiguration_ready(task)
+                    reason = "current_RR_over_top_before_late_reconfiguration"
                 diag.update(late_group_source_tick=group_tick,
                     RR_late_front_distance_m=rr.get("front_distance_m"),
                     RR_late_clearance_m=rr.get("clearance_m"),
@@ -2282,7 +2325,8 @@ class NominalMotionProvider:
         return bool(layer["ticks"] == group and layer["sample"].tick_index > stop
             and layer.get("advanced_this_tick") is False
             and layer.get("sequence_diagnostic", {}).get("wait_reason")
-                == "current_RR_over_top_before_late_reconfiguration")
+                in ("current_RR_over_top_before_late_reconfiguration",
+                    "current_RR_bearing_before_FL_RL_transfer"))
 
     def _rr_top_continuation_allowed(self, task: Mapping[str, Any]) -> bool:
         """Existing wheel suggestion may create crossing after a real TOP contact.
@@ -2358,6 +2402,18 @@ class NominalMotionProvider:
             self._start_source_motion(motion,phase)
             self._continuous_layers.append({"stage":stage_id,"motion":motion,"last":tuple(phase.start_full12),
                 "touched":set(),"sample":None,"ticks":0})
+            if self._rear_policy_timing_mode and stage_id == "P12":
+                # P12 contains wheel-only atomic groups; no mixed joint/wheel
+                # atomic group is split. Declare the independent RL pair cursor
+                # so loss of support cannot indefinitely retain a wheel pulse.
+                if any(set(g.channels).intersection(SERVO_ORDER[4:6])
+                       and set(g.channels).intersection(WHEEL_ORDER) for g in phase.atomic_groups):
+                    raise ValueError("rear lane cannot split a mixed RL/wheel atomic source group")
+                rl_motion = MotionExecutor(physics_hz=self.physics_hz,
+                    servo_rate_limit_deg_s=self.servo_rate_limit_deg_s, initial_full12=self.nominal_full12)
+                self._start_source_motion(rl_motion, phase)
+                self._continuous_layers[-1].update(rl_motion=rl_motion, rl_ticks=0,
+                    rl_sample=None, rl_last=tuple(phase.start_full12), rl_touched=set(), rl_dependency_wait=False)
             if capture is not None and capture["new_swing_hold"] is not None:
                 # A currently captured target needs no redundant new swing.
                 # Suppress only this layer's target pair, not its collaborators
@@ -2428,6 +2484,14 @@ class NominalMotionProvider:
                         self.elapsed_s=0.; self.endpoint_issued=False
                     continue
             source_bias=self._source_normal_bias(layer["motion"],sample)
+            if "rl_motion" in layer:
+                if not layer["rl_dependency_wait"]:
+                    rl_sample = layer["rl_motion"].tick()
+                    layer["rl_ticks"] += 1
+                    layer["rl_touched"].update(i for i in (4, 5)
+                        if abs(rl_sample.full12[i] - layer["rl_last"][i]) > 1e-9)
+                    layer["rl_sample"], layer["rl_last"] = rl_sample, rl_sample.full12
+                layer["touched"].difference_update((4, 5))
             gain=1.
             if layer["stage"]=="P06" and retirement is not None:
                 peak=layer.get("rolling_retirement_peak",0.)
@@ -2492,6 +2556,20 @@ class NominalMotionProvider:
                     else: tracking.discard(SERVO_ORDER[i])
             if layer["stage"]==stage_id:
                 self.elapsed_s=sample.elapsed_s; self.endpoint_issued=sample.endpoint_issued
+            if "rl_motion" in layer and layer["rl_sample"] is not None:
+                rl_sample = layer["rl_sample"]
+                rl_bias = self._source_normal_bias(layer["rl_motion"], rl_sample)
+                for i in layer["rl_touched"]:
+                    if i in layer.get("capture_retired_servo_indices", ()):
+                        tracking.discard(SERVO_ORDER[i])
+                        continue
+                    proposed[i], normal_bias[i] = rl_sample.full12[i], rl_bias[i]
+                    if not rl_sample.endpoint_issued and SERVO_ORDER[i] in rl_sample.tracking_servo_names:
+                        tracking.add(SERVO_ORDER[i])
+                    else:
+                        tracking.discard(SERVO_ORDER[i])
+                if layer["stage"] == stage_id:
+                    self.endpoint_issued = self.endpoint_issued and rl_sample.endpoint_issued
         if self._reference_nominal:
             self.normal_drive_bias_full12=tuple(normal_bias)
         if stage_id in ("P09","P12"):
@@ -2523,7 +2601,8 @@ class NominalMotionProvider:
                         for leg in LEG_ORDER if leg != "RR") >= self.spec["support"]["minimum_other_supports"])
                     and distance < self.spec["geometry"]["approach_max_m" if late_wait else "approach_min_m"]
                     and (distance < self.spec["geometry"]["workspace_min_m"]
-                         or clearance >= 0.))
+                         or clearance >= (self.spec["geometry"]["top_gap_min_m"]
+                            if self._rear_policy_timing_mode and current.get("within_top_xy") is True else 0.)))
                 ordered_wheel_owner = bool(self._sequence_mode and any(
                     layer["sample"] is not None and
                     ((layer["stage"] in ("P07", "P09") and not layer["sample"].endpoint_issued
@@ -2573,6 +2652,13 @@ class NominalMotionProvider:
         age = task.get("stage_elapsed_s")
         start = self.spec["stages"]["P05"]["maximum_task_duration"]
         end = start + self.spec["local_timeout_policy"]["maximum_extension_s"]
+        mode = self.spec["nominal"].get("p05_preedge_approach_recovery", P05_PREEDGE_RECOVERY_MODE)
+        # v3 permits the same measured advice once the complete source has
+        # actually issued and a subsequent tick is observed. It does not wait
+        # for the task's nominal timeout to begin using a still-positive gap.
+        # Endpoint/subsequent-tick/fresh-wheel-owner checks below still apply;
+        # the absolute end and all v1/v2 behavior remain unchanged.
+        window_start = 0. if mode == P05_COMPLETED_SOURCE_RECOVERY_MODE else start
         finite = lambda value: type(value) in (int, float) and math.isfinite(value)
         gap, distance = fl.get("clearance_m"), fl.get("front_distance_m")
         geometry = self.spec["geometry"]
@@ -2590,7 +2676,7 @@ class NominalMotionProvider:
             and math.isclose(now, tick/self.physics_hz, rel_tol=0., abs_tol=1e-9))
         checks = {
             "P05_only": task.get("stage_id") == "P05",
-            "absolute_stage_age_window": finite(age) and start <= age < end,
+            "absolute_stage_age_window": finite(age) and window_start <= age < end,
             "valid_no_abort": ev.get("valid") is True and ev.get("termination_reason") is None
                 and task.get("termination_reason") is None
                 and ev.get("physical_evidence_status") in ("VERIFIED", "CONTACT_BEARING_UNVERIFIED"),
@@ -2609,9 +2695,8 @@ class NominalMotionProvider:
                 and self.endpoint_issued is True and consecutive,
             "fresh_source_wheel_owner_absent": not fresh,
         }
-        mode = self.spec["nominal"].get("p05_preedge_approach_recovery", P05_PREEDGE_RECOVERY_MODE)
         recross = None
-        if mode == P05_SAME_AIR_RECROSS_MODE:
+        if mode in (P05_SAME_AIR_RECROSS_MODE, P05_COMPLETED_SOURCE_RECOVERY_MODE):
             events = history.get("event_ticks", {})
             crossings = events.get("front_edge_crossed", {}) if isinstance(events, Mapping) else {}
             cross_tick = crossings.get("FL") if isinstance(crossings, Mapping) else None
@@ -2639,7 +2724,7 @@ class NominalMotionProvider:
         result = {"mode": mode, "eligible": all(checks.values()), "checks": checks,
             "reasons": tuple(key for key, passed in checks.items() if not passed),
             "source_observation_tick": tick, "prior_source_observation_tick": prior_observation_tick,
-            "stage_elapsed_s": age, "absolute_window_s": (start, end), "window_end_exclusive": True,
+            "stage_elapsed_s": age, "absolute_window_s": (window_start, end), "window_end_exclusive": True,
             "source_endpoint_issued": self.endpoint_issued,
             "prior_source_endpoint_issued": prior_source_endpoint_issued,
             "source_elapsed_s": self.elapsed_s, "source_tick_consecutive": consecutive,

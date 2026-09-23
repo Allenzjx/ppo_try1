@@ -84,6 +84,13 @@ def load_execution_profile(path: Path | str = DEFAULT_EXECUTION_PROFILE) -> dict
         raise ValueError("unknown declared RR support-wheel projection")
     if profile.get("rr_capture_wheel_mode", "off") != "off" and rr_assist != RR_CAPTURE_ASSIST_MODE:
         raise ValueError("RR support-wheel projection requires the observable RR continuation")
+    from .semantic_rear_policy_timing import MODE as REAR_TIMING_MODE
+    rear_timing = profile.get("rear_policy_timing_mode")
+    if rear_timing not in (None, REAR_TIMING_MODE):
+        raise ValueError("unknown rear policy timing execution profile")
+    if rear_timing and (rr_assist is not None or profile.get("nominal_geometry_advisory") is not None
+                       or profile.get("rr_capture_wheel_mode", "off") != "off"):
+        raise ValueError("rear policy learning forbids rear task assist, geometry and forced wheel shaping")
     return profile
 
 
@@ -149,6 +156,9 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         self._rr_carry_wheel_mode = self.execution_profile.get("rr_capture_wheel_mode", "off")
         self.task_spec_path = Path(task_spec_path).resolve()
         rr_task_spec = yaml.safe_load(self.task_spec_path.read_text(encoding="utf-8"))
+        self._rear_policy_timing_mode = self.execution_profile.get("rear_policy_timing_mode")
+        if self._rear_policy_timing_mode != rr_task_spec.get("nominal", {}).get("rear_policy_timing"):
+            raise ValueError("rear timing task and execution profile must agree")
         self._rr_support_spec = rr_task_spec["support"]
         self._rr_contact_handoff_window_s = rr_contact_handoff_window_s(rr_task_spec)
         self._physical_acceptance_version = yaml.safe_load(self.task_spec_path.read_text(encoding="utf-8")).get("physical_acceptance_version")
@@ -461,14 +471,19 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         if getattr(self, "_capture_assist", None) is not None:
             info["capture_assist"] = self._capture_assist.snapshot()
             info["capture_assist_evidence"] = ack.get("capture_assist_evidence")
-        if getattr(self, "_rr_capture_assist", None) is not None:
-            info["rr_capture_assist"] = self._rr_capture_assist.snapshot()
+        rear_learning = bool(getattr(self, "_rear_policy_timing_mode", None))
+        if getattr(self, "_rr_capture_assist", None) is not None or rear_learning:
+            # Preserve the old 410-feature prefix with a disabled WAIT snapshot.
+            # This object is metadata only: never advance it or pass it to the
+            # actuation dispatch. No fabricated contact or assist owner exists.
+            info["rr_capture_assist"] = (RRHipOnlyCaptureAssist().snapshot() if rear_learning
+                                         else self._rr_capture_assist.snapshot())
             info["rr_capture_assist_evidence"] = ack.get("rr_capture_assist_evidence")
             from .semantic_rr_capture_profile import RR_TASK_FIELDS
             rear_context = rr_capture_transfer_context(
                 task=controller.task_snapshot, observation=observation,
                 support_spec=self._rr_support_spec,
-                assist_snapshot=info["rr_capture_assist"],
+                assist_snapshot=None if rear_learning else info["rr_capture_assist"],
                 wheel_mode="off",
                 contact_handoff_window_s=self._rr_contact_handoff_window_s)
             wheel_context = self._rr_carry_pre_dispatch_context(self._adapter._last_physics_tick + 1)
@@ -478,6 +493,13 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                 info["rr_carry_wheel_evidence"] = ack.get("rr_carry_wheel_evidence")
             info["rr_capture_transfer_context"] = {key: rear_context[key] for key in RR_TASK_FIELDS}
             info["rr_capture_transfer_diagnostics"] = rear_context
+        if rear_learning:
+            from .semantic_rear_policy_timing import public_timing
+            active = getattr(controller, "_semantic", None) or controller
+            provider = getattr(active, "nominal_provider", None)
+            info["rear_policy_timing"] = (provider.rear_policy_timing(controller.task_snapshot)
+                if provider is not None else public_timing(controller.task_snapshot, [], self._rr_support_spec, 120.))
+            info["rear_task_assist_disabled"] = True
         unsafe = any((termination.body_collision, termination.wheel_only_climb,
                       termination.fall, termination.nan_inf, termination.hard_joint_limit, termination.physics_explosion))
         return AuthoritativeFrame(

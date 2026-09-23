@@ -57,10 +57,16 @@ class _Encoder:
         return True
 
 
-def _fake_recorder(tmp_path: Path, *, callback_count: int = 1) -> tuple[ActiveViewportVideoRecorder, list[str]]:
+def _fake_recorder(
+    tmp_path: Path,
+    *,
+    callback_count: int = 1,
+    callback_counts_by_wait: tuple[int, ...] | None = None,
+) -> tuple[ActiveViewportVideoRecorder, list[str]]:
     viewport = _Viewport()
     lifecycle: list[str] = []
     pending = []
+    wait_index = 0
     encoder = _Encoder(lifecycle)
     rgba = bytes(VIDEO_WIDTH * VIDEO_HEIGHT * 4)
 
@@ -69,9 +75,15 @@ def _fake_recorder(tmp_path: Path, *, callback_count: int = 1) -> tuple[ActiveVi
         pending.append(callback)
 
     def wait() -> None:
-        callback = pending.pop(0)
-        for _ in range(callback_count):
-            callback(rgba, len(rgba), VIDEO_WIDTH, VIDEO_HEIGHT, "RGBA8")
+        nonlocal wait_index
+        count = (callback_count if callback_counts_by_wait is None else
+                 callback_counts_by_wait[min(wait_index,
+                                             len(callback_counts_by_wait) - 1)])
+        wait_index += 1
+        if count:
+            callback = pending.pop(0)
+            for _ in range(count):
+                callback(rgba, len(rgba), VIDEO_WIDTH, VIDEO_HEIGHT, "RGBA8")
 
     def validator(path: Path, **kwargs):
         assert path.read_bytes() == b"synthetic-mp4"
@@ -117,7 +129,58 @@ def test_active_viewport_recorder_observes_two_existing_renders(tmp_path: Path) 
     ]
     rows = [json.loads(line) for line in recorder.ledger_path.read_text().splitlines()]
     assert [row["callback_count"] for row in rows] == [1, 1]
+    assert [row["renderer_wait_calls"] for row in rows] == [1, 1]
     assert recorder.first_frame_path.read_bytes().startswith(b"\x89PNG")
+
+
+def test_delayed_callback_rewaits_same_capture_without_extra_render_or_encode(
+    tmp_path: Path,
+) -> None:
+    recorder, lifecycle = _fake_recorder(
+        tmp_path, callback_counts_by_wait=(0, 1)
+    )
+    assert recorder.start()
+    for step in (8, 16):
+        recorder.before_render(sim_step=step, sim_time_s=step / 120.0)
+        lifecycle.append("runtime_render")
+        recorder.after_render()
+        recorder.require_healthy()
+    manifest = recorder.finalize()
+    assert manifest["valid"] is True
+    assert manifest["frame_count"] == 2
+    assert manifest["extra_render_count"] == 0
+    assert manifest["renderer_wait_call_count"] == 3
+    assert manifest["zero_callback_wait_retry_count"] == 1
+    assert manifest["delayed_callback_recovery_count"] == 1
+    assert manifest["maximum_renderer_wait_calls_per_render"] == 2
+    assert lifecycle == ["start", "runtime_render", "encode",
+                         "runtime_render", "encode", "finalize"]
+    rows = [json.loads(line) for line in recorder.ledger_path.read_text().splitlines()]
+    assert [row["callback_count"] for row in rows] == [1, 1]
+    assert [row["renderer_wait_calls"] for row in rows] == [2, 1]
+
+
+def test_missing_callback_after_bounded_rewait_fails_without_encoding(
+    tmp_path: Path,
+) -> None:
+    recorder, lifecycle = _fake_recorder(
+        tmp_path, callback_counts_by_wait=(0, 0, 0)
+    )
+    assert recorder.start()
+    recorder.before_render(sim_step=8, sim_time_s=8 / 120.0)
+    lifecycle.append("runtime_render")
+    recorder.after_render()
+    with pytest.raises(video_capture.VideoArtifactError,
+                       match="callback_count=0 after 3 waits"):
+        recorder.require_healthy()
+    manifest = recorder.finalize()
+    assert manifest["valid"] is False
+    assert manifest["frame_count"] == 0
+    assert manifest["renderer_wait_call_count"] == 3
+    assert manifest["zero_callback_wait_retry_count"] == 2
+    assert manifest["delayed_callback_recovery_count"] == 0
+    assert manifest["maximum_renderer_wait_calls_per_render"] == 3
+    assert lifecycle == ["start", "runtime_render", "finalize"]
 
 
 def test_second_callback_fails_closed(tmp_path: Path) -> None:

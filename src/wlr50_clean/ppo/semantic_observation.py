@@ -20,6 +20,10 @@ from .semantic_p05_capture_profile import (
 )
 from .semantic_rr_capture_profile import (RR_CAPTURE_OBSERVATION_LAYOUT, RR_CAPTURE_OBSERVATION_DIM,
     RR_ASSIST_GROUP, RR_TASK_GROUP, RR_TASK_FIELDS, RR_ASSIST_START, RR_TASK_START)
+from .semantic_rear_policy_timing_profile import (
+    REAR_POLICY_TIMING_OBSERVATION_LAYOUT, REAR_POLICY_TIMING_OBSERVATION_DIM,
+    REAR_POLICY_TIMING_GROUP, REAR_POLICY_TIMING_FIELDS, REAR_POLICY_TIMING_TIME_FIELDS,
+)
 
 CONFIG_ROOT = Path(__file__).resolve().parents[3] / "configs" / "ppo_semantic_v2"
 DEFAULT_OBSERVATION_SCHEMA = CONFIG_ROOT / "observation_schema.json"
@@ -130,10 +134,12 @@ class SemanticObservationSchema:
     transfer_role_features_version: str | None = None
     capture_assist_features_version: str | None = None
     rr_capture_features_version: str | None = None
+    rear_policy_timing_features_version: str | None = None
 
     @property
     def observation_layout(self) -> str | None:
-        return self.rr_capture_features_version or self.capture_assist_features_version or self.transfer_role_features_version
+        return (self.rear_policy_timing_features_version or self.rr_capture_features_version
+                or self.capture_assist_features_version or self.transfer_role_features_version)
 
     @property
     def dimension(self) -> int:
@@ -165,14 +171,25 @@ def load_semantic_observation_schema(path: Path | str = DEFAULT_OBSERVATION_SCHE
     role_layout = data.get("transfer_role_features_version")
     capture_layout = data.get("capture_assist_features_version")
     rr_layout = data.get('rr_capture_features_version')
-    capture_groups = groups
+    rear_timing_layout = data.get('rear_policy_timing_features_version')
+    rr_groups = groups
+    if rear_timing_layout is not None:
+        expected_rear_tail = {'name': REAR_POLICY_TIMING_GROUP, 'size': len(REAR_POLICY_TIMING_FIELDS), 'scale': 1.0}
+        if (rear_timing_layout != REAR_POLICY_TIMING_OBSERVATION_LAYOUT
+                or rr_layout != RR_CAPTURE_OBSERVATION_LAYOUT or groups[-1] != expected_rear_tail
+                or sum(row['size'] for row in groups) != REAR_POLICY_TIMING_OBSERVATION_DIM):
+            raise SemanticObservationError('rear timing layout must preserve410 and append exactly nine explicit fields')
+        rr_groups = groups[:-1]
+    elif any(row['name'] == REAR_POLICY_TIMING_GROUP for row in groups):
+        raise SemanticObservationError('rear timing group requires its explicit version marker')
+    capture_groups = rr_groups
     if rr_layout is not None:
         expected_rr_tail = ({'name':RR_ASSIST_GROUP,'size':RR_TASK_START-RR_ASSIST_START,'scale':1.0},
                             {'name':RR_TASK_GROUP,'size':len(RR_TASK_FIELDS),'scale':1.0})
         if (rr_layout != RR_CAPTURE_OBSERVATION_LAYOUT or capture_layout != P05_CAPTURE_OBSERVATION_LAYOUT
-                or groups[-2:] != expected_rr_tail or sum(row['size'] for row in groups) != RR_CAPTURE_OBSERVATION_DIM):
+                or rr_groups[-2:] != expected_rr_tail or sum(row['size'] for row in rr_groups) != RR_CAPTURE_OBSERVATION_DIM):
             raise SemanticObservationError('RR capture layout must preserve389 and append its explicit state/context')
-        capture_groups = groups[:-2]
+        capture_groups = rr_groups[:-2]
     elif any(row['name'] in (RR_ASSIST_GROUP,RR_TASK_GROUP) for row in groups):
         raise SemanticObservationError('RR capture groups require their explicit version marker')
     role_groups = groups
@@ -202,7 +219,7 @@ def load_semantic_observation_schema(path: Path | str = DEFAULT_OBSERVATION_SCHE
     if duration != 200.0 or clip <= 0.0:
         raise SemanticObservationError("semantic observation needs 200 second task horizon and positive clipping")
     return SemanticObservationSchema(groups, _quaternion(data["fixed_chassis_to_body_wxyz"]),
-                                     duration, clip, selected, role_layout, capture_layout, rr_layout)
+                                     duration, clip, selected, role_layout, capture_layout, rr_layout, rear_timing_layout)
 
 
 def transfer_role_observation_features(task: Mapping[str, Any]) -> tuple[float, ...]:
@@ -417,6 +434,23 @@ class SemanticObservationBuilder:
             if any(type(value) is not bool for value in bits):
                 raise SemanticObservationError('RR current-task context must contain real booleans')
             groups[RR_TASK_GROUP] = tuple(float(value) for value in bits)
+        if self.schema.rear_policy_timing_features_version is not None:
+            timing = field(info, 'rear_policy_timing')
+            if not isinstance(timing, Mapping) or set(timing) != set(REAR_POLICY_TIMING_FIELDS):
+                raise SemanticObservationError('rear policy timing requires the exact nine public fields')
+            values = []
+            for key in REAR_POLICY_TIMING_FIELDS:
+                value = field(timing, key)
+                if key in REAR_POLICY_TIMING_TIME_FIELDS:
+                    elapsed = finite(value, key)
+                    if isinstance(value, bool) or not 0. <= elapsed <= 200.:
+                        raise SemanticObservationError('rear source clocks must be within the finite 200 second horizon')
+                    values.append(elapsed / 200.)
+                else:
+                    if type(value) is not bool:
+                        raise SemanticObservationError('rear timing flags must be actual booleans')
+                    values.append(float(value))
+            groups[REAR_POLICY_TIMING_GROUP] = tuple(values)
         self.schema.encode(groups)
         mass = finite(field(com,"total_mass_kg"),"robot mass")
         if mass <= 0.0 or field(com,"valid") is not True:

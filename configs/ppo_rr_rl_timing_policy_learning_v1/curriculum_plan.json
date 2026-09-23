@@ -1,0 +1,12 @@
+{
+  "schema": "wlr50_clean.rear_timing_curriculum.v1",
+  "experiment_id": "rr_rl_timing_policy_learning_v1",
+  "rollout_length": 128,
+  "num_envs": 1,
+  "entries": [
+    {"from_phase": "P01", "weight": 0.25, "prefix_source": "frozen_fsm"},
+    {"from_phase": "P07", "weight": 0.50, "prefix_source": "successful_nominal"},
+    {"from_phase": "P10", "weight": 0.25, "prefix_source": "successful_nominal"}
+  ],
+  "semantics": "actual sequential existing train calls; whole-update boundaries; real prefix excluded; requested entry is not physical coverage"
+}

@@ -26,7 +26,9 @@ TIMEOUT_KEY = "p05_finite_recovery_timeout_semantics"
 
 def configured():
     spec = load_task_spec(CFG)
-    assert spec["nominal"][KEY] == P05_SAME_AIR_RECROSS_MODE
+    # This suite explicitly retains historical v2 behavior while a separate
+    # experiment may opt in to the separately tested completed-source v3.
+    spec["nominal"][KEY] = P05_SAME_AIR_RECROSS_MODE
     assert spec[TIMEOUT_KEY] == P05_FINITE_RECOVERY_TIMEOUT_MODE
     return spec
 

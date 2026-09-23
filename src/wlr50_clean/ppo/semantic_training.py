@@ -32,6 +32,9 @@ from .semantic_p05_capture_profile import (P05_CAPTURE_POLICY, P05_CAPTURE_OBSER
     P05_CAPTURE_OBSERVATION_DIM, P05_CAPTURE_HISTORY_SEMANTICS)
 from .semantic_rr_capture_profile import (RR_CAPTURE_POLICY, RR_CAPTURE_OBSERVATION_LAYOUT,
     RR_CAPTURE_OBSERVATION_DIM, RR_ASSIST_START, RR_TASK_START)
+from .semantic_rear_policy_timing_profile import (REAR_POLICY_TIMING_POLICY,
+    REAR_POLICY_TIMING_OBSERVATION_LAYOUT, REAR_POLICY_TIMING_OBSERVATION_DIM,
+    REAR_POLICY_TIMING_SIGMA_SEMANTICS)
 from .semantic_return_profile import (
     RETURN_PROFILE, RUNNER_PROFILE_KEY, profile_parameters,
     reward_return_profile, runner_return_profile,
@@ -46,7 +49,7 @@ ROLLOUT_LENGTH = 128
 def training_quantity_budgets(experiment_id: str | None = None) -> dict[str, int]:
     """Explicit quantity ceiling; historical entropy horizon stays 210000."""
     budgets = dict(STAGE_BUDGETS)
-    if experiment_id in ("task_conditioned_hip_wheel_v1","p05_hip_only_continuation_v1","rr_capture_then_rl_transfer_v1"):
+    if experiment_id in ("task_conditioned_hip_wheel_v1","p05_hip_only_continuation_v1","rr_capture_then_rl_transfer_v1", "rr_rl_timing_policy_learning_v1"):
         budgets["full_episode"] = 131_072
     return budgets
 
@@ -127,7 +130,7 @@ def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_versio
     from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT
     if policy_version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
                           HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
-                          TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY, P05_CAPTURE_POLICY, RR_CAPTURE_POLICY) and semantic_version != "v3":
+                          TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY, P05_CAPTURE_POLICY, RR_CAPTURE_POLICY, REAR_POLICY_TIMING_POLICY) and semantic_version != "v3":
         raise ValueError("history-conditioned policy requires the v3 semantic runtime")
     if policy_version in (HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
                           HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
@@ -135,6 +138,8 @@ def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_versio
         raise ValueError("tempered history policy requires the explicit role372 observation layout")
     if policy_version == RR_CAPTURE_POLICY and observation_layout != RR_CAPTURE_OBSERVATION_LAYOUT:
         raise ValueError("RR capture actor requires its explicit appended-state layout")
+    if policy_version == REAR_POLICY_TIMING_POLICY and observation_layout != REAR_POLICY_TIMING_OBSERVATION_LAYOUT:
+        raise ValueError("rear timing actor requires its explicit 419 layout")
     if policy_version == P05_CAPTURE_POLICY and observation_layout != P05_CAPTURE_OBSERVATION_LAYOUT:
         raise ValueError("P05 capture actor requires the explicit observable 389 layout")
     if return_profile is None:
@@ -366,7 +371,7 @@ def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None
     likelihood_rows = []
     sample_lookup = {}
     task_head_audit = (likelihood_audit_path is not None and
-        getattr(runner, "_semantic_policy_version", None) in (TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY, P05_CAPTURE_POLICY, RR_CAPTURE_POLICY))
+        getattr(runner, "_semantic_policy_version", None) in (TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY, P05_CAPTURE_POLICY, RR_CAPTURE_POLICY, REAR_POLICY_TIMING_POLICY))
     if likelihood_audit_path is not None:
         # Index immutable saved observations/raw samples, never the shuffled
         # neighbor or global history. No forward pass or RNG draw is added.
@@ -422,15 +427,17 @@ def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None
                     "clipped_branch_strictly_active": jsonable(clipped > unclipped),
                     "current_conditional_mean": jsonable(alg.actor.output_distribution_params[0]),
                     "current_conditional_sigma": jsonable(alg.actor.output_distribution_params[1]),
-                    "sigma_source": ("current_official_Gaussian_cache_after_B_over_cap_and_receiving_FR_RR_sigma_x3"
-                        if getattr(runner, "_semantic_policy_version", None) in (RECEIVING_WHEEL_POLICY,P05_CAPTURE_POLICY,RR_CAPTURE_POLICY)
+                    "sigma_source": ("current_official_Gaussian_cache_after_parent_receiving_and_observed_rear_local_sigma"
+                        if getattr(runner, "_semantic_policy_version", None) == REAR_POLICY_TIMING_POLICY
+                        else "current_official_Gaussian_cache_after_B_over_cap_and_receiving_FR_RR_sigma_x3"
+                        if getattr(runner, "_semantic_policy_version", None) in (RECEIVING_WHEEL_POLICY,P05_CAPTURE_POLICY,RR_CAPTURE_POLICY, REAR_POLICY_TIMING_POLICY)
                         else "current_official_Gaussian_cache_after_current_observation_B_over_cap"
                         if getattr(runner, "_semantic_policy_version", None) == TASK_CONDITIONED_HIP_WHEEL_POLICY
                         else "current_official_Gaussian_cache_after_P06plus_FR_knee_24_over_112"
                         if getattr(runner, "_semantic_policy_version", None) == FR_KNEE_PHYSICAL_INNOVATION_POLICY
                         else "current_official_Gaussian_cache"),
                     "history_source": ("this_saved_observation_legacy372_plus_pending384_advanced386_no_fake_completion"
-                        if getattr(runner,"_semantic_policy_version",None) in (P05_CAPTURE_POLICY,RR_CAPTURE_POLICY)
+                        if getattr(runner,"_semantic_policy_version",None) in (P05_CAPTURE_POLICY,RR_CAPTURE_POLICY, REAR_POLICY_TIMING_POLICY)
                         else "this_saved_observation_stage0_13_age20_completed158_171_raw195_207_request207_219_not_shuffled_neighbor"
                         if getattr(runner, "_semantic_policy_version", None) in
                         (HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
@@ -529,6 +536,9 @@ def _runner_policy_contract(runner: Any) -> dict[str, Any]:
 
 def save_semantic_checkpoint(runner: Any, checkpoint: Path, infos: Mapping[str, Any]) -> tuple[Path, Path]:
     """Publish immutable official state, then prove a real load restores it."""
+    if "rear_policy_timing_branch" in infos:
+        from .semantic_rear_policy_timing_migration import rear_policy_timing_branch_counts
+        infos = rear_policy_timing_branch_counts(infos)
     if "capture_feedback_semantics_branch" in infos:
         from .semantic_capture_feedback_migration import capture_feedback_branch_counts
         infos = capture_feedback_branch_counts(infos)
@@ -557,7 +567,7 @@ def save_semantic_checkpoint(runner: Any, checkpoint: Path, infos: Mapping[str, 
                 "training_rng_state": capture_training_rng_state(seed=int(infos["seed"])),
                 "physical_env_state_saved": False,
                 "resume_physics": "legal_reset_not_bitwise_continuation"}
-    if runner.alg.storage.observations["policy"].shape[-1] in (324, 372, P05_CAPTURE_OBSERVATION_DIM, RR_CAPTURE_OBSERVATION_DIM):
+    if runner.alg.storage.observations["policy"].shape[-1] in (324, 372, P05_CAPTURE_OBSERVATION_DIM, RR_CAPTURE_OBSERVATION_DIM, REAR_POLICY_TIMING_OBSERVATION_DIM):
         metadata["policy_contract"] = _runner_policy_contract(runner)
     elif runner._semantic_policy_version != LEGACY_POLICY:
         raise RuntimeError("state-dependent checkpoint has an unsupported observation layout")
@@ -852,6 +862,11 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
                              migration: Mapping[str, Any] | None = None,
                              warm_start: Mapping[str, Any] | None = None,
                              policy_migration: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    if migration is not None and migration.get("rear_policy_timing_factor") is not None:
+        if warm_start is not None or policy_migration is not None:
+            raise ValueError("rear timing migration cannot mix another boundary")
+        from .semantic_rear_policy_timing_migration import load_rear_policy_timing_migration
+        return load_rear_policy_timing_migration(runner, checkpoint, contract=contract, seed=seed, record=migration)
     if migration is not None and migration.get("rr_capture_transfer_factor") is not None:
         if warm_start is not None or policy_migration is not None:
             raise ValueError("RR capture append cannot mix another migration")
@@ -906,7 +921,7 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
     else:
         if policy_version_from_metadata(metadata) != runner._semantic_policy_version:
             raise RuntimeError("checkpoint policy distribution differs from the constructed actor")
-        if runner.alg.storage.observations["policy"].shape[-1] in (324, 372, P05_CAPTURE_OBSERVATION_DIM, RR_CAPTURE_OBSERVATION_DIM):
+        if runner.alg.storage.observations["policy"].shape[-1] in (324, 372, P05_CAPTURE_OBSERVATION_DIM, RR_CAPTURE_OBSERVATION_DIM, REAR_POLICY_TIMING_OBSERVATION_DIM):
             if metadata.get("policy_contract") != _runner_policy_contract(runner):
                 raise RuntimeError("checkpoint observation layout differs; explicit append migration is required")
     source_return = runner_return_profile(metadata["runner_config"],
@@ -1713,9 +1728,11 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
         SemanticReceivingWheelSigmaHistoryMLPModel, receiving_wheel_effective_log_std)
     from .semantic_p05_capture_actor import SemanticP05CaptureHistoryMLPModel, p05_capture_request_history
     from .semantic_rr_capture_actor import SemanticRRCaptureHistoryMLPModel
+    from .semantic_rear_policy_timing_actor import (
+        SemanticRearPolicyTimingHistoryMLPModel, rear_policy_timing_effective_log_std)
     if type(actor) not in (SemanticQuarterTemperedHistoryMLPModel, SemanticCapTransitionQuarterHistoryMLPModel,
                           SemanticFRKneePhysicalInnovationHistoryMLPModel, SemanticTaskConditionedHipWheelHistoryMLPModel,
-                          SemanticReceivingWheelSigmaHistoryMLPModel, SemanticP05CaptureHistoryMLPModel, SemanticRRCaptureHistoryMLPModel):
+                          SemanticReceivingWheelSigmaHistoryMLPModel, SemanticP05CaptureHistoryMLPModel, SemanticRRCaptureHistoryMLPModel, SemanticRearPolicyTimingHistoryMLPModel):
         raise ValueError("request audit requires an exact supported quarter HISTORY actor")
     heads = []
     handle = actor.mlp.register_forward_hook(lambda _module, _inputs, output: heads.append(output.detach().clone()))
@@ -1731,7 +1748,7 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
     if type(actor) in (SemanticCapTransitionQuarterHistoryMLPModel, SemanticFRKneePhysicalInnovationHistoryMLPModel,
                       SemanticTaskConditionedHipWheelHistoryMLPModel, SemanticReceivingWheelSigmaHistoryMLPModel):
         center, request_evidence = cap_transition_request_history(observation["policy"])
-    if type(actor) in (SemanticP05CaptureHistoryMLPModel,SemanticRRCaptureHistoryMLPModel):
+    if type(actor) in (SemanticP05CaptureHistoryMLPModel,SemanticRRCaptureHistoryMLPModel, SemanticRearPolicyTimingHistoryMLPModel):
         center, request_evidence = p05_capture_request_history(observation["policy"][...,:389])
     conditional = history_conditioned_head(head, center, HISTORY_RHO)
     sigma_multiplier = None
@@ -1746,10 +1763,14 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
     if type(actor) is SemanticReceivingWheelSigmaHistoryMLPModel:
         effective_log_std, task_sigma_evidence = receiving_wheel_effective_log_std(
             head[...,1,:], observation["policy"], actor.exploration_std_temperature)
-    if type(actor) in (SemanticP05CaptureHistoryMLPModel,SemanticRRCaptureHistoryMLPModel):
+    if type(actor) in (SemanticP05CaptureHistoryMLPModel,SemanticRRCaptureHistoryMLPModel, SemanticRearPolicyTimingHistoryMLPModel):
         effective_log_std, task_sigma_evidence = receiving_wheel_effective_log_std(
             head[...,1,:], observation["policy"][...,:372], actor.exploration_std_temperature)
     effective_std = effective_log_std.exp()
+    if type(actor) is SemanticRearPolicyTimingHistoryMLPModel:
+        effective_log_std, task_sigma_evidence = rear_policy_timing_effective_log_std(
+            head[...,1,:], observation["policy"], actor.exploration_std_temperature)
+        effective_std = effective_log_std.exp()
     if stochastic:
         mean, std = actor.output_distribution_params
         if not torch.equal(mean, conditional[..., 0, :]) or not torch.equal(std, effective_std):
@@ -1802,7 +1823,7 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
             current_RR_qualification=bool(task_sigma_evidence["current_RR_qualification"][0]),
             current_rear_front_distance_m=float(task_sigma_evidence["current_rear_front_distance_m"][0]),
             task_state_audit_topology="one_actual_N1_request_not_a_batched_N8_summary")
-    if type(actor) in (SemanticReceivingWheelSigmaHistoryMLPModel,SemanticP05CaptureHistoryMLPModel,SemanticRRCaptureHistoryMLPModel):
+    if type(actor) in (SemanticReceivingWheelSigmaHistoryMLPModel,SemanticP05CaptureHistoryMLPModel,SemanticRRCaptureHistoryMLPModel, SemanticRearPolicyTimingHistoryMLPModel):
         record.update(schema="wlr50_clean.actual_receiving_wheel_sigma_policy_request.v1",
             policy_version=RECEIVING_WHEEL_POLICY, sigma_scaling_semantics=RECEIVING_WHEEL_SIGMA_SEMANTICS,
             receiving_continuation_active=bool(task_sigma_evidence["receiving_continuation_active"][0]),
@@ -1811,7 +1832,7 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
             receiving_sigma_multiplier_full12=vector(task_sigma_evidence["receiving_sigma_multiplier_full12"]),
             effective_innovation_sigma_multiplier_full12=vector(task_sigma_evidence["effective_innovation_sigma_multiplier_full12"]),
             receiving_state_semantics="historical_RR_placed_continuation_or_recovery_not_current_bearing")
-    if type(actor) in (SemanticP05CaptureHistoryMLPModel,SemanticRRCaptureHistoryMLPModel):
+    if type(actor) in (SemanticP05CaptureHistoryMLPModel,SemanticRRCaptureHistoryMLPModel, SemanticRearPolicyTimingHistoryMLPModel):
         record.update(schema="wlr50_clean.actual_p05_capture_assist_policy_request.v1",
             policy_version=P05_CAPTURE_POLICY,history_center_semantics=P05_CAPTURE_HISTORY_SEMANTICS,
             capture_assist_observed_features=vector(observation["policy"][...,372:384]),
@@ -1819,10 +1840,16 @@ def audited_history_policy_request(actor, observation, action_call, *, stochasti
             pending_scheduler_handoff=bool(request_evidence["pending_scheduler_handoff"][0]),
             physical_predecessor_completed=bool(request_evidence["physical_predecessor_completed"][0]),
             transformed_actuator_targets_are_not_policy_samples=True)
-    if type(actor) is SemanticRRCaptureHistoryMLPModel:
+    if type(actor) in (SemanticRRCaptureHistoryMLPModel, SemanticRearPolicyTimingHistoryMLPModel):
         record.update(schema="wlr50_clean.actual_rr_capture_transfer_policy_request.v1",policy_version=RR_CAPTURE_POLICY,
             rr_capture_assist_observed_features=vector(observation["policy"][...,RR_ASSIST_START:RR_TASK_START]),
             rr_capture_transfer_observed_features=vector(observation["policy"][...,RR_TASK_START:RR_CAPTURE_OBSERVATION_DIM]))
+    if type(actor) is SemanticRearPolicyTimingHistoryMLPModel:
+        record.update(schema="wlr50_clean.actual_rear_policy_timing_request.v1",
+            policy_version=REAR_POLICY_TIMING_POLICY, sigma_scaling_semantics=REAR_POLICY_TIMING_SIGMA_SEMANTICS,
+            rear_policy_timing_observed_features=vector(observation["policy"][...,410:419]),
+            rear_local_sigma_multiplier_full12=vector(task_sigma_evidence["rear_local_sigma_multiplier_full12"]),
+            rear_task_assists_enabled=False)
     return raw, record
 
 
@@ -1933,12 +1960,18 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     if checkpoint_interval_updates < 1:
         raise ValueError("checkpoint cadence must be positive")
     previous = dict(resume_infos or {})
+    rear_timing = "rear_policy_timing_migration" in previous
+    if rear_timing:
+        from .semantic_rear_policy_timing_migration import validate_rear_policy_namespace
+        validate_rear_policy_namespace(previous, contract, output_root)
+        if checkpoint_output_routing is not None:
+            raise ValueError("rear timing uses its new isolated namespace, not the historical ancestor output route")
     inherited_routing = previous.get("checkpoint_output_routing")
     capture_reserve = "rr_capture_reserve_v10_migration" in previous
-    if capture_reserve and checkpoint_output_routing is None:
+    if not rear_timing and capture_reserve and checkpoint_output_routing is None:
         raise ValueError("v10 learned continuation requires its explicit output routing branch")
     postcapture_wheel = "rr_postcapture_wheel_v9_migration" in previous
-    if postcapture_wheel and checkpoint_output_routing is None:
+    if not rear_timing and postcapture_wheel and checkpoint_output_routing is None:
         raise ValueError("v9 learned continuation requires its explicit output routing branch")
     wheel_signed = "rr_signed_wheel_v8_migration" in previous
     signed = "rr_signed_contact_v7_migration" in previous
@@ -1947,7 +1980,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
         ("wlr50_clean.rr_signed_wheel_same410.v8", "rr_signed_wheel_v8_factor", "signed_band_contact_formation_incremental_v6") if wheel_signed else
         ("wlr50_clean.rr_signed_contact_same410.v7", "rr_signed_contact_v7_factor", "signed_band_contact_formation_incremental_v6") if signed else
         ("wlr50_clean.rr_contact_onset_same410.v6", "rr_contact_onset_v6_factor", "progress_reserve_contact_onset_incremental_v5"))
-    if (checkpoint_output_routing is None and any((previous.get(key) or {}).get("source_selection", {}).get(
+    if (not rear_timing and checkpoint_output_routing is None and any((previous.get(key) or {}).get("source_selection", {}).get(
             "source_role") == "front_validated_ancestor_control_eval" for key in (
                 "rr_contact_onset_v6_migration", "rr_signed_contact_v7_migration", "rr_signed_wheel_v8_migration"))):
         raise ValueError("published ancestor training requires its explicit output routing branch")
@@ -1995,7 +2028,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     budgets = training_quantity_budgets(contract.get("experiment_id"))
     declared_budgets = contract.get("training_budgets", budgets)
     if (declared_budgets != budgets or any(type(value) is not int for value in declared_budgets.values())
-            or (contract.get("experiment_id") in ("task_conditioned_hip_wheel_v1","p05_hip_only_continuation_v1","rr_capture_then_rl_transfer_v1")
+            or (contract.get("experiment_id") in ("task_conditioned_hip_wheel_v1","p05_hip_only_continuation_v1","rr_capture_then_rl_transfer_v1", "rr_rl_timing_policy_learning_v1")
                 and "training_budgets" not in contract)):
         raise ValueError("training quantity budgets differ from the explicit experiment declaration")
     stage_spent = {name: int(previous.get("stage_requested_decisions", {}).get(name, 0)) for name in STAGE_BUDGETS}
@@ -2006,7 +2039,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     base_optimizer = int(previous.get("optimizer_steps", 0))
     batch = int(runner.cfg["num_steps_per_env"]) * env.num_envs
     iterations = (decisions + batch - 1) // batch
-    if route is not None and any((output_root / "checkpoints/history" /
+    if (route is not None or rear_timing) and any((output_root / "checkpoints/history" /
             f"checkpoint_step_{base_global+(i+1)*batch:09d}.pt").exists() for i in range(iterations)):
         raise FileExistsError("branch continuation would collide with an existing checkpoint; no optimizer step started")
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -2041,7 +2074,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                         raise RuntimeError("curriculum must remain fixed throughout this on-policy epoch")
                     assert_semantic_return_consistency(runner, env)
                     policy_request = None
-                    if contract.get("experiment_id") in ("fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1"):
+                    if contract.get("experiment_id") in ("fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1", "rr_rl_timing_policy_learning_v1"):
                         raw, policy_request = audited_history_policy_request(
                             runner.alg.actor, obs, lambda: runner.alg.act(obs), stochastic=True)
                     else:
@@ -2134,7 +2167,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
             snapshot["schema"] = "wlr50_clean.semantic_on_policy_rollout.v1"
             snapshot["runtime_contract"] = dict(contract)
             snapshot["curriculum_epoch"] = copy.deepcopy(curriculum)
-            if storage.observations["policy"].shape[-1] in (324, 372, P05_CAPTURE_OBSERVATION_DIM, RR_CAPTURE_OBSERVATION_DIM):
+            if storage.observations["policy"].shape[-1] in (324, 372, P05_CAPTURE_OBSERVATION_DIM, RR_CAPTURE_OBSERVATION_DIM, REAR_POLICY_TIMING_OBSERVATION_DIM):
                 snapshot["policy_contract"] = _runner_policy_contract(runner)
             advantage_row = _rollout_advantage_audit(snapshot, rollout_requests,
                 first_global_decision=base_global+iteration*batch+1,
@@ -2147,7 +2180,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
             torch.save(snapshot, rollout_dir / f"rollout_{base_updates + iteration + 1:06d}.pt")
             global_step = base_global + (iteration + 1) * batch
             runner.alg.entropy_coef = 0.005 + (0.001 - 0.005) * min(global_step / sum(STAGE_BUDGETS.values()), 1.0)
-            if contract.get("experiment_id") in ("task_first_recovery_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1"):
+            if contract.get("experiment_id") in ("task_first_recovery_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1", "rr_rl_timing_policy_learning_v1"):
                 update = audited_ppo_update(runner, likelihood_audit_path=rollout_dir /
                     f"update_{base_updates + iteration + 1:06d}_likelihood.json")
             else:
@@ -2189,7 +2222,8 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                     from .semantic_migration import continuation_topology
                     infos["execution_topology"] = continuation_topology(sampling, prefix_request,
                         observation_layout=getattr(runner, "_semantic_observation_layout", None))
-                for key in ("new_mdp_warm_start", "new_mdp_origin_global_policy_decisions", "source_stage_requested_decisions",
+                for key in ("rear_policy_timing_migration", "rear_policy_timing_branch",
+                            "new_mdp_warm_start", "new_mdp_origin_global_policy_decisions", "source_stage_requested_decisions",
                             "new_mdp_initial_action_comparison", "policy_distribution_migration",
                             "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison",
                             "observation_scale_compensation_evidence", "observation_append_evidence",
@@ -2268,7 +2302,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     if route is not None:
         result["checkpoint_output_routing"] = copy.deepcopy(route)
     result["runner_config"] = copy.deepcopy(runner._semantic_runner_config)
-    if runner.alg.storage.observations["policy"].shape[-1] in (324, 372, P05_CAPTURE_OBSERVATION_DIM, RR_CAPTURE_OBSERVATION_DIM):
+    if runner.alg.storage.observations["policy"].shape[-1] in (324, 372, P05_CAPTURE_OBSERVATION_DIM, RR_CAPTURE_OBSERVATION_DIM, REAR_POLICY_TIMING_OBSERVATION_DIM):
         result["policy_contract"] = _runner_policy_contract(runner)
     result["curriculum_epoch"] = copy.deepcopy(curriculum)
     result["implemented_sampling"] = env.cfg.get("reset_sampling", "P01_only")

@@ -30,6 +30,10 @@ VIDEO_WIDTH = 1280
 VIDEO_HEIGHT = 720
 VIDEO_FPS = 15.0
 MAX_VIDEO_DURATION_S = 200.0
+# Kit can return from one ``wait_async_capture`` call before the already
+# scheduled render-product callback is delivered.  Re-waiting the same
+# request neither advances physics nor asks for another render/capture.
+MAX_CAPTURE_CALLBACK_WAIT_CALLS = 3
 
 class VideoArtifactError(RuntimeError):
     """Raised when required video evidence cannot be trusted."""
@@ -367,6 +371,10 @@ class ActiveViewportVideoRecorder:
         self._rows: list[dict[str, Any]] = []
         self._first_frame: tuple[bytes, int, int] | None = None
         self._last_frame: tuple[bytes, int, int] | None = None
+        self._renderer_wait_call_count = 0
+        self._zero_callback_wait_retry_count = 0
+        self._delayed_callback_recovery_count = 0
+        self._maximum_renderer_wait_calls_per_render = 0
         self.error = ""
 
     @property
@@ -516,12 +524,28 @@ class ActiveViewportVideoRecorder:
             return
         try:
             assert self.renderer_wait is not None
-            self.renderer_wait()
+            wait_calls = 0
+            for _ in range(MAX_CAPTURE_CALLBACK_WAIT_CALLS):
+                self.renderer_wait()
+                wait_calls += 1
+                self._renderer_wait_call_count += 1
+                if self.error or int(pending["callback_count"]) != 0:
+                    break
+                if wait_calls < MAX_CAPTURE_CALLBACK_WAIT_CALLS:
+                    self._zero_callback_wait_retry_count += 1
+            self._maximum_renderer_wait_calls_per_render = max(
+                self._maximum_renderer_wait_calls_per_render, wait_calls
+            )
             self._verify_viewport("after_render")
             if self.error:
                 return
             if int(pending["callback_count"]) != 1:
-                raise RuntimeError(f"viewport callback_count={pending['callback_count']}, expected 1")
+                raise RuntimeError(
+                    f"viewport callback_count={pending['callback_count']} after "
+                    f"{wait_calls} waits, expected 1"
+                )
+            if wait_calls > 1:
+                self._delayed_callback_recovery_count += 1
             payload = pending["capture_bytes"]
             if not isinstance(payload, bytes):
                 raise RuntimeError("viewport callback did not provide copied bytes")
@@ -547,6 +571,7 @@ class ActiveViewportVideoRecorder:
                     "viewport_identity": self.viewport_identity,
                     "capture_resource_identity": int(pending["capture_resource_identity"]),
                     "callback_count": 1,
+                    "renderer_wait_calls": wait_calls,
                 }
             )
         except Exception as exc:
@@ -639,6 +664,12 @@ class ActiveViewportVideoRecorder:
             "extra_render_count": 0,
             "render_observer_only": True,
             "maximum_pending_captures": 1,
+            "maximum_callback_wait_calls": MAX_CAPTURE_CALLBACK_WAIT_CALLS,
+            "renderer_wait_call_count": self._renderer_wait_call_count,
+            "zero_callback_wait_retry_count": self._zero_callback_wait_retry_count,
+            "delayed_callback_recovery_count": self._delayed_callback_recovery_count,
+            "maximum_renderer_wait_calls_per_render":
+                self._maximum_renderer_wait_calls_per_render,
             "encoder_finalized_before_app_close": self._encoder_finalized,
             "stitched": False,
             "speed_modified": False,
