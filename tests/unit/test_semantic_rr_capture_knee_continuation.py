@@ -174,16 +174,19 @@ def test_hip_exposure_exhausted_before_twenty_does_not_unlock_knee():
     assert assist.state['knee_hold_deg'] == -8.
 
 
-def test_full_twenty_knee_and_total_exposure_limits_cannot_be_recharged(knee_assist):
+def test_full_knee_and_earned_reserve_total_exposure_cannot_be_recharged(knee_assist):
     assist = knee_assist
-    for _ in range(2420):
+    # The measured descent remains above25 mm and earns v10's existing12
+    # degree reserve; run to its exact finite cap, not an arbitrary prefix.
+    for _ in range(3860):
         advance_search(assist)
-    assert assist.state['travel_used_deg'] == pytest.approx(40.)
-    assert assist.state['descent_elapsed_s'] == pytest.approx(30.)
+    assert assist.state['travel_used_deg'] == pytest.approx(52.)
+    assert assist.state['descent_elapsed_s'] == pytest.approx(42.)
     assert assist.state['hip_target_deg'] == pytest.approx(-10.)
-    assert assist.state['knee_hold_deg'] == pytest.approx(12.)
+    assert assist.state['knee_hold_deg'] == pytest.approx(24.)
     assert assist.snapshot()['mode_name'] == 'BLOCKED'
-    assert assist.state['blocked_reason'] == 10.
+    assert assist.state['blocked_reason'] == 5.
+    assert not assist.state['contact_seen']
     budget = (assist.state['travel_used_deg'], assist.state['descent_elapsed_s'])
     advance_search(assist, stage_id='P10', **top())
     for _ in range(90):
@@ -208,7 +211,7 @@ def test_slow_hip_maximum_twelve_plus_knee_twenty_has_exact_thirtytwo_exposure(k
 def test_public_layout_scales_and_serialized_replay_are_versioned_not_expanded(knee_assist):
     advance_search(knee_assist)
     snapshot = knee_assist.snapshot()
-    assert snapshot['feedback_revision'] == RR_CAPTURE_FEEDBACK_REVISION == 'progress_reserve_captured_incremental_v4'
+    assert snapshot['feedback_revision'] == RR_CAPTURE_FEEDBACK_REVISION == 'progress_earned_capture_reserve_incremental_v10'
     assert snapshot['capture_search_semantics'] == RR_CAPTURE_SEARCH_SEMANTICS
     assert len(RR_CAPTURE_ASSIST_FEATURE_NAMES) == 14
     values = rr_capture_assist_features(snapshot)

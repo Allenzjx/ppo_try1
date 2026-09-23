@@ -184,22 +184,28 @@ def test_P12_P13_do_not_start_new_capture_or_claim_bearing():
     assert assist.state == before
 
 
-def test_contact_losses_do_not_replenish_original_budget_and_reserve_needs_near_top_progress():
+def test_contact_losses_and_above_band_progress_cannot_replenish_total_reserve():
     assist = RRHipOnlyCaptureAssist(); step(assist, 1)
-    for tick in range(2, 5000):
+    # v10 allows these real, tracked peak drops to earn the original reserve
+    # above25 mm. Contact pauses still cannot recharge its cumulative budget.
+    for tick in range(2, 7000):
         if tick % 7 == 0:
             step(assist, tick, air=False, obstacle_pair_active=True, gap_m=.1)
         else:
             step(assist, tick, gap_m=.1 - (tick % 7) * .0003)
-    assert assist.state["travel_used_deg"] == pytest.approx(40.)
+    assert assist.state["travel_used_deg"] == pytest.approx(52.)
+    assert assist.state["descent_elapsed_s"] == pytest.approx(42.)
     assert assist.state["hip_target_deg"] == pytest.approx(-10.)
-    assert assist.state["knee_hold_deg"] == pytest.approx(12.)
-    step(assist, 5000, gap_m=.09)
-    assert assist.state["travel_used_deg"] == pytest.approx(40.)
+    assert assist.state["knee_hold_deg"] == pytest.approx(24.)
+    assert not assist.state["contact_seen"]  # wall/unknown contact is not TOP
+    budget = (assist.state["travel_used_deg"], assist.state["descent_elapsed_s"])
+    step(assist, 7000, gap_m=.09)
     assert assist.snapshot()["mode_name"] == "BLOCKED"
-    step(assist, 5001, gap_m=.01)
-    assert assist.snapshot()["mode_name"] == "DESCEND_PROGRESS"
-    assert assist.state["travel_used_deg"] == pytest.approx(40. + DT)
+    step(assist, 7001, **top())
+    step(assist, 7002, gap_m=.01)
+    step(assist, 7003, gap_m=.0097)  # fresh drop, but no <=1 mm terminal credit
+    assert assist.snapshot()["mode_name"] == "BLOCKED"
+    assert (assist.state["travel_used_deg"], assist.state["descent_elapsed_s"]) == budget
 
 
 def test_twelve_second_exposure_limit_is_independent_of_contact_and_progress():

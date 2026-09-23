@@ -32,7 +32,7 @@ def test_reset_window_is_not_progress_credit_at_the_original_budget_boundary():
     assist = boundary()
     step(assist, 2, gap_m=.014)
     assert assist.snapshot()['mode_name'] == 'BLOCKED'
-    assert assist.snapshot()['reason'] == 'fresh_near_top_progress_required'
+    assert assist.snapshot()['reason'] == 'fresh_capture_progress_required'
     assert assist.state['travel_used_deg'] == 40.
     step(assist, 3, gap_m=.01379)
     assert assist.snapshot()['mode_name'] == 'DESCEND_PROGRESS'
@@ -63,11 +63,12 @@ def test_invalid_actual_state_cannot_earn_or_spend_reserve(change):
     assert assist.snapshot()['mode_name'] == 'BLOCKED'
 
 
-def test_near_top_gate_rejects_far_gap_even_after_true_drop():
+def test_v10_fresh_descent_above_sensor_band_can_earn_existing_reserve_without_contact():
     assist = boundary(); assist.state['window_start_gap_m'] = .040
     step(assist, 2, gap_m=.039)
-    assert assist.state['travel_used_deg'] == 40.
-    assert assist.snapshot()['mode_name'] == 'BLOCKED'
+    assert assist.state['travel_used_deg'] == pytest.approx(40. + DT)
+    assert assist.snapshot()['mode_name'] == 'DESCEND_PROGRESS'
+    assert assist.state['contact_seen'] == 0.
 
 
 def test_one_twelve_degree_reserve_finishes_at_52_without_recharging():
@@ -215,7 +216,7 @@ def test_release_contact_loss_holds_FINAL_and_fraction_without_reanchor_or_candi
 def test_all_action_relevant_state_replays_and_keeps_exact_fourteen_unclipped_features():
     assist = boundary(); step(assist, 2, gap_m=.0137)
     snapshot = assist.snapshot()
-    assert snapshot['feedback_revision'] == RR_CAPTURE_FEEDBACK_REVISION == 'signed_band_contact_formation_incremental_v6'
+    assert snapshot['feedback_revision'] == RR_CAPTURE_FEEDBACK_REVISION == 'progress_earned_capture_reserve_incremental_v10'
     assert len(RR_CAPTURE_ASSIST_FEATURE_NAMES) == 14
     features = rr_capture_assist_features(snapshot)
     assert features[0] == 6./5. and features[5] > 2.

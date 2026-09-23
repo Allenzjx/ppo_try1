@@ -77,15 +77,21 @@ def test_invalid_or_untracked_samples_cannot_build_peak_or_renew_exposure(bad):
 
 def test_many_peak_drops_cannot_refresh_total_travel_budget():
     assist = RRHipOnlyCaptureAssist(); step(assist, 1, gap_m=.03)
-    for tick in range(2, 3700):
+    # Above-band measured progress earns v10 reserve, but repeated peak drops
+    # cannot exceed its existing52 degree cap without the <=1 mm final rule.
+    for tick in range(2, 5200):
         step(assist, tick, gap_m=.06 if tick % 2 else .059)
-    assert assist.state['travel_used_deg'] == pytest.approx(40.)
-    assert assist.snapshot()['reason'] == 'fresh_near_top_progress_required'
+    assert assist.state['travel_used_deg'] == pytest.approx(52.)
+    assert assist.state['descent_elapsed_s'] == pytest.approx(42.)
+    assert assist.snapshot()['reason'] == 'finite_search_travel_or_margin'
+    assert not assist.state['contact_seen']
     target = assist.state['hip_target_deg']
     knee_target = assist.state['knee_hold_deg']
-    step(assist, 3700, gap_m=.04)
+    step(assist, 5200, gap_m=.04)
     assert assist.state['hip_target_deg'] == target
     assert assist.state['knee_hold_deg'] == knee_target
+    assert assist.state['travel_used_deg'] == pytest.approx(52.)
+    assert assist.state['descent_elapsed_s'] == pytest.approx(42.)
 
 
 def test_contact_and_retirement_still_preempt_peak_descent():
@@ -100,7 +106,7 @@ def test_contact_and_retirement_still_preempt_peak_descent():
 def test_public_peak_scalar_and_snapshot_replay_are_exact_and_versioned():
     assist = RRHipOnlyCaptureAssist(); step(assist, 1, gap_m=.028); step(assist, 2, gap_m=.07)
     snapshot = assist.snapshot()
-    assert snapshot['feedback_revision'] == RR_CAPTURE_FEEDBACK_REVISION == 'progress_reserve_captured_incremental_v4'
+    assert snapshot['feedback_revision'] == RR_CAPTURE_FEEDBACK_REVISION == 'progress_earned_capture_reserve_incremental_v10'
     assert snapshot['window_reference_semantics'] == RR_CAPTURE_WINDOW_REFERENCE_SEMANTICS
     assert RR_CAPTURE_ASSIST_FEATURE_NAMES[7] == 'window_start_gap_m'
     assert rr_capture_assist_features(snapshot)[7] == pytest.approx(.7)

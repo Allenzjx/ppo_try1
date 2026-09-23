@@ -12,14 +12,14 @@ from collections.abc import Mapping, Sequence
 
 from wlr50_clean.infrastructure.command_batch import SERVO_ORDER, servo_limits_deg
 from wlr50_clean.ppo.semantic_rr_capture_context import (
-    verified_current_support, RR_CAPTURE_GAP_MIN_M, RR_CAPTURE_GAP_MAX_M,
+    verified_current_support, RR_CAPTURE_GAP_MIN_M,
 )
 
 RR_CAPTURE_ASSIST_MODE = "rr_hip_only_capture_v1"
 RR_CAPTURE_ASSIST_SCHEMA = "wlr50_clean.rr_capture_assist_state.v1"
-RR_CAPTURE_FEEDBACK_REVISION = "signed_band_contact_formation_incremental_v6"
+RR_CAPTURE_FEEDBACK_REVISION = "progress_earned_capture_reserve_incremental_v10"
 RR_CAPTURE_WINDOW_REFERENCE_SEMANTICS = "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed"
-RR_CAPTURE_SEARCH_SEMANTICS = "hip20_knee20_progress_earned_signed_task_band_knee12_then_1deg_public_peak_gap_le1mm_total53_exposure45_no_recharge_AIR_not_contact_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement"
+RR_CAPTURE_SEARCH_SEMANTICS = "hip20_knee20_progress_earned_current_XY_support_tracking_gap_ge_minus15mm_knee12_then_1deg_public_peak_gap_le1mm_total53_exposure45_no_recharge_AIR_not_contact_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement"
 RR_CAPTURE_ASSIST_FEATURE_NAMES = (
     "mode", "initialized", "knee_hold_deg", "hip_entry_deg", "hip_target_deg",
     "travel_used_deg", "descent_elapsed_s", "window_start_gap_m", "window_elapsed_s",
@@ -31,7 +31,7 @@ _MODES = ("WAIT", "DESCEND", "HOLD", "BLOCKED", "RELEASE", "RELEASED",
 _REASONS = ("none", "physical_invalid", "capture_XY_unavailable", "other_support_unavailable",
             "gap_not_improving", "finite_search_travel_or_margin", "waiting_actual_tracking",
             "current_AIR_unavailable", "finite_descent_exposure", "qualified_crossing_unavailable",
-            "fresh_near_top_progress_required")
+            "fresh_capture_progress_required")
 _BOOL_CONTEXT = ("physical_valid", "within_top_xy", "qualified_RR", "crossed_RR",
                  "air", "ground_contact", "top_surface_contact", "obstacle_pair_active",
                  "current_top_bearing", "rl_qualified_lift")
@@ -135,9 +135,9 @@ def validate_rr_capture_assist_snapshot(snapshot: Mapping) -> dict:
     if state["mode"] == 5. and state["release_fraction"] != 1.:
         raise ValueError("RR capture assist completed release must be complete")
     if state["mode"] == 6. and (state["travel_used_deg"] < 20.
-            or not RR_CAPTURE_GAP_MIN_M <= state["window_start_gap_m"] <= RR_CAPTURE_GAP_MAX_M
+            or state["window_start_gap_m"] < RR_CAPTURE_GAP_MIN_M
             or state["window_elapsed_s"] >= 2.):
-        raise ValueError("RR capture assist DESCEND_PROGRESS lacks public fresh near-top credit")
+        raise ValueError("RR capture assist DESCEND_PROGRESS lacks public fresh capture progress credit")
     if state["mode"] in (1., 6.) and (_exhaustion_reason(state) or state["retired"] or state["blocked_reason"]):
         raise ValueError("RR capture assist DESCEND cannot advertise exhausted/blocked/retired recovery")
     if state["mode"] == 7. and (not state["contact_seen"] or state["retired"]):
@@ -181,8 +181,10 @@ class RRHipOnlyCaptureAssist:
     Negative hip search is <=20 degrees and <=12 seconds; only after its
     full 20 degrees may positive knee search spend 20 degrees at 1 degree/s.
     One further <=12 degrees requires public DESCEND_PROGRESS mode, current
-    gap in the signed existing [-15,25]mm task band and all existing
-    physical/tracking/progress gates. AIR in that band is NOT contact. Public
+    gap >= -15 mm and all existing XY/support/tracking/fresh-progress gates.
+    The sensor TOP band's 25 mm upper bound is not a descent permission cap:
+    earned progress may spend the existing reserve while still above it.
+    No positive gap or AIR sample is contact. Public
     travel is normally <=52 degrees and active exposure <=44 seconds. A final
     <=1 degree/1 second is available only under that same earned progress and
     public window peak <=1 mm; absolute totals are <=53 degrees/45 seconds.
@@ -380,10 +382,10 @@ class RRHipOnlyCaptureAssist:
                 if state["window_start_gap_m"] - gap >= .0002:
                     state.update(window_start_gap_m=gap, window_elapsed_s=0.)
                     progress_credit = (state["travel_used_deg"] >= 20.
-                        and RR_CAPTURE_GAP_MIN_M <= gap <= RR_CAPTURE_GAP_MAX_M)
+                        and gap >= RR_CAPTURE_GAP_MIN_M)
                 elif state["window_elapsed_s"] >= 2. - 1e-9:
                     reason = 4
-                progress_credit = bool(progress_credit and RR_CAPTURE_GAP_MIN_M <= gap <= RR_CAPTURE_GAP_MAX_M
+                progress_credit = bool(progress_credit and gap >= RR_CAPTURE_GAP_MIN_M
                                        and state["window_elapsed_s"] < 2. - 1e-9)
             else:
                 progress_credit = False  # invalid samples cannot keep reserve permission alive
