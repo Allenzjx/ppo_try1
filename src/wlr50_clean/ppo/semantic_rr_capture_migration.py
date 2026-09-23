@@ -13,6 +13,12 @@ SCHEMA='wlr50_clean.rr_capture_transfer_append.v1'
 FACTOR_KEY='rr_capture_transfer_factor'
 SOURCE_EXPERIMENT='p05_hip_only_continuation_v1'
 TARGET_EXPERIMENT='rr_capture_then_rl_transfer_v1'
+RECROSS_MODE='p05_preedge_same_air_recross_v2'
+RECROSS_TIMEOUT='current_capture_or_completed_handoff_after_original_window_v1'
+RECROSS_RUNTIME_DELTA=frozenset((
+    'src/wlr50_clean/ppo/semantic_supervisor.py',
+    'src/wlr50_clean/ppo/semantic_rr_capture_migration.py',
+    'configs/ppo_rr_capture_then_rl_transfer_v1/stage_task_spec.yaml'))
 COUNTERS=('global_policy_decisions','ppo_updates','optimizer_steps')
 PRIOR_BRANCHES=('p05_capture_assist','capture_feedback_semantics','rr_postcross_workspace',
                'rr_receiver_retirement_v2','p05_preedge_approach_recovery')
@@ -29,7 +35,76 @@ def preserved_keys(metadata):
         {k for k in metadata if k!='resume_migration' and k.endswith(('_branch','_branch_counts','_migration'))}))
 
 
-def build_rr_capture_migration(checkpoint,current_contract,*,reason,reviewed_code_sha256,project_root=None):
+def verify_zero_update_rr_boundary(checkpoint,initial_checkpoint,initial_plan_path):
+    """CPU-only proof that replacing the first control version loses no learning.
+
+    Counter claims alone are insufficient: compare the complete saved tensor,
+    optimizer, iteration and RNG-bearing payload against the original append.
+    The initial checkpoint/receipt stays immutable and explicitly referenced.
+    """
+    import torch
+    from .semantic_migration import checkpoint_metadata,digest,file_sha
+    from .semantic_policy_distribution import policy_contract,policy_version_from_metadata
+    from .semantic_training import state_hash
+    checkpoint=Path(checkpoint).resolve(strict=True)
+    initial_checkpoint=Path(initial_checkpoint).resolve(strict=True)
+    initial_plan_path=Path(initial_plan_path).resolve(strict=True)
+    source=checkpoint_metadata(checkpoint);first=checkpoint_metadata(initial_checkpoint)
+    plan=json.loads(initial_plan_path.read_text(encoding='utf-8'))
+    receipt={**plan,'plan_path':str(initial_plan_path),'plan_sha256':file_sha(initial_plan_path)}
+    factor=plan.get(FACTOR_KEY,{})
+    origin={k:source[k] for k in COUNTERS}
+    if (plan.get('schema')!=SCHEMA or factor.get('schema')!=SCHEMA
+            or factor.get('superseded_zero_update_boundary') is not None
+            or plan.get('source_checkpoint')!=str(checkpoint)
+            or plan.get('source_checkpoint_sha256')!=file_sha(checkpoint)
+            or plan.get('source_manifest_sha256')!=file_sha(checkpoint.with_name(checkpoint.stem+'_manifest.json'))
+            or plan.get('source_contract_sha256')!=digest(source['runtime_contract'])
+            or plan.get('target_contract_sha256')!=digest(first['runtime_contract'])
+            or first.get('rr_capture_transfer_migration')!=receipt or first.get('resume_migration')!=receipt
+            or policy_version_from_metadata(first)!=RR_CAPTURE_POLICY
+            or first.get('policy_contract')!=policy_contract(RR_CAPTURE_POLICY,observation_layout=RR_CAPTURE_OBSERVATION_LAYOUT)
+            or first.get('rr_capture_transfer_branch')!={'schema':SCHEMA,'counter_origin':origin,
+                'source_checkpoint_sha256':file_sha(checkpoint),'migration_added_updates':0}
+            or first.get('rr_capture_transfer_branch_counts')!=dict.fromkeys(COUNTERS,0)
+            or factor.get('counter_origin')!=origin
+            or any(factor.get(k)!=0 for k in ('added_policy_decisions','added_ppo_updates','added_optimizer_steps','added_auxiliary_updates'))):
+        raise ValueError('recross requires the bound first zero-update RR publication and immutable plan')
+    if (any(first.get(k)!=source[k] for k in preserved_keys(source))
+            or set(preserved_keys(first))-{'rr_capture_transfer_branch','rr_capture_transfer_branch_counts','rr_capture_transfer_migration'}
+                !=set(preserved_keys(source))):
+        raise ValueError('initial RR publication has changed counters, RNG, prior origins or AUX lineage')
+    expected_runner=copy.deepcopy(source['runner_config'])
+    expected_runner['actor']['class_name']=first['policy_contract']['actor_class']
+    expected_runner['actor']['observation_layout']=RR_CAPTURE_OBSERVATION_LAYOUT
+    if first['runner_config']!=expected_runner:
+        raise ValueError('initial RR publication changed runner configuration beyond the appended actor')
+    old=torch.load(checkpoint,map_location='cpu',weights_only=False)
+    initial=torch.load(initial_checkpoint,map_location='cpu',weights_only=False)
+    for bundle,metadata in ((old,source),(initial,first)):
+        if (not isinstance(bundle.get('infos'),dict)
+                or any(metadata.get(k)!=v for k,v in bundle['infos'].items())):
+            raise ValueError('recross checkpoint embedded metadata differs from sidecar')
+    mapped=zero_append_rr_training_state(old)
+    expected={k:v for k,v in mapped.items() if k!='infos'}
+    actual={k:v for k,v in initial.items() if k!='infos'}
+    if state_hash(expected)!=state_hash(actual):
+        raise ValueError('initial RR complete training state is not the exact zero append; learning cannot be discarded')
+    return {'schema':'wlr50_clean.rr_zero_update_control_replacement.v1',
+        'checkpoint_path':str(initial_checkpoint),'checkpoint_sha256':file_sha(initial_checkpoint),
+        'manifest_sha256':file_sha(initial_checkpoint.with_name(initial_checkpoint.stem+'_manifest.json')),
+        'plan_path':str(initial_plan_path),'plan_sha256':file_sha(initial_plan_path),
+        'runtime_contract_sha256':digest(first['runtime_contract']),
+        'source_git_commit':first['runtime_contract']['source_git_commit'],
+        'runtime_content_sha256':first['runtime_contract']['runtime_content_sha256'],
+        'counter_origin':origin,'branch_counts':dict.fromkeys(COUNTERS,0),
+        'complete_mapped_training_state_sha256':state_hash(expected),
+        'prior_preserved_metadata_sha256':{k:digest(source[k]) for k in preserved_keys(source)},
+        'replacement_loses_learning':False,'prior_evaluation_preserved':True}
+
+
+def build_rr_capture_migration(checkpoint,current_contract,*,reason,reviewed_code_sha256,project_root=None,
+                               initial_checkpoint=None,initial_plan_path=None):
     import yaml
     from .semantic_migration import PROJECT_ROOT,_contract,checkpoint_metadata,digest,file_sha,source_num_envs,_version_bytes
     from .semantic_policy_distribution import policy_contract,policy_version_from_metadata,CONFIG_NAMES
@@ -91,8 +166,38 @@ def build_rr_capture_migration(checkpoint,current_contract,*,reason,reviewed_cod
                'rr_capture_assist_mode':'rr_hip_only_capture_v1','rr_capture_wheel_mode':'off'}:
         raise ValueError('RR execution may only add explicit hip-only assist and wheel-off mode')
     before=parsed['source','stage_task_spec.yaml'][1];after=parsed['target','stage_task_spec.yaml'][1]
-    if after!={**before,'rr_capture_continuation_semantics':TARGET_EXPERIMENT}:
-        raise ValueError('RR task spec may only add its explicit first-version continuation')
+    expected_task={**before,'rr_capture_continuation_semantics':TARGET_EXPERIMENT}
+    recross=after.get('nominal',{}).get('p05_preedge_approach_recovery')==RECROSS_MODE
+    replacement=None
+    if recross:
+        expected_task=copy.deepcopy(expected_task)
+        expected_task['nominal']['p05_preedge_approach_recovery']=RECROSS_MODE
+        expected_task['p05_finite_recovery_timeout_semantics']=RECROSS_TIMEOUT
+        if initial_checkpoint is None or initial_plan_path is None:
+            raise ValueError('recross variant requires its first zero-update410 checkpoint and immutable plan')
+        replacement=verify_zero_update_rr_boundary(checkpoint,initial_checkpoint,initial_plan_path)
+        first=checkpoint_metadata(Path(initial_checkpoint));middle=_contract(first['runtime_contract'])
+        if ({k:v for k,v in middle.items() if k not in variable}!={k:v for k,v in new.items() if k not in variable}
+                or middle.get('experiment_id')!=TARGET_EXPERIMENT
+                or middle['source_git_commit']==new['source_git_commit']
+                or set(middle['files'])!=set(new['files'])
+                or set(middle.get('selected_configuration',{}))!=CONFIG_NAMES
+                or {p for p in new['files'] if middle['files'][p]!=new['files'][p]}!=RECROSS_RUNTIME_DELTA):
+            raise ValueError('recross replacement requires exactly supervisor, migration and task-spec runtime changes')
+        for name,binding in middle['selected_configuration'].items():
+            if (binding.get('path')!=new['selected_configuration'][name]['path']
+                    or binding.get('sha256')!=middle['files'].get(binding.get('path'))):
+                raise ValueError('initial RR configuration binding differs')
+            initial_raw=_version_bytes(root,middle,binding['path'])
+            if name=='stage_task_spec.yaml':
+                if yaml.safe_load(initial_raw)!={**before,'rr_capture_continuation_semantics':TARGET_EXPERIMENT}:
+                    raise ValueError('initial RR task must be the exact first-version control')
+            elif initial_raw!=parsed['target',name][0]:
+                raise ValueError('recross must retain exact five initial RR configuration bytes')
+    elif initial_checkpoint is not None or initial_plan_path is not None:
+        raise ValueError('first RR version cannot consume a replacement boundary')
+    if after!=expected_task:
+        raise ValueError('RR task spec differs from its exact versioned continuation/recross change')
     before=parsed['source','observation_schema.json'][1];after=parsed['target','observation_schema.json'][1]
     schema=load_semantic_observation_schema(root/new['selected_configuration']['observation_schema.json']['path'])
     if (schema.observation_layout!=RR_CAPTURE_OBSERVATION_LAYOUT or schema.dimension!=RR_CAPTURE_OBSERVATION_DIM
@@ -115,6 +220,11 @@ def build_rr_capture_migration(checkpoint,current_contract,*,reason,reviewed_cod
         'reward_config_changed':False,'same_input_old_prefix_function_preserved':True,
         'same_physical_trajectory_equivalence_claimed':False,'old_rollout_inherited':False,'physical_state_inherited':False,
         'added_policy_decisions':0,'added_ppo_updates':0,'added_optimizer_steps':0,'added_auxiliary_updates':0}
+    if replacement is not None:
+        factor.update(target_control_revision=RECROSS_MODE,termination_semantics_changed=True,
+            p05_finite_recovery_timeout_semantics=RECROSS_TIMEOUT,
+            superseded_zero_update_boundary=replacement,
+            changed_files_since_initial_rr=sorted(RECROSS_RUNTIME_DELTA))
     return {'schema':SCHEMA,'reason':reason.strip(),'source_checkpoint':str(checkpoint),
         'source_checkpoint_sha256':file_sha(checkpoint),'source_manifest_sha256':file_sha(checkpoint.with_name(checkpoint.stem+'_manifest.json')),
         'source_contract_sha256':digest(old),'target_contract_sha256':digest(new),
@@ -127,8 +237,11 @@ def build_rr_capture_migration(checkpoint,current_contract,*,reason,reviewed_cod
 def validate_rr_capture_migration(checkpoint,current_contract,plan_path,*,project_root=None):
     from .semantic_migration import file_sha
     path=Path(plan_path).resolve(strict=True);supplied=json.loads(path.read_text(encoding='utf-8'))
+    boundary=supplied.get(FACTOR_KEY,{}).get('superseded_zero_update_boundary')
+    options={} if boundary is None else {'initial_checkpoint':boundary.get('checkpoint_path'),
+                                         'initial_plan_path':boundary.get('plan_path')}
     expected=build_rr_capture_migration(checkpoint,current_contract,reason=supplied.get('reason'),
-        reviewed_code_sha256=supplied.get(FACTOR_KEY,{}).get('reviewed_code_sha256',{}),project_root=project_root)
+        reviewed_code_sha256=supplied.get(FACTOR_KEY,{}).get('reviewed_code_sha256',{}),project_root=project_root,**options)
     if supplied!=expected:raise ValueError('RR append plan differs from immutable source and target')
     return {**expected,'plan_path':str(path),'plan_sha256':file_sha(path)}
 

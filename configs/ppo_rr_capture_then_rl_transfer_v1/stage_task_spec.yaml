@@ -8,6 +8,7 @@ episode_maximum_duration_s: 200.0
 revision: task_conditioned_hip_wheel_v1
 capture_continuation_semantics: p05_hip_only_continuation_v1
 rr_capture_continuation_semantics: rr_capture_then_rl_transfer_v1
+p05_finite_recovery_timeout_semantics: current_capture_or_completed_handoff_after_original_window_v1
 p09_lift_semantics: functional_free_air_lift_v3
 reference_nominal_semantics: successful_fsm_derived_v2
 physical_acceptance_version: all_stage_v1
@@ -130,7 +131,7 @@ nominal:
     recovery_rate_deg_s: 15.0
   sequence_semantics: source_partial_order_physical_ready_v1
   p05_pending_capture: current_FL_capture_wheel_continuation_to_handoff_v2
-  p05_preedge_approach_recovery: p05_preedge_approach_recovery_v1
+  p05_preedge_approach_recovery: p05_preedge_same_air_recross_v2
   continuous_channel_inheritance: true
   # Retire only P06's rolling contribution inside the existing workspace margin.
   p06_rolling_retirement: measured_workspace_interior_peak

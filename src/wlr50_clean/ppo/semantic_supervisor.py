@@ -53,6 +53,8 @@ RR_WORKSPACE_RETIREMENT_MODE = "current_qualified_RR_over_top_receiver_retiremen
 RR_WORKSPACE_RETIREMENT_MODE_V2 = "established_RR_over_top_receiver_retirement_v2"
 CAPTURE_CONTINUATION_MODE = "p05_hip_only_continuation_v1"
 P05_PREEDGE_RECOVERY_MODE = "p05_preedge_approach_recovery_v1"
+P05_SAME_AIR_RECROSS_MODE = "p05_preedge_same_air_recross_v2"
+P05_FINITE_RECOVERY_TIMEOUT_MODE = "current_capture_or_completed_handoff_after_original_window_v1"
 
 
 def _capture_continuation_enabled(spec: Mapping[str, Any]) -> bool:
@@ -70,8 +72,12 @@ def _capture_continuation_enabled(spec: Mapping[str, Any]) -> bool:
 
 def _p05_preedge_recovery_enabled(spec: Mapping[str, Any]) -> bool:
     mode = spec.get("nominal", {}).get("p05_preedge_approach_recovery")
-    if mode not in (None, P05_PREEDGE_RECOVERY_MODE):
+    if mode not in (None, P05_PREEDGE_RECOVERY_MODE, P05_SAME_AIR_RECROSS_MODE):
         raise ValueError("unknown P05 pre-edge approach recovery semantics")
+    timeout = spec.get("p05_finite_recovery_timeout_semantics")
+    if ((mode == P05_SAME_AIR_RECROSS_MODE and timeout != P05_FINITE_RECOVERY_TIMEOUT_MODE)
+            or (mode != P05_SAME_AIR_RECROSS_MODE and timeout is not None)):
+        raise ValueError("same-AIR P05 recross and finite effective recovery must be explicitly paired")
     if mode is not None and (not _capture_continuation_enabled(spec)
             or spec["nominal"].get("p05_pending_capture") != "current_FL_capture_wheel_continuation_to_handoff_v2"
             or spec.get("local_timeout_policy", {}).get("mode") != "bounded_current_progress_allowance_v1"
@@ -1564,6 +1570,19 @@ class TaskStageSupervisor:
         local_warning_only = bool(self._capture_continuation and
             (self.stage_id == "P05" or (self.stage_id in PHASE_IDS[5:]
                 and continuation["fl_capture_pending"])))
+        if (self.stage_id == "P05" and self.spec.get("p05_finite_recovery_timeout_semantics")
+                == P05_FINITE_RECOVERY_TIMEOUT_MODE):
+            # Preserve the original finite approach opportunity, not an
+            # unlimited exemption based on old crossing history. Current
+            # legal capture already covers safe descent and can hand over
+            # at the next decision tick. Never advance an assist here.
+            recovery_end = (float(stage["maximum_task_duration"])
+                + float(self.spec["local_timeout_policy"]["maximum_extension_s"]))
+            completed_handoff_pending = bool(entry["valid"] and evaluation["valid"]
+                and self.termination_reason is None and all(v >= 1. for v in goal_values.values())
+                and _get(observation, "physics_tick") % 8 != 0)
+            local_warning_only = bool(age < recovery_end
+                or continuation["allow_capture_continuation"] or completed_handoff_pending)
         rr_recovery = None
         if self.spec.get("rr_capture_continuation_semantics") is not None:
             from .semantic_rr_capture_context import rr_capture_transfer_context
@@ -2585,7 +2604,34 @@ class NominalMotionProvider:
                 and self.endpoint_issued is True and consecutive,
             "fresh_source_wheel_owner_absent": not fresh,
         }
-        return {"mode": P05_PREEDGE_RECOVERY_MODE, "eligible": all(checks.values()), "checks": checks,
+        mode = self.spec["nominal"].get("p05_preedge_approach_recovery", P05_PREEDGE_RECOVERY_MODE)
+        recross = None
+        if mode == P05_SAME_AIR_RECROSS_MODE:
+            events = history.get("event_ticks", {})
+            crossings = events.get("front_edge_crossed", {}) if isinstance(events, Mapping) else {}
+            cross_tick = crossings.get("FL") if isinstance(crossings, Mapping) else None
+            air_count = fl.get("consecutive_air_samples")
+            counter_valid = bool(type(tick) is int and tick >= 0
+                and type(air_count) is int and 1 <= air_count <= tick + 1)
+            air_start = tick - air_count + 1 if counter_valid else None
+            valid_span = bool(counter_valid and type(cross_tick) is int
+                and 0 <= air_start <= cross_tick <= tick)
+            first_approach = history.get("front_edge_crossed", {}).get("FL") is False
+            same_air_recross = bool(history.get("front_edge_crossed", {}).get("FL") is True
+                and fl.get("active_attempt") is True and valid_span
+                and fl.get("within_top_xy") is False and finite(distance)
+                and distance < -geometry["xy_measurement_tolerance_m"])
+            # FL's old active_attempt may survive a post-cross GROUND event.
+            # The uninterrupted measured AIR streak must contain this cross;
+            # no history clearing, contact credit or renewed timer is used.
+            checks.pop("not_crossed_or_placed_FL")
+            checks.update(unplaced_FL=history.get("placed", {}).get("FL") is False,
+                first_approach_or_same_air_recross=first_approach or same_air_recross)
+            recross = dict(branch="first_approach" if first_approach else
+                "same_air_recross" if same_air_recross else "ineligible_history_or_current_geometry",
+                consecutive_air_samples=air_count, air_start_tick=air_start,
+                cross_event_tick=cross_tick, same_air_span_valid=valid_span)
+        result = {"mode": mode, "eligible": all(checks.values()), "checks": checks,
             "reasons": tuple(key for key, passed in checks.items() if not passed),
             "source_observation_tick": tick, "prior_source_observation_tick": prior_observation_tick,
             "stage_elapsed_s": age, "absolute_window_s": (start, end), "window_end_exclusive": True,
@@ -2600,6 +2646,9 @@ class NominalMotionProvider:
             "actor_observability": "current_nominal_recovery_advice_encoded_source_internals_and_full_contact_classes_not_individually_encoded",
             "recovery_clock_reset_or_latch": False, "policy_residual_restricted": False,
             "phase_or_capture_credit_awarded": False}
+        if recross is not None:
+            result["same_air_recross"] = recross
+        return result
 
     def _approach_assist_required(self, task: Mapping[str,Any]) -> bool:
         evaluation=task.get("physical_evaluator")
