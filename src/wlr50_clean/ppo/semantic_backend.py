@@ -30,6 +30,9 @@ from .termination import TerminationSignals
 from .semantic_nominal_geometry import MODE as NOMINAL_GEOMETRY_MODE, FUNCTIONAL_RR_MODE, BOUNDED_RR_MODE
 from .semantic_headroom import HEADROOM_MODE, validate_semantic_servo_headroom_config
 from .semantic_capture_assist import CAPTURE_ASSIST_MODE, HipOnlyCaptureAssist, capture_assist_context
+from .semantic_rr_capture_assist import (RR_CAPTURE_ASSIST_MODE, RRHipOnlyCaptureAssist,
+    rr_capture_assist_context)
+from .semantic_rr_capture_context import rr_capture_transfer_context
 
 CONFIG_ROOT = Path(__file__).resolve().parents[3] / "configs" / "ppo_semantic_v2"
 DEFAULT_EXECUTION_PROFILE = CONFIG_ROOT / "execution_profile.yaml"
@@ -68,6 +71,13 @@ def load_execution_profile(path: Path | str = DEFAULT_EXECUTION_PROFILE) -> dict
     if assist is not None and (headroom != HEADROOM_MODE or
             profile["residual"].get("composition") != "independent_post_mapper_residual.v1"):
         raise ValueError("capture assist requires unchanged post-mapper composition and physical headroom")
+    rr_assist = profile.get("rr_capture_assist_mode")
+    if rr_assist not in (None, RR_CAPTURE_ASSIST_MODE):
+        raise ValueError("unknown RR capture assist mode")
+    if rr_assist is not None and (assist != CAPTURE_ASSIST_MODE or headroom != HEADROOM_MODE):
+        raise ValueError("RR capture continuation must preserve the FL and physical headroom path")
+    if profile.get("rr_capture_wheel_mode", "off") != "off":
+        raise ValueError("first RR direction-check revision has no wheel intervention")
     return profile
 
 
@@ -129,7 +139,9 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         self._policy_headroom_mode = self.execution_profile["residual"].get("policy_headroom_mode")
         self._tracking_reference_mode = self.execution_profile["residual"].get("tracking_reference_mode")
         self._capture_assist = HipOnlyCaptureAssist() if self.execution_profile.get("capture_assist_mode") else None
+        self._rr_capture_assist = RRHipOnlyCaptureAssist() if self.execution_profile.get("rr_capture_assist_mode") else None
         self.task_spec_path = Path(task_spec_path).resolve()
+        self._rr_support_spec = yaml.safe_load(self.task_spec_path.read_text(encoding="utf-8"))["support"]
         self._physical_acceptance_version = yaml.safe_load(self.task_spec_path.read_text(encoding="utf-8")).get("physical_acceptance_version")
         self._nominal_geometry_mode = self.execution_profile.get("nominal_geometry_advisory")
         self._nominal_geometry_margin_m = None
@@ -157,6 +169,8 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         self._poison_episode_state_for_reset(clear_evidence=True)
         if self.execution_profile.get("capture_assist_mode"):
             self._capture_assist = HipOnlyCaptureAssist()
+        if self.execution_profile.get("rr_capture_assist_mode"):
+            self._rr_capture_assist = RRHipOnlyCaptureAssist()
         reset_seed = _non_negative_seed(seed)
         reset_options = dict(options)
         _validate_reset_options(reset_options)
@@ -235,6 +249,10 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                 self._reset_metadata.update(capture_assist_mode=CAPTURE_ASSIST_MODE,
                     capture_assist_applies_identically_B_C_train_det_stoch=True,
                     capture_assist_policy_sample_log_probability_unchanged=True)
+            if self._rr_capture_assist is not None:
+                self._reset_metadata.update(rr_capture_assist_mode=RR_CAPTURE_ASSIST_MODE,
+                    rr_capture_assist_applies_identically_B_C_train_det_stoch=True,
+                    rr_capture_assist_is_policy_learning=False)
             result = self._build_authoritative_frame(observation, frame, previous_frame=None)
             if _frame_is_terminal(result):
                 raise SensorContractFailure("semantic reset produced physically invalid/terminal initial state")
@@ -305,14 +323,34 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                     observation=self._raw_observation, source_frame=self._controller_frame,
                     previous_ack=adapter.last_ack or {},
                     nominal_provider=getattr(active_controller, "nominal_provider", None), physics_tick=physics_tick)
+            rr_assist = getattr(self, "_rr_capture_assist", None)
+            rr_context = None
+            if getattr(self._controller, "mode", None) in ("TEACHER", "TAKEOVER"):
+                rr_assist = None
+            if rr_assist is not None:
+                active_controller = getattr(self._controller, "_semantic", None) or self._controller
+                rr_context = rr_capture_assist_context(task=self._controller.task_snapshot,
+                    observation=self._raw_observation, source_frame=self._controller_frame,
+                    previous_ack=adapter.last_ack or {}, physics_tick=physics_tick,
+                    support_spec=active_controller.supervisor.spec["support"])
             adapter = SemanticActuationDispatch(adapter, plan, nominal_geometry_context=geometry,
                 policy_headroom_mode=getattr(self, "_policy_headroom_mode", None),
                 tracking_reference_mode=getattr(self, "_tracking_reference_mode", None),
                 tracking_reference_bootstrap_tick=SETTLE_TICKS + self._reset_prime_tick_count,
-                capture_assist=assist, capture_assist_context=assist_context)
-        return super()._atomic_apply(adapter, command, physics_tick=physics_tick,
+                capture_assist=assist, capture_assist_context=assist_context,
+                rr_capture_assist=rr_assist, rr_capture_assist_context=rr_context)
+        ack = super()._atomic_apply(adapter, command, physics_tick=physics_tick,
             tracking_servo_names=tracking_servo_names,
             drive_feedback_bias_full12=drive_feedback_bias_full12)
+        if plan is not None and getattr(self, "_rr_capture_assist", None) is not None:
+            active_controller = getattr(self._controller, "_semantic", None) or self._controller
+            if "rr_capture_assist_evidence" in ack:
+                active_controller.supervisor.rr_capture_feedback = {
+                    "episode_observation_tick": self._controller_frame.physics_tick+1,
+                    "dispatch_physics_tick": physics_tick,
+                    "state": self._rr_capture_assist.snapshot(),
+                }
+        return ack
 
     def _termination_signals(self, observation: Any, controller_frame: Any):
         result = _enum_value(_member(_member(controller_frame, "termination"), "result"))
@@ -398,6 +436,17 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         if getattr(self, "_capture_assist", None) is not None:
             info["capture_assist"] = self._capture_assist.snapshot()
             info["capture_assist_evidence"] = ack.get("capture_assist_evidence")
+        if getattr(self, "_rr_capture_assist", None) is not None:
+            info["rr_capture_assist"] = self._rr_capture_assist.snapshot()
+            info["rr_capture_assist_evidence"] = ack.get("rr_capture_assist_evidence")
+            from .semantic_rr_capture_profile import RR_TASK_FIELDS
+            rear_context = rr_capture_transfer_context(
+                task=controller.task_snapshot, observation=observation,
+                support_spec=self._rr_support_spec,
+                assist_snapshot=info["rr_capture_assist"],
+                wheel_mode=self.execution_profile.get("rr_capture_wheel_mode", "off"))
+            info["rr_capture_transfer_context"] = {key: rear_context[key] for key in RR_TASK_FIELDS}
+            info["rr_capture_transfer_diagnostics"] = rear_context
         unsafe = any((termination.body_collision, termination.wheel_only_climb,
                       termination.fall, termination.nan_inf, termination.hard_joint_limit, termination.physics_explosion))
         return AuthoritativeFrame(

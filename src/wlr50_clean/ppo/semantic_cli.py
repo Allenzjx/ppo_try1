@@ -41,7 +41,7 @@ def version_paths(version: str, *, experiment_id: str | None = None) -> tuple[Pa
     if version == "v2":
         return RUNS_ROOT, OUTPUT_ROOT, PROJECT_ROOT / "configs/ppo_semantic_v2"
     return (PROJECT_ROOT / "runs" / namespace, PROJECT_ROOT / "outputs" / namespace,
-            PROJECT_ROOT / "configs" / (namespace if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1") else "ppo_semantic_v3"))
+            PROJECT_ROOT / "configs" / (namespace if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1") else "ppo_semantic_v3"))
 
 
 def _request_paths(args: argparse.Namespace) -> tuple[Path, Path, Path]:
@@ -66,7 +66,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--seed", type=int, default=1001)
     result.add_argument("--num-envs", type=int, choices=(1, 8), default=1)
     result.add_argument("--semantic-version", choices=("v2", "v3"), default="v2")
-    result.add_argument("--experiment-id", choices=("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1"))
+    result.add_argument("--experiment-id", choices=("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1"))
     result.add_argument("--from-phase", choices=("P01", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13"), default="P01")
     result.add_argument("--teacher-offset-decisions", type=int, default=0)
     result.add_argument("--prefix-source", choices=("frozen_fsm", "checkpoint_policy", "successful_nominal"), default="frozen_fsm")
@@ -123,7 +123,7 @@ def runtime_contract(*, expected_head: str, semantic_version: str = "v2",
                         "sha256": sha256_file(path)} for path in sorted(config_root.iterdir()) if path.is_file()})
     if experiment_id is not None:
         contract["experiment_id"] = experiment_id
-    if experiment_id in ("task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1"):
+    if experiment_id in ("task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1"):
         import yaml
         profile = yaml.safe_load((config_root / "execution_profile.yaml").read_text(encoding="utf-8"))
         declared = profile.get("training_budgets", {})
@@ -154,7 +154,7 @@ def validate_request(args: argparse.Namespace) -> None:
     _validate_target_policy_request(args)
     runs_root, output_root, _ = _request_paths(args)
     budgets = training_quantity_budgets(getattr(args, "experiment_id", None))
-    if getattr(args, "experiment_id", None) in ("residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1") and (
+    if getattr(args, "experiment_id", None) in ("residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1") and (
             args.new_mdp_warm_start or getattr(args, "policy_distribution_migration", False)):
         raise ValueError("RR continuation uses its explicit state-preserving task migration or exact resume")
     if getattr(args, "experiment_id", None) == "non_residual_refine_v1":
@@ -217,6 +217,12 @@ def validate_request(args: argparse.Namespace) -> None:
         raise ValueError("training already exists; explicitly resume checkpoint_last instead of reinitializing")
     if args.checkpoint is not None:
         source_root = output_root
+        if (getattr(args,"experiment_id",None) == "rr_capture_then_rl_transfer_v1" and args.resume_migration is not None
+                and not args.checkpoint.resolve(strict=True).is_relative_to((output_root/"checkpoints").resolve())):
+            planned=json.loads(args.resume_migration.read_text(encoding="utf-8"))
+            if not isinstance(planned.get("rr_capture_transfer_factor"),dict):
+                raise ValueError("RR continuation requires its dedicated state-preserving append migration")
+            source_root=version_paths("v3",experiment_id="p05_hip_only_continuation_v1")[1]
         if (getattr(args, "experiment_id", None) == "p05_hip_only_continuation_v1"
                 and args.resume_migration is not None
                 and not args.checkpoint.resolve(strict=True).is_relative_to((output_root / "checkpoints").resolve())):
@@ -336,6 +342,15 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
         raise ValueError("checkpoint runtime changed; an explicit reviewed resume migration is required")
     args._policy_version = policy_version_from_metadata(metadata)
     source_layout = policy_observation_layout_from_metadata(metadata)
+    if getattr(args,"experiment_id",None) == "rr_capture_then_rl_transfer_v1" and args.resume_migration is not None:
+        proposed=json.loads(args.resume_migration.read_text(encoding="utf-8"))
+        if proposed.get("rr_capture_transfer_factor") is not None:
+            from .semantic_rr_capture_profile import RR_CAPTURE_POLICY, RR_CAPTURE_OBSERVATION_LAYOUT
+            args._migration_record=validate_migration_plan(args.checkpoint,contract,args.resume_migration)
+            if args._observation_layout != RR_CAPTURE_OBSERVATION_LAYOUT or metadata["seed"] != args.seed:
+                raise ValueError("RR append requires exact target layout and original training RNG seed")
+            args._policy_version=RR_CAPTURE_POLICY
+            return
     if (getattr(args, "experiment_id", None) == "p05_hip_only_continuation_v1"
             and args.resume_migration is not None):
         proposed = json.loads(args.resume_migration.read_text(encoding="utf-8"))
@@ -485,7 +500,8 @@ def _request_history_prefix_provenance(args, contract, previous):
         supported_heteroscedastic_contract_version)
     target = _resolved_policy_contract(args)
     from .semantic_p05_capture_profile import P05_CAPTURE_POLICY
-    if target["version"] == P05_CAPTURE_POLICY:
+    from .semantic_rr_capture_profile import RR_CAPTURE_POLICY
+    if target["version"] in (P05_CAPTURE_POLICY,RR_CAPTURE_POLICY):
         if (previous.get("policy_contract") != target or previous["runtime_contract"] != contract
                 or getattr(args, "_migration_record", None) is not None):
             raise ValueError("P05 prefix requires the saved/reloaded migrated checkpoint in its exact runtime")

@@ -1143,6 +1143,10 @@ class TaskStageSupervisor:
         self._capture_continuation = _capture_continuation_enabled(self.spec)
         self._fl_pending_handoff: dict[str, Any] | None = None
         self._p05_local_deadline_warning = False
+        self.rr_capture_feedback = None
+        rr_mode = self.spec.get("rr_capture_continuation_semantics")
+        if rr_mode not in (None, "rr_capture_then_rl_transfer_v1"):
+            raise ValueError("unknown RR capture continuation semantics")
 
     def predicate(self, name: str, evaluation: Mapping[str, Any]) -> float:
         if name == "physical_valid":
@@ -1560,6 +1564,20 @@ class TaskStageSupervisor:
         local_warning_only = bool(self._capture_continuation and
             (self.stage_id == "P05" or (self.stage_id in PHASE_IDS[5:]
                 and continuation["fl_capture_pending"])))
+        rr_recovery = None
+        if self.spec.get("rr_capture_continuation_semantics") is not None:
+            from .semantic_rr_capture_context import rr_capture_transfer_context
+            feedback = self.rr_capture_feedback
+            fresh = bool(isinstance(feedback, Mapping)
+                and feedback.get("episode_observation_tick") == _get(observation, "physics_tick"))
+            rr_recovery = rr_capture_transfer_context(
+                task={"physical_evaluator":evaluation,"termination_reason":self.termination_reason},
+                observation=observation, support_spec=self.spec["support"],
+                assist_snapshot=feedback["state"] if fresh else None)
+            rr_recovery["committed_feedback_matches_current_tick"] = fresh
+            rr_recovery["local_warning_only"] = bool(self.stage_id == "P09" and fresh
+                and rr_recovery["rr_capture_recovery_allowed"])
+            local_warning_only = local_warning_only or rr_recovery["local_warning_only"]
         local_limit = float(stage["maximum_task_duration"])
         allowance = 0.
         post_window_allowance = 0.
@@ -1607,6 +1625,8 @@ class TaskStageSupervisor:
             "remaining_task_time_s":max(0.,self.spec["episode_maximum_duration_s"]-episode_age),
             "substage":"CAPTURE" if progress >= .8 else ("TRANSFER" if self.stage_id in ("P01","P04","P08","P10","P11") else "EXECUTION"),
             "stall_diagnostic":stalled,"transition_evidence":list(self.transition_evidence),"physical_evaluator":evaluation}
+        if rr_recovery is not None:
+            self._snapshot["rr_capture_continuation"] = rr_recovery
         if (self.spec.get("physical_acceptance_version") == "all_stage_v1" and self.stage_id == "P13"
                 and evaluation.get("post_completion_observation_started", False)):
             self._snapshot["substage"] = "CAPTURE"

@@ -18,6 +18,8 @@ from .semantic_p05_capture_profile import (
     P05_CAPTURE_OBSERVATION_LAYOUT, P05_CAPTURE_OBSERVATION_DIM,
     P05_CAPTURE_ASSIST_GROUP, P05_CAPTURE_CONTINUATION_GROUP,
 )
+from .semantic_rr_capture_profile import (RR_CAPTURE_OBSERVATION_LAYOUT, RR_CAPTURE_OBSERVATION_DIM,
+    RR_ASSIST_GROUP, RR_TASK_GROUP, RR_TASK_FIELDS, RR_ASSIST_START, RR_TASK_START)
 
 CONFIG_ROOT = Path(__file__).resolve().parents[3] / "configs" / "ppo_semantic_v2"
 DEFAULT_OBSERVATION_SCHEMA = CONFIG_ROOT / "observation_schema.json"
@@ -127,10 +129,11 @@ class SemanticObservationSchema:
     path: Path
     transfer_role_features_version: str | None = None
     capture_assist_features_version: str | None = None
+    rr_capture_features_version: str | None = None
 
     @property
     def observation_layout(self) -> str | None:
-        return self.capture_assist_features_version or self.transfer_role_features_version
+        return self.rr_capture_features_version or self.capture_assist_features_version or self.transfer_role_features_version
 
     @property
     def dimension(self) -> int:
@@ -161,16 +164,27 @@ def load_semantic_observation_schema(path: Path | str = DEFAULT_OBSERVATION_SCHE
         raise SemanticObservationError("invalid feature sizes/names")
     role_layout = data.get("transfer_role_features_version")
     capture_layout = data.get("capture_assist_features_version")
+    rr_layout = data.get('rr_capture_features_version')
+    capture_groups = groups
+    if rr_layout is not None:
+        expected_rr_tail = ({'name':RR_ASSIST_GROUP,'size':RR_TASK_START-RR_ASSIST_START,'scale':1.0},
+                            {'name':RR_TASK_GROUP,'size':len(RR_TASK_FIELDS),'scale':1.0})
+        if (rr_layout != RR_CAPTURE_OBSERVATION_LAYOUT or capture_layout != P05_CAPTURE_OBSERVATION_LAYOUT
+                or groups[-2:] != expected_rr_tail or sum(row['size'] for row in groups) != RR_CAPTURE_OBSERVATION_DIM):
+            raise SemanticObservationError('RR capture layout must preserve389 and append its explicit state/context')
+        capture_groups = groups[:-2]
+    elif any(row['name'] in (RR_ASSIST_GROUP,RR_TASK_GROUP) for row in groups):
+        raise SemanticObservationError('RR capture groups require their explicit version marker')
     role_groups = groups
     if capture_layout is not None:
         expected_tail = (
             {"name":P05_CAPTURE_ASSIST_GROUP,"size":12,"scale":1.0},
             {"name":P05_CAPTURE_CONTINUATION_GROUP,"size":5,"scale":1.0})
         if (capture_layout != P05_CAPTURE_OBSERVATION_LAYOUT or role_layout != ROLE_OBSERVATION_LAYOUT
-                or groups[-2:] != expected_tail
-                or sum(row["size"] for row in groups) != P05_CAPTURE_OBSERVATION_DIM):
+                or capture_groups[-2:] != expected_tail
+                or sum(row["size"] for row in capture_groups) != P05_CAPTURE_OBSERVATION_DIM):
             raise SemanticObservationError("capture layout must append exactly 17 declared state features after role372")
-        role_groups = groups[:-2]
+        role_groups = capture_groups[:-2]
     elif any(row["name"] in (P05_CAPTURE_ASSIST_GROUP,P05_CAPTURE_CONTINUATION_GROUP) for row in groups):
         raise SemanticObservationError("capture state requires its explicit version marker")
     if role_layout is None:
@@ -188,7 +202,7 @@ def load_semantic_observation_schema(path: Path | str = DEFAULT_OBSERVATION_SCHE
     if duration != 200.0 or clip <= 0.0:
         raise SemanticObservationError("semantic observation needs 200 second task horizon and positive clipping")
     return SemanticObservationSchema(groups, _quaternion(data["fixed_chassis_to_body_wxyz"]),
-                                     duration, clip, selected, role_layout, capture_layout)
+                                     duration, clip, selected, role_layout, capture_layout, rr_layout)
 
 
 def transfer_role_observation_features(task: Mapping[str, Any]) -> tuple[float, ...]:
@@ -393,6 +407,16 @@ class SemanticObservationBuilder:
             if elapsed < 0:
                 raise SemanticObservationError("capture pending elapsed must be nonnegative")
             groups[P05_CAPTURE_CONTINUATION_GROUP] = tuple(float(value) for value in bits)+(elapsed/200.0,)
+        if self.schema.rr_capture_features_version is not None:
+            from .semantic_rr_capture_assist import rr_capture_assist_features
+            groups[RR_ASSIST_GROUP] = rr_capture_assist_features(field(info,'rr_capture_assist'))
+            context = field(info,'rr_capture_transfer_context')
+            if not isinstance(context,Mapping) or set(context) != set(RR_TASK_FIELDS):
+                raise SemanticObservationError('RR transfer context requires the exact seven explicit current fields')
+            bits = tuple(field(context,key) for key in RR_TASK_FIELDS)
+            if any(type(value) is not bool for value in bits):
+                raise SemanticObservationError('RR current-task context must contain real booleans')
+            groups[RR_TASK_GROUP] = tuple(float(value) for value in bits)
         self.schema.encode(groups)
         mass = finite(field(com,"total_mass_kg"),"robot mass")
         if mass <= 0.0 or field(com,"valid") is not True:

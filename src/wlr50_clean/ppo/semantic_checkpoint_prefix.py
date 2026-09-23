@@ -24,6 +24,7 @@ from .semantic_transfer_roles import (
     ROLE_OBSERVATION_LAYOUT, ROLE_OBSERVATION_BASE_DIM, ROLE_OBSERVATION_DIM,
 )
 from .semantic_p05_capture_profile import P05_CAPTURE_OBSERVATION_DIM, P05_CAPTURE_OBSERVATION_LAYOUT
+from .semantic_rr_capture_profile import RR_CAPTURE_OBSERVATION_DIM, RR_CAPTURE_OBSERVATION_LAYOUT
 
 SAMPLING = "natural_P01_frozen_checkpoint_policy_prefix_then_semantic_suffix_N1.v1"
 RESULT_SCOPE = "checkpoint_policy_initialized_suffix"
@@ -93,7 +94,8 @@ def _provenance(value):
                 raise ValueError("nominal prefix lacks live configuration binding")
         if result.get("interface_contract") not in (
                 {"observation_dimension": ROLE_OBSERVATION_DIM,"observation_layout": ROLE_OBSERVATION_LAYOUT, "action_dimension": 12},
-                {"observation_dimension": P05_CAPTURE_OBSERVATION_DIM,"observation_layout": P05_CAPTURE_OBSERVATION_LAYOUT,"action_dimension":12}):
+                {"observation_dimension": P05_CAPTURE_OBSERVATION_DIM,"observation_layout": P05_CAPTURE_OBSERVATION_LAYOUT,"action_dimension":12},
+                {"observation_dimension": RR_CAPTURE_OBSERVATION_DIM,"observation_layout": RR_CAPTURE_OBSERVATION_LAYOUT,"action_dimension":12}):
             raise ValueError("nominal prefix interface differs from unchanged Full12/372")
         if result.get("raw_action_full12") != [0.0]*12 or result.get("policy_credit") is not False:
             raise ValueError("nominal prefix must be zero-residual with no PPO credit")
@@ -125,7 +127,8 @@ def _core_observation_layout(core):
             or not ((dimension == ROLE_OBSERVATION_BASE_DIM and layout is None)
                     or (dimension == ROLE_OBSERVATION_DIM and type(layout) is str
                         and layout == ROLE_OBSERVATION_LAYOUT)
-                    or (dimension == P05_CAPTURE_OBSERVATION_DIM and layout == P05_CAPTURE_OBSERVATION_LAYOUT))):
+                    or (dimension == P05_CAPTURE_OBSERVATION_DIM and layout == P05_CAPTURE_OBSERVATION_LAYOUT)
+                    or (dimension == RR_CAPTURE_OBSERVATION_DIM and layout == RR_CAPTURE_OBSERVATION_LAYOUT))):
         raise ValueError("checkpoint prefix requires the explicit supported observation layout")
     return dimension, layout
 

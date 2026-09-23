@@ -209,16 +209,56 @@ def build_actuator_target_effect_audit(
         except (TypeError,ValueError,KeyError) as exc:
             raise ActuatorTargetEffectError(f"invalid capture assist reconstruction: {exc}") from exc
 
+    rr_assist_snapshot = None
+    rr_assist_receipt = raw_ack.get("rr_capture_assist_evidence")
+    if rr_assist_receipt is not None:
+        import json
+        from .semantic_rr_capture_assist import (RRHipOnlyCaptureAssist,
+            apply_rr_capture_assist_snapshot)
+        if not isinstance(rr_assist_receipt, Mapping):
+            raise ActuatorTargetEffectError("invalid RR capture assist receipt")
+        try:
+            replay = RRHipOnlyCaptureAssist.from_snapshot(rr_assist_receipt["state_before"])
+            context = rr_assist_receipt["context"]
+            if context["dispatch_physics_tick"] != raw_ack["physics_tick"]:
+                raise ValueError("RR assist dispatch clock differs")
+            replay.last_tick = int(raw_ack["physics_tick"])-1
+            recomputed = replay.advance(context=context,
+                previous_final_full12=previous+(0.,)*4, physics_dt_s=float(raw_ack["physics_dt_s"]))
+            rr_assist_snapshot = recomputed["state_after"]
+            if json.dumps(rr_assist_snapshot,sort_keys=True,allow_nan=False) != json.dumps(
+                    rr_assist_receipt["state_after"],sort_keys=True,allow_nan=False):
+                raise ValueError("RR assist state transition differs from reconstruction")
+            requested_candidate = tuple(a+b for a,b in zip(corrected_native,actual_bias,strict=True))
+            if assist_snapshot is not None:
+                requested_candidate = apply_capture_assist_snapshot(requested_candidate,assist_snapshot)
+            assisted_candidate = apply_rr_capture_assist_snapshot(requested_candidate,rr_assist_snapshot)
+            if (_finite_values(rr_assist_receipt["candidate_before_assist_full12"],12,"RR assist input") != requested_candidate
+                    or _finite_values(rr_assist_receipt["candidate_after_assist_full12"],12,"RR assist output") != assisted_candidate
+                    or _finite_values(rr_assist_receipt["assist_correction_full12"],12,"RR assist correction") !=
+                    tuple(a-b for a,b in zip(assisted_candidate,requested_candidate,strict=True))):
+                raise ValueError("RR assist transformation differs from independent reconstruction")
+            if rr_assist_receipt["owner_indices"] != ([6,7] if rr_assist_snapshot["active"] else []):
+                raise ValueError("RR assist owner differs from its current state")
+        except (TypeError,ValueError,KeyError) as exc:
+            raise ActuatorTargetEffectError(f"invalid RR capture assist reconstruction: {exc}") from exc
+
     def physical_targets(bias: Sequence[float], native_targets: Sequence[float] = corrected_native) -> Any:
         servo = []
         assisted = None
         if assist_snapshot is not None:
             assisted = apply_capture_assist_snapshot(
                 tuple(a+b for a,b in zip(native_targets,bias,strict=True)),assist_snapshot)
+        if rr_assist_snapshot is not None:
+            assisted = apply_rr_capture_assist_snapshot(
+                assisted if assisted is not None else tuple(a+b for a,b in zip(native_targets,bias,strict=True)),
+                rr_assist_snapshot)
         for index, name in enumerate(SERVO_ORDER):
             lower, upper = servo_limits_deg(name)
             native_target, effective_bias = native_targets[index], bias[index]
-            if assisted is not None and index < 2 and assist_snapshot["active"]:
+            if assist_snapshot is not None and index < 2 and assist_snapshot["active"]:
+                native_target, effective_bias = assisted[index], 0.
+            if rr_assist_snapshot is not None and index in (6,7) and rr_assist_snapshot["active"]:
                 native_target, effective_bias = assisted[index], 0.
             servo.append(bounded_drive_feedback_step(
                 previous_deg=previous[index],
@@ -332,6 +372,14 @@ def build_actuator_target_effect_audit(
             counterfactual_scope="same_pre_tick_state_and_same_capture_assist_without_current_ppo_residual",
             policy_request_execution_semantics="sample_unchanged_state_dependent_FL_target_transform",
             all12_policy_channels_unmodified_at_actuator=not assist_snapshot["active"])
+    if rr_assist_snapshot is not None:
+        result.update(rr_capture_assist_evidence=dict(rr_assist_receipt),
+            rr_capture_assist_state_transition_independently_reconstructed=True,
+            rr_capture_assist_owned_channels_full12=[bool(i in (6,7) and rr_assist_snapshot["active"]) for i in range(12)],
+            counterfactual_scope="same_pre_tick_state_and_same_FL_RR_assists_without_current_ppo_residual",
+            policy_request_execution_semantics="sample_unchanged_declared_state_dependent_FL_RR_target_transforms",
+            all12_policy_channels_unmodified_at_actuator=not (
+                rr_assist_snapshot["active"] or (assist_snapshot is not None and assist_snapshot["active"])))
     if geometry_enabled:
         # Remove geometry only in this third, zero-current-policy branch.
         # The existing actual-minus-counterfactual fields remain PPO-only.

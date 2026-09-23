@@ -137,7 +137,7 @@ def experiment_namespace(semantic_version: str, experiment_id: str | None = None
         raise ValueError("unsupported semantic runtime version")
     if experiment_id is None:
         return f"ppo_semantic_{semantic_version}"
-    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1") or semantic_version != "v3":
+    if experiment_id not in ("transfer_roles_v1", "all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1") or semantic_version != "v3":
         raise ValueError("isolated semantic experiment requires semantic version v3")
     return f"ppo_{experiment_id}"
 
@@ -3823,6 +3823,9 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                             project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     path = Path(plan_path).resolve(strict=True)
     supplied = json.loads(path.read_text(encoding="utf-8"))
+    if supplied.get("schema") == "wlr50_clean.rr_capture_transfer_append.v1":
+        from .semantic_rr_capture_migration import validate_rr_capture_migration
+        return validate_rr_capture_migration(checkpoint,current_contract,path,project_root=project_root)
     if supplied.get("schema") == "wlr50_clean.p05_preedge_approach_recovery_same389.v1":
         from .semantic_p05_preedge_migration import validate_p05_preedge_migration
         return validate_p05_preedge_migration(checkpoint,current_contract,path,project_root=project_root)
@@ -3917,9 +3920,11 @@ def topology(num_envs: int, *, observation_layout: str | None = None) -> dict[st
     if observation_layout is not None:
         from .semantic_transfer_roles import ROLE_OBSERVATION_LAYOUT, ROLE_OBSERVATION_DIM
         from .semantic_p05_capture_profile import P05_CAPTURE_OBSERVATION_LAYOUT, P05_CAPTURE_OBSERVATION_DIM
-        if type(observation_layout) is not str or observation_layout not in (ROLE_OBSERVATION_LAYOUT,P05_CAPTURE_OBSERVATION_LAYOUT) or num_envs != 1:
+        from .semantic_rr_capture_profile import RR_CAPTURE_OBSERVATION_LAYOUT, RR_CAPTURE_OBSERVATION_DIM
+        if type(observation_layout) is not str or observation_layout not in (ROLE_OBSERVATION_LAYOUT,P05_CAPTURE_OBSERVATION_LAYOUT,RR_CAPTURE_OBSERVATION_LAYOUT) or num_envs != 1:
             raise ValueError("role observation topology requires the explicit supported N1 layout")
-        result.update(observation_layout=observation_layout, observation_dimension=(P05_CAPTURE_OBSERVATION_DIM
+        result.update(observation_layout=observation_layout, observation_dimension=(RR_CAPTURE_OBSERVATION_DIM
+            if observation_layout == RR_CAPTURE_OBSERVATION_LAYOUT else P05_CAPTURE_OBSERVATION_DIM
             if observation_layout == P05_CAPTURE_OBSERVATION_LAYOUT else ROLE_OBSERVATION_DIM))
     return result
 

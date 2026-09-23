@@ -94,7 +94,9 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
                             tracking_reference_mode: str | None = None,
                             tracking_reference_bootstrap_tick: int | None = None,
                             capture_assist: Any = None,
-                            capture_assist_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
+                            capture_assist_context: Mapping[str, Any] | None = None,
+                            rr_capture_assist: Any = None,
+                            rr_capture_assist_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Dispatch independent policy residual without treating it as tracking bias."""
     # Keep the original controller envelope, including for the exact-zero path.
     controller = _full12_drive_feedback_bias(controller_bias_full12)
@@ -142,7 +144,7 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
     reference_history_nonzero = (tracking_reference is not None and
         any(tracking_reference["previous_requested_full12"][:8]))
     if (not any(residual) and nominal_geometry_context is None and not reference_history_nonzero
-            and capture_assist is None):
+            and capture_assist is None and rr_capture_assist is None):
         ack = adapter.apply_full12(command, physics_tick=physics_tick,
             tracking_servo_names=tracking_servo_names, drive_feedback_bias_full12=controller)
         if policy_headroom_mode is not None:
@@ -240,10 +242,31 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
             transform_semantics="observable_state_dependent_FL_final_target_before_existing_hard_clamp_and_slew",
             nominal_history_receives_assist=False)
         evidence["capture_assist_evidence"] = receipt
+    rr_assist_targets = None
+    if rr_capture_assist is not None:
+        from .semantic_rr_capture_assist import apply_rr_capture_assist_snapshot
+        if rr_capture_assist_context is None or rr_capture_assist_context.get("dispatch_physics_tick") != tick:
+            raise RobotAdapterError("RR capture assist requires matching current physical context")
+        previous_final = tuple(adapter._final_drive_servo_deg[name] for name in SERVO_ORDER)
+        previous_wheels = tuple((getattr(adapter, "last_ack", None) or {}).get("drive_target_full12", (0.,)*12)[8:])
+        receipt = rr_capture_assist.advance(context=rr_capture_assist_context,
+            previous_final_full12=previous_final+previous_wheels, physics_dt_s=adapter.physics_dt_s)
+        candidate = (assist_targets if assist_targets is not None else
+                     tuple(a+b for a,b in zip(corrected_native,effective_combined,strict=True)))
+        rr_assist_targets = apply_rr_capture_assist_snapshot(candidate,receipt["state_after"])
+        receipt.update(candidate_before_assist_full12=list(candidate),
+            candidate_after_assist_full12=list(rr_assist_targets),
+            assist_correction_full12=[a-b for a,b in zip(rr_assist_targets,candidate,strict=True)],
+            policy_request_unchanged=True, owner_indices=[6,7] if receipt["state_after"]["active"] else [],
+            transform_semantics="observable_state_dependent_RR_final_target_before_existing_hard_clamp_and_slew",
+            nominal_history_receives_assist=False)
+        evidence["rr_capture_assist_evidence"] = receipt
     final_servo = []
     for index, (name, target, bias) in enumerate(zip(SERVO_ORDER, corrected_native[:8], effective_combined[:8], strict=True)):
         if assist_targets is not None and index in evidence["capture_assist_evidence"]["owner_indices"]:
             target, bias = assist_targets[index], 0.
+        if rr_assist_targets is not None and index in evidence["rr_capture_assist_evidence"]["owner_indices"]:
+            target, bias = rr_assist_targets[index], 0.
         lower, upper = servo_limits_deg(name)
         final_servo.append(bounded_drive_feedback_step(
             previous_deg=adapter._final_drive_servo_deg[name], native_deg=target,
@@ -258,6 +281,12 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
             knee_hold_final_verified=(not evidence["capture_assist_evidence"]["state_after"]["active"]
                 or evidence["capture_assist_evidence"]["state_after"]["mode"] == 4
                 or final_servo[1] == evidence["capture_assist_evidence"]["state_after"]["knee_hold_deg"]))
+    if "rr_capture_assist_evidence" in evidence:
+        evidence["rr_capture_assist_evidence"].update(final_servo_target_deg=list(final_servo),
+            final_slew_or_clamp_indices=[i for i in (6,7) if final_servo[i] != rr_assist_targets[i]],
+            knee_hold_final_verified=(not evidence["rr_capture_assist_evidence"]["state_after"]["active"]
+                or evidence["rr_capture_assist_evidence"]["state_after"]["mode"] == 4
+                or final_servo[7] == evidence["rr_capture_assist_evidence"]["state_after"]["knee_hold_deg"]))
     drive = Full12Command(tuple(final_servo), final_wheels)
     physical = build_physical_batch(drive, adapter.standing_pose_deg)
     positions = _clone_tensor(adapter._standing_servo_tensor)
@@ -313,7 +342,8 @@ class SemanticActuationDispatch:
                  policy_headroom_mode: str | None = None,
                  tracking_reference_mode: str | None = None,
                  tracking_reference_bootstrap_tick: int | None = None,
-                 capture_assist: Any = None, capture_assist_context: Mapping[str, Any] | None = None):
+                 capture_assist: Any = None, capture_assist_context: Mapping[str, Any] | None = None,
+                 rr_capture_assist: Any = None, rr_capture_assist_context: Mapping[str, Any] | None = None):
         self.adapter, self.plan = adapter, plan
         self.nominal_geometry_context = nominal_geometry_context
         self.policy_headroom_mode = policy_headroom_mode
@@ -321,6 +351,8 @@ class SemanticActuationDispatch:
         self.tracking_reference_bootstrap_tick = tracking_reference_bootstrap_tick
         self.capture_assist = capture_assist
         self.capture_assist_context = capture_assist_context
+        self.rr_capture_assist = rr_capture_assist
+        self.rr_capture_assist_context = rr_capture_assist_context
 
     def __getattr__(self, name):
         return getattr(self.adapter, name)
@@ -337,4 +369,5 @@ class SemanticActuationDispatch:
             policy_headroom_mode=self.policy_headroom_mode,
             tracking_reference_mode=self.tracking_reference_mode,
             tracking_reference_bootstrap_tick=self.tracking_reference_bootstrap_tick,
-            capture_assist=self.capture_assist, capture_assist_context=self.capture_assist_context)
+            capture_assist=self.capture_assist, capture_assist_context=self.capture_assist_context,
+            rr_capture_assist=self.rr_capture_assist, rr_capture_assist_context=self.rr_capture_assist_context)

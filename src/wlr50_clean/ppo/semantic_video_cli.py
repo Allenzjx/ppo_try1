@@ -53,7 +53,7 @@ def checkpoint_loader(args, contract):
             inputs = TensorDict({"policy":tensor,"critic":tensor.clone()},
                                 batch_size=[1], device=args.device)
             with torch.inference_mode():
-                if getattr(args, "experiment_id", None) in ("fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1"):
+                if getattr(args, "experiment_id", None) in ("fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1"):
                     selected, action.last_request = audited_history_policy_request(runner.alg.actor, inputs,
                         lambda: runner.alg.actor(inputs, stochastic_output=stochastic), stochastic=stochastic)
                 else:
@@ -87,7 +87,7 @@ def validate_video_args(args):
     stochastic = bool(getattr(args, "stochastic_policy", False))
     policy_seed = getattr(args, "policy_seed", None)
     require((not stochastic and policy_seed is None) or (
-        stochastic and getattr(args, "experiment_id", None) in ("fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1")
+        stochastic and getattr(args, "experiment_id", None) in ("fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1")
         and args.mode == "semantic_residual_eval" and args.checkpoint is not None
         and type(policy_seed) is int and 0 <= policy_seed <= 2147483647),
         "stochastic video requires explicit supported residual C and --policy-seed; deterministic video has no policy seed")
@@ -111,7 +111,7 @@ def build_video_core(app, *, role, semantic_version, experiment_id=None):
         from .isaac_fsm_backend import IsaacFSMBackend, _load_live_dependencies
         from .residual_direct_env import ResidualEpisodeEnv
         options = {"audit_actuator_target_effect": True}
-        if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1"):
+        if experiment_id in ("all_stage_acceptance_v1", "fsm_reference_p09_stable_v2", "task_first_recovery_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1"):
             from dataclasses import replace
             from .semantic_supervisor import load_task_spec
             from .semantic_physical_sensing import SemanticSensorReader

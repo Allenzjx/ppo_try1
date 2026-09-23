@@ -30,9 +30,9 @@ from .semantic_training import verified_native_effect, write_json
 HZ, FPS, STRIDE = 120, 15, 8
 PRE_TICKS, POST_TICKS, MAX_FRAMES = 64, 184, 3000
 TASK_WINDOW_EXPERIMENT = "fsm_reference_p09_stable_v2"
-TASK_WINDOW_EXPERIMENTS = (TASK_WINDOW_EXPERIMENT, "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1")
+TASK_WINDOW_EXPERIMENTS = (TASK_WINDOW_EXPERIMENT, "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1")
 CAMERA = {"eye_m": [1.45, -1.25, .8], "target_m": [.45, 0., .12]}
-REVIEW_CAMERA_EXPERIMENTS = ("non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1")
+REVIEW_CAMERA_EXPERIMENTS = ("non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1")
 REVIEW_CAMERA = {"eye_m": [1.85, -1.65, 1.15], "target_m": [.70, -.15, .15]}
 ROLES = {"A": "legacy_fsm_eval", "B": "semantic_prior_eval",
          "C": "semantic_residual_eval"}
@@ -452,6 +452,11 @@ def capture_assist_tick_evidence(after):
     raw = measured_observation(info["raw_observation"])
     return {"episode_physics_tick": after.physics_tick, "sim_time_s": after.sim_time_s,
         "phase": after.state_id, "capture_assist": info.get("capture_assist"),
+        "rr_capture_assist": info.get("rr_capture_assist"),
+        "rr_capture_transfer_context": info.get("rr_capture_transfer_context"),
+        "rr_capture_transfer_diagnostics": info.get("rr_capture_transfer_diagnostics"),
+        "rr_capture_continuation": task.get("rr_capture_continuation"),
+        "transfer_roles": ev.get("transfer_roles"),
         "capture_continuation": task.get("capture_continuation"),
         "fl_capture_pending": task.get("fl_capture_pending"),
         "placed_history": ev.get("history", {}).get("placed"),
@@ -460,11 +465,12 @@ def capture_assist_tick_evidence(after):
         "nominal_full12": list(after.nominal_action_full12),
         "actual_full12": raw.get("actual_full12"), "joints": raw.get("joints"),
         "wheels": raw.get("wheels"), "body": raw.get("base"), "support": raw.get("support"),
+        "center_of_mass": raw.get("center_of_mass"),
         "dispatch": {key: ack.get(key) for key in (
             "physics_tick", "drive_target_full12", "native_drive_target_full12",
             "independent_policy_residual_requested_full12", "independent_policy_residual_effective_full12",
             "servo_tracking_compensation_deg", "tracking_reference_evidence",
-            "capture_assist_evidence", "servo_tracking_feedback_sample_tick")}}
+            "capture_assist_evidence", "rr_capture_assist_evidence", "servo_tracking_feedback_sample_tick")}}
 
 
 class EndpointObserver:
@@ -618,7 +624,7 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
     try:
         roll = (root/"physical_video_roll_ticks.jsonl").open("x", encoding="utf-8")
         decisions = (root/"video_policy_decisions.jsonl").open("x", encoding="utf-8")
-        if experiment_id == "p05_hip_only_continuation_v1":
+        if experiment_id in ("p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1"):
             capture_assist_stream = (root/"capture_assist_ticks.jsonl").open("x", encoding="utf-8")
         if semantic_version == "v3" and not task_window:
             settle_evidence = reset_with_existing_settle_tail(core, recorder, roll, seed=seed)
@@ -811,10 +817,17 @@ def capture_semantic_video(core, *, role, seed, output_directory, contract,
         "artifacts": {name: file_record(root/name) for name in names if (root/name).is_file()}}
     if experiment_id is not None:
         payload["experiment_id"] = experiment_id
-    if experiment_id == "p05_hip_only_continuation_v1":
+    if experiment_id in ("p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1"):
         payload["control_method"] = "PPO_PLUS_CAPTURE_ASSIST_WITH_INHERITED_LIMITED_AUX" if role == "C" else "N_PLUS_ZERO_WITH_COMMON_CAPTURE_ASSIST"
         payload["capture_assist_enabled_in_training_and_evaluation"] = True
         payload["capture_assist_is_policy_learning"] = False
+    if experiment_id == "rr_capture_then_rl_transfer_v1":
+        payload["control_method"] = ("PPO_PLUS_FL_RR_CAPTURE_ASSISTS_WITH_INHERITED_LIMITED_AUX"
+            if role == "C" else "N_PLUS_ZERO_WITH_COMMON_FL_RR_CAPTURE_ASSISTS")
+        payload["rr_capture_assist"] = {
+            "mode": "rr_hip_only_capture_v1", "training_and_evaluation_identical": True,
+            "first_revision_wheel_guidance": "off", "is_policy_learning": False,
+            "declared_owner_indices": [6, 7], "changes_physical_contact_evidence": False}
     if task_window:
         payload["natural_reset_proof"] = natural_reset_proof
         payload["height_diagnostics"] = height_diagnostic_receipt
