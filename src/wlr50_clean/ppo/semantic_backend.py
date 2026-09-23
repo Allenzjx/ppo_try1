@@ -84,9 +84,9 @@ def load_execution_profile(path: Path | str = DEFAULT_EXECUTION_PROFILE) -> dict
         raise ValueError("unknown declared RR support-wheel projection")
     if profile.get("rr_capture_wheel_mode", "off") != "off" and rr_assist != RR_CAPTURE_ASSIST_MODE:
         raise ValueError("RR support-wheel projection requires the observable RR continuation")
-    from .semantic_rear_policy_timing import MODE as REAR_TIMING_MODE
+    from .semantic_rear_policy_timing import MODES as REAR_TIMING_MODES
     rear_timing = profile.get("rear_policy_timing_mode")
-    if rear_timing not in (None, REAR_TIMING_MODE):
+    if rear_timing not in (None, *REAR_TIMING_MODES):
         raise ValueError("unknown rear policy timing execution profile")
     if rear_timing and (rr_assist is not None or profile.get("nominal_geometry_advisory") is not None
                        or profile.get("rr_capture_wheel_mode", "off") != "off"):
@@ -498,7 +498,8 @@ class SemanticIsaacBackend(IsaacFSMBackend):
             active = getattr(controller, "_semantic", None) or controller
             provider = getattr(active, "nominal_provider", None)
             info["rear_policy_timing"] = (provider.rear_policy_timing(controller.task_snapshot)
-                if provider is not None else public_timing(controller.task_snapshot, [], self._rr_support_spec, 120.))
+                if provider is not None else public_timing(controller.task_snapshot, [], self._rr_support_spec, 120.,
+                    mode=self._rear_policy_timing_mode))
             info["rear_task_assist_disabled"] = True
         unsafe = any((termination.body_collision, termination.wheel_only_climb,
                       termination.fall, termination.nan_inf, termination.hard_joint_limit, termination.physics_explosion))

@@ -3823,6 +3823,9 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                             project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     path = Path(plan_path).resolve(strict=True)
     supplied = json.loads(path.read_text(encoding="utf-8"))
+    if supplied.get("schema") == "wlr50_clean.rear_recapture_same419.v1":
+        from .semantic_rear_recapture_migration import validate_rear_recapture_migration
+        return validate_rear_recapture_migration(checkpoint,current_contract,path,project_root=project_root)
     if supplied.get("schema") == "wlr50_clean.rear_policy_timing_append.v1":
         from .semantic_rear_policy_timing_migration import validate_rear_policy_timing_migration
         return validate_rear_policy_timing_migration(checkpoint,current_contract,path,project_root=project_root)

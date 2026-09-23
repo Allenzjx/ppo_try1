@@ -60,7 +60,7 @@ def _checkpoint_output_root(args: argparse.Namespace) -> Path:
     if (not isinstance(name, str) or re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,63}", name) is None
             or name in {"con", "prn", "aux", "nul", *[f"com{i}" for i in range(1,10)], *[f"lpt{i}" for i in range(1,10)]}
             or args.semantic_version != "v3" or args.num_envs != 1
-            or getattr(args, "experiment_id", None) != "rr_capture_then_rl_transfer_v1"
+            or getattr(args, "experiment_id", None) not in ("rr_capture_then_rl_transfer_v1", "rr_rl_timing_policy_learning_v1")
             or args.command not in ("train", "eval") or args.checkpoint is None
             or (args.command == "eval" and args.mode != "semantic_residual_eval")
             or args.new_mdp_warm_start or getattr(args, "policy_distribution_migration", False)):
@@ -87,6 +87,16 @@ def _checkpoint_branch_source_root(args: argparse.Namespace, base: Path, destina
 def _bind_checkpoint_output_routing(args: argparse.Namespace, base: Path, destination: Path, source_root: Path) -> None:
     from .semantic_migration import digest
     metadata = json.loads(args.checkpoint.with_name(args.checkpoint.stem + "_manifest.json").read_text(encoding="utf-8"))
+    if getattr(args,"experiment_id",None) == "rr_rl_timing_policy_learning_v1":
+        from .semantic_rear_policy_timing_migration import build_rear_policy_output_routing, validate_rear_policy_namespace
+        route = build_rear_policy_output_routing(metadata, metadata["runtime_contract"], destination)
+        if source_root.resolve() == destination.resolve() and metadata.get("checkpoint_output_routing") != route:
+            raise ValueError("same-branch rear419 checkpoint lacks its inherited output route")
+        if source_root.resolve() != destination.resolve() and metadata.get("checkpoint_output_routing") is not None:
+            raise ValueError("parent rear419 source cannot replay an existing branch")
+        validate_rear_policy_namespace(metadata,metadata["runtime_contract"],destination,checkpoint_output_routing=route)
+        args._checkpoint_output_routing=route
+        return
     selection = (metadata.get("rr_progress_handoff_v5_migration") or {}).get("source_selection")
     if "rr_capture_reserve_v10_migration" in metadata:
         from .semantic_rr_capture_reserve_migration import validate_v10_branch_receipt
@@ -345,9 +355,16 @@ def validate_request(args: argparse.Namespace) -> None:
         if (getattr(args,"experiment_id",None) == "rr_rl_timing_policy_learning_v1"
                 and args.resume_migration is not None):
             planned=json.loads(args.resume_migration.read_text(encoding="utf-8"))
-            if not isinstance(planned.get("rear_policy_timing_factor"),dict):
-                raise ValueError("rear timing cross-namespace source requires its explicit migration")
-            source_root=version_paths("v3",experiment_id="rr_capture_then_rl_transfer_v1")[1]
+            initial_append = isinstance(planned.get("rear_policy_timing_factor"),dict)
+            same419 = isinstance(planned.get("rear_recapture_same419_factor"),dict)
+            if initial_append == same419:
+                raise ValueError("rear timing requires exactly one declared migration boundary")
+            if initial_append:
+                source_root=version_paths("v3",experiment_id="rr_capture_then_rl_transfer_v1")[1]
+            else:
+                if planned.get("schema") != "wlr50_clean.rear_recapture_same419.v1":
+                    raise ValueError("unsupported same419 migration schema")
+                source_root=output_root
         if (getattr(args,"experiment_id",None) == "rr_capture_then_rl_transfer_v1" and args.resume_migration is not None
                 and not branch_requested
                 and not args.checkpoint.resolve(strict=True).is_relative_to((output_root/"checkpoints").resolve())):
@@ -412,7 +429,10 @@ def validate_request(args: argparse.Namespace) -> None:
             rear_timing = getattr(args,"experiment_id",None) == "rr_rl_timing_policy_learning_v1"
             if rear_timing and args.resume_migration is None:
                 from .semantic_rear_policy_timing_migration import validate_rear_policy_namespace
-                validate_rear_policy_namespace(metadata, metadata["runtime_contract"], output_root)
+                validate_rear_policy_namespace(metadata, metadata["runtime_contract"], checkpoint_output,
+                    checkpoint_output_routing=getattr(args,"_checkpoint_output_routing",None))
+                if "rear_recapture_migration" in metadata and not branch_requested:
+                    raise ValueError("published rear419 recapture ancestor training requires its explicit output branch")
             if not rear_timing and not branch_requested and any(k in metadata for k in
                     ("rr_capture_reserve_v10_migration","rr_postcapture_wheel_v9_migration")):
                 raise ValueError("v9/v10 learned continuation requires its explicit output branch")

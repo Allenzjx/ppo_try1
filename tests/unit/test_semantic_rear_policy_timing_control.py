@@ -241,8 +241,9 @@ def test_new_backend_profile_rejects_every_rear_task_assist(tmp_path,kind):
 
 
 def test_current_profile_is_opt_in_front_declared_rear_off_and_prefix_needs_no_proxy():
+    from wlr50_clean.ppo.semantic_rear_policy_timing import RECAPTURE_MODE
     profile = load_execution_profile(CONFIG/'execution_profile.yaml')
-    assert profile['rear_policy_timing_mode']==MODE and profile['capture_assist_mode'] is not None
+    assert profile['rear_policy_timing_mode']==RECAPTURE_MODE and profile['capture_assist_mode'] is not None
     assert profile['rr_capture_assist_mode'] is None and profile['rr_capture_wheel_mode']=='off'
     assert profile['nominal_geometry_advisory'] is None
     # Backend uses this explicit unwrap for ResetOnlyPrefixController, while
@@ -301,6 +302,8 @@ def potential_pair():
     from test_semantic_all_stage_physical_acceptance import new_observation
     from wlr50_clean.ppo.semantic_supervisor import TaskStageSupervisor
     sup=TaskStageSupervisor(CONFIG/'stage_task_spec.yaml')
+    # Keep the v1 dependency regression distinct from opt-in v2 retention tests.
+    sup.spec['nominal']['rear_policy_timing']=MODE
     sup.evaluator.observe(new_observation())
     snap=deepcopy(sup.evaluator.snapshot)
     for leg in ('FR','FL','RR'):

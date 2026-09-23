@@ -1464,6 +1464,30 @@ class TaskStageSupervisor:
 
     def _current_capture_retention(self, leg: str, evaluation: Mapping[str,Any]) -> float:
         current=evaluation["current_legs"][leg]
+        from .semantic_rear_policy_timing import RECAPTURE_MODE, rear_dependency
+        if leg == "RR" and self.spec["nominal"].get("rear_policy_timing") == RECAPTURE_MODE:
+            dependency = rear_dependency({"physical_evaluator": evaluation}, self.spec["support"])
+            if not (dependency["rl_current_swing"] or evaluation["history"]["placed"].get("RL") is True):
+                # Only the existing .2 retention share changes. Historical .8
+                # event credit, qualification and completion history stay put.
+                # A legitimate RL swing/placed continuation retains legacy AIR.
+                legal = bool(evaluation.get("valid") is True
+                    and evaluation.get("termination_reason") is None
+                    and current.get("within_top_xy") is True
+                    and current.get("within_lateral_span") is True
+                    and current.get("ground_contact") is False
+                    and (dependency["rr_top_contact"] or
+                         (current.get("air") is True and current.get("obstacle_pair_active") is False)))
+                if not legal:
+                    return 0.
+                clearance = _number(current["clearance_m"], "RR current recapture clearance")
+                if clearance < self.spec["geometry"]["top_gap_min_m"]:
+                    return 0.
+                contact = (_clip(current["consecutive_top_samples"] / self.spec["history"]["minimum_top_samples"])
+                           if dependency["rr_current_bearing"] else 0.)
+                # Reuse existing bounded XY/gap and geometric/contact halves.
+                # AIR can approach the top, but cannot earn the contact half.
+                return self._current_capture_progress("RR", evaluation, contact)
         outside=_number(current.get("top_xy_outside_distance_m"), f"{leg} current platform outside distance")
         if outside < 0.:
             raise SemanticObservationError("current platform outside distance must be nonnegative")
@@ -1782,9 +1806,9 @@ class NominalMotionProvider:
             raise ValueError("unknown successful-FSM nominal semantics")
         self._reference_nominal = reference_mode is not None
         self._sequence_mode = nominal.get("sequence_semantics")
-        from .semantic_rear_policy_timing import MODE as REAR_TIMING_MODE
+        from .semantic_rear_policy_timing import MODES as REAR_TIMING_MODES
         self._rear_policy_timing_mode = nominal.get("rear_policy_timing")
-        if self._rear_policy_timing_mode not in (None, REAR_TIMING_MODE):
+        if self._rear_policy_timing_mode not in (None, *REAR_TIMING_MODES):
             raise ValueError("unknown rear policy timing mode")
         if self._rear_policy_timing_mode and self._sequence_mode != "source_partial_order_physical_ready_v1":
             raise ValueError("rear policy timing requires existing continuous physical source order")
@@ -1963,7 +1987,8 @@ class NominalMotionProvider:
 
     def rear_policy_timing(self, task: Mapping[str, Any]) -> dict[str, Any]:
         from .semantic_rear_policy_timing import public_timing
-        return public_timing(task, self._continuous_layers, self.spec["support"], self.physics_hz)
+        return public_timing(task, self._continuous_layers, self.spec["support"], self.physics_hz,
+                             mode=self._rear_policy_timing_mode)
 
     def _start_source_motion(self, motion: MotionExecutor, phase: Any) -> None:
         """Reuse successful source action tuning without importing its gates."""

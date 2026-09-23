@@ -122,15 +122,52 @@ def rear_policy_timing_branch_counts(infos):
     result['rear_policy_timing_branch_counts']={k:result[k]-origin[k] for k in COUNTERS}
     return result
 
-def validate_rear_policy_namespace(metadata,contract,output_root):
+def build_rear_policy_output_routing(metadata, contract, destination):
+    """Bind this reviewed ancestor branch, never a historical RR410 output route."""
+    from .semantic_rear_recapture_migration import BRANCH_NAME, SOURCE_SELECTION, MIGRATION as RECAPTURE
+    destination = Path(destination).resolve()
+    route = dict(schema='wlr50_clean.checkpoint_output_routing.v1',branch=BRANCH_NAME,
+        output_root=str(destination),main_latest_pointer_promotion=False,
+        source_selection=copy.deepcopy(SOURCE_SELECTION))
+    if (destination.name != BRANCH_NAME or destination.parent.name != 'branches'
+            or destination.parent.parent.name != 'ppo_'+EXPERIMENT or RECAPTURE not in metadata):
+        raise ValueError('rear419 output route requires the reviewed recapture ancestor branch')
+    inherited = metadata.get('checkpoint_output_routing')
+    if inherited is not None:
+        if inherited != route:
+            raise ValueError('rear419 continuation must retain its exact output branch')
+    elif ({k:metadata.get(k) for k in COUNTERS} != SOURCE_COUNTS
+            or metadata.get('rear_policy_timing_branch_counts') != dict.fromkeys(COUNTERS,0)):
+        raise ValueError('initial rear419 branch cannot borrow completed updates')
+    return route
+
+
+def validate_rear_policy_namespace(metadata,contract,output_root, *, checkpoint_output_routing=None):
     from .semantic_migration import digest
+    from .semantic_policy_distribution import policy_contract
     receipt=metadata.get(MIGRATION,{})
-    if (contract.get('experiment_id')!=EXPERIMENT or Path(output_root).resolve().name!='ppo_'+EXPERIMENT
-            or receipt.get('schema')!=SCHEMA or receipt.get('target_contract_sha256')!=digest(contract)
-            or receipt.get('source_checkpoint_sha256')!=SOURCE_SHA or metadata.get('checkpoint_output_routing') is not None
+    runtime_bound = receipt.get('target_contract_sha256') == digest(contract)
+    if metadata.get('rear_recapture_migration') is not None:
+        from .semantic_rear_recapture_migration import validate_rear_recapture_lineage
+        validate_rear_recapture_lineage(metadata, contract, receipt)
+        runtime_bound = True
+    destination=Path(output_root).resolve()
+    if checkpoint_output_routing is not None:
+        expected_route=build_rear_policy_output_routing(metadata,contract,destination)
+        if checkpoint_output_routing != expected_route:
+            raise ValueError('rear419 explicit route differs from its reviewed branch')
+    elif destination.name != 'ppo_'+EXPERIMENT or metadata.get('checkpoint_output_routing') is not None:
+        raise ValueError('rear419 branch requires its explicit route and namespace')
+    expected_policy=policy_contract(REAR_POLICY_TIMING_POLICY,observation_layout=REAR_POLICY_TIMING_OBSERVATION_LAYOUT)
+    if (contract.get('experiment_id')!=EXPERIMENT
+            or receipt.get('schema')!=SCHEMA or not runtime_bound
+            or receipt.get('source_checkpoint_sha256')!=SOURCE_SHA
+            or metadata.get('policy_contract') != expected_policy
             or metadata.get('rear_policy_timing_branch',{}).get('counter_origin')!=SOURCE_COUNTS):
         raise ValueError('rear timing continuation requires its explicit new namespace and immutable ancestor receipt')
-    rear_policy_timing_branch_counts(metadata)
+    computed=rear_policy_timing_branch_counts(metadata)['rear_policy_timing_branch_counts']
+    if metadata.get('rear_policy_timing_branch_counts') != computed:
+        raise ValueError('rear419 recorded branch counts differ from its immutable counter origin')
 
 def load_rear_policy_timing_migration(runner,checkpoint,*,contract,seed,record):
     import torch

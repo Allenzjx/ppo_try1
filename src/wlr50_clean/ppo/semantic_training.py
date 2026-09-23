@@ -862,6 +862,11 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
                              migration: Mapping[str, Any] | None = None,
                              warm_start: Mapping[str, Any] | None = None,
                              policy_migration: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    if migration is not None and migration.get("rear_recapture_same419_factor") is not None:
+        if warm_start is not None or policy_migration is not None:
+            raise ValueError("same419 recapture migration cannot mix another boundary")
+        from .semantic_rear_recapture_migration import load_rear_recapture_migration
+        return load_rear_recapture_migration(runner, checkpoint, contract=contract, seed=seed, record=migration)
     if migration is not None and migration.get("rear_policy_timing_factor") is not None:
         if warm_start is not None or policy_migration is not None:
             raise ValueError("rear timing migration cannot mix another boundary")
@@ -1963,9 +1968,10 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     rear_timing = "rear_policy_timing_migration" in previous
     if rear_timing:
         from .semantic_rear_policy_timing_migration import validate_rear_policy_namespace
-        validate_rear_policy_namespace(previous, contract, output_root)
-        if checkpoint_output_routing is not None:
-            raise ValueError("rear timing uses its new isolated namespace, not the historical ancestor output route")
+        validate_rear_policy_namespace(previous, contract, output_root,
+            checkpoint_output_routing=checkpoint_output_routing)
+        if "rear_recapture_migration" in previous and checkpoint_output_routing is None:
+            raise ValueError("published rear419 recapture ancestor training requires its explicit output branch")
     inherited_routing = previous.get("checkpoint_output_routing")
     capture_reserve = "rr_capture_reserve_v10_migration" in previous
     if not rear_timing and capture_reserve and checkpoint_output_routing is None:
@@ -1988,7 +1994,9 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
         from .semantic_migration import digest as metadata_digest
         route = jsonable(checkpoint_output_routing)
         selection = route.get("source_selection")
-        if capture_reserve:
+        if rear_timing:
+            validate_rear_policy_namespace(previous, contract, output_root,checkpoint_output_routing=route)
+        elif capture_reserve:
             from .semantic_rr_capture_reserve_migration import validate_v10_branch_receipt
             if route.get("output_root") != str(output_root.resolve()) or inherited_routing != route:
                 raise ValueError("v10 destination must remain the inherited output branch")
@@ -2222,7 +2230,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                     from .semantic_migration import continuation_topology
                     infos["execution_topology"] = continuation_topology(sampling, prefix_request,
                         observation_layout=getattr(runner, "_semantic_observation_layout", None))
-                for key in ("rear_policy_timing_migration", "rear_policy_timing_branch",
+                for key in ("rear_recapture_migration", "rear_policy_timing_migration", "rear_policy_timing_branch",
                             "new_mdp_warm_start", "new_mdp_origin_global_policy_decisions", "source_stage_requested_decisions",
                             "new_mdp_initial_action_comparison", "policy_distribution_migration",
                             "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison",

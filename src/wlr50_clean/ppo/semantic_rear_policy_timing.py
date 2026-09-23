@@ -9,6 +9,8 @@ import math
 from typing import Mapping, Any
 
 MODE = "rr_capture_before_rl_transfer_v1"
+RECAPTURE_MODE = "rr_recapture_current_support_v2"
+MODES = (MODE, RECAPTURE_MODE)
 
 
 def verified_bearing(row: Mapping[str, Any], support: Mapping[str, Any]) -> bool:
@@ -43,7 +45,9 @@ def rear_dependency(task: Mapping[str, Any], support: Mapping[str, Any]) -> dict
         rl_current_swing=rl_continuing)
 
 
-def public_timing(task, layers, support, physics_hz):
+def public_timing(task, layers, support, physics_hz, *, mode=MODE):
+    if mode not in (None, *MODES):
+        raise ValueError("unknown rear policy timing mode")
     dep = rear_dependency(task, support)
     by_phase = {layer["stage"]: layer for layer in layers}
     p09, p12 = by_phase.get("P09", {}), by_phase.get("P12", {})
@@ -52,10 +56,21 @@ def public_timing(task, layers, support, physics_hz):
     ev = task.get("physical_evaluator", {})
     rr = ev.get("current_legs", {}).get("RR", {})
     swing = rear and dep["rl_current_swing"]
-    prep = rear and not swing and (late_started or task.get("stage_id") in ("P10", "P11", "P12"))
-    handoff = rear and not swing and not prep and dep["rr_top_contact"]
-    carry = rear and not swing and not prep and not handoff and bool(
-        rr.get("current_lift_valid") or task.get("stage_id") == "P09")
+    placed = ev.get("history", {}).get("placed", {})
+    live = bool(ev.get("valid") is True and ev.get("termination_reason") is None
+                and task.get("termination_reason") is None)
+    # A task request, not new AIR/lift/support evidence. After first capture,
+    # old source clocks and placed history cannot hide current loss of load.
+    # Preserve a real ongoing RL swing and the already-placed RL continuation.
+    recapture = bool(mode == RECAPTURE_MODE and rear and live and not swing
+        and placed.get("RL") is not True and not dep["rr_current_bearing"]
+        and (late_started or placed.get("RR") is True
+             or task.get("stage_id") in ("P10", "P11", "P12")))
+    prep = rear and not swing and not recapture and (
+        late_started or task.get("stage_id") in ("P10", "P11", "P12"))
+    handoff = rear and not swing and not prep and not recapture and dep["rr_top_contact"]
+    carry = recapture or (rear and not swing and not prep and not handoff and bool(
+        rr.get("current_lift_valid") or task.get("stage_id") == "P09"))
     clock = lambda layer, key: min(200., float(layer.get(key, 0)) / physics_hz)
     return dict(rr_carry_capture=bool(carry), rr_support_handoff=bool(handoff),
         rl_prep_transfer=bool(prep), rl_swing_capture=bool(swing),
