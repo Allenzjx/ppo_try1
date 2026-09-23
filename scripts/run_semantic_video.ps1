@@ -9,6 +9,7 @@ param(
     [ValidateRange(1,3000)][int]$MaxDecisions = 3000,
     [ValidateSet(4001)][int]$Seed = 4001,
     [string]$Checkpoint,
+    [ValidatePattern('^[a-z0-9][a-z0-9_-]{0,63}$')][string]$CheckpointOutputBranch,
     [string]$ResumeMigration,
     [switch]$StochasticPolicy,
     [ValidateRange(0,2147483647)][int]$PolicySeed,
@@ -58,6 +59,7 @@ try {
     if ($StochasticPolicy) { $arguments += '--stochastic-policy' }
     if ($PSBoundParameters.ContainsKey('PolicySeed')) { $arguments += @('--policy-seed',[string]$PolicySeed) }
     if ($PSBoundParameters.ContainsKey('Decisions')) { $arguments += @('--decisions',[string]$Decisions) }
+    if (-not [string]::IsNullOrWhiteSpace($CheckpointOutputBranch)) { $arguments += @('--checkpoint-output-branch',$CheckpointOutputBranch) }
     if (-not [string]::IsNullOrWhiteSpace($Checkpoint)) {
         $checkpointPath = if ([IO.Path]::IsPathRooted($Checkpoint)) { $Checkpoint } else { Join-Path $project $Checkpoint }
         $arguments += @('--checkpoint',[IO.Path]::GetFullPath($checkpointPath))

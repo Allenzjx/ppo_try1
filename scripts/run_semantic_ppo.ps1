@@ -17,6 +17,7 @@ param(
     [switch]$PolicyDistributionMigration,
     [string]$VectorSmokeEvidence,
     [string]$Checkpoint,
+    [ValidatePattern('^[a-z0-9][a-z0-9_-]{0,63}$')][string]$CheckpointOutputBranch,
     [string]$ResumeMigration,
     [ValidateSet('legacy_fsm_eval','semantic_prior_eval','semantic_residual_eval')][string]$Mode = 'semantic_prior_eval',
     [ValidateSet('cpu','cuda:0')][string]$Device = 'cuda:0',
@@ -79,6 +80,7 @@ try {
         '--checkpoint-interval-updates',[string]$CheckpointIntervalUpdates,'--headless')
     if ($NewMdpWarmStart) { $arguments += '--new-mdp-warm-start' }
     if (-not [string]::IsNullOrWhiteSpace($ExperimentId)) { $arguments += @('--experiment-id',$ExperimentId) }
+    if (-not [string]::IsNullOrWhiteSpace($CheckpointOutputBranch)) { $arguments += @('--checkpoint-output-branch',$CheckpointOutputBranch) }
     if (-not [string]::IsNullOrWhiteSpace($TargetPolicyVersion)) { $arguments += @('--target-policy-version',$TargetPolicyVersion) }
     if ($PolicyDistributionMigration) { $arguments += '--policy-distribution-migration' }
     if ($PSBoundParameters.ContainsKey('Decisions')) { $arguments += @('--decisions',[string]$Decisions) }

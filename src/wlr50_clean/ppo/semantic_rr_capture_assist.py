@@ -15,9 +15,9 @@ from wlr50_clean.ppo.semantic_rr_capture_context import verified_current_support
 
 RR_CAPTURE_ASSIST_MODE = "rr_hip_only_capture_v1"
 RR_CAPTURE_ASSIST_SCHEMA = "wlr50_clean.rr_capture_assist_state.v1"
-RR_CAPTURE_FEEDBACK_REVISION = "progress_reserve_captured_incremental_v4"
+RR_CAPTURE_FEEDBACK_REVISION = "progress_reserve_contact_onset_incremental_v5"
 RR_CAPTURE_WINDOW_REFERENCE_SEMANTICS = "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed"
-RR_CAPTURE_SEARCH_SEMANTICS = "hip20_knee20_then_single_progress_earned_near_top_knee12_total52_exposure44_no_recharge_public_mode6_credit_captured_targets_add_issued_N_and_requested_residual_deltas_RL_current_TOP_retirement"
+RR_CAPTURE_SEARCH_SEMANTICS = "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement"
 RR_CAPTURE_ASSIST_FEATURE_NAMES = (
     "mode", "initialized", "knee_hold_deg", "hip_entry_deg", "hip_target_deg",
     "travel_used_deg", "descent_elapsed_s", "window_start_gap_m", "window_elapsed_s",
@@ -62,16 +62,27 @@ def _snapshot(state, tick):
         "last_dispatch_physics_tick": tick, "feature_names": list(RR_CAPTURE_ASSIST_FEATURE_NAMES)}
 
 
+def _search_limits(state):
+    if state["mode"] != 6.:
+        return 40., 32.
+    # A one-degree terminal approach is available only with the same earned
+    # progress credit and a public measured window peak within 1 mm. This is
+    # permission to keep executing descent, NEVER a substitute for contact.
+    # The 52-degree sealed run ended 0.027 mm above TOP with no sensor force;
+    # unchanged counters prevent contact toggles from recharging this budget.
+    return (53., 45.) if 0. <= state["window_start_gap_m"] <= .001 else (52., 44.)
+
+
 def _search_exhaustion_reason(state):
     # Axis and elapsed exposure are derived from the public cumulative
     # counters, never from a resettable anchor or a hidden phase latch.
     knee_axis = state["travel_used_deg"] >= 20.
-    travel_end = 52. if state["mode"] == 6. else 40.
+    travel_end, exposure_end = _search_limits(state)
     if (state["travel_used_deg"] >= travel_end - 1e-9
             or (knee_axis and state["knee_hold_deg"] >= servo_limits_deg(SERVO_ORDER[7])[1] - 2. - 1e-9)
             or (not knee_axis and state["hip_target_deg"] <= servo_limits_deg(SERVO_ORDER[6])[0] + 2. + 1e-9)):
         return 5
-    if state["descent_elapsed_s"] >= ((44. if state["mode"] == 6. else 32.) if knee_axis else 12.) - 1e-9:
+    if state["descent_elapsed_s"] >= (exposure_end if knee_axis else 12.) - 1e-9:
         return 8
     return 0
 
@@ -99,7 +110,7 @@ def validate_rr_capture_assist_snapshot(snapshot: Mapping) -> dict:
     for key in ("initialized", "contact_seen", "retired"):
         if state[key] not in (0., 1.):
             raise ValueError(f"invalid RR capture assist binary {key}")
-    for key, maximum in (("travel_used_deg", 52.), ("descent_elapsed_s", 44.),
+    for key, maximum in (("travel_used_deg", 53.), ("descent_elapsed_s", 45.),
                           ("release_fraction", 1.)):
         if not 0. <= state[key] <= maximum + 1e-9:
             raise ValueError(f"invalid RR capture assist bounded {key}")
@@ -167,7 +178,10 @@ class RRHipOnlyCaptureAssist:
     full 20 degrees may positive knee search spend 20 degrees at 1 degree/s.
     One further <=12 degrees requires public DESCEND_PROGRESS mode, current
     gap <=25mm and all existing physical/tracking/progress gates. Public
-    travel is <=52 degrees and active exposure <=44 seconds. Knee exposure
+    travel is normally <=52 degrees and active exposure <=44 seconds. A final
+    <=1 degree/1 second is available only under that same earned progress and
+    public window peak <=1 mm; absolute totals are <=53 degrees/45 seconds.
+    No task/contact threshold is relaxed. Knee exposure
     is max(travel-20, 0); hip exposure is elapsed
     minus knee exposure. Neither is renewed by contact loss or phase changes.
     Hip speed is at most 2 degrees/s (1 in the last 3 mm), with
@@ -368,13 +382,16 @@ class RRHipOnlyCaptureAssist:
             state.update(mode=6. if progress_credit and not reason else 1., blocked_reason=0.)
             if not reason:
                 reason = _search_exhaustion_reason(state)
-                if reason == 5 and 40. - 1e-9 <= state["travel_used_deg"] < 52. - 1e-9 and not progress_credit:
+                reserve_available = (state["travel_used_deg"] < 52. - 1e-9 or
+                    (0. <= state["window_start_gap_m"] <= .001
+                     and state["travel_used_deg"] < 53. - 1e-9))
+                if reason == 5 and state["travel_used_deg"] >= 40. - 1e-9 and reserve_available and not progress_credit:
                     reason = 10
             state.update(mode=3. if reason else state["mode"], blocked_reason=float(reason))
             if not reason:
                 knee_axis = state["travel_used_deg"] >= 20.
                 rate = 1. if knee_axis or gap <= .003 else 2.
-                travel_end, elapsed_end = ((52., 44.) if progress_credit else (40., 32.)) if knee_axis else (20., 12.)
+                travel_end, elapsed_end = _search_limits(state) if knee_axis else (20., 12.)
                 key = "knee_hold_deg" if knee_axis else "hip_target_deg"
                 margin = (servo_limits_deg(SERVO_ORDER[7])[1] - 2. - state[key] if knee_axis
                           else state[key] - servo_limits_deg(SERVO_ORDER[6])[0] - 2.)

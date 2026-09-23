@@ -8,6 +8,7 @@ import importlib.metadata
 import json
 import math
 import os
+import re
 import subprocess
 import sys
 import time
@@ -50,6 +51,71 @@ def _request_paths(args: argparse.Namespace) -> tuple[Path, Path, Path]:
             version_paths(args.semantic_version, experiment_id=experiment_id))
 
 
+def _checkpoint_output_root(args: argparse.Namespace) -> Path:
+    """Artifact routing only; never change the namespace/config/runtime selection."""
+    base = _request_paths(args)[1].resolve()
+    name = getattr(args, "checkpoint_output_branch", None)
+    if name is None:
+        return base
+    if (not isinstance(name, str) or re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,63}", name) is None
+            or name in {"con", "prn", "aux", "nul", *[f"com{i}" for i in range(1,10)], *[f"lpt{i}" for i in range(1,10)]}
+            or args.semantic_version != "v3" or args.num_envs != 1
+            or getattr(args, "experiment_id", None) != "rr_capture_then_rl_transfer_v1"
+            or args.command not in ("train", "eval") or args.checkpoint is None
+            or (args.command == "eval" and args.mode != "semantic_residual_eval")
+            or args.new_mdp_warm_start or getattr(args, "policy_distribution_migration", False)):
+        raise ValueError("checkpoint output branch requires a safe single name and explicit RR v3 N1 resume/eval")
+    result = base / "branches" / name
+    for path in (base / "branches", result, result / "checkpoints", result / "checkpoints/history"):
+        if path.resolve() != path or not path.resolve().is_relative_to(base):
+            raise ValueError("checkpoint output branch cannot use a reparse/symlink alias or escape its namespace")
+    return result
+
+
+def _checkpoint_branch_source_root(args: argparse.Namespace, base: Path, destination: Path) -> Path:
+    source = args.checkpoint.resolve(strict=True)
+    if source.is_relative_to(destination / "checkpoints"):
+        return destination
+    if source.is_relative_to(base.resolve() / "checkpoints/history"):
+        if args.command == "train" and (any((destination / "checkpoints/history").glob("*.pt"))
+                or (destination / "checkpoints/checkpoint_last_pointer.json").exists()):
+            raise ValueError("occupied checkpoint output branch requires explicit same-branch resume")
+        return base
+    raise ValueError("checkpoint branch source must be an immutable parent source or its own branch checkpoint")
+
+
+def _bind_checkpoint_output_routing(args: argparse.Namespace, base: Path, destination: Path, source_root: Path) -> None:
+    from .semantic_migration import digest
+    metadata = json.loads(args.checkpoint.with_name(args.checkpoint.stem + "_manifest.json").read_text(encoding="utf-8"))
+    selection = (metadata.get("rr_progress_handoff_v5_migration") or {}).get("source_selection")
+    contact = metadata.get("rr_contact_onset_v6_migration") or {}
+    runtime = metadata.get("runtime_contract") or {}
+    origin = dict(global_policy_decisions=220544, ppo_updates=1688, optimizer_steps=33760)
+    if (not isinstance(selection, dict) or selection.get("source_role") != "front_validated_ancestor_control_eval"
+            or selection.get("counters") != origin or metadata.get("policy_contract", {}).get("observation_dimension") != 410):
+        raise ValueError("checkpoint output branch only accepts the declared front-validated ancestor lineage")
+    if (contact.get("schema") != "wlr50_clean.rr_contact_onset_same410.v6"
+            or contact.get("target_git_commit") != runtime.get("source_git_commit")
+            or contact.get("target_contract_sha256") != digest(runtime)
+            or contact.get("target_runtime_content_sha256") != runtime.get("runtime_content_sha256")
+            or contact.get("source_selection", {}).get("source_role") != selection["source_role"]
+            or contact.get("source_selection", {}).get("counters") != origin
+            or contact.get("rr_contact_onset_v6_factor", {}).get("target_feedback_revision") != "progress_reserve_contact_onset_incremental_v5"
+            or contact.get("rr_contact_onset_v6_factor", {}).get("counter_origin") != origin):
+        raise ValueError("checkpoint output branch requires its formally published v6 control receipt and current runtime")
+    route = {"schema":"wlr50_clean.checkpoint_output_routing.v1",
+             "branch":args.checkpoint_output_branch, "output_root":str(destination),
+             "main_latest_pointer_promotion":False, "source_selection":jsonable(selection)}
+    inherited = metadata.get("checkpoint_output_routing")
+    if source_root.resolve() == destination:
+        if inherited != route or any(type(metadata.get(k)) is not int or metadata[k] < v for k,v in origin.items()):
+            raise ValueError("same-branch checkpoint routing/source counters are inconsistent")
+    elif (inherited is not None or {k:metadata.get(k) for k in origin} != origin
+          or metadata.get("rr_capture_transfer_branch_counts") != dict.fromkeys(origin, 0)):
+        raise ValueError("initial ancestor branch cannot borrow updates or replay another output branch")
+    args._checkpoint_output_routing = route
+
+
 def local_versions() -> dict[str, Any]:
     versions = {name: importlib.metadata.version(name) for name in LOCKED_DISTRIBUTIONS}
     if versions != LOCKED_DISTRIBUTIONS or sys.version_info[:3] != (3, 11, 15):
@@ -78,6 +144,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--decisions", type=int)
     result.add_argument("--max-decisions", type=int, default=3000)
     result.add_argument("--checkpoint", type=Path)
+    result.add_argument("--checkpoint-output-branch")
     result.add_argument("--resume-migration", type=Path)
     result.add_argument("--mode", choices=("legacy_fsm_eval", "semantic_prior_eval", "semantic_residual_eval"), default="semantic_prior_eval")
     result.add_argument("--device", choices=("cpu", "cuda:0"), default="cuda:0")
@@ -153,6 +220,8 @@ def _resolved_checkpoint(path: Path, *, output_root: Path | None = None) -> Path
 def validate_request(args: argparse.Namespace) -> None:
     _validate_target_policy_request(args)
     runs_root, output_root, _ = _request_paths(args)
+    checkpoint_output = _checkpoint_output_root(args)
+    branch_requested = getattr(args, "checkpoint_output_branch", None) is not None
     budgets = training_quantity_budgets(getattr(args, "experiment_id", None))
     if getattr(args, "experiment_id", None) in ("residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1") and (
             args.new_mdp_warm_start or getattr(args, "policy_distribution_migration", False)):
@@ -216,8 +285,10 @@ def validate_request(args: argparse.Namespace) -> None:
             output_root / "checkpoints/history/checkpoint_initial_semantic.pt")):
         raise ValueError("training already exists; explicitly resume checkpoint_last instead of reinitializing")
     if args.checkpoint is not None:
-        source_root = output_root
+        source_root = (_checkpoint_branch_source_root(args, output_root, checkpoint_output)
+                       if branch_requested else output_root)
         if (getattr(args,"experiment_id",None) == "rr_capture_then_rl_transfer_v1" and args.resume_migration is not None
+                and not branch_requested
                 and not args.checkpoint.resolve(strict=True).is_relative_to((output_root/"checkpoints").resolve())):
             planned=json.loads(args.resume_migration.read_text(encoding="utf-8"))
             if not isinstance(planned.get("rr_capture_transfer_factor"),dict):
@@ -273,8 +344,13 @@ def validate_request(args: argparse.Namespace) -> None:
             elif args.checkpoint.resolve(strict=True).is_relative_to((OUTPUT_ROOT / "checkpoints").resolve()):
                 source_root = OUTPUT_ROOT
         args.checkpoint = _resolved_checkpoint(args.checkpoint, output_root=source_root)
+        if branch_requested:
+            _bind_checkpoint_output_routing(args, output_root, checkpoint_output, source_root)
         if args.command == "train":
             metadata = json.loads(args.checkpoint.with_name(args.checkpoint.stem + "_manifest.json").read_text())
+            if (not branch_requested and (metadata.get("rr_contact_onset_v6_migration") or {}).get(
+                    "source_selection", {}).get("source_role") == "front_validated_ancestor_control_eval"):
+                raise ValueError("published v6 ancestor training requires its explicit output branch")
             source_version = metadata.get("semantic_version", "v2")
             if args.new_mdp_warm_start:
                 expected_version = "v2" if source_root == OUTPUT_ROOT else "v3"
@@ -1241,10 +1317,11 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
             })
         _save_live_runtime_identity(core, args, contract, boundary="training_after_actual_reset_and_checkpoint_load")
         remaining = contract["training_budgets"][args.stage] - int((previous or {}).get("stage_requested_decisions", {}).get(args.stage, 0))
-        return train_semantic(runner, env, run_dir=args.run_dir, output_root=output_root,
+        return train_semantic(runner, env, run_dir=args.run_dir, output_root=_checkpoint_output_root(args),
                               stage=args.stage, decisions=remaining if args.decisions is None else args.decisions,
                               contract=contract, seed=args.seed, resume_infos=previous,
-                              checkpoint_interval_updates=args.checkpoint_interval_updates)
+                              checkpoint_interval_updates=args.checkpoint_interval_updates,
+                              checkpoint_output_routing=getattr(args, "_checkpoint_output_routing", None))
     finally:
         # main persists the final lifecycle BEFORE closing Kit. Its native
         # immediate-exit path does not return to Python on this Windows stack.

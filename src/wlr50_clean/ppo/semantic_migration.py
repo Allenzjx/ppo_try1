@@ -3823,6 +3823,9 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                             project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     path = Path(plan_path).resolve(strict=True)
     supplied = json.loads(path.read_text(encoding="utf-8"))
+    if supplied.get("schema") == "wlr50_clean.rr_contact_onset_same410.v6":
+        from .semantic_rr_contact_onset_migration import validate_rr_contact_onset_migration
+        return validate_rr_contact_onset_migration(checkpoint,current_contract,path,project_root=project_root)
     if supplied.get("schema") == "wlr50_clean.rr_progress_handoff_same410.v5":
         from .semantic_rr_progress_handoff_migration import validate_rr_progress_handoff_migration
         return validate_rr_progress_handoff_migration(checkpoint,current_contract,path,project_root=project_root)
