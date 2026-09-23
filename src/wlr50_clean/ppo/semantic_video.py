@@ -31,6 +31,7 @@ HZ, FPS, STRIDE = 120, 15, 8
 PRE_TICKS, POST_TICKS, MAX_FRAMES = 64, 184, 3000
 TASK_WINDOW_EXPERIMENT = "fsm_reference_p09_stable_v2"
 TASK_WINDOW_EXPERIMENTS = (TASK_WINDOW_EXPERIMENT, "task_first_recovery_v1", "non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1", "rr_rl_timing_policy_learning_v1")
+REAR_POLICY_EXPERIMENT = "rr_rl_timing_policy_learning_v1"
 CAMERA = {"eye_m": [1.45, -1.25, .8], "target_m": [.45, 0., .12]}
 REVIEW_CAMERA_EXPERIMENTS = ("non_residual_refine_v1", "residual_rr_fix_v1", "fl_capture_quality_v1", "task_conditioned_hip_wheel_v1", "p05_hip_only_continuation_v1", "rr_capture_then_rl_transfer_v1", "rr_rl_timing_policy_learning_v1")
 REVIEW_CAMERA = {"eye_m": [1.85, -1.65, 1.15], "target_m": [.70, -.15, .15]}
@@ -222,9 +223,14 @@ def video_configuration(semantic_version, *, experiment_id=None):
         ("reward_config_path", "reward_config.yaml"),
         ("observation_schema_path", "observation_schema.json"))}
     if experiment_id is not None:
-        # Bind all six experiment files, even though residual execution uses
-        # execution_profile rather than reading action_schema a second time.
+        # Bind the common six experiment files, even though residual execution
+        # uses execution_profile rather than reading action_schema a second time.
         result["action_schema_path"] = config / "action_schema.json"
+    if experiment_id == REAR_POLICY_EXPERIMENT:
+        # The rear-policy namespace has one additional, runtime-selected
+        # curriculum contract.  It is evidence/configuration, not permission
+        # to accept arbitrary extra files from another experiment.
+        result["curriculum_plan_path"] = config / "curriculum_plan.json"
     return result
 
 
@@ -235,11 +241,16 @@ def _validate_video_configuration_binding(configs, contract, *, experiment_id):
         return  # Preserve historical implicit v2/v3 source manifests.
     from .semantic_cli import PROJECT_ROOT
     from .semantic_policy_distribution import CONFIG_NAMES
-    require(set(path.name for path in configs.values()) == CONFIG_NAMES
-            and len(configs) == len(CONFIG_NAMES), "video requires all six selected configurations")
+    expected = set(CONFIG_NAMES)
+    if experiment_id == REAR_POLICY_EXPERIMENT:
+        expected.add("curriculum_plan.json")
+    count = "seven" if experiment_id == REAR_POLICY_EXPERIMENT else "six"
+    require(set(path.name for path in configs.values()) == expected
+            and len(configs) == len(expected),
+            f"video requires all {count} selected configurations")
     selected = contract.get("selected_configuration")
-    require(isinstance(selected, dict) and set(selected) == CONFIG_NAMES,
-            "video runtime lacks exactly six selected configuration bindings")
+    require(isinstance(selected, dict) and set(selected) == expected,
+            f"video runtime lacks exactly {count} selected configuration bindings")
     for path in configs.values():
         record = file_record(path)
         actual = Path(record["path"])

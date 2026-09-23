@@ -1,11 +1,15 @@
 """Additive live video entry point; never called by the training CLI."""
 from __future__ import annotations
+import ast
+from collections.abc import Mapping
+import hashlib
 import json
 from pathlib import Path
+import subprocess
 import traceback
 from datetime import datetime, timezone
 
-from .semantic_cli import (parser, validate_request, runtime_contract,
+from .semantic_cli import (PROJECT_ROOT, parser, validate_request, runtime_contract,
                            _preflight_checkpoint, _resolved_policy_version, _observation_layout_options,
                            _resolved_observation_layout, _resolved_policy_contract, jsonable)
 from .semantic_training import (construct_semantic_runner, load_semantic_checkpoint,
@@ -14,7 +18,151 @@ from .semantic_video import (ROLES, require, capture_semantic_video,
                              validate_semantic_video_source, video_configuration)
 
 
-def checkpoint_loader(args, contract):
+REAR_POLICY_EXPERIMENT = "rr_rl_timing_policy_learning_v1"
+MEDIA_COMPAT_SOURCE_HEAD = "fa4b98ed506eb2230e61e13bd93ceecdcb6cfdad"
+MEDIA_COMPAT_FILES = frozenset((
+    "src/wlr50_clean/ppo/semantic_video.py",
+    "src/wlr50_clean/ppo/semantic_video_cli.py",
+))
+
+
+def _sha256_bytes(value):
+    return hashlib.sha256(value).hexdigest()
+
+
+def _sha256_path(path):
+    return _sha256_bytes(Path(path).read_bytes())
+
+
+def _git_blob_bytes(commit, relative):
+    try:
+        return subprocess.run(
+            ["git", "-C", str(PROJECT_ROOT), "show", f"{commit}:{relative}"],
+            check=True, capture_output=True).stdout
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError(f"reviewed video runtime Git blob is unavailable: {relative}") from exc
+
+
+def _runtime_files_sha256(files):
+    return _sha256_bytes(json.dumps(files, sort_keys=True,
+                                    separators=(",", ":")).encode())
+
+
+def _runtime_identity(contract):
+    return {"source_git_commit": contract["source_git_commit"],
+            "runtime_content_sha256": contract["runtime_content_sha256"]}
+
+
+def _function_ast_sha256(source, name):
+    functions = [node for node in ast.parse(source.decode("utf-8")).body
+                 if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                 and node.name == name]
+    require(len(functions) == 1, f"reviewed media source lacks exactly one {name}")
+    return _sha256_bytes(ast.dump(functions[0], include_attributes=False).encode())
+
+
+def reviewed_video_checkpoint_runtime(args, evaluation_contract, *, role):
+    """Return the strict load contract and an eval-only two-file receipt.
+
+    A checkpoint is always loaded against its own exact saved runtime.  The
+    only cross-runtime case is the reviewed media repair from the frozen fa4
+    rear-policy runtime: capture uses the current clean runtime, while every
+    non-media runtime byte and every selected configuration stays identical.
+    This function is not imported by the training entry point.
+    """
+    if args.checkpoint is None:
+        return evaluation_contract, None
+    checkpoint = args.checkpoint.resolve(strict=True)
+    manifest = checkpoint.with_name(checkpoint.stem + "_manifest.json").resolve(strict=True)
+    metadata = json.loads(manifest.read_text(encoding="utf-8"))
+    source_contract = metadata.get("runtime_contract")
+    require(isinstance(source_contract, Mapping), "checkpoint runtime contract missing")
+    if source_contract == evaluation_contract:
+        return source_contract, None
+    require(role == "C" and args.command == "eval"
+            and args.mode == "semantic_residual_eval"
+            and args.semantic_version == "v3"
+            and getattr(args, "experiment_id", None) == REAR_POLICY_EXPERIMENT
+            and args.resume_migration is None and not args.new_mdp_warm_start
+            and not getattr(args, "policy_distribution_migration", False)
+            and getattr(args, "checkpoint_output_branch", None) is None,
+            "media-only checkpoint compatibility is limited to ordinary rear-policy C video eval")
+    require(source_contract.get("source_git_commit") == MEDIA_COMPAT_SOURCE_HEAD,
+            "media-only checkpoint source runtime is not the reviewed fa4 revision")
+    source_files = source_contract.get("files")
+    target_files = evaluation_contract.get("files")
+    require(isinstance(source_files, dict) and isinstance(target_files, dict)
+            and set(source_files) == set(target_files),
+            "media-only runtime inventories differ")
+    require(source_contract.get("runtime_content_sha256") == _runtime_files_sha256(source_files)
+            and evaluation_contract.get("runtime_content_sha256") == _runtime_files_sha256(target_files),
+            "media-only runtime inventory digest mismatch")
+    changed = {path for path in source_files if source_files[path] != target_files[path]}
+    require(changed == MEDIA_COMPAT_FILES,
+            "media-only runtime must change exactly semantic_video.py and semantic_video_cli.py")
+    ignored = {"source_git_commit", "runtime_content_sha256", "files"}
+    require({key: value for key, value in source_contract.items() if key not in ignored}
+            == {key: value for key, value in evaluation_contract.items() if key not in ignored},
+            "media-only runtime changed non-file contract metadata")
+    from .semantic_policy_distribution import CONFIG_NAMES
+    expected_configs = set(CONFIG_NAMES) | {"curriculum_plan.json"}
+    selected = source_contract.get("selected_configuration")
+    require(isinstance(selected, dict) and set(selected) == expected_configs
+            and evaluation_contract.get("selected_configuration") == selected,
+            "media-only runtime changed or omitted a selected rear-policy configuration")
+    source_head = source_contract["source_git_commit"]
+    target_head = evaluation_contract["source_git_commit"]
+    require(isinstance(target_head, str) and len(target_head) == 40 and target_head != source_head,
+            "media-only evaluation runtime Git revision is invalid")
+    bound_paths = set(MEDIA_COMPAT_FILES)
+    for name, binding in selected.items():
+        require(isinstance(binding, dict) and set(binding) == {"path", "sha256"}
+                and name == Path(binding["path"]).name
+                and source_files.get(binding["path"]) == binding["sha256"],
+                "media-only selected configuration binding is malformed")
+        bound_paths.add(binding["path"])
+    source_blobs = {}
+    target_blobs = {}
+    for relative in sorted(bound_paths):
+        source_blobs[relative] = _git_blob_bytes(source_head, relative)
+        target_blobs[relative] = _git_blob_bytes(target_head, relative)
+        require(_sha256_bytes(source_blobs[relative]) == source_files[relative]
+                and _sha256_bytes(target_blobs[relative]) == target_files[relative],
+                f"media-only Git blob/hash binding differs: {relative}")
+    cli_path = "src/wlr50_clean/ppo/semantic_video_cli.py"
+    require(_function_ast_sha256(source_blobs[cli_path], "build_video_core")
+            == _function_ast_sha256(target_blobs[cli_path], "build_video_core"),
+            "media-only revision changed build_video_core")
+    checkpoint_sha256 = _sha256_path(checkpoint)
+    require(metadata.get("checkpoint_sha256") == checkpoint_sha256
+            and metadata.get("save_load_round_trip") is True,
+            "media-only evaluation checkpoint integrity/round-trip proof missing")
+    receipt = {
+        "schema": "wlr50_clean.semantic_video_media_only_checkpoint_compatibility.v1",
+        "scope": "semantic_video_cli_eval_only",
+        "source_runtime": _runtime_identity(source_contract),
+        "evaluation_runtime": _runtime_identity(evaluation_contract),
+        "source_checkpoint": {"path": str(checkpoint), "sha256": checkpoint_sha256,
+                              "manifest_path": str(manifest),
+                              "manifest_sha256": _sha256_path(manifest)},
+        "reviewed_media_delta": {
+            path: {"source_sha256": source_files[path],
+                   "evaluation_sha256": target_files[path]}
+            for path in sorted(MEDIA_COMPAT_FILES)},
+        "selected_configuration": selected,
+        "selected_configuration_unchanged": True,
+        "all_other_runtime_files_identical": True,
+        "build_video_core_ast_unchanged": True,
+        "official_checkpoint_load_uses_source_runtime": True,
+        "capture_manifest_uses_evaluation_runtime": True,
+        "mdp_changed": False, "control_changed": False,
+        "policy_distribution_changed": False, "training_allowed": False,
+    }
+    return source_contract, receipt
+
+
+def checkpoint_loader(args, contract, *, evaluation_contract=None,
+                      media_compatibility=None):
     """Loads real saved state after refreshed tick-zero observation exists."""
     def load(observation):
         import torch
@@ -73,6 +221,13 @@ def checkpoint_loader(args, contract):
                  "policy_version": _resolved_policy_version(args),
                  "parameter_hashes":initial_hashes, "optimizer_updates":0,
                  "migration":getattr(args,"_migration_record",None)}
+        if media_compatibility is not None:
+            require(evaluation_contract is not None,
+                    "media-only load provenance lacks its evaluation runtime")
+            proof.update(
+                checkpoint_source_runtime=_runtime_identity(contract),
+                capture_evaluation_runtime=_runtime_identity(evaluation_contract),
+                reviewed_media_only_runtime_compatibility=media_compatibility)
         if _resolved_observation_layout(args) is not None:
             proof.update(observation_layout=_resolved_observation_layout(args),
                          observation_dimension=len(observation), policy_contract=_resolved_policy_contract(args))
@@ -154,10 +309,13 @@ def main(argv=None):
     experiment_options = {} if experiment_id is None else {"experiment_id": experiment_id}
     contract_options.update(experiment_options)
     contract=runtime_contract(**contract_options)
-    _preflight_checkpoint(args,contract)  # Strict contract before any native launch.
+    load_contract, media_compatibility = reviewed_video_checkpoint_runtime(
+        args, contract, role=role)
+    _preflight_checkpoint(args,load_contract)  # Strict saved contract before any native launch.
     args.run_dir.mkdir(parents=True,exist_ok=False)
     lifecycle={"schema":"wlr50_clean.semantic_video_run.v1","lifecycle":"RUNNING",
         "arguments":jsonable(vars(args)),"runtime_contract":contract,
+        "checkpoint_runtime_compatibility":media_compatibility,
         "started_at_utc":datetime.now(timezone.utc).isoformat(),"optimizer_updates":0}
     write_json(args.run_dir/"run_manifest.started.json",lifecycle)
     app=None
@@ -173,7 +331,9 @@ def main(argv=None):
         source=args.run_dir/"source"
         result=capture_semantic_video(core,role=role,seed=args.seed,
             output_directory=source,contract=contract,
-            policy_loader=checkpoint_loader(args,contract) if role=="C" else None,
+            policy_loader=checkpoint_loader(args,load_contract,
+                evaluation_contract=contract,
+                media_compatibility=media_compatibility) if role=="C" else None,
             semantic_version=args.semantic_version, **experiment_options)
         require(runtime_contract(**contract_options)==contract,
                 "runtime changed during capture")
