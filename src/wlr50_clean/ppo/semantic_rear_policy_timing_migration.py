@@ -145,6 +145,10 @@ def build_rear_policy_output_routing(metadata, contract, destination):
 def validate_rear_policy_namespace(metadata,contract,output_root, *, checkpoint_output_routing=None):
     from .semantic_migration import digest
     from .semantic_policy_distribution import policy_contract
+    if metadata.get('p02_progress_migration') is not None:
+        from .semantic_p02_progress_migration import validate_p02_progress_lineage
+        validate_p02_progress_lineage(metadata,contract,output_root,checkpoint_output_routing=checkpoint_output_routing)
+        return
     receipt=metadata.get(MIGRATION,{})
     runtime_bound = receipt.get('target_contract_sha256') == digest(contract)
     if metadata.get('rear_live_swing_migration') is not None:

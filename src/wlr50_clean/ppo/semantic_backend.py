@@ -86,6 +86,9 @@ def load_execution_profile(path: Path | str = DEFAULT_EXECUTION_PROFILE) -> dict
         raise ValueError("RR support-wheel projection requires the observable RR continuation")
     from .semantic_rear_policy_timing import MODES as REAR_TIMING_MODES
     rear_timing = profile.get("rear_policy_timing_mode")
+    from .semantic_p02_progress_profile import P02_PROGRESS_MODE
+    if profile.get("p02_progress_credit_mode") not in (None, P02_PROGRESS_MODE):
+        raise ValueError("unknown measured P02 progress execution mode")
     if rear_timing not in (None, *REAR_TIMING_MODES):
         raise ValueError("unknown rear policy timing execution profile")
     if rear_timing and (rr_assist is not None or profile.get("nominal_geometry_advisory") is not None
@@ -157,6 +160,8 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         self.task_spec_path = Path(task_spec_path).resolve()
         rr_task_spec = yaml.safe_load(self.task_spec_path.read_text(encoding="utf-8"))
         self._rear_policy_timing_mode = self.execution_profile.get("rear_policy_timing_mode")
+        if self.execution_profile.get("p02_progress_credit_mode") != rr_task_spec.get("p02_progress_credit_mode"):
+            raise ValueError("P02 progress execution and supervisor modes differ")
         if self._rear_policy_timing_mode != rr_task_spec.get("nominal", {}).get("rear_policy_timing"):
             raise ValueError("rear timing task and execution profile must agree")
         self._rr_support_spec = rr_task_spec["support"]

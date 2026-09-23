@@ -25,6 +25,9 @@ from .semantic_rear_policy_timing_profile import (
     REAR_POLICY_TIMING_GROUP, REAR_POLICY_TIMING_FIELDS, REAR_POLICY_TIMING_TIME_FIELDS,
 )
 
+from .semantic_p02_progress_profile import (P02_PROGRESS_OBSERVATION_LAYOUT,
+    P02_PROGRESS_OBSERVATION_DIM, P02_PROGRESS_GROUP, p02_progress_features)
+
 CONFIG_ROOT = Path(__file__).resolve().parents[3] / "configs" / "ppo_semantic_v2"
 DEFAULT_OBSERVATION_SCHEMA = CONFIG_ROOT / "observation_schema.json"
 STAGES = tuple(f"P{i:02d}" for i in range(1, 14))
@@ -135,10 +138,11 @@ class SemanticObservationSchema:
     capture_assist_features_version: str | None = None
     rr_capture_features_version: str | None = None
     rear_policy_timing_features_version: str | None = None
+    p02_progress_features_version: str | None = None
 
     @property
     def observation_layout(self) -> str | None:
-        return (self.rear_policy_timing_features_version or self.rr_capture_features_version
+        return (self.p02_progress_features_version or self.rear_policy_timing_features_version or self.rr_capture_features_version
                 or self.capture_assist_features_version or self.transfer_role_features_version)
 
     @property
@@ -172,14 +176,25 @@ def load_semantic_observation_schema(path: Path | str = DEFAULT_OBSERVATION_SCHE
     capture_layout = data.get("capture_assist_features_version")
     rr_layout = data.get('rr_capture_features_version')
     rear_timing_layout = data.get('rear_policy_timing_features_version')
-    rr_groups = groups
+    p02_layout = data.get('p02_progress_features_version')
+    rear_groups = groups
+    if p02_layout is not None:
+        if (p02_layout != P02_PROGRESS_OBSERVATION_LAYOUT
+                or rear_timing_layout != REAR_POLICY_TIMING_OBSERVATION_LAYOUT
+                or groups[-1] != {'name':P02_PROGRESS_GROUP,'size':3,'scale':1.0}
+                or sum(row['size'] for row in groups) != P02_PROGRESS_OBSERVATION_DIM):
+            raise SemanticObservationError('P02 progress must preserve419 and append exactly three fields')
+        rear_groups = groups[:-1]
+    elif any(row['name'] == P02_PROGRESS_GROUP for row in groups):
+        raise SemanticObservationError('P02 progress group requires its explicit version marker')
+    rr_groups = rear_groups
     if rear_timing_layout is not None:
         expected_rear_tail = {'name': REAR_POLICY_TIMING_GROUP, 'size': len(REAR_POLICY_TIMING_FIELDS), 'scale': 1.0}
         if (rear_timing_layout != REAR_POLICY_TIMING_OBSERVATION_LAYOUT
-                or rr_layout != RR_CAPTURE_OBSERVATION_LAYOUT or groups[-1] != expected_rear_tail
-                or sum(row['size'] for row in groups) != REAR_POLICY_TIMING_OBSERVATION_DIM):
+                or rr_layout != RR_CAPTURE_OBSERVATION_LAYOUT or rear_groups[-1] != expected_rear_tail
+                or sum(row['size'] for row in rear_groups) != REAR_POLICY_TIMING_OBSERVATION_DIM):
             raise SemanticObservationError('rear timing layout must preserve410 and append exactly nine explicit fields')
-        rr_groups = groups[:-1]
+        rr_groups = rear_groups[:-1]
     elif any(row['name'] == REAR_POLICY_TIMING_GROUP for row in groups):
         raise SemanticObservationError('rear timing group requires its explicit version marker')
     capture_groups = rr_groups
@@ -219,7 +234,7 @@ def load_semantic_observation_schema(path: Path | str = DEFAULT_OBSERVATION_SCHE
     if duration != 200.0 or clip <= 0.0:
         raise SemanticObservationError("semantic observation needs 200 second task horizon and positive clipping")
     return SemanticObservationSchema(groups, _quaternion(data["fixed_chassis_to_body_wxyz"]),
-                                     duration, clip, selected, role_layout, capture_layout, rr_layout, rear_timing_layout)
+                                     duration, clip, selected, role_layout, capture_layout, rr_layout, rear_timing_layout, p02_layout)
 
 
 def transfer_role_observation_features(task: Mapping[str, Any]) -> tuple[float, ...]:
@@ -451,6 +466,11 @@ class SemanticObservationBuilder:
                         raise SemanticObservationError('rear timing flags must be actual booleans')
                     values.append(float(value))
             groups[REAR_POLICY_TIMING_GROUP] = tuple(values)
+        if self.schema.p02_progress_features_version is not None:
+            try:
+                groups[P02_PROGRESS_GROUP] = p02_progress_features(field(task,'p02_progress_credit'),task['stage_id'])
+            except ValueError as error:
+                raise SemanticObservationError(str(error)) from error
         self.schema.encode(groups)
         mass = finite(field(com,"total_mass_kg"),"robot mass")
         if mass <= 0.0 or field(com,"valid") is not True:

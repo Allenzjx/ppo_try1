@@ -33,6 +33,9 @@ from .semantic_rr_capture_profile import (RR_CAPTURE_POLICY, RR_CAPTURE_ACTOR_CL
 from .semantic_rear_policy_timing_profile import (REAR_POLICY_TIMING_POLICY, REAR_POLICY_TIMING_ACTOR_CLASS,
     REAR_POLICY_TIMING_OBSERVATION_LAYOUT, rear_policy_timing_policy_contract)
 
+from .semantic_p02_progress_profile import (P02_PROGRESS_POLICY, P02_PROGRESS_ACTOR_CLASS,
+    P02_PROGRESS_OBSERVATION_LAYOUT, p02_progress_policy_contract)
+
 LEGACY_POLICY = "gaussian_scalar_v1"
 STATE_DEPENDENT_POLICY = "heteroscedastic_log_v1"
 HISTORY_POLICY = "history_conditioned_heteroscedastic_log_v1"
@@ -85,6 +88,8 @@ NORMALIZATION = "fixed_versioned_observation_schema; identity_RSL_normalizer"
 
 
 def policy_contract(version: str, *, observation_layout: str | None = None) -> dict[str, Any]:
+    if version == P02_PROGRESS_POLICY:
+        return p02_progress_policy_contract(observation_layout=observation_layout)
     if version == REAR_POLICY_TIMING_POLICY:
         return rear_policy_timing_policy_contract(observation_layout=observation_layout)
     if version == RR_CAPTURE_POLICY:
@@ -238,6 +243,9 @@ def configure_policy_distribution(config: dict[str, Any], version: str, *,
     if version == RR_CAPTURE_POLICY:
         config["actor"]["class_name"] = RR_CAPTURE_ACTOR_CLASS
         config["actor"]["exploration_std_temperature"] = contract["exploration_std_temperature"]
+    if version == P02_PROGRESS_POLICY:
+        config["actor"]["class_name"] = P02_PROGRESS_ACTOR_CLASS
+        config["actor"]["exploration_std_temperature"] = contract["exploration_std_temperature"]
     if version == REAR_POLICY_TIMING_POLICY:
         config["actor"]["class_name"] = REAR_POLICY_TIMING_ACTOR_CLASS
         config["actor"]["exploration_std_temperature"] = contract["exploration_std_temperature"]
@@ -265,6 +273,8 @@ def _same_json(left: Any, right: Any) -> bool:
 def supported_heteroscedastic_contract_version(contract: Mapping[str, Any]) -> str:
     """Accept only a complete, exact supported heteroscedastic policy contract."""
     if isinstance(contract, Mapping):
+        if _same_json(dict(contract), policy_contract(P02_PROGRESS_POLICY, observation_layout=P02_PROGRESS_OBSERVATION_LAYOUT)):
+            return P02_PROGRESS_POLICY
         if _same_json(dict(contract), policy_contract(REAR_POLICY_TIMING_POLICY, observation_layout=REAR_POLICY_TIMING_OBSERVATION_LAYOUT)):
             return REAR_POLICY_TIMING_POLICY
         if _same_json(dict(contract),policy_contract(RR_CAPTURE_POLICY,observation_layout=RR_CAPTURE_OBSERVATION_LAYOUT)):
@@ -320,6 +330,7 @@ def policy_version_from_metadata(metadata: Mapping[str, Any]) -> str:
                 RECEIVING_WHEEL_POLICY,
             (RR_CAPTURE_ACTOR_CLASS, "HeteroscedasticGaussianDistribution", "log"):
                 RR_CAPTURE_POLICY,
+            (P02_PROGRESS_ACTOR_CLASS, "HeteroscedasticGaussianDistribution", "log"): P02_PROGRESS_POLICY,
             (REAR_POLICY_TIMING_ACTOR_CLASS, "HeteroscedasticGaussianDistribution", "log"):
                 REAR_POLICY_TIMING_POLICY,
             (P05_CAPTURE_ACTOR_CLASS, "HeteroscedasticGaussianDistribution", "log"):
@@ -330,7 +341,7 @@ def policy_version_from_metadata(metadata: Mapping[str, Any]) -> str:
     if version in (HISTORY_POLICY, HISTORY_TEMPERED_POLICY, HISTORY_QUARTER_TEMPERED_POLICY,
                    HISTORY_REQUEST_CAP_TRANSITION_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY,
                    TASK_CONDITIONED_HIP_WHEEL_POLICY, RECEIVING_WHEEL_POLICY, P05_CAPTURE_POLICY, RR_CAPTURE_POLICY,
-                   REAR_POLICY_TIMING_POLICY) and semantic_version != "v3":
+                   REAR_POLICY_TIMING_POLICY, P02_PROGRESS_POLICY) and semantic_version != "v3":
         raise ValueError("history-conditioned policy requires semantic v3")
     declared = metadata.get("policy_contract")
     if declared is None:

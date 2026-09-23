@@ -56,6 +56,122 @@ P05_PREEDGE_RECOVERY_MODE = "p05_preedge_approach_recovery_v1"
 P05_SAME_AIR_RECROSS_MODE = "p05_preedge_same_air_recross_v2"
 P05_COMPLETED_SOURCE_RECOVERY_MODE = "p05_completed_source_first_approach_recross_v3"
 P05_FINITE_RECOVERY_TIMEOUT_MODE = "current_capture_or_completed_handoff_after_original_window_v1"
+P02_PROGRESS_CREDIT_MODE = "p02_measured_progress_credit_v1"
+APPROACH_DISTANCE_SCALE_M = .25  # Existing approach predicate scale, now shared explicitly.
+
+
+def _p02_progress_credit_config(spec: Mapping[str, Any]) -> dict | None:
+    mode = spec.get("p02_progress_credit_mode")
+    if mode not in (None, P02_PROGRESS_CREDIT_MODE):
+        raise ValueError("unknown P02 measured progress continuation semantics")
+    if mode is None:
+        return None
+    p02 = spec["stages"]["P02"]
+    goals = p02["completion_predicates"]
+    if (spec.get("physical_acceptance_version") != "all_stage_v1"
+            or tuple(goals) != ("lifted_FR", "clear_FR", "approach_FR")
+            or spec["episode_maximum_duration_s"] != 200.):
+        raise ValueError("P02 credit requires unchanged measured FR goals and global200s")
+    stall = p02["stall_diagnostic"]
+    window = _number(stall["window_s"], "P02 progress reference window")
+    minimum = _number(stall["minimum_potential_change"], "P02 minimum progress")
+    if window <= 0. or minimum <= 0.:
+        raise ValueError("P02 credit requires positive existing progress/window scales")
+    capacity = minimum * len(goals) * APPROACH_DISTANCE_SCALE_M
+    geo = spec["geometry"]
+    return {"capacity_m": capacity, "drain_m_s": capacity / window,
+            "reference_window_s": window,
+            "accepted_lower_m": geo["approach_min_m"] - geo["xy_measurement_tolerance_m"]}
+
+
+class _P02ProgressCredit:
+    """Finite measured-distance opportunity; no command, task credit or clock reset."""
+    def __init__(self, spec: Mapping[str, Any]):
+        self.spec = spec
+        self.config = _p02_progress_credit_config(spec)
+        if self.config is None:
+            raise ValueError("credit state must be explicitly enabled")
+        self.best_remaining_m: float | None = None
+        self.credit_m = 0.
+        self.last_tick: int | None = None
+        self.last_time_s: float | None = None
+        self.last_snapshot: dict = {}
+
+    def observe(self, observation: Any, evaluation: Mapping[str, Any], *,
+                stage_id: str, goal_values: Mapping[str, float], entry_valid: bool,
+                episode_age_s: float, physical_terminal: str | None) -> dict:
+        tick = _get(observation, "physics_tick")
+        now = _number(_get(observation, "simulation_time_s"), "credit actual physics clock")
+        if tick == self.last_tick:
+            if now != self.last_time_s:
+                raise ValueError("same P02 credit observation tick has inconsistent time")
+            return dict(self.last_snapshot)
+        if self.last_tick is not None and (tick < self.last_tick or now <= self.last_time_s):
+            raise ValueError("P02 credit clock must advance; reset creates new supervisor")
+        # Actual elapsed physics time; the enclosing TaskEvaluator independently
+        # requires contiguous120Hz data, not repeated snapshot calls.
+        dt = 0. if self.last_time_s is None else now - self.last_time_s
+        self.last_tick, self.last_time_s = tick, now
+        p02 = stage_id == "P02"
+        current = evaluation.get("current_legs", {}).get("FR", {})
+        history = evaluation.get("history", {})
+        event = history.get("event_ticks", {}).get("active_lift", {}).get("FR")
+        air_count = current.get("consecutive_air_samples", 0)
+        first_event_in_current_air = bool(type(event) is int and type(air_count) is int
+            and air_count > 0 and tick-air_count+1 <= event <= tick)
+        # Before crossing, the evaluator revokes active_lift on real GROUND and
+        # only restores it after new measured qualification; its event tick is
+        # intentionally the FIRST historical event, not a per-attempt clock.
+        revocable_pre_cross_lift = bool(type(event) is int and type(air_count) is int
+            and air_count > 0 and not history.get("front_edge_crossed", {}).get("FR", False)
+            and not history.get("placed", {}).get("FR", False))
+        same_air_lift = bool(history.get("active_lift", {}).get("FR") is True
+            and current.get("active_attempt") is True
+            and (first_event_in_current_air or revocable_pre_cross_lift))
+        support = [leg for leg, row in evaluation.get("current_legs", {}).items()
+                   if leg != "FR" and row.get("support") is True
+                   and row.get("bearing_verified") is True]
+        checks = {"P02": p02, "entry_valid": entry_valid,
+            "physical_valid": evaluation.get("valid") is True,
+            "no_physical_abort": physical_terminal is None and evaluation.get("termination_reason") is None,
+            "within_global_horizon": episode_age_s < self.spec["episode_maximum_duration_s"],
+            "current_FR_AIR": current.get("air") is True and current.get("ground_contact") is False,
+            "same_air_qualified_lift": same_air_lift,
+            "existing_lift_complete": goal_values.get("lifted_FR") == 1.,
+            "existing_clear_complete": goal_values.get("clear_FR") == 1.,
+            "current_lateral_valid": current.get("within_lateral_span") is True,
+            "current_other_supports": len(support) >= self.spec["support"]["minimum_other_supports"]}
+        eligible = all(checks.values())
+        earned = new_progress = 0.
+        remaining = None
+        if not p02:
+            self.best_remaining_m, self.credit_m = None, 0.
+        else:
+            if evaluation.get("valid") is True:
+                distance = _number(current["front_distance_m"], "measured FR front distance")
+                remaining = max(0., self.config["accepted_lower_m"] - distance)
+                old_best = remaining if self.best_remaining_m is None else self.best_remaining_m
+                new_progress = max(0., old_best - remaining)
+                self.best_remaining_m = min(old_best, remaining)
+                earned = new_progress if eligible else 0.
+            self.credit_m = min(self.config["capacity_m"],
+                max(0., self.credit_m + earned - self.config["drain_m_s"] * dt))
+        self.last_snapshot = {"mode": P02_PROGRESS_CREDIT_MODE,
+            "best_remaining_m": self.best_remaining_m if p02 and self.best_remaining_m is not None else 0.,
+            "credit_fraction": self.credit_m / self.config["capacity_m"] if p02 else 0.,
+            "current_eligible": bool(p02 and eligible),
+            "continuation_allowed": bool(p02 and eligible and self.credit_m > 0.),
+            "credit_m": self.credit_m, "current_remaining_m": remaining,
+            "new_best_progress_m": new_progress, "earned_progress_m": earned,
+            "elapsed_physics_s": dt, "observation_tick": tick,
+            "checks": checks, "observed_other_supports": support,
+            "same_air_lift_event_tick": event, "current_FR_air_samples": air_count,
+            "capacity_m": self.config["capacity_m"], "drain_m_s": self.config["drain_m_s"],
+            "reference_window_s": self.config["reference_window_s"],
+            "accepted_approach_lower_m": self.config["accepted_lower_m"],
+            "task_completion_or_contact_awarded": False,
+            "action_or_source_clock_modified": False}
+        return dict(self.last_snapshot)
 
 
 def _capture_continuation_enabled(spec: Mapping[str, Any]) -> bool:
@@ -426,6 +542,7 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
         for key in ("minimum_initial_clearance_gain_m","minimum_lift_gain_m"):
             if _number(spec["history"][key],key) <= 0:
                 raise ValueError("lift credit physical scales must be positive")
+    _p02_progress_credit_config(spec)
     required = {"purpose", "valid_start_conditions", "goal_features", "completion_predicates",
                 "progress_potential", "allowed_action_channels", "physical_limits",
                 "stall_diagnostic", "maximum_task_duration", "next_phase", "active_leg"}
@@ -1187,6 +1304,8 @@ class TaskStageSupervisor:
         self._snapshot: dict[str, Any] = {}
         self._last_observation_tick: int | None = None
         self._progress_samples: deque = deque()
+        self._p02_progress_credit = (_P02ProgressCredit(self.spec)
+            if _p02_progress_credit_config(self.spec) is not None else None)
         self._capture_continuation = _capture_continuation_enabled(self.spec)
         self._fl_pending_handoff: dict[str, Any] | None = None
         self._p05_local_deadline_warning = False
@@ -1319,7 +1438,7 @@ class TaskStageSupervisor:
                 # the previous run's exact sub-millimetre deficit as a cutoff.
                 margin = geo["xy_measurement_tolerance_m"]
                 lower, upper = lower-margin, upper+margin
-            return 1. if lower <= x <= upper else _clip(1.-min(abs(x-lower),abs(x-upper))/.25)
+            return 1. if lower <= x <= upper else _clip(1.-min(abs(x-lower),abs(x-upper))/APPROACH_DISTANCE_SCALE_M)
         if kind == "clear":
             if (self.spec.get("physical_acceptance_version") == "all_stage_v1"
                     and (history["front_edge_crossed"][leg] or history["placed"][leg])
@@ -1694,6 +1813,24 @@ class TaskStageSupervisor:
                 remaining_post = max(0., self.spec["final"]["post_completion_observation_s"]
                                      - evaluation["post_completion_elapsed_s"])
                 post_window_allowance = max(0., age+remaining_post-local_limit-allowance)
+        p02_credit = None
+        if self._p02_progress_credit is not None:
+            p02_credit = self._p02_progress_credit.observe(observation, evaluation,
+                stage_id=self.stage_id, goal_values=goal_values, entry_valid=entry["valid"],
+                episode_age_s=episode_age, physical_terminal=self.termination_reason)
+            # Measured completion is not new earning: preserve only the existing
+            # imminent decision-aligned handoff, even if FR is now real TOP.
+            completion_pending = bool(self.stage_id == "P02" and entry["valid"]
+                and evaluation["valid"] and self.termination_reason is None
+                and all(value >= 1. for value in goal_values.values())
+                and _get(observation, "physics_tick") % 8 != 0)
+            legacy_exhausted = age >= local_limit + allowance + post_window_allowance
+            p02_credit.update(legacy_local_budget_exhausted=legacy_exhausted,
+                completed_handoff_pending=completion_pending,
+                local_deadline_suppressed=bool(legacy_exhausted
+                    and (p02_credit["continuation_allowed"] or completion_pending)))
+            local_warning_only = bool(local_warning_only
+                or p02_credit["continuation_allowed"] or completion_pending)
         if self.termination_reason is None:
             if episode_age >= self.spec["episode_maximum_duration_s"]:
                 self.termination_reason = TaskResult.INCOMPLETE_CONTROLLER_BLOCKED.value
@@ -1724,6 +1861,8 @@ class TaskStageSupervisor:
             "remaining_task_time_s":max(0.,self.spec["episode_maximum_duration_s"]-episode_age),
             "substage":"CAPTURE" if progress >= .8 else ("TRANSFER" if self.stage_id in ("P01","P04","P08","P10","P11") else "EXECUTION"),
             "stall_diagnostic":stalled,"transition_evidence":list(self.transition_evidence),"physical_evaluator":evaluation}
+        if p02_credit is not None:
+            self._snapshot["p02_progress_credit"] = p02_credit
         if rr_recovery is not None:
             self._snapshot["rr_capture_continuation"] = rr_recovery
         if (self.spec.get("physical_acceptance_version") == "all_stage_v1" and self.stage_id == "P13"
@@ -1795,6 +1934,12 @@ class TaskStageSupervisor:
                 timer_inputs_observable_in_existing372=False,
                 observation_semantics="legacy372_times_plus_explicit_capture_append17",
                 current_schema_observable=True)
+        if p02_credit is not None and self.stage_id == "P02":
+            self._snapshot["local_timeout"].update(
+                classification="measured_progress_earned_continuation" if local_warning_only else "finite_task_terminal_not_external_truncation",
+                local_episode_terminal_enabled=not local_warning_only,
+                observation_semantics="legacy419_plus_public_P02_progress_credit3",
+                timer_inputs_observable_in_existing372=False, current_schema_observable=True)
         self._last_observation_tick = _get(observation, "physics_tick")
         return dict(self._snapshot)
 

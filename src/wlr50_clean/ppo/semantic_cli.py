@@ -1,5 +1,6 @@
 """Isolated semantic B/C experiments, without the legacy perfect-probe gates."""
 from __future__ import annotations
+from .semantic_p02_progress_profile import P02_PROGRESS_POLICY, P02_PROGRESS_OBSERVATION_LAYOUT
 
 import argparse
 from contextlib import closing, nullcontext
@@ -358,10 +359,15 @@ def validate_request(args: argparse.Namespace) -> None:
             initial_append = isinstance(planned.get("rear_policy_timing_factor"),dict)
             same419 = isinstance(planned.get("rear_recapture_same419_factor"),dict)
             live_swing = isinstance(planned.get("rear_live_swing_same419_factor"),dict)
-            if sum((initial_append,same419,live_swing)) != 1:
+            p02_append = isinstance(planned.get("p02_progress_append_factor"),dict)
+            if sum((initial_append,same419,live_swing,p02_append)) != 1:
                 raise ValueError("rear timing requires exactly one declared migration boundary")
             if initial_append:
                 source_root=version_paths("v3",experiment_id="rr_capture_then_rl_transfer_v1")[1]
+            elif p02_append:
+                if (planned.get('schema') != 'wlr50_clean.p02_progress_append.v1'
+                        or not branch_requested or source_root.resolve()!=checkpoint_output.resolve()):
+                    raise ValueError('P02 append requires the existing learned branch')
             elif live_swing:
                 if (planned.get("schema") != "wlr50_clean.rear_live_swing_same419.v3"
                         or not branch_requested or source_root.resolve()!=checkpoint_output.resolve()):
@@ -515,6 +521,11 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
     if getattr(args,"experiment_id",None) == "rr_rl_timing_policy_learning_v1" and args.resume_migration is not None:
         from .semantic_rear_policy_timing_profile import REAR_POLICY_TIMING_POLICY, REAR_POLICY_TIMING_OBSERVATION_LAYOUT
         args._migration_record=validate_migration_plan(args.checkpoint,contract,args.resume_migration)
+        if args._migration_record.get('p02_progress_append_factor') is not None:
+            if args._observation_layout != P02_PROGRESS_OBSERVATION_LAYOUT or metadata['seed'] != args.seed:
+                raise ValueError('P02 append requires exact422 and original seed')
+            args._policy_version=P02_PROGRESS_POLICY
+            return
         if args._observation_layout != REAR_POLICY_TIMING_OBSERVATION_LAYOUT or metadata["seed"] != args.seed:
             raise ValueError("rear timing requires exact419 layout and original RNG seed")
         args._policy_version=REAR_POLICY_TIMING_POLICY
@@ -679,7 +690,7 @@ def _request_history_prefix_provenance(args, contract, previous):
     from .semantic_p05_capture_profile import P05_CAPTURE_POLICY
     from .semantic_rr_capture_profile import RR_CAPTURE_POLICY
     from .semantic_rear_policy_timing_profile import REAR_POLICY_TIMING_POLICY
-    if target["version"] in (P05_CAPTURE_POLICY,RR_CAPTURE_POLICY,REAR_POLICY_TIMING_POLICY):
+    if target["version"] in (P05_CAPTURE_POLICY,RR_CAPTURE_POLICY,REAR_POLICY_TIMING_POLICY,P02_PROGRESS_POLICY):
         if (previous.get("policy_contract") != target or previous["runtime_contract"] != contract
                 or getattr(args, "_migration_record", None) is not None):
             raise ValueError("P05 prefix requires the saved/reloaded migrated checkpoint in its exact runtime")

@@ -3823,6 +3823,9 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                             project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     path = Path(plan_path).resolve(strict=True)
     supplied = json.loads(path.read_text(encoding="utf-8"))
+    if supplied.get("schema") == "wlr50_clean.p02_progress_append.v1":
+        from .semantic_p02_progress_migration import validate_p02_progress_migration
+        return validate_p02_progress_migration(checkpoint,current_contract,plan_path,project_root=project_root)
     if supplied.get("schema") == "wlr50_clean.rear_live_swing_same419.v3":
         from .semantic_rear_live_swing_migration import validate_rear_live_swing_migration
         return validate_rear_live_swing_migration(checkpoint,current_contract,path,project_root=project_root)
@@ -3958,9 +3961,11 @@ def topology(num_envs: int, *, observation_layout: str | None = None) -> dict[st
         from .semantic_p05_capture_profile import P05_CAPTURE_OBSERVATION_LAYOUT, P05_CAPTURE_OBSERVATION_DIM
         from .semantic_rr_capture_profile import RR_CAPTURE_OBSERVATION_LAYOUT, RR_CAPTURE_OBSERVATION_DIM
         from .semantic_rear_policy_timing_profile import REAR_POLICY_TIMING_OBSERVATION_LAYOUT, REAR_POLICY_TIMING_OBSERVATION_DIM
-        if type(observation_layout) is not str or observation_layout not in (ROLE_OBSERVATION_LAYOUT,P05_CAPTURE_OBSERVATION_LAYOUT,RR_CAPTURE_OBSERVATION_LAYOUT,REAR_POLICY_TIMING_OBSERVATION_LAYOUT) or num_envs != 1:
+        from .semantic_p02_progress_profile import P02_PROGRESS_OBSERVATION_LAYOUT
+        if type(observation_layout) is not str or observation_layout not in (ROLE_OBSERVATION_LAYOUT,P05_CAPTURE_OBSERVATION_LAYOUT,RR_CAPTURE_OBSERVATION_LAYOUT,REAR_POLICY_TIMING_OBSERVATION_LAYOUT,P02_PROGRESS_OBSERVATION_LAYOUT) or num_envs != 1:
             raise ValueError("role observation topology requires the explicit supported N1 layout")
-        result.update(observation_layout=observation_layout, observation_dimension=(REAR_POLICY_TIMING_OBSERVATION_DIM
+        result.update(observation_layout=observation_layout, observation_dimension=(422
+            if observation_layout == P02_PROGRESS_OBSERVATION_LAYOUT else REAR_POLICY_TIMING_OBSERVATION_DIM
             if observation_layout == REAR_POLICY_TIMING_OBSERVATION_LAYOUT else RR_CAPTURE_OBSERVATION_DIM
             if observation_layout == RR_CAPTURE_OBSERVATION_LAYOUT else P05_CAPTURE_OBSERVATION_DIM
             if observation_layout == P05_CAPTURE_OBSERVATION_LAYOUT else ROLE_OBSERVATION_DIM))

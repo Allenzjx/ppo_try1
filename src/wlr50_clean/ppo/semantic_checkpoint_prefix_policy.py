@@ -20,6 +20,8 @@ from .semantic_policy_distribution import (
 from .semantic_receiving_wheel_profile import RECEIVING_WHEEL_POLICY
 from .semantic_p05_capture_profile import P05_CAPTURE_POLICY
 from .semantic_rr_capture_profile import RR_CAPTURE_POLICY
+from .semantic_p02_progress_profile import P02_PROGRESS_POLICY
+from .semantic_p02_progress_actor import SemanticP02ProgressHistoryMLPModel
 from .semantic_rear_policy_timing_profile import REAR_POLICY_TIMING_POLICY
 from .semantic_rear_policy_timing_actor import SemanticRearPolicyTimingHistoryMLPModel
 
@@ -124,7 +126,7 @@ def _source_record(source: Mapping[str, Any]) -> dict[str, Any]:
         raise ValueError("source_runtime_content_sha256 must be a lowercase SHA256")
     from .semantic_policy_distribution import (HISTORY_REQUEST_CAP_TRANSITION_POLICY,
         HISTORY_QUARTER_TEMPERED_POLICY, FR_KNEE_PHYSICAL_INNOVATION_POLICY, TASK_CONDITIONED_HIP_WHEEL_POLICY)
-    if record["policy_contract"]["version"] in (P05_CAPTURE_POLICY,RR_CAPTURE_POLICY,REAR_POLICY_TIMING_POLICY):
+    if record["policy_contract"]["version"] in (P05_CAPTURE_POLICY,RR_CAPTURE_POLICY,REAR_POLICY_TIMING_POLICY,P02_PROGRESS_POLICY):
         # Prefixes begin only from the already saved/reloaded migrated model,
         # never by pretending an old source hash names an appended actor.
         if (record.get("source_policy_contract") != record["policy_contract"]
@@ -219,7 +221,8 @@ class FrozenCheckpointPrefixPolicy:
             RECEIVING_WHEEL_POLICY: SemanticReceivingWheelSigmaHistoryMLPModel,
             P05_CAPTURE_POLICY:SemanticP05CaptureHistoryMLPModel,
             RR_CAPTURE_POLICY:SemanticRRCaptureHistoryMLPModel,
-            REAR_POLICY_TIMING_POLICY:SemanticRearPolicyTimingHistoryMLPModel}
+            REAR_POLICY_TIMING_POLICY:SemanticRearPolicyTimingHistoryMLPModel,
+            P02_PROGRESS_POLICY:SemanticP02ProgressHistoryMLPModel}
         expected_class = history_classes.get(version, MLPModel)
         if not isinstance(actor, torch.nn.Module) or getattr(actor, "is_recurrent", False):
             raise ValueError("checkpoint prefix requires a nonrecurrent torch actor")
