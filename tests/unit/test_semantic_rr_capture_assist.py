@@ -176,16 +176,17 @@ def test_P12_P13_do_not_start_new_capture_or_claim_bearing():
     assert assist.state == before
 
 
-def test_total_twenty_degrees_is_not_replenished_by_contact_losses():
+def test_v3_combined_forty_degrees_is_not_replenished_by_contact_losses():
     assist = RRHipOnlyCaptureAssist(); step(assist, 1)
-    for tick in range(2, 1500):
+    for tick in range(2, 5000):
         if tick % 7 == 0:
             step(assist, tick, air=False, obstacle_pair_active=True, gap_m=.1)
         else:
             step(assist, tick, gap_m=.1 - (tick % 7) * .0003)
-    assert assist.state["travel_used_deg"] == pytest.approx(20.)
+    assert assist.state["travel_used_deg"] == pytest.approx(40.)
     assert assist.state["hip_target_deg"] == pytest.approx(-10.)
-    step(assist, 1500, gap_m=.01)
+    assert assist.state["knee_hold_deg"] == pytest.approx(12.)
+    step(assist, 5000, gap_m=.01)
     assert assist.state["blocked_reason"] == 5.
 
 
@@ -318,8 +319,8 @@ def test_mixed_GROUND_TOP_cannot_be_current_TOP_bearing_or_start_release():
 
 
 @pytest.mark.parametrize("state_change,reason", [
-    ({"travel_used_deg": 20. - DT}, 5.),
-    ({"descent_elapsed_s": 12. - DT}, 8.),
+    ({"travel_used_deg": 40. - DT, "descent_elapsed_s": 30. - DT}, 5.),
+    ({"travel_used_deg": 12. - DT, "descent_elapsed_s": 12. - DT}, 8.),
     ({"window_elapsed_s": 2. - DT}, 4.),
     ({"hip_target_deg": -133. + DT}, 5.),
 ])
@@ -346,11 +347,11 @@ def test_forged_DESCEND_snapshot_cannot_hide_exhaustion_or_retirement(key, value
 
 def test_reacquisition_with_consumed_total_budget_never_advertises_DESCEND():
     assist = RRHipOnlyCaptureAssist(); step(assist, 1)
-    assist.state.update(mode=3., blocked_reason=5., travel_used_deg=20.)
+    assist.state.update(mode=3., blocked_reason=5., travel_used_deg=40., descent_elapsed_s=30.)
     step(assist, 2, stage_id="P10", **top())
     for tick in range(3, 93):
         step(assist, tick, stage_id="P10", **top())
     assert assist.snapshot()["mode_name"] == "RELEASED"
     step(assist, 93, stage_id="P11")
     assert assist.snapshot()["mode_name"] == "BLOCKED"
-    assert assist.state["blocked_reason"] == 5. and assist.state["travel_used_deg"] == 20.
+    assert assist.state["blocked_reason"] == 5. and assist.state["travel_used_deg"] == 40.

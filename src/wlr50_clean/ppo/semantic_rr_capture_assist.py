@@ -1,8 +1,9 @@
-"""Opt-in finite RR hip-only capture transform, not a policy or task event.
+"""Opt-in finite RR hip-then-knee capture transform, not a policy or task event.
 
 Only canonical RR hip/knee (6/7) are owned. The existing final hard limits,
 slew and unique physical dispatch remain authoritative. Negative hip is an
-explicit bounded diagnostic direction, not a claim about Cartesian motion.
+explicit bounded diagnostic direction, followed by bounded positive knee;
+neither direction is a claim about Cartesian motion.
 """
 from __future__ import annotations
 
@@ -14,8 +15,9 @@ from wlr50_clean.ppo.semantic_rr_capture_context import verified_current_support
 
 RR_CAPTURE_ASSIST_MODE = "rr_hip_only_capture_v1"
 RR_CAPTURE_ASSIST_SCHEMA = "wlr50_clean.rr_capture_assist_state.v1"
-RR_CAPTURE_FEEDBACK_REVISION = "window_peak_progress_v2"
+RR_CAPTURE_FEEDBACK_REVISION = "window_peak_hip_then_knee_v3"
 RR_CAPTURE_WINDOW_REFERENCE_SEMANTICS = "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed"
+RR_CAPTURE_SEARCH_SEMANTICS = "combined_travel_0_40_first20_negative_hip_then20_positive_knee_at1deg_per_s_knee_hold_is_dynamic_target_axis_from_travel_hip_elapsed_equals_total_elapsed_minus_max_travel_minus20_0"
 RR_CAPTURE_ASSIST_FEATURE_NAMES = (
     "mode", "initialized", "knee_hold_deg", "hip_entry_deg", "hip_target_deg",
     "travel_used_deg", "descent_elapsed_s", "window_start_gap_m", "window_elapsed_s",
@@ -24,7 +26,7 @@ RR_CAPTURE_ASSIST_FEATURE_NAMES = (
 _SCALES = (5., 1., 180., 180., 180., 20., 12., .1, 2., 1., 1., 1., 1., 9.)
 _MODES = ("WAIT", "DESCEND", "HOLD", "BLOCKED", "RELEASE", "RELEASED")
 _REASONS = ("none", "physical_invalid", "capture_XY_unavailable", "other_support_unavailable",
-            "gap_not_improving", "finite_hip_travel_or_margin", "waiting_actual_tracking",
+            "gap_not_improving", "finite_search_travel_or_margin", "waiting_actual_tracking",
             "current_AIR_unavailable", "finite_descent_exposure", "qualified_crossing_unavailable")
 _BOOL_CONTEXT = ("physical_valid", "within_top_xy", "qualified_RR", "crossed_RR",
                  "air", "ground_contact", "top_surface_contact", "obstacle_pair_active",
@@ -50,17 +52,29 @@ def _snapshot(state, tick):
     return {"schema": RR_CAPTURE_ASSIST_SCHEMA, "version": RR_CAPTURE_ASSIST_MODE,
         "feedback_revision": RR_CAPTURE_FEEDBACK_REVISION,
         "window_reference_semantics": RR_CAPTURE_WINDOW_REFERENCE_SEMANTICS,
+        "capture_search_semantics": RR_CAPTURE_SEARCH_SEMANTICS,
         **state, "mode_name": _MODES[mode], "reason": _REASONS[int(state["blocked_reason"])],
         "active": active, "owners": [owner, owner], "owner_indices": [6, 7] if active else [],
         "last_dispatch_physics_tick": tick, "feature_names": list(RR_CAPTURE_ASSIST_FEATURE_NAMES)}
 
 
-def _exhaustion_reason(state):
-    if (state["travel_used_deg"] >= 20. - 1e-9
-            or state["hip_target_deg"] <= servo_limits_deg(SERVO_ORDER[6])[0] + 2. + 1e-9):
+def _search_exhaustion_reason(state):
+    # Axis and elapsed exposure are derived from the public cumulative
+    # counters, never from a resettable anchor or a hidden phase latch.
+    knee_axis = state["travel_used_deg"] >= 20.
+    if (state["travel_used_deg"] >= 40. - 1e-9
+            or (knee_axis and state["knee_hold_deg"] >= servo_limits_deg(SERVO_ORDER[7])[1] - 2. - 1e-9)
+            or (not knee_axis and state["hip_target_deg"] <= servo_limits_deg(SERVO_ORDER[6])[0] + 2. + 1e-9)):
         return 5
-    if state["descent_elapsed_s"] >= 12. - 1e-9:
+    if state["descent_elapsed_s"] >= (32. if knee_axis else 12.) - 1e-9:
         return 8
+    return 0
+
+
+def _exhaustion_reason(state):
+    permanent = _search_exhaustion_reason(state)
+    if permanent:
+        return permanent
     if state["window_elapsed_s"] >= 2. - 1e-9:
         return 4
     return 0
@@ -68,7 +82,7 @@ def _exhaustion_reason(state):
 
 def validate_rr_capture_assist_snapshot(snapshot: Mapping) -> dict:
     """Strict finite state/metadata validation for observation and replay."""
-    metadata = {"schema", "version", "feedback_revision", "window_reference_semantics",
+    metadata = {"schema", "version", "feedback_revision", "window_reference_semantics", "capture_search_semantics",
                 "mode_name", "reason", "active", "owners", "owner_indices",
                 "last_dispatch_physics_tick", "feature_names"}
     if not isinstance(snapshot, Mapping) or set(snapshot) != set(RR_CAPTURE_ASSIST_FEATURE_NAMES) | metadata:
@@ -80,12 +94,17 @@ def validate_rr_capture_assist_snapshot(snapshot: Mapping) -> dict:
     for key in ("initialized", "contact_seen", "retired"):
         if state[key] not in (0., 1.):
             raise ValueError(f"invalid RR capture assist binary {key}")
-    for key, maximum in (("travel_used_deg", 20.), ("descent_elapsed_s", 12.),
+    for key, maximum in (("travel_used_deg", 40.), ("descent_elapsed_s", 32.),
                           ("release_fraction", 1.)):
         if not 0. <= state[key] <= maximum + 1e-9:
             raise ValueError(f"invalid RR capture assist bounded {key}")
     if state["window_elapsed_s"] < 0. or state["hold_elapsed_s"] < 0.:
         raise ValueError("RR capture assist elapsed state cannot be negative")
+    knee_elapsed = max(state["travel_used_deg"] - 20., 0.)  # fixed 1 degree/s
+    hip_elapsed = state["descent_elapsed_s"] - knee_elapsed
+    hip_travel = min(state["travel_used_deg"], 20.)
+    if not hip_travel / 2. - 1e-9 <= hip_elapsed <= min(12., hip_travel) + 1e-9:
+        raise ValueError("RR capture assist DESCEND counters have inconsistent derived hip/knee exposure")
     for key, index in (("hip_entry_deg", 6), ("hip_target_deg", 6), ("knee_hold_deg", 7)):
         lo, hi = servo_limits_deg(SERVO_ORDER[index])
         if not lo <= state[key] <= hi:
@@ -128,12 +147,18 @@ def apply_rr_capture_assist_snapshot(candidate_full12: Sequence[float], snapshot
 class RRHipOnlyCaptureAssist:
     """Bounded physical-feedback search; all action-relevant state is public.
 
-    Total assist descent is <=20 degrees and <=12 seconds, never renewed by
-    contact loss or phase changes. At most 2 degrees/s (1 in the last 3 mm),
+    Negative hip search is <=20 degrees and <=12 seconds; only after its
+    full 20 degrees may positive knee search spend <=20 degrees at 1 degree/s.
+    Public travel is their combined <=40 degrees; elapsed is their combined
+    <=32 seconds. Knee exposure is max(travel-20, 0); hip exposure is elapsed
+    minus knee exposure. Neither is renewed by contact loss or phase changes.
+    Hip speed is at most 2 degrees/s (1 in the last 3 mm), with
     2-second/0.2-mm local peak-to-current gap progress windows, with 3-degree
     hip AND knee tracking gates. The publicly versioned window_start_gap_m
     scalar (feature7 / observation396) stores the current window's peak gap.
-    Rising gap never resets its clock or either total search budget.
+    Rising gap never resets its clock or either total search budget. The
+    single actual hip-to-knee boundary starts a fresh local progress window.
+    The legacy knee_hold_deg scalar is now the current knee capture target.
     At the qualified XY candidate, ownership can bridge geometry retirement
     before the crossing event is latched; this only holds the previous FINAL
     target. Negative descent still requires the actual crossing history.
@@ -252,12 +277,10 @@ class RRHipOnlyCaptureAssist:
         else:
             if mode == 2:
                 state.update(window_start_gap_m=gap, window_elapsed_s=0.)
-            lower = servo_limits_deg(SERVO_ORDER[6])[0] + 2.
             reason = (1 if not context["physical_valid"] else 2 if not context["within_top_xy"] else
                 3 if support < 2 else 9 if not (context["qualified_RR"] and context["crossed_RR"]) else
                 7 if not context["air"] else
-                5 if state["travel_used_deg"] >= 20. - 1e-9 or state["hip_target_deg"] <= lower + 1e-9 else
-                8 if state["descent_elapsed_s"] >= 12. - 1e-9 else
+                _search_exhaustion_reason(state) if _search_exhaustion_reason(state) else
                 6 if max(abs(hip - state["hip_target_deg"]), abs(knee - state["knee_hold_deg"])) > 3. else 0)
             if not reason:
                 # A whole-body reconfiguration can first raise the swing foot.
@@ -271,13 +294,23 @@ class RRHipOnlyCaptureAssist:
                     reason = 4
             state.update(mode=3. if reason else 1., blocked_reason=float(reason))
             if not reason:
-                exposure = min(dt, 12. - state["descent_elapsed_s"])
-                amount = min((2. if gap > .003 else 1.) * exposure,
-                             20. - state["travel_used_deg"], state["hip_target_deg"] - lower)
-                state["hip_target_deg"] -= amount
-                state["travel_used_deg"] += amount
+                knee_axis = state["travel_used_deg"] >= 20.
+                rate = 1. if knee_axis or gap <= .003 else 2.
+                travel_end, elapsed_end = (40., 32.) if knee_axis else (20., 12.)
+                key = "knee_hold_deg" if knee_axis else "hip_target_deg"
+                margin = (servo_limits_deg(SERVO_ORDER[7])[1] - 2. - state[key] if knee_axis
+                          else state[key] - servo_limits_deg(SERVO_ORDER[6])[0] - 2.)
+                remaining = travel_end - state["travel_used_deg"]
+                amount = min(rate * min(dt, elapsed_end - state["descent_elapsed_s"]), remaining, margin)
+                exposure = amount / rate
+                state[key] += amount if knee_axis else -amount
+                # Exact boundary only after the commanded remaining amount;
+                # no near-boundary jump or repeated axis/window reset.
+                state["travel_used_deg"] = travel_end if amount == remaining else state["travel_used_deg"] + amount
                 state["descent_elapsed_s"] += exposure
                 state["window_elapsed_s"] += exposure
+                if not knee_axis and state["travel_used_deg"] == 20.:
+                    state.update(window_start_gap_m=gap, window_elapsed_s=0.)
         # The last permitted bounded step may consume a budget. Advertise the
         # resulting hold immediately, rather than exposing one stale DESCEND
         # tick to downstream recovery-permission features. No extra step is
