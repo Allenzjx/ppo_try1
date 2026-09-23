@@ -21,6 +21,11 @@ TARGET_REVISION = "rr_capture_then_rl_transfer_v4_support_forward_contact_handof
 SOURCE_HEAD = "e24a3c2630b0b95439a7a71fe6a8a3f610a9a385"
 SOURCE_CHECKPOINT_SHA256 = "e721e9b52d6f05e8024a397363ca65e1b151a5a19efd2c5c805b59d53e1b0d6b"
 SOURCE_MANIFEST_SHA256 = "849bd97eed1ac1c23fba0fe86ec6624a9ea11427f33a2063268607663179fcf1"
+SOURCE_COUNTERS = (221184, 1693, 33860)
+ANCESTOR_CHECKPOINT_SHA256 = "db98fa88003f72504eae5af3eddeaf3d8436baf0099a3beaca7693df3106fb54"
+ANCESTOR_MANIFEST_SHA256 = "864bcc4e50c718a9a256c1b6932f629d3090504faa2c3f93afb60e6b018f6a26"
+ANCESTOR_COUNTERS = (220544, 1688, 33760)
+ANCESTOR_ROLE = "front_validated_ancestor_control_eval"
 HANDOFF_KEY = "rr_contact_handoff_semantics"
 HANDOFF_MODE = "current_TOP_cumulative_HOLD_next_decision_v1"
 MODULE = "src/wlr50_clean/ppo/semantic_rr_carry_handoff_migration.py"
@@ -44,6 +49,19 @@ REVIEWED_TARGET_LITERALS = {
 COUNTERS = ("global_policy_decisions", "ppo_updates", "optimizer_steps")
 
 
+def registered_source(checkpoint_sha256):
+    """Two immutable byte pairs, not a caller-controlled source allowlist."""
+    if checkpoint_sha256 == SOURCE_CHECKPOINT_SHA256:
+        return {"checkpoint_sha256":SOURCE_CHECKPOINT_SHA256,
+            "manifest_sha256":SOURCE_MANIFEST_SHA256,
+            "counters":dict(zip(COUNTERS,SOURCE_COUNTERS)), "source_role":"latest_learned_continuation"}
+    if checkpoint_sha256 == ANCESTOR_CHECKPOINT_SHA256:
+        return {"checkpoint_sha256":ANCESTOR_CHECKPOINT_SHA256,
+            "manifest_sha256":ANCESTOR_MANIFEST_SHA256,
+            "counters":dict(zip(COUNTERS,ANCESTOR_COUNTERS)), "source_role":ANCESTOR_ROLE}
+    raise ValueError("source is not one of the two explicitly registered immutable checkpoints")
+
+
 def scope():
     if (not isinstance(REVIEWED_BEHAVIOR_FILES, frozenset)
             or not {WHEEL, "src/wlr50_clean/ppo/semantic_rr_capture_context.py",
@@ -61,7 +79,7 @@ def preserved_keys(metadata):
 
 
 def factor(metadata, old, new, *, reason, reviewed_code_sha256, source_profile, target_profile,
-           source_task, target_task, expected_source_head, expected_target_head):
+           source_task, target_task, expected_source_head, expected_target_head, source_selection=None):
     from .semantic_migration import digest, source_num_envs
     from .semantic_policy_distribution import policy_contract, CONFIG_NAMES
     expected_files = scope()
@@ -125,7 +143,15 @@ def factor(metadata, old, new, *, reason, reviewed_code_sha256, source_profile, 
     rate = metadata["optimizer_learning_rate"]
     if type(rate) not in (int, float) or not math.isfinite(rate) or rate <= 0:
         raise ValueError("source effective LR must be finite and positive")
-    return {"schema":SCHEMA, "review_reason":reason.strip(),
+    if source_selection is not None:
+        expected_selection = registered_source(ANCESTOR_CHECKPOINT_SHA256)
+        if (source_selection != expected_selection
+                or metadata.get("checkpoint_sha256") != ANCESTOR_CHECKPOINT_SHA256
+                or {k:metadata[k] for k in COUNTERS} != expected_selection["counters"]
+                or origin != expected_selection["counters"]
+                or any(metadata["rr_capture_transfer_branch_counts"][k] != 0 for k in COUNTERS)):
+            raise ValueError("ancestor evaluation requires its exact zero-new-RR-learning source and role")
+    result = {"schema":SCHEMA, "review_reason":reason.strip(),
         "observation_contract":{"source_policy_contract":canonical, "target_policy_contract":copy.deepcopy(canonical),
             "observation_layout":RR_CAPTURE_OBSERVATION_LAYOUT, "observation_dimension":410,
             "action_dimension":12, "num_envs":1, "parameter_mapping":"identity_all_parameters_and_buffers"},
@@ -150,6 +176,13 @@ def factor(metadata, old, new, *, reason, reviewed_code_sha256, source_profile, 
         "normalizer_mapping":"identity_Identity", "rng_mapping":"restore_exact_source_training_rng",
         "physical_state_inherited":False,
         **dict.fromkeys(("added_policy_decisions", "added_ppo_updates", "added_optimizer_steps", "added_auxiliary_updates"), 0)}
+    # Preserve the already-published CP221184 plan/factor shape exactly.
+    if source_selection is not None:
+        result["source_selection"] = copy.deepcopy(source_selection)
+        result["candidate_evaluation_only"] = True
+        result["latest_learned_policy_equivalence_claimed"] = False
+        result["latest_pointer_promotion_authorized"] = False
+    return result
 
 
 def build_rr_carry_handoff_migration(checkpoint, current_contract, *, expected_source_sha256,
@@ -159,18 +192,23 @@ def build_rr_carry_handoff_migration(checkpoint, current_contract, *, expected_s
     scope()
     if not isinstance(expected_source_sha256, str) or re.fullmatch("[0-9a-f]{64}", expected_source_sha256) is None:
         raise ValueError("explicit actual sealed source SHA256 is required")
+    source_binding = registered_source(expected_source_sha256)
     root = Path(project_root or PROJECT_ROOT).resolve(); checkpoint = Path(checkpoint).resolve(strict=True)
-    if (expected_source_sha256 != SOURCE_CHECKPOINT_SHA256 or file_sha(checkpoint) != expected_source_sha256
-            or file_sha(checkpoint.with_name(checkpoint.stem + "_manifest.json")) != SOURCE_MANIFEST_SHA256):
+    if (file_sha(checkpoint) != source_binding["checkpoint_sha256"]
+            or file_sha(checkpoint.with_name(checkpoint.stem + "_manifest.json")) != source_binding["manifest_sha256"]):
         raise ValueError("source checkpoint differs from the explicitly selected sealed bytes")
     metadata = checkpoint_metadata(checkpoint)
+    if {k:metadata[k] for k in COUNTERS} != source_binding["counters"]:
+        raise ValueError("registered source counters do not match its immutable checkpoint")
+    selection = source_binding if source_binding["source_role"] == ANCESTOR_ROLE else None
     old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
     value = factor(metadata, old, new, reason=reason, reviewed_code_sha256=reviewed_code_sha256,
         source_profile=yaml.safe_load(_version_bytes(root, old, PROFILE)),
         target_profile=yaml.safe_load((root / PROFILE).read_bytes()),
         source_task=yaml.safe_load(_version_bytes(root, old, TASK)),
         target_task=yaml.safe_load((root / TASK).read_bytes()),
-        expected_source_head=expected_source_head, expected_target_head=expected_target_head)
+        expected_source_head=expected_source_head, expected_target_head=expected_target_head,
+        source_selection=selection)
     head = subprocess.run(["git","-C",str(root),"rev-parse","HEAD"], check=True, capture_output=True, text=True).stdout.strip()
     dirty = subprocess.run(["git","-C",str(root),"status","--porcelain=v1","--untracked-files=all","--",
         "src/wlr50_clean","scripts","configs","artifacts/ppo_phase_v1_start","pyproject.toml"],
@@ -189,7 +227,7 @@ def build_rr_carry_handoff_migration(checkpoint, current_contract, *, expected_s
         raw = (root / path).read_bytes()
         if any(_literal(raw, key) != expected for key,expected in checks.items()):
             raise ValueError("reviewed v4 literal semantics differ: " + path)
-    return {"schema":SCHEMA, "reason":reason.strip(), "source_checkpoint":str(checkpoint),
+    result = {"schema":SCHEMA, "reason":reason.strip(), "source_checkpoint":str(checkpoint),
         "source_checkpoint_sha256":expected_source_sha256,
         "source_manifest_sha256":file_sha(checkpoint.with_name(checkpoint.stem + "_manifest.json")),
         "source_git_commit":expected_source_head, "target_git_commit":expected_target_head,
@@ -198,6 +236,9 @@ def build_rr_carry_handoff_migration(checkpoint, current_contract, *, expected_s
         "target_runtime_content_sha256":new["runtime_content_sha256"],
         "allowed_changed_files":sorted(reviewed_code_sha256), "observation_dimension":410, "action_dimension":12,
         "discard_old_rollout_storage":True, "physics_resume":"fresh_legal_P01_reset", FACTOR_KEY:value}
+    if selection is not None:
+        result["source_selection"] = copy.deepcopy(selection)
+    return result
 
 
 def validate_rr_carry_handoff_migration(checkpoint, current_contract, plan_path, *, project_root=None):

@@ -70,6 +70,43 @@ def test_learned_same410_source_is_allowed_without_zero_update_origin_lie(scope)
     assert value["added_policy_decisions"] == value["added_ppo_updates"] == value["added_optimizer_steps"] == value["added_auxiliary_updates"] == 0
     assert value["source_v3_receipt_sha256"] == digest(meta[m.PRIOR])
     assert all(value["preserved_metadata_sha256"][k] == digest(meta[k]) for k in m.preserved_keys(meta))
+    assert "source_selection" not in value and "candidate_evaluation_only" not in value
+
+
+def test_source_registration_is_exact_and_independent():
+    learned=m.registered_source(m.SOURCE_CHECKPOINT_SHA256)
+    ancestor=m.registered_source(m.ANCESTOR_CHECKPOINT_SHA256)
+    assert learned["manifest_sha256"]==m.SOURCE_MANIFEST_SHA256
+    assert tuple(learned["counters"].values())==(221184,1693,33860)
+    assert ancestor["manifest_sha256"]==m.ANCESTOR_MANIFEST_SHA256
+    assert tuple(ancestor["counters"].values())==(220544,1688,33760)
+    assert ancestor["source_role"]==m.ANCESTOR_ROLE
+    with pytest.raises(ValueError,match="two explicitly registered"):
+        m.registered_source("9"*64)
+
+
+@pytest.mark.parametrize("bad",[None,"role","count","origin","sha","rr_credit"])
+def test_ancestor_selection_has_zero_new_credit_not_latest_claim(scope,monkeypatch,bad):
+    meta,old,new,args=boundary()
+    monkeypatch.setattr(m,"ANCESTOR_COUNTERS",tuple(meta[k] for k in m.COUNTERS))
+    meta["checkpoint_sha256"]=m.ANCESTOR_CHECKPOINT_SHA256
+    meta[m.PRIOR][m.PRIOR_FACTOR]["counter_origin"]={k:meta[k] for k in m.COUNTERS}
+    selection=m.registered_source(m.ANCESTOR_CHECKPOINT_SHA256)
+    if bad=="role": selection["source_role"]="latest_learned_continuation"
+    elif bad=="count": selection["counters"]["ppo_updates"]+=1
+    elif bad=="origin": meta[m.PRIOR][m.PRIOR_FACTOR]["counter_origin"]["ppo_updates"]-=1
+    elif bad=="sha": meta["checkpoint_sha256"]=m.SOURCE_CHECKPOINT_SHA256
+    elif bad=="rr_credit":
+        meta["rr_capture_transfer_branch"]["counter_origin"]["ppo_updates"]-=1
+        meta["rr_capture_transfer_branch_counts"]["ppo_updates"]=1
+    if bad:
+        with pytest.raises(ValueError): m.factor(meta,old,new,**args,source_selection=selection)
+    else:
+        value=m.factor(meta,old,new,**args,source_selection=selection)
+        assert value["source_selection"]==selection and value["candidate_evaluation_only"]
+        assert not value["latest_learned_policy_equivalence_claimed"]
+        assert not value["latest_pointer_promotion_authorized"]
+        assert value["added_policy_decisions"]==value["added_ppo_updates"]==value["added_optimizer_steps"]==0
 
 
 @pytest.mark.parametrize("bad", ["repeat","source_head","target_head","source_sha_not_a_plan_argument",
@@ -147,7 +184,8 @@ def test_identity_leaf_official_save_reload_and_receipt_carry(scope,tmp_path):
         m.record_loaded_rr_carry_handoff(restored,same,verified)
 
 
-def test_generic_plan_official_load_publish_fresh_reload(scope,tmp_path,monkeypatch):
+@pytest.mark.parametrize("ancestor",[False,True])
+def test_generic_plan_official_load_publish_fresh_reload(scope,tmp_path,monkeypatch,ancestor):
     """Exercise the actual generic route, not a substituted validator result."""
     torch=pytest.importorskip("torch");pytest.importorskip("rsl_rl")
     from wlr50_clean.ppo import semantic_training as training, semantic_migration as shared
@@ -183,6 +221,8 @@ def test_generic_plan_official_load_publish_fresh_reload(scope,tmp_path,monkeypa
     new=bind(new);meta["runtime_contract"]=old
     meta[m.PRIOR].update(target_git_commit=old["source_git_commit"],target_contract_sha256=digest(old),
                         target_runtime_content_sha256=old["runtime_content_sha256"])
+    if ancestor:
+        meta[m.PRIOR][m.PRIOR_FACTOR]["counter_origin"]={k:meta[k] for k in m.COUNTERS}
     def make():
         return training.construct_semantic_runner(_shape_env(410,"cpu"),seed=1001,device="cpu",
             policy_version=m.RR_CAPTURE_POLICY,observation_layout=m.RR_CAPTURE_OBSERVATION_LAYOUT,
@@ -195,12 +235,16 @@ def test_generic_plan_official_load_publish_fresh_reload(scope,tmp_path,monkeypa
                 "exp_avg":torch.full_like(parameter,.001),"exp_avg_sq":torch.full_like(parameter,.002)}
     source,manifest=training.save_semantic_checkpoint(runner,tmp_path/"source.pt",meta)
     original=shared.checkpoint_metadata(source)
-    monkeypatch.setattr(m,"SOURCE_CHECKPOINT_SHA256",shared.file_sha(source))
-    monkeypatch.setattr(m,"SOURCE_MANIFEST_SHA256",shared.file_sha(manifest))
+    prefix="ANCESTOR" if ancestor else "SOURCE"
+    monkeypatch.setattr(m,prefix+"_CHECKPOINT_SHA256",shared.file_sha(source))
+    monkeypatch.setattr(m,prefix+"_MANIFEST_SHA256",shared.file_sha(manifest))
+    monkeypatch.setattr(m,prefix+"_COUNTERS",tuple(meta[k] for k in m.COUNTERS))
     kwargs=dict(expected_source_sha256=shared.file_sha(source),expected_source_head=old["source_git_commit"],
         expected_target_head=new["source_git_commit"],reason="synthetic exact v4 publication",
         reviewed_code_sha256={p:new["files"][p] for p in m.scope()},project_root=root)
     plan=m.build_rr_carry_handoff_migration(source,new,**kwargs)
+    assert ("source_selection" in plan)==ancestor
+    assert ("source_selection" in plan[m.FACTOR_KEY])==ancestor
     path=tmp_path/"plan.json";write(path,json.dumps(plan))
     original_validator=shared.validate_migration_plan
     monkeypatch.setattr(shared,"validate_migration_plan",lambda c,contract,p,**kw:
