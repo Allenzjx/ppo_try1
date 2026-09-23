@@ -9,6 +9,7 @@ import itertools
 import json
 from pathlib import Path
 import re
+import subprocess
 
 import torch
 import audit_block08_first_carry_cpu as h
@@ -173,7 +174,8 @@ def audit(args):
             ep.update(physical_duration_s=a['sim_time_s'],last_phase=a['end_phase_id'],terminal=bool(row['terminal']),
                 termination_reason=a['termination_reason'],full_task_success=bool(a['full_task_success']),
                 placed_history=ev['history']['placed'],event_ticks=ev['history']['event_ticks'],
-                final_RR={k:rr[k] for k in ('clearance_m','front_distance_m','top_contact','ground_contact','current_lift_valid')})
+                final_RR={k:rr[k] for k in ('clearance_m','front_distance_m','top_contact','ground_contact','current_lift_valid')},
+                final_RL={k:ev['current_legs']['RL'].get(k) for k in ('clearance_m','front_distance_m','top_contact','ground_contact','air','support')})
             phases[a['phase_id']] += 1; batch_phases[a['phase_id']] += 1; endpoints[a['end_phase_id']] += 1
             execution['learner_physics_ticks'] += a['physics_ticks']; execution['native_verified_ticks'] += len(ticks)
             execution['assist_owned_endpoints'] += bool(assist['owner_indices']); execution['assist_initialized_endpoints'] += bool(assist['state_after']['initialized'])
@@ -194,7 +196,7 @@ def audit(args):
         error = float((torch.distributions.Normal(means,stds).log_prob(actions).sum(-1).unsqueeze(-1) - batch['actions_log_prob']).abs().max())
         max_logp = max(max_logp,error); assert max_logp <= 1e-5
         rollout_summary.append({'update':number,'phase_counts':dict(batch_phases),'effective_LR':update['optimizer_learning_rate']})
-    manifest = None
+    manifest = None; outer_lifecycle = None; postflight = None
     if args.mode == 'sealed':
         manifest = h.read(run / 'training_manifest.json')
         assert manifest['lifecycle'] in ('SUCCEEDED', 'STOPPED_AT_VERIFIED_UPDATE_BOUNDARY')
@@ -217,6 +219,34 @@ def audit(args):
         for ep,item in zip(ended,complete):
             assert (ep['learner_decisions'],ep['termination_reason'],ep['physical_duration_s'],ep['full_task_success']) == (item['policy_decisions'],item['termination_reason'],item['duration_s'],item['full_task_success'])
         assert manifest['telemetry']['core']['physics_ticks'] == execution['learner_physics_ticks']
+        outer = h.read(run / 'run_manifest.json'); outer_lifecycle = outer['lifecycle']
+        assert outer['runtime_contract'] == tm['runtime_contract']
+        if outer_lifecycle == 'FAILED':
+            # Preserve the outer failure. Only classify this known AFTER-training
+            # pinned-HEAD error, never waive a load/runtime/checkpoint contract.
+            assert manifest['lifecycle'] == 'SUCCEEDED'
+            assert outer.get('error') == 'semantic run HEAD differs from its pinned revision'
+            assert 'runtime_contract(**contract_options)' in outer['traceback']
+            root = OUT.parents[1]
+            def git(*arguments):
+                return subprocess.run(['git','-C',str(root),*arguments],capture_output=True,text=True,check=True).stdout.strip()
+            head = git('rev-parse','HEAD'); assert head != RUNTIME
+            changed = git('diff','--name-only',RUNTIME+'..'+head).splitlines()
+            assert changed and all(p == '.gitignore' or p.startswith('outputs/') for p in changed)
+            production_paths = ('src','scripts','configs','pyproject.toml')
+            assert not git('diff','--name-only',RUNTIME+'..'+head,'--',*production_paths)
+            assert not git('diff','--name-only','--',*production_paths)
+            assert all(h.sha(root/path)==expected for path,expected in tm['runtime_contract']['files'].items())
+            postflight = {'classification':'completed_training_saved_checkpoint_then_failed_pinned_HEAD_postflight',
+                'outer_run_lifecycle_preserved':'FAILED','outer_error':outer['error'],
+                'pinned_runtime_commit':RUNTIME,'current_commit':head,
+                'committed_changed_paths_count':len(changed),'committed_changes_only_gitignore_and_outputs':True,
+                'production_git_diff_empty':True,'production_worktree_diff_empty':True,
+                'all_pinned_runtime_file_bytes_still_match':True,
+                'original_manifests_edited':False,'checkpoint_contract_bypass_performed':False,
+                'recovery_scope':'valid preserved training source; explicit current-HEAD/new-semantic contract resolution is still required before resume'}
+        else:
+            assert outer_lifecycle == manifest['lifecycle']
     payloads = [torch.load(path,map_location='cpu',weights_only=False) for path in (source_path,target_path)]
     for payload,meta in zip(payloads,(sm,tm)):
         assert h.parameter_sha(payload['actor_state_dict']) == meta['actor_parameter_sha256']
@@ -238,6 +268,7 @@ def audit(args):
         'initialization':args.initialization,'actual_added_counts':delta,'actual_lifetime_counts':{k:tm[k] for k in COUNTERS},
         'prefix_target_phase':args.prefix_phase if prefixes else None,
         'training_lifecycle':manifest['lifecycle'] if manifest else 'not_audited_first_batch_only',
+        'outer_run_lifecycle':outer_lifecycle,'postflight_classification':postflight,
         'planned_decisions':manifest['planned_requested_policy_decisions'] if manifest else None,
         'unconsumed_decisions':manifest['unconsumed_requested_policy_decisions'] if manifest else None,
         'unconsumed_decisions_receive_no_learning_credit':True,
@@ -261,6 +292,8 @@ def audit(args):
 PASS — actual new decisions/PPO/Adam: **{decisions}/{updates_n}/{delta['optimizer_steps']}**; cumulative **{tm['global_policy_decisions']}/{tm['ppo_updates']}/{tm['optimizer_steps']}**. Initialization: `{args.initialization}`. Training lifecycle is not physical task success.
 
 Lifecycle: `{report['training_lifecycle']}`. Planned {report['planned_decisions']}; unconsumed {report['unconsumed_decisions']} receive no learning credit. A legal update-boundary stop does not make a nonterminal partial episode a physical failure or success.
+
+Outer run lifecycle: `{outer_lifecycle}`. {('Original FAILED run manifest is retained: '+postflight['outer_error']+'. Training manifest is independently SUCCEEDED and all completed updates/checkpoint payloads are verified. Current commit '+postflight['current_commit']+' changes only .gitignore/outputs; production Git diff is empty and every pinned runtime file still matches. The checkpoint remains a valid preserved training source, but current HEAD/new-semantic resume requires explicit contract resolution; no bypass or manifest rewrite was performed.') if postflight else 'No postflight HEAD-failure classification is required for this audited scope.'}
 
 Phase inputs: {dict(phases)}. Frozen-prefix decisions: {report['prefix_decisions']}, all zero learning credit. Native-verified learner ticks: {execution['native_verified_ticks']}; FL-assist-owned endpoints: {execution['assist_owned_endpoints']}. RR current-qualified/crossed-history/placed-history input counts: {dict(rr_inputs)}.
 

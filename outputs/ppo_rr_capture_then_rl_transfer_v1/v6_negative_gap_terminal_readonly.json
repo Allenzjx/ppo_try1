@@ -1,0 +1,5731 @@
+{
+  "schema": "readonly.v6_signed_gap_terminal_tail.v1",
+  "source": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_capture_then_rl_transfer_v1\\video_eval\\validation\\20260923T0829436381354Z_g97c4367ee293_5795b2a4e4384ec6be3589fa43477a5c\\source",
+  "source_HEAD": "97c4367ee293cb4dd191944ef663bbda63a5b235",
+  "checkpoint_load_provenance": {
+    "checkpoint_loaded_and_verified": true,
+    "evaluation_sampling_changes_checkpoint_training_rng": false,
+    "migration": null,
+    "observation_dimension": 410,
+    "observation_layout": "role389_rr_capture_transfer_v1",
+    "official_load_semantic_checkpoint": true,
+    "optimizer_updates": 0,
+    "parameter_hashes": {
+      "actor_parameter_sha256": "d04a430e6c7569d5bc00d57297ab8d9e3f5df69d613cbcb2b73c36ae8a14be78",
+      "critic_parameter_sha256": "b08250c2612f59f797bd7bb89b7a0301dd53f73d77be48efaec3b5307236602d",
+      "normalizer_state_sha256": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552",
+      "optimizer_state_sha256": "aaa013eb578a4f6dac1f014803fc4e0f5370704c3a161fdd72e7e7b59fe8e703"
+    },
+    "policy_contract": {
+      "B_units": "canonical_servo_degrees_first8_wheel_rad_per_second_last4_not_actual_sigma_or_capacity",
+      "action_transform": "declared_separate_FL_and_RR_hip_feedback_knee_hold_after_original_Gaussian_sample",
+      "activation": "elu",
+      "actor_class": "wlr50_clean.ppo.semantic_rr_capture_actor:SemanticRRCaptureHistoryMLPModel",
+      "actor_hidden_dims": [
+        256,
+        256
+      ],
+      "base_observation_dimension": 324,
+      "capture_assist_observation_group": "p05_capture_assist_state_full12",
+      "capture_assist_observation_slice": [
+        372,
+        384
+      ],
+      "capture_continuation_observation_fields": [
+        "fl_capture_pending",
+        "allow_capture_continuation",
+        "scheduler_advanced_pending",
+        "p05_local_deadline_warning",
+        "capture_pending_elapsed_fraction"
+      ],
+      "capture_continuation_observation_group": "p05_capture_continuation_full5",
+      "capture_continuation_observation_slice": [
+        384,
+        389
+      ],
+      "completed_stages_slice": [
+        158,
+        171
+      ],
+      "completion_history": "actual_completed_ordered_subset_not_scheduler_success",
+      "conditional_mean": "(1-rho)*base_mean+rho*observable_cap_entry_request_or_raw_history_center",
+      "conditional_std": "parent_task_conditioned_sigma*receiving_wheel_multiplier",
+      "contact_proxy_limitations": "pair_active_near_top_is_not_classified_TOP_or_current_lateral_ROI;not_physical_acceptance",
+      "contact_semantics": "RR_lift_carry_top_reachable_current_TOP_and_current_bearing_are_distinct",
+      "deterministic_output": "conditional_mean",
+      "directional_bias": false,
+      "distribution_class": "HeteroscedasticGaussianDistribution",
+      "effective_log_std": "parent_task_conditioned_effective_log_std+log(receiving_wheel_multiplier)",
+      "exploration_std_temperature": 0.25,
+      "export_support": "JIT_and_ONNX_rejected_until_explicitly_supported",
+      "extra_filter_or_sampling_rejection": false,
+      "history_center_semantics": "completed_predecessor_or_observed_pending_P05_scheduler_handoff_request_center_v1",
+      "history_clip": 20.0,
+      "history_feature": "previous_raw_else_cap_entry_previous_filtered_request",
+      "history_request_scales": [
+        4.0,
+        4.0,
+        4.0,
+        6.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        0.12,
+        0.12,
+        0.12,
+        0.12
+      ],
+      "history_request_slice": [
+        207,
+        219
+      ],
+      "history_slice": [
+        195,
+        207
+      ],
+      "history_state": "stored_observation_only; no_actor_mutable_history",
+      "mdp_change": "observable_RR_capture_and_current_contact_RL_transfer_control",
+      "normalization": "fixed_versioned_observation_schema; identity_RSL_normalizer",
+      "observation_dimension": 410,
+      "observation_layout": "role389_rr_capture_transfer_v1",
+      "old_389_numerical_codec_preserved": true,
+      "phase_caps_full12": [
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          0.6,
+          0.6,
+          0.6,
+          0.6
+        ],
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          0.6,
+          0.6,
+          0.6,
+          0.6
+        ],
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          1.0,
+          0.6,
+          1.0,
+          0.6
+        ],
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          1.0,
+          0.6,
+          1.0,
+          0.6
+        ],
+        [
+          18.0,
+          24.0,
+          18.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          18.0,
+          1.0,
+          0.6,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        [
+          32.0,
+          36.0,
+          24.0,
+          112.0,
+          24.0,
+          36.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ]
+      ],
+      "phase_entry_clock": "120Hz_physics_15Hz_decision_aligned_forward_adjacent_stage_graph",
+      "physical_equivalent_B_full12": {
+        "FL_crossed_air_pending": [
+          24.0,
+          24.0,
+          9.0,
+          12.0,
+          6.0,
+          9.0,
+          6.0,
+          9.0,
+          1.0,
+          0.6,
+          1.0,
+          0.6
+        ],
+        "FR_air_approach_proxy": [
+          9.0,
+          12.0,
+          12.0,
+          18.0,
+          12.0,
+          12.0,
+          6.0,
+          9.0,
+          0.6,
+          0.6,
+          0.6,
+          0.6
+        ],
+        "P06_front_support_recovery_proxy": [
+          24.0,
+          24.0,
+          12.0,
+          18.0,
+          12.0,
+          12.0,
+          12.0,
+          18.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        "P06_front_support_rolling_proxy": [
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          12.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        "RR_current_valid_lift": [
+          24.0,
+          24.0,
+          12.0,
+          18.0,
+          24.0,
+          24.0,
+          24.0,
+          36.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ],
+        "RR_preparation": [
+          24.0,
+          24.0,
+          12.0,
+          18.0,
+          24.0,
+          24.0,
+          12.0,
+          18.0,
+          1.2,
+          1.2,
+          1.0,
+          0.6
+        ]
+      },
+      "preserved_observation_prefix_dimension": 389,
+      "raw_action_dimension": 12,
+      "raw_action_semantics": "unbounded_Gaussian_latent_before_existing_tanh_projection",
+      "raw_sample_and_log_probability": "original_Gaussian_before_capture_assist_unchanged",
+      "receiving_continuation_gate": {
+        "P13_unchanged": true,
+        "RR_placed_history_observation_index": 157,
+        "RR_placed_history_value": 1,
+        "channel_indices": [
+          9,
+          11
+        ],
+        "channel_names": [
+          "FR_wheel",
+          "RR_wheel"
+        ],
+        "conditional_sigma_multiplier": 3.0,
+        "current_RR_lift_required": false,
+        "current_RR_support_required": false,
+        "otherwise_multiplier": 1.0,
+        "phase_indices": [
+          9,
+          10,
+          11
+        ]
+      },
+      "receiving_scale_units": "dimensionless_conditional_innovation_std_not_cap_or_target",
+      "request_history_scope": "previous_filtered_REQUEST_not_effective_final_drive_or_actual_motion",
+      "rho": 0.9,
+      "role_observation_fields": [
+        "valid",
+        "workspace_progress",
+        "preparation_progress",
+        "transfer_progress",
+        "motion_fraction",
+        "preparation_ready",
+        "transfer_ready",
+        "fixed_direction_world_x",
+        "fixed_direction_world_y",
+        "short_support_continuity_fraction",
+        "continued_response_fraction",
+        "window_evidence_fraction"
+      ],
+      "role_observation_group": "transfer_role_context_full48",
+      "role_observation_leg_order": [
+        "FL",
+        "FR",
+        "RL",
+        "RR"
+      ],
+      "role_observation_slice": [
+        324,
+        372
+      ],
+      "rr_capture_assist_observation_fields": [
+        "mode",
+        "initialized",
+        "knee_hold_deg",
+        "hip_entry_deg",
+        "hip_target_deg",
+        "travel_used_deg",
+        "descent_elapsed_s",
+        "window_start_gap_m",
+        "window_elapsed_s",
+        "hold_elapsed_s",
+        "release_fraction",
+        "contact_seen",
+        "retired",
+        "blocked_reason"
+      ],
+      "rr_capture_assist_observation_group": "rr_capture_assist_state_full14",
+      "rr_capture_assist_observation_slice": [
+        389,
+        403
+      ],
+      "rr_capture_task_observation_fields": [
+        "rr_lift_carry",
+        "rr_top_reachable",
+        "rr_top_contact",
+        "rr_current_bearing",
+        "rl_transfer_ready",
+        "rr_capture_recovery_allowed",
+        "fl_wheel_guidance_active"
+      ],
+      "rr_capture_task_observation_group": "rr_capture_transfer_context_full7",
+      "rr_capture_task_observation_slice": [
+        403,
+        410
+      ],
+      "same_physical_state_or_trajectory_equivalence_claimed": false,
+      "schema": "wlr50_clean.semantic_policy_distribution.v1",
+      "sigma_fallback": "unchanged_e735_B_equals_current_cap_except_P06plus_FR_knee_B24",
+      "sigma_kernel_observation_slice": [
+        0,
+        372
+      ],
+      "sigma_kernel_source_policy": "task_conditioned_receiving_wheel_sigma_x3_v1",
+      "sigma_profile_parent_version": "task_conditioned_hip_wheel_sigma_v1",
+      "sigma_scaling_scope": "official_raw_Gaussian_sample_logprob_entropy_KL;mean_history_caps_unchanged",
+      "sigma_scaling_semantics": "task_conditioned_B_over_cap_then_P10_P12_RR_placed_history_FR_RR_wheel_sigma_x3_same372_v1",
+      "stage_elapsed_index": 20,
+      "stage_elapsed_scale_s": 200.0,
+      "stage_one_hot_slice": [
+        0,
+        13
+      ],
+      "state_dependent_std": true,
+      "state_gate_semantics": "FR_current_AIR_gap0to15mm_after_lift;FL_crossed_pending_AIR_gap0to3mm;P06_front_support_rolling_or_recovery_proxy;nearest_rear_max_distance_blend_minus270to220mm;RR_current_qualification149_overrides_preparation",
+      "std_type": "log",
+      "temperature_scope": "all_stochastic_sample_logprob_entropy_KL_calls; no_deterministic_output_scaling",
+      "version": "rr_capture_then_rl_transfer_history_v1"
+    },
+    "policy_sampling_mode": "deterministic_conditional_mean",
+    "policy_seed": null,
+    "policy_version": "rr_capture_then_rl_transfer_history_v1",
+    "saved_global_policy_decisions": 220544,
+    "source": {
+      "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_capture_then_rl_transfer_v1\\checkpoints\\history\\checkpoint_rr_contact_onset_v6_ancestor_step_000220544_g97c4367ee293.pt",
+      "checkpoint_sha256": "0a61fb608210828ff9b3edb95701a25dd8232f2a8e0c207179ea5ae6bd142e01",
+      "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_capture_then_rl_transfer_v1\\checkpoints\\history\\checkpoint_rr_contact_onset_v6_ancestor_step_000220544_g97c4367ee293_manifest.json",
+      "manifest_sha256": "5672a9446485d09da35aae818dc010fc128d2334165194c2cad773d74ac3fc4c"
+    },
+    "stochastic_policy": false,
+    "training_seed": 1001,
+    "video_seed": 4001
+  },
+  "new_physics_ticks": 0,
+  "new_PPO_updates": 0,
+  "new_actor_forwards": 0,
+  "inventory": {
+    "physical_observations.jsonl": {
+      "full_bytes": 366904805,
+      "selected_tail_rows": 241,
+      "selected_tail_sha256": "ab07af317ec8df8891ff71b1e2adde1a3d8c14125318cbaa1eb53fb997f1e9e8",
+      "bytes_read": 6094848,
+      "sealed_full_sha256_not_rehashed": "884162dbc670e9489991c2f4dce9eb5025f5c3dda8d19487a4004ddbed05d09a"
+    },
+    "capture_assist_ticks.jsonl": {
+      "full_bytes": 627542505,
+      "selected_tail_rows": 241,
+      "selected_tail_sha256": "eed83b95920b76208cfac62e37222271c4a47e4f95174e7ce149145535bfbf1f",
+      "bytes_read": 10551296,
+      "sealed_full_sha256_not_rehashed": "6ff3fc2cd4cd5e34e4c6ed494d9671cc0ff52e972f732fb8e969822b63312cf6"
+    },
+    "native_tick_audit.jsonl": {
+      "full_bytes": 429573270,
+      "selected_tail_rows": 241,
+      "selected_tail_sha256": "0625f7ce9216fc27c10ae70c6122d1d2ec523b9869232f5395e2512049bd8381",
+      "bytes_read": 7208960,
+      "sealed_full_sha256_not_rehashed": "102a6e683373d396a99af17ad5d091fdb9c9b1de0e7b525685d52970fa771d2d"
+    },
+    "video_policy_decisions.jsonl": {
+      "full_bytes": 209656676,
+      "selected_tail_rows": 2,
+      "selected_tail_sha256": "ee769c089e2d5d8ed616027968c501621f7ba3777eb7d52077cf4b908e85551e",
+      "bytes_read": 262144,
+      "sealed_full_sha256_not_rehashed": "eb847c8e2075878462311e56438e2a988bae3c822b639c4584c7bdd89798d753"
+    }
+  },
+  "window": {
+    "first_tick": 14360,
+    "last_tick": 14600,
+    "rows": 241,
+    "first_negative_tick": 14600,
+    "AIR_rows": 241,
+    "any_active_pair": false,
+    "max_pair_force_norm": 0.0
+  },
+  "selected": [
+    {
+      "tick": 14360,
+      "time_s": 119.66666666666667,
+      "gap_m": 0.0016570451493544552,
+      "front_m": 0.025564673970457363,
+      "RR_raw_contact": {
+        "body_name": "rear_right_wheel",
+        "role": "WHEEL",
+        "contact_class": "AIR",
+        "ground": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": null,
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        },
+        "obstacle": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/Obstacle",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": [
+            0.5387837886810303,
+            -0.3174886405467987,
+            0.053606271743774414
+          ],
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        }
+      },
+      "RR_current": {
+        "air": true,
+        "ground_contact": false,
+        "obstacle_pair_active": false,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "bearing_verified": true,
+        "support": false,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "front_edge_crossed": true,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "ground_relative_lift_m": 0.05253103387161854,
+        "body_control_evidence": true,
+        "wheel_bottom_vz_m_s": -0.000942428854121074
+      },
+      "current_other_supports": {
+        "FL": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 3.1500983238220215
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 13.565606117248535
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "contact_surface": "NONE",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 12.037152290344238
+        }
+      },
+      "actual_RR_deg": [
+        -2.117130818542536,
+        -15.249007796890963
+      ],
+      "target_RR_deg": [
+        -1.7859131082524924,
+        -15.31950977253468
+      ],
+      "tracking_error_target_minus_actual_deg": [
+        0.33121771029004354,
+        -0.07050197564371707
+      ],
+      "state_before": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -15.327843105868013,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 50.033333333331626,
+        "descent_elapsed_s": 40.033333333331626,
+        "window_start_gap_m": 0.0017730572283152501,
+        "window_elapsed_s": 0.16666666666666666,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14538,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "state_after": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -15.31950977253468,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 50.04166666666496,
+        "descent_elapsed_s": 40.04166666666496,
+        "window_start_gap_m": 0.0017730572283152501,
+        "window_elapsed_s": 0.175,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14539,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "pre_context": {
+        "dispatch_physics_tick": 14539,
+        "source_observation_tick": 14359,
+        "stage_id": "P09",
+        "physical_valid": true,
+        "within_top_xy": true,
+        "other_support_count": 3,
+        "qualified_RR": true,
+        "crossed_RR": true,
+        "rl_qualified_lift": false,
+        "rl_placed_current_top_support": false,
+        "air": true,
+        "ground_contact": false,
+        "top_surface_contact": false,
+        "obstacle_pair_active": false,
+        "current_top_bearing": false,
+        "gap_m": 0.0016648987231388038,
+        "hip_actual_deg": -2.117114169956434,
+        "knee_actual_deg": -15.257316722016283,
+        "issued_nominal_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "issued_requested_residual_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "release_candidate_rr_deg": [
+          -0.28436025471527415,
+          -58.0
+        ]
+      },
+      "post_continuation": {
+        "rr_lift_carry": true,
+        "rr_top_reachable": true,
+        "rr_top_contact": false,
+        "rr_current_bearing": false,
+        "rl_transfer_ready": false,
+        "rr_capture_recovery_allowed": true,
+        "rr_contact_confirmation_allowed": false,
+        "rr_completed_contact_handoff_pending": false,
+        "rr_contact_handoff_window_s": 0.08333333333333333,
+        "fl_wheel_guidance_active": false,
+        "mode": "rr_capture_then_rl_transfer_v1",
+        "workspace_semantics": "current_XY_joint_margin_and_measured_other_support_candidate_not_feasibility_proof",
+        "other_measured_supports": [
+          "FR",
+          "FL",
+          "RL"
+        ],
+        "rr_actual_joint_margins_deg": [
+          [
+            132.88286918145747,
+            137.11713081854253
+          ],
+          [
+            44.750992203109035,
+            225.24900779689096
+          ]
+        ],
+        "rr_gap_m": 0.0016570451493544552,
+        "rr_history_placed": false,
+        "air_is_support": false,
+        "committed_feedback_matches_current_tick": true,
+        "local_warning_only": true
+      },
+      "placed_history": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "actual_last_setter": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 14480,
+      "time_s": 120.66666666666667,
+      "gap_m": 0.0007105512712169554,
+      "front_m": 0.022860768864866543,
+      "RR_raw_contact": {
+        "body_name": "rear_right_wheel",
+        "role": "WHEEL",
+        "contact_class": "AIR",
+        "ground": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": null,
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        },
+        "obstacle": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/Obstacle",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": [
+            0.5395064353942871,
+            -0.3176976442337036,
+            0.052346121519804
+          ],
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        }
+      },
+      "RR_current": {
+        "air": true,
+        "ground_contact": false,
+        "obstacle_pair_active": false,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "bearing_verified": true,
+        "support": false,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "front_edge_crossed": true,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "ground_relative_lift_m": 0.05158453999348104,
+        "body_control_evidence": true,
+        "wheel_bottom_vz_m_s": -0.0007002815497983406
+      },
+      "current_other_supports": {
+        "FL": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 3.1713218688964844
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 13.5753755569458
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "contact_surface": "NONE",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 11.970853805541992
+        }
+      },
+      "actual_RR_deg": [
+        -2.1203915935409823,
+        -14.251508187482083
+      ],
+      "target_RR_deg": [
+        -1.7859131082524924,
+        -14.319509772534737
+      ],
+      "tracking_error_target_minus_actual_deg": [
+        0.3344784852884899,
+        -0.06800158505265408
+      ],
+      "state_before": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -14.32784310586807,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.03333333333157,
+        "descent_elapsed_s": 41.03333333333157,
+        "window_start_gap_m": 0.0007436254835827133,
+        "window_elapsed_s": 0.03333333333333333,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14658,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "state_after": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -14.319509772534737,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.0416666666649,
+        "descent_elapsed_s": 41.0416666666649,
+        "window_start_gap_m": 0.0007436254835827133,
+        "window_elapsed_s": 0.041666666666666664,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14659,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "pre_context": {
+        "dispatch_physics_tick": 14659,
+        "source_observation_tick": 14479,
+        "stage_id": "P09",
+        "physical_valid": true,
+        "within_top_xy": true,
+        "other_support_count": 3,
+        "qualified_RR": true,
+        "crossed_RR": true,
+        "rl_qualified_lift": false,
+        "rl_placed_current_top_support": false,
+        "air": true,
+        "ground_contact": false,
+        "top_surface_contact": false,
+        "obstacle_pair_active": false,
+        "current_top_bearing": false,
+        "gap_m": 0.0007163869507986129,
+        "hip_actual_deg": -2.1204966076994713,
+        "knee_actual_deg": -14.259789791850723,
+        "issued_nominal_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "issued_requested_residual_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "release_candidate_rr_deg": [
+          -0.2818787202349071,
+          -58.0
+        ]
+      },
+      "post_continuation": {
+        "rr_lift_carry": true,
+        "rr_top_reachable": true,
+        "rr_top_contact": false,
+        "rr_current_bearing": false,
+        "rl_transfer_ready": false,
+        "rr_capture_recovery_allowed": true,
+        "rr_contact_confirmation_allowed": false,
+        "rr_completed_contact_handoff_pending": false,
+        "rr_contact_handoff_window_s": 0.08333333333333333,
+        "fl_wheel_guidance_active": false,
+        "mode": "rr_capture_then_rl_transfer_v1",
+        "workspace_semantics": "current_XY_joint_margin_and_measured_other_support_candidate_not_feasibility_proof",
+        "other_measured_supports": [
+          "FR",
+          "FL",
+          "RL"
+        ],
+        "rr_actual_joint_margins_deg": [
+          [
+            132.87960840645903,
+            137.12039159354097
+          ],
+          [
+            45.74849181251792,
+            224.25150818748207
+          ]
+        ],
+        "rr_gap_m": 0.0007105512712169554,
+        "rr_history_placed": false,
+        "air_is_support": false,
+        "committed_feedback_matches_current_tick": true,
+        "local_warning_only": true
+      },
+      "placed_history": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "actual_last_setter": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 14588,
+      "time_s": 121.56666666666666,
+      "gap_m": 6.604667427245747e-05,
+      "front_m": 0.020418826173063565,
+      "RR_raw_contact": {
+        "body_name": "rear_right_wheel",
+        "role": "WHEEL",
+        "contact_class": "AIR",
+        "ground": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": null,
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        },
+        "obstacle": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/Obstacle",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": [
+            0.5402111411094666,
+            -0.31672829389572144,
+            0.051328904926776886
+          ],
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        }
+      },
+      "RR_current": {
+        "air": true,
+        "ground_contact": false,
+        "obstacle_pair_active": false,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "bearing_verified": true,
+        "support": false,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "front_edge_crossed": true,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "ground_relative_lift_m": 0.05094003539653654,
+        "body_control_evidence": true,
+        "wheel_bottom_vz_m_s": -0.000756192840119651
+      },
+      "current_other_supports": {
+        "FL": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 3.176706314086914
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 13.590514183044434
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "contact_surface": "NONE",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 11.984012603759766
+        }
+      },
+      "actual_RR_deg": [
+        -2.1223104498109326,
+        -13.354313321129425
+      ],
+      "target_RR_deg": [
+        -1.7859131082524924,
+        -13.419509772534788
+      ],
+      "tracking_error_target_minus_actual_deg": [
+        0.33639734155844025,
+        -0.06519645140536312
+      ],
+      "state_before": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.42784310586812,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.93333333333152,
+        "descent_elapsed_s": 41.93333333333152,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.09999999999999999,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14766,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "state_after": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.419509772534788,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.94166666666485,
+        "descent_elapsed_s": 41.94166666666485,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.10833333333333332,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14767,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "pre_context": {
+        "dispatch_physics_tick": 14767,
+        "source_observation_tick": 14587,
+        "stage_id": "P09",
+        "physical_valid": true,
+        "within_top_xy": true,
+        "other_support_count": 3,
+        "qualified_RR": true,
+        "crossed_RR": true,
+        "rl_qualified_lift": false,
+        "rl_placed_current_top_support": false,
+        "air": true,
+        "ground_contact": false,
+        "top_surface_contact": false,
+        "obstacle_pair_active": false,
+        "current_top_bearing": false,
+        "gap_m": 7.234828127344883e-05,
+        "hip_actual_deg": -2.1222944415550655,
+        "knee_actual_deg": -13.362623100028392,
+        "issued_nominal_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "issued_requested_residual_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "release_candidate_rr_deg": [
+          -0.27958844964823015,
+          -58.0
+        ]
+      },
+      "post_continuation": {
+        "rr_lift_carry": true,
+        "rr_top_reachable": true,
+        "rr_top_contact": false,
+        "rr_current_bearing": false,
+        "rl_transfer_ready": false,
+        "rr_capture_recovery_allowed": true,
+        "rr_contact_confirmation_allowed": false,
+        "rr_completed_contact_handoff_pending": false,
+        "rr_contact_handoff_window_s": 0.08333333333333333,
+        "fl_wheel_guidance_active": false,
+        "mode": "rr_capture_then_rl_transfer_v1",
+        "workspace_semantics": "current_XY_joint_margin_and_measured_other_support_candidate_not_feasibility_proof",
+        "other_measured_supports": [
+          "FR",
+          "FL",
+          "RL"
+        ],
+        "rr_actual_joint_margins_deg": [
+          [
+            132.87768955018907,
+            137.12231044981093
+          ],
+          [
+            46.645686678870575,
+            223.35431332112944
+          ]
+        ],
+        "rr_gap_m": 6.604667427245747e-05,
+        "rr_history_placed": false,
+        "air_is_support": false,
+        "committed_feedback_matches_current_tick": true,
+        "local_warning_only": true
+      },
+      "placed_history": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "actual_last_setter": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 14589,
+      "time_s": 121.575,
+      "gap_m": 5.954469751887764e-05,
+      "front_m": 0.02039611680340414,
+      "RR_raw_contact": {
+        "body_name": "rear_right_wheel",
+        "role": "WHEEL",
+        "contact_class": "AIR",
+        "ground": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": null,
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        },
+        "obstacle": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/Obstacle",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": [
+            0.5402168035507202,
+            -0.3167295455932617,
+            0.051321860402822495
+          ],
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        }
+      },
+      "RR_current": {
+        "air": true,
+        "ground_contact": false,
+        "obstacle_pair_active": false,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "bearing_verified": true,
+        "support": false,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "front_edge_crossed": true,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "ground_relative_lift_m": 0.05093353341978296,
+        "body_control_evidence": true,
+        "wheel_bottom_vz_m_s": -0.0007802372104289587
+      },
+      "current_other_supports": {
+        "FL": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 3.174027919769287
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 13.586536407470703
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "contact_surface": "NONE",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 11.970775604248047
+        }
+      },
+      "actual_RR_deg": [
+        -2.122375336608048,
+        -13.346007811098689
+      ],
+      "target_RR_deg": [
+        -1.7859131082524924,
+        -13.411176439201455
+      ],
+      "tracking_error_target_minus_actual_deg": [
+        0.3364622283555556,
+        -0.06516862810276614
+      ],
+      "state_before": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.419509772534788,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.94166666666485,
+        "descent_elapsed_s": 41.94166666666485,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.10833333333333332,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14767,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "state_after": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.411176439201455,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.949999999998184,
+        "descent_elapsed_s": 41.949999999998184,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.11666666666666665,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14768,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "pre_context": {
+        "dispatch_physics_tick": 14768,
+        "source_observation_tick": 14588,
+        "stage_id": "P09",
+        "physical_valid": true,
+        "within_top_xy": true,
+        "other_support_count": 3,
+        "qualified_RR": true,
+        "crossed_RR": true,
+        "rl_qualified_lift": false,
+        "rl_placed_current_top_support": false,
+        "air": true,
+        "ground_contact": false,
+        "top_surface_contact": false,
+        "obstacle_pair_active": false,
+        "current_top_bearing": false,
+        "gap_m": 6.604667427245747e-05,
+        "hip_actual_deg": -2.1223104498109326,
+        "knee_actual_deg": -13.354313321129425,
+        "issued_nominal_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "issued_requested_residual_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "release_candidate_rr_deg": [
+          -0.27958844964823015,
+          -58.0
+        ]
+      },
+      "post_continuation": {
+        "rr_lift_carry": true,
+        "rr_top_reachable": true,
+        "rr_top_contact": false,
+        "rr_current_bearing": false,
+        "rl_transfer_ready": false,
+        "rr_capture_recovery_allowed": true,
+        "rr_contact_confirmation_allowed": false,
+        "rr_completed_contact_handoff_pending": false,
+        "rr_contact_handoff_window_s": 0.08333333333333333,
+        "fl_wheel_guidance_active": false,
+        "mode": "rr_capture_then_rl_transfer_v1",
+        "workspace_semantics": "current_XY_joint_margin_and_measured_other_support_candidate_not_feasibility_proof",
+        "other_measured_supports": [
+          "FR",
+          "FL",
+          "RL"
+        ],
+        "rr_actual_joint_margins_deg": [
+          [
+            132.87762466339194,
+            137.12237533660806
+          ],
+          [
+            46.65399218890131,
+            223.3460078110987
+          ]
+        ],
+        "rr_gap_m": 5.954469751887764e-05,
+        "rr_history_placed": false,
+        "air_is_support": false,
+        "committed_feedback_matches_current_tick": true,
+        "local_warning_only": true
+      },
+      "placed_history": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "actual_last_setter": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 14590,
+      "time_s": 121.58333333333333,
+      "gap_m": 5.28694519021794e-05,
+      "front_m": 0.020373467038389492,
+      "RR_raw_contact": {
+        "body_name": "rear_right_wheel",
+        "role": "WHEEL",
+        "contact_class": "AIR",
+        "ground": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": null,
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        },
+        "obstacle": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/Obstacle",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": [
+            0.5402228832244873,
+            -0.3167305588722229,
+            0.05131465196609497
+          ],
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        }
+      },
+      "RR_current": {
+        "air": true,
+        "ground_contact": false,
+        "obstacle_pair_active": false,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "bearing_verified": true,
+        "support": false,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "front_edge_crossed": true,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "ground_relative_lift_m": 0.05092685817416626,
+        "body_control_evidence": true,
+        "wheel_bottom_vz_m_s": -0.0008010294740045179
+      },
+      "current_other_supports": {
+        "FL": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 3.1860997676849365
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 13.579527854919434
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "contact_surface": "NONE",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 11.990899085998535
+        }
+      },
+      "actual_RR_deg": [
+        -2.1224658366145506,
+        -13.337702301067955
+      ],
+      "target_RR_deg": [
+        -1.7859131082524924,
+        -13.402843105868122
+      ],
+      "tracking_error_target_minus_actual_deg": [
+        0.3365527283620582,
+        -0.06514080480016737
+      ],
+      "state_before": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.411176439201455,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.949999999998184,
+        "descent_elapsed_s": 41.949999999998184,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.11666666666666665,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14768,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "state_after": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.402843105868122,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.95833333333152,
+        "descent_elapsed_s": 41.95833333333152,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.12499999999999999,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14769,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "pre_context": {
+        "dispatch_physics_tick": 14769,
+        "source_observation_tick": 14589,
+        "stage_id": "P09",
+        "physical_valid": true,
+        "within_top_xy": true,
+        "other_support_count": 3,
+        "qualified_RR": true,
+        "crossed_RR": true,
+        "rl_qualified_lift": false,
+        "rl_placed_current_top_support": false,
+        "air": true,
+        "ground_contact": false,
+        "top_surface_contact": false,
+        "obstacle_pair_active": false,
+        "current_top_bearing": false,
+        "gap_m": 5.954469751887764e-05,
+        "hip_actual_deg": -2.122375336608048,
+        "knee_actual_deg": -13.346007811098689,
+        "issued_nominal_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "issued_requested_residual_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "release_candidate_rr_deg": [
+          -0.27958844964823015,
+          -58.0
+        ]
+      },
+      "post_continuation": {
+        "rr_lift_carry": true,
+        "rr_top_reachable": true,
+        "rr_top_contact": false,
+        "rr_current_bearing": false,
+        "rl_transfer_ready": false,
+        "rr_capture_recovery_allowed": true,
+        "rr_contact_confirmation_allowed": false,
+        "rr_completed_contact_handoff_pending": false,
+        "rr_contact_handoff_window_s": 0.08333333333333333,
+        "fl_wheel_guidance_active": false,
+        "mode": "rr_capture_then_rl_transfer_v1",
+        "workspace_semantics": "current_XY_joint_margin_and_measured_other_support_candidate_not_feasibility_proof",
+        "other_measured_supports": [
+          "FR",
+          "FL",
+          "RL"
+        ],
+        "rr_actual_joint_margins_deg": [
+          [
+            132.87753416338546,
+            137.12246583661454
+          ],
+          [
+            46.66229769893204,
+            223.33770230106796
+          ]
+        ],
+        "rr_gap_m": 5.28694519021794e-05,
+        "rr_history_placed": false,
+        "air_is_support": false,
+        "committed_feedback_matches_current_tick": true,
+        "local_warning_only": true
+      },
+      "placed_history": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "actual_last_setter": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 14591,
+      "time_s": 121.59166666666667,
+      "gap_m": 4.559364353855233e-05,
+      "front_m": 0.020351294110533047,
+      "RR_raw_contact": {
+        "body_name": "rear_right_wheel",
+        "role": "WHEEL",
+        "contact_class": "AIR",
+        "ground": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": null,
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        },
+        "obstacle": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/Obstacle",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": [
+            0.540229082107544,
+            -0.3167318105697632,
+            0.051307231187820435
+          ],
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        }
+      },
+      "RR_current": {
+        "air": true,
+        "ground_contact": false,
+        "obstacle_pair_active": false,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "bearing_verified": true,
+        "support": false,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "front_edge_crossed": true,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "ground_relative_lift_m": 0.050919582365802636,
+        "body_control_evidence": true,
+        "wheel_bottom_vz_m_s": -0.0008730970036345532
+      },
+      "current_other_supports": {
+        "FL": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 3.1591427326202393
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 13.604887962341309
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "contact_surface": "NONE",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 12.008594512939453
+        }
+      },
+      "actual_RR_deg": [
+        -2.12255996515905,
+        -13.329352394807614
+      ],
+      "target_RR_deg": [
+        -1.7859131082524924,
+        -13.39450977253479
+      ],
+      "tracking_error_target_minus_actual_deg": [
+        0.3366468569065575,
+        -0.065157377727175
+      ],
+      "state_before": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.402843105868122,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.95833333333152,
+        "descent_elapsed_s": 41.95833333333152,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.12499999999999999,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14769,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "state_after": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.39450977253479,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.96666666666485,
+        "descent_elapsed_s": 41.96666666666485,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.13333333333333333,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14770,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "pre_context": {
+        "dispatch_physics_tick": 14770,
+        "source_observation_tick": 14590,
+        "stage_id": "P09",
+        "physical_valid": true,
+        "within_top_xy": true,
+        "other_support_count": 3,
+        "qualified_RR": true,
+        "crossed_RR": true,
+        "rl_qualified_lift": false,
+        "rl_placed_current_top_support": false,
+        "air": true,
+        "ground_contact": false,
+        "top_surface_contact": false,
+        "obstacle_pair_active": false,
+        "current_top_bearing": false,
+        "gap_m": 5.28694519021794e-05,
+        "hip_actual_deg": -2.1224658366145506,
+        "knee_actual_deg": -13.337702301067955,
+        "issued_nominal_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "issued_requested_residual_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "release_candidate_rr_deg": [
+          -0.27958844964823015,
+          -58.0
+        ]
+      },
+      "post_continuation": {
+        "rr_lift_carry": true,
+        "rr_top_reachable": true,
+        "rr_top_contact": false,
+        "rr_current_bearing": false,
+        "rl_transfer_ready": false,
+        "rr_capture_recovery_allowed": true,
+        "rr_contact_confirmation_allowed": false,
+        "rr_completed_contact_handoff_pending": false,
+        "rr_contact_handoff_window_s": 0.08333333333333333,
+        "fl_wheel_guidance_active": false,
+        "mode": "rr_capture_then_rl_transfer_v1",
+        "workspace_semantics": "current_XY_joint_margin_and_measured_other_support_candidate_not_feasibility_proof",
+        "other_measured_supports": [
+          "FR",
+          "FL",
+          "RL"
+        ],
+        "rr_actual_joint_margins_deg": [
+          [
+            132.87744003484096,
+            137.12255996515904
+          ],
+          [
+            46.670647605192386,
+            223.32935239480761
+          ]
+        ],
+        "rr_gap_m": 4.559364353855233e-05,
+        "rr_history_placed": false,
+        "air_is_support": false,
+        "committed_feedback_matches_current_tick": true,
+        "local_warning_only": true
+      },
+      "placed_history": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "actual_last_setter": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 14592,
+      "time_s": 121.6,
+      "gap_m": 4.09905420878931e-05,
+      "front_m": 0.020328703950163174,
+      "RR_raw_contact": {
+        "body_name": "rear_right_wheel",
+        "role": "WHEEL",
+        "contact_class": "AIR",
+        "ground": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": null,
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        },
+        "obstacle": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/Obstacle",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": [
+            0.5402357578277588,
+            -0.3167324960231781,
+            0.05129909887909889
+          ],
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        }
+      },
+      "RR_current": {
+        "air": true,
+        "ground_contact": false,
+        "obstacle_pair_active": false,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "bearing_verified": true,
+        "support": false,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "front_edge_crossed": true,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "ground_relative_lift_m": 0.05091497926435198,
+        "body_control_evidence": true,
+        "wheel_bottom_vz_m_s": -0.0005523721740796101
+      },
+      "current_other_supports": {
+        "FL": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 3.1555657386779785
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 13.596954345703125
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "contact_surface": "NONE",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 11.995750427246094
+        }
+      },
+      "actual_RR_deg": [
+        -2.1224165311864795,
+        -13.32105798383428
+      ],
+      "target_RR_deg": [
+        -1.7859131082524924,
+        -13.386176439201456
+      ],
+      "tracking_error_target_minus_actual_deg": [
+        0.33650342293398716,
+        -0.06511845536717686
+      ],
+      "state_before": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.39450977253479,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.96666666666485,
+        "descent_elapsed_s": 41.96666666666485,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.13333333333333333,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14770,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "state_after": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.386176439201456,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.97499999999818,
+        "descent_elapsed_s": 41.97499999999818,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.14166666666666666,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14771,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "pre_context": {
+        "dispatch_physics_tick": 14771,
+        "source_observation_tick": 14591,
+        "stage_id": "P09",
+        "physical_valid": true,
+        "within_top_xy": true,
+        "other_support_count": 3,
+        "qualified_RR": true,
+        "crossed_RR": true,
+        "rl_qualified_lift": false,
+        "rl_placed_current_top_support": false,
+        "air": true,
+        "ground_contact": false,
+        "top_surface_contact": false,
+        "obstacle_pair_active": false,
+        "current_top_bearing": false,
+        "gap_m": 4.559364353855233e-05,
+        "hip_actual_deg": -2.12255996515905,
+        "knee_actual_deg": -13.329352394807614,
+        "issued_nominal_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "issued_requested_residual_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "release_candidate_rr_deg": [
+          -0.27958844964823015,
+          -58.0
+        ]
+      },
+      "post_continuation": {
+        "rr_lift_carry": true,
+        "rr_top_reachable": true,
+        "rr_top_contact": false,
+        "rr_current_bearing": false,
+        "rl_transfer_ready": false,
+        "rr_capture_recovery_allowed": true,
+        "rr_contact_confirmation_allowed": false,
+        "rr_completed_contact_handoff_pending": false,
+        "rr_contact_handoff_window_s": 0.08333333333333333,
+        "fl_wheel_guidance_active": false,
+        "mode": "rr_capture_then_rl_transfer_v1",
+        "workspace_semantics": "current_XY_joint_margin_and_measured_other_support_candidate_not_feasibility_proof",
+        "other_measured_supports": [
+          "FR",
+          "FL",
+          "RL"
+        ],
+        "rr_actual_joint_margins_deg": [
+          [
+            132.87758346881353,
+            137.12241653118647
+          ],
+          [
+            46.67894201616572,
+            223.3210579838343
+          ]
+        ],
+        "rr_gap_m": 4.09905420878931e-05,
+        "rr_history_placed": false,
+        "air_is_support": false,
+        "committed_feedback_matches_current_tick": true,
+        "local_warning_only": true
+      },
+      "placed_history": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "actual_last_setter": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 14593,
+      "time_s": 121.60833333333333,
+      "gap_m": 3.8188454368440206e-05,
+      "front_m": 0.020305398534055996,
+      "RR_raw_contact": {
+        "body_name": "rear_right_wheel",
+        "role": "WHEEL",
+        "contact_class": "AIR",
+        "ground": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": null,
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        },
+        "obstacle": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/Obstacle",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": [
+            0.5402417182922363,
+            -0.31673315167427063,
+            0.051293760538101196
+          ],
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        }
+      },
+      "RR_current": {
+        "air": true,
+        "ground_contact": false,
+        "obstacle_pair_active": false,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "bearing_verified": true,
+        "support": false,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "front_edge_crossed": true,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "ground_relative_lift_m": 0.050912177176632524,
+        "body_control_evidence": true,
+        "wheel_bottom_vz_m_s": -0.0003362505263340798
+      },
+      "current_other_supports": {
+        "FL": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 3.2282230854034424
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 13.563252449035645
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "contact_surface": "NONE",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 11.949281692504883
+        }
+      },
+      "actual_RR_deg": [
+        -2.122281634950372,
+        -13.31281736060066
+      ],
+      "target_RR_deg": [
+        -1.7859131082524924,
+        -13.377843105868124
+      ],
+      "tracking_error_target_minus_actual_deg": [
+        0.33636852669787953,
+        -0.06502574526746407
+      ],
+      "state_before": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.386176439201456,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.97499999999818,
+        "descent_elapsed_s": 41.97499999999818,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.14166666666666666,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14771,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "state_after": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.377843105868124,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.983333333331515,
+        "descent_elapsed_s": 41.983333333331515,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.15,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14772,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "pre_context": {
+        "dispatch_physics_tick": 14772,
+        "source_observation_tick": 14592,
+        "stage_id": "P09",
+        "physical_valid": true,
+        "within_top_xy": true,
+        "other_support_count": 3,
+        "qualified_RR": true,
+        "crossed_RR": true,
+        "rl_qualified_lift": false,
+        "rl_placed_current_top_support": false,
+        "air": true,
+        "ground_contact": false,
+        "top_surface_contact": false,
+        "obstacle_pair_active": false,
+        "current_top_bearing": false,
+        "gap_m": 4.09905420878931e-05,
+        "hip_actual_deg": -2.1224165311864795,
+        "knee_actual_deg": -13.32105798383428,
+        "issued_nominal_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "issued_requested_residual_delta_rr_deg": [
+          0.0004898458374640313,
+          2.1515835705088193e-05
+        ],
+        "release_candidate_rr_deg": [
+          -0.2790986038107661,
+          -58.0
+        ]
+      },
+      "post_continuation": {
+        "rr_lift_carry": true,
+        "rr_top_reachable": true,
+        "rr_top_contact": false,
+        "rr_current_bearing": false,
+        "rl_transfer_ready": false,
+        "rr_capture_recovery_allowed": true,
+        "rr_contact_confirmation_allowed": false,
+        "rr_completed_contact_handoff_pending": false,
+        "rr_contact_handoff_window_s": 0.08333333333333333,
+        "fl_wheel_guidance_active": false,
+        "mode": "rr_capture_then_rl_transfer_v1",
+        "workspace_semantics": "current_XY_joint_margin_and_measured_other_support_candidate_not_feasibility_proof",
+        "other_measured_supports": [
+          "FR",
+          "FL",
+          "RL"
+        ],
+        "rr_actual_joint_margins_deg": [
+          [
+            132.87771836504962,
+            137.12228163495038
+          ],
+          [
+            46.68718263939934,
+            223.31281736060066
+          ]
+        ],
+        "rr_gap_m": 3.8188454368440206e-05,
+        "rr_history_placed": false,
+        "air_is_support": false,
+        "committed_feedback_matches_current_tick": true,
+        "local_warning_only": true
+      },
+      "placed_history": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "actual_last_setter": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 14594,
+      "time_s": 121.61666666666666,
+      "gap_m": 3.284331168917215e-05,
+      "front_m": 0.020283285210844326,
+      "RR_raw_contact": {
+        "body_name": "rear_right_wheel",
+        "role": "WHEEL",
+        "contact_class": "AIR",
+        "ground": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": null,
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        },
+        "obstacle": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/Obstacle",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": [
+            0.540246844291687,
+            -0.3167346715927124,
+            0.05129029229283333
+          ],
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        }
+      },
+      "RR_current": {
+        "air": true,
+        "ground_contact": false,
+        "obstacle_pair_active": false,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "bearing_verified": true,
+        "support": false,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "front_edge_crossed": true,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "ground_relative_lift_m": 0.050906832033953256,
+        "body_control_evidence": true,
+        "wheel_bottom_vz_m_s": -0.0006414171215127501
+      },
+      "current_other_supports": {
+        "FL": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 3.193047285079956
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 13.594057083129883
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "contact_surface": "NONE",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 11.972722053527832
+        }
+      },
+      "actual_RR_deg": [
+        -2.1224756550114825,
+        -13.304461477924795
+      ],
+      "target_RR_deg": [
+        -1.7859131082524924,
+        -13.36950977253479
+      ],
+      "tracking_error_target_minus_actual_deg": [
+        0.3365625467589901,
+        -0.06504829460999595
+      ],
+      "state_before": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.377843105868124,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.983333333331515,
+        "descent_elapsed_s": 41.983333333331515,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.15,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14772,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "state_after": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.36950977253479,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.99166666666485,
+        "descent_elapsed_s": 41.99166666666485,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.15833333333333333,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14773,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "pre_context": {
+        "dispatch_physics_tick": 14773,
+        "source_observation_tick": 14593,
+        "stage_id": "P09",
+        "physical_valid": true,
+        "within_top_xy": true,
+        "other_support_count": 3,
+        "qualified_RR": true,
+        "crossed_RR": true,
+        "rl_qualified_lift": false,
+        "rl_placed_current_top_support": false,
+        "air": true,
+        "ground_contact": false,
+        "top_surface_contact": false,
+        "obstacle_pair_active": false,
+        "current_top_bearing": false,
+        "gap_m": 3.8188454368440206e-05,
+        "hip_actual_deg": -2.122281634950372,
+        "knee_actual_deg": -13.31281736060066,
+        "issued_nominal_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "issued_requested_residual_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "release_candidate_rr_deg": [
+          -0.2790986038107661,
+          -58.0
+        ]
+      },
+      "post_continuation": {
+        "rr_lift_carry": true,
+        "rr_top_reachable": true,
+        "rr_top_contact": false,
+        "rr_current_bearing": false,
+        "rl_transfer_ready": false,
+        "rr_capture_recovery_allowed": true,
+        "rr_contact_confirmation_allowed": false,
+        "rr_completed_contact_handoff_pending": false,
+        "rr_contact_handoff_window_s": 0.08333333333333333,
+        "fl_wheel_guidance_active": false,
+        "mode": "rr_capture_then_rl_transfer_v1",
+        "workspace_semantics": "current_XY_joint_margin_and_measured_other_support_candidate_not_feasibility_proof",
+        "other_measured_supports": [
+          "FR",
+          "FL",
+          "RL"
+        ],
+        "rr_actual_joint_margins_deg": [
+          [
+            132.87752434498853,
+            137.12247565501147
+          ],
+          [
+            46.6955385220752,
+            223.3044614779248
+          ]
+        ],
+        "rr_gap_m": 3.284331168917215e-05,
+        "rr_history_placed": false,
+        "air_is_support": false,
+        "committed_feedback_matches_current_tick": true,
+        "local_warning_only": true
+      },
+      "placed_history": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "actual_last_setter": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 14595,
+      "time_s": 121.625,
+      "gap_m": 2.6957548985635793e-05,
+      "front_m": 0.020260695050474453,
+      "RR_raw_contact": {
+        "body_name": "rear_right_wheel",
+        "role": "WHEEL",
+        "contact_class": "AIR",
+        "ground": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": null,
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        },
+        "obstacle": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/Obstacle",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": [
+            0.5402534008026123,
+            -0.31673574447631836,
+            0.051284220069646835
+          ],
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        }
+      },
+      "RR_current": {
+        "air": true,
+        "ground_contact": false,
+        "obstacle_pair_active": false,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "bearing_verified": true,
+        "support": false,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "front_edge_crossed": true,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "ground_relative_lift_m": 0.05090094627124972,
+        "body_control_evidence": true,
+        "wheel_bottom_vz_m_s": -0.0007062915244238008
+      },
+      "current_other_supports": {
+        "FL": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 3.1955320835113525
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 13.586160659790039
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "contact_surface": "NONE",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 11.97148609161377
+        }
+      },
+      "actual_RR_deg": [
+        -2.1224726668037204,
+        -13.2961807273298
+      ],
+      "target_RR_deg": [
+        -1.7859131082524924,
+        -13.361176439201458
+      ],
+      "tracking_error_target_minus_actual_deg": [
+        0.336559558551228,
+        -0.0649957118716582
+      ],
+      "state_before": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.36950977253479,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.99166666666485,
+        "descent_elapsed_s": 41.99166666666485,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.15833333333333333,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14773,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "state_after": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.361176439201458,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.99999999999818,
+        "descent_elapsed_s": 41.99999999999818,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.16666666666666666,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14774,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "pre_context": {
+        "dispatch_physics_tick": 14774,
+        "source_observation_tick": 14594,
+        "stage_id": "P09",
+        "physical_valid": true,
+        "within_top_xy": true,
+        "other_support_count": 3,
+        "qualified_RR": true,
+        "crossed_RR": true,
+        "rl_qualified_lift": false,
+        "rl_placed_current_top_support": false,
+        "air": true,
+        "ground_contact": false,
+        "top_surface_contact": false,
+        "obstacle_pair_active": false,
+        "current_top_bearing": false,
+        "gap_m": 3.284331168917215e-05,
+        "hip_actual_deg": -2.1224756550114825,
+        "knee_actual_deg": -13.304461477924795,
+        "issued_nominal_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "issued_requested_residual_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "release_candidate_rr_deg": [
+          -0.2790986038107661,
+          -58.0
+        ]
+      },
+      "post_continuation": {
+        "rr_lift_carry": true,
+        "rr_top_reachable": true,
+        "rr_top_contact": false,
+        "rr_current_bearing": false,
+        "rl_transfer_ready": false,
+        "rr_capture_recovery_allowed": true,
+        "rr_contact_confirmation_allowed": false,
+        "rr_completed_contact_handoff_pending": false,
+        "rr_contact_handoff_window_s": 0.08333333333333333,
+        "fl_wheel_guidance_active": false,
+        "mode": "rr_capture_then_rl_transfer_v1",
+        "workspace_semantics": "current_XY_joint_margin_and_measured_other_support_candidate_not_feasibility_proof",
+        "other_measured_supports": [
+          "FR",
+          "FL",
+          "RL"
+        ],
+        "rr_actual_joint_margins_deg": [
+          [
+            132.87752733319627,
+            137.12247266680373
+          ],
+          [
+            46.7038192726702,
+            223.2961807273298
+          ]
+        ],
+        "rr_gap_m": 2.6957548985635793e-05,
+        "rr_history_placed": false,
+        "air_is_support": false,
+        "committed_feedback_matches_current_tick": true,
+        "local_warning_only": true
+      },
+      "placed_history": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "actual_last_setter": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 14596,
+      "time_s": 121.63333333333333,
+      "gap_m": 2.09921262438878e-05,
+      "front_m": 0.020237806866880703,
+      "RR_raw_contact": {
+        "body_name": "rear_right_wheel",
+        "role": "WHEEL",
+        "contact_class": "AIR",
+        "ground": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": null,
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        },
+        "obstacle": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/Obstacle",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": [
+            0.540259599685669,
+            -0.31673696637153625,
+            0.05127759650349617
+          ],
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        }
+      },
+      "RR_current": {
+        "air": true,
+        "ground_contact": false,
+        "obstacle_pair_active": false,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "bearing_verified": true,
+        "support": false,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "front_edge_crossed": true,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "ground_relative_lift_m": 0.05089498084850797,
+        "body_control_evidence": true,
+        "wheel_bottom_vz_m_s": -0.0007158507290104104
+      },
+      "current_other_supports": {
+        "FL": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 3.181391477584839
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 13.589205741882324
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "contact_surface": "NONE",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 11.982451438903809
+        }
+      },
+      "actual_RR_deg": [
+        -2.122489955720057,
+        -13.28787863239365
+      ],
+      "target_RR_deg": [
+        -1.7859131082524924,
+        -13.352843105868125
+      ],
+      "tracking_error_target_minus_actual_deg": [
+        0.3365768474675648,
+        -0.06496447347447543
+      ],
+      "state_before": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.361176439201458,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 51.99999999999818,
+        "descent_elapsed_s": 41.99999999999818,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.16666666666666666,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14774,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "state_after": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.352843105868125,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 52.008333333331514,
+        "descent_elapsed_s": 42.008333333331514,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.175,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14775,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "pre_context": {
+        "dispatch_physics_tick": 14775,
+        "source_observation_tick": 14595,
+        "stage_id": "P09",
+        "physical_valid": true,
+        "within_top_xy": true,
+        "other_support_count": 3,
+        "qualified_RR": true,
+        "crossed_RR": true,
+        "rl_qualified_lift": false,
+        "rl_placed_current_top_support": false,
+        "air": true,
+        "ground_contact": false,
+        "top_surface_contact": false,
+        "obstacle_pair_active": false,
+        "current_top_bearing": false,
+        "gap_m": 2.6957548985635793e-05,
+        "hip_actual_deg": -2.1224726668037204,
+        "knee_actual_deg": -13.2961807273298,
+        "issued_nominal_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "issued_requested_residual_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "release_candidate_rr_deg": [
+          -0.2790986038107661,
+          -58.0
+        ]
+      },
+      "post_continuation": {
+        "rr_lift_carry": true,
+        "rr_top_reachable": true,
+        "rr_top_contact": false,
+        "rr_current_bearing": false,
+        "rl_transfer_ready": false,
+        "rr_capture_recovery_allowed": true,
+        "rr_contact_confirmation_allowed": false,
+        "rr_completed_contact_handoff_pending": false,
+        "rr_contact_handoff_window_s": 0.08333333333333333,
+        "fl_wheel_guidance_active": false,
+        "mode": "rr_capture_then_rl_transfer_v1",
+        "workspace_semantics": "current_XY_joint_margin_and_measured_other_support_candidate_not_feasibility_proof",
+        "other_measured_supports": [
+          "FR",
+          "FL",
+          "RL"
+        ],
+        "rr_actual_joint_margins_deg": [
+          [
+            132.87751004427994,
+            137.12248995572006
+          ],
+          [
+            46.71212136760635,
+            223.28787863239364
+          ]
+        ],
+        "rr_gap_m": 2.09921262438878e-05,
+        "rr_history_placed": false,
+        "air_is_support": false,
+        "committed_feedback_matches_current_tick": true,
+        "local_warning_only": true
+      },
+      "placed_history": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "actual_last_setter": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 14597,
+      "time_s": 121.64166666666667,
+      "gap_m": 1.4843011191853495e-05,
+      "front_m": 0.020214620660063076,
+      "RR_raw_contact": {
+        "body_name": "rear_right_wheel",
+        "role": "WHEEL",
+        "contact_class": "AIR",
+        "ground": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": null,
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        },
+        "obstacle": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/Obstacle",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": [
+            0.5402654409408569,
+            -0.31673815846443176,
+            0.05127089098095894
+          ],
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        }
+      },
+      "RR_current": {
+        "air": true,
+        "ground_contact": false,
+        "obstacle_pair_active": false,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "bearing_verified": true,
+        "support": false,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "front_edge_crossed": true,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "ground_relative_lift_m": 0.05088883173345594,
+        "body_control_evidence": true,
+        "wheel_bottom_vz_m_s": -0.0007378938062435293
+      },
+      "current_other_supports": {
+        "FL": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 3.180652618408203
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 13.589822769165039
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "contact_surface": "NONE",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 11.98151969909668
+        }
+      },
+      "actual_RR_deg": [
+        -2.1225038295418086,
+        -13.279572268589268
+      ],
+      "target_RR_deg": [
+        -1.7859131082524924,
+        -13.344509772534792
+      ],
+      "tracking_error_target_minus_actual_deg": [
+        0.3365907212893162,
+        -0.064937503945524
+      ],
+      "state_before": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.352843105868125,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 52.008333333331514,
+        "descent_elapsed_s": 42.008333333331514,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.175,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14775,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "state_after": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.344509772534792,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 52.01666666666485,
+        "descent_elapsed_s": 42.01666666666485,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.18333333333333332,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14776,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "pre_context": {
+        "dispatch_physics_tick": 14776,
+        "source_observation_tick": 14596,
+        "stage_id": "P09",
+        "physical_valid": true,
+        "within_top_xy": true,
+        "other_support_count": 3,
+        "qualified_RR": true,
+        "crossed_RR": true,
+        "rl_qualified_lift": false,
+        "rl_placed_current_top_support": false,
+        "air": true,
+        "ground_contact": false,
+        "top_surface_contact": false,
+        "obstacle_pair_active": false,
+        "current_top_bearing": false,
+        "gap_m": 2.09921262438878e-05,
+        "hip_actual_deg": -2.122489955720057,
+        "knee_actual_deg": -13.28787863239365,
+        "issued_nominal_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "issued_requested_residual_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "release_candidate_rr_deg": [
+          -0.2790986038107661,
+          -58.0
+        ]
+      },
+      "post_continuation": {
+        "rr_lift_carry": true,
+        "rr_top_reachable": true,
+        "rr_top_contact": false,
+        "rr_current_bearing": false,
+        "rl_transfer_ready": false,
+        "rr_capture_recovery_allowed": true,
+        "rr_contact_confirmation_allowed": false,
+        "rr_completed_contact_handoff_pending": false,
+        "rr_contact_handoff_window_s": 0.08333333333333333,
+        "fl_wheel_guidance_active": false,
+        "mode": "rr_capture_then_rl_transfer_v1",
+        "workspace_semantics": "current_XY_joint_margin_and_measured_other_support_candidate_not_feasibility_proof",
+        "other_measured_supports": [
+          "FR",
+          "FL",
+          "RL"
+        ],
+        "rr_actual_joint_margins_deg": [
+          [
+            132.8774961704582,
+            137.1225038295418
+          ],
+          [
+            46.72042773141073,
+            223.27957226858928
+          ]
+        ],
+        "rr_gap_m": 1.4843011191853495e-05,
+        "rr_history_placed": false,
+        "air_is_support": false,
+        "committed_feedback_matches_current_tick": true,
+        "local_warning_only": true
+      },
+      "placed_history": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "actual_last_setter": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 14598,
+      "time_s": 121.64999999999999,
+      "gap_m": 8.689686595834967e-06,
+      "front_m": 0.020191851685758877,
+      "RR_raw_contact": {
+        "body_name": "rear_right_wheel",
+        "role": "WHEEL",
+        "contact_class": "AIR",
+        "ground": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": null,
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        },
+        "obstacle": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/Obstacle",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": [
+            0.5402710437774658,
+            -0.3167392611503601,
+            0.051263999193906784
+          ],
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        }
+      },
+      "RR_current": {
+        "air": true,
+        "ground_contact": false,
+        "obstacle_pair_active": false,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "bearing_verified": true,
+        "support": false,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "front_edge_crossed": true,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "ground_relative_lift_m": 0.05088267840885992,
+        "body_control_evidence": true,
+        "wheel_bottom_vz_m_s": -0.0007383989515228949
+      },
+      "current_other_supports": {
+        "FL": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 3.181255340576172
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 13.589780807495117
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "contact_surface": "NONE",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 11.983569145202637
+        }
+      },
+      "actual_RR_deg": [
+        -2.122514288268975,
+        -13.271264197237594
+      ],
+      "target_RR_deg": [
+        -1.7859131082524924,
+        -13.33617643920146
+      ],
+      "tracking_error_target_minus_actual_deg": [
+        0.33660118001648276,
+        -0.06491224196386547
+      ],
+      "state_before": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.344509772534792,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 52.01666666666485,
+        "descent_elapsed_s": 42.01666666666485,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.18333333333333332,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14776,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "state_after": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.33617643920146,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 52.02499999999818,
+        "descent_elapsed_s": 42.02499999999818,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.19166666666666665,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14777,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "pre_context": {
+        "dispatch_physics_tick": 14777,
+        "source_observation_tick": 14597,
+        "stage_id": "P09",
+        "physical_valid": true,
+        "within_top_xy": true,
+        "other_support_count": 3,
+        "qualified_RR": true,
+        "crossed_RR": true,
+        "rl_qualified_lift": false,
+        "rl_placed_current_top_support": false,
+        "air": true,
+        "ground_contact": false,
+        "top_surface_contact": false,
+        "obstacle_pair_active": false,
+        "current_top_bearing": false,
+        "gap_m": 1.4843011191853495e-05,
+        "hip_actual_deg": -2.1225038295418086,
+        "knee_actual_deg": -13.279572268589268,
+        "issued_nominal_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "issued_requested_residual_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "release_candidate_rr_deg": [
+          -0.2790986038107661,
+          -58.0
+        ]
+      },
+      "post_continuation": {
+        "rr_lift_carry": true,
+        "rr_top_reachable": true,
+        "rr_top_contact": false,
+        "rr_current_bearing": false,
+        "rl_transfer_ready": false,
+        "rr_capture_recovery_allowed": true,
+        "rr_contact_confirmation_allowed": false,
+        "rr_completed_contact_handoff_pending": false,
+        "rr_contact_handoff_window_s": 0.08333333333333333,
+        "fl_wheel_guidance_active": false,
+        "mode": "rr_capture_then_rl_transfer_v1",
+        "workspace_semantics": "current_XY_joint_margin_and_measured_other_support_candidate_not_feasibility_proof",
+        "other_measured_supports": [
+          "FR",
+          "FL",
+          "RL"
+        ],
+        "rr_actual_joint_margins_deg": [
+          [
+            132.87748571173103,
+            137.12251428826897
+          ],
+          [
+            46.72873580276241,
+            223.2712641972376
+          ]
+        ],
+        "rr_gap_m": 8.689686595834967e-06,
+        "rr_history_placed": false,
+        "air_is_support": false,
+        "committed_feedback_matches_current_tick": true,
+        "local_warning_only": true
+      },
+      "placed_history": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "actual_last_setter": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 14599,
+      "time_s": 121.65833333333333,
+      "gap_m": 2.6106133958897493e-06,
+      "front_m": 0.02016890389752035,
+      "RR_raw_contact": {
+        "body_name": "rear_right_wheel",
+        "role": "WHEEL",
+        "contact_class": "AIR",
+        "ground": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": null,
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        },
+        "obstacle": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/Obstacle",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": [
+            0.5402770042419434,
+            -0.3167403042316437,
+            0.05125709995627403
+          ],
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        }
+      },
+      "RR_current": {
+        "air": true,
+        "ground_contact": false,
+        "obstacle_pair_active": false,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "bearing_verified": true,
+        "support": false,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "front_edge_crossed": true,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "ground_relative_lift_m": 0.050876599335659974,
+        "body_control_evidence": true,
+        "wheel_bottom_vz_m_s": -0.0007294887839928456
+      },
+      "current_other_supports": {
+        "FL": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 3.1804275512695312
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 13.590794563293457
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "contact_surface": "NONE",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 11.983792304992676
+        }
+      },
+      "actual_RR_deg": [
+        -2.122530083081431,
+        -13.262955272112274
+      ],
+      "target_RR_deg": [
+        -1.7859131082524924,
+        -13.327843105868126
+      ],
+      "tracking_error_target_minus_actual_deg": [
+        0.3366169748289385,
+        -0.0648878337558525
+      ],
+      "state_before": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.33617643920146,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 52.02499999999818,
+        "descent_elapsed_s": 42.02499999999818,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.19166666666666665,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14777,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "state_after": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.327843105868126,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 52.03333333333151,
+        "descent_elapsed_s": 42.03333333333151,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.19999999999999998,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14778,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "pre_context": {
+        "dispatch_physics_tick": 14778,
+        "source_observation_tick": 14598,
+        "stage_id": "P09",
+        "physical_valid": true,
+        "within_top_xy": true,
+        "other_support_count": 3,
+        "qualified_RR": true,
+        "crossed_RR": true,
+        "rl_qualified_lift": false,
+        "rl_placed_current_top_support": false,
+        "air": true,
+        "ground_contact": false,
+        "top_surface_contact": false,
+        "obstacle_pair_active": false,
+        "current_top_bearing": false,
+        "gap_m": 8.689686595834967e-06,
+        "hip_actual_deg": -2.122514288268975,
+        "knee_actual_deg": -13.271264197237594,
+        "issued_nominal_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "issued_requested_residual_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "release_candidate_rr_deg": [
+          -0.2790986038107661,
+          -58.0
+        ]
+      },
+      "post_continuation": {
+        "rr_lift_carry": true,
+        "rr_top_reachable": true,
+        "rr_top_contact": false,
+        "rr_current_bearing": false,
+        "rl_transfer_ready": false,
+        "rr_capture_recovery_allowed": true,
+        "rr_contact_confirmation_allowed": false,
+        "rr_completed_contact_handoff_pending": false,
+        "rr_contact_handoff_window_s": 0.08333333333333333,
+        "fl_wheel_guidance_active": false,
+        "mode": "rr_capture_then_rl_transfer_v1",
+        "workspace_semantics": "current_XY_joint_margin_and_measured_other_support_candidate_not_feasibility_proof",
+        "other_measured_supports": [
+          "FR",
+          "FL",
+          "RL"
+        ],
+        "rr_actual_joint_margins_deg": [
+          [
+            132.87746991691856,
+            137.12253008308144
+          ],
+          [
+            46.73704472788773,
+            223.26295527211226
+          ]
+        ],
+        "rr_gap_m": 2.6106133958897493e-06,
+        "rr_history_placed": false,
+        "air_is_support": false,
+        "committed_feedback_matches_current_tick": true,
+        "local_warning_only": true
+      },
+      "placed_history": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "actual_last_setter": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    },
+    {
+      "tick": 14600,
+      "time_s": 121.66666666666667,
+      "gap_m": -3.537004006459732e-06,
+      "front_m": 0.0201460157139266,
+      "RR_raw_contact": {
+        "body_name": "rear_right_wheel",
+        "role": "WHEEL",
+        "contact_class": "AIR",
+        "ground": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/defaultGroundPlane/GroundPlane/CollisionPlane",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": null,
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        },
+        "obstacle": {
+          "sensor_body": "rear_right_wheel",
+          "other_body": "/World/Obstacle",
+          "active": false,
+          "force_w_n": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "normal_force_n": 0.0,
+          "tangential_force_n": 0.0,
+          "contact_point_w_m": [
+            0.5402827858924866,
+            -0.3167415261268616,
+            0.05125027149915695
+          ],
+          "force_history_w_n": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ]
+          ],
+          "active_history": [
+            false,
+            false,
+            false
+          ],
+          "consecutive_active_ticks": 0,
+          "source": "isaaclab.ContactSensor.force_matrix_w",
+          "pair_verified": true
+        }
+      },
+      "RR_current": {
+        "air": true,
+        "ground_contact": false,
+        "obstacle_pair_active": false,
+        "contact_surface": "NONE",
+        "top_surface_contact": false,
+        "bearing_force_n": 0.0,
+        "bearing_verified": true,
+        "support": false,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "front_edge_crossed": true,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "ground_relative_lift_m": 0.050870451718257624,
+        "body_control_evidence": true,
+        "wheel_bottom_vz_m_s": -0.0007377140882813506
+      },
+      "current_other_supports": {
+        "FL": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 3.178248167037964
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_surface_contact": true,
+          "contact_surface": "TOP",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 13.586666107177734
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_surface_contact": false,
+          "contact_surface": "NONE",
+          "support": true,
+          "bearing_verified": true,
+          "bearing_force_n": 11.973245620727539
+        }
+      },
+      "actual_RR_deg": [
+        -2.122588139689376,
+        -13.254650615855184
+      ],
+      "target_RR_deg": [
+        -1.7859131082524924,
+        -13.319509772534794
+      ],
+      "tracking_error_target_minus_actual_deg": [
+        0.3366750314368836,
+        -0.06485915667960995
+      ],
+      "state_before": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.327843105868126,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 52.03333333333151,
+        "descent_elapsed_s": 42.03333333333151,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.19999999999999998,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14778,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "state_after": {
+        "schema": "wlr50_clean.rr_capture_assist_state.v1",
+        "version": "rr_hip_only_capture_v1",
+        "feedback_revision": "progress_reserve_contact_onset_incremental_v5",
+        "window_reference_semantics": "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed",
+        "capture_search_semantics": "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement",
+        "mode": 6.0,
+        "initialized": 1.0,
+        "knee_hold_deg": -13.319509772534794,
+        "hip_entry_deg": 18.21408689174761,
+        "hip_target_deg": -1.7859131082524924,
+        "travel_used_deg": 52.041666666664845,
+        "descent_elapsed_s": 42.041666666664845,
+        "window_start_gap_m": 0.00013872698339614797,
+        "window_elapsed_s": 0.20833333333333331,
+        "hold_elapsed_s": 0.0,
+        "release_fraction": 0.0,
+        "contact_seen": 0.0,
+        "retired": 0.0,
+        "blocked_reason": 0.0,
+        "mode_name": "DESCEND_PROGRESS",
+        "reason": "none",
+        "active": true,
+        "owners": [
+          "rr_capture_assist",
+          "rr_capture_assist"
+        ],
+        "owner_indices": [
+          6,
+          7
+        ],
+        "last_dispatch_physics_tick": 14779,
+        "feature_names": [
+          "mode",
+          "initialized",
+          "knee_hold_deg",
+          "hip_entry_deg",
+          "hip_target_deg",
+          "travel_used_deg",
+          "descent_elapsed_s",
+          "window_start_gap_m",
+          "window_elapsed_s",
+          "hold_elapsed_s",
+          "release_fraction",
+          "contact_seen",
+          "retired",
+          "blocked_reason"
+        ]
+      },
+      "pre_context": {
+        "dispatch_physics_tick": 14779,
+        "source_observation_tick": 14599,
+        "stage_id": "P09",
+        "physical_valid": true,
+        "within_top_xy": true,
+        "other_support_count": 3,
+        "qualified_RR": true,
+        "crossed_RR": true,
+        "rl_qualified_lift": false,
+        "rl_placed_current_top_support": false,
+        "air": true,
+        "ground_contact": false,
+        "top_surface_contact": false,
+        "obstacle_pair_active": false,
+        "current_top_bearing": false,
+        "gap_m": 2.6106133958897493e-06,
+        "hip_actual_deg": -2.122530083081431,
+        "knee_actual_deg": -13.262955272112274,
+        "issued_nominal_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "issued_requested_residual_delta_rr_deg": [
+          0.0,
+          0.0
+        ],
+        "release_candidate_rr_deg": [
+          -0.2790986038107661,
+          -58.0
+        ]
+      },
+      "post_continuation": {
+        "rr_lift_carry": true,
+        "rr_top_reachable": false,
+        "rr_top_contact": false,
+        "rr_current_bearing": false,
+        "rl_transfer_ready": false,
+        "rr_capture_recovery_allowed": false,
+        "rr_contact_confirmation_allowed": false,
+        "rr_completed_contact_handoff_pending": false,
+        "rr_contact_handoff_window_s": 0.08333333333333333,
+        "fl_wheel_guidance_active": false,
+        "mode": "rr_capture_then_rl_transfer_v1",
+        "workspace_semantics": "current_XY_joint_margin_and_measured_other_support_candidate_not_feasibility_proof",
+        "other_measured_supports": [
+          "FR",
+          "FL",
+          "RL"
+        ],
+        "rr_actual_joint_margins_deg": [
+          [
+            132.87741186031062,
+            137.12258813968938
+          ],
+          [
+            46.745349384144816,
+            223.25465061585518
+          ]
+        ],
+        "rr_gap_m": -3.537004006459732e-06,
+        "rr_history_placed": false,
+        "air_is_support": false,
+        "committed_feedback_matches_current_tick": true,
+        "local_warning_only": false
+      },
+      "placed_history": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "actual_last_setter": "robot._joint_pos_target_sim/robot._joint_vel_target_sim_after_existing_write_data_to_sim"
+    }
+  ],
+  "terminal": {
+    "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "task_success": false,
+    "time_outs": false,
+    "task_outcome_label": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "full_task_success": false,
+    "terminal_bootstrap_allowed": false
+  },
+  "terminal_task": {
+    "stage_id": "P09",
+    "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "termination_source": "LOCAL_BOUNDED_RECOVERY_EXHAUSTED",
+    "stage_age_s": 52.533333333333346,
+    "local_timeout": {
+      "nominal_limit_s": 30.0,
+      "current_progress_allowance_s": 7.225,
+      "fixed_post_window_allowance_s": 0.0,
+      "effective_limit_s": 37.225,
+      "nominal_limit_exceeded": true,
+      "classification": "finite_task_terminal_not_external_truncation",
+      "timer_inputs_observable_in_existing372": false,
+      "local_episode_terminal_enabled": true,
+      "observation_semantics": "legacy372_times_plus_explicit_capture_append17",
+      "current_schema_observable": true
+    },
+    "completion_values": {
+      "placed_RR": 0.85
+    },
+    "entry_valid": true,
+    "rr_capture_continuation": {
+      "rr_lift_carry": true,
+      "rr_top_reachable": false,
+      "rr_top_contact": false,
+      "rr_current_bearing": false,
+      "rl_transfer_ready": false,
+      "rr_capture_recovery_allowed": false,
+      "rr_contact_confirmation_allowed": false,
+      "rr_completed_contact_handoff_pending": false,
+      "rr_contact_handoff_window_s": 0.08333333333333333,
+      "fl_wheel_guidance_active": false,
+      "mode": "rr_capture_then_rl_transfer_v1",
+      "workspace_semantics": "current_XY_joint_margin_and_measured_other_support_candidate_not_feasibility_proof",
+      "other_measured_supports": [
+        "FR",
+        "FL",
+        "RL"
+      ],
+      "rr_actual_joint_margins_deg": [
+        [
+          132.87741186031062,
+          137.12258813968938
+        ],
+        [
+          46.745349384144816,
+          223.25465061585518
+        ]
+      ],
+      "rr_gap_m": -3.537004006459732e-06,
+      "rr_history_placed": false,
+      "air_is_support": false,
+      "committed_feedback_matches_current_tick": true,
+      "local_warning_only": false
+    },
+    "nominal_provider_diagnostics": {
+      "p06_rolling_retirement": {
+        "schema": "wlr50_clean.p06_rolling_retirement.v1",
+        "timing": "current_nominal_suggestion_before_slew_not_applied_target",
+        "enabled": true,
+        "layer_present": true,
+        "status": "terminal_no_new_retirement",
+        "origin": "current_live_P06_layer",
+        "source_observation_tick": null,
+        "source_sim_time_s": null,
+        "front_distance_rl_m": null,
+        "front_distance_rr_m": null,
+        "lateral_valid": null,
+        "measured_fraction": null,
+        "peak_fraction": 1.0,
+        "wheel_gain": 0.0,
+        "gain_semantics": "bounded_current_geometry_recoverable"
+      },
+      "successful_fsm_nominal": {
+        "mode": "successful_fsm_derived_v2",
+        "source_state_spec_path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\configs\\fsm_states.yaml",
+        "request_semantics": "held_source_owner_requests_single_mature_mapper",
+        "tracking_semantics": "current_and_unfinished_owners_not_stale_handoff_tracking",
+        "normal_drive_bias_full12": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "dormant_reference_rebound_trigger_enabled": false,
+        "source_entry_and_completion_gates_enabled": false,
+        "residual_dependent_controller_selection": false
+      },
+      "source_partial_order": {
+        "mode": "source_partial_order_physical_ready_v1",
+        "default_assist": "RL_source_method",
+        "RR_contact_backup_enabled": false,
+        "residual_channels_restricted": false,
+        "layers": [
+          {
+            "stage": "P07",
+            "source_ticks": 6320,
+            "observation_tick": 14600,
+            "status": "holding",
+            "wait_reason": "no_live_physical_readiness",
+            "support_count": 3,
+            "RR_other_support_count": 3,
+            "FL_space_measured": true,
+            "FL_body_radial_contraction_m": 0.0880393205760425,
+            "RR_current_continuation": true,
+            "actual_start_tick": 8280,
+            "fr_group_start_tick": 8320
+          },
+          {
+            "stage": "P08",
+            "source_ticks": 6120,
+            "observation_tick": 14600,
+            "status": "holding",
+            "wait_reason": "no_live_physical_readiness",
+            "support_count": 3,
+            "RR_other_support_count": 3,
+            "FL_space_measured": true,
+            "FL_body_radial_contraction_m": 0.0880393205760425,
+            "RR_current_continuation": true,
+            "wait_ticks": 192,
+            "actual_start_tick": 8480
+          },
+          {
+            "stage": "P09",
+            "source_ticks": 5693,
+            "observation_tick": 14600,
+            "status": "holding",
+            "wait_reason": "no_live_physical_readiness",
+            "current_free_lift_source_readiness": null,
+            "support_count": 3,
+            "RR_other_support_count": 3,
+            "FL_space_measured": true,
+            "FL_body_radial_contraction_m": 0.0880393205760425,
+            "RR_current_continuation": true,
+            "wait_ticks": 611,
+            "actual_start_tick": 8528,
+            "late_group_source_tick": 648,
+            "RR_late_front_distance_m": 8.851630520467779e-05,
+            "RR_late_clearance_m": 0.027510446372668793,
+            "RR_late_within_top_xy": true,
+            "late_group_start_tick": 9555
+          }
+        ]
+      },
+      "p06_wheel_tail": {
+        "schema": "wlr50_clean.p06_wheel_tail.v1",
+        "enabled": true,
+        "timing": "P06_layer_contribution_before_later_owners_and_slew_not_applied_target",
+        "source_rolling_rad_s": [
+          0.3,
+          0.3,
+          0.3,
+          0.3
+        ],
+        "layer_present": true,
+        "source_endpoint_issued": true,
+        "finite_source_tail_replaced": false,
+        "wheel_gain": 0.0,
+        "status": "terminal_no_tail"
+      },
+      "final_stop_owner": {
+        "mode": "source_home_after_physical_stop_v2",
+        "active": false,
+        "acquisition_semantics": "post_window_triggered_nominal_stop_takeover_v2",
+        "status": "not_acquired",
+        "entry": null,
+        "current_observation_tick": 14600,
+        "current_evidence_fresh": true,
+        "current_entry_eligibility": false,
+        "current_post_window_takeover_eligibility": false,
+        "current_entry_eligibility_semantics": "strict_current_measured_control_not_takeover_gate",
+        "current_evidence": {
+          "valid": true,
+          "physical_evidence_status": "VERIFIED",
+          "final_region_valid": false,
+          "final_controlled": true,
+          "final_support_available": true,
+          "task_completed_controlled": false,
+          "post_completion_observation_started": false,
+          "post_completion_observation_complete": false,
+          "post_completion_loss_observed": false
+        },
+        "current_top_bearing_support_count": 2,
+        "current_four_leg_evidence_valid": false,
+        "preceding_issued_nominal_wheels_stopped": false,
+        "source_clocks_continue_contributions_retired": false,
+        "raw_residual_mapper_or_evaluator_reset": false,
+        "task_success_awarded": false
+      },
+      "rr_carry_continuation": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": false,
+        "late_reconfiguration_waiting": false,
+        "current_TOP_continuation_eligible": false,
+        "reason": "no_extra_wall_push_source_and_residual_adjustment_continue",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "height_recovery": {
+        "mode": "source_segment_reduction_and_live_recovery_v1",
+        "candidate_id": "RL_preparation_minus3_v1",
+        "source_observation_tick": 14600,
+        "current_RR_carry_recovery_permitted": false,
+        "post_lift_recovery_offsets_deg": {
+          "front_left_hip": 0.0,
+          "rear_left_hip": 0.0
+        },
+        "owners": [
+          {
+            "stage": "P07",
+            "channel": "front_left_hip",
+            "fixed_source_entry_deg": 22.8,
+            "original_source_target_deg": 38.6,
+            "candidate_source_target_deg": 38.6,
+            "reduction_deg": 0.0
+          },
+          {
+            "stage": "P08",
+            "channel": "rear_left_hip",
+            "fixed_source_entry_deg": 6.9,
+            "original_source_target_deg": 31.199999999999996,
+            "candidate_source_target_deg": 28.199999999999996,
+            "reduction_deg": 3.0
+          }
+        ],
+        "source_clocks_and_atomic_groups_unchanged": true,
+        "task_or_support_credit_awarded": false,
+        "exit": "later source owner replaces this segment; no permanent hip lock or home restore"
+      },
+      "capture_continuation": {
+        "mode": "p05_hip_only_continuation_v1",
+        "fl_contact_observed": true,
+        "fl_capture_pending": false,
+        "allow_capture_continuation": false,
+        "legal_capture_path": false,
+        "observed_other_support_contacts": [
+          "FR",
+          "RL"
+        ],
+        "excluded_support_legs": [
+          "FL",
+          "RR"
+        ],
+        "placed_FL": true,
+        "support_or_placement_awarded": false,
+        "source_observation_tick": 14600,
+        "P06_layer_present": true,
+        "P06_wheel_contribution_enabled": false,
+        "semantics": "current_measured_P06_owner_permission_before_later_source_owners_and_residual",
+        "policy_residual_restricted": false,
+        "source_clock_catch_up": false,
+        "P06_source_tick": 8481,
+        "P06_source_advanced": true,
+        "P06_wheel_gain": 0.0
+      },
+      "p05_preedge_approach_recovery": {
+        "mode": "p05_preedge_same_air_recross_v2",
+        "eligible": false,
+        "checks": {
+          "P05_only": false,
+          "absolute_stage_age_window": false,
+          "valid_no_abort": false,
+          "prior_qualified_FL_lift": true,
+          "FR_placement_history": true,
+          "current_FL_AIR_no_contact": false,
+          "positive_conservative_top_gap": false,
+          "current_lateral_valid": true,
+          "bounded_preedge_distance": false,
+          "verified_other_supports": true,
+          "source_endpoint_issued_then_subsequent_tick": false,
+          "fresh_source_wheel_owner_absent": true,
+          "unplaced_FL": false,
+          "first_approach_or_same_air_recross": false
+        },
+        "reasons": [
+          "P05_only",
+          "absolute_stage_age_window",
+          "valid_no_abort",
+          "current_FL_AIR_no_contact",
+          "positive_conservative_top_gap",
+          "bounded_preedge_distance",
+          "source_endpoint_issued_then_subsequent_tick",
+          "unplaced_FL",
+          "first_approach_or_same_air_recross"
+        ],
+        "source_observation_tick": 14600,
+        "prior_source_observation_tick": 14599,
+        "stage_elapsed_s": 52.533333333333346,
+        "absolute_window_s": [
+          30.0,
+          40.0
+        ],
+        "window_end_exclusive": true,
+        "source_endpoint_issued": true,
+        "prior_source_endpoint_issued": false,
+        "source_elapsed_s": 47.43333333333333,
+        "source_tick_consecutive": true,
+        "endpoint_evidence": "issued_source_endpoint_then_one_write_one_step_subsequent_tick",
+        "independent_ack_verified": false,
+        "fresh_source_wheel_owners": [],
+        "current_FL_gap_m": -0.001346411668992381,
+        "current_FL_front_distance_m": 0.38794839722942953,
+        "observed_other_support_contacts": [
+          "FR",
+          "RL"
+        ],
+        "wheel_prior_rad_s": [
+          0.3,
+          0.3,
+          0.3,
+          0.3
+        ],
+        "timing": "nominal_suggestion_before_mapper_residual_and_actuator_dispatch",
+        "actor_observability": "current_nominal_recovery_advice_encoded_source_internals_and_full_contact_classes_not_individually_encoded",
+        "recovery_clock_reset_or_latch": false,
+        "policy_residual_restricted": false,
+        "phase_or_capture_credit_awarded": false,
+        "same_air_recross": {
+          "branch": "ineligible_history_or_current_geometry",
+          "consecutive_air_samples": 0,
+          "air_start_tick": null,
+          "cross_event_tick": 3544,
+          "same_air_span_valid": false
+        }
+      },
+      "capture_owner_hold": {
+        "schema": "wlr50_clean.nominal_capture_owner_hold.v1",
+        "enabled": true,
+        "semantics": "retire_captured_owners_skip_redundant_swing_allow_later_cooperation",
+        "held_value_semantics": "current_nominal_not_actual_q_or_final_drive",
+        "captures": {
+          "FR": {
+            "observed_capture_tick": 2393,
+            "stage_id": "P03",
+            "held_nominal_servo_deg": [
+              0.0,
+              45.9
+            ],
+            "retired_preexisting_layers": [
+              "P01",
+              "P02",
+              "P03"
+            ]
+          },
+          "FL": {
+            "observed_capture_tick": 6150,
+            "stage_id": "P06",
+            "held_nominal_servo_deg": [
+              22.8,
+              -13.4
+            ],
+            "retired_preexisting_layers": [
+              "P01",
+              "P02",
+              "P03",
+              "P04",
+              "P05",
+              "P06"
+            ]
+          }
+        },
+        "suppressed_new_swing_layers": []
+      }
+    }
+  }
+}

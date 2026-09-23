@@ -1,0 +1,4105 @@
+{
+  "schema": "wlr50_clean.sealed_rr_capture_height_comparison.v1",
+  "read_only": true,
+  "no_forward_optimizer_or_physics": true,
+  "strict_paired_counterfactual": false,
+  "scope": "one pass of each sealed height stream; 10 C rows + 6 accepted historical N rows; no live training stream read",
+  "comparison_limits": [
+    "N reaches actual RR placement; C remains AIR. Different full-body trajectories/control revisions; corresponding tasks are not matched states.",
+    "World link origins/collider minima are not measured contact points. Joint angle signs do not establish physical direction or causality.",
+    "Only RR hip authored joint frame is logged; FR/FL hip world joint frames and knee pivot world frames are unavailable in these height files.",
+    "Per-tick current contacts/bearing forces are absent from the height files. Only C terminal evaluator current contacts are attached; historical N event chronology does not supply exact per-row load.",
+    "Available Cartesian downward workspace or support-triangle stability margin is not computed. Reported mount-to-wheel vertical span is current geometry, not remaining reachable travel."
+  ],
+  "sources": {
+    "C_26db": {
+      "directory": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_capture_then_rl_transfer_v1\\video_eval\\validation\\20260923T0356402230589Z_g26db2a1946e8_c1a7c95ca1db41d69882389e1e97cd8d\\source",
+      "height_file": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_capture_then_rl_transfer_v1\\video_eval\\validation\\20260923T0356402230589Z_g26db2a1946e8_c1a7c95ca1db41d69882389e1e97cd8d\\source/height_diagnostics.jsonl",
+      "requested_ticks": [
+        9512,
+        9520,
+        9552,
+        9560,
+        9856,
+        10152,
+        10456,
+        10752,
+        10760,
+        12484
+      ],
+      "found_ticks": [
+        9512,
+        9520,
+        9552,
+        9560,
+        9856,
+        10152,
+        10456,
+        10752,
+        10760,
+        12484
+      ],
+      "phase_metrics_is_phase_aggregate_not_per_tick": true
+    },
+    "accepted_N_ref": {
+      "directory": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\video_eval\\prior_B\\20260921T0701155546642Z_gee5a9651591d_64985c63292d4a9b966716c3a54659a1\\source",
+      "height_file": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_task_conditioned_hip_wheel_v1\\video_eval\\prior_B\\20260921T0701155546642Z_gee5a9651591d_64985c63292d4a9b966716c3a54659a1\\source/height_diagnostics.jsonl",
+      "requested_ticks": [
+        6136,
+        6144,
+        6152,
+        6160,
+        6176,
+        6248
+      ],
+      "found_ticks": [
+        6136,
+        6144,
+        6152,
+        6160,
+        6176,
+        6248
+      ],
+      "phase_metrics_is_phase_aggregate_not_per_tick": true
+    }
+  },
+  "cases": {
+    "C_26db": [
+      {
+        "physics_tick": 9512,
+        "simulation_time_s": 79.26666666666667,
+        "phase": "P09",
+        "terminal_sample": false,
+        "clock_unchanged": true,
+        "body_collision_minimum_z_w_m": 0.11310281718530509,
+        "rr_hip_mount_w_m": {
+          "value": [
+            0.5702430953747138,
+            -0.21287877151828066,
+            0.2058314780173486
+          ],
+          "source": "USD localPos0 transformed with live parent link pose",
+          "nonfinite_entries": [],
+          "reason": null
+        },
+        "base": {
+          "name": "base_link",
+          "position_w_m": [
+            0.7445489764213562,
+            0.014832332730293274,
+            0.07214050740003586
+          ],
+          "orientation_wxyz": [
+            0.9979124069213867,
+            -0.06239622086286545,
+            -0.016664903610944748,
+            -0.00012408752809278667
+          ],
+          "linear_velocity_w_m_s": [
+            0.010641973465681076,
+            0.0049153221771121025,
+            0.01219197828322649
+          ],
+          "angular_velocity_w_rad_s": [
+            0.0003997072344645858,
+            0.03763088956475258,
+            0.0033531365916132927
+          ]
+        },
+        "center_of_mass": {
+          "position_w_m": [
+            0.7151330581515443,
+            -0.09518031183825194,
+            0.16689575636367643
+          ],
+          "velocity_w_m_s": [
+            0.01604942148442528,
+            0.004498071321494632,
+            0.011045591117834964
+          ],
+          "total_mass_kg": 2.9308585226535797,
+          "included_bodies": [
+            "base_link",
+            "front_left_upper",
+            "front_right_upper",
+            "rear_left_upper",
+            "rear_right_upper",
+            "front_left_bot",
+            "front_right_bot",
+            "rear_left_bot",
+            "rear_right_bot",
+            "front_left_wheel",
+            "front_right_wheel",
+            "rear_left_wheel",
+            "rear_right_wheel"
+          ],
+          "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass",
+          "valid": true,
+          "reason": ""
+        },
+        "joints_canonical": {
+          "front_left_hip": {
+            "name": "front_left_hip",
+            "position_deg": 31.939991284213693,
+            "velocity_deg_s": 3.5664665180526676,
+            "command_deg": 32.1270088989155,
+            "error_deg": 0.187017614701805
+          },
+          "front_left_knee": {
+            "name": "front_left_knee",
+            "position_deg": -43.376480304272086,
+            "velocity_deg_s": 7.175277647638475,
+            "command_deg": -43.083729533262066,
+            "error_deg": 0.2927507710100201
+          },
+          "front_right_hip": {
+            "name": "front_right_hip",
+            "position_deg": 9.561485237624645,
+            "velocity_deg_s": -1.3924721601943806,
+            "command_deg": 8.868275246544862,
+            "error_deg": -0.6932099910797831
+          },
+          "front_right_knee": {
+            "name": "front_right_knee",
+            "position_deg": -22.301029905160224,
+            "velocity_deg_s": 2.970952142716188,
+            "command_deg": -22.31430573175507,
+            "error_deg": -0.013275826594846052
+          },
+          "rear_left_hip": {
+            "name": "rear_left_hip",
+            "position_deg": 17.50536093594702,
+            "velocity_deg_s": -9.066210396714627,
+            "command_deg": 16.04771728441839,
+            "error_deg": -1.457643651528631
+          },
+          "rear_left_knee": {
+            "name": "rear_left_knee",
+            "position_deg": 0.301408897615177,
+            "velocity_deg_s": 4.749278124267279,
+            "command_deg": 0.18159076597702323,
+            "error_deg": -0.11981813163815375
+          },
+          "rear_right_hip": {
+            "name": "rear_right_hip",
+            "position_deg": 17.904385829962962,
+            "velocity_deg_s": 3.5161105215099253,
+            "command_deg": 18.21815828171718,
+            "error_deg": 0.3137724517542182
+          },
+          "rear_right_knee": {
+            "name": "rear_right_knee",
+            "position_deg": -45.2034820058043,
+            "velocity_deg_s": -0.32050558626621695,
+            "command_deg": -45.37006047164695,
+            "error_deg": -0.16657846584265457
+          }
+        },
+        "body_world": {
+          "base_link": {
+            "link_origin_w_m": [
+              0.7445489764213562,
+              0.014832332730293274,
+              0.07214050740003586
+            ],
+            "minimum_m": [
+              0.5551076866924174,
+              -0.27828335069236404,
+              0.11310281718530509
+            ],
+            "maximum_m": [
+              0.8815169101536089,
+              0.09066649448674638,
+              0.2336972442534306
+            ]
+          },
+          "front_left_wheel": {
+            "link_origin_w_m": [
+              0.9489145874977112,
+              0.09840300679206848,
+              0.10175247490406036
+            ],
+            "minimum_m": [
+              0.8989204356840431,
+              0.09230403238262855,
+              0.04979839098222806
+            ],
+            "maximum_m": [
+              0.9989564519123606,
+              0.12428535734382509,
+              0.1511537430149012
+            ]
+          },
+          "front_right_wheel": {
+            "link_origin_w_m": [
+              0.9657395482063293,
+              -0.30345597863197327,
+              0.09861638396978378
+            ],
+            "minimum_m": [
+              0.9157120967527117,
+              -0.3293375540376459,
+              0.04919281736905191
+            ],
+            "maximum_m": [
+              1.015720454829828,
+              -0.2973551021058425,
+              0.15059291455446572
+            ]
+          },
+          "rear_left_wheel": {
+            "link_origin_w_m": [
+              0.40228718519210815,
+              0.08859923481941223,
+              0.051968034356832504
+            ],
+            "minimum_m": [
+              0.35230233502111324,
+              0.08249684958721494,
+              -9.013218081610486e-9
+            ],
+            "maximum_m": [
+              0.4523197397195931,
+              0.11448293422657288,
+              0.10138326308237311
+            ]
+          },
+          "rear_right_wheel": {
+            "link_origin_w_m": [
+              0.5160406231880188,
+              -0.3016314208507538,
+              0.1272331178188324
+            ],
+            "minimum_m": [
+              0.4660144185850056,
+              -0.32751190350467985,
+              0.07791887828714063
+            ],
+            "maximum_m": [
+              0.566019011124176,
+              -0.295534745464962,
+              0.1791002784623953
+            ]
+          }
+        },
+        "derived_body_roll_pitch": {
+          "convention": "derived from recorded normalized wxyz; standard intrinsic XYZ roll/pitch, degrees",
+          "roll_deg": -7.157470144124555,
+          "pitch_deg": -1.9069095850310753
+        },
+        "rr_mount_to_wheel_center_vertical_m": 0.07859836019851621,
+        "fr_hip_joint_frame_w_m": null,
+        "fl_hip_joint_frame_w_m": null,
+        "current_leg_contacts": null
+      },
+      {
+        "physics_tick": 9520,
+        "simulation_time_s": 79.33333333333333,
+        "phase": "P09",
+        "terminal_sample": false,
+        "clock_unchanged": true,
+        "body_collision_minimum_z_w_m": 0.11311811061787205,
+        "rr_hip_mount_w_m": {
+          "value": [
+            0.5711486729861894,
+            -0.21298749902462025,
+            0.20575683915082987
+          ],
+          "source": "USD localPos0 transformed with live parent link pose",
+          "nonfinite_entries": [],
+          "reason": null
+        },
+        "base": {
+          "name": "base_link",
+          "position_w_m": [
+            0.7454795837402344,
+            0.014780320227146149,
+            0.07219517976045609
+          ],
+          "orientation_wxyz": [
+            0.9979206919670105,
+            -0.06222440302371979,
+            -0.016813181340694427,
+            -0.00010506127000553533
+          ],
+          "linear_velocity_w_m_s": [
+            0.008194737136363983,
+            0.0021954397670924664,
+            0.010197450406849384
+          ],
+          "angular_velocity_w_rad_s": [
+            -0.014697874896228313,
+            0.03798885643482208,
+            0.015811583027243614
+          ]
+        },
+        "center_of_mass": {
+          "position_w_m": [
+            0.7160405111935177,
+            -0.0952669331161521,
+            0.1669019634076678
+          ],
+          "velocity_w_m_s": [
+            0.014115893954559942,
+            0.0028270007269620453,
+            0.01058743094090792
+          ],
+          "total_mass_kg": 2.9308585226535797,
+          "included_bodies": [
+            "base_link",
+            "front_left_upper",
+            "front_right_upper",
+            "rear_left_upper",
+            "rear_right_upper",
+            "front_left_bot",
+            "front_right_bot",
+            "rear_left_bot",
+            "rear_right_bot",
+            "front_left_wheel",
+            "front_right_wheel",
+            "rear_left_wheel",
+            "rear_right_wheel"
+          ],
+          "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass",
+          "valid": true,
+          "reason": ""
+        },
+        "joints_canonical": {
+          "front_left_hip": {
+            "name": "front_left_hip",
+            "position_deg": 31.93915117094578,
+            "velocity_deg_s": 3.6580179468006953,
+            "command_deg": 32.12803240169867,
+            "error_deg": 0.18888123075288732
+          },
+          "front_left_knee": {
+            "name": "front_left_knee",
+            "position_deg": -43.37660666277173,
+            "velocity_deg_s": 4.864152941483607,
+            "command_deg": -43.07887421134005,
+            "error_deg": 0.2977324514316777
+          },
+          "front_right_hip": {
+            "name": "front_right_hip",
+            "position_deg": 9.549756095272441,
+            "velocity_deg_s": -3.502940209242848,
+            "command_deg": 8.865146332547312,
+            "error_deg": -0.6846097627251293
+          },
+          "front_right_knee": {
+            "name": "front_right_knee",
+            "position_deg": -22.29445755563138,
+            "velocity_deg_s": 4.1930731951515146,
+            "command_deg": -22.298317175225094,
+            "error_deg": -0.00385961959371528
+          },
+          "rear_left_hip": {
+            "name": "rear_left_hip",
+            "position_deg": 17.513417144073053,
+            "velocity_deg_s": -7.970212629284994,
+            "command_deg": 16.0540402800912,
+            "error_deg": -1.459376863981852
+          },
+          "rear_left_knee": {
+            "name": "rear_left_knee",
+            "position_deg": 0.3030155528750771,
+            "velocity_deg_s": 6.4567507115764196,
+            "command_deg": 0.17820067255143301,
+            "error_deg": -0.12481488032364407
+          },
+          "rear_right_hip": {
+            "name": "rear_right_hip",
+            "position_deg": 17.90107660331009,
+            "velocity_deg_s": 3.198308222731579,
+            "command_deg": 18.21408689174761,
+            "error_deg": 0.31301028843751766
+          },
+          "rear_right_knee": {
+            "name": "rear_right_knee",
+            "position_deg": -45.19675768456642,
+            "velocity_deg_s": 0.009000054891961177,
+            "command_deg": -45.36117643919964,
+            "error_deg": -0.16441875463321765
+          }
+        },
+        "body_world": {
+          "base_link": {
+            "link_origin_w_m": [
+              0.7454795837402344,
+              0.014780320227146149,
+              0.07219517976045609
+            ],
+            "minimum_m": [
+              0.5560130660251807,
+              -0.27838428676435106,
+              0.11311811061787205
+            ],
+            "maximum_m": [
+              0.8824131459537927,
+              0.09058863330129373,
+              0.23369147464641554
+            ]
+          },
+          "front_left_wheel": {
+            "link_origin_w_m": [
+              0.9498298764228821,
+              0.09835340082645416,
+              0.10189470648765564
+            ],
+            "minimum_m": [
+              0.8998500962394459,
+              0.0922672516576701,
+              0.0499239965515515
+            ],
+            "maximum_m": [
+              0.9998556997082035,
+              0.1242223088743479,
+              0.15131959664042108
+            ]
+          },
+          "front_right_wheel": {
+            "link_origin_w_m": [
+              0.9666730165481567,
+              -0.3035065829753876,
+              0.09860112518072128
+            ],
+            "minimum_m": [
+              0.9166519650067058,
+              -0.32936851002424106,
+              0.0491806810471438
+            ],
+            "maximum_m": [
+              1.0166480253954528,
+              -0.2974257849427529,
+              0.1505675418752102
+            ]
+          },
+          "rear_left_wheel": {
+            "link_origin_w_m": [
+              0.40319857001304626,
+              0.08853600919246674,
+              0.051971979439258575
+            ],
+            "minimum_m": [
+              0.35321714468015697,
+              0.08245308529488804,
+              -4.89965448900731e-7
+            ],
+            "maximum_m": [
+              0.45322603411240303,
+              0.11440050460689152,
+              0.10139863444375245
+            ]
+          },
+          "rear_right_wheel": {
+            "link_origin_w_m": [
+              0.5169647336006165,
+              -0.30171817541122437,
+              0.12709879875183105
+            ],
+            "minimum_m": [
+              0.46693566673107534,
+              -0.32758560485631155,
+              0.07777528984680773
+            ],
+            "maximum_m": [
+              0.566946502022399,
+              -0.29563498549285244,
+              0.17896822909582594
+            ]
+          }
+        },
+        "derived_body_roll_pitch": {
+          "convention": "derived from recorded normalized wxyz; standard intrinsic XYZ roll/pitch, degrees",
+          "roll_deg": -7.137821869824522,
+          "pitch_deg": -1.9237525915037228
+        },
+        "rr_mount_to_wheel_center_vertical_m": 0.07865804039899882,
+        "fr_hip_joint_frame_w_m": null,
+        "fl_hip_joint_frame_w_m": null,
+        "current_leg_contacts": null
+      },
+      {
+        "physics_tick": 9552,
+        "simulation_time_s": 79.6,
+        "phase": "P09",
+        "terminal_sample": false,
+        "clock_unchanged": true,
+        "body_collision_minimum_z_w_m": 0.11298304753128569,
+        "rr_hip_mount_w_m": {
+          "value": [
+            0.575157519307219,
+            -0.21297128642024593,
+            0.20561387470155612
+          ],
+          "source": "USD localPos0 transformed with live parent link pose",
+          "nonfinite_entries": [],
+          "reason": null
+        },
+        "base": {
+          "name": "base_link",
+          "position_w_m": [
+            0.7494003176689148,
+            0.014863021671772003,
+            0.07205063849687576
+          ],
+          "orientation_wxyz": [
+            0.9979227185249329,
+            -0.06219783425331116,
+            -0.01678846776485443,
+            0.00006896221020724624
+          ],
+          "linear_velocity_w_m_s": [
+            0.012915607541799545,
+            0.007360735908150673,
+            0.006005074828863144
+          ],
+          "angular_velocity_w_rad_s": [
+            -0.017600635066628456,
+            0.0452507846057415,
+            -0.011082082986831665
+          ]
+        },
+        "center_of_mass": {
+          "position_w_m": [
+            0.7200010013667145,
+            -0.09520169194328933,
+            0.16673145493347574
+          ],
+          "velocity_w_m_s": [
+            0.018906177499289707,
+            0.009110293655382682,
+            0.007378748360969228
+          ],
+          "total_mass_kg": 2.9308585226535797,
+          "included_bodies": [
+            "base_link",
+            "front_left_upper",
+            "front_right_upper",
+            "rear_left_upper",
+            "rear_right_upper",
+            "front_left_bot",
+            "front_right_bot",
+            "rear_left_bot",
+            "rear_right_bot",
+            "front_left_wheel",
+            "front_right_wheel",
+            "rear_left_wheel",
+            "rear_right_wheel"
+          ],
+          "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass",
+          "valid": true,
+          "reason": ""
+        },
+        "joints_canonical": {
+          "front_left_hip": {
+            "name": "front_left_hip",
+            "position_deg": 31.93035047220022,
+            "velocity_deg_s": 6.049579656376688,
+            "command_deg": 32.13356998319259,
+            "error_deg": 0.20321951099236557
+          },
+          "front_left_knee": {
+            "name": "front_left_knee",
+            "position_deg": -43.3938323998585,
+            "velocity_deg_s": 13.917131127341804,
+            "command_deg": -43.06328617701909,
+            "error_deg": 0.33054622283941626
+          },
+          "front_right_hip": {
+            "name": "front_right_hip",
+            "position_deg": 9.48316772728034,
+            "velocity_deg_s": -1.6521390904087518,
+            "command_deg": 8.854730576238993,
+            "error_deg": -0.6284371510413482
+          },
+          "front_right_knee": {
+            "name": "front_right_knee",
+            "position_deg": -22.283090413305185,
+            "velocity_deg_s": 3.207710191567513,
+            "command_deg": -22.24362396121255,
+            "error_deg": 0.03946645209263622
+          },
+          "rear_left_hip": {
+            "name": "rear_left_hip",
+            "position_deg": 17.50181777531508,
+            "velocity_deg_s": -7.692959029174898,
+            "command_deg": 16.075001196883107,
+            "error_deg": -1.4268165784319713
+          },
+          "rear_left_knee": {
+            "name": "rear_left_knee",
+            "position_deg": 0.277702645027385,
+            "velocity_deg_s": 3.179640888843111,
+            "command_deg": 0.16821502285124948,
+            "error_deg": -0.10948762217613553
+          },
+          "rear_right_hip": {
+            "name": "rear_right_hip",
+            "position_deg": 17.90089901839167,
+            "velocity_deg_s": 2.55754320381353,
+            "command_deg": 18.21408689174761,
+            "error_deg": 0.31318787335593967
+          },
+          "rear_right_knee": {
+            "name": "rear_right_knee",
+            "position_deg": -45.190395363354554,
+            "velocity_deg_s": -0.595038183085283,
+            "command_deg": -45.36117643919964,
+            "error_deg": -0.17078107584508473
+          }
+        },
+        "body_world": {
+          "base_link": {
+            "link_origin_w_m": [
+              0.7494003176689148,
+              0.014863021671772003,
+              0.07205063849687576
+            ],
+            "minimum_m": [
+              0.560028567347846,
+              -0.27835401488394956,
+              0.11298304753128569
+            ],
+            "maximum_m": [
+              0.8863300523874347,
+              0.0906962221108348,
+              0.2335251453980986
+            ]
+          },
+          "front_left_wheel": {
+            "link_origin_w_m": [
+              0.9536669850349426,
+              0.0985054224729538,
+              0.10174047201871872
+            ],
+            "minimum_m": [
+              0.903671554797655,
+              0.09242952112634603,
+              0.049824848274083476
+            ],
+            "maximum_m": [
+              1.0037024117630724,
+              0.12436650986836394,
+              0.15111123215644312
+            ]
+          },
+          "front_right_wheel": {
+            "link_origin_w_m": [
+              0.9705853462219238,
+              -0.30336400866508484,
+              0.0983012244105339
+            ],
+            "minimum_m": [
+              0.9205485404438982,
+              -0.3292278227481028,
+              0.04890855124362009
+            ],
+            "maximum_m": [
+              1.0205821598543772,
+              -0.2972849007188675,
+              0.15023890486125316
+            ]
+          },
+          "rear_left_wheel": {
+            "link_origin_w_m": [
+              0.40718427300453186,
+              0.08849570900201797,
+              0.05180980637669563
+            ],
+            "minimum_m": [
+              0.35720135423071286,
+              0.08241319684211476,
+              -0.00015569580978452846
+            ],
+            "maximum_m": [
+              0.457207181441856,
+              0.11436204174805463,
+              0.1012304527133307
+            ]
+          },
+          "rear_right_wheel": {
+            "link_origin_w_m": [
+              0.5209844708442688,
+              -0.3017180562019348,
+              0.12694557011127472
+            ],
+            "minimum_m": [
+              0.4709627765431291,
+              -0.32758278383570166,
+              0.07752034872967026
+            ],
+            "maximum_m": [
+              0.5709670443876773,
+              -0.2956355186992196,
+              0.17891575035753454
+            ]
+          }
+        },
+        "derived_body_roll_pitch": {
+          "convention": "derived from recorded normalized wxyz; standard intrinsic XYZ roll/pitch, degrees",
+          "roll_deg": -7.135094283235585,
+          "pitch_deg": -1.9196876685529771
+        },
+        "rr_mount_to_wheel_center_vertical_m": 0.0786683045902814,
+        "fr_hip_joint_frame_w_m": null,
+        "fl_hip_joint_frame_w_m": null,
+        "current_leg_contacts": null
+      },
+      {
+        "physics_tick": 9560,
+        "simulation_time_s": 79.66666666666667,
+        "phase": "P09",
+        "terminal_sample": false,
+        "clock_unchanged": true,
+        "body_collision_minimum_z_w_m": 0.11499736477614059,
+        "rr_hip_mount_w_m": {
+          "value": [
+            0.5773595469045023,
+            -0.21283605508791978,
+            0.20764734802641957
+          ],
+          "source": "USD localPos0 transformed with live parent link pose",
+          "nonfinite_entries": [],
+          "reason": null
+        },
+        "base": {
+          "name": "base_link",
+          "position_w_m": [
+            0.7510373592376709,
+            0.015016265213489532,
+            0.07338082045316696
+          ],
+          "orientation_wxyz": [
+            0.9979879856109619,
+            -0.06179048866033554,
+            -0.01421586237847805,
+            -0.00004369282032712363
+          ],
+          "linear_velocity_w_m_s": [
+            0.031765855848789215,
+            0.011094316840171814,
+            0.06600059568881989
+          ],
+          "angular_velocity_w_rad_s": [
+            0.02796490490436554,
+            0.23175136744976044,
+            -0.029313987120985985
+          ]
+        },
+        "center_of_mass": {
+          "position_w_m": [
+            0.7216936348752337,
+            -0.09518324974213362,
+            0.16753384629527535
+          ],
+          "velocity_w_m_s": [
+            0.03707938918448866,
+            0.006177913669306198,
+            0.04422630629191913
+          ],
+          "total_mass_kg": 2.9308585226535797,
+          "included_bodies": [
+            "base_link",
+            "front_left_upper",
+            "front_right_upper",
+            "rear_left_upper",
+            "rear_right_upper",
+            "front_left_bot",
+            "front_right_bot",
+            "rear_left_bot",
+            "rear_right_bot",
+            "front_left_wheel",
+            "front_right_wheel",
+            "rear_left_wheel",
+            "rear_right_wheel"
+          ],
+          "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass",
+          "valid": true,
+          "reason": ""
+        },
+        "joints_canonical": {
+          "front_left_hip": {
+            "name": "front_left_hip",
+            "position_deg": 30.697655006269244,
+            "velocity_deg_s": -49.44511568484006,
+            "command_deg": 25.885650110712447,
+            "error_deg": -4.812004895556797
+          },
+          "front_left_knee": {
+            "name": "front_left_knee",
+            "position_deg": -44.59120554249676,
+            "velocity_deg_s": -49.194960006488344,
+            "command_deg": -49.307765194941425,
+            "error_deg": -4.716559652444666
+          },
+          "front_right_hip": {
+            "name": "front_right_hip",
+            "position_deg": 9.379003073569415,
+            "velocity_deg_s": -4.631601648830776,
+            "command_deg": 8.851349258395537,
+            "error_deg": -0.5276538151738777
+          },
+          "front_right_knee": {
+            "name": "front_right_knee",
+            "position_deg": -22.417363394651176,
+            "velocity_deg_s": 0.11545047409731396,
+            "command_deg": -22.224674415794894,
+            "error_deg": 0.19268897885628178
+          },
+          "rear_left_hip": {
+            "name": "rear_left_hip",
+            "position_deg": 16.20200545550497,
+            "velocity_deg_s": -61.244414325104245,
+            "command_deg": 9.8314448092192,
+            "error_deg": -6.370560646285771
+          },
+          "rear_left_knee": {
+            "name": "rear_left_knee",
+            "position_deg": 1.5879876992279573,
+            "velocity_deg_s": 54.3870956437082,
+            "command_deg": 6.415118646551175,
+            "error_deg": 4.827130947323218
+          },
+          "rear_right_hip": {
+            "name": "rear_right_hip",
+            "position_deg": 17.863560081746503,
+            "velocity_deg_s": 2.4031790075805377,
+            "command_deg": 18.13075355841428,
+            "error_deg": 0.26719347666777793
+          },
+          "rear_right_knee": {
+            "name": "rear_right_knee",
+            "position_deg": -45.171373286516065,
+            "velocity_deg_s": -2.069244228869444,
+            "command_deg": -45.36117643919964,
+            "error_deg": -0.18980315268357373
+          }
+        },
+        "body_world": {
+          "base_link": {
+            "link_origin_w_m": [
+              0.7510373592376709,
+              0.015016265213489532,
+              0.07338082045316696
+            ],
+            "minimum_m": [
+              0.5622443702409738,
+              -0.27822618288117995,
+              0.11499736477614059
+            ],
+            "maximum_m": [
+              0.8885469717236129,
+              0.09072982353009015,
+              0.23400626547880554
+            ]
+          },
+          "front_left_wheel": {
+            "link_origin_w_m": [
+              0.9507315158843994,
+              0.09845063835382462,
+              0.10141409188508987
+            ],
+            "minimum_m": [
+              0.9007465549608894,
+              0.09240675228521514,
+              0.04945275727848143
+            ],
+            "maximum_m": [
+              1.0007533596493026,
+              0.1242799433434432,
+              0.1508471427670404
+            ]
+          },
+          "front_right_wheel": {
+            "link_origin_w_m": [
+              0.9715972542762756,
+              -0.303356796503067,
+              0.09816733002662659
+            ],
+            "minimum_m": [
+              0.9215715972249795,
+              -0.32917897319760436,
+              0.048820594460001886
+            ],
+            "maximum_m": [
+              1.021585108905133,
+              -0.2973225115630189,
+              0.15004250040927702
+            ]
+          },
+          "rear_left_wheel": {
+            "link_origin_w_m": [
+              0.4078506529331207,
+              0.08844997733831406,
+              0.051748719066381454
+            ],
+            "minimum_m": [
+              0.3578560802104955,
+              0.08240909496086367,
+              -0.00019107905303841766
+            ],
+            "maximum_m": [
+              0.45788302502900097,
+              0.11427764482081101,
+              0.10116023585156181
+            ]
+          },
+          "rear_right_wheel": {
+            "link_origin_w_m": [
+              0.5227512717247009,
+              -0.3014971613883972,
+              0.1291206330060959
+            ],
+            "minimum_m": [
+              0.47272925433988855,
+              -0.32732364066503433,
+              0.07968749741972216
+            ],
+            "maximum_m": [
+              0.5727363074512503,
+              -0.2954550835268934,
+              0.18108215837950734
+            ]
+          }
+        },
+        "derived_body_roll_pitch": {
+          "convention": "derived from recorded normalized wxyz; standard intrinsic XYZ roll/pitch, degrees",
+          "roll_deg": -7.087256504232106,
+          "pitch_deg": -1.6262676672649243
+        },
+        "rr_mount_to_wheel_center_vertical_m": 0.07852671502032368,
+        "fr_hip_joint_frame_w_m": null,
+        "fl_hip_joint_frame_w_m": null,
+        "current_leg_contacts": null
+      },
+      {
+        "physics_tick": 9856,
+        "simulation_time_s": 82.13333333333334,
+        "phase": "P09",
+        "terminal_sample": false,
+        "clock_unchanged": true,
+        "body_collision_minimum_z_w_m": 0.1195531351699686,
+        "rr_hip_mount_w_m": {
+          "value": [
+            0.6057726283454684,
+            -0.20188576454156174,
+            0.23477665332175834
+          ],
+          "source": "USD localPos0 transformed with live parent link pose",
+          "nonfinite_entries": [],
+          "reason": null
+        },
+        "base": {
+          "name": "base_link",
+          "position_w_m": [
+            0.7716734409332275,
+            0.017462432384490967,
+            0.07834311574697495
+          ],
+          "orientation_wxyz": [
+            0.9962785243988037,
+            -0.08270954340696335,
+            0.023829588666558266,
+            -0.0045171454548835754
+          ],
+          "linear_velocity_w_m_s": [
+            -0.0020351510029286146,
+            0.002198517555370927,
+            0.01610223390161991
+          ],
+          "angular_velocity_w_rad_s": [
+            0.016530057415366173,
+            0.009216684848070145,
+            -0.007007721811532974
+          ]
+        },
+        "center_of_mass": {
+          "position_w_m": [
+            0.7398543642669867,
+            -0.08998407578736638,
+            0.16858186960601645
+          ],
+          "velocity_w_m_s": [
+            -0.0006252476509291045,
+            0.0003060872382179397,
+            0.010932165438583476
+          ],
+          "total_mass_kg": 2.9308585226535797,
+          "included_bodies": [
+            "base_link",
+            "front_left_upper",
+            "front_right_upper",
+            "rear_left_upper",
+            "rear_right_upper",
+            "front_left_bot",
+            "front_right_bot",
+            "rear_left_bot",
+            "rear_right_bot",
+            "front_left_wheel",
+            "front_right_wheel",
+            "rear_left_wheel",
+            "rear_right_wheel"
+          ],
+          "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass",
+          "valid": true,
+          "reason": ""
+        },
+        "joints_canonical": {
+          "front_left_hip": {
+            "name": "front_left_hip",
+            "position_deg": -24.489064543950693,
+            "velocity_deg_s": 4.79778484709224,
+            "command_deg": -23.99702796911178,
+            "error_deg": 0.49203657483891305
+          },
+          "front_left_knee": {
+            "name": "front_left_knee",
+            "position_deg": -58.457616538835694,
+            "velocity_deg_s": 4.7268938868098545,
+            "command_deg": -58,
+            "error_deg": 0.4576165388356941
+          },
+          "front_right_hip": {
+            "name": "front_right_hip",
+            "position_deg": 9.2225285623263,
+            "velocity_deg_s": -2.6614784058570256,
+            "command_deg": 8.714347778456528,
+            "error_deg": -0.5081807838697721
+          },
+          "front_right_knee": {
+            "name": "front_right_knee",
+            "position_deg": -21.453266825378243,
+            "velocity_deg_s": 4.72738352599598,
+            "command_deg": -21.27431033743111,
+            "error_deg": 0.17895648794713281
+          },
+          "rear_left_hip": {
+            "name": "rear_left_hip",
+            "position_deg": 3.4285327287343246,
+            "velocity_deg_s": -8.754045138435657,
+            "command_deg": 2.2671950062302884,
+            "error_deg": -1.1613377225040362
+          },
+          "rear_left_knee": {
+            "name": "rear_left_knee",
+            "position_deg": 20.067432581860697,
+            "velocity_deg_s": 6.314339132947538,
+            "command_deg": 20.17726666531428,
+            "error_deg": 0.1098340834535847
+          },
+          "rear_right_hip": {
+            "name": "rear_right_hip",
+            "position_deg": 13.083310464687802,
+            "velocity_deg_s": 1.3903082708879557,
+            "command_deg": 13.197420225080927,
+            "error_deg": 0.11410976039312537
+          },
+          "rear_right_knee": {
+            "name": "rear_right_knee",
+            "position_deg": -45.18160832498733,
+            "velocity_deg_s": -1.8348509195748242,
+            "command_deg": -45.36117643919964,
+            "error_deg": -0.17956811421230867
+          }
+        },
+        "body_world": {
+          "base_link": {
+            "link_origin_w_m": [
+              0.7716734409332275,
+              0.017462432384490967,
+              0.07834311574697495
+            ],
+            "minimum_m": [
+              0.5905541305734505,
+              -0.2710845587861441,
+              0.1195531351699686
+            ],
+            "maximum_m": [
+              0.917732838259685,
+              0.0980901191441055,
+              0.2536890090846543
+            ]
+          },
+          "front_left_wheel": {
+            "link_origin_w_m": [
+              0.8730167746543884,
+              0.10179053246974945,
+              0.10243465006351471
+            ],
+            "minimum_m": [
+              0.8230758074745482,
+              0.09370257951130238,
+              0.05000135188414752
+            ],
+            "maximum_m": [
+              0.9230589120892589,
+              0.12952017476757427,
+              0.15148506372420079
+            ]
+          },
+          "front_right_wheel": {
+            "link_origin_w_m": [
+              0.9915180206298828,
+              -0.30327099561691284,
+              0.09877768903970718
+            ],
+            "minimum_m": [
+              0.9414227560549535,
+              -0.33100381269954116,
+              0.049757867280773395
+            ],
+            "maximum_m": [
+              1.0415095904475784,
+              -0.2951809372388291,
+              0.15118053876545917
+            ]
+          },
+          "rear_left_wheel": {
+            "link_origin_w_m": [
+              0.4066585898399353,
+              0.09092693775892258,
+              0.052296657115221024
+            ],
+            "minimum_m": [
+              0.3566810489432105,
+              0.08284168569892539,
+              -0.00014744978100436623
+            ],
+            "maximum_m": [
+              0.45673983054477085,
+              0.11865686630228868,
+              0.10135788265065071
+            ]
+          },
+          "rear_right_wheel": {
+            "link_origin_w_m": [
+              0.5515425801277161,
+              -0.2936636507511139,
+              0.1596773862838745
+            ],
+            "minimum_m": [
+              0.5014824524256986,
+              -0.3213865305163511,
+              0.11061046460459699
+            ],
+            "maximum_m": [
+              0.6015014269777084,
+              -0.28558127129185235,
+              0.2121272982521725
+            ]
+          }
+        },
+        "derived_body_roll_pitch": {
+          "convention": "derived from recorded normalized wxyz; standard intrinsic XYZ roll/pitch, degrees",
+          "roll_deg": -9.508810662691268,
+          "pitch_deg": 2.6786705636000603
+        },
+        "rr_mount_to_wheel_center_vertical_m": 0.07509926703788383,
+        "fr_hip_joint_frame_w_m": null,
+        "fl_hip_joint_frame_w_m": null,
+        "current_leg_contacts": null
+      },
+      {
+        "physics_tick": 10152,
+        "simulation_time_s": 84.6,
+        "phase": "P09",
+        "terminal_sample": false,
+        "clock_unchanged": true,
+        "body_collision_minimum_z_w_m": 0.11935221687417782,
+        "rr_hip_mount_w_m": {
+          "value": [
+            0.603169527194477,
+            -0.20242000950693373,
+            0.2341716089275707
+          ],
+          "source": "USD localPos0 transformed with live parent link pose",
+          "nonfinite_entries": [],
+          "reason": null
+        },
+        "base": {
+          "name": "base_link",
+          "position_w_m": [
+            0.7689933776855469,
+            0.017290674149990082,
+            0.07816574722528458
+          ],
+          "orientation_wxyz": [
+            0.996364176273346,
+            -0.08163849264383316,
+            0.02396436780691147,
+            -0.004402549937367439
+          ],
+          "linear_velocity_w_m_s": [
+            -0.002943839645013213,
+            0.0025559815112501383,
+            0.01722750999033451
+          ],
+          "angular_velocity_w_rad_s": [
+            0.02290598675608635,
+            0.008400632999837399,
+            -0.008276445791125298
+          ]
+        },
+        "center_of_mass": {
+          "position_w_m": [
+            0.7375108480563453,
+            -0.09049782135174712,
+            0.1673252988875639
+          ],
+          "velocity_w_m_s": [
+            -0.0016242547350794393,
+            0.00015015280924072144,
+            0.011286497034873402
+          ],
+          "total_mass_kg": 2.9308585226535797,
+          "included_bodies": [
+            "base_link",
+            "front_left_upper",
+            "front_right_upper",
+            "rear_left_upper",
+            "rear_right_upper",
+            "front_left_bot",
+            "front_right_bot",
+            "rear_left_bot",
+            "rear_right_bot",
+            "front_left_wheel",
+            "front_right_wheel",
+            "rear_left_wheel",
+            "rear_right_wheel"
+          ],
+          "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass",
+          "valid": true,
+          "reason": ""
+        },
+        "joints_canonical": {
+          "front_left_hip": {
+            "name": "front_left_hip",
+            "position_deg": -24.483929949242135,
+            "velocity_deg_s": 4.773359236846628,
+            "command_deg": -24.000800851532446,
+            "error_deg": 0.48312909770968915
+          },
+          "front_left_knee": {
+            "name": "front_left_knee",
+            "position_deg": -58.451066387421655,
+            "velocity_deg_s": 5.044989883722511,
+            "command_deg": -58,
+            "error_deg": 0.4510663874216547
+          },
+          "front_right_hip": {
+            "name": "front_right_hip",
+            "position_deg": 9.343109575707352,
+            "velocity_deg_s": -2.629267447174657,
+            "command_deg": 8.77834082574893,
+            "error_deg": -0.5647687499584215
+          },
+          "front_right_knee": {
+            "name": "front_right_knee",
+            "position_deg": -21.78280979245302,
+            "velocity_deg_s": 4.894409398846294,
+            "command_deg": -21.637239085816873,
+            "error_deg": 0.14557070663614624
+          },
+          "rear_left_hip": {
+            "name": "rear_left_hip",
+            "position_deg": 3.411493114302435,
+            "velocity_deg_s": -8.731006910365204,
+            "command_deg": 2.2129962669339847,
+            "error_deg": -1.1984968473684505
+          },
+          "rear_left_knee": {
+            "name": "rear_left_knee",
+            "position_deg": 20.177924552063992,
+            "velocity_deg_s": 5.793189722860041,
+            "command_deg": 20.245492097456495,
+            "error_deg": 0.06756754539250309
+          },
+          "rear_right_hip": {
+            "name": "rear_right_hip",
+            "position_deg": 8.160338922279806,
+            "velocity_deg_s": 1.2924660244709347,
+            "command_deg": 8.264086891747349,
+            "error_deg": 0.10374796946754294
+          },
+          "rear_right_knee": {
+            "name": "rear_right_knee",
+            "position_deg": -45.16159587071919,
+            "velocity_deg_s": -2.2087455065816655,
+            "command_deg": -45.36117643919964,
+            "error_deg": -0.19958056848044947
+          }
+        },
+        "body_world": {
+          "base_link": {
+            "link_origin_w_m": [
+              0.7689933776855469,
+              0.017290674149990082,
+              0.07816574722528458
+            ],
+            "minimum_m": [
+              0.5879542533901856,
+              -0.2715250813193489,
+              0.11935221687417782
+            ],
+            "maximum_m": [
+              0.9150751614600856,
+              0.09770609665555414,
+              0.25297085084363125
+            ]
+          },
+          "front_left_wheel": {
+            "link_origin_w_m": [
+              0.8703353404998779,
+              0.10157908499240875,
+              0.1023908406496048
+            ],
+            "minimum_m": [
+              0.8203906458392494,
+              0.09359401182813361,
+              0.049980303381705005
+            ],
+            "maximum_m": [
+              0.9203772377394336,
+              0.12921464242331426,
+              0.1514620375612221
+            ]
+          },
+          "front_right_wheel": {
+            "link_origin_w_m": [
+              0.9883415102958679,
+              -0.30336451530456543,
+              0.09836092591285706
+            ],
+            "minimum_m": [
+              0.9382498455948397,
+              -0.3309923717383463,
+              0.049307710416030555
+            ],
+            "maximum_m": [
+              1.0383335511343683,
+              -0.29539065873137166,
+              0.15075361544390298
+            ]
+          },
+          "rear_left_wheel": {
+            "link_origin_w_m": [
+              0.4037144184112549,
+              0.09076258540153503,
+              0.052420955151319504
+            ],
+            "minimum_m": [
+              0.35376457021022273,
+              0.08278030045036691,
+              0.000003525196613840542
+            ],
+            "maximum_m": [
+              0.45376146512708715,
+              0.11839436546560175,
+              0.10149905386319281
+            ]
+          },
+          "rear_right_wheel": {
+            "link_origin_w_m": [
+              0.5567440390586853,
+              -0.2947866916656494,
+              0.15462636947631836
+            ],
+            "minimum_m": [
+              0.5066639871144973,
+              -0.3224189903685918,
+              0.10563011605609034
+            ],
+            "maximum_m": [
+              0.606724342097227,
+              -0.28680758287335145,
+              0.20696205259420117
+            ]
+          }
+        },
+        "derived_body_roll_pitch": {
+          "convention": "derived from recorded normalized wxyz; standard intrinsic XYZ roll/pitch, degrees",
+          "roll_deg": -9.385415209359733,
+          "pitch_deg": 2.695938109594983
+        },
+        "rr_mount_to_wheel_center_vertical_m": 0.07954523945125233,
+        "fr_hip_joint_frame_w_m": null,
+        "fl_hip_joint_frame_w_m": null,
+        "current_leg_contacts": null
+      },
+      {
+        "physics_tick": 10456,
+        "simulation_time_s": 87.13333333333334,
+        "phase": "P09",
+        "terminal_sample": false,
+        "clock_unchanged": true,
+        "body_collision_minimum_z_w_m": 0.11888999347038917,
+        "rr_hip_mount_w_m": {
+          "value": [
+            0.5980905894130674,
+            -0.20324591398527855,
+            0.2328180696596521
+          ],
+          "source": "USD localPos0 transformed with live parent link pose",
+          "nonfinite_entries": [],
+          "reason": null
+        },
+        "base": {
+          "name": "base_link",
+          "position_w_m": [
+            0.7639462351799011,
+            0.017033755779266357,
+            0.07765062898397446
+          ],
+          "orientation_wxyz": [
+            0.996508002281189,
+            -0.07995760440826416,
+            0.02367456443607807,
+            -0.004254927858710289
+          ],
+          "linear_velocity_w_m_s": [
+            -0.002456813119351864,
+            0.0032813239376991987,
+            0.013580282218754292
+          ],
+          "angular_velocity_w_rad_s": [
+            0.004459134768694639,
+            0.023008838295936584,
+            -0.010879465378820896
+          ]
+        },
+        "center_of_mass": {
+          "position_w_m": [
+            0.7328293143512479,
+            -0.09120192049777903,
+            0.1655824193286175
+          ],
+          "velocity_w_m_s": [
+            -0.00012087301259534773,
+            0.0026131833501777404,
+            0.01005510874388829
+          ],
+          "total_mass_kg": 2.9308585226535797,
+          "included_bodies": [
+            "base_link",
+            "front_left_upper",
+            "front_right_upper",
+            "rear_left_upper",
+            "rear_right_upper",
+            "front_left_bot",
+            "front_right_bot",
+            "rear_left_bot",
+            "rear_right_bot",
+            "front_left_wheel",
+            "front_right_wheel",
+            "rear_left_wheel",
+            "rear_right_wheel"
+          ],
+          "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass",
+          "valid": true,
+          "reason": ""
+        },
+        "joints_canonical": {
+          "front_left_hip": {
+            "name": "front_left_hip",
+            "position_deg": -24.503787016706656,
+            "velocity_deg_s": 4.891477113258244,
+            "command_deg": -24.03349273417696,
+            "error_deg": 0.4702942825296965
+          },
+          "front_left_knee": {
+            "name": "front_left_knee",
+            "position_deg": -58.43778166948598,
+            "velocity_deg_s": 5.039153913963559,
+            "command_deg": -58,
+            "error_deg": 0.43778166948597885
+          },
+          "front_right_hip": {
+            "name": "front_right_hip",
+            "position_deg": 9.434215761498859,
+            "velocity_deg_s": -2.9568364895792985,
+            "command_deg": 8.811722002775147,
+            "error_deg": -0.6224937587237118
+          },
+          "front_right_knee": {
+            "name": "front_right_knee",
+            "position_deg": -21.979964910392727,
+            "velocity_deg_s": 4.838709633051664,
+            "command_deg": -21.87819092903689,
+            "error_deg": 0.10177398135583715
+          },
+          "rear_left_hip": {
+            "name": "rear_left_hip",
+            "position_deg": 3.4450502605815307,
+            "velocity_deg_s": -8.416647453815367,
+            "command_deg": 2.1529346621826093,
+            "error_deg": -1.2921155983989214
+          },
+          "rear_left_knee": {
+            "name": "rear_left_knee",
+            "position_deg": 20.31219753340998,
+            "velocity_deg_s": 5.2510178442808915,
+            "command_deg": 20.25266377736539,
+            "error_deg": -0.059533756044586994
+          },
+          "rear_right_hip": {
+            "name": "rear_right_hip",
+            "position_deg": 3.110459476885212,
+            "velocity_deg_s": 0.8670715976787856,
+            "command_deg": 3.1974202250806867,
+            "error_deg": 0.08696074819547484
+          },
+          "rear_right_knee": {
+            "name": "rear_right_knee",
+            "position_deg": -45.14172685042362,
+            "velocity_deg_s": -2.3753792838849397,
+            "command_deg": -45.36117643919964,
+            "error_deg": -0.2194495887760155
+          }
+        },
+        "body_world": {
+          "base_link": {
+            "link_origin_w_m": [
+              0.7639462351799011,
+              0.017033755779266357,
+              0.07765062898397446
+            ],
+            "minimum_m": [
+              0.5828796582286822,
+              -0.27219894930568,
+              0.11888999347038917
+            ],
+            "maximum_m": [
+              0.9099593458863687,
+              0.0971134999824275,
+              0.2514388524927685
+            ]
+          },
+          "front_left_wheel": {
+            "link_origin_w_m": [
+              0.8652268052101135,
+              0.10126227885484695,
+              0.10219279676675797
+            ],
+            "minimum_m": [
+              0.8152404302445585,
+              0.09344175842542748,
+              0.049817466480545414
+            ],
+            "maximum_m": [
+              0.915309410528254,
+              0.12874542568344235,
+              0.15129717726578187
+            ]
+          },
+          "front_right_wheel": {
+            "link_origin_w_m": [
+              0.9830822348594666,
+              -0.303574800491333,
+              0.09722542762756348
+            ],
+            "minimum_m": [
+              0.9330267121483014,
+              -0.3310524452205659,
+              0.04810578538318326
+            ],
+            "maximum_m": [
+              1.0330438856860555,
+              -0.29575867922746024,
+              0.14961615667556197
+            ]
+          },
+          "rear_left_wheel": {
+            "link_origin_w_m": [
+              0.39824002981185913,
+              0.09053779393434525,
+              0.05218521133065224
+            ],
+            "minimum_m": [
+              0.3482521453838122,
+              0.08272547059693999,
+              -0.0001373102047142749
+            ],
+            "maximum_m": [
+              0.44832414133950443,
+              0.11801636029968565,
+              0.10123678871888303
+            ]
+          },
+          "rear_right_wheel": {
+            "link_origin_w_m": [
+              0.5601096153259277,
+              -0.2959883213043213,
+              0.14926572144031525
+            ],
+            "minimum_m": [
+              0.5100777938038954,
+              -0.3234726197222652,
+              0.1001682456820762
+            ],
+            "maximum_m": [
+              0.6100474298914133,
+              -0.2881676210322652,
+              0.20163422298430933
+            ]
+          }
+        },
+        "derived_body_roll_pitch": {
+          "convention": "derived from recorded normalized wxyz; standard intrinsic XYZ roll/pitch, degrees",
+          "roll_deg": -9.19128627548497,
+          "pitch_deg": 2.6654074117321143
+        },
+        "rr_mount_to_wheel_center_vertical_m": 0.08355234821933685,
+        "fr_hip_joint_frame_w_m": null,
+        "fl_hip_joint_frame_w_m": null,
+        "current_leg_contacts": null
+      },
+      {
+        "physics_tick": 10752,
+        "simulation_time_s": 89.6,
+        "phase": "P09",
+        "terminal_sample": false,
+        "clock_unchanged": true,
+        "body_collision_minimum_z_w_m": 0.11891679031692204,
+        "rr_hip_mount_w_m": {
+          "value": [
+            0.5959640303947571,
+            -0.20358944173630447,
+            0.23169838999535558
+          ],
+          "source": "USD localPos0 transformed with live parent link pose",
+          "nonfinite_entries": [],
+          "reason": null
+        },
+        "base": {
+          "name": "base_link",
+          "position_w_m": [
+            0.7622665762901306,
+            0.016922399401664734,
+            0.07734116166830063
+          ],
+          "orientation_wxyz": [
+            0.9965859055519104,
+            -0.07953189313411713,
+            0.02178514003753662,
+            -0.004093898460268974
+          ],
+          "linear_velocity_w_m_s": [
+            -0.0006412632646970451,
+            0.003114003222435713,
+            0.015777502208948135
+          ],
+          "angular_velocity_w_rad_s": [
+            0.013649272732436657,
+            0.013325544074177742,
+            -0.014151902869343758
+          ]
+        },
+        "center_of_mass": {
+          "position_w_m": [
+            0.7314137709276954,
+            -0.09152242100137685,
+            0.16436123746951156
+          ],
+          "velocity_w_m_s": [
+            0.0004844279641222106,
+            0.0017630987652620098,
+            0.011021483794074187
+          ],
+          "total_mass_kg": 2.9308585226535797,
+          "included_bodies": [
+            "base_link",
+            "front_left_upper",
+            "front_right_upper",
+            "rear_left_upper",
+            "rear_right_upper",
+            "front_left_bot",
+            "front_right_bot",
+            "rear_left_bot",
+            "rear_right_bot",
+            "front_left_wheel",
+            "front_right_wheel",
+            "rear_left_wheel",
+            "rear_right_wheel"
+          ],
+          "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass",
+          "valid": true,
+          "reason": ""
+        },
+        "joints_canonical": {
+          "front_left_hip": {
+            "name": "front_left_hip",
+            "position_deg": -24.491895657361663,
+            "velocity_deg_s": 4.628173747641075,
+            "command_deg": -24.00524874819085,
+            "error_deg": 0.4866469091708119
+          },
+          "front_left_knee": {
+            "name": "front_left_knee",
+            "position_deg": -58.45409899141314,
+            "velocity_deg_s": 5.222577790350605,
+            "command_deg": -58,
+            "error_deg": 0.45409899141314014
+          },
+          "front_right_hip": {
+            "name": "front_right_hip",
+            "position_deg": 9.573403063952671,
+            "velocity_deg_s": -2.4307123538985054,
+            "command_deg": 8.774590962819026,
+            "error_deg": -0.7988121011336453
+          },
+          "front_right_knee": {
+            "name": "front_right_knee",
+            "position_deg": -21.512137933381876,
+            "velocity_deg_s": 4.889135639033398,
+            "command_deg": -21.6433702952826,
+            "error_deg": -0.13123236190072518
+          },
+          "rear_left_hip": {
+            "name": "rear_left_hip",
+            "position_deg": 3.7510162684150683,
+            "velocity_deg_s": -8.630094280472852,
+            "command_deg": 2.229949970193699,
+            "error_deg": -1.5210662982213692
+          },
+          "rear_left_knee": {
+            "name": "rear_left_knee",
+            "position_deg": 20.524565190178603,
+            "velocity_deg_s": 5.707982259190486,
+            "command_deg": 20.231843854208503,
+            "error_deg": -0.29272133597009997
+          },
+          "rear_right_hip": {
+            "name": "rear_right_hip",
+            "position_deg": -1.8064010739280318,
+            "velocity_deg_s": 0.7758153078080964,
+            "command_deg": -1.7359131082526391,
+            "error_deg": 0.07048796567539273
+          },
+          "rear_right_knee": {
+            "name": "rear_right_knee",
+            "position_deg": -45.12472650957947,
+            "velocity_deg_s": -2.7229765753701742,
+            "command_deg": -45.36117643919964,
+            "error_deg": -0.23644992962017142
+          }
+        },
+        "body_world": {
+          "base_link": {
+            "link_origin_w_m": [
+              0.7622665762901306,
+              0.016922399401664734,
+              0.07734116166830063
+            ],
+            "minimum_m": [
+              0.5807608928513184,
+              -0.27236674067932504,
+              0.11891679031692204
+            ],
+            "maximum_m": [
+              0.9078711270568516,
+              0.09684899041386241,
+              0.2502704719587753
+            ]
+          },
+          "front_left_wheel": {
+            "link_origin_w_m": [
+              0.8634196519851685,
+              0.10119695961475372,
+              0.10237258672714233
+            ],
+            "minimum_m": [
+              0.8134376683162359,
+              0.09341931862456565,
+              0.05000115996749977
+            ],
+            "maximum_m": [
+              0.9134978710035417,
+              0.12864017493204172,
+              0.1514906807507147
+            ]
+          },
+          "front_right_wheel": {
+            "link_origin_w_m": [
+              0.9830521941184998,
+              -0.3036157488822937,
+              0.09722937643527985
+            ],
+            "minimum_m": [
+              0.9329964052567083,
+              -0.33105470498026873,
+              0.048101641280638194
+            ],
+            "maximum_m": [
+              1.03301373945788,
+              -0.29584154731675977,
+              0.14961058691227336
+            ]
+          },
+          "rear_left_wheel": {
+            "link_origin_w_m": [
+              0.3953649401664734,
+              0.09043656289577484,
+              0.051828864961862564
+            ],
+            "minimum_m": [
+              0.3454036691754449,
+              0.08265739948303388,
+              -0.0005519483642255907
+            ],
+            "maximum_m": [
+              0.44542009957234835,
+              0.1178830658486321,
+              0.10095635514814565
+            ]
+          },
+          "rear_right_wheel": {
+            "link_origin_w_m": [
+              0.5668089985847473,
+              -0.2967779040336609,
+              0.14509917795658112
+            ],
+            "minimum_m": [
+              0.5167284934251658,
+              -0.324224357786877,
+              0.09605662398162584
+            ],
+            "maximum_m": [
+              0.6167931304460934,
+              -0.2889990290793801,
+              0.19739513719713184
+            ]
+          }
+        },
+        "derived_body_roll_pitch": {
+          "convention": "derived from recorded normalized wxyz; standard intrinsic XYZ roll/pitch, degrees",
+          "roll_deg": -9.139829235660992,
+          "pitch_deg": 2.4513071472306245
+        },
+        "rr_mount_to_wheel_center_vertical_m": 0.08659921203877446,
+        "fr_hip_joint_frame_w_m": null,
+        "fl_hip_joint_frame_w_m": null,
+        "current_leg_contacts": null
+      },
+      {
+        "physics_tick": 10760,
+        "simulation_time_s": 89.66666666666667,
+        "phase": "P09",
+        "terminal_sample": false,
+        "clock_unchanged": true,
+        "body_collision_minimum_z_w_m": 0.11883925654996406,
+        "rr_hip_mount_w_m": {
+          "value": [
+            0.5959769886278937,
+            -0.203519820727546,
+            0.2317400801430047
+          ],
+          "source": "USD localPos0 transformed with live parent link pose",
+          "nonfinite_entries": [],
+          "reason": null
+        },
+        "base": {
+          "name": "base_link",
+          "position_w_m": [
+            0.762256383895874,
+            0.016937248408794403,
+            0.0772797092795372
+          ],
+          "orientation_wxyz": [
+            0.9965705871582031,
+            -0.07969816029071808,
+            0.021874047815799713,
+            -0.004100313410162926
+          ],
+          "linear_velocity_w_m_s": [
+            -0.0004731155640911311,
+            0.003546046558767557,
+            0.014278938062489033
+          ],
+          "angular_velocity_w_rad_s": [
+            0.0058281621895730495,
+            0.01894477941095829,
+            -0.014594555832445621
+          ]
+        },
+        "center_of_mass": {
+          "position_w_m": [
+            0.731431087045306,
+            -0.09148097928431567,
+            0.16432296770933894
+          ],
+          "velocity_w_m_s": [
+            0.0010208906163987794,
+            0.002911333146518317,
+            0.010689226368579921
+          ],
+          "total_mass_kg": 2.9308585226535797,
+          "included_bodies": [
+            "base_link",
+            "front_left_upper",
+            "front_right_upper",
+            "rear_left_upper",
+            "rear_right_upper",
+            "front_left_bot",
+            "front_right_bot",
+            "rear_left_bot",
+            "rear_right_bot",
+            "front_left_wheel",
+            "front_right_wheel",
+            "rear_left_wheel",
+            "rear_right_wheel"
+          ],
+          "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass",
+          "valid": true,
+          "reason": ""
+        },
+        "joints_canonical": {
+          "front_left_hip": {
+            "name": "front_left_hip",
+            "position_deg": -24.48296347747458,
+            "velocity_deg_s": 4.720620784944021,
+            "command_deg": -24.00505984278825,
+            "error_deg": 0.47790363468633146
+          },
+          "front_left_knee": {
+            "name": "front_left_knee",
+            "position_deg": -58.44621012292178,
+            "velocity_deg_s": 5.299453277006391,
+            "command_deg": -58,
+            "error_deg": 0.44621012292177653
+          },
+          "front_right_hip": {
+            "name": "front_right_hip",
+            "position_deg": 9.57240585633385,
+            "velocity_deg_s": -2.3926831412603438,
+            "command_deg": 8.77357967915278,
+            "error_deg": -0.7988261771810699
+          },
+          "front_right_knee": {
+            "name": "front_right_knee",
+            "position_deg": -21.50431736678221,
+            "velocity_deg_s": 4.751047143262312,
+            "command_deg": -21.63826614385095,
+            "error_deg": -0.13394877706873842
+          },
+          "rear_left_hip": {
+            "name": "rear_left_hip",
+            "position_deg": 3.7565132900364593,
+            "velocity_deg_s": -8.519290682888673,
+            "command_deg": 2.231452160807553,
+            "error_deg": -1.5250611292289062
+          },
+          "rear_left_knee": {
+            "name": "rear_left_knee",
+            "position_deg": 20.52540188835193,
+            "velocity_deg_s": 5.561881097749328,
+            "command_deg": 20.230959230824244,
+            "error_deg": -0.2944426575276857
+          },
+          "rear_right_hip": {
+            "name": "rear_right_hip",
+            "position_deg": -1.9218385279772405,
+            "velocity_deg_s": 1.4286728031256828,
+            "command_deg": -1.7859131082524924,
+            "error_deg": 0.13592541972474814
+          },
+          "rear_right_knee": {
+            "name": "rear_right_knee",
+            "position_deg": -45.12359952836641,
+            "velocity_deg_s": -2.687006664766771,
+            "command_deg": -45.36117643919964,
+            "error_deg": -0.2375769108332264
+          }
+        },
+        "body_world": {
+          "base_link": {
+            "link_origin_w_m": [
+              0.762256383895874,
+              0.016937248408794403,
+              0.0772797092795372
+            ],
+            "minimum_m": [
+              0.5807736420415452,
+              -0.27231029203275714,
+              0.11883925654996406
+            ],
+            "maximum_m": [
+              0.9078800910180258,
+              0.096896104446042,
+              0.25032991851226244
+            ]
+          },
+          "front_left_wheel": {
+            "link_origin_w_m": [
+              0.8634251356124878,
+              0.10121390968561172,
+              0.10223904252052307
+            ],
+            "minimum_m": [
+              0.8134525663277719,
+              0.09342268075055404,
+              0.049965960945521457
+            ],
+            "maximum_m": [
+              0.913493760558824,
+              0.1286725187902663,
+              0.15125202576614932
+            ]
+          },
+          "front_right_wheel": {
+            "link_origin_w_m": [
+              0.9830569624900818,
+              -0.3036001920700073,
+              0.09722641855478287
+            ],
+            "minimum_m": [
+              0.9330015204712155,
+              -0.331054059315349,
+              0.04810181104907838
+            ],
+            "maximum_m": [
+              1.0330185991009588,
+              -0.2958098499531234,
+              0.1496112652161635
+            ]
+          },
+          "rear_left_wheel": {
+            "link_origin_w_m": [
+              0.39533695578575134,
+              0.09045343846082687,
+              0.05182826519012451
+            ],
+            "minimum_m": [
+              0.34537576127819325,
+              0.08265805331559163,
+              -0.0005559977145146999
+            ],
+            "maximum_m": [
+              0.44539186093564576,
+              0.1179149001757703,
+              0.10095243345967553
+            ]
+          },
+          "rear_right_wheel": {
+            "link_origin_w_m": [
+              0.5670047998428345,
+              -0.29674696922302246,
+              0.1451178342103958
+            ],
+            "minimum_m": [
+              0.5169326316289574,
+              -0.3242075935878537,
+              0.09610148653899583
+            ],
+            "maximum_m": [
+              0.6169807753101086,
+              -0.2889531109586657,
+              0.197394348217966
+            ]
+          }
+        },
+        "derived_body_roll_pitch": {
+          "convention": "derived from recorded normalized wxyz; standard intrinsic XYZ roll/pitch, degrees",
+          "roll_deg": -9.159066276897063,
+          "pitch_deg": 2.4612949400462893
+        },
+        "rr_mount_to_wheel_center_vertical_m": 0.0866222459326089,
+        "fr_hip_joint_frame_w_m": null,
+        "fl_hip_joint_frame_w_m": null,
+        "current_leg_contacts": null
+      },
+      {
+        "physics_tick": 12484,
+        "simulation_time_s": 104.03333333333333,
+        "phase": "P09",
+        "terminal_sample": true,
+        "clock_unchanged": true,
+        "body_collision_minimum_z_w_m": 0.11893061034983375,
+        "rr_hip_mount_w_m": {
+          "value": [
+            0.5931111572270754,
+            -0.20351062524419264,
+            0.23149921208208246
+          ],
+          "source": "USD localPos0 transformed with live parent link pose",
+          "nonfinite_entries": [],
+          "reason": null
+        },
+        "base": {
+          "name": "base_link",
+          "position_w_m": [
+            0.7596327066421509,
+            0.016886010766029358,
+            0.07721357047557831
+          ],
+          "orientation_wxyz": [
+            0.9965683817863464,
+            -0.07996335625648499,
+            0.02099018171429634,
+            -0.004109276924282312
+          ],
+          "linear_velocity_w_m_s": [
+            -0.001819167984649539,
+            0.003570652799680829,
+            0.013679739087820053
+          ],
+          "angular_velocity_w_rad_s": [
+            0.00006193746958160773,
+            0.01559104397892952,
+            -0.012143433094024658
+          ]
+        },
+        "center_of_mass": {
+          "position_w_m": [
+            0.7286966233236684,
+            -0.09148897052535537,
+            0.1642657818297477
+          ],
+          "velocity_w_m_s": [
+            -0.0008384103797227291,
+            0.0034125662442686497,
+            0.010914690091024205
+          ],
+          "total_mass_kg": 2.9308585226535797,
+          "included_bodies": [
+            "base_link",
+            "front_left_upper",
+            "front_right_upper",
+            "rear_left_upper",
+            "rear_right_upper",
+            "front_left_bot",
+            "front_right_bot",
+            "rear_left_bot",
+            "rear_right_bot",
+            "front_left_wheel",
+            "front_right_wheel",
+            "rear_left_wheel",
+            "rear_right_wheel"
+          ],
+          "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass",
+          "valid": true,
+          "reason": ""
+        },
+        "joints_canonical": {
+          "front_left_hip": {
+            "name": "front_left_hip",
+            "position_deg": -24.43343265316094,
+            "velocity_deg_s": 4.805910210883616,
+            "command_deg": -23.966099647448626,
+            "error_deg": 0.4673330057123124
+          },
+          "front_left_knee": {
+            "name": "front_left_knee",
+            "position_deg": -58.435459405168174,
+            "velocity_deg_s": 4.929178049929422,
+            "command_deg": -58,
+            "error_deg": 0.4354594051681744
+          },
+          "front_right_hip": {
+            "name": "front_right_hip",
+            "position_deg": 9.591262301084962,
+            "velocity_deg_s": -2.9367134716239716,
+            "command_deg": 8.762727185917157,
+            "error_deg": -0.8285351151678046
+          },
+          "front_right_knee": {
+            "name": "front_right_knee",
+            "position_deg": -21.40814659572114,
+            "velocity_deg_s": 5.18582496931359,
+            "command_deg": -21.56609096691256,
+            "error_deg": -0.15794437119142302
+          },
+          "rear_left_hip": {
+            "name": "rear_left_hip",
+            "position_deg": 3.826763493197333,
+            "velocity_deg_s": -8.55862232722419,
+            "command_deg": 2.276545371422639,
+            "error_deg": -1.550218121774694
+          },
+          "rear_left_knee": {
+            "name": "rear_left_knee",
+            "position_deg": 20.53753059677058,
+            "velocity_deg_s": 7.783313894157704,
+            "command_deg": 20.2347039431745,
+            "error_deg": -0.3028266535960782
+          },
+          "rear_right_hip": {
+            "name": "rear_right_hip",
+            "position_deg": -2.048162449789803,
+            "velocity_deg_s": 2.8346604135836375,
+            "command_deg": -1.7859131082524924,
+            "error_deg": 0.26224934153731083
+          },
+          "rear_right_knee": {
+            "name": "rear_right_knee",
+            "position_deg": -45.12042690549694,
+            "velocity_deg_s": -2.9212911179214944,
+            "command_deg": -45.36117643919964,
+            "error_deg": -0.24074953370269725
+          }
+        },
+        "body_world": {
+          "base_link": {
+            "link_origin_w_m": [
+              0.7596327066421509,
+              0.016886010766029358,
+              0.07721357047557831
+            ],
+            "minimum_m": [
+              0.577908732548996,
+              -0.2722794980744391,
+              0.11893061034983375
+            ],
+            "maximum_m": [
+              0.9050691818406544,
+              0.09687545903507024,
+              0.2501155070648401
+            ]
+          },
+          "front_left_wheel": {
+            "link_origin_w_m": [
+              0.8608033657073975,
+              0.10118068754673004,
+              0.10225161910057068
+            ],
+            "minimum_m": [
+              0.8108337052630599,
+              0.09336305006609319,
+              0.049978891714022124
+            ],
+            "maximum_m": [
+              0.9108721075738289,
+              0.12866360524165224,
+              0.15125356372922844
+            ]
+          },
+          "front_right_wheel": {
+            "link_origin_w_m": [
+              0.9807329177856445,
+              -0.30362218618392944,
+              0.09765978902578354
+            ],
+            "minimum_m": [
+              0.9306443807166067,
+              -0.33110780020941416,
+              0.04860433638778701
+            ],
+            "maximum_m": [
+              1.0307223766238909,
+              -0.2958005031740023,
+              0.1499861663922063
+            ]
+          },
+          "rear_left_wheel": {
+            "link_origin_w_m": [
+              0.3925568759441376,
+              0.09038127958774567,
+              0.05133246257901192
+            ],
+            "minimum_m": [
+              0.3425962458351799,
+              0.08256775142464512,
+              -0.0010584313054336145
+            ],
+            "maximum_m": [
+              0.44261416775147133,
+              0.11785606339985687,
+              0.10045257930456569
+            ]
+          },
+          "rear_right_wheel": {
+            "link_origin_w_m": [
+              0.5645197033882141,
+              -0.2968002259731293,
+              0.1448080986738205
+            ],
+            "minimum_m": [
+              0.5144348300920503,
+              -0.3242830626808089,
+              0.09570297024182872
+            ],
+            "maximum_m": [
+              0.6145053553433792,
+              -0.2889799404847153,
+              0.19718407973260693
+            ]
+          }
+        },
+        "derived_body_roll_pitch": {
+          "convention": "derived from recorded normalized wxyz; standard intrinsic XYZ roll/pitch, degrees",
+          "roll_deg": -9.188661638094333,
+          "pitch_deg": 2.360056724410393
+        },
+        "rr_mount_to_wheel_center_vertical_m": 0.08669111340826197,
+        "fr_hip_joint_frame_w_m": null,
+        "fl_hip_joint_frame_w_m": null,
+        "current_leg_contacts": {
+          "FL": {
+            "active_attempt": true,
+            "air": false,
+            "bearing_force_n": 3.305880308151245,
+            "bearing_verified": true,
+            "clearance_m": -0.000021108285977886054,
+            "consecutive_air_samples": 0,
+            "consecutive_top_samples": 2918,
+            "contact_reaction": true,
+            "contact_reaction_force_n": 3.305880308151384,
+            "contact_surface": "TOP",
+            "crossing_evidence_status": "VERIFIED",
+            "crossing_geometry_pending": false,
+            "front_distance_m": 0.3394911919338668,
+            "ground_contact": false,
+            "initial_clearance": true,
+            "load_fraction": 0.1158545129755333,
+            "load_fraction_valid": true,
+            "obstacle_pair_active": true,
+            "recent_clearance_gain_m": 0.0010521017514620937,
+            "recent_joint_motion_deg": 0.25184273507672117,
+            "recent_whole_body_joint_motion_deg": 0.43261703167433474,
+            "soft_air_actuation_earned": false,
+            "soft_air_earned_tick": null,
+            "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+            "support": true,
+            "top_contact": true,
+            "top_geometry": true,
+            "top_surface_contact": true,
+            "top_xy_outside_distance_m": 0,
+            "whole_body_actuation_evidence": false,
+            "within_lateral_span": true,
+            "within_top_xy": true
+          },
+          "FR": {
+            "active_attempt": true,
+            "air": false,
+            "bearing_force_n": 13.737947463989258,
+            "bearing_verified": true,
+            "clearance_m": -0.001395663612212994,
+            "consecutive_air_samples": 0,
+            "consecutive_top_samples": 3897,
+            "contact_reaction": true,
+            "contact_reaction_force_n": 13.746348893699308,
+            "contact_surface": "TOP",
+            "crossing_evidence_status": "VERIFIED",
+            "crossing_geometry_pending": false,
+            "front_distance_m": 0.45942074401211386,
+            "ground_contact": false,
+            "initial_clearance": true,
+            "load_fraction": 0.48144610946728866,
+            "load_fraction_valid": true,
+            "obstacle_pair_active": true,
+            "recent_clearance_gain_m": 0.000016386737970573717,
+            "recent_joint_motion_deg": 0.09082956313011792,
+            "recent_whole_body_joint_motion_deg": 0.43261703167433474,
+            "soft_air_actuation_earned": false,
+            "soft_air_earned_tick": null,
+            "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+            "support": true,
+            "top_contact": true,
+            "top_geometry": true,
+            "top_surface_contact": true,
+            "top_xy_outside_distance_m": 0,
+            "whole_body_actuation_evidence": false,
+            "within_lateral_span": true,
+            "within_top_xy": true
+          },
+          "RL": {
+            "active_attempt": false,
+            "air": false,
+            "bearing_force_n": 11.490928649902344,
+            "bearing_verified": true,
+            "clearance_m": -0.05105843130543364,
+            "consecutive_air_samples": 0,
+            "consecutive_top_samples": 0,
+            "contact_reaction": true,
+            "contact_reaction_force_n": 11.490928649902447,
+            "contact_surface": "NONE",
+            "crossing_evidence_status": "PENDING",
+            "crossing_geometry_pending": false,
+            "front_distance_m": -0.1287552978293931,
+            "ground_contact": true,
+            "initial_clearance": false,
+            "load_fraction": 0.40269937755717805,
+            "load_fraction_valid": true,
+            "obstacle_pair_active": false,
+            "recent_clearance_gain_m": 0,
+            "recent_joint_motion_deg": 0,
+            "recent_whole_body_joint_motion_deg": 0,
+            "soft_air_actuation_earned": false,
+            "soft_air_earned_tick": null,
+            "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+            "support": true,
+            "top_contact": false,
+            "top_geometry": false,
+            "top_surface_contact": false,
+            "top_xy_outside_distance_m": 0.1237552978293931,
+            "whole_body_actuation_evidence": false,
+            "within_lateral_span": true,
+            "within_top_xy": false
+          },
+          "RR": {
+            "active_attempt": true,
+            "air": true,
+            "air_duration_s": 33.18333333333333,
+            "bearing_force_n": 0,
+            "bearing_verified": true,
+            "body_control_evidence": true,
+            "body_control_evidence_semantics": "unchanged_live_safety_and_short_verified_other_supports_not_static_stability_proof",
+            "clearance_m": 0.04570297024182872,
+            "consecutive_air_samples": 3982,
+            "consecutive_free_air_samples": 3982,
+            "consecutive_top_samples": 0,
+            "contact_mode": "AIR",
+            "contact_reaction": false,
+            "contact_reaction_force_n": 0,
+            "contact_surface": "NONE",
+            "crossing_evidence_status": "VERIFIED",
+            "crossing_geometry_pending": false,
+            "current_lift_valid": true,
+            "durations_are_diagnostic_only": true,
+            "edge_adjustment_response_observed": null,
+            "edge_contact_duration_s": 0,
+            "free_air_reference_bottom_z_m": -0.000873988722264081,
+            "free_air_reference_tick": 8502,
+            "free_lift_evidence_semantics": "current_continuous_AIR_rise_from_last_actual_contact",
+            "front_distance_m": 0.04320752961468344,
+            "front_edge_crossed": true,
+            "ground_contact": false,
+            "ground_relative_lift_m": 0.0965769589640928,
+            "initial_clearance": true,
+            "initial_lift_observed": true,
+            "initial_now": false,
+            "lift_established": true,
+            "lift_established_now": false,
+            "load_fraction": 0,
+            "load_fraction_valid": true,
+            "motion_continuation_allowed": true,
+            "motion_continuation_reason": "current_functional_lift",
+            "observed_other_support_contacts": [
+              "FL",
+              "FR",
+              "RL"
+            ],
+            "obstacle_pair_active": false,
+            "placed_on_top": false,
+            "recent_clearance_gain_m": 0.0006874539812875557,
+            "recent_joint_motion_deg": 0.014045110089372592,
+            "recent_wheel_displacement_m": 0.0007996999868083866,
+            "recent_whole_body_joint_motion_deg": 0.43261703167433474,
+            "soft_air_actuation_earned": true,
+            "soft_air_earned_tick": 8549,
+            "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+            "support": false,
+            "top_contact": false,
+            "top_geometry": false,
+            "top_surface_contact": false,
+            "top_xy_outside_distance_m": 0,
+            "unsupported_free_lift_m": 0.0965769589640928,
+            "wheel_bottom_vz_interval_s": 0.008333333333339965,
+            "wheel_bottom_vz_m_s": 0.002320683715503576,
+            "wheel_bottom_vz_observation_tick": 12484,
+            "wheel_bottom_vz_semantics": "adjacent_measured_collider_bottom_world_z_finite_difference",
+            "whole_body_actuation_evidence": false,
+            "within_lateral_span": true,
+            "within_top_xy": true
+          }
+        }
+      }
+    ],
+    "accepted_N_ref": [
+      {
+        "physics_tick": 6136,
+        "simulation_time_s": 51.13333333333333,
+        "phase": "P09",
+        "terminal_sample": false,
+        "clock_unchanged": true,
+        "body_collision_minimum_z_w_m": 0.08906786197386025,
+        "rr_hip_mount_w_m": {
+          "value": [
+            0.5369008036826761,
+            -0.22757676641965224,
+            0.19766549348065365
+          ],
+          "source": "USD localPos0 transformed with live parent link pose",
+          "nonfinite_entries": [],
+          "reason": null
+        },
+        "base": {
+          "name": "base_link",
+          "position_w_m": [
+            0.7204912304878235,
+            -0.015077449381351471,
+            0.05190281569957733
+          ],
+          "orientation_wxyz": [
+            0.994403064250946,
+            -0.1007191613316536,
+            -0.029189590364694595,
+            -0.012891196645796299
+          ],
+          "linear_velocity_w_m_s": [
+            0.01674683764576912,
+            -0.0012752278707921505,
+            0.010112501680850983
+          ],
+          "angular_velocity_w_rad_s": [
+            -0.007114221807569265,
+            0.009837880730628967,
+            0.008749078027904034
+          ]
+        },
+        "center_of_mass": {
+          "position_w_m": [
+            0.7005859012486736,
+            -0.11747087586491475,
+            0.1526992927413042
+          ],
+          "velocity_w_m_s": [
+            0.018474528534539555,
+            -0.00195962312845785,
+            0.004988128449865156
+          ],
+          "total_mass_kg": 2.9308585226535797,
+          "included_bodies": [
+            "base_link",
+            "front_left_upper",
+            "front_right_upper",
+            "rear_left_upper",
+            "rear_right_upper",
+            "front_left_bot",
+            "front_right_bot",
+            "rear_left_bot",
+            "rear_right_bot",
+            "front_left_wheel",
+            "front_right_wheel",
+            "rear_left_wheel",
+            "rear_right_wheel"
+          ],
+          "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass",
+          "valid": true,
+          "reason": ""
+        },
+        "joints_canonical": {
+          "front_left_hip": {
+            "name": "front_left_hip",
+            "position_deg": 38.92336452183691,
+            "velocity_deg_s": -3.1821070140203087,
+            "command_deg": 38.6,
+            "error_deg": -0.32336452183690767
+          },
+          "front_left_knee": {
+            "name": "front_left_knee",
+            "position_deg": -12.007241691817331,
+            "velocity_deg_s": 1.0041577631891727,
+            "command_deg": -12.15,
+            "error_deg": -0.14275830818266932
+          },
+          "front_right_hip": {
+            "name": "front_right_hip",
+            "position_deg": 0.5439510911646118,
+            "velocity_deg_s": -3.367030970703819,
+            "command_deg": 0,
+            "error_deg": -0.5439510911646118
+          },
+          "front_right_knee": {
+            "name": "front_right_knee",
+            "position_deg": 30.256213663671957,
+            "velocity_deg_s": 0.7709963959052408,
+            "command_deg": 29.99420710727569,
+            "error_deg": -0.26200655639626547
+          },
+          "rear_left_hip": {
+            "name": "rear_left_hip",
+            "position_deg": 29.38835671430054,
+            "velocity_deg_s": -7.899955595934951,
+            "command_deg": 28.199999999999996,
+            "error_deg": -1.188356714300543
+          },
+          "rear_left_knee": {
+            "name": "rear_left_knee",
+            "position_deg": 0.21254841665778879,
+            "velocity_deg_s": 0.5636997810693836,
+            "command_deg": 0,
+            "error_deg": -0.21254841665778879
+          },
+          "rear_right_hip": {
+            "name": "rear_right_hip",
+            "position_deg": -8.243127912013795,
+            "velocity_deg_s": -3.0614662364840197,
+            "command_deg": -8.15,
+            "error_deg": 0.09312791201379511
+          },
+          "rear_right_knee": {
+            "name": "rear_right_knee",
+            "position_deg": -39.365787624086096,
+            "velocity_deg_s": 6.639099260056012,
+            "command_deg": -39.05,
+            "error_deg": 0.3157876240860986
+          }
+        },
+        "body_world": {
+          "base_link": {
+            "link_origin_w_m": [
+              0.7204912304878235,
+              -0.015077449381351471,
+              0.05190281569957733
+            ],
+            "minimum_m": [
+              0.5211777253069076,
+              -0.298958114246905,
+              0.08906786197386025
+            ],
+            "maximum_m": [
+              0.8554228981820687,
+              0.06947485325927062,
+              0.23751647568355652
+            ]
+          },
+          "front_left_wheel": {
+            "link_origin_w_m": [
+              1.0187791585922241,
+              0.06697770953178406,
+              0.10229624807834625
+            ],
+            "minimum_m": [
+              0.9688755026536278,
+              0.05708285239298481,
+              0.04951049171366265
+            ],
+            "maximum_m": [
+              1.0693289304362352,
+              0.09635689012633777,
+              0.150991067336273
+            ]
+          },
+          "front_right_wheel": {
+            "link_origin_w_m": [
+              1.0504568815231323,
+              -0.34148985147476196,
+              0.09855852276086807
+            ],
+            "minimum_m": [
+              0.9999042578007988,
+              -0.37087622124698205,
+              0.04998014362887082
+            ],
+            "maximum_m": [
+              1.1003632761992095,
+              -0.33159021322082677,
+              0.15122794370967158
+            ]
+          },
+          "rear_left_wheel": {
+            "link_origin_w_m": [
+              0.36023643612861633,
+              0.07312656939029694,
+              0.05251719057559967
+            ],
+            "minimum_m": [
+              0.3103103119726559,
+              0.06322914963384318,
+              -0.00022557357818899643
+            ],
+            "maximum_m": [
+              0.4108086770534574,
+              0.10250895711830135,
+              0.10116901468452404
+            ]
+          },
+          "rear_right_wheel": {
+            "link_origin_w_m": [
+              0.5191316604614258,
+              -0.32735946774482727,
+              0.09801967442035675
+            ],
+            "minimum_m": [
+              0.468559563630156,
+              -0.35674220412987045,
+              0.04936913887014422
+            ],
+            "maximum_m": [
+              0.5690574988954642,
+              -0.3174617221377227,
+              0.15076121119771313
+            ]
+          }
+        },
+        "derived_body_roll_pitch": {
+          "convention": "derived from recorded normalized wxyz; standard intrinsic XYZ roll/pitch, degrees",
+          "roll_deg": -11.532651635890645,
+          "pitch_deg": -3.477077977392598
+        },
+        "rr_mount_to_wheel_center_vertical_m": 0.0996458190602969,
+        "fr_hip_joint_frame_w_m": null,
+        "fl_hip_joint_frame_w_m": null,
+        "current_leg_contacts": null
+      },
+      {
+        "physics_tick": 6144,
+        "simulation_time_s": 51.2,
+        "phase": "P09",
+        "terminal_sample": false,
+        "clock_unchanged": true,
+        "body_collision_minimum_z_w_m": 0.08913420659110496,
+        "rr_hip_mount_w_m": {
+          "value": [
+            0.5378029655025293,
+            -0.22758426122901582,
+            0.19774372330471235
+          ],
+          "source": "USD localPos0 transformed with live parent link pose",
+          "nonfinite_entries": [],
+          "reason": null
+        },
+        "base": {
+          "name": "base_link",
+          "position_w_m": [
+            0.7214102745056152,
+            -0.015101395547389984,
+            0.051978327333927155
+          ],
+          "orientation_wxyz": [
+            0.9943984746932983,
+            -0.1007535457611084,
+            -0.02922060526907444,
+            -0.012910793535411358
+          ],
+          "linear_velocity_w_m_s": [
+            0.022043360397219658,
+            0.014391368255019188,
+            0.015905549749732018
+          ],
+          "angular_velocity_w_rad_s": [
+            0.07781310379505157,
+            -0.006959427148103714,
+            -0.03368183225393295
+          ]
+        },
+        "center_of_mass": {
+          "position_w_m": [
+            0.7014940082420567,
+            -0.11749025872101823,
+            0.15276537484011585
+          ],
+          "velocity_w_m_s": [
+            0.01733655285726784,
+            0.0063352723879212475,
+            0.0033729969997904896
+          ],
+          "total_mass_kg": 2.9308585226535797,
+          "included_bodies": [
+            "base_link",
+            "front_left_upper",
+            "front_right_upper",
+            "rear_left_upper",
+            "rear_right_upper",
+            "front_left_bot",
+            "front_right_bot",
+            "rear_left_bot",
+            "rear_right_bot",
+            "front_left_wheel",
+            "front_right_wheel",
+            "rear_left_wheel",
+            "rear_right_wheel"
+          ],
+          "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass",
+          "valid": true,
+          "reason": ""
+        },
+        "joints_canonical": {
+          "front_left_hip": {
+            "name": "front_left_hip",
+            "position_deg": 38.936403352962465,
+            "velocity_deg_s": -8.21218488723739,
+            "command_deg": 38.6,
+            "error_deg": -0.3364033529624635
+          },
+          "front_left_knee": {
+            "name": "front_left_knee",
+            "position_deg": -12.012832201652985,
+            "velocity_deg_s": 0.3446004392651857,
+            "command_deg": -12.15,
+            "error_deg": -0.13716779834701498
+          },
+          "front_right_hip": {
+            "name": "front_right_hip",
+            "position_deg": 0.5291987363310305,
+            "velocity_deg_s": 0.4823430499878345,
+            "command_deg": 0,
+            "error_deg": -0.5291987363310305
+          },
+          "front_right_knee": {
+            "name": "front_right_knee",
+            "position_deg": 30.252262399237104,
+            "velocity_deg_s": 0.7877350017659736,
+            "command_deg": 29.99420710727569,
+            "error_deg": -0.2580552919614121
+          },
+          "rear_left_hip": {
+            "name": "rear_left_hip",
+            "position_deg": 29.33324050279312,
+            "velocity_deg_s": -6.654788631466354,
+            "command_deg": 28.199999999999996,
+            "error_deg": -1.1332405027931252
+          },
+          "rear_left_knee": {
+            "name": "rear_left_knee",
+            "position_deg": 0.22153546484185785,
+            "velocity_deg_s": 7.300577467962359,
+            "command_deg": 0,
+            "error_deg": -0.22153546484185785
+          },
+          "rear_right_hip": {
+            "name": "rear_right_hip",
+            "position_deg": -8.242498680836508,
+            "velocity_deg_s": -1.3077752531652835,
+            "command_deg": -8.15,
+            "error_deg": 0.09249868083650803
+          },
+          "rear_right_knee": {
+            "name": "rear_right_knee",
+            "position_deg": -39.3965815319591,
+            "velocity_deg_s": 2.1265633898276026,
+            "command_deg": -39.05,
+            "error_deg": 0.346581531959103
+          }
+        },
+        "body_world": {
+          "base_link": {
+            "link_origin_w_m": [
+              0.7214102745056152,
+              -0.015101395547389984,
+              0.051978327333927155
+            ],
+            "minimum_m": [
+              0.5220789153616338,
+              -0.2989741982801081,
+              0.08913420659110496
+            ],
+            "maximum_m": [
+              0.85633608672828,
+              0.06946059294412993,
+              0.23761769060744914
+            ]
+          },
+          "front_left_wheel": {
+            "link_origin_w_m": [
+              1.0196956396102905,
+              0.06695371121168137,
+              0.10241897404193878
+            ],
+            "minimum_m": [
+              0.9697717388876733,
+              0.05705910312309236,
+              0.049643477019940735
+            ],
+            "maximum_m": [
+              1.0702666208756486,
+              0.09633163943870326,
+              0.15110218987016785
+            ]
+          },
+          "front_right_wheel": {
+            "link_origin_w_m": [
+              1.051316499710083,
+              -0.3415330648422241,
+              0.09861702471971512
+            ],
+            "minimum_m": [
+              1.0007445868523401,
+              -0.37092104445797436,
+              0.05000356773557344
+            ],
+            "maximum_m": [
+              1.101241216987115,
+              -0.33163275363876327,
+              0.1513228639747985
+            ]
+          },
+          "rear_left_wheel": {
+            "link_origin_w_m": [
+              0.3612144887447357,
+              0.07307928800582886,
+              0.052395835518836975
+            ],
+            "minimum_m": [
+              0.31130702194153936,
+              0.06317620766885607,
+              -0.0002963565444765934
+            ],
+            "maximum_m": [
+              0.41176903536919585,
+              0.10246833795137372,
+              0.10099574458774994
+            ]
+          },
+          "rear_right_wheel": {
+            "link_origin_w_m": [
+              0.5200831890106201,
+              -0.32736071944236755,
+              0.09817241132259369
+            ],
+            "minimum_m": [
+              0.4695280041202118,
+              -0.35674992764228847,
+              0.0495714285203626
+            ],
+            "maximum_m": [
+              0.5699911489343858,
+              -0.31745743955840855,
+              0.15086573976255718
+            ]
+          }
+        },
+        "derived_body_roll_pitch": {
+          "convention": "derived from recorded normalized wxyz; standard intrinsic XYZ roll/pitch, degrees",
+          "roll_deg": -11.53653557757692,
+          "pitch_deg": -3.4808804136990408
+        },
+        "rr_mount_to_wheel_center_vertical_m": 0.09957131198211866,
+        "fr_hip_joint_frame_w_m": null,
+        "fl_hip_joint_frame_w_m": null,
+        "current_leg_contacts": null
+      },
+      {
+        "physics_tick": 6152,
+        "simulation_time_s": 51.266666666666666,
+        "phase": "P09",
+        "terminal_sample": false,
+        "clock_unchanged": true,
+        "body_collision_minimum_z_w_m": 0.08915119488872703,
+        "rr_hip_mount_w_m": {
+          "value": [
+            0.5387183484826255,
+            -0.22758068118794247,
+            0.19777131550682406
+          ],
+          "source": "USD localPos0 transformed with live parent link pose",
+          "nonfinite_entries": [],
+          "reason": null
+        },
+        "base": {
+          "name": "base_link",
+          "position_w_m": [
+            0.7223526239395142,
+            -0.015115499496459961,
+            0.05201411247253418
+          ],
+          "orientation_wxyz": [
+            0.9943922162055969,
+            -0.10079243779182434,
+            -0.02928706631064415,
+            -0.012933189049363136
+          ],
+          "linear_velocity_w_m_s": [
+            0.017033182084560394,
+            -0.0027953265234827995,
+            0.008565719239413738
+          ],
+          "angular_velocity_w_rad_s": [
+            -0.02469055913388729,
+            0.0009456751868128777,
+            0.013246766291558743
+          ]
+        },
+        "center_of_mass": {
+          "position_w_m": [
+            0.7024185999049787,
+            -0.11749699210267131,
+            0.15280017974575927
+          ],
+          "velocity_w_m_s": [
+            0.01764613615400694,
+            -0.0017345868510629965,
+            0.005272823188732478
+          ],
+          "total_mass_kg": 2.9308585226535797,
+          "included_bodies": [
+            "base_link",
+            "front_left_upper",
+            "front_right_upper",
+            "rear_left_upper",
+            "rear_right_upper",
+            "front_left_bot",
+            "front_right_bot",
+            "rear_left_bot",
+            "rear_right_bot",
+            "front_left_wheel",
+            "front_right_wheel",
+            "rear_left_wheel",
+            "rear_right_wheel"
+          ],
+          "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass",
+          "valid": true,
+          "reason": ""
+        },
+        "joints_canonical": {
+          "front_left_hip": {
+            "name": "front_left_hip",
+            "position_deg": 38.95082529739494,
+            "velocity_deg_s": -2.552406047784034,
+            "command_deg": 38.6,
+            "error_deg": -0.35082529739494106
+          },
+          "front_left_knee": {
+            "name": "front_left_knee",
+            "position_deg": -12.020523848432067,
+            "velocity_deg_s": 0.7969738998354736,
+            "command_deg": -12.15,
+            "error_deg": -0.12947615156793368
+          },
+          "front_right_hip": {
+            "name": "front_right_hip",
+            "position_deg": 0.5106391913654018,
+            "velocity_deg_s": -4.10597846483692,
+            "command_deg": 0,
+            "error_deg": -0.5106391913654018
+          },
+          "front_right_knee": {
+            "name": "front_right_knee",
+            "position_deg": 30.256811305224332,
+            "velocity_deg_s": 0.4007746630832944,
+            "command_deg": 29.99420710727569,
+            "error_deg": -0.2626041979486402
+          },
+          "rear_left_hip": {
+            "name": "rear_left_hip",
+            "position_deg": 29.300042368332274,
+            "velocity_deg_s": -6.64849631969348,
+            "command_deg": 28.199999999999996,
+            "error_deg": -1.1000423683322786
+          },
+          "rear_left_knee": {
+            "name": "rear_left_knee",
+            "position_deg": 0.22076838257123385,
+            "velocity_deg_s": 2.165604110793161,
+            "command_deg": 0,
+            "error_deg": -0.22076838257123385
+          },
+          "rear_right_hip": {
+            "name": "rear_right_hip",
+            "position_deg": -8.230347774303056,
+            "velocity_deg_s": -2.9059413349789485,
+            "command_deg": -8.15,
+            "error_deg": 0.08034777430305517
+          },
+          "rear_right_knee": {
+            "name": "rear_right_knee",
+            "position_deg": -39.43476570451406,
+            "velocity_deg_s": 7.839199355720394,
+            "command_deg": -39.05,
+            "error_deg": 0.38476570451405934
+          }
+        },
+        "body_world": {
+          "base_link": {
+            "link_origin_w_m": [
+              0.7223526239395142,
+              -0.015115499496459961,
+              0.05201411247253418
+            ],
+            "minimum_m": [
+              0.5229929559042246,
+              -0.29897882680985743,
+              0.08915119488872703
+            ],
+            "maximum_m": [
+              0.8572646548060969,
+              0.06945672629769843,
+              0.23768972208845598
+            ]
+          },
+          "front_left_wheel": {
+            "link_origin_w_m": [
+              1.0206276178359985,
+              0.0669410303235054,
+              0.10252442210912704
+            ],
+            "minimum_m": [
+              0.9707011228331281,
+              0.057036407726512486,
+              0.04977659876478175
+            ],
+            "maximum_m": [
+              1.071202429772059,
+              0.09632981391609968,
+              0.15117846829633905
+            ]
+          },
+          "front_right_wheel": {
+            "link_origin_w_m": [
+              1.0522079467773438,
+              -0.34156665205955505,
+              0.09865882247686386
+            ],
+            "minimum_m": [
+              1.0016332811278086,
+              -0.37095336255089467,
+              0.05000328014242378
+            ],
+            "maximum_m": [
+              1.1021341890916387,
+              -0.33166852647096856,
+              0.1514082508443924
+            ]
+          },
+          "rear_left_wheel": {
+            "link_origin_w_m": [
+              0.3622094988822937,
+              0.0730539932847023,
+              0.05226920545101166
+            ],
+            "minimum_m": [
+              0.3122880812909269,
+              0.06314894922167255,
+              -0.0004234335293330921
+            ],
+            "maximum_m": [
+              0.4127792262385311,
+              0.10244604263213944,
+              0.10086805910583505
+            ]
+          },
+          "rear_right_wheel": {
+            "link_origin_w_m": [
+              0.5210430026054382,
+              -0.3273475170135498,
+              0.09829354286193848
+            ],
+            "minimum_m": [
+              0.47047435570709845,
+              -0.35673990478459017,
+              0.04969926754883661
+            ],
+            "maximum_m": [
+              0.5709631916619828,
+              -0.3174420185999197,
+              0.150981654043943
+            ]
+          }
+        },
+        "derived_body_roll_pitch": {
+          "convention": "derived from recorded normalized wxyz; standard intrinsic XYZ roll/pitch, degrees",
+          "roll_deg": -11.540915458094526,
+          "pitch_deg": -3.488763898303821
+        },
+        "rr_mount_to_wheel_center_vertical_m": 0.09947777264488558,
+        "fr_hip_joint_frame_w_m": null,
+        "fl_hip_joint_frame_w_m": null,
+        "current_leg_contacts": null
+      },
+      {
+        "physics_tick": 6160,
+        "simulation_time_s": 51.333333333333336,
+        "phase": "P10",
+        "terminal_sample": false,
+        "clock_unchanged": true,
+        "body_collision_minimum_z_w_m": 0.09206930540109842,
+        "rr_hip_mount_w_m": {
+          "value": [
+            0.5400541638733403,
+            -0.22855259036522485,
+            0.19887811158658614
+          ],
+          "source": "USD localPos0 transformed with live parent link pose",
+          "nonfinite_entries": [],
+          "reason": null
+        },
+        "base": {
+          "name": "base_link",
+          "position_w_m": [
+            0.7239563465118408,
+            -0.014968417584896088,
+            0.05510763078927994
+          ],
+          "orientation_wxyz": [
+            0.9947577714920044,
+            -0.09685103595256805,
+            -0.03004573844373226,
+            -0.013201703317463398
+          ],
+          "linear_velocity_w_m_s": [
+            0.049373067915439606,
+            -0.004247847944498062,
+            0.12954549491405487
+          ],
+          "angular_velocity_w_rad_s": [
+            0.32737067341804504,
+            -0.0688592717051506,
+            -0.02047141082584858
+          ]
+        },
+        "center_of_mass": {
+          "position_w_m": [
+            0.7034358078491297,
+            -0.11829418276914694,
+            0.15419606039375708
+          ],
+          "velocity_w_m_s": [
+            0.022696195516978022,
+            -0.043452941885821696,
+            0.05460566651928683
+          ],
+          "total_mass_kg": 2.9308585226535797,
+          "included_bodies": [
+            "base_link",
+            "front_left_upper",
+            "front_right_upper",
+            "rear_left_upper",
+            "rear_right_upper",
+            "front_left_bot",
+            "front_right_bot",
+            "rear_left_bot",
+            "rear_right_bot",
+            "front_left_wheel",
+            "front_right_wheel",
+            "rear_left_wheel",
+            "rear_right_wheel"
+          ],
+          "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass",
+          "valid": true,
+          "reason": ""
+        },
+        "joints_canonical": {
+          "front_left_hip": {
+            "name": "front_left_hip",
+            "position_deg": 37.85167027502147,
+            "velocity_deg_s": -46.21370879227742,
+            "command_deg": 32.35,
+            "error_deg": -5.501670275021468
+          },
+          "front_left_knee": {
+            "name": "front_left_knee",
+            "position_deg": -13.049501238404597,
+            "velocity_deg_s": -48.42164940375409,
+            "command_deg": -18.4,
+            "error_deg": -5.350498761595402
+          },
+          "front_right_hip": {
+            "name": "front_right_hip",
+            "position_deg": 0.3108684311386936,
+            "velocity_deg_s": -14.229148682779973,
+            "command_deg": 0,
+            "error_deg": -0.3108684311386936
+          },
+          "front_right_knee": {
+            "name": "front_right_knee",
+            "position_deg": 30.119299106664467,
+            "velocity_deg_s": 3.897350763525704,
+            "command_deg": 29.99420710727569,
+            "error_deg": -0.12509199938877558
+          },
+          "rear_left_hip": {
+            "name": "rear_left_hip",
+            "position_deg": 27.892606757770277,
+            "velocity_deg_s": -64.75317812438817,
+            "command_deg": 21.949999999999996,
+            "error_deg": -5.942606757770282
+          },
+          "rear_left_knee": {
+            "name": "rear_left_knee",
+            "position_deg": 1.5461355016452927,
+            "velocity_deg_s": 60.118676206481084,
+            "command_deg": 6.25,
+            "error_deg": 4.703864498354707
+          },
+          "rear_right_hip": {
+            "name": "rear_right_hip",
+            "position_deg": -8.059831247900041,
+            "velocity_deg_s": 4.869226918263281,
+            "command_deg": -8.15,
+            "error_deg": -0.09016875209995945
+          },
+          "rear_right_knee": {
+            "name": "rear_right_knee",
+            "position_deg": -39.357106453651014,
+            "velocity_deg_s": 5.487400446171278,
+            "command_deg": -39.05,
+            "error_deg": 0.3071064536510164
+          }
+        },
+        "body_world": {
+          "base_link": {
+            "link_origin_w_m": [
+              0.7239563465118408,
+              -0.014968417584896088,
+              0.05510763078927994
+            ],
+            "minimum_m": [
+              0.5243173399807949,
+              -0.3000276487820124,
+              0.09206930540109842
+            ],
+            "maximum_m": [
+              0.8586911173157807,
+              0.06905124360976495,
+              0.23883477846816625
+            ]
+          },
+          "front_left_wheel": {
+            "link_origin_w_m": [
+              1.0185003280639648,
+              0.06591042131185532,
+              0.10240316390991211
+            ],
+            "minimum_m": [
+              0.9685742329869736,
+              0.05637928647345534,
+              0.04971238708059739
+            ],
+            "maximum_m": [
+              1.0690841647841234,
+              0.09496053655038311,
+              0.15116013546247173
+            ]
+          },
+          "front_right_wheel": {
+            "link_origin_w_m": [
+              1.0528759956359863,
+              -0.34198251366615295,
+              0.09877915680408478
+            ],
+            "minimum_m": [
+              1.0023017814220263,
+              -0.3710261336089325,
+              0.050013519463751335
+            ],
+            "maximum_m": [
+              1.1027923596576283,
+              -0.3324628124317798,
+              0.15147870125361648
+            ]
+          },
+          "rear_left_wheel": {
+            "link_origin_w_m": [
+              0.36248311400413513,
+              0.07264699041843414,
+              0.05216477811336517
+            ],
+            "minimum_m": [
+              0.31255953286291205,
+              0.06311939891510333,
+              -0.00047402850478710234
+            ],
+            "maximum_m": [
+              0.4130644318775171,
+              0.10169719481836445,
+              0.10086977612343066
+            ]
+          },
+          "rear_right_wheel": {
+            "link_origin_w_m": [
+              0.5220593214035034,
+              -0.32753732800483704,
+              0.09845475107431412
+            ],
+            "minimum_m": [
+              0.4714756823187855,
+              -0.3565858423083029,
+              0.049733242516233615
+            ],
+            "maximum_m": [
+              0.5719850793174848,
+              -0.3180118437640161,
+              0.15111012351503755
+            ]
+          }
+        },
+        "derived_body_roll_pitch": {
+          "convention": "derived from recorded normalized wxyz; standard intrinsic XYZ roll/pitch, degrees",
+          "roll_deg": -11.085124257310206,
+          "pitch_deg": -3.5737719132879735
+        },
+        "rr_mount_to_wheel_center_vertical_m": 0.10042336051227202,
+        "fr_hip_joint_frame_w_m": null,
+        "fl_hip_joint_frame_w_m": null,
+        "current_leg_contacts": null
+      },
+      {
+        "physics_tick": 6176,
+        "simulation_time_s": 51.46666666666667,
+        "phase": "P12",
+        "terminal_sample": false,
+        "clock_unchanged": true,
+        "body_collision_minimum_z_w_m": 0.10891119157087525,
+        "rr_hip_mount_w_m": {
+          "value": [
+            0.5609405615737011,
+            -0.22866266594914017,
+            0.213660188381447
+          ],
+          "source": "USD localPos0 transformed with live parent link pose",
+          "nonfinite_entries": [],
+          "reason": null
+        },
+        "base": {
+          "name": "base_link",
+          "position_w_m": [
+            0.7462145090103149,
+            -0.015616819262504578,
+            0.07085544615983963
+          ],
+          "orientation_wxyz": [
+            0.995294988155365,
+            -0.09154276549816132,
+            -0.025625823065638542,
+            -0.018741236999630928
+          ],
+          "linear_velocity_w_m_s": [
+            0.23049630224704742,
+            0.008104250766336918,
+            0.08344315737485886
+          ],
+          "angular_velocity_w_rad_s": [
+            -0.06912272423505783,
+            0.06588307023048401,
+            -0.07189538329839706
+          ]
+        },
+        "center_of_mass": {
+          "position_w_m": [
+            0.7214108281538633,
+            -0.1203726899030941,
+            0.16494980314713736
+          ],
+          "velocity_w_m_s": [
+            0.20336118785717258,
+            0.014660833305905046,
+            0.07695840593346512
+          ],
+          "total_mass_kg": 2.9308585226535797,
+          "included_bodies": [
+            "base_link",
+            "front_left_upper",
+            "front_right_upper",
+            "rear_left_upper",
+            "rear_right_upper",
+            "front_left_bot",
+            "front_right_bot",
+            "rear_left_bot",
+            "rear_right_bot",
+            "front_left_wheel",
+            "front_right_wheel",
+            "rear_left_wheel",
+            "rear_right_wheel"
+          ],
+          "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass",
+          "valid": true,
+          "reason": ""
+        },
+        "joints_canonical": {
+          "front_left_hip": {
+            "name": "front_left_hip",
+            "position_deg": 35.15537796807807,
+            "velocity_deg_s": -11.310759968368911,
+            "command_deg": 12.350000000000001,
+            "error_deg": -22.80537796807807
+          },
+          "front_left_knee": {
+            "name": "front_left_knee",
+            "position_deg": -23.56416253164715,
+            "velocity_deg_s": -84.09705932561884,
+            "command_deg": -32.65,
+            "error_deg": -9.08583746835285
+          },
+          "front_right_hip": {
+            "name": "front_right_hip",
+            "position_deg": 1.7130101648462552,
+            "velocity_deg_s": 30.963641488971888,
+            "command_deg": 4.95,
+            "error_deg": 3.2369898351537447
+          },
+          "front_right_knee": {
+            "name": "front_right_knee",
+            "position_deg": 29.94631432065014,
+            "velocity_deg_s": 0.8312764438685999,
+            "command_deg": 29.99420710727569,
+            "error_deg": 0.047892786625553185
+          },
+          "rear_left_hip": {
+            "name": "rear_left_hip",
+            "position_deg": 18.42654171911747,
+            "velocity_deg_s": -53.959273084666115,
+            "command_deg": 12.9,
+            "error_deg": -5.5265417191174695
+          },
+          "rear_left_knee": {
+            "name": "rear_left_knee",
+            "position_deg": 13.602121508820135,
+            "velocity_deg_s": 77.20533698137343,
+            "command_deg": 20.65,
+            "error_deg": 7.047878491179864
+          },
+          "rear_right_hip": {
+            "name": "rear_right_hip",
+            "position_deg": -7.656227685881171,
+            "velocity_deg_s": -0.4124774718545972,
+            "command_deg": -8.15,
+            "error_deg": -0.4937723141188295
+          },
+          "rear_right_knee": {
+            "name": "rear_right_knee",
+            "position_deg": -32.97204071184799,
+            "velocity_deg_s": 62.555250570234755,
+            "command_deg": -27.2,
+            "error_deg": 5.772040711847989
+          }
+        },
+        "body_world": {
+          "base_link": {
+            "link_origin_w_m": [
+              0.7462145090103149,
+              -0.015616819262504578,
+              0.07085544615983963
+            ],
+            "minimum_m": [
+              0.5450418306029529,
+              -0.3031372588248305,
+              0.10891119157087525
+            ],
+            "maximum_m": [
+              0.8822161972242943,
+              0.06914011114291779,
+              0.25073162545661043
+            ]
+          },
+          "front_left_wheel": {
+            "link_origin_w_m": [
+              1.0109883546829224,
+              0.06003761291503906,
+              0.10255066305398941
+            ],
+            "minimum_m": [
+              0.9610957576070807,
+              0.050921566002601684,
+              0.04999925164599199
+            ],
+            "maximum_m": [
+              1.061741906221979,
+              0.0887121537975006,
+              0.15138617476206498
+            ]
+          },
+          "front_right_wheel": {
+            "link_origin_w_m": [
+              1.0745961666107178,
+              -0.34604236483573914,
+              0.11348962783813477
+            ],
+            "minimum_m": [
+              1.0238438526736924,
+              -0.37471751412805954,
+              0.06462858163650656
+            ],
+            "maximum_m": [
+              1.1244874155725462,
+              -0.33692496510183034,
+              0.16606667493530397
+            ]
+          },
+          "rear_left_wheel": {
+            "link_origin_w_m": [
+              0.3706567883491516,
+              0.07313401997089386,
+              0.05165920779109001
+            ],
+            "minimum_m": [
+              0.3208437673747191,
+              0.06402568758459222,
+              -0.0009546240512325055
+            ],
+            "maximum_m": [
+              0.42133076083238835,
+              0.10179722805191517,
+              0.10055713448599797
+            ]
+          },
+          "rear_right_wheel": {
+            "link_origin_w_m": [
+              0.5292910933494568,
+              -0.3282800316810608,
+              0.0988718718290329
+            ],
+            "minimum_m": [
+              0.4785395542592677,
+              -0.35695243372750435,
+              0.04998444067561229
+            ],
+            "maximum_m": [
+              0.5791815473974752,
+              -0.3191670963137102,
+              0.1514752783684809
+            ]
+          }
+        },
+        "derived_body_roll_pitch": {
+          "convention": "derived from recorded normalized wxyz; standard intrinsic XYZ roll/pitch, degrees",
+          "roll_deg": -10.459053524417886,
+          "pitch_deg": -3.120825437080615
+        },
+        "rr_mount_to_wheel_center_vertical_m": 0.11478831655241412,
+        "fr_hip_joint_frame_w_m": null,
+        "fl_hip_joint_frame_w_m": null,
+        "current_leg_contacts": null
+      },
+      {
+        "physics_tick": 6248,
+        "simulation_time_s": 52.06666666666667,
+        "phase": "P12",
+        "terminal_sample": false,
+        "clock_unchanged": true,
+        "body_collision_minimum_z_w_m": 0.15579307193342717,
+        "rr_hip_mount_w_m": {
+          "value": [
+            0.6260370111491627,
+            -0.2341207524312172,
+            0.2352358977936781
+          ],
+          "source": "USD localPos0 transformed with live parent link pose",
+          "nonfinite_entries": [],
+          "reason": null
+        },
+        "base": {
+          "name": "base_link",
+          "position_w_m": [
+            0.8412132263183594,
+            -0.03062475472688675,
+            0.12389525771141052
+          ],
+          "orientation_wxyz": [
+            0.9949813485145569,
+            -0.04337079077959061,
+            -0.04682137444615364,
+            -0.07706540822982788
+          ],
+          "linear_velocity_w_m_s": [
+            0.09061369299888611,
+            -0.07208428531885147,
+            0.036270081996917725
+          ],
+          "angular_velocity_w_rad_s": [
+            0.3174769878387451,
+            0.27642613649368286,
+            -0.22422975301742554
+          ]
+        },
+        "center_of_mass": {
+          "position_w_m": [
+            0.7904126089720452,
+            -0.14022162230667057,
+            0.18894071030040507
+          ],
+          "velocity_w_m_s": [
+            0.07624365066111252,
+            -0.08146047675204218,
+            -0.0014111605806386802
+          ],
+          "total_mass_kg": 2.9308585226535797,
+          "included_bodies": [
+            "base_link",
+            "front_left_upper",
+            "front_right_upper",
+            "rear_left_upper",
+            "rear_right_upper",
+            "front_left_bot",
+            "front_right_bot",
+            "rear_left_bot",
+            "rear_right_bot",
+            "front_left_wheel",
+            "front_right_wheel",
+            "rear_left_wheel",
+            "rear_right_wheel"
+          ],
+          "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass",
+          "valid": true,
+          "reason": ""
+        },
+        "joints_canonical": {
+          "front_left_hip": {
+            "name": "front_left_hip",
+            "position_deg": -21.175167749234518,
+            "velocity_deg_s": -61.69994696160907,
+            "command_deg": -27.25,
+            "error_deg": -6.074832250765482
+          },
+          "front_left_knee": {
+            "name": "front_left_knee",
+            "position_deg": -31.521221924137993,
+            "velocity_deg_s": 1.0952544507488657,
+            "command_deg": -31.621464239659637,
+            "error_deg": -0.10024231552164409
+          },
+          "front_right_hip": {
+            "name": "front_right_hip",
+            "position_deg": 3.8444948126925578,
+            "velocity_deg_s": -0.7923090940757664,
+            "command_deg": 3.7,
+            "error_deg": -0.1444948126925576
+          },
+          "front_right_knee": {
+            "name": "front_right_knee",
+            "position_deg": 29.868696050922114,
+            "velocity_deg_s": 1.2295771644097482,
+            "command_deg": 29.99420710727569,
+            "error_deg": 0.1255110563535773
+          },
+          "rear_left_hip": {
+            "name": "rear_left_hip",
+            "position_deg": 0.5993309169579963,
+            "velocity_deg_s": -13.702743442126152,
+            "command_deg": -0.75,
+            "error_deg": -1.3493309169579963
+          },
+          "rear_left_knee": {
+            "name": "rear_left_knee",
+            "position_deg": 36.596258146859775,
+            "velocity_deg_s": -0.24004758534947992,
+            "command_deg": 36.55,
+            "error_deg": -0.04625814685977758
+          },
+          "rear_right_hip": {
+            "name": "rear_right_hip",
+            "position_deg": -6.615691054512041,
+            "velocity_deg_s": -13.103967224574168,
+            "command_deg": -8.15,
+            "error_deg": -1.5343089454879593
+          },
+          "rear_right_knee": {
+            "name": "rear_right_knee",
+            "position_deg": -27.345906317029065,
+            "velocity_deg_s": 4.626245926747839,
+            "command_deg": -27.2,
+            "error_deg": 0.1459063170290662
+          }
+        },
+        "body_world": {
+          "base_link": {
+            "link_origin_w_m": [
+              0.8412132263183594,
+              -0.03062475472688675,
+              0.12389525771141052
+            ],
+            "minimum_m": [
+              0.6075302587375433,
+              -0.336690903222225,
+              0.15579307193342717
+            ],
+            "maximum_m": [
+              0.9738646411842679,
+              0.061909485878445664,
+              0.28070852601721097
+            ]
+          },
+          "front_left_wheel": {
+            "link_origin_w_m": [
+              0.9782617092132568,
+              0.026604682207107544,
+              0.10114084184169769
+            ],
+            "minimum_m": [
+              0.9291418091090883,
+              0.01797288464264661,
+              0.049873507226749034
+            ],
+            "maximum_m": [
+              1.0306086909846093,
+              0.054836040053728524,
+              0.1507868362793479
+            ]
+          },
+          "front_right_wheel": {
+            "link_origin_w_m": [
+              1.1336100101470947,
+              -0.39833369851112366,
+              0.15756478905677795
+            ],
+            "minimum_m": [
+              1.0812878242341544,
+              -0.42656190503487423,
+              0.10784609606631772
+            ],
+            "maximum_m": [
+              1.1827050000246961,
+              -0.38970650877107893,
+              0.20890490726759284
+            ]
+          },
+          "rear_left_wheel": {
+            "link_origin_w_m": [
+              0.4626891016960144,
+              0.1004856675863266,
+              0.05517704039812088
+            ],
+            "minimum_m": [
+              0.4136346591582586,
+              0.09185499991226911,
+              0.003855982828684802
+            ],
+            "maximum_m": [
+              0.514970618017017,
+              0.12871640110438554,
+              0.10487676087903688
+            ]
+          },
+          "rear_right_wheel": {
+            "link_origin_w_m": [
+              0.5780359506607056,
+              -0.3170614540576935,
+              0.09868521243333817
+            ],
+            "minimum_m": [
+              0.5256796832981103,
+              -0.3452824343037762,
+              0.04896136397580924
+            ],
+            "maximum_m": [
+              0.6271650139325812,
+              -0.3084428289289915,
+              0.1500304819039378
+            ]
+          }
+        },
+        "derived_body_roll_pitch": {
+          "convention": "derived from recorded normalized wxyz; standard intrinsic XYZ roll/pitch, degrees",
+          "roll_deg": -4.559074329642537,
+          "pitch_deg": -5.730967130109352
+        },
+        "rr_mount_to_wheel_center_vertical_m": 0.13655068536033993,
+        "fr_hip_joint_frame_w_m": null,
+        "fl_hip_joint_frame_w_m": null,
+        "current_leg_contacts": null
+      }
+    ]
+  },
+  "C_terminal_evaluator": {
+    "physics_tick": 12484,
+    "valid": true,
+    "current_legs": {
+      "FL": {
+        "active_attempt": true,
+        "air": false,
+        "bearing_force_n": 3.305880308151245,
+        "bearing_verified": true,
+        "clearance_m": -0.000021108285977886054,
+        "consecutive_air_samples": 0,
+        "consecutive_top_samples": 2918,
+        "contact_reaction": true,
+        "contact_reaction_force_n": 3.305880308151384,
+        "contact_surface": "TOP",
+        "crossing_evidence_status": "VERIFIED",
+        "crossing_geometry_pending": false,
+        "front_distance_m": 0.3394911919338668,
+        "ground_contact": false,
+        "initial_clearance": true,
+        "load_fraction": 0.1158545129755333,
+        "load_fraction_valid": true,
+        "obstacle_pair_active": true,
+        "recent_clearance_gain_m": 0.0010521017514620937,
+        "recent_joint_motion_deg": 0.25184273507672117,
+        "recent_whole_body_joint_motion_deg": 0.43261703167433474,
+        "soft_air_actuation_earned": false,
+        "soft_air_earned_tick": null,
+        "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+        "support": true,
+        "top_contact": true,
+        "top_geometry": true,
+        "top_surface_contact": true,
+        "top_xy_outside_distance_m": 0,
+        "whole_body_actuation_evidence": false,
+        "within_lateral_span": true,
+        "within_top_xy": true
+      },
+      "FR": {
+        "active_attempt": true,
+        "air": false,
+        "bearing_force_n": 13.737947463989258,
+        "bearing_verified": true,
+        "clearance_m": -0.001395663612212994,
+        "consecutive_air_samples": 0,
+        "consecutive_top_samples": 3897,
+        "contact_reaction": true,
+        "contact_reaction_force_n": 13.746348893699308,
+        "contact_surface": "TOP",
+        "crossing_evidence_status": "VERIFIED",
+        "crossing_geometry_pending": false,
+        "front_distance_m": 0.45942074401211386,
+        "ground_contact": false,
+        "initial_clearance": true,
+        "load_fraction": 0.48144610946728866,
+        "load_fraction_valid": true,
+        "obstacle_pair_active": true,
+        "recent_clearance_gain_m": 0.000016386737970573717,
+        "recent_joint_motion_deg": 0.09082956313011792,
+        "recent_whole_body_joint_motion_deg": 0.43261703167433474,
+        "soft_air_actuation_earned": false,
+        "soft_air_earned_tick": null,
+        "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+        "support": true,
+        "top_contact": true,
+        "top_geometry": true,
+        "top_surface_contact": true,
+        "top_xy_outside_distance_m": 0,
+        "whole_body_actuation_evidence": false,
+        "within_lateral_span": true,
+        "within_top_xy": true
+      },
+      "RL": {
+        "active_attempt": false,
+        "air": false,
+        "bearing_force_n": 11.490928649902344,
+        "bearing_verified": true,
+        "clearance_m": -0.05105843130543364,
+        "consecutive_air_samples": 0,
+        "consecutive_top_samples": 0,
+        "contact_reaction": true,
+        "contact_reaction_force_n": 11.490928649902447,
+        "contact_surface": "NONE",
+        "crossing_evidence_status": "PENDING",
+        "crossing_geometry_pending": false,
+        "front_distance_m": -0.1287552978293931,
+        "ground_contact": true,
+        "initial_clearance": false,
+        "load_fraction": 0.40269937755717805,
+        "load_fraction_valid": true,
+        "obstacle_pair_active": false,
+        "recent_clearance_gain_m": 0,
+        "recent_joint_motion_deg": 0,
+        "recent_whole_body_joint_motion_deg": 0,
+        "soft_air_actuation_earned": false,
+        "soft_air_earned_tick": null,
+        "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+        "support": true,
+        "top_contact": false,
+        "top_geometry": false,
+        "top_surface_contact": false,
+        "top_xy_outside_distance_m": 0.1237552978293931,
+        "whole_body_actuation_evidence": false,
+        "within_lateral_span": true,
+        "within_top_xy": false
+      },
+      "RR": {
+        "active_attempt": true,
+        "air": true,
+        "air_duration_s": 33.18333333333333,
+        "bearing_force_n": 0,
+        "bearing_verified": true,
+        "body_control_evidence": true,
+        "body_control_evidence_semantics": "unchanged_live_safety_and_short_verified_other_supports_not_static_stability_proof",
+        "clearance_m": 0.04570297024182872,
+        "consecutive_air_samples": 3982,
+        "consecutive_free_air_samples": 3982,
+        "consecutive_top_samples": 0,
+        "contact_mode": "AIR",
+        "contact_reaction": false,
+        "contact_reaction_force_n": 0,
+        "contact_surface": "NONE",
+        "crossing_evidence_status": "VERIFIED",
+        "crossing_geometry_pending": false,
+        "current_lift_valid": true,
+        "durations_are_diagnostic_only": true,
+        "edge_adjustment_response_observed": null,
+        "edge_contact_duration_s": 0,
+        "free_air_reference_bottom_z_m": -0.000873988722264081,
+        "free_air_reference_tick": 8502,
+        "free_lift_evidence_semantics": "current_continuous_AIR_rise_from_last_actual_contact",
+        "front_distance_m": 0.04320752961468344,
+        "front_edge_crossed": true,
+        "ground_contact": false,
+        "ground_relative_lift_m": 0.0965769589640928,
+        "initial_clearance": true,
+        "initial_lift_observed": true,
+        "initial_now": false,
+        "lift_established": true,
+        "lift_established_now": false,
+        "load_fraction": 0,
+        "load_fraction_valid": true,
+        "motion_continuation_allowed": true,
+        "motion_continuation_reason": "current_functional_lift",
+        "observed_other_support_contacts": [
+          "FL",
+          "FR",
+          "RL"
+        ],
+        "obstacle_pair_active": false,
+        "placed_on_top": false,
+        "recent_clearance_gain_m": 0.0006874539812875557,
+        "recent_joint_motion_deg": 0.014045110089372592,
+        "recent_wheel_displacement_m": 0.0007996999868083866,
+        "recent_whole_body_joint_motion_deg": 0.43261703167433474,
+        "soft_air_actuation_earned": true,
+        "soft_air_earned_tick": 8549,
+        "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification",
+        "support": false,
+        "top_contact": false,
+        "top_geometry": false,
+        "top_surface_contact": false,
+        "top_xy_outside_distance_m": 0,
+        "unsupported_free_lift_m": 0.0965769589640928,
+        "wheel_bottom_vz_interval_s": 0.008333333333339965,
+        "wheel_bottom_vz_m_s": 0.002320683715503576,
+        "wheel_bottom_vz_observation_tick": 12484,
+        "wheel_bottom_vz_semantics": "adjacent_measured_collider_bottom_world_z_finite_difference",
+        "whole_body_actuation_evidence": false,
+        "within_lateral_span": true,
+        "within_top_xy": true
+      }
+    },
+    "history": {
+      "active_lift": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": true
+      },
+      "front_edge_crossed": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": true
+      },
+      "placed": {
+        "FL": true,
+        "FR": true,
+        "RL": false,
+        "RR": false
+      },
+      "event_ticks": {
+        "active_lift": {
+          "FL": 2409,
+          "FR": 23,
+          "RR": 8553
+        },
+        "front_edge_crossed": {
+          "FL": 3544,
+          "FR": 2383,
+          "RR": 9555
+        },
+        "placed": {
+          "FL": 6150,
+          "FR": 2393
+        }
+      }
+    }
+  },
+  "accepted_N_prior_evidence": {
+    "source": "runs/ppo_task_conditioned_hip_wheel_v1/video_eval/prior_B/20260921T0701155546642Z_gee5a9651591d_64985c63292d4a9b966716c3a54659a1/source",
+    "evidence_files": [
+      "stage_transition_evidence.jsonl",
+      "native_tick_audit.jsonl"
+    ],
+    "RR_lift_tick": 5434,
+    "RR_cross_tick": 6155,
+    "RR_placed_tick": 6155,
+    "P10_entry_tick": 6160,
+    "nominal_RR_knee_deg_by_tick": {
+      "6155": -37.8,
+      "6160": -37.8,
+      "6161": -34.6,
+      "6168": -29.3,
+      "6175": -27.2
+    },
+    "not_new_same_HEAD_paired_evaluation": true
+  },
+  "C_exact_eight_milestones_source": "outputs/ppo_rr_capture_then_rl_transfer_v1/video_review/CP220544_RR_feedback_v2_g26db2a1946e8_review_corrected_v2/rr_capture_selected_response.json",
+  "sample_stride_note": "Height grid is 8 physics ticks plus terminal. Milestones 9555/10755 are separately cited, not interpolated onto 9552/9560 or 10752/10760.",
+  "support_height_note": "C terminal: verified FL/FR TOP and RL GROUND; FL/FR/RL wheel collider minimum world z is 49.979/48.604/-1.058 mm. RR is AIR; its wheel minimum z95.703mm is not a support height. TOP plane z50mm follows recorded RR minimum minus evaluator clearance. No weighted support plane or stability margin inferred."
+}

@@ -1,0 +1,39 @@
+*** Begin Patch
+*** Update File: src/wlr50_clean/ppo/semantic_rr_capture_assist.py
+@@
+-    verified_current_support, RR_CAPTURE_GAP_MIN_M, RR_CAPTURE_GAP_MAX_M,
++    verified_current_support, RR_CAPTURE_GAP_MIN_M,
+@@
+-RR_CAPTURE_FEEDBACK_REVISION = "signed_band_contact_formation_incremental_v6"
++RR_CAPTURE_FEEDBACK_REVISION = "progress_earned_capture_reserve_incremental_v10"
+@@
+-RR_CAPTURE_SEARCH_SEMANTICS = "hip20_knee20_progress_earned_signed_task_band_knee12_then_1deg_public_peak_gap_le1mm_total53_exposure45_no_recharge_AIR_not_contact_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement"
++RR_CAPTURE_SEARCH_SEMANTICS = "hip20_knee20_progress_earned_current_XY_support_tracking_gap_ge_minus15mm_knee12_then_1deg_public_peak_gap_le1mm_total53_exposure45_no_recharge_AIR_not_contact_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement"
+@@
+-            "fresh_near_top_progress_required")
++            "fresh_capture_progress_required")
+@@
+-            or not RR_CAPTURE_GAP_MIN_M <= state["window_start_gap_m"] <= RR_CAPTURE_GAP_MAX_M
++            or state["window_start_gap_m"] < RR_CAPTURE_GAP_MIN_M
+             or state["window_elapsed_s"] >= 2.):
+-        raise ValueError("RR capture assist DESCEND_PROGRESS lacks public fresh near-top credit")
++        raise ValueError("RR capture assist DESCEND_PROGRESS lacks public fresh capture progress credit")
+@@
+-    One further <=12 degrees requires public DESCEND_PROGRESS mode, current
+-    gap in the signed existing [-15,25]mm task band and all existing
+-    physical/tracking/progress gates. AIR in that band is NOT contact. Public
++    One further <=12 degrees requires public DESCEND_PROGRESS mode, current
++    gap >= -15 mm and all existing XY/support/tracking/fresh-progress gates.
++    The sensor TOP band's 25 mm upper bound is not a descent permission cap:
++    earned progress may spend the existing reserve while still above it.
++    No positive gap or AIR sample is contact. Public
+@@
+-                    progress_credit = (state["travel_used_deg"] >= 20.
+-                        and RR_CAPTURE_GAP_MIN_M <= gap <= RR_CAPTURE_GAP_MAX_M)
++                    progress_credit = (state["travel_used_deg"] >= 20.
++                        and gap >= RR_CAPTURE_GAP_MIN_M)
+@@
+-                progress_credit = bool(progress_credit and RR_CAPTURE_GAP_MIN_M <= gap <= RR_CAPTURE_GAP_MAX_M
++                progress_credit = bool(progress_credit and gap >= RR_CAPTURE_GAP_MIN_M
+                                        and state["window_elapsed_s"] < 2. - 1e-9)
+*** End Patch

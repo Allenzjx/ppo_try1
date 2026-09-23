@@ -1,0 +1,91 @@
+UNAPPLIED CANDIDATE ONLY. Requires separate same-410 migration/receipt and
+profile revision binding before execution; see RR_TOP_handoff_patch_design.md.
+
+*** Begin Patch
+*** Update File: src/wlr50_clean/ppo/semantic_rr_capture_context.py
+@@
+ RR_CONTINUATION_MODE = "rr_capture_then_rl_transfer_v1"
++RR_CONTACT_HANDOFF_MODE = "current_TOP_cumulative_HOLD_next_decision_v1"
++
++
++def rr_contact_handoff_window_s(spec):
++    mode = spec.get("rr_contact_handoff_semantics")
++    if mode is None:
++        return 0.
++    if (mode != RR_CONTACT_HANDOFF_MODE
++            or spec.get("rr_capture_continuation_semantics") != RR_CONTINUATION_MODE
++            or spec.get("physical_acceptance_version") != "all_stage_v1"
++            or spec.get("physics_hz") != 120. or spec.get("decision_hz") != 15.):
++        raise ValueError("RR contact handoff needs its explicit measured 120/15 Hz contract")
++    samples = spec["history"]["minimum_top_samples"]
++    if type(samples) is not int or samples < 1:
++        raise ValueError("RR contact handoff requires positive configured TOP confirmation samples")
++    return (samples + 8) / 120.
+@@
+-def rr_capture_transfer_context(*, task, observation, support_spec, assist_snapshot=None, wheel_mode="off"):
++def rr_capture_transfer_context(*, task, observation, support_spec, assist_snapshot=None, wheel_mode="off",
++                                contact_handoff_window_s=0.):
++    if (isinstance(contact_handoff_window_s, bool)
++            or not isinstance(contact_handoff_window_s, (float, int))
++            or not math.isfinite(contact_handoff_window_s) or contact_handoff_window_s < 0.):
++        raise ValueError("RR contact handoff window must be finite and nonnegative")
+@@
+     live_descent = bool(snapshot.get("mode_name") == "DESCEND"
+                         and not snapshot.get("retired"))
++    # This is a permission to retain current measured capture until its
++    # confirmation/normal scheduling edge, never an extra descent step.
++    current_owned_capture = bool(contact_handoff_window_s > 0. and valid
++        and current_bearing and qualified and history["front_edge_crossed"]["RR"]
++        and rr["within_lateral_span"] and len(other_supports) >= 2
++        and snapshot.get("initialized") == 1. and not snapshot.get("retired")
++        and snapshot.get("active") is True and snapshot.get("owner_indices") == [6, 7]
++        and snapshot.get("mode_name") in ("DESCEND", "HOLD", "BLOCKED"))
++    contact_confirmation = bool(current_owned_capture
++        and snapshot["hold_elapsed_s"] <= contact_handoff_window_s + 1e-12)
++    goals = task.get("completion_values", {})
++    completed_handoff_pending = bool(current_owned_capture and task.get("stage_id") == "P09"
++        and task.get("entry_valid") is True and history["placed"]["RR"]
++        and goals and all(value >= 1. for value in goals.values())
++        and ev["physics_tick"] % 8 != 0)
+@@
+-        "rr_capture_recovery_allowed": bool(reachable and live_descent),
++        "rr_capture_recovery_allowed": bool((reachable and live_descent)
++            or contact_confirmation or completed_handoff_pending),
++        "rr_contact_confirmation_allowed": contact_confirmation,
++        "rr_completed_contact_handoff_pending": completed_handoff_pending,
++        "rr_contact_handoff_window_s": float(contact_handoff_window_s),
+*** Update File: src/wlr50_clean/ppo/semantic_supervisor.py
+@@
+         if rr_mode not in (None, "rr_capture_then_rl_transfer_v1"):
+             raise ValueError("unknown RR capture continuation semantics")
++        from .semantic_rr_capture_context import rr_contact_handoff_window_s
++        self._rr_contact_handoff_window_s = rr_contact_handoff_window_s(self.spec)
+@@
+-                task={"physical_evaluator":evaluation,"termination_reason":self.termination_reason},
++                task={"physical_evaluator":evaluation,"termination_reason":self.termination_reason,
++                      "stage_id":self.stage_id,"entry_valid":entry["valid"],
++                      "completion_values":goal_values},
+                 observation=observation, support_spec=self.spec["support"],
+-                assist_snapshot=feedback["state"] if fresh else None)
++                assist_snapshot=feedback["state"] if fresh else None,
++                contact_handoff_window_s=self._rr_contact_handoff_window_s)
+*** Update File: src/wlr50_clean/ppo/semantic_backend.py
+@@
+-from .semantic_rr_capture_context import rr_capture_transfer_context
++from .semantic_rr_capture_context import rr_capture_transfer_context, rr_contact_handoff_window_s
+@@
+-        self._rr_support_spec = yaml.safe_load(self.task_spec_path.read_text(encoding="utf-8"))["support"]
++        rr_task_spec = yaml.safe_load(self.task_spec_path.read_text(encoding="utf-8"))
++        self._rr_support_spec = rr_task_spec["support"]
++        self._rr_contact_handoff_window_s = rr_contact_handoff_window_s(rr_task_spec)
+@@
+                 assist_snapshot=info["rr_capture_assist"],
+-                wheel_mode=self.execution_profile.get("rr_capture_wheel_mode", "off"))
++                wheel_mode=self.execution_profile.get("rr_capture_wheel_mode", "off"),
++                contact_handoff_window_s=self._rr_contact_handoff_window_s)
+*** Update File: configs/ppo_rr_capture_then_rl_transfer_v1/stage_task_spec.yaml
+@@
+ rr_capture_continuation_semantics: rr_capture_then_rl_transfer_v1
++# Scheduling-only finite opportunity for current measured TOP, never placement credit.
++rr_contact_handoff_semantics: current_TOP_cumulative_HOLD_next_decision_v1
+*** End Patch

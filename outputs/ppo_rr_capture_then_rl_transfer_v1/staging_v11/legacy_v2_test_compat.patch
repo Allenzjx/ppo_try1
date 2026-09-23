@@ -1,0 +1,12 @@
+*** Begin Patch
+*** Update File: tests/unit/test_semantic_p05_same_air_recross_v2.py
+@@
+ def configured():
+     spec = load_task_spec(CFG)
+-    assert spec["nominal"][KEY] == P05_SAME_AIR_RECROSS_MODE
++    # This suite explicitly retains historical v2 behavior while the current
++    # experiment may opt in to the separately tested completed-source v3.
++    spec["nominal"][KEY] = P05_SAME_AIR_RECROSS_MODE
+     assert spec[TIMEOUT_KEY] == P05_FINITE_RECOVERY_TIMEOUT_MODE
+     return spec
+*** End Patch

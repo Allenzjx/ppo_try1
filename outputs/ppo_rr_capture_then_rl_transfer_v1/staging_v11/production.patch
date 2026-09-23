@@ -1,0 +1,44 @@
+*** Begin Patch
+*** Update File: src/wlr50_clean/ppo/semantic_supervisor.py
+@@
+ P05_SAME_AIR_RECROSS_MODE = "p05_preedge_same_air_recross_v2"
++P05_COMPLETED_SOURCE_RECOVERY_MODE = "p05_completed_source_first_approach_recross_v3"
+ P05_FINITE_RECOVERY_TIMEOUT_MODE = "current_capture_or_completed_handoff_after_original_window_v1"
+@@
+-    if mode not in (None, P05_PREEDGE_RECOVERY_MODE, P05_SAME_AIR_RECROSS_MODE):
++    if mode not in (None, P05_PREEDGE_RECOVERY_MODE, P05_SAME_AIR_RECROSS_MODE,
++                    P05_COMPLETED_SOURCE_RECOVERY_MODE):
+         raise ValueError("unknown P05 pre-edge approach recovery semantics")
+     timeout = spec.get("p05_finite_recovery_timeout_semantics")
+-    if ((mode == P05_SAME_AIR_RECROSS_MODE and timeout != P05_FINITE_RECOVERY_TIMEOUT_MODE)
+-            or (mode != P05_SAME_AIR_RECROSS_MODE and timeout is not None)):
++    recross_mode = mode in (P05_SAME_AIR_RECROSS_MODE, P05_COMPLETED_SOURCE_RECOVERY_MODE)
++    if ((recross_mode and timeout != P05_FINITE_RECOVERY_TIMEOUT_MODE)
++            or (not recross_mode and timeout is not None)):
+@@
+         start = self.spec["stages"]["P05"]["maximum_task_duration"]
+         end = start + self.spec["local_timeout_policy"]["maximum_extension_s"]
++        mode = self.spec["nominal"].get("p05_preedge_approach_recovery", P05_PREEDGE_RECOVERY_MODE)
++        # v3 permits the same measured advice once the complete source has
++        # actually issued and a subsequent tick is observed. It does not wait
++        # for the task's nominal timeout to begin using a still-positive gap.
++        # Endpoint/subsequent-tick/fresh-wheel-owner checks below still apply;
++        # the absolute end and all v1/v2 behavior remain unchanged.
++        window_start = 0. if mode == P05_COMPLETED_SOURCE_RECOVERY_MODE else start
+         finite = lambda value: type(value) in (int, float) and math.isfinite(value)
+@@
+-            "absolute_stage_age_window": finite(age) and start <= age < end,
++            "absolute_stage_age_window": finite(age) and window_start <= age < end,
+@@
+-        mode = self.spec["nominal"].get("p05_preedge_approach_recovery", P05_PREEDGE_RECOVERY_MODE)
+         recross = None
+-        if mode == P05_SAME_AIR_RECROSS_MODE:
++        if mode in (P05_SAME_AIR_RECROSS_MODE, P05_COMPLETED_SOURCE_RECOVERY_MODE):
+@@
+-            "stage_elapsed_s": age, "absolute_window_s": (start, end), "window_end_exclusive": True,
++            "stage_elapsed_s": age, "absolute_window_s": (window_start, end), "window_end_exclusive": True,
+*** Update File: configs/ppo_rr_capture_then_rl_transfer_v1/stage_task_spec.yaml
+@@
+-  p05_preedge_approach_recovery: p05_preedge_same_air_recross_v2
++  p05_preedge_approach_recovery: p05_completed_source_first_approach_recross_v3
+*** End Patch

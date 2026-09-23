@@ -1,0 +1,292 @@
+{
+  "schema": "wlr50_clean.bounded_sealed_v9_v10_and_aux_JSON_audit.v1",
+  "status": "PASS_WITH_EXPLICIT_EVIDENCE_SCOPE",
+  "inspection_scope": "PowerShell JSON-only, sealed manifests/journals. No Torch, checkpoint tensors, tests, simulator, live video stream or old dataset hashing.",
+  "evidence": {
+    "v9_run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_rr_capture_then_rl_transfer_v1/train/20260923T1149322075919Z_g3edda51732f4_83fd7e5a8d8848f0b17e0cb479f0db5f",
+    "v10_run": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/runs/ppo_rr_capture_then_rl_transfer_v1/train/20260923T1238185258288Z_g99dff5fd366e_89895c1b52c8419a968082291fb8ae38",
+    "v9_sealed_checkpoint": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_rr_capture_then_rl_transfer_v1/branches/ancestor220544_signed_wheel_v8/checkpoints/history/checkpoint_step_000222592.pt",
+    "auxiliary_execution": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_rr_capture_then_rl_transfer_v1/front_retention_410_v1/CP222592_AUXFR410_01_execution.json",
+    "migration_publication": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_rr_capture_then_rl_transfer_v1/staging_v10/CP222592_RR410_capture_reserve_v10_g99dff5fd366e_publication.json",
+    "v10_source_manifest": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_rr_capture_then_rl_transfer_v1/branches/ancestor220544_signed_wheel_v8/checkpoints/history/checkpoint_rr_capture_reserve_v10_step_000222592_g99dff5fd366e_manifest.json",
+    "v10_final_manifest": "C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/outputs/ppo_rr_capture_then_rl_transfer_v1/branches/ancestor220544_signed_wheel_v8/checkpoints/history/checkpoint_step_000222720_manifest.json",
+    "final_checkpoint_sha256_recorded": "069a71f547427b69491ff749dccc14fcf403565d81b3c37db3c6ac9b1e739e55",
+    "final_sidecar_sha256_root_verified": "314f4e25189d895f24c51c590dbe3aa284c20cf9de7a049fad526bd13b2054e5"
+  },
+  "v9": {
+    "lifecycle": "STOPPED_AT_VERIFIED_UPDATE_BOUNDARY",
+    "planned": 2048,
+    "actual": 640,
+    "unused": 1408,
+    "PPO_updates": 5,
+    "Adam_steps": 100,
+    "completed_update_records": 5,
+    "completed_advantage_samples": 640,
+    "phase_counts": {
+      "P07": 2,
+      "P08": 2,
+      "P09": 636
+    },
+    "all_update_actor_changed": true,
+    "LRs": [
+      0.00001
+    ],
+    "learner_physics_ticks": 5115,
+    "prefix_attempt_count": 2,
+    "prefix_decisions": 1290,
+    "prefix_ticks": 10320,
+    "prefix_policy_credit": false,
+    "prefix_start_records": 2,
+    "prefix_start_all_uncredited": true,
+    "episode": {
+      "RR_active_lift": true,
+      "full_success": false,
+      "RR_placed": false,
+      "duration_s": 78.75833333333333,
+      "terminal_phase": "P09",
+      "RR_TOP": false,
+      "learner_decisions": 537,
+      "RR_gap_m": 0.02996805992622019,
+      "outcome": "INCOMPLETE_CONTROLLER_BLOCKED",
+      "RR_surface": "NONE",
+      "RR_crossed": true
+    },
+    "last_partial_learner_decisions": 103,
+    "last_partial": {
+      "phase": "P09",
+      "last_global": 222592,
+      "terminal": false,
+      "time_s": 49.86666666666667
+    }
+  },
+  "separate_auxiliary": {
+    "accepted": 32,
+    "attempted": 32,
+    "PPO_decisions_added": 0,
+    "PPO_updates_added": 0,
+    "PPO_Adam_steps_added": 0,
+    "official_independent_reload": true,
+    "checkpoint_sha256": "8aaf255c118fa9199467b8e4016ad6d8ac235d28a31f25335423c45e93e5d86e",
+    "physical_success_claimed": false,
+    "current_actual_PPO_carry_verified": true,
+    "execution_receipt_historical_not_yet_verified_field_not_rewritten": true
+  },
+  "v10": {
+    "lifecycle": "SUCCEEDED",
+    "stage": "full_episode",
+    "actual_policy_decisions": 128,
+    "PPO_updates": 1,
+    "Adam_steps": 20,
+    "source_global_counters": [
+      222592,
+      1704,
+      34080
+    ],
+    "final_global_counters": [
+      222720,
+      1705,
+      34100
+    ],
+    "request_phase_counts": {
+      "P01": 2,
+      "P02": 126
+    },
+    "completed_episodes": 0,
+    "partial_episode_duration_s": 8.533333333333333,
+    "partial_end_phase": "P02",
+    "partial_is_not_failure_or_success": true,
+    "prefix_request": null,
+    "prefix_credit": 0,
+    "teacher_prefix_samples_included": false,
+    "completed_update_record": {
+      "ppo_update": 1705,
+      "global_policy_decisions": 222720,
+      "optimizer_steps": 20,
+      "actor_parameters_changed": true,
+      "finite_nonzero_gradient_observed": true,
+      "optimizer_learning_rate": 0.00001
+    },
+    "phase_transition": {
+      "global_policy_decision": 222594,
+      "from": "P01",
+      "to": "P02",
+      "terminal": false
+    },
+    "tail_bootstrap": {
+      "nonterminal_env_indices": [
+        0
+      ],
+      "gamma": 0.9985,
+      "lambda": 0.99
+    },
+    "journal": {
+      "counts": {
+        "rows": 128,
+        "raw_matches_request": 128,
+        "raw_matches_applied": 128,
+        "raw_matches_native_audit": 128,
+        "mu_sigma_match": 128,
+        "logp_matches_request": 128,
+        "one_draw_no_extra": 128,
+        "untransformed_sample_claim": 128,
+        "mask_all12": 128,
+        "native_verified": 128,
+        "verified_ticks": 1024,
+        "no_FL_or_RR_assist_owners": 128,
+        "RR_tail21_zero": 128,
+        "terminal": 0,
+        "physical_ticks": 1024,
+        "reward_matches": 128
+      },
+      "request_phase_counts": {
+        "P01": 2,
+        "P02": 126
+      },
+      "first_global": 222593,
+      "last_global": 222720,
+      "last_phase": "P02",
+      "last_time": 8.533333333333333,
+      "last_terminal": false,
+      "Gaussian_double_recompute_max_abs_error": 0.0000033861712438465474,
+      "reward_match_semantics": "stored float32 reward equals float32(applied reward.total); applied total equals reward_breakdown.total",
+      "reward_double_to_float32_max_error": 2.0399986977448492e-9
+    },
+    "metadata": {
+      "source_counts": [
+        222592,
+        1704,
+        34080
+      ],
+      "target_counts": [
+        222720,
+        1705,
+        34100
+      ],
+      "source_sha": "8f1634e58d5303a53a1abef39c3ef8cc459223b1a2ca582c85d6d978cdf0b223",
+      "target_sha": "069a71f547427b69491ff749dccc14fcf403565d81b3c37db3c6ac9b1e739e55",
+      "source_branch_counts": {
+        "global_policy_decisions": 2048,
+        "optimizer_steps": 320,
+        "ppo_updates": 16
+      },
+      "target_branch_counts": {
+        "global_policy_decisions": 2176,
+        "optimizer_steps": 340,
+        "ppo_updates": 17
+      },
+      "metadata_equal": {
+        "capture_feedback_semantics_branch": true,
+        "capture_feedback_semantics_migration": true,
+        "checkpoint_output_routing": true,
+        "fl_capture_quality_branch": true,
+        "p05_capture_assist_branch": true,
+        "p05_capture_assist_migration": true,
+        "p05_preedge_approach_recovery_branch": true,
+        "p05_preedge_approach_recovery_migration": true,
+        "policy_contract": true,
+        "policy_distribution_migration": true,
+        "receiving_wheel_sigma_migration": true,
+        "resume_migration": false,
+        "rr_capture_feedback_peak_v2_migration": true,
+        "rr_capture_knee_v3_migration": true,
+        "rr_capture_reserve_v10_migration": true,
+        "rr_capture_transfer_branch": true,
+        "rr_capture_transfer_migration": true,
+        "rr_carry_handoff_v4_migration": true,
+        "rr_contact_onset_v6_migration": true,
+        "rr_postcapture_wheel_v9_migration": true,
+        "rr_postcross_workspace_branch": true,
+        "rr_postcross_workspace_migration": true,
+        "rr_progress_handoff_v5_migration": true,
+        "rr_receiver_retirement_v2_branch": true,
+        "rr_receiver_retirement_v2_migration": true,
+        "rr_signed_contact_v7_migration": true,
+        "rr_signed_wheel_v8_migration": true,
+        "rr_task_branch": true,
+        "runner_config": true,
+        "task_conditioned_hip_wheel_branch": true,
+        "task_recovery_branch": true
+      },
+      "actor_changed": true,
+      "critic_changed": true,
+      "Adam_changed": true,
+      "RNG_changed": true,
+      "LR": 0.00001,
+      "roundtrip_fields": [
+        {
+          "name": "normalization",
+          "value": "fixed_versioned_observation_schema; identity_RSL_normalizer"
+        },
+        {
+          "name": "normalizer_state_sha256",
+          "value": "c230b0db34453fa8047231a56598e8f56fcc7e13d9af6f863b64662b833f4552"
+        },
+        {
+          "name": "save_load_round_trip",
+          "value": true
+        }
+      ],
+      "new_AUX_counts": [
+        32,
+        32
+      ],
+      "oldledger_keys": [
+        "accepted_auxiliary_updates_total",
+        "attempted_auxiliary_optimizer_steps_total",
+        "events",
+        "schema",
+        "training_lineage_label"
+      ],
+      "old_aux_keys": null
+    },
+    "preserved_historical_objects": [
+      "new_mdp_warm_start",
+      "new_mdp_initial_action_comparison",
+      "new_mdp_initial_policy_kernel_comparison",
+      "new_mdp_origin_global_policy_decisions",
+      "observation_append_evidence",
+      "observation_scale_compensation_evidence",
+      "policy_distribution_migration_evidence",
+      "training_quantity_budget_extension",
+      "normalization",
+      "normalizer_state_sha256"
+    ],
+    "normalizer_state_unchanged": true,
+    "old_four_event_AUX_totals": [
+      103,
+      104
+    ],
+    "old_four_event_AUX_object_unchanged": true,
+    "metadata_differences_explained": {
+      "resume_migration": "publication-only generic field not carried on ordinary resume; named immutable rr_capture_reserve_v10_migration remains byte-equivalent as a parsed JSON object",
+      "resume_ancestry": "updated ordinary checkpoint-resume provenance; historical named migration receipts and all branch objects unchanged"
+    },
+    "full_state_evidence_limit": "Actor/critic/Adam hashes changed and RNG state advanced as expected for real PPO; Identity hash and official save_load_round_trip=true are manifest evidence, not a fresh independent tensor/GPU reload by this audit."
+  },
+  "totals_for_these_two_training_blocks": {
+    "policy_decisions": 768,
+    "PPO_updates": 6,
+    "Adam_steps": 120,
+    "separate_auxiliary_accepted": 32,
+    "separate_auxiliary_attempted": 32,
+    "unconsumed_v9_planned_decisions_not_credited": 1408,
+    "zero_update_migration_learning_credit": 0,
+    "current_RR_branch_counts": {
+      "global_policy_decisions": 2176,
+      "optimizer_steps": 340,
+      "ppo_updates": 17
+    },
+    "historical_branch_origin": [
+      220544,
+      1688,
+      33760
+    ],
+    "main_branch_640_credit_borrowed": false
+  },
+  "conclusions": {
+    "whole_task_success": false,
+    "new_v10_RR_learning_coverage": 0,
+    "v9_RR_capture_not_completed": true,
+    "active_deterministic_video_not_inspected_or_prejudged": true
+  }
+}

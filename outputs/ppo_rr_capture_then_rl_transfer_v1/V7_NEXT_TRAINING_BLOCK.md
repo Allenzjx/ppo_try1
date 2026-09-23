@@ -1,0 +1,11 @@
+# Next real PPO block — pending, no learning credit yet
+
+Use frozen60abc00957c0c988da6689e2fb3cfd5c8da22a47 if no further production change is needed after the current deterministic episode. Natural P01/full_episode, seed1001, N1, 2048 new learner decisions,16 complete128-step PPO updates, checkpoint every update. Preserve source Adam/LR1e-5/Identity/RNG, original raw Gaussian/tanh/caps/log probability/HISTORY and common train/eval capture/wheel mapping. Neither migration nor deterministic evaluation contributes training counts.
+
+Parent is explicitly the separately preserved front-validated CP220544 v7 candidate, SHA47fdec0614ed2683a0eae6fdef736598400f3c6833473b551a8c93f6f0d8f430. This is not a claim that CP221184 is equivalent or absent; latest learned source is retained separately, RR640/5/100. Use `-CheckpointOutputBranch ancestor220544_signed_contact_v7`, never overwrite main history/pointer or credit its newer640 decisions to this lineage. A subsequent branch continuation must use its actual newest complete saved checkpoint.
+
+Planned CLI: run_semantic_ppo.ps1 -Command train -ExpectedHead60abc00957c0c988da6689e2fb3cfd5c8da22a47 -SemanticVersion v3 -ExperimentId rr_capture_then_rl_transfer_v1 -Stage full_episode -Decisions2048 -FromPhase P01 -TeacherOffsetDecisions0 -PrefixSource frozen_fsm -NumEnvs1 -Seed1001 -CheckpointIntervalUpdates1 -Checkpoint <published_v7_ancestor_absolute_path> -CheckpointOutputBranch ancestor220544_signed_contact_v7. Space parameter names from values when executing; this is prose, not an executable launch record.
+
+No teacher prefix is needed for natural P01. If later rear-focused sampling is needed, use a physically executed P07 predecessor prefix and explicitly exclude prefix decisions from learner counts. Profile sampling_target fractions are not implemented mixed-curriculum scheduling and must not be reported as actual phase coverage. Count actual phase labels from collected decisions. Normal phase transitions remain nonterminal; rollout tail bootstraps. Failures remain honest task results; stochastic full-task success is not an optimizer gate.
+
+One Isaac only. Current video naturally seals first; do not hot-edit or run CPU/media helpers concurrently. Save/reload and deterministic natural P01 evaluate after training. The2048/16 are planned, not completed, and are not a convergence promise.
