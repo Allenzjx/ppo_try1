@@ -11,13 +11,15 @@ import math
 from collections.abc import Mapping, Sequence
 
 from wlr50_clean.infrastructure.command_batch import SERVO_ORDER, servo_limits_deg
-from wlr50_clean.ppo.semantic_rr_capture_context import verified_current_support
+from wlr50_clean.ppo.semantic_rr_capture_context import (
+    verified_current_support, RR_CAPTURE_GAP_MIN_M, RR_CAPTURE_GAP_MAX_M,
+)
 
 RR_CAPTURE_ASSIST_MODE = "rr_hip_only_capture_v1"
 RR_CAPTURE_ASSIST_SCHEMA = "wlr50_clean.rr_capture_assist_state.v1"
-RR_CAPTURE_FEEDBACK_REVISION = "progress_reserve_contact_onset_incremental_v5"
+RR_CAPTURE_FEEDBACK_REVISION = "signed_band_contact_formation_incremental_v6"
 RR_CAPTURE_WINDOW_REFERENCE_SEMANTICS = "public_window_peak_gap_reuses_existing_window_start_gap_scalar_upward_motion_never_resets_elapsed"
-RR_CAPTURE_SEARCH_SEMANTICS = "hip20_knee20_progress_earned_near_top_knee12_then_1deg_contact_onset_only_public_peak_gap_le1mm_total53_exposure45_no_recharge_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement"
+RR_CAPTURE_SEARCH_SEMANTICS = "hip20_knee20_progress_earned_signed_task_band_knee12_then_1deg_public_peak_gap_le1mm_total53_exposure45_no_recharge_AIR_not_contact_sensor_TOP_unchanged_captured_issued_N_request_deltas_RL_current_TOP_retirement"
 RR_CAPTURE_ASSIST_FEATURE_NAMES = (
     "mode", "initialized", "knee_hold_deg", "hip_entry_deg", "hip_target_deg",
     "travel_used_deg", "descent_elapsed_s", "window_start_gap_m", "window_elapsed_s",
@@ -70,7 +72,8 @@ def _search_limits(state):
     # permission to keep executing descent, NEVER a substitute for contact.
     # The 52-degree sealed run ended 0.027 mm above TOP with no sensor force;
     # unchanged counters prevent contact toggles from recharging this budget.
-    return (53., 45.) if 0. <= state["window_start_gap_m"] <= .001 else (52., 44.)
+    return ((53., 45.) if RR_CAPTURE_GAP_MIN_M <= state["window_start_gap_m"] <= .001
+            else (52., 44.))
 
 
 def _search_exhaustion_reason(state):
@@ -132,7 +135,8 @@ def validate_rr_capture_assist_snapshot(snapshot: Mapping) -> dict:
     if state["mode"] == 5. and state["release_fraction"] != 1.:
         raise ValueError("RR capture assist completed release must be complete")
     if state["mode"] == 6. and (state["travel_used_deg"] < 20.
-            or state["window_start_gap_m"] > .025 or state["window_elapsed_s"] >= 2.):
+            or not RR_CAPTURE_GAP_MIN_M <= state["window_start_gap_m"] <= RR_CAPTURE_GAP_MAX_M
+            or state["window_elapsed_s"] >= 2.):
         raise ValueError("RR capture assist DESCEND_PROGRESS lacks public fresh near-top credit")
     if state["mode"] in (1., 6.) and (_exhaustion_reason(state) or state["retired"] or state["blocked_reason"]):
         raise ValueError("RR capture assist DESCEND cannot advertise exhausted/blocked/retired recovery")
@@ -177,7 +181,8 @@ class RRHipOnlyCaptureAssist:
     Negative hip search is <=20 degrees and <=12 seconds; only after its
     full 20 degrees may positive knee search spend 20 degrees at 1 degree/s.
     One further <=12 degrees requires public DESCEND_PROGRESS mode, current
-    gap <=25mm and all existing physical/tracking/progress gates. Public
+    gap in the signed existing [-15,25]mm task band and all existing
+    physical/tracking/progress gates. AIR in that band is NOT contact. Public
     travel is normally <=52 degrees and active exposure <=44 seconds. A final
     <=1 degree/1 second is available only under that same earned progress and
     public window peak <=1 mm; absolute totals are <=53 degrees/45 seconds.
@@ -283,6 +288,7 @@ class RRHipOnlyCaptureAssist:
             raise ValueError("RR capture assist requires bool rl_placed_current_top_support")
         window = stage in ("P09", "P10", "P11", "P12", "P13")
         reachable = (context["physical_valid"] and context["within_top_xy"] and support >= 2
+                     and gap >= RR_CAPTURE_GAP_MIN_M
                      and context["qualified_RR"] and context["air"] and not contact)
         ready = reachable and context["crossed_RR"]
         mode = state["mode"]
@@ -360,7 +366,8 @@ class RRHipOnlyCaptureAssist:
                 # Contact loss retains target/budgets, but a reset window is
                 # not evidence of descent and must not grant reserve credit.
                 state.update(window_start_gap_m=gap, window_elapsed_s=0.)
-            reason = (1 if not context["physical_valid"] else 2 if not context["within_top_xy"] else
+            reason = (1 if not context["physical_valid"] else
+                2 if not context["within_top_xy"] or gap < RR_CAPTURE_GAP_MIN_M else
                 3 if support < 2 else 9 if not (context["qualified_RR"] and context["crossed_RR"]) else
                 7 if not context["air"] else
                 6 if not tracking else 0)
@@ -372,10 +379,11 @@ class RRHipOnlyCaptureAssist:
                 state["window_start_gap_m"] = max(state["window_start_gap_m"], gap)
                 if state["window_start_gap_m"] - gap >= .0002:
                     state.update(window_start_gap_m=gap, window_elapsed_s=0.)
-                    progress_credit = state["travel_used_deg"] >= 20. and 0. <= gap <= .025
+                    progress_credit = (state["travel_used_deg"] >= 20.
+                        and RR_CAPTURE_GAP_MIN_M <= gap <= RR_CAPTURE_GAP_MAX_M)
                 elif state["window_elapsed_s"] >= 2. - 1e-9:
                     reason = 4
-                progress_credit = bool(progress_credit and 0. <= gap <= .025
+                progress_credit = bool(progress_credit and RR_CAPTURE_GAP_MIN_M <= gap <= RR_CAPTURE_GAP_MAX_M
                                        and state["window_elapsed_s"] < 2. - 1e-9)
             else:
                 progress_credit = False  # invalid samples cannot keep reserve permission alive
@@ -383,7 +391,7 @@ class RRHipOnlyCaptureAssist:
             if not reason:
                 reason = _search_exhaustion_reason(state)
                 reserve_available = (state["travel_used_deg"] < 52. - 1e-9 or
-                    (0. <= state["window_start_gap_m"] <= .001
+                    (RR_CAPTURE_GAP_MIN_M <= state["window_start_gap_m"] <= .001
                      and state["travel_used_deg"] < 53. - 1e-9))
                 if reason == 5 and state["travel_used_deg"] >= 40. - 1e-9 and reserve_available and not progress_credit:
                     reason = 10

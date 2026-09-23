@@ -88,21 +88,25 @@ def _bind_checkpoint_output_routing(args: argparse.Namespace, base: Path, destin
     from .semantic_migration import digest
     metadata = json.loads(args.checkpoint.with_name(args.checkpoint.stem + "_manifest.json").read_text(encoding="utf-8"))
     selection = (metadata.get("rr_progress_handoff_v5_migration") or {}).get("source_selection")
-    contact = metadata.get("rr_contact_onset_v6_migration") or {}
+    signed = "rr_signed_contact_v7_migration" in metadata
+    contact = metadata.get("rr_signed_contact_v7_migration" if signed else "rr_contact_onset_v6_migration") or {}
+    contact_schema, contact_factor, contact_feedback = (
+        ("wlr50_clean.rr_signed_contact_same410.v7", "rr_signed_contact_v7_factor", "signed_band_contact_formation_incremental_v6") if signed else
+        ("wlr50_clean.rr_contact_onset_same410.v6", "rr_contact_onset_v6_factor", "progress_reserve_contact_onset_incremental_v5"))
     runtime = metadata.get("runtime_contract") or {}
     origin = dict(global_policy_decisions=220544, ppo_updates=1688, optimizer_steps=33760)
     if (not isinstance(selection, dict) or selection.get("source_role") != "front_validated_ancestor_control_eval"
             or selection.get("counters") != origin or metadata.get("policy_contract", {}).get("observation_dimension") != 410):
         raise ValueError("checkpoint output branch only accepts the declared front-validated ancestor lineage")
-    if (contact.get("schema") != "wlr50_clean.rr_contact_onset_same410.v6"
+    if (contact.get("schema") != contact_schema
             or contact.get("target_git_commit") != runtime.get("source_git_commit")
             or contact.get("target_contract_sha256") != digest(runtime)
             or contact.get("target_runtime_content_sha256") != runtime.get("runtime_content_sha256")
             or contact.get("source_selection", {}).get("source_role") != selection["source_role"]
             or contact.get("source_selection", {}).get("counters") != origin
-            or contact.get("rr_contact_onset_v6_factor", {}).get("target_feedback_revision") != "progress_reserve_contact_onset_incremental_v5"
-            or contact.get("rr_contact_onset_v6_factor", {}).get("counter_origin") != origin):
-        raise ValueError("checkpoint output branch requires its formally published v6 control receipt and current runtime")
+            or contact.get(contact_factor, {}).get("target_feedback_revision") != contact_feedback
+            or contact.get(contact_factor, {}).get("counter_origin") != origin):
+        raise ValueError("checkpoint output branch requires its formally published v6/v7 control receipt and current runtime")
     route = {"schema":"wlr50_clean.checkpoint_output_routing.v1",
              "branch":args.checkpoint_output_branch, "output_root":str(destination),
              "main_latest_pointer_promotion":False, "source_selection":jsonable(selection)}
@@ -348,9 +352,10 @@ def validate_request(args: argparse.Namespace) -> None:
             _bind_checkpoint_output_routing(args, output_root, checkpoint_output, source_root)
         if args.command == "train":
             metadata = json.loads(args.checkpoint.with_name(args.checkpoint.stem + "_manifest.json").read_text())
-            if (not branch_requested and (metadata.get("rr_contact_onset_v6_migration") or {}).get(
-                    "source_selection", {}).get("source_role") == "front_validated_ancestor_control_eval"):
-                raise ValueError("published v6 ancestor training requires its explicit output branch")
+            if (not branch_requested and any((metadata.get(key) or {}).get("source_selection", {}).get(
+                    "source_role") == "front_validated_ancestor_control_eval" for key in (
+                        "rr_contact_onset_v6_migration", "rr_signed_contact_v7_migration"))):
+                raise ValueError("published ancestor training requires its explicit output branch")
             source_version = metadata.get("semantic_version", "v2")
             if args.new_mdp_warm_start:
                 expected_version = "v2" if source_root == OUTPUT_ROOT else "v3"

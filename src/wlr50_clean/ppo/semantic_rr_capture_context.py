@@ -12,6 +12,12 @@ from wlr50_clean.infrastructure.command_batch import SERVO_ORDER, servo_limits_d
 
 RR_CONTINUATION_MODE = "rr_capture_then_rl_transfer_v1"
 RR_CONTACT_HANDOFF_MODE = "current_TOP_cumulative_HOLD_next_decision_v1"
+# Frozen from the task's existing geometry band, not a new contact tolerance.
+# Geometry can penetrate this band before the exact contact pair activates.
+# Both the scheduler and actuator use the same signed lower bound; neither
+# turns an AIR sample into contact, support or placement.
+RR_CAPTURE_GAP_MIN_M = -.015
+RR_CAPTURE_GAP_MAX_M = .025
 
 
 def rr_contact_handoff_window_s(spec):
@@ -24,6 +30,9 @@ def rr_contact_handoff_window_s(spec):
             or spec.get("physical_acceptance_version") != "all_stage_v1"
             or spec.get("physics_hz") != 120. or spec.get("decision_hz") != 15.):
         raise ValueError("RR contact handoff needs its explicit measured 120/15 Hz contract")
+    if (spec["geometry"]["top_gap_min_m"] != RR_CAPTURE_GAP_MIN_M
+            or spec["geometry"]["top_gap_max_m"] != RR_CAPTURE_GAP_MAX_M):
+        raise ValueError("RR signed capture permission must match the frozen task geometry band")
     samples = spec["history"]["minimum_top_samples"]
     if type(samples) is not int or samples < 1:
         raise ValueError("RR contact handoff requires positive configured TOP confirmation samples")
@@ -86,7 +95,9 @@ def rr_capture_transfer_context(*, task, observation, support_spec, assist_snaps
     # One available direction is a candidate, not proof that hip-negative works.
     # Actual descent, tracking and gap trend are checked by the local actuator layer.
     available = any(max(pair) > 2. for pair in margins)
-    air_candidate = bool(qualified and rr.get("air") is True and gap >= 0.)
+    air_candidate = bool(qualified and rr.get("air") is True
+                         and not rr.get("obstacle_pair_active")
+                         and gap >= RR_CAPTURE_GAP_MIN_M)
     reachable = bool(valid and (air_candidate or current_bearing) and rr["within_top_xy"] and rr["within_lateral_span"]
                      and available and len(other_supports) >= 2)
     rl_role = ev.get("transfer_roles", {}).get("RL", {})
@@ -139,6 +150,7 @@ def rr_capture_transfer_context(*, task, observation, support_spec, assist_snaps
         "other_measured_supports": list(other_supports),
         "rr_actual_joint_margins_deg": margins,
         "rr_gap_m": gap,
+        "rr_signed_capture_gap_min_m": RR_CAPTURE_GAP_MIN_M,
         "rr_history_placed": bool(history["placed"]["RR"]),
         "air_is_support": False,
     }

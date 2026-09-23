@@ -962,9 +962,10 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         rr_carry_handoff_factor = (verified.get("rr_carry_handoff_v4_factor") or {}).get("observation_contract")
         rr_progress_handoff_factor = (verified.get("rr_progress_handoff_v5_factor") or {}).get("observation_contract")
         rr_contact_onset_factor = (verified.get("rr_contact_onset_v6_factor") or {}).get("observation_contract")
-        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor, receiving_factor, capture_feedback_factor, rr_workspace_factor, p05_preedge_factor, rr_capture_feedback_factor, rr_capture_knee_factor, rr_carry_handoff_factor, rr_progress_handoff_factor, rr_contact_onset_factor)) > 1:
+        rr_signed_contact_factor = (verified.get("rr_signed_contact_v7_factor") or {}).get("observation_contract")
+        if sum(x is not None for x in (video_factor, timing_factor, body_reward_factor, task_first_factor, composition_factor, stop_handoff_factor, rr_acceptance_factor, fl_quality_factor, height_factor, temperature_factor, request_history_factor, physical_innovation_factor, task_conditioned_factor, archive_factor, budget_factor, receiving_factor, capture_feedback_factor, rr_workspace_factor, p05_preedge_factor, rr_capture_feedback_factor, rr_capture_knee_factor, rr_carry_handoff_factor, rr_progress_handoff_factor, rr_contact_onset_factor, rr_signed_contact_factor)) > 1:
             raise RuntimeError("reviewed same-layout migration receipts must be exclusive")
-        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor or receiving_factor or capture_feedback_factor or rr_workspace_factor or p05_preedge_factor or rr_capture_feedback_factor or rr_capture_knee_factor or rr_carry_handoff_factor or rr_progress_handoff_factor or rr_contact_onset_factor
+        reviewed_factor = video_factor or timing_factor or body_reward_factor or task_first_factor or composition_factor or stop_handoff_factor or rr_acceptance_factor or fl_quality_factor or height_factor or temperature_factor or request_history_factor or physical_innovation_factor or task_conditioned_factor or archive_factor or budget_factor or receiving_factor or capture_feedback_factor or rr_workspace_factor or p05_preedge_factor or rr_capture_feedback_factor or rr_capture_knee_factor or rr_carry_handoff_factor or rr_progress_handoff_factor or rr_contact_onset_factor or rr_signed_contact_factor
         if reviewed_factor is not None:
             if factor is not None:
                 raise RuntimeError("reviewed control/video and instrumentation observation receipts must be exclusive")
@@ -1045,6 +1046,9 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         if verified.get("rr_contact_onset_v6_factor") is not None:
             from .semantic_rr_contact_onset_migration import record_loaded_rr_contact_onset
             infos = record_loaded_rr_contact_onset(runner,infos,verified)
+        if verified.get("rr_signed_contact_v7_factor") is not None:
+            from .semantic_rr_signed_contact_migration import record_loaded_rr_signed_contact
+            infos = record_loaded_rr_signed_contact(runner,infos,verified)
         if receiving_wheel is not None:
             if (optimizer_learning_rate(runner) != infos.get("optimizer_learning_rate")
                     or optimizer_learning_rate(runner) != receiving_wheel["source_effective_learning_rate"]):
@@ -1918,10 +1922,15 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
         raise ValueError("checkpoint cadence must be positive")
     previous = dict(resume_infos or {})
     inherited_routing = previous.get("checkpoint_output_routing")
-    contact_receipt = previous.get("rr_contact_onset_v6_migration") or {}
-    if (checkpoint_output_routing is None and contact_receipt.get("source_selection", {}).get(
-            "source_role") == "front_validated_ancestor_control_eval"):
-        raise ValueError("published v6 ancestor training requires its explicit output routing branch")
+    signed = "rr_signed_contact_v7_migration" in previous
+    contact_receipt = previous.get("rr_signed_contact_v7_migration" if signed else "rr_contact_onset_v6_migration") or {}
+    contact_schema, contact_factor, contact_feedback = (
+        ("wlr50_clean.rr_signed_contact_same410.v7", "rr_signed_contact_v7_factor", "signed_band_contact_formation_incremental_v6") if signed else
+        ("wlr50_clean.rr_contact_onset_same410.v6", "rr_contact_onset_v6_factor", "progress_reserve_contact_onset_incremental_v5"))
+    if (checkpoint_output_routing is None and any((previous.get(key) or {}).get("source_selection", {}).get(
+            "source_role") == "front_validated_ancestor_control_eval" for key in (
+                "rr_contact_onset_v6_migration", "rr_signed_contact_v7_migration"))):
+        raise ValueError("published ancestor training requires its explicit output routing branch")
     if checkpoint_output_routing is not None:
         from .semantic_migration import digest as metadata_digest
         route = jsonable(checkpoint_output_routing)
@@ -1934,13 +1943,13 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                 or not isinstance(selection, dict)
                 or selection != (previous.get("rr_progress_handoff_v5_migration") or {}).get("source_selection")
                 or selection.get("source_role") != "front_validated_ancestor_control_eval"
-                or contact_receipt.get("schema") != "wlr50_clean.rr_contact_onset_same410.v6"
+                or contact_receipt.get("schema") != contact_schema
                 or contact_receipt.get("target_contract_sha256") != metadata_digest(contract)
                 or contact_receipt.get("target_git_commit") != contract.get("source_git_commit")
                 or contact_receipt.get("target_runtime_content_sha256") != contract.get("runtime_content_sha256")
                 or contact_receipt.get("source_selection", {}).get("source_role") != selection.get("source_role")
-                or contact_receipt.get("rr_contact_onset_v6_factor", {}).get("counter_origin") != selection.get("counters")
-                or contact_receipt.get("rr_contact_onset_v6_factor", {}).get("target_feedback_revision") != "progress_reserve_contact_onset_incremental_v5"
+                or contact_receipt.get(contact_factor, {}).get("counter_origin") != selection.get("counters")
+                or contact_receipt.get(contact_factor, {}).get("target_feedback_revision") != contact_feedback
                 or (inherited_routing is not None and inherited_routing != route)):
             raise ValueError("checkpoint output routing differs from the loaded ancestor state or explicit destination")
     else:
@@ -2163,6 +2172,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             "rr_carry_handoff_v4_migration",
                             "rr_progress_handoff_v5_migration",
                             "rr_contact_onset_v6_migration",
+                            "rr_signed_contact_v7_migration",
                             "capture_feedback_semantics_migration", "capture_feedback_semantics_branch",
                             "rr_postcross_workspace_migration", "rr_postcross_workspace_branch",
                             "rr_receiver_retirement_v2_migration", "rr_receiver_retirement_v2_branch",

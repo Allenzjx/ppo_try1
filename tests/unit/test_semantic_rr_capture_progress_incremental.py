@@ -215,7 +215,7 @@ def test_release_contact_loss_holds_FINAL_and_fraction_without_reanchor_or_candi
 def test_all_action_relevant_state_replays_and_keeps_exact_fourteen_unclipped_features():
     assist = boundary(); step(assist, 2, gap_m=.0137)
     snapshot = assist.snapshot()
-    assert snapshot['feedback_revision'] == RR_CAPTURE_FEEDBACK_REVISION == 'progress_reserve_contact_onset_incremental_v5'
+    assert snapshot['feedback_revision'] == RR_CAPTURE_FEEDBACK_REVISION == 'signed_band_contact_formation_incremental_v6'
     assert len(RR_CAPTURE_ASSIST_FEATURE_NAMES) == 14
     features = rr_capture_assist_features(snapshot)
     assert features[0] == 6./5. and features[5] > 2.
