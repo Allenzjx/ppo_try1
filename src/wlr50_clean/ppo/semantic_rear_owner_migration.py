@@ -23,7 +23,7 @@ ALLOWED = frozenset(CODE+n for n in (
     'semantic_rear_owner_recovery.py','semantic_rear_policy_timing.py','semantic_supervisor.py',
     'semantic_backend.py','semantic_residual_adapter.py','actuator_target_effect.py',
     'semantic_cooperative_preparation.py','semantic_reward.py','semantic_observation.py',
-    'semantic_policy_distribution.py','semantic_checkpoint_prefix_policy.py','semantic_training.py',
+    'semantic_policy_distribution.py','semantic_checkpoint_prefix_policy.py','semantic_checkpoint_prefix.py','semantic_training.py',
     'semantic_cli.py','semantic_migration.py','semantic_rear_policy_timing_migration.py')) | frozenset(
     CONFIG+n for n in ('execution_profile.yaml','stage_task_spec.yaml','reward_config.yaml','observation_schema.json','curriculum_plan.json'))
 CURRICULUM_WEIGHTS = {'P01': .25, 'P07': .25, 'P10': .5}
