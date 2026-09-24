@@ -2,6 +2,16 @@ schema: wlr50_clean.semantic_reward.v2
 revision: task_conditioned_hip_wheel_quality_v1
 objective_profile: task_conditioned_hip_wheel_quality_v1
 quality_epsilon: 0.06
+cooperative_preparation:
+  mode: rr_capture_cooperative_preparation_v4
+  counterroll_cost_per_s: 0.01
+  force_noise_floor_n: 0.2
+  clearance_scale_m: 0.020
+  workspace_weights: {edge: 0.25, receiver: 0.5, fl_range: 0.125, rl_space: 0.125}
+# Reuses the existing RL workspace share; no angle/height target or contact credit.
+# Small task prior only for supported actual FL counterroll without forward or
+# legal RR gap progress under a positive nominal suggestion. Stops/reverse source
+# pulses, early front work and AIR wheel rotation are excluded. No action shaping.
 # Epsilon is the maximum body-family coefficient, not a second multiplier.
 front_body_quality:
   phases: [P01, P02]

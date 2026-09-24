@@ -89,6 +89,11 @@ def load_execution_profile(path: Path | str = DEFAULT_EXECUTION_PROFILE) -> dict
     from .semantic_p02_progress_profile import P02_PROGRESS_MODE
     if profile.get("p02_progress_credit_mode") not in (None, P02_PROGRESS_MODE):
         raise ValueError("unknown measured P02 progress execution mode")
+    from .semantic_cooperative_preparation import MODE as COOPERATIVE_PREP_MODE
+    if profile.get("cooperative_preparation_mode") not in (None, COOPERATIVE_PREP_MODE):
+        raise ValueError("unknown cooperative preparation mode")
+    if profile.get("cooperative_preparation_mode") and not rear_timing:
+        raise ValueError("cooperative preparation requires observed rear timing")
     if rear_timing not in (None, *REAR_TIMING_MODES):
         raise ValueError("unknown rear policy timing execution profile")
     if rear_timing and (rr_assist is not None or profile.get("nominal_geometry_advisory") is not None
@@ -162,6 +167,8 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         self._rear_policy_timing_mode = self.execution_profile.get("rear_policy_timing_mode")
         if self.execution_profile.get("p02_progress_credit_mode") != rr_task_spec.get("p02_progress_credit_mode"):
             raise ValueError("P02 progress execution and supervisor modes differ")
+        if self.execution_profile.get("cooperative_preparation_mode") != rr_task_spec.get("cooperative_preparation_mode"):
+            raise ValueError("cooperative preparation execution and supervisor modes differ")
         if self._rear_policy_timing_mode != rr_task_spec.get("nominal", {}).get("rear_policy_timing"):
             raise ValueError("rear timing task and execution profile must agree")
         self._rr_support_spec = rr_task_spec["support"]

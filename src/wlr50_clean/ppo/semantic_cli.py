@@ -1,6 +1,7 @@
 """Isolated semantic B/C experiments, without the legacy perfect-probe gates."""
 from __future__ import annotations
 from .semantic_p02_progress_profile import P02_PROGRESS_POLICY, P02_PROGRESS_OBSERVATION_LAYOUT
+from .semantic_rear_cooperative_prep_profile import COOPERATIVE_PREP_POLICY
 
 import argparse
 from contextlib import closing, nullcontext
@@ -521,6 +522,14 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
     if getattr(args,"experiment_id",None) == "rr_rl_timing_policy_learning_v1" and args.resume_migration is not None:
         from .semantic_rear_policy_timing_profile import REAR_POLICY_TIMING_POLICY, REAR_POLICY_TIMING_OBSERVATION_LAYOUT
         args._migration_record=validate_migration_plan(args.checkpoint,contract,args.resume_migration)
+        if args._migration_record.get('cooperative_prep_same422_factor') is not None:
+            from .semantic_rear_cooperative_prep_profile import (
+                COOPERATIVE_PREP_POLICY, COOPERATIVE_PREP_OBSERVATION_LAYOUT)
+            if (args._observation_layout != COOPERATIVE_PREP_OBSERVATION_LAYOUT
+                    or metadata['seed'] != args.seed):
+                raise ValueError('cooperative prep requires exact422 and original seed')
+            args._policy_version=COOPERATIVE_PREP_POLICY
+            return
         if args._migration_record.get('p02_progress_append_factor') is not None:
             if args._observation_layout != P02_PROGRESS_OBSERVATION_LAYOUT or metadata['seed'] != args.seed:
                 raise ValueError('P02 append requires exact422 and original seed')
@@ -690,7 +699,7 @@ def _request_history_prefix_provenance(args, contract, previous):
     from .semantic_p05_capture_profile import P05_CAPTURE_POLICY
     from .semantic_rr_capture_profile import RR_CAPTURE_POLICY
     from .semantic_rear_policy_timing_profile import REAR_POLICY_TIMING_POLICY
-    if target["version"] in (P05_CAPTURE_POLICY,RR_CAPTURE_POLICY,REAR_POLICY_TIMING_POLICY,P02_PROGRESS_POLICY):
+    if target["version"] in (P05_CAPTURE_POLICY,RR_CAPTURE_POLICY,REAR_POLICY_TIMING_POLICY,P02_PROGRESS_POLICY,COOPERATIVE_PREP_POLICY):
         if (previous.get("policy_contract") != target or previous["runtime_contract"] != contract
                 or getattr(args, "_migration_record", None) is not None):
             raise ValueError("P05 prefix requires the saved/reloaded migrated checkpoint in its exact runtime")

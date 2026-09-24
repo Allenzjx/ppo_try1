@@ -145,6 +145,11 @@ def build_rear_policy_output_routing(metadata, contract, destination):
 def validate_rear_policy_namespace(metadata,contract,output_root, *, checkpoint_output_routing=None):
     from .semantic_migration import digest
     from .semantic_policy_distribution import policy_contract
+    if metadata.get('cooperative_prep_migration') is not None:
+        from .semantic_cooperative_prep_migration import validate_cooperative_prep_lineage
+        validate_cooperative_prep_lineage(metadata,contract,output_root,
+            checkpoint_output_routing=checkpoint_output_routing)
+        return
     if metadata.get('p02_progress_migration') is not None:
         from .semantic_p02_progress_migration import validate_p02_progress_lineage
         validate_p02_progress_lineage(metadata,contract,output_root,checkpoint_output_routing=checkpoint_output_routing)

@@ -498,6 +498,13 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
     _capture_continuation_enabled(spec)
     _p05_preedge_recovery_enabled(spec)
     _workspace_potential_enabled(spec)
+    from .semantic_cooperative_preparation import MODE as COOPERATIVE_PREP_MODE
+    if spec.get("cooperative_preparation_mode") not in (None, COOPERATIVE_PREP_MODE):
+        raise ValueError("unknown cooperative preparation mode")
+    if spec.get("cooperative_preparation_mode") and not (spec.get("transfer_roles")
+            and spec.get("preparation_credit_semantics") == PREPARATION_CREDIT_MODE
+            and spec.get("nominal", {}).get("rear_policy_timing")):
+        raise ValueError("cooperative preparation requires existing observed roles and rear timing")
     _rr_workspace_retirement_enabled(spec)
     validate_transfer_roles(spec)
     if spec.get("physical_acceptance_version") not in (None, "all_stage_v1"):
@@ -1584,6 +1591,9 @@ class TaskStageSupervisor:
                 # Preserve its existing credit, not ongoing FL contraction.
                 # Keep the independent current RR edge/capture/lift goals.
                 receiver = 1.
+            if leg == "RL" and self.spec.get("cooperative_preparation_mode"):
+                from .semantic_cooperative_preparation import workspace_progress
+                return workspace_progress(edge,receiver,evaluation.get("cooperative_preparation"))
             return .5*edge+.5*receiver
         return edge
 
@@ -1865,6 +1875,16 @@ class TaskStageSupervisor:
             self._snapshot["p02_progress_credit"] = p02_credit
         if rr_recovery is not None:
             self._snapshot["rr_capture_continuation"] = rr_recovery
+        if self.spec.get("cooperative_preparation_mode") and evaluation.get("valid") is True:
+            from .semantic_cooperative_preparation import measure_preparation, REWARD_CONFIG
+            if rr_recovery is None:
+                raise ValueError("cooperative preparation requires measured RR context")
+            prep=measure_preparation(observation=observation,evaluation=evaluation,
+                rr_context=rr_recovery,support_spec=self.spec["support"],
+                joint_limits=servo_limits_deg("front_left_knee"),
+                clearance_scale_m=REWARD_CONFIG['clearance_scale_m'])
+            evaluation["cooperative_preparation"] = prep
+            self._snapshot["cooperative_preparation"] = prep
         if (self.spec.get("physical_acceptance_version") == "all_stage_v1" and self.stage_id == "P13"
                 and evaluation.get("post_completion_observation_started", False)):
             self._snapshot["substage"] = "CAPTURE"

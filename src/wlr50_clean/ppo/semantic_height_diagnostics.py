@@ -13,6 +13,7 @@ import sys
 
 from wlr50_clean.sensing.geometry import BASE_BODY, WHEEL_BODIES, UsdCollisionBoundsProvider
 from .semantic_physical_sensing import _body_local_point_array, _world_bounds_from_body_local_array
+from .semantic_hip_mount_geometry import resolve_hip_mounts, measure_hip_mounts
 
 
 def member(value, key, default=None):
@@ -110,6 +111,7 @@ class HeightDiagnostics:
         self.stream = None
         self.errors, self.last_tick, self.rows = [], None, 0
         self.provider, self.robot, self.mount = None, None, None
+        self.hip_mounts = None
         self.assets, self.asset_errors = {}, {}
         try:
             self.stream = (self.root / "height_diagnostics.jsonl").open("x", encoding="utf-8")
@@ -142,6 +144,10 @@ class HeightDiagnostics:
         mount = read_value(lambda: resolve_rr_mount(self.provider), "USD RR hip joint localPos0")
         self.mount = mount["value"]
         startup["rr_hip_mount_definition"] = mount
+        # Resolve the four installation frames from this actual stage only.
+        # A failure is diagnostic N/A, never a physical execution condition.
+        self.hip_mounts = resolve_hip_mounts(self.provider)
+        startup["same_rigid_body_hip_mount_definitions"] = self.hip_mounts
         startup["modules"] = {name: getattr(sys.modules.get(type(obj).__module__), "__file__", None)
                               for name, obj in (("articulation", self.robot), ("diagnostics", self))}
         startup["clock_after"] = self._clock()
@@ -221,6 +227,9 @@ class HeightDiagnostics:
                 "recorded_evaluator_body_bounds": read_value(lambda: member(raw, "body_bounds_w_m"), "unchanged raw evaluator geometry"),
                 "recorded_evaluator_geometry_pose_aware": member(raw, "geometry_pose_aware"),
                 "rr_hip_mount_w_m": read_value(self._mount_world, "USD localPos0 transformed with live parent link pose"),
+                "same_rigid_body_hip_mount_geometry": read_value(
+                    lambda: measure_hip_mounts(self.hip_mounts, raw),
+                    "all_four_actual_USD_body0_localPos0_with_same_tick_observed_base_link_pose"),
                 "joint_position_native_rad": read_value(lambda: self.robot.data.joint_pos[0], "robot.data.joint_pos"),
                 "joint_velocity_native_rad_s": read_value(lambda: self.robot.data.joint_vel[0], "robot.data.joint_vel"),
                 "joints_canonical": read_value(lambda: member(raw, "joints"), "unchanged sensor canonical joint record"),

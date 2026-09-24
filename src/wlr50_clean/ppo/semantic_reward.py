@@ -204,6 +204,7 @@ class SemanticRewardConfig:
         v = self.values
         costs = sum(v["family_weights"][name] for name in FAMILIES[1:])
         costs += v["time_cost_per_s"] * v["family_weights"]["task_progress"]
+        costs += v.get("cooperative_preparation", {}).get("counterroll_cost_per_s",0.) * v["family_weights"]["task_progress"]
         # Infinite discounted future is an upper bound on the finite task.
         # This only bounds costs avoidable by ending now. It is NOT a theorem
         # ordering all successful/failed trajectories of different durations:
@@ -240,6 +241,11 @@ def load_semantic_reward_config(path: Path | str = DEFAULT_REWARD_CONFIG) -> Sem
         raise ValueError("regularization switch must be boolean")
     _validate_carry_body_allowance(v)
     _validate_task_priority(v)
+    if "cooperative_preparation" in v:
+        from .semantic_cooperative_preparation import REWARD_CONFIG
+        if (v['cooperative_preparation'] != REWARD_CONFIG
+                or v.get('objective_profile') != TASK_CONDITIONED_QUALITY_OBJECTIVE):
+            raise ValueError('cooperative preparation requires its bounded explicit reward revision')
     config = SemanticRewardConfig(v,selected)
     if v["failure_cost"]*v["family_weights"]["task_progress"] <= config.failure_avoidance_bound:
         raise ValueError("failure event must exceed avoidable future costs and potential")
@@ -290,6 +296,8 @@ class SemanticRewardCalculator:
         front_quality = v.get("objective_profile") == FRONT_QUALITY_OBJECTIVE or task_quality
         front_sample_audit = []
         geometry_sample_audit = []
+        cooperative_sample_audit = []
+        counterroll_cost = 0.
         total_dt = 0.0
         for sample in samples:
             dt = finite(sample.dt_s,"reward dt")
@@ -301,6 +309,20 @@ class SemanticRewardCalculator:
                 if not 0. <= role_fraction <= 1.:
                     raise ValueError("role transfer fraction must be in [0,1]")
             total_dt += dt
+            if v.get('cooperative_preparation'):
+                from .semantic_cooperative_preparation import fl_counterroll_sample
+                config=v['cooperative_preparation']
+                if (termination_reason in ('NAN_INF','PHYSICS_EXPLOSION')
+                        and sample.current is sample.previous):
+                    row=dict(eligible=False,raw_cost=0.,
+                        skip_reason='numerical_terminal_last_finite_fallback_not_new_measurement')
+                else:
+                    row=fl_counterroll_sample(previous=sample.previous,current=sample.current,
+                        nominal=sample.nominal,actual_drive=sample.actual_drive,dt_s=dt,
+                        residual_caps=sample.residual_caps,force_noise_floor_n=config['force_noise_floor_n'])
+                row.update(dt_s=dt,coefficient_per_s=config['counterroll_cost_per_s'])
+                counterroll_cost += row['raw_cost']*dt*config['counterroll_cost_per_s']
+                cooperative_sample_audit.append(row)
             self._clock_s += dt
             metrics = sample.current.metrics
             transfer = sample.current.task["substage"] == "TRANSFER"
@@ -437,7 +459,7 @@ class SemanticRewardCalculator:
         phi_after = 0.0 if termination_reason else finite(current.task["task_progress_potential"],"potential after")
         potential = v["potential_weight"]*(self.config.gamma*phi_after-phi_before)
         event = v["success_reward"] if task_success else (-v["failure_cost"] if termination_reason else 0.0)
-        unweighted = {"task_progress":potential+event-v["time_cost_per_s"]*total_dt,
+        unweighted = {"task_progress":potential+event-v["time_cost_per_s"]*total_dt-counterroll_cost,
                       **{name:-costs[name] for name in FAMILIES[1:]}}
         families = {name:unweighted[name]*v["family_weights"][name] for name in FAMILIES}
         result = {"total":sum(families.values()),"families":families,"unweighted_families":unweighted,
@@ -453,4 +475,7 @@ class SemanticRewardCalculator:
         if task_quality:
             result["task_space_quality_sample_audit"] = geometry_sample_audit
             result["task_space_quality_semantics"] = "bounded_current_collider_obstacle_AABB_separation_deficit_v1"
+        if v.get('cooperative_preparation'):
+            result['cooperative_preparation_sample_audit']=cooperative_sample_audit
+            result['cooperative_counterroll_cost']=counterroll_cost
         return result
