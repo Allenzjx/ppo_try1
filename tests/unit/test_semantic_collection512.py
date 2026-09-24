@@ -18,6 +18,35 @@ from wlr50_clean.ppo.semantic_rear_owner_profile import (
 from wlr50_clean.ppo.semantic_return_profile import COLLECTION_512, COLLECTION_PROFILE_KEY
 
 
+def test_common_policy_resolver_requires_explicit512_receipt_and_keeps128():
+    import copy
+    from wlr50_clean.ppo.semantic_front_retention439 import COLLECTION_KEY, COLLECTION_SCHEMA
+    from wlr50_clean.ppo.semantic_policy_distribution import policy_version_from_metadata, policy_contract
+    config = training.semantic_runner_config(seed=1001, device="cpu", semantic_version="v3",
+        policy_version=REAR_OWNER_POLICY, observation_layout=REAR_OWNER_OBSERVATION_LAYOUT,
+        collection_profile=COLLECTION_512)
+    metadata = dict(seed=1001, semantic_version="v3", runner_config=config,
+        policy_contract=policy_contract(REAR_OWNER_POLICY, observation_layout=REAR_OWNER_OBSERVATION_LAYOUT),
+        runtime_contract={"experiment_id":"rr_rl_timing_policy_learning_v1"})
+    with pytest.raises(ValueError, match="unreceipted"):
+        policy_version_from_metadata(metadata)
+    metadata[COLLECTION_KEY] = dict(schema=COLLECTION_SCHEMA, target_runner_config=copy.deepcopy(config))
+    assert policy_version_from_metadata(metadata) == REAR_OWNER_POLICY
+    wrong = copy.deepcopy(metadata)
+    wrong["runner_config"]["algorithm"]["gamma"] = .995
+    with pytest.raises(ValueError):
+        policy_version_from_metadata(wrong)
+    wrong = copy.deepcopy(metadata)
+    wrong["runtime_contract"]["experiment_id"] = "another_experiment"
+    with pytest.raises(ValueError):
+        policy_version_from_metadata(wrong)
+    old = copy.deepcopy(metadata)
+    del old[COLLECTION_KEY]
+    del old["runner_config"][COLLECTION_PROFILE_KEY]
+    old["runner_config"]["num_steps_per_env"] = 128
+    assert policy_version_from_metadata(old) == REAR_OWNER_POLICY
+
+
 class Synthetic439LongCore(Synthetic419Core):
     """Ordinary P09->P10 at step4, real synthetic episode terminal at452."""
     def __init__(self):

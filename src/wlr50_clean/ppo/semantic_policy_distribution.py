@@ -382,9 +382,16 @@ def policy_version_from_metadata(metadata: Mapping[str, Any]) -> str:
         raise ValueError("checkpoint runner_config has an unsupported device")
     horizon = runner_return_profile(config, semantic_version=semantic_version)
     layout_options = {} if observation_layout is None else {"observation_layout": observation_layout}
+    collection_options = {}
+    if horizon["rollout_length"] != 128:
+        # Collection is explicit and receipted; it is not a policy/kernel change.
+        # The ordinary loader subsequently validates the complete source lineage.
+        from .semantic_front_retention439 import collection_runner_options
+        collection_options = collection_runner_options(metadata,
+            experiment_id=(metadata.get("runtime_contract") or {}).get("experiment_id"))
     expected = semantic_runner_config(seed=seed, device=device,
                                      semantic_version=semantic_version, policy_version=version,
-                                     return_profile=horizon["version"], **layout_options)
+                                     return_profile=horizon["version"], **layout_options, **collection_options)
     if not _same_json(config, expected):
         raise ValueError("checkpoint complete runner_config differs from the pinned semantic policy configuration")
     return version

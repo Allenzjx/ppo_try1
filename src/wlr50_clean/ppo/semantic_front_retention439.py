@@ -442,7 +442,7 @@ COLLECTION_SCHEMA = "wlr50_clean.collection_horizon439.v1"
 COLLECTION_SOURCE_HEAD = "65a9255be6d9fd4e19590a48a3a650ae606b04f7"
 COLLECTION_FILES = frozenset(CODE + name for name in (
     "semantic_return_profile.py", "semantic_training.py", "semantic_front_retention439.py",
-    "semantic_cli.py", "semantic_video_cli.py"))
+    "semantic_cli.py", "semantic_video_cli.py", "semantic_policy_distribution.py"))
 
 
 def collection_runner_options(metadata, *, experiment_id):
@@ -503,7 +503,7 @@ def _collection_delta(old, new, *, project_root=None):
     changed = {p for p in old["files"].keys() | new["files"].keys()
                if old["files"].get(p) != new["files"].get(p)}
     require(changed == COLLECTION_FILES and all(p in old["files"] and p in new["files"] for p in changed),
-            "collection boundary requires exactly five reviewed existing runtime paths")
+            "collection boundary requires exactly six reviewed existing runtime paths")
     require(old["source_git_commit"] == COLLECTION_SOURCE_HEAD
             and new["source_git_commit"] != COLLECTION_SOURCE_HEAD
             and re.fullmatch("[0-9a-f]{40}", new["source_git_commit"])
