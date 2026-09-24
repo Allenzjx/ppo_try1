@@ -11,7 +11,8 @@ from datetime import datetime, timezone
 
 from .semantic_cli import (PROJECT_ROOT, parser, validate_request, runtime_contract,
                            _preflight_checkpoint, _resolved_policy_version, _observation_layout_options,
-                           _resolved_observation_layout, _resolved_policy_contract, jsonable)
+                           _resolved_observation_layout, _resolved_policy_contract, jsonable,
+                           _checkpoint_collection_options)
 from .semantic_training import (construct_semantic_runner, load_semantic_checkpoint,
     seed_training_rngs, parameter_hash, state_hash, _normalizers, write_json, audited_history_policy_request)
 from .semantic_video import (ROLES, require, capture_semantic_video,
@@ -178,7 +179,7 @@ def checkpoint_loader(args, contract, *, evaluation_contract=None,
                                   batch_size=[1], device=args.device)
         runner, _ = construct_semantic_runner(ObservationEnv(), seed=training_seed,
             device=args.device, policy_version=_resolved_policy_version(args), initialize_actor=False,
-            **_observation_layout_options(args))
+            **_observation_layout_options(args), **_checkpoint_collection_options(args))
         infos = load_semantic_checkpoint(runner, args.checkpoint, contract=contract,
             seed=training_seed, migration=getattr(args,"_migration_record",None))
         runner.alg.eval_mode()

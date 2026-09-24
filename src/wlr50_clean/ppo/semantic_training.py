@@ -41,7 +41,8 @@ from .semantic_rear_policy_timing_profile import (REAR_POLICY_TIMING_POLICY,
     REAR_POLICY_TIMING_SIGMA_SEMANTICS)
 from .semantic_return_profile import (
     RETURN_PROFILE, RUNNER_PROFILE_KEY, profile_parameters,
-    reward_return_profile, runner_return_profile,
+    reward_return_profile, runner_return_profile, same_return_estimator,
+    COLLECTION_PROFILE_KEY, COLLECTION_512,
 )
 
 SEMANTIC_TRAINING_SCHEMA = "wlr50_clean.semantic_training.v1"
@@ -129,7 +130,8 @@ def state_hash(value: Any) -> str:
 def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_version: str = "v2",
                            policy_version: str = LEGACY_POLICY,
                            return_profile: str | None = None,
-                           observation_layout: str | None = None) -> dict[str, Any]:
+                           observation_layout: str | None = None,
+                           collection_profile: str | None = None) -> dict[str, Any]:
     if semantic_version not in ("v2", "v3"):
         raise ValueError("unsupported semantic runtime version")
     from .semantic_policy_distribution import (HISTORY_POLICY, HISTORY_TEMPERED_POLICY,
@@ -163,10 +165,17 @@ def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_versio
         # Explicit historical reconstruction for full source metadata validation;
         # the production runner constructor always resolves the current config.
         horizon = profile_parameters(return_profile, semantic_version=semantic_version)
+    collection_length = ROLLOUT_LENGTH
+    if collection_profile is not None:
+        if (collection_profile != COLLECTION_512 or semantic_version != "v3"
+                or policy_version != REAR_OWNER_POLICY or observation_layout != REAR_OWNER_OBSERVATION_LAYOUT
+                or horizon["version"] != RETURN_PROFILE):
+            raise ValueError("collection512 is explicit v3 rear-owner439 only")
+        collection_length = 512
     profile = SimpleNamespace(
         activation="elu", entropy_start=0.005, actor_hidden_dims=(256, 256),
         critic_hidden_dims=(256, 256), initial_action_std=0.15,
-        rollout_length=ROLLOUT_LENGTH, update_epochs=5, num_minibatches=4,
+        rollout_length=collection_length, update_epochs=5, num_minibatches=4,
         clip_ratio=0.20, gamma=horizon["gamma"], lam=horizon["lambda"], value_loss_coefficient=1.0,
         learning_rate=0.00003 if semantic_version == "v3" else 0.0003,
         max_grad_norm=1.0, schedule="adaptive", target_kl=0.01,
@@ -186,6 +195,8 @@ def semantic_runner_config(*, seed: int, device: str = "cuda:0", semantic_versio
         configure_policy_distribution(config, policy_version, observation_layout=observation_layout)
     if horizon["version"] == RETURN_PROFILE:
         config[RUNNER_PROFILE_KEY] = RETURN_PROFILE
+    if collection_profile is not None:
+        config[COLLECTION_PROFILE_KEY] = collection_profile
     return config
 
 
@@ -201,11 +212,20 @@ def assert_semantic_return_consistency(runner: Any, env: Any) -> dict[str, Any]:
     if (live != horizon or isinstance(runner.alg.gamma, bool) or isinstance(runner.alg.lam, bool)
             or runner.alg.gamma != horizon["gamma"] or runner.alg.lam != horizon["lambda"]):
         raise RuntimeError("actual PPO gamma/lambda differs from the pinned return configuration")
+    if runner._semantic_runner_config.get(COLLECTION_PROFILE_KEY) == COLLECTION_512:
+        storage = runner.alg.storage
+        if (getattr(env, "num_envs", None) != 1
+                or runner._semantic_policy_version != REAR_OWNER_POLICY
+                or runner._semantic_observation_layout != REAR_OWNER_OBSERVATION_LAYOUT
+                or tuple(storage.actions.shape) != (512, 1, 12)
+                or any(tuple(storage.observations[key].shape) != (512, 1, 439)
+                       for key in ("policy", "critic"))):
+            raise RuntimeError("explicit collection512 requires actual fresh-shape N1/439 storage")
     calculator = getattr(getattr(env, "core", None), "reward_calculator", None)
     if calculator is not None:
         reward_horizon = reward_return_profile(calculator.config.values,
                                                semantic_version=runner._semantic_version)
-        if reward_horizon != horizon or calculator.config.gamma != runner.alg.gamma:
+        if not same_return_estimator(reward_horizon, horizon) or calculator.config.gamma != runner.alg.gamma:
             raise RuntimeError("PPO and actual semantic PBRS return profiles must agree")
     elif hasattr(env, "gamma") and env.gamma != runner.alg.gamma:
         raise RuntimeError("vector reward and PPO gamma must agree")
@@ -340,11 +360,13 @@ class SemanticRslAdapter:
 def construct_semantic_runner(env: Any, *, seed: int, device: str,
                               policy_version: str = LEGACY_POLICY,
                               initialize_actor: bool = True,
-                              observation_layout: str | None = None) -> tuple[Any, dict[str, Any]]:
+                              observation_layout: str | None = None,
+                              collection_profile: str | None = None) -> tuple[Any, dict[str, Any]]:
     assert_supported_rsl_runtime()
     config = semantic_runner_config(seed=seed, device=device,
                                     semantic_version=env.cfg.get("semantic_version", "v2"),
-                                    policy_version=policy_version, observation_layout=observation_layout)
+                                    policy_version=policy_version, observation_layout=observation_layout,
+                                    collection_profile=collection_profile)
     runner = construct_runner(env, config, log_dir=None)
     runner.logger.writer = None  # No hidden upstream automatic checkpoint writes.
     runner._semantic_policy_version = policy_version
@@ -2332,7 +2354,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                     from .semantic_migration import continuation_topology
                     infos["execution_topology"] = continuation_topology(sampling, prefix_request,
                         observation_layout=getattr(runner, "_semantic_observation_layout", None))
-                for key in ("front_retention439_runtime_identity", "front_retention439_auxiliary", "rr_retention_reward_migration", "rear_owner_recovery_migration", "cooperative_prep_migration", "p02_progress_migration", "rear_live_swing_migration", "rear_recapture_migration", "rear_policy_timing_migration", "rear_policy_timing_branch",
+                for key in ("collection_horizon439", "front_retention439_runtime_identity", "front_retention439_auxiliary", "rr_retention_reward_migration", "rear_owner_recovery_migration", "cooperative_prep_migration", "p02_progress_migration", "rear_live_swing_migration", "rear_recapture_migration", "rear_policy_timing_migration", "rear_policy_timing_branch",
                             "new_mdp_warm_start", "new_mdp_origin_global_policy_decisions", "source_stage_requested_decisions",
                             "new_mdp_initial_action_comparison", "policy_distribution_migration",
                             "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison",

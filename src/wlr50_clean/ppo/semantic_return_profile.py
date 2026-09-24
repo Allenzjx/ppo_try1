@@ -12,6 +12,25 @@ from typing import Any, Mapping
 LEGACY_RETURN_PROFILE = "legacy_gamma_0995_lambda_095_v1"
 RETURN_PROFILE = "v3_gamma_09985_lambda_099_v1"
 RUNNER_PROFILE_KEY = "semantic_return_profile"
+COLLECTION_PROFILE_KEY = "semantic_collection_profile"
+COLLECTION_512 = "n1_rear_owner439_collection512_v1"
+
+
+def runner_collection_length(config: Mapping[str, Any]) -> int:
+    """Validate collection independently; absent marker is historical128 only."""
+    marker = config.get(COLLECTION_PROFILE_KEY)
+    length = config.get("num_steps_per_env")
+    expected = 128 if marker is None else 512
+    if (type(length) is not int or length != expected
+            or (COLLECTION_PROFILE_KEY in config and marker != COLLECTION_512)):
+        raise ValueError("runner collection length differs from its explicit marker")
+    return length
+
+
+def same_return_estimator(left: Mapping[str, Any], right: Mapping[str, Any]) -> bool:
+    """Collection storage is not a PBRS parameter; still require all math keys."""
+    return all(key in left and key in right and left[key] == right[key]
+               for key in ("version", "gamma", "lambda"))
 
 
 def profile_parameters(version: str, *, semantic_version: str | None = None) -> dict[str, Any]:
@@ -63,8 +82,9 @@ def runner_return_profile(config: Mapping[str, Any], *, semantic_version: str) -
     result = profile_parameters(version, semantic_version=semantic_version)
     algorithm = config["algorithm"]
     if (_number(algorithm.get("gamma"), "PPO gamma") != result["gamma"]
-            or _number(algorithm.get("lam"), "GAE lambda") != result["lambda"]
-            or type(config.get("num_steps_per_env")) is not int
-            or config["num_steps_per_env"] != result["rollout_length"]):
-        raise ValueError("runner gamma/lambda/rollout differs from its return-profile marker")
-    return result
+            or _number(algorithm.get("lam"), "GAE lambda") != result["lambda"]):
+        raise ValueError("runner gamma/lambda differs from its return-profile marker")
+    length = runner_collection_length(config)
+    if length == 512 and (semantic_version != "v3" or version != RETURN_PROFILE):
+        raise ValueError("collection512 requires the unchanged current v3 return estimator")
+    return {**result, "rollout_length": length}

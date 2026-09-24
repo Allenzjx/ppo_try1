@@ -303,6 +303,9 @@ def _event(source, source_binding, data_binding, report_binding, index):
 
 
 def validate_front_retention439_lineage(metadata, contract, output_root, *, checkpoint_output_routing=None):
+    if COLLECTION_KEY in metadata:
+        return validate_collection439_lineage(metadata, contract, output_root,
+            checkpoint_output_routing=checkpoint_output_routing)
     from .semantic_rr_retention_migration import validate_rr_retention_lineage, _policy, MAPPING
     receipt = metadata.get(IDENTITY, {})
     factor = receipt.get(FACTOR_KEY, {})
@@ -430,4 +433,228 @@ def publish_front_retention439_checkpoint(checkpoint, contract, plan_path, outpu
     validate_front_retention439_lineage(loaded,contract,Path(route["output_root"]),checkpoint_output_routing=route)
     return dict(checkpoint=str(path),checkpoint_sha256=file_sha(path),manifest=str(sidecar),manifest_sha256=file_sha(sidecar),
         save_load_round_trip=True,latest_pointer_published=False,**{k:loaded[k] for k in COUNTERS},
+        added_policy_decisions=0,added_ppo_updates=0,added_optimizer_steps=0,added_auxiliary_updates=0)
+
+
+# One explicit collection boundary; historical identity/AUX receipts above stay intact.
+COLLECTION_KEY = "collection_horizon439"
+COLLECTION_SCHEMA = "wlr50_clean.collection_horizon439.v1"
+COLLECTION_SOURCE_HEAD = "65a9255be6d9fd4e19590a48a3a650ae606b04f7"
+COLLECTION_FILES = frozenset(CODE + name for name in (
+    "semantic_return_profile.py", "semantic_training.py", "semantic_front_retention439.py",
+    "semantic_cli.py", "semantic_video_cli.py"))
+
+
+def collection_runner_options(metadata, *, experiment_id):
+    """Select the explicit new constructor only; full lineage still loads normally."""
+    from .semantic_return_profile import COLLECTION_PROFILE_KEY, COLLECTION_512, runner_collection_length
+    config = metadata.get("runner_config", {})
+    length = runner_collection_length(config)
+    receipt = metadata.get(COLLECTION_KEY)
+    if receipt is None:
+        require(length == 128 and COLLECTION_PROFILE_KEY not in config,
+                "unreceipted collection change")
+        return {}
+    require(experiment_id == EXPERIMENT and receipt.get("schema") == COLLECTION_SCHEMA
+            and length == 512 and config.get(COLLECTION_PROFILE_KEY) == COLLECTION_512
+            and receipt.get("target_runner_config") == config,
+            "collection512 requires its exact experiment/receipt/config")
+    return {"collection_profile": COLLECTION_512}
+
+
+def _collection_counter_delta(metadata, source):
+    """New segment uses real512/20 increments; never reinterpret historical128."""
+    require(all(type(metadata.get(k)) is int and type(source.get(k)) is int
+                and metadata[k] >= source[k] for k in COUNTERS), "collection counter rollback")
+    updates = metadata["ppo_updates"] - source["ppo_updates"]
+    require(metadata["global_policy_decisions"] - source["global_policy_decisions"] == 512 * updates
+            and metadata["optimizer_steps"] - source["optimizer_steps"] == 20 * updates,
+            "collection512 segment requires512 decisions and20 Adam steps per update")
+    return updates
+
+
+def _collection_target_config(source):
+    from .semantic_return_profile import COLLECTION_PROFILE_KEY, COLLECTION_512, runner_return_profile
+    config = copy.deepcopy(source["runner_config"])
+    require(COLLECTION_PROFILE_KEY not in config
+            and runner_return_profile(config, semantic_version="v3")["rollout_length"] == 128
+            and config["algorithm"]["num_learning_epochs"] == 5
+            and config["algorithm"]["num_mini_batches"] == 4,
+            "collection boundary requires unchanged historical128/5epochs/4minibatches")
+    config.update(num_steps_per_env=512)
+    config[COLLECTION_PROFILE_KEY] = COLLECTION_512
+    runner_return_profile(config, semantic_version="v3")
+    return config
+
+
+def _collection_frozen_metadata(source):
+    keys = {IDENTITY, LEDGER, "checkpoint_output_routing", "policy_contract", "seed", "normalization",
+            "new_mdp_origin_global_policy_decisions", "source_stage_requested_decisions"}
+    keys |= {key for key in source if key != "resume_migration" and key.endswith(("_branch", "_migration"))}
+    return {key: _hash(source[key]) for key in sorted(keys) if key in source}
+
+
+def _collection_delta(old, new, *, project_root=None):
+    from .semantic_migration import file_sha
+    variable = {"files", "source_git_commit", "runtime_content_sha256"}
+    require({k:v for k,v in old.items() if k not in variable}
+            == {k:v for k,v in new.items() if k not in variable},
+            "collection boundary cannot change reward, control, observation, distribution or topology")
+    changed = {p for p in old["files"].keys() | new["files"].keys()
+               if old["files"].get(p) != new["files"].get(p)}
+    require(changed == COLLECTION_FILES and all(p in old["files"] and p in new["files"] for p in changed),
+            "collection boundary requires exactly five reviewed existing runtime paths")
+    require(old["source_git_commit"] == COLLECTION_SOURCE_HEAD
+            and new["source_git_commit"] != COLLECTION_SOURCE_HEAD
+            and re.fullmatch("[0-9a-f]{40}", new["source_git_commit"])
+            and all(_hash(c["files"]) == c["runtime_content_sha256"] for c in (old,new)),
+            "collection runtime source/digest differs")
+    if project_root is not None:
+        require(all(file_sha(Path(project_root) / p) == sha for p,sha in new["files"].items()),
+                "collection target runtime bytes differ")
+    return {p: {"before": old["files"][p], "after": new["files"][p]} for p in sorted(changed)}
+
+
+def _collection_record(source, binding, contract, reason):
+    from .semantic_migration import source_num_envs
+    from .semantic_rr_retention_migration import _policy, MAPPING
+    old = source["runtime_contract"]
+    last = source.get("last_update", {})
+    require(COLLECTION_KEY not in source and source_num_envs(source) == 1
+            and source["policy_contract"] == _policy() and old["experiment_id"] == EXPERIMENT
+            and isinstance(reason,str) and reason.strip()
+            and last.get("global_policy_decisions") == source["global_policy_decisions"]
+            and last.get("ppo_update") == source["ppo_updates"]
+            and last.get("actor_parameter_sha256_after") == source["actor_parameter_sha256"]
+            and last.get("optimizer_learning_rate") == source["optimizer_learning_rate"]
+            and last.get("optimizer_steps") == 20,
+            "collection source must be an actual complete learned65a update")
+    return dict(schema=COLLECTION_SCHEMA, reason=reason.strip(), source_checkpoint=copy.deepcopy(binding),
+        source_contract_sha256=_hash(old), target_contract_sha256=_hash(contract),
+        changed_file_hashes=_collection_delta(old,contract),
+        source_runner_config=copy.deepcopy(source["runner_config"]),
+        target_runner_config=_collection_target_config(source),
+        counter_origin={k:source[k] for k in COUNTERS},
+        source_stage_requested_decisions=copy.deepcopy(source["stage_requested_decisions"]),
+        frozen_historical_metadata_sha256=_collection_frozen_metadata(source),
+        collection_steps_before=128, collection_steps_after=512, optimizer_steps_per_update=20,
+        source_effective_learning_rate=source["optimizer_learning_rate"], parameter_mapping=MAPPING,
+        same_mdp=True, return_estimator_changed=False, reward_changed=False,
+        actor_input_changed=False, HISTORY_changed=False, raw_sample_likelihood_semantics_changed=False,
+        old_rollout_inherited=False, fresh_rollout_required=True,
+        added_policy_decisions=0, added_ppo_updates=0, added_optimizer_steps=0, added_auxiliary_updates=0)
+
+
+def validate_collection439_lineage(metadata, contract, output_root, *, checkpoint_output_routing=None):
+    receipt = metadata.get(COLLECTION_KEY, {})
+    require(receipt.get("schema") == COLLECTION_SCHEMA, "collection receipt required")
+    source = _checkpoint_reference(receipt.get("source_checkpoint", {}))
+    require(COLLECTION_KEY not in source, "first512 boundary cannot rewrite or recursively relabel a segment")
+    route = source["checkpoint_output_routing"]
+    # Validate the frozen original128 source through every historical validator.
+    validate_front_retention439_lineage(source, source["runtime_contract"], Path(route["output_root"]),
+        checkpoint_output_routing=route)
+    expected = _collection_record(source,receipt["source_checkpoint"],contract,receipt.get("reason",""))
+    require(receipt == expected and metadata.get("runtime_contract") == contract
+            and metadata.get("runner_config") == expected["target_runner_config"]
+            and checkpoint_output_routing == route and metadata.get("checkpoint_output_routing") == route
+            and Path(output_root).resolve() == Path(route["output_root"]).resolve(),
+            "collection receipt/config/route differs")
+    require(all(_hash(metadata.get(k)) == sha for k,sha in expected["frozen_historical_metadata_sha256"].items()),
+            "historical receipts, AUX ledger, seed or policy changed")
+    updates = _collection_counter_delta(metadata,source)
+    require(all(type(metadata.get("stage_requested_decisions",{}).get(k)) is int
+                and metadata["stage_requested_decisions"][k] >= value
+                for k,value in source["stage_requested_decisions"].items()), "collection stage budget rolled back")
+    # Old branch-count objects are derived totals, not immutable receipts.
+    for key,value in metadata.items():
+        if key.endswith("_branch") and isinstance(value,dict) and set(COUNTERS) <= set(value.get("counter_origin",{})):
+            counts = key + "_counts"
+            if counts in source:
+                require(metadata.get(counts) == {k:metadata[k]-value["counter_origin"][k] for k in COUNTERS},
+                        "actual historical branch totals differ: " + counts)
+    if updates == 0:
+        require(metadata.get("actor_parameter_sha256") == source["actor_parameter_sha256"]
+                and _state(metadata) == _state(source)
+                and metadata.get("last_update") == source["last_update"]
+                and metadata.get("stage_requested_decisions") == source["stage_requested_decisions"],
+                "zero-update collection publication changed learned state or used budget")
+    else:
+        last = metadata.get("last_update", {})
+        require(last.get("global_policy_decisions") == metadata["global_policy_decisions"]
+                and last.get("ppo_update") == metadata["ppo_updates"]
+                and last.get("optimizer_steps") == 20
+                and last.get("actor_parameter_sha256_after") == metadata.get("actor_parameter_sha256")
+                and last.get("optimizer_learning_rate") == metadata.get("optimizer_learning_rate"),
+                "collection checkpoint lacks its actual complete update")
+    return receipt
+
+
+def publish_collection512_checkpoint(checkpoint, contract, output_checkpoint, *, reason,
+        expected_source_sha256, expected_manifest_sha256, project_root=None):
+    """Explicit zero-update boundary, then reuse the ordinary train/eval loaders.
+
+    Call only after the sole physical run has sealed. No teacher, fit, update,
+    pointer promotion, hidden source selection, or partial-rollout reuse occurs.
+    """
+    from .semantic_migration import file_sha
+    from .semantic_training import (construct_semantic_runner, load_semantic_checkpoint,
+        save_semantic_checkpoint, parameter_hash, state_hash, _normalizers)
+    from .semantic_rr_capture_migration import _shape_env
+    from .semantic_return_profile import COLLECTION_512
+    from .rl_library_wrapper import restore_training_rng_state, optimizer_learning_rate, capture_training_rng_state
+    checkpoint = Path(checkpoint).resolve(strict=True)
+    source = _checkpoint(checkpoint,expected_source_sha256,expected_manifest_sha256)
+    route = source["checkpoint_output_routing"]
+    branch = Path(route["output_root"])
+    validate_front_retention439_lineage(source,source["runtime_contract"],branch,checkpoint_output_routing=route)
+    binding = dict(checkpoint=str(checkpoint),checkpoint_sha256=expected_source_sha256,
+        manifest=str(checkpoint.with_name(checkpoint.stem+"_manifest.json")),manifest_sha256=expected_manifest_sha256)
+    require(json.loads((branch/"checkpoints/checkpoint_last_pointer.json").read_text(encoding="utf-8")) == binding,
+            "select the actual latest complete65a source after the active block seals")
+    _collection_delta(source["runtime_contract"],contract,
+        project_root=Path(project_root or Path(__file__).resolve().parents[3]))
+    receipt = _collection_record(source,binding,contract,reason)
+    destination = Path(output_checkpoint).resolve()
+    require(destination.parent == branch/"checkpoints/history" and not destination.exists()
+            and not destination.with_name(destination.stem+"_manifest.json").exists(),
+            "unique same-branch collection publication required")
+    def make(marker):
+        device = source["runner_config"]["device"]
+        return construct_semantic_runner(_shape_env(439,device),seed=source["seed"],device=device,
+            policy_version=REAR_OWNER_POLICY,observation_layout=REAR_OWNER_OBSERVATION_LAYOUT,
+            initialize_actor=False,collection_profile=marker)[0]
+    historical = make(None)  # Explicit historical128, no new collection marker.
+    require(historical._semantic_runner_config == source["runner_config"], "source128 factory reconstruction differs")
+    infos = load_semantic_checkpoint(historical,checkpoint,contract=source["runtime_contract"],seed=source["seed"])
+    runner = make(COLLECTION_512)
+    require(runner._semantic_runner_config == receipt["target_runner_config"], "target512 factory reconstruction differs")
+    runner.alg.actor.load_state_dict(historical.alg.actor.state_dict(),strict=True)
+    runner.alg.critic.load_state_dict(historical.alg.critic.state_dict(),strict=True)
+    runner.alg.optimizer.load_state_dict(copy.deepcopy(historical.alg.optimizer.state_dict()))
+    runner.alg.learning_rate = optimizer_learning_rate(historical)
+    runner.current_learning_iteration = historical.current_learning_iteration
+    require(runner.alg.storage.step == 0 and runner.alg.transition.actions is None,
+            "collection512 requires newly allocated empty rollout and transition")
+    restore_training_rng_state(source["training_rng_state"],expected_seed=source["seed"])
+    def verify_identity(target):
+        require(parameter_hash(target.alg.actor) == source["actor_parameter_sha256"]
+                and parameter_hash(target.alg.critic) == source["critic_parameter_sha256"]
+                and state_hash(target.alg.optimizer.state_dict()) == source["optimizer_state_sha256"]
+                and state_hash(_normalizers(target)) == source["normalizer_state_sha256"]
+                and optimizer_learning_rate(target) == source["optimizer_learning_rate"]
+                and capture_training_rng_state(seed=source["seed"]) == source["training_rng_state"],
+                "collection publication changed full learned/Adam/normalizer/LR/RNG state")
+    verify_identity(runner)
+    infos = {**infos,"runtime_contract":copy.deepcopy(contract),COLLECTION_KEY:receipt,
+             "old_rollout_inherited":False,"physical_env_state_saved":False,
+             "resume_physics":"legal_reset_not_bitwise_continuation"}
+    path,sidecar = save_semantic_checkpoint(runner,destination,infos)
+    fresh = make(COLLECTION_512)
+    loaded = load_semantic_checkpoint(fresh,path,contract=contract,seed=source["seed"])
+    verify_identity(fresh)
+    validate_collection439_lineage(loaded,contract,branch,checkpoint_output_routing=route)
+    return dict(checkpoint=str(path),checkpoint_sha256=file_sha(path),manifest=str(sidecar),
+        manifest_sha256=file_sha(sidecar),save_load_round_trip=True,latest_pointer_published=False,
+        collection_steps_per_env=512,**{k:loaded[k] for k in COUNTERS},
         added_policy_decisions=0,added_ppo_updates=0,added_optimizer_steps=0,added_auxiliary_updates=0)

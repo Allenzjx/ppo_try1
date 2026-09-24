@@ -783,6 +783,16 @@ def _resolved_policy_contract(args: argparse.Namespace) -> dict[str, Any]:
                            observation_layout=_resolved_observation_layout(args))
 
 
+def _checkpoint_collection_options(args):
+    """No CLI default change: only an explicitly published checkpoint selects512."""
+    if getattr(args, "checkpoint", None) is None:
+        return {}
+    from .semantic_front_retention439 import collection_runner_options
+    path = args.checkpoint.with_name(args.checkpoint.stem + "_manifest.json")
+    metadata = json.loads(path.read_text(encoding="utf-8"))
+    return collection_runner_options(metadata, experiment_id=getattr(args, "experiment_id", None))
+
+
 def _observation_layout_options(args: argparse.Namespace) -> dict[str, str]:
     layout = _resolved_observation_layout(args)
     return {} if layout is None else {"observation_layout": layout}
@@ -1003,7 +1013,7 @@ def _evaluation_body(core: Any, args: argparse.Namespace, *, contract: dict[str,
         metadata = json.loads(args.checkpoint.with_name(args.checkpoint.stem + "_manifest.json").read_text())
         runner, _ = construct_semantic_runner(ObservationEnv(), seed=int(metadata["seed"]), device=args.device,
             policy_version=_resolved_policy_version(args), initialize_actor=False,
-            **_observation_layout_options(args))
+            **_observation_layout_options(args), **_checkpoint_collection_options(args))
         load_semantic_checkpoint(runner, args.checkpoint, contract=contract, seed=int(metadata["seed"]),
                                  migration=getattr(args, "_migration_record", None))
         runner.alg.eval_mode()
@@ -1358,7 +1368,7 @@ def dispatch_live(args: argparse.Namespace, contract: dict[str, Any]) -> dict[st
         env.cfg["semantic_version"] = args.semantic_version
         runner, _ = construct_semantic_runner(env, seed=args.seed, device=args.device,
             policy_version=_resolved_policy_version(args), initialize_actor=args.checkpoint is None,
-            **_observation_layout_options(args))
+            **_observation_layout_options(args), **_checkpoint_collection_options(args))
         previous = None
         if args.checkpoint is not None:
             previous = load_semantic_checkpoint(runner, args.checkpoint, contract=contract, seed=args.seed,
