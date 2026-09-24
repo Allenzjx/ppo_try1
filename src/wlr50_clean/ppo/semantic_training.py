@@ -401,6 +401,12 @@ def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None
     log_prob = alg.actor.get_output_log_prob
     kl_method = alg.actor.get_kl_divergence
     active: dict[str, Any] = {}
+    front_replay = getattr(runner, "_semantic_front_replay", None)
+    front_before = front_replay.begin_update(alg.actor) if front_replay is not None else None
+    expected_steps = alg.num_learning_epochs * alg.num_mini_batches
+    front_minibatch_origin = (int(runner.current_learning_iteration) * expected_steps
+                              if front_replay is not None else 0)
+    live_generators = []
     gradients, clips, kls = [], [], []
     likelihood_rows = []
     sample_lookup = {}
@@ -415,13 +421,23 @@ def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None
             key = (observation.contiguous().numpy().tobytes(), action.contiguous().numpy().tobytes())
             sample_lookup.setdefault(key, []).append(index)
 
-    def batches(*args: Any, **kwargs: Any):
+    def batch_iterator(*args: Any, **kwargs: Any):
         for batch in generator(*args, **kwargs):
             active["batch"] = batch
             if task_head_audit:
                 active.pop("head", None)
                 active.pop("head_gradient", None)
-            yield batch
+            if front_replay is None:
+                yield batch
+            else:
+                with front_replay.minibatch(alg.actor,
+                        global_minibatch_index=front_minibatch_origin + len(front_replay.minibatches)):
+                    yield batch
+
+    def batches(*args: Any, **kwargs: Any):
+        iterator = batch_iterator(*args, **kwargs)
+        live_generators.append(iterator)
+        return iterator
 
     def observed_head_gradient(gradient):
         # Return None: observe autograd's real derivative without replacing it.
@@ -533,7 +549,9 @@ def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None
                 loss_gradient_wrt_network_log_sigma_full12=jsonable(derivative[..., 1, :]),
                 actor_head_postclip_parameter_gradient_norm_by_row=jsonable(row_norm),
                 separate_postclip_parameter_gradient_norms=separate_norms,
-                gradient_semantics="actual_total_official_loss_output_derivative_before_parameter_clipping;parameter_norms_after_separate_actor_critic_clipping;not_an_isolated_sample_update_or_Adam_parameter_delta")
+                gradient_semantics=("official_PPO_head_derivative_only;parameter_norms_include_declared_front_replay_KL_before_native_actor_clipping;not_an_isolated_sample_or_Adam_delta"
+                    if front_replay is not None else
+                    "actual_total_official_loss_output_derivative_before_parameter_clipping;parameter_norms_after_separate_actor_critic_clipping;not_an_isolated_sample_update_or_Adam_parameter_delta"))
 
     handle = alg.optimizer.register_step_pre_hook(optimizer_pre_step)
     head_handle = alg.actor.mlp.register_forward_hook(observed_actor_head) if task_head_audit else None
@@ -543,6 +561,8 @@ def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None
         alg.actor.get_kl_divergence = observed_kl
         loss = alg.update()
     finally:
+        for iterator in live_generators:
+            iterator.close()
         handle.remove()
         if head_handle is not None:
             head_handle.remove()
@@ -556,11 +576,17 @@ def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None
     values = [*gradients, *clips, *kls, *(float(value) for value in loss.values())]
     if any(not math.isfinite(value) for value in values):
         raise RuntimeError("non-finite PPO diagnostics")
+    front_report = (front_replay.finish_update(alg.actor, front_before, expected_steps)
+                    if front_replay is not None else None)
     if likelihood_audit_path is not None:
         write_json(likelihood_audit_path, {
             "schema": "wlr50_clean.task_recovery_minibatch_likelihood.v1",
             "source": "actual_official_PPO_log_prob_call_before_each_optimizer_step",
-            "extra_model_forwards": 0, "extra_random_draws": 0,
+            "extra_model_forwards": 0 if front_replay is None else expected_steps + 4,
+            "extra_forward_breakdown": (None if front_replay is None else
+                {"reference_KL_training": expected_steps, "reference_KL_fit_heldout_before_after": 4,
+                 "on_policy_likelihood_audit": 0}),
+            "front_replay_regularization": front_report, "extra_random_draws": 0,
             "sample_index_basis": "time_major_flattened_saved_rollout",
             "ambiguous_identical_observation_and_action_indices_retained": True,
             "clip_param": alg.clip_param, "minibatches": likelihood_rows})
@@ -570,7 +596,8 @@ def audited_ppo_update(runner: Any, *, likelihood_audit_path: Path | None = None
             "gradient_norm_min": min(gradients), "gradient_norm_max": max(gradients),
             "kl_mean": sum(kls) / len(kls), "clip_fraction": sum(clips) / len(clips),
             "entropy": float(loss["entropy"]), "value_loss": float(loss["value"]),
-            "surrogate_loss": float(loss["surrogate"]), "optimizer_learning_rate": optimizer_learning_rate(runner)}
+            "surrogate_loss": float(loss["surrogate"]), "optimizer_learning_rate": optimizer_learning_rate(runner),
+            **({"front_replay_regularization": front_report} if front_report is not None else {})}
 
 
 def _normalizers(runner: Any) -> dict[str, Any]:
@@ -588,6 +615,9 @@ def _runner_policy_contract(runner: Any) -> dict[str, Any]:
 
 def save_semantic_checkpoint(runner: Any, checkpoint: Path, infos: Mapping[str, Any]) -> tuple[Path, Path]:
     """Publish immutable official state, then prove a real load restores it."""
+    if "front_preservation439_branch_identity" in infos:
+        from .semantic_front_preservation import front_preservation_branch_counts
+        infos = front_preservation_branch_counts(infos)
     if "rear_policy_timing_branch" in infos:
         from .semantic_rear_policy_timing_migration import rear_policy_timing_branch_counts
         infos = rear_policy_timing_branch_counts(infos)
@@ -623,6 +653,11 @@ def save_semantic_checkpoint(runner: Any, checkpoint: Path, infos: Mapping[str, 
         metadata["policy_contract"] = _runner_policy_contract(runner)
     elif runner._semantic_policy_version != LEGACY_POLICY:
         raise RuntimeError("state-dependent checkpoint has an unsupported observation layout")
+    if "front_preservation439_branch_identity" in metadata:
+        from .semantic_front_preservation import validate_front_preservation_lineage
+        route = metadata.get("checkpoint_output_routing", {})
+        validate_front_preservation_lineage(metadata, metadata["runtime_contract"], Path(route.get("output_root", "")),
+            checkpoint_output_routing=route)
     if "front_retention439_runtime_identity" in metadata or "front_retention439_auxiliary" in metadata:
         from .semantic_front_retention439 import validate_front_retention439_lineage
         route = metadata.get("checkpoint_output_routing", {})
@@ -981,6 +1016,11 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         return _load_v3_warm_start(runner, checkpoint, contract=contract, seed=seed, record=warm_start)
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
     metadata = json.loads(sidecar.read_text(encoding="utf-8"))
+    if "front_preservation439_branch_identity" in metadata:
+        from .semantic_front_preservation import validate_front_preservation_lineage
+        route = metadata.get("checkpoint_output_routing", {})
+        validate_front_preservation_lineage(metadata, metadata["runtime_contract"], Path(route.get("output_root", "")),
+            checkpoint_output_routing=route)
     if "front_retention439_runtime_identity" in metadata or "front_retention439_auxiliary" in metadata:
         from .semantic_front_retention439 import validate_front_retention439_lineage
         route = metadata.get("checkpoint_output_routing", {})
@@ -2089,6 +2129,10 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
     if checkpoint_interval_updates < 1:
         raise ValueError("checkpoint cadence must be positive")
     previous = dict(resume_infos or {})
+    if "front_preservation439_branch_identity" in previous:
+        from .semantic_front_replay import FrontReplayRegularizer
+        runner._semantic_front_replay = FrontReplayRegularizer(
+            previous["front_preservation439_branch_identity"]["front_replay_spec"], device=runner.device)
     rear_timing = "rear_policy_timing_migration" in previous
     if rear_timing:
         from .semantic_rear_policy_timing_migration import validate_rear_policy_namespace
@@ -2354,7 +2398,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                     from .semantic_migration import continuation_topology
                     infos["execution_topology"] = continuation_topology(sampling, prefix_request,
                         observation_layout=getattr(runner, "_semantic_observation_layout", None))
-                for key in ("collection_horizon439", "front_retention439_runtime_identity", "front_retention439_auxiliary", "rr_retention_reward_migration", "rear_owner_recovery_migration", "cooperative_prep_migration", "p02_progress_migration", "rear_live_swing_migration", "rear_recapture_migration", "rear_policy_timing_migration", "rear_policy_timing_branch",
+                for key in ("front_preservation439_branch_identity", "collection_horizon439", "front_retention439_runtime_identity", "front_retention439_auxiliary", "rr_retention_reward_migration", "rear_owner_recovery_migration", "cooperative_prep_migration", "p02_progress_migration", "rear_live_swing_migration", "rear_recapture_migration", "rear_policy_timing_migration", "rear_policy_timing_branch",
                             "new_mdp_warm_start", "new_mdp_origin_global_policy_decisions", "source_stage_requested_decisions",
                             "new_mdp_initial_action_comparison", "policy_distribution_migration",
                             "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison",
@@ -2378,6 +2422,14 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                             "p05_preedge_approach_recovery_migration", "p05_preedge_approach_recovery_branch"):
                     if key in previous:
                         infos[key] = previous[key]
+                if "front_preservation439_branch_identity" in infos:
+                    replay_previous = previous["front_replay_counts"]
+                    replay_reports = [row["front_replay_regularization"] for row in updates]
+                    infos["front_replay_counts"] = {
+                        "ppo_updates_with_replay": replay_previous["ppo_updates_with_replay"] + len(replay_reports),
+                        "optimizer_minibatches": replay_previous["optimizer_minibatches"] + sum(len(row["minibatches"]) for row in replay_reports),
+                        "replay_row_exposures": replay_previous["replay_row_exposures"] + sum(row["actual_replay_row_exposures"] for row in replay_reports),
+                        "on_policy_samples_added": 0, "separate_auxiliary_optimizer_steps": 0}
                 if "task_recovery_branch" in infos:
                     origin = infos["task_recovery_branch"]["counter_origin"]
                     infos["task_recovery_branch_counts"] = {

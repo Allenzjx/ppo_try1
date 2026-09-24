@@ -124,6 +124,9 @@ def rear_policy_timing_branch_counts(infos):
 
 def build_rear_policy_output_routing(metadata, contract, destination):
     """Bind this reviewed ancestor branch, never a historical RR410 output route."""
+    if "front_preservation439_branch_identity" in metadata:
+        from .semantic_front_preservation import build_front_preservation_output_routing
+        return build_front_preservation_output_routing(metadata, contract, destination)
     from .semantic_rear_recapture_migration import BRANCH_NAME, SOURCE_SELECTION, MIGRATION as RECAPTURE
     destination = Path(destination).resolve()
     route = dict(schema='wlr50_clean.checkpoint_output_routing.v1',branch=BRANCH_NAME,
@@ -145,6 +148,10 @@ def build_rear_policy_output_routing(metadata, contract, destination):
 def validate_rear_policy_namespace(metadata,contract,output_root, *, checkpoint_output_routing=None):
     from .semantic_migration import digest
     from .semantic_policy_distribution import policy_contract
+    if "front_preservation439_branch_identity" in metadata:
+        from .semantic_front_preservation import validate_front_preservation_lineage
+        return validate_front_preservation_lineage(metadata, contract, output_root,
+            checkpoint_output_routing=checkpoint_output_routing)
     if 'front_retention439_runtime_identity' in metadata or 'front_retention439_auxiliary' in metadata:
         from .semantic_front_retention439 import validate_front_retention439_lineage
         validate_front_retention439_lineage(metadata,contract,output_root,

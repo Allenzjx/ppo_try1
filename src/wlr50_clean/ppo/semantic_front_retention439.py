@@ -447,6 +447,9 @@ COLLECTION_FILES = frozenset(CODE + name for name in (
 
 def collection_runner_options(metadata, *, experiment_id):
     """Select the explicit new constructor only; full lineage still loads normally."""
+    if "front_preservation439_branch_identity" in metadata:
+        from .semantic_front_preservation import front_preservation_collection_options
+        return front_preservation_collection_options(metadata, experiment_id=experiment_id)
     from .semantic_return_profile import COLLECTION_PROFILE_KEY, COLLECTION_512, runner_collection_length
     config = metadata.get("runner_config", {})
     length = runner_collection_length(config)

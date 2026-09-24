@@ -104,17 +104,47 @@ def test_schema_exact_old422_prefix_and_missing_marker(tmp_path):
     with pytest.raises(ValueError): load_semantic_observation_schema(path)
 
 
-def test_actual_source_build_and_precise_ancestry_negative():
+def test_actual_source_build_and_precise_ancestry_negative(monkeypatch):
+    # This is the historical422->f6d439 migration, not a migration to whatever
+    # runtime happens to be checked out now (e.g. the later512 collector).
+    import hashlib
+    from wlr50_clean.ppo import semantic_migration as migration_module
     source = json.loads(SOURCE.with_name(SOURCE.stem+'_manifest.json').read_text())
-    current = copy.deepcopy(source['runtime_contract']); current['source_git_commit'] = 'f'*40
-    for path in m.ALLOWED:
-        if (ROOT/path).exists(): current['files'][path] = file_sha(ROOT/path)
-    for row in current['selected_configuration'].values(): row['sha256'] = current['files'][row['path']]
-    current['runtime_content_sha256'] = digest(current['files'])
-    current['training_budgets']['phase_suffix'] = 131072
-    record = m.build_rear_owner_migration(SOURCE,current,reason='synthetic target contract test, not publication')
+    historical_sidecar = SOURCE.with_name('checkpoint_rear_owner_CP225280_gf6d1d2df8d87_manifest.json')
+    published = json.loads(historical_sidecar.read_text())
+    current = copy.deepcopy(published['runtime_contract'])
+    target_head = 'f6d1d2df8d87d5f3eaaefc2254adb5f81fc52e2b'
+    assert current['source_git_commit'] == target_head
+    assert file_sha(historical_sidecar) == 'f501b7a735c0aaa42be00114e09f80d46f7f009d7717aa416fc30ad3cc837d6d'
+    actual_file_sha, historical_hashes = migration_module.file_sha, {}
+
+    def historical_target_file_sha(path):
+        # Mock only the runtime-byte accessor. Each returned hash is calculated
+        # from actual immutable git bytes with the existing manifest-matched
+        # LF/CRLF reconstruction. Checkpoints/manifests and paths outside that inventory
+        # retain normal live-file hashing. No lineage validator is mocked.
+        path = Path(path).resolve()
+        try:
+            relative = path.relative_to(ROOT).as_posix()
+        except ValueError:
+            return actual_file_sha(path)
+        if relative not in current['files']:
+            return actual_file_sha(path)
+        if relative not in historical_hashes:
+            # An unchanged file may retain historical mixed Windows line ends.
+            # Accept its actual bytes only when the published hash matches.
+            blob = (path.read_bytes() if actual_file_sha(path) == current['files'][relative]
+                    else migration_module._version_bytes(ROOT, current, relative, prefer_worktree=False))
+            measured = hashlib.sha256(blob).hexdigest()
+            assert measured == current['files'][relative]
+            historical_hashes[relative] = measured
+        return historical_hashes[relative]
+
+    monkeypatch.setattr(migration_module, 'file_sha', historical_target_file_sha)
+    record = m.build_rear_owner_migration(SOURCE,current,reason='historical f6d target contract test, not publication')
     factor = record[m.FACTOR_KEY]
     assert m._previous_contract(current,record) == source['runtime_contract']
+    assert set(historical_hashes) == set(current['files'])
     migrated = copy.deepcopy(source)
     migrated.update(runtime_contract=current,policy_contract=factor['target_policy_contract'],runner_config=factor['target_runner_config'],**{m.MIGRATION:record})
     route = source['checkpoint_output_routing']
