@@ -97,7 +97,9 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
                             capture_assist_context: Mapping[str, Any] | None = None,
                             rr_capture_assist: Any = None,
                             rr_capture_assist_context: Mapping[str, Any] | None = None,
-                            rr_carry_wheel_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
+                            rr_carry_wheel_context: Mapping[str, Any] | None = None,
+                            rear_owner_recovery: Any = None,
+                            rear_owner_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Dispatch independent policy residual without treating it as tracking bias."""
     # Keep the original controller envelope, including for the exact-zero path.
     controller = _full12_drive_feedback_bias(controller_bias_full12)
@@ -145,7 +147,8 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
     reference_history_nonzero = (tracking_reference is not None and
         any(tracking_reference["previous_requested_full12"][:8]))
     if (not any(residual) and nominal_geometry_context is None and not reference_history_nonzero
-            and capture_assist is None and rr_capture_assist is None and rr_carry_wheel_context is None):
+            and capture_assist is None and rr_capture_assist is None and rr_carry_wheel_context is None
+            and rear_owner_recovery is None):
         ack = adapter.apply_full12(command, physics_tick=physics_tick,
             tracking_servo_names=tracking_servo_names, drive_feedback_bias_full12=controller)
         if policy_headroom_mode is not None:
@@ -275,12 +278,32 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
             transform_semantics="observable_state_dependent_RR_final_target_before_existing_hard_clamp_and_slew",
             nominal_history_receives_assist=False)
         evidence["rr_capture_assist_evidence"] = receipt
+    owner_targets = None
+    if rear_owner_recovery is not None:
+        if rear_owner_context is None or rear_owner_context.get("dispatch_physics_tick") != tick:
+            raise RobotAdapterError("owner suspension requires matching physical context")
+        candidate = tuple(a+b for a,b in zip(corrected_native, effective_combined, strict=True))
+        if assist_targets is not None:
+            candidate = assist_targets
+        if rr_assist_targets is not None:
+            raise RobotAdapterError("rear owner recovery cannot mix live rear capture assistance")
+        context = dict(rear_owner_context)
+        if "capture_assist_evidence" in evidence and evidence["capture_assist_evidence"]["owner_indices"]:
+            context["winning_late_owner"] = [False, False, *context["winning_late_owner"][2:]]
+        receipt = rear_owner_recovery.advance(context=context,
+            previous_ack=adapter.last_ack, write_count=adapter.write_count,
+            previous_tick=adapter._last_physics_tick, request=residual, candidate=candidate,
+            capacities=context["capacities_full12"])
+        evidence["rear_owner_recovery_evidence"] = receipt
+        owner_targets = tuple(receipt["candidate_after_full12"])
     final_servo = []
     for index, (name, target, bias) in enumerate(zip(SERVO_ORDER, corrected_native[:8], effective_combined[:8], strict=True)):
         if assist_targets is not None and index in evidence["capture_assist_evidence"]["owner_indices"]:
             target, bias = assist_targets[index], 0.
         if rr_assist_targets is not None and index in evidence["rr_capture_assist_evidence"]["owner_indices"]:
             target, bias = rr_assist_targets[index], 0.
+        if owner_targets is not None and index in evidence["rear_owner_recovery_evidence"]["owner_indices"]:
+            target, bias = owner_targets[index], 0.
         lower, upper = servo_limits_deg(name)
         final_servo.append(bounded_drive_feedback_step(
             previous_deg=adapter._final_drive_servo_deg[name], native_deg=target,
@@ -372,7 +395,8 @@ class SemanticActuationDispatch:
                  tracking_reference_bootstrap_tick: int | None = None,
                  capture_assist: Any = None, capture_assist_context: Mapping[str, Any] | None = None,
                  rr_capture_assist: Any = None, rr_capture_assist_context: Mapping[str, Any] | None = None,
-                 rr_carry_wheel_context: Mapping[str, Any] | None = None):
+                 rr_carry_wheel_context: Mapping[str, Any] | None = None,
+                 rear_owner_recovery: Any = None, rear_owner_context: Mapping[str, Any] | None = None):
         self.adapter, self.plan = adapter, plan
         self.nominal_geometry_context = nominal_geometry_context
         self.policy_headroom_mode = policy_headroom_mode
@@ -383,6 +407,8 @@ class SemanticActuationDispatch:
         self.rr_capture_assist = rr_capture_assist
         self.rr_capture_assist_context = rr_capture_assist_context
         self.rr_carry_wheel_context = rr_carry_wheel_context
+        self.rear_owner_recovery = rear_owner_recovery
+        self.rear_owner_context = rear_owner_context
 
     def __getattr__(self, name):
         return getattr(self.adapter, name)
@@ -401,4 +427,5 @@ class SemanticActuationDispatch:
             tracking_reference_bootstrap_tick=self.tracking_reference_bootstrap_tick,
             capture_assist=self.capture_assist, capture_assist_context=self.capture_assist_context,
             rr_capture_assist=self.rr_capture_assist, rr_capture_assist_context=self.rr_capture_assist_context,
-            rr_carry_wheel_context=self.rr_carry_wheel_context)
+            rr_carry_wheel_context=self.rr_carry_wheel_context,
+            rear_owner_recovery=self.rear_owner_recovery, rear_owner_context=self.rear_owner_context)

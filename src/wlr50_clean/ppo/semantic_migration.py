@@ -3823,6 +3823,9 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                             project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     path = Path(plan_path).resolve(strict=True)
     supplied = json.loads(path.read_text(encoding="utf-8"))
+    if supplied.get("schema") == "wlr50_clean.rear_owner_recovery_append439.v1":
+        from .semantic_rear_owner_migration import validate_rear_owner_migration
+        return validate_rear_owner_migration(checkpoint, current_contract, plan_path, project_root=project_root)
     if supplied.get("schema") == "wlr50_clean.cooperative_prep_same422.v4":
         from .semantic_cooperative_prep_migration import validate_cooperative_prep_migration
         return validate_cooperative_prep_migration(
@@ -3966,9 +3969,11 @@ def topology(num_envs: int, *, observation_layout: str | None = None) -> dict[st
         from .semantic_rr_capture_profile import RR_CAPTURE_OBSERVATION_LAYOUT, RR_CAPTURE_OBSERVATION_DIM
         from .semantic_rear_policy_timing_profile import REAR_POLICY_TIMING_OBSERVATION_LAYOUT, REAR_POLICY_TIMING_OBSERVATION_DIM
         from .semantic_p02_progress_profile import P02_PROGRESS_OBSERVATION_LAYOUT
-        if type(observation_layout) is not str or observation_layout not in (ROLE_OBSERVATION_LAYOUT,P05_CAPTURE_OBSERVATION_LAYOUT,RR_CAPTURE_OBSERVATION_LAYOUT,REAR_POLICY_TIMING_OBSERVATION_LAYOUT,P02_PROGRESS_OBSERVATION_LAYOUT) or num_envs != 1:
+        from .semantic_rear_owner_profile import REAR_OWNER_OBSERVATION_LAYOUT
+        if type(observation_layout) is not str or observation_layout not in (ROLE_OBSERVATION_LAYOUT,P05_CAPTURE_OBSERVATION_LAYOUT,RR_CAPTURE_OBSERVATION_LAYOUT,REAR_POLICY_TIMING_OBSERVATION_LAYOUT,P02_PROGRESS_OBSERVATION_LAYOUT,REAR_OWNER_OBSERVATION_LAYOUT) or num_envs != 1:
             raise ValueError("role observation topology requires the explicit supported N1 layout")
-        result.update(observation_layout=observation_layout, observation_dimension=(422
+        result.update(observation_layout=observation_layout, observation_dimension=(439
+            if observation_layout == REAR_OWNER_OBSERVATION_LAYOUT else 422
             if observation_layout == P02_PROGRESS_OBSERVATION_LAYOUT else REAR_POLICY_TIMING_OBSERVATION_DIM
             if observation_layout == REAR_POLICY_TIMING_OBSERVATION_LAYOUT else RR_CAPTURE_OBSERVATION_DIM
             if observation_layout == RR_CAPTURE_OBSERVATION_LAYOUT else P05_CAPTURE_OBSERVATION_DIM

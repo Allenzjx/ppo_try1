@@ -242,8 +242,8 @@ def load_semantic_reward_config(path: Path | str = DEFAULT_REWARD_CONFIG) -> Sem
     _validate_carry_body_allowance(v)
     _validate_task_priority(v)
     if "cooperative_preparation" in v:
-        from .semantic_cooperative_preparation import REWARD_CONFIG
-        if (v['cooperative_preparation'] != REWARD_CONFIG
+        from .semantic_cooperative_preparation import REWARD_CONFIG, TASK_PROXY_REWARD_CONFIG
+        if (v['cooperative_preparation'] not in (REWARD_CONFIG, TASK_PROXY_REWARD_CONFIG)
                 or v.get('objective_profile') != TASK_CONDITIONED_QUALITY_OBJECTIVE):
             raise ValueError('cooperative preparation requires its bounded explicit reward revision')
     config = SemanticRewardConfig(v,selected)

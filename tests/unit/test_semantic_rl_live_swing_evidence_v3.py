@@ -23,6 +23,11 @@ CONFIG = ROOT / 'configs/ppo_rr_rl_timing_policy_learning_v1'
 def setup(mode=LIVE_SWING_MODE):
     spec = load_task_spec(CONFIG / 'stage_task_spec.yaml')
     spec['nominal']['rear_policy_timing'] = mode
+    if mode in (MODE, RECAPTURE_MODE, LIVE_SWING_MODE):
+        # Historical v1/v2/v3 sensor fixtures do not carry the later v5
+        # pose-aware collider proxies. Isolate the old specification only;
+        # callers requesting EDGE/v5 retain the current proxy requirements.
+        spec['cooperative_preparation_mode'] = None
     ev, obs = TaskEvaluator(spec=spec), new_observation()
     obs['center_of_mass'] = dict(valid=True, position_w_m=[.30, 0., .10],
         velocity_w_m_s=[0., 0., 0.], total_mass_kg=3., included_bodies=['synthetic'])

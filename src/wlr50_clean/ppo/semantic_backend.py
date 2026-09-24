@@ -89,8 +89,8 @@ def load_execution_profile(path: Path | str = DEFAULT_EXECUTION_PROFILE) -> dict
     from .semantic_p02_progress_profile import P02_PROGRESS_MODE
     if profile.get("p02_progress_credit_mode") not in (None, P02_PROGRESS_MODE):
         raise ValueError("unknown measured P02 progress execution mode")
-    from .semantic_cooperative_preparation import MODE as COOPERATIVE_PREP_MODE
-    if profile.get("cooperative_preparation_mode") not in (None, COOPERATIVE_PREP_MODE):
+    from .semantic_cooperative_preparation import MODES as COOPERATIVE_PREP_MODES
+    if profile.get("cooperative_preparation_mode") not in (None, *COOPERATIVE_PREP_MODES):
         raise ValueError("unknown cooperative preparation mode")
     if profile.get("cooperative_preparation_mode") and not rear_timing:
         raise ValueError("cooperative preparation requires observed rear timing")
@@ -165,10 +165,19 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         self.task_spec_path = Path(task_spec_path).resolve()
         rr_task_spec = yaml.safe_load(self.task_spec_path.read_text(encoding="utf-8"))
         self._rear_policy_timing_mode = self.execution_profile.get("rear_policy_timing_mode")
+        from .semantic_rear_owner_recovery import MODE as OWNER_MODE, RearOwnerRecovery
+        owner_mode = self.execution_profile.get("rear_owner_recovery_mode")
+        if owner_mode not in (None, OWNER_MODE) or owner_mode != rr_task_spec.get("rear_owner_recovery_mode"):
+            raise ValueError("rear owner recovery task/execution modes differ")
+        self._rear_owner_recovery = RearOwnerRecovery() if owner_mode else None
         if self.execution_profile.get("p02_progress_credit_mode") != rr_task_spec.get("p02_progress_credit_mode"):
             raise ValueError("P02 progress execution and supervisor modes differ")
         if self.execution_profile.get("cooperative_preparation_mode") != rr_task_spec.get("cooperative_preparation_mode"):
             raise ValueError("cooperative preparation execution and supervisor modes differ")
+        if rr_task_spec.get('cooperative_fl_knee_capacity_deg') is not None and any(
+                self.execution_profile['residual']['phase_caps_full12'][f'P{i:02d}'][1]
+                != rr_task_spec['cooperative_fl_knee_capacity_deg'] for i in range(7, 13)):
+            raise ValueError('cooperative FL reserve must use actual rear-window request capacity')
         if self._rear_policy_timing_mode != rr_task_spec.get("nominal", {}).get("rear_policy_timing"):
             raise ValueError("rear timing task and execution profile must agree")
         self._rr_support_spec = rr_task_spec["support"]
@@ -196,6 +205,8 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         self._level_fixed = tuple(float(x) for x in self.execution_profile["level_reference_orientation_wxyz"])
 
     def reset(self, *, seed: int, options: Mapping[str, Any]) -> AuthoritativeFrame:
+        if getattr(self, "_rear_owner_recovery", None) is not None:
+            self._rear_owner_recovery.reset()
         self._reset_generation += 1
         self._poison_episode_state_for_reset(clear_evidence=True)
         if self.execution_profile.get("capture_assist_mode"):
@@ -366,13 +377,34 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                     previous_ack=adapter.last_ack or {}, physics_tick=physics_tick,
                     support_spec=active_controller.supervisor.spec["support"])
             wheel_context = self._rr_carry_pre_dispatch_context(physics_tick)
+            owner = getattr(self, "_rear_owner_recovery", None)
+            owner_context = None
+            if getattr(self._controller, "mode", None) in ("TEACHER", "TAKEOVER"):
+                owner = None
+            if owner is not None:
+                from .semantic_rear_policy_timing import rear_dependency
+                active = getattr(self._controller, "_semantic", None) or self._controller
+                task = self._controller.task_snapshot
+                dep = rear_dependency(task, self._rr_support_spec, mode=self._rear_policy_timing_mode)
+                ev = task.get("physical_evaluator", {})
+                owner_context = dict(dep, dispatch_physics_tick=physics_tick,
+                    winning_late_owner=active.nominal_provider.rear_late_owner_bits(),
+                    capacities_full12=list(self.execution_profile["residual"]["phase_caps_full12"][task["stage_id"]]),
+                    live=bool(ev.get("valid") is True and task.get("termination_reason") is None
+                              and ev.get("termination_reason") is None))
+                # Capture independently before the adapter mutates its state;
+                # the post-write actuator audit never trusts ACK anchors alone.
+                import copy
+                adapter._semantic_owner_pre_dispatch = dict(state_before=owner.snapshot(),
+                    context=copy.deepcopy(owner_context), previous_ack=copy.deepcopy(adapter.last_ack))
             adapter = SemanticActuationDispatch(adapter, plan, nominal_geometry_context=geometry,
                 policy_headroom_mode=getattr(self, "_policy_headroom_mode", None),
                 tracking_reference_mode=getattr(self, "_tracking_reference_mode", None),
                 tracking_reference_bootstrap_tick=SETTLE_TICKS + self._reset_prime_tick_count,
                 capture_assist=assist, capture_assist_context=assist_context,
                 rr_capture_assist=rr_assist, rr_capture_assist_context=rr_context,
-                rr_carry_wheel_context=wheel_context)
+                rr_carry_wheel_context=wheel_context,
+                rear_owner_recovery=owner, rear_owner_context=owner_context)
         ack = super()._atomic_apply(adapter, command, physics_tick=physics_tick,
             tracking_servo_names=tracking_servo_names,
             drive_feedback_bias_full12=drive_feedback_bias_full12)
@@ -513,6 +545,16 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                 if provider is not None else public_timing(controller.task_snapshot, [], self._rr_support_spec, 120.,
                     mode=self._rear_policy_timing_mode))
             info["rear_task_assist_disabled"] = True
+        if getattr(self, "_rear_owner_recovery", None) is not None:
+            from .semantic_rear_policy_timing import rear_dependency
+            state = self._rear_owner_recovery.snapshot()
+            active = getattr(controller, "_semantic", None) or controller
+            provider = getattr(active, "nominal_provider", None)
+            state["winning_late_owner"] = provider.rear_late_owner_bits() if provider else [False] * 4
+            state["rl_edge_recovery_permitted"] = rear_dependency(controller.task_snapshot,
+                self._rr_support_spec, mode=self._rear_policy_timing_mode)["rl_edge_recovery_permitted"]
+            info["rear_owner_recovery"] = state
+            info["rear_owner_recovery_evidence"] = ack.get("rear_owner_recovery_evidence")
         unsafe = any((termination.body_collision, termination.wheel_only_climb,
                       termination.fall, termination.nan_inf, termination.hard_joint_limit, termination.physics_explosion))
         return AuthoritativeFrame(

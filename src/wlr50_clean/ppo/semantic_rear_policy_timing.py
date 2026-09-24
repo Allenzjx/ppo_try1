@@ -11,7 +11,9 @@ from typing import Mapping, Any
 MODE = "rr_capture_before_rl_transfer_v1"
 RECAPTURE_MODE = "rr_recapture_current_support_v2"
 LIVE_SWING_MODE = "rr_live_swing_evidence_v3"
-RECAPTURE_MODES = (RECAPTURE_MODE, LIVE_SWING_MODE)
+EDGE_RECOVERY_MODE = "rr_rl_edge_recovery_v4"
+LIVE_SWING_MODES = (LIVE_SWING_MODE, EDGE_RECOVERY_MODE)
+RECAPTURE_MODES = (RECAPTURE_MODE, *LIVE_SWING_MODES)
 MODES = (MODE, *RECAPTURE_MODES)
 
 
@@ -24,7 +26,17 @@ def verified_bearing(row: Mapping[str, Any], support: Mapping[str, Any]) -> bool
         and (row.get("ground_contact") is True or row.get("top_surface_contact") is True))
 
 
-def rear_dependency(task: Mapping[str, Any], support: Mapping[str, Any]) -> dict[str, bool]:
+def rear_dependency(task: Mapping[str, Any], support: Mapping[str, Any], *,
+                    mode: str | None = MODE) -> dict[str, bool]:
+    """Separate load-dependent transfer from current RL recovery permission.
+
+    EDGE permission does not authorize the P12 strong-unload source lane or
+    assert a support force. It exposes an already-qualified attempt's legal
+    recovery path; final actuator limits and physical safety remain elsewhere.
+    Legacy modes retain their AIR-only continuation semantics.
+    """
+    if mode not in (None, *MODES):
+        raise ValueError("unknown rear policy timing mode")
     ev = task.get("physical_evaluator", {})
     legs = ev.get("current_legs", {})
     rr, rl = legs.get("RR", {}), legs.get("RL", {})
@@ -42,22 +54,46 @@ def rear_dependency(task: Mapping[str, Any], support: Mapping[str, Any]) -> dict
     rl_continuing = bool(live and rl.get("current_lift_valid") is True
         and rl.get("motion_continuation_allowed") is True and rl.get("air") is True
         and rl.get("ground_contact") is False)
+    # Consume the real evaluator's *current*, ground-revoked same-attempt
+    # evidence, never history.active_lift/placed. An ambiguous exact obstacle
+    # pair can permit disengagement without becoming verified bearing or TOP.
+    qualified_tick = rl.get("current_lift_qualified_tick")
+    tick = ev.get("physics_tick")
+    reaction = rl.get("contact_reaction_force_n")
+    edge_recovery = bool(mode == EDGE_RECOVERY_MODE and live
+        and rl.get("current_lift_valid") is True
+        and rl.get("motion_continuation_allowed") is True
+        and rl.get("active_attempt") is True
+        and type(tick) is int and type(qualified_tick) is int
+        and 0 <= qualified_tick <= tick
+        and rl.get("air") is False and rl.get("ground_contact") is False
+        and rl.get("obstacle_pair_active") is True
+        and rl.get("contact_reaction") is True
+        and type(reaction) in (int, float) and math.isfinite(reaction) and reaction >= 0.
+        and rl.get("top_contact") is False and rl.get("top_surface_contact") is False
+        and rl.get("contact_mode") in ("FRONT_WALL", "OBSTACLE_AMBIGUOUS")
+        and rl.get("contact_surface") == rl.get("contact_mode"))
     return dict(rr_top_contact=top, rr_current_bearing=bool(bearing),
         support_transfer_permitted=bool(live and bearing and bridge),
-        rl_current_swing=rl_continuing)
+        rl_current_swing=rl_continuing,
+        rl_edge_recovery_permitted=edge_recovery,
+        rl_motion_continuation_permitted=bool(rl_continuing or edge_recovery))
 
 
 def public_timing(task, layers, support, physics_hz, *, mode=MODE):
     if mode not in (None, *MODES):
         raise ValueError("unknown rear policy timing mode")
-    dep = rear_dependency(task, support)
+    dep = rear_dependency(task, support, mode=mode)
     by_phase = {layer["stage"]: layer for layer in layers}
     p09, p12 = by_phase.get("P09", {}), by_phase.get("P12", {})
     late_started = "late_group_start_tick" in p09.get("sequence_diagnostic", {})
     rear = task.get("stage_id") in ("P07", "P08", "P09", "P10", "P11", "P12")
     ev = task.get("physical_evaluator", {})
     rr = ev.get("current_legs", {}).get("RR", {})
-    swing = rear and dep["rl_current_swing"]
+    # The existing public task flag means swing/capture *work*, not AIR or
+    # bearing. V4 includes same-attempt edge recovery; the separate dependency
+    # flags retain the exact AIR/EDGE distinction for source-owner consumers.
+    swing = rear and dep["rl_motion_continuation_permitted"]
     placed = ev.get("history", {}).get("placed", {})
     live = bool(ev.get("valid") is True and ev.get("termination_reason") is None
                 and task.get("termination_reason") is None)

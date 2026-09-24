@@ -8,10 +8,13 @@ from collections.abc import Mapping
 import math
 
 MODE = 'rr_capture_cooperative_preparation_v4'
+TASK_PROXY_MODE = 'rr_capture_cooperative_preparation_v5'
+MODES = (MODE, TASK_PROXY_MODE)
 WORKSPACE_WEIGHTS = dict(edge=.25, receiver=.5, fl_range=.125, rl_space=.125)
 REWARD_CONFIG = dict(mode=MODE, counterroll_cost_per_s=.01,
     force_noise_floor_n=.2, clearance_scale_m=.020,
     workspace_weights=WORKSPACE_WEIGHTS)
+TASK_PROXY_REWARD_CONFIG = dict(REWARD_CONFIG, mode=TASK_PROXY_MODE)
 
 
 def member(value, key):
@@ -42,15 +45,65 @@ def aabb_clearance(bounds, obstacle):
     return math.sqrt(sum(x*x for x in delta))
 
 
+def measured_task_proxies(*, knee_deg, joint_limits, servo_reserve_deg,
+                          fl_action_capacity_deg, rl_bounds, obstacle,
+                          clearance_scale_m):
+    """Finite command reserve and wheel-to-top corridor deficit, not IK.
+
+    One currently allowed residual excursion defines useful FL command reserve;
+    neither a preferred knee angle nor a force/lever-arm guarantee is inferred.
+    RL distance is TO the useful above-top/lateral corridor, not AWAY from the
+    obstacle: a far-behind ground wheel cannot earn full clearance. Forward
+    approach remains the existing separate edge term. No new memory or target.
+    """
+    knee = finite(knee_deg, 'FL actual knee')
+    lo, hi = (finite(x, 'physical joint bound') for x in joint_limits)
+    reserve = finite(servo_reserve_deg, 'actual servo protection reserve')
+    capacity = finite(fl_action_capacity_deg, 'current FL knee residual capacity')
+    if not (lo < hi and 0. <= reserve < (hi-lo)/2. and capacity > 0.):
+        raise ValueError('ordered bounds, valid protection reserve and positive current capacity required')
+    negative = max(0., knee-(lo+reserve))
+    positive = max(0., (hi-reserve)-knee)
+    # Positive escape room prevents increasing the knee indefinitely for credit.
+    # Out-of-hard-range actual readings produce zero; original safety owns aborts.
+    command_credit = min(clip(negative/capacity), clip(positive/capacity))
+    low = tuple(finite(x, 'RL collider min') for x in member(rl_bounds, 'minimum_m'))
+    high = tuple(finite(x, 'RL collider max') for x in member(rl_bounds, 'maximum_m'))
+    if len(low) != 3 or len(high) != 3 or any(a > b for a, b in zip(low, high)):
+        raise ValueError('ordered current RL wheel collider bounds required')
+    front, back, right, left, bottom, top = (finite(member(obstacle, k), k) for k in
+        ('front_x_m', 'back_x_m', 'right_y_m', 'left_y_m', 'bottom_z_m', 'top_z_m'))
+    margin = finite(clearance_scale_m, 'existing task clearance margin')
+    if not (front < back and right < left and bottom < top and margin > 0.):
+        raise ValueError('valid physical obstacle volume and positive existing clearance margin required')
+    vertical_deficit = max(0., top+margin-low[2])
+    lateral_deficit = max(0., right-low[1], high[1]-left)
+    task_scale = (top-bottom)+margin
+    deficit = math.hypot(vertical_deficit, lateral_deficit)
+    return dict(fl_range_credit=command_credit,
+        fl_negative_executable_reserve_deg=negative,
+        fl_positive_escape_reserve_deg=positive,
+        fl_current_action_capacity_deg=capacity, fl_servo_protection_reserve_deg=reserve,
+        fl_range_measurement='one_current_negative_request_excursion_with_positive_escape_room_not_force_or_lever_arm',
+        rl_space_credit=clip(1.-deficit/task_scale),
+        rl_top_corridor_vertical_deficit_m=vertical_deficit,
+        rl_top_corridor_lateral_deficit_m=lateral_deficit,
+        rl_top_corridor_deficit_m=deficit, rl_top_corridor_scale_m=task_scale,
+        rl_space_measurement='current_wheel_to_top_lateral_corridor_not_distance_away_not_swept_linkage_path')
+
+
 def measure_preparation(*, observation, evaluation, rr_context, support_spec,
-                        joint_limits, clearance_scale_m):
+                        joint_limits, clearance_scale_m, mode=MODE,
+                        fl_action_capacity_deg=None, servo_reserve_deg=None):
     """Reuse a small existing RL workspace share; no new task acceptance gate.
 
-    RL wheel AABB clearance is a conservative instantaneous proxy, not whole
-    linkage clearance or a collision classifier. Normal edge contact remains
-    legal. FL range credit saturates at the existing10deg margin proxy, not a
-    desired angle; at the accepted frame FL already has enough for this proxy.
+    v4 remains exact for historical replay. Opt-in v5 replaces its two saturated
+    proxies without changing their potential shares, permissions or contacts.
+    Normal edge contact remains legal. Neither version certifies whole linkage
+    clearance, FK feasibility, an executable dynamic transfer or actual bearing.
     """
+    if mode not in MODES:
+        raise ValueError('unsupported cooperative preparation proxy version')
     tick = member(observation,'physics_tick')
     now = finite(member(observation,'simulation_time_s'),'time')
     if tick != evaluation.get('physics_tick') or not math.isclose(
@@ -71,7 +124,7 @@ def measure_preparation(*, observation, evaluation, rr_context, support_spec,
         and (rr_context.get('rr_top_reachable') or rr_context.get('rr_current_bearing') or rl_swing))
     if not relevant:
         # No new front-stage geometry dependency or fabricated zero clearance.
-        return dict(schema='wlr50_clean.cooperative_preparation.v4',mode=MODE,
+        return dict(schema='wlr50_clean.cooperative_preparation.v4',mode=mode,
             observation_tick=tick,simulation_time_s=now,valid=bool(live),
             relevant=False,measurement_status='not_relevant_to_current_RR_RL_preparation',
             current_rr_bearing=bool(rr_context['rr_current_bearing']),
@@ -87,11 +140,17 @@ def measure_preparation(*, observation, evaluation, rr_context, support_spec,
         raise ValueError('current pose-aware RL wheel collider required')
     distance = aabb_clearance(bounds,member(observation,'obstacle'))
     space_credit = clip(distance/margin)
+    task_proxies = {}
+    if mode == TASK_PROXY_MODE:
+        task_proxies = measured_task_proxies(knee_deg=knee, joint_limits=joint_limits,
+            servo_reserve_deg=servo_reserve_deg, fl_action_capacity_deg=fl_action_capacity_deg,
+            rl_bounds=bounds, obstacle=member(observation,'obstacle'), clearance_scale_m=margin)
+        range_credit, space_credit = (task_proxies['fl_range_credit'], task_proxies['rl_space_credit'])
     retired = bool(rl_swing or hist['placed']['RL'])
     # Already earned preparation need not be performed again during real swing.
     if retired:
         range_credit=space_credit=1.
-    return dict(schema='wlr50_clean.cooperative_preparation.v4', mode=MODE,
+    result = dict(schema='wlr50_clean.cooperative_preparation.v4', mode=mode,
         observation_tick=tick, simulation_time_s=now, valid=bool(live),
         relevant=relevant, current_rr_bearing=bool(rr_context['rr_current_bearing']),
         capturable_AIR_preparation=bool(rr_context['rr_top_reachable'] and rr.get('air') is True),
@@ -104,6 +163,15 @@ def measure_preparation(*, observation, evaluation, rr_context, support_spec,
         rl_actual_swing=rl_swing, range_space_credit_retired_after_live_swing=retired,
         weights=dict(WORKSPACE_WEIGHTS),
         semantics='bounded_existing_RL_workspace_share;not_pose_target_or_contact_or_safety_gate')
+    if mode == TASK_PROXY_MODE:
+        result.update(task_proxies)
+        result.update(fl_range_proxy_scale_deg=None,
+            fl_range_credit=range_credit, rl_space_credit=space_credit,
+            proxy_revision=TASK_PROXY_MODE,
+            potential_uses_rl_euclidean_obstacle_clearance=False,
+            measurement_scope='actual_FL_joint_command_reserve_and_actual_RL_wheel_only',
+            no_new_contact_or_task_success_credit=True)
+    return result
 
 
 def workspace_progress(edge, receiver, diagnostic):

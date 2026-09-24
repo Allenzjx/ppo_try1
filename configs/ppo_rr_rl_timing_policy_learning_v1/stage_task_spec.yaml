@@ -1,6 +1,8 @@
 schema: wlr50_clean.semantic_stage_task_spec.v2
 p02_progress_credit_mode: p02_measured_progress_credit_v1
-cooperative_preparation_mode: rr_capture_cooperative_preparation_v4
+cooperative_preparation_mode: rr_capture_cooperative_preparation_v5
+cooperative_fl_knee_capacity_deg: 36.0
+rear_owner_recovery_mode: issued_rear_transfer_owner_suspension_v1
 rear_leg_order: RR_FIRST
 physics_hz: 120.0
 decision_hz: 15.0
@@ -122,7 +124,7 @@ final:
   maximum_body_angular_speed_rad_s: 0.30
   stable_duration_s: 0.5
 nominal:
-  rear_policy_timing: rr_live_swing_evidence_v3
+  rear_policy_timing: rr_rl_edge_recovery_v4
   # Restore the source home suggestion after physical stopping, with zero nominal wheels.
   # RR carry advice requires current qualified free-air lift, not a stale event latch.
   # All policy residuals, fixed physical completion rules and safety checks remain.

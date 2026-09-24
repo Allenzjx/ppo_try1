@@ -498,8 +498,8 @@ def load_task_spec(path: Path | str = DEFAULT_TASK_SPEC_PATH) -> dict[str, Any]:
     _capture_continuation_enabled(spec)
     _p05_preedge_recovery_enabled(spec)
     _workspace_potential_enabled(spec)
-    from .semantic_cooperative_preparation import MODE as COOPERATIVE_PREP_MODE
-    if spec.get("cooperative_preparation_mode") not in (None, COOPERATIVE_PREP_MODE):
+    from .semantic_cooperative_preparation import MODES as COOPERATIVE_PREP_MODES
+    if spec.get("cooperative_preparation_mode") not in (None, *COOPERATIVE_PREP_MODES):
         raise ValueError("unknown cooperative preparation mode")
     if spec.get("cooperative_preparation_mode") and not (spec.get("transfer_roles")
             and spec.get("preparation_credit_semantics") == PREPARATION_CREDIT_MODE
@@ -599,8 +599,8 @@ class TaskEvaluator:
         self._all_stage = version == "all_stage_v1"
         self._functional_rr = self.spec.get("p09_lift_semantics") in FUNCTIONAL_RR_MODES
         self._free_air_rr = self.spec.get("p09_lift_semantics") == P09_FREE_AIR_LIFT_MODE
-        from .semantic_rear_policy_timing import LIVE_SWING_MODE
-        self._live_rl_swing = self.spec.get("nominal", {}).get("rear_policy_timing") == LIVE_SWING_MODE
+        from .semantic_rear_policy_timing import LIVE_SWING_MODES
+        self._live_rl_swing = self.spec.get("nominal", {}).get("rear_policy_timing") in LIVE_SWING_MODES
         if self._live_rl_swing and not self._all_stage:
             raise ValueError("live RL swing evidence requires measured all-stage acceptance")
         # Current attempt state, separate from irreversible crossed/placed events.
@@ -1882,7 +1882,10 @@ class TaskStageSupervisor:
             prep=measure_preparation(observation=observation,evaluation=evaluation,
                 rr_context=rr_recovery,support_spec=self.spec["support"],
                 joint_limits=servo_limits_deg("front_left_knee"),
-                clearance_scale_m=REWARD_CONFIG['clearance_scale_m'])
+                clearance_scale_m=REWARD_CONFIG['clearance_scale_m'],
+                mode=self.spec['cooperative_preparation_mode'],
+                fl_action_capacity_deg=self.spec.get('cooperative_fl_knee_capacity_deg'),
+                servo_reserve_deg=2.)
             evaluation["cooperative_preparation"] = prep
             self._snapshot["cooperative_preparation"] = prep
         if (self.spec.get("physical_acceptance_version") == "all_stage_v1" and self.stage_id == "P13"
@@ -1918,8 +1921,8 @@ class TaskStageSupervisor:
                 **histories["active_lift"], "RR": bool(rr.get("current_lift_valid"))}
             self._snapshot["p09_lift_semantics"] = self.spec["p09_lift_semantics"]
             self._snapshot["rr_placed_currently_usable"] = _current_rr_placement_usable(evaluation)
-        from .semantic_rear_policy_timing import LIVE_SWING_MODE
-        if (self.spec["nominal"].get("rear_policy_timing") == LIVE_SWING_MODE
+        from .semantic_rear_policy_timing import LIVE_SWING_MODES
+        if (self.spec["nominal"].get("rear_policy_timing") in LIVE_SWING_MODES
                 and evaluation["valid"]):
             # Same 419-dimensional codec, versioned RL slot semantics: current
             # qualification is observable; complete lift/cross/placed events
@@ -1927,7 +1930,7 @@ class TaskStageSupervisor:
             self._snapshot["active_lift_history"] = {
                 **self._snapshot["active_lift_history"],
                 "RL": bool(evaluation["current_legs"]["RL"].get("current_lift_valid"))}
-            self._snapshot["rl_lift_semantics"] = LIVE_SWING_MODE
+            self._snapshot["rl_lift_semantics"] = self.spec["nominal"]["rear_policy_timing"]
         if continuation is not None:
             cross_tick = histories.get("event_ticks", {}).get("front_edge_crossed", {}).get("FL")
             pending_elapsed = (max(0., now-cross_tick/self.spec["physics_hz"])
@@ -2021,6 +2024,9 @@ class NominalMotionProvider:
         self._sequence_mode = nominal.get("sequence_semantics")
         from .semantic_rear_policy_timing import MODES as REAR_TIMING_MODES
         self._rear_policy_timing_mode = nominal.get("rear_policy_timing")
+        # Winning P09 late ownership is rebuilt from source layers each tick;
+        # it is not inferred from values or the current semantic phase label.
+        self._rear_late_owner_bits = [False] * 4
         if self._rear_policy_timing_mode not in (None, *REAR_TIMING_MODES):
             raise ValueError("unknown rear policy timing mode")
         if self._rear_policy_timing_mode and self._sequence_mode != "source_partial_order_physical_ready_v1":
@@ -2203,6 +2209,9 @@ class NominalMotionProvider:
         return public_timing(task, self._continuous_layers, self.spec["support"], self.physics_hz,
                              mode=self._rear_policy_timing_mode)
 
+    def rear_late_owner_bits(self) -> list[bool]:
+        return list(self._rear_late_owner_bits)
+
     def _start_source_motion(self, motion: MotionExecutor, phase: Any) -> None:
         """Reuse successful source action tuning without importing its gates."""
         if not self._reference_nominal:
@@ -2334,7 +2343,7 @@ class NominalMotionProvider:
                 return False  # Resume this clock, never catch up expired events.
         if self._rear_policy_timing_mode and layer["stage"] == "P12":
             from .semantic_rear_policy_timing import rear_dependency
-            dep = rear_dependency(task, self.spec["support"])
+            dep = rear_dependency(task, self.spec["support"], mode=self._rear_policy_timing_mode)
             permitted = dep["support_transfer_permitted"] or dep["rl_current_swing"]
             layer["rl_dependency_wait"] = not permitted
             layer["sequence_diagnostic"] = dict(dep,
@@ -2428,7 +2437,7 @@ class NominalMotionProvider:
             elif layer["ticks"] == group_tick:
                 if self._rear_policy_timing_mode:
                     from .semantic_rear_policy_timing import rear_dependency
-                    ready = rear_dependency(task, self.spec["support"])["support_transfer_permitted"]
+                    ready = rear_dependency(task, self.spec["support"], mode=self._rear_policy_timing_mode)["support_transfer_permitted"]
                     reason = "current_RR_bearing_before_FL_RL_transfer"
                 else:
                     ready = self._rr_late_reconfiguration_ready(task)
@@ -2663,6 +2672,7 @@ class NominalMotionProvider:
                 self._continuous_layers[-1]["capture_retired_servo_indices"] = set(indices)
                 self._continuous_layers[-1]["capture_suppressed_at_creation"] = record
         proposed=list(self.nominal_full12)
+        rear_late_owners = [False] * 4
         # Rebuild declared tracking owners in the source-derived mode. An
         # ended source segment must not acquire another feedback sample merely
         # because the semantic phase changed. Unfinished older layers below
@@ -2785,6 +2795,10 @@ class NominalMotionProvider:
                             "fixed_source_entry_deg": entry, "original_source_target_deg": original,
                             "candidate_source_target_deg": source_value, "reduction_deg": original-source_value})
                 proposed[i]=source_value*(gain if i>=8 else 1.)
+                if i in (0, 1, 4, 5):
+                    rear_late_owners[(0, 1, 4, 5).index(i)] = bool(
+                        layer["stage"] == "P09"
+                        and "late_group_start_tick" in layer.get("sequence_diagnostic", {}))
                 if self._reference_nominal:
                     normal_bias[i]=source_bias[i]
                 if i<8:
@@ -2802,6 +2816,9 @@ class NominalMotionProvider:
                         tracking.discard(SERVO_ORDER[i])
                         continue
                     proposed[i], normal_bias[i] = rl_sample.full12[i], rl_bias[i]
+                    # This is another RR-dependent source owner. Its issued
+                    # goal must also stop being chased while its lane waits.
+                    rear_late_owners[(0, 1, 4, 5).index(i)] = True
                     if not rl_sample.endpoint_issued and SERVO_ORDER[i] in rl_sample.tracking_servo_names:
                         tracking.add(SERVO_ORDER[i])
                     else:
@@ -2872,6 +2889,7 @@ class NominalMotionProvider:
                     and current.get("clearance_m",-1.)>=self.spec["geometry"]["airborne_clearance_above_top_m"]
                     and current.get("front_distance_m",1.)<self.spec["geometry"]["approach_min_m"]):
                 proposed[8:]=self._approach_wheel_prior
+        self._rear_late_owner_bits = rear_late_owners
         return tuple(proposed),tuple(name for name in SERVO_ORDER if name in tracking)
 
     def _p05_preedge_recovery_status(self, task: Mapping[str, Any], *,

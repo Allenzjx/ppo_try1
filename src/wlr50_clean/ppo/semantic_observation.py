@@ -27,6 +27,8 @@ from .semantic_rear_policy_timing_profile import (
 
 from .semantic_p02_progress_profile import (P02_PROGRESS_OBSERVATION_LAYOUT,
     P02_PROGRESS_OBSERVATION_DIM, P02_PROGRESS_GROUP, p02_progress_features)
+from .semantic_rear_owner_profile import (REAR_OWNER_OBSERVATION_LAYOUT,
+    REAR_OWNER_OBSERVATION_DIM, REAR_OWNER_GROUP, rear_owner_features)
 
 CONFIG_ROOT = Path(__file__).resolve().parents[3] / "configs" / "ppo_semantic_v2"
 DEFAULT_OBSERVATION_SCHEMA = CONFIG_ROOT / "observation_schema.json"
@@ -139,10 +141,11 @@ class SemanticObservationSchema:
     rr_capture_features_version: str | None = None
     rear_policy_timing_features_version: str | None = None
     p02_progress_features_version: str | None = None
+    rear_owner_recovery_features_version: str | None = None
 
     @property
     def observation_layout(self) -> str | None:
-        return (self.p02_progress_features_version or self.rear_policy_timing_features_version or self.rr_capture_features_version
+        return (self.rear_owner_recovery_features_version or self.p02_progress_features_version or self.rear_policy_timing_features_version or self.rr_capture_features_version
                 or self.capture_assist_features_version or self.transfer_role_features_version)
 
     @property
@@ -177,14 +180,24 @@ def load_semantic_observation_schema(path: Path | str = DEFAULT_OBSERVATION_SCHE
     rr_layout = data.get('rr_capture_features_version')
     rear_timing_layout = data.get('rear_policy_timing_features_version')
     p02_layout = data.get('p02_progress_features_version')
-    rear_groups = groups
+    owner_layout = data.get('rear_owner_recovery_features_version')
+    p02_groups = groups
+    if owner_layout is not None:
+        if (owner_layout != REAR_OWNER_OBSERVATION_LAYOUT or p02_layout != P02_PROGRESS_OBSERVATION_LAYOUT
+                or groups[-1] != {'name': REAR_OWNER_GROUP, 'size': 17, 'scale': 1.0}
+                or sum(row['size'] for row in groups) != REAR_OWNER_OBSERVATION_DIM):
+            raise SemanticObservationError('rear owner layout must append exactly seventeen public fields after422')
+        p02_groups = groups[:-1]
+    elif any(row['name'] == REAR_OWNER_GROUP for row in groups):
+        raise SemanticObservationError('rear owner group requires its explicit version marker')
+    rear_groups = p02_groups
     if p02_layout is not None:
         if (p02_layout != P02_PROGRESS_OBSERVATION_LAYOUT
                 or rear_timing_layout != REAR_POLICY_TIMING_OBSERVATION_LAYOUT
-                or groups[-1] != {'name':P02_PROGRESS_GROUP,'size':3,'scale':1.0}
-                or sum(row['size'] for row in groups) != P02_PROGRESS_OBSERVATION_DIM):
+                or p02_groups[-1] != {'name':P02_PROGRESS_GROUP,'size':3,'scale':1.0}
+                or sum(row['size'] for row in p02_groups) != P02_PROGRESS_OBSERVATION_DIM):
             raise SemanticObservationError('P02 progress must preserve419 and append exactly three fields')
-        rear_groups = groups[:-1]
+        rear_groups = p02_groups[:-1]
     elif any(row['name'] == P02_PROGRESS_GROUP for row in groups):
         raise SemanticObservationError('P02 progress group requires its explicit version marker')
     rr_groups = rear_groups
@@ -234,7 +247,7 @@ def load_semantic_observation_schema(path: Path | str = DEFAULT_OBSERVATION_SCHE
     if duration != 200.0 or clip <= 0.0:
         raise SemanticObservationError("semantic observation needs 200 second task horizon and positive clipping")
     return SemanticObservationSchema(groups, _quaternion(data["fixed_chassis_to_body_wxyz"]),
-                                     duration, clip, selected, role_layout, capture_layout, rr_layout, rear_timing_layout, p02_layout)
+                                     duration, clip, selected, role_layout, capture_layout, rr_layout, rear_timing_layout, p02_layout, owner_layout)
 
 
 def transfer_role_observation_features(task: Mapping[str, Any]) -> tuple[float, ...]:
@@ -469,6 +482,11 @@ class SemanticObservationBuilder:
         if self.schema.p02_progress_features_version is not None:
             try:
                 groups[P02_PROGRESS_GROUP] = p02_progress_features(field(task,'p02_progress_credit'),task['stage_id'])
+            except ValueError as error:
+                raise SemanticObservationError(str(error)) from error
+        if self.schema.rear_owner_recovery_features_version is not None:
+            try:
+                groups[REAR_OWNER_GROUP] = rear_owner_features(field(info, 'rear_owner_recovery'))
             except ValueError as error:
                 raise SemanticObservationError(str(error)) from error
         self.schema.encode(groups)

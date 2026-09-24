@@ -1,8 +1,9 @@
 schema: wlr50_clean.semantic_execution_profile.v1
-revision: rear_policy_p02_measured_progress_v1
-cooperative_preparation_mode: rr_capture_cooperative_preparation_v4
+revision: rear_owner_edge_recovery_v5
+cooperative_preparation_mode: rr_capture_cooperative_preparation_v5
+rear_owner_recovery_mode: issued_rear_transfer_owner_suspension_v1
 p02_progress_credit_mode: p02_measured_progress_credit_v1
-rear_policy_timing_mode: rr_live_swing_evidence_v3
+rear_policy_timing_mode: rr_rl_edge_recovery_v4
 capture_assist_mode: p05_hip_only_continuation_v1
 rr_capture_assist_mode: null
 rr_capture_feedback_revision: null
@@ -82,12 +83,12 @@ reset:
   state_writes_after_episode_start: prohibited
 training_budgets:
   smoke: 10000
-  phase_suffix: 100000
+  phase_suffix: 131072
   full_episode: 131072
 sampling_target:
-  full_P01: 0.6666666666666666
-  predecessor_P07_suffix: 0.16666666666666666
-  second_rear_P10_suffix: 0.16666666666666666
+  full_P01: 0.25
+  predecessor_P07_suffix: 0.25
+  second_rear_P10_suffix: 0.50
   actual_scheduler: configs/ppo_rr_rl_timing_policy_learning_v1/curriculum_plan.json
 seeds:
   train: [1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008]

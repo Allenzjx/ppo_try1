@@ -308,6 +308,37 @@ def build_actuator_target_effect_audit(
                 or tuple(wheel_receipt.get("previous_final_wheel_rad_s", ())) != previous_wheels):
             raise ActuatorTargetEffectError("RR wheel evidence differs from independently captured pre-dispatch state")
 
+    owner_receipt = raw_ack.get("rear_owner_recovery_evidence")
+    owner_state = None
+    if owner_receipt is not None:
+        from .semantic_rear_owner_recovery import MODE as OWNER_MODE, transition as owner_transition, apply_state as apply_owner_state
+        try:
+            owner_pre = adapter._semantic_owner_pre_dispatch
+            expected_context = dict(owner_pre["context"])
+            if assist_snapshot is not None and assist_snapshot["active"]:
+                expected_context["winning_late_owner"] = [False, False, *expected_context["winning_late_owner"][2:]]
+            if (owner_receipt["state_before"] != owner_pre["state_before"]
+                    or owner_receipt["context"] != expected_context
+                    or owner_receipt["previous_final_full12"] != owner_pre["previous_ack"]["drive_target_full12"]
+                    or owner_receipt["previous_requested_full12"] != owner_pre["previous_ack"].get(
+                        "independent_policy_residual_requested_full12", [0.] * 12)):
+                raise ValueError("owner receipt differs from independent pre-dispatch state")
+            owner_state = owner_transition(owner_receipt["state_before"], owner_receipt["context"],
+                owner_receipt["previous_final_full12"], owner_receipt["previous_requested_full12"])
+            owner_input = tuple(a+b for a,b in zip(corrected_native, actual_bias, strict=True))
+            if assist_snapshot is not None:
+                owner_input = apply_capture_assist_snapshot(owner_input, assist_snapshot)
+            owner_output = apply_owner_state(owner_input, actuation.projected_residual_full12,
+                owner_state, owner_receipt["capacities_full12"])
+            if (owner_receipt["mode"] != OWNER_MODE or owner_receipt["state_after"] != owner_state
+                    or tuple(owner_receipt["previous_final_full12"][:8]) != tuple(previous)
+                    or tuple(owner_receipt["requested_full12"]) != tuple(actuation.projected_residual_full12)
+                    or tuple(owner_receipt["candidate_before_full12"]) != owner_input
+                    or tuple(owner_receipt["candidate_after_full12"]) != owner_output):
+                raise ValueError("owner recovery differs from independent reconstruction")
+        except (TypeError, KeyError, ValueError, AttributeError) as exc:
+            raise ActuatorTargetEffectError(str(exc)) from exc
+
     def physical_targets(bias: Sequence[float], native_targets: Sequence[float] = corrected_native,
                          *, verify_wheel_receipt: bool = False, rr_branch: str = "zero_current_policy") -> Any:
         servo = []
@@ -325,6 +356,12 @@ def build_actuator_target_effect_audit(
                     branch_rr_snapshot, _, assisted = replay_rr_branch(bias,native_targets,(0.,)*12,rr_branch)
                 except (TypeError,ValueError,KeyError) as exc:
                     raise ActuatorTargetEffectError(f"invalid RR {rr_branch} reconstruction: {exc}") from exc
+        owner_candidate = None
+        if owner_state is not None:
+            base_candidate = assisted if assisted is not None else tuple(a+b for a,b in zip(native_targets,bias,strict=True))
+            owner_candidate = apply_owner_state(base_candidate,
+                actuation.projected_residual_full12 if rr_branch == "actual" else (0.,)*12,
+                owner_state, owner_receipt["capacities_full12"])
         for index, name in enumerate(SERVO_ORDER):
             lower, upper = servo_limits_deg(name)
             native_target, effective_bias = native_targets[index], bias[index]
@@ -332,6 +369,8 @@ def build_actuator_target_effect_audit(
                 native_target, effective_bias = assisted[index], 0.
             if branch_rr_snapshot is not None and index in (6,7) and branch_rr_snapshot["active"]:
                 native_target, effective_bias = assisted[index], 0.
+            if owner_candidate is not None and index in owner_receipt["owner_indices"]:
+                native_target, effective_bias = owner_candidate[index], 0.
             servo.append(bounded_drive_feedback_step(
                 previous_deg=previous[index],
                 native_deg=native_target,
