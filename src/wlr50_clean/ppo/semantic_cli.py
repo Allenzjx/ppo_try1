@@ -362,10 +362,15 @@ def validate_request(args: argparse.Namespace) -> None:
             same419 = isinstance(planned.get("rear_recapture_same419_factor"),dict)
             live_swing = isinstance(planned.get("rear_live_swing_same419_factor"),dict)
             p02_append = isinstance(planned.get("p02_progress_append_factor"),dict)
-            if sum((initial_append,same419,live_swing,p02_append)) != 1:
+            rr_retention = isinstance(planned.get("rr_retention_same439_factor"),dict)
+            if sum((initial_append,same419,live_swing,p02_append,rr_retention)) != 1:
                 raise ValueError("rear timing requires exactly one declared migration boundary")
             if initial_append:
                 source_root=version_paths("v3",experiment_id="rr_capture_then_rl_transfer_v1")[1]
+            elif rr_retention:
+                if (planned.get('schema') != 'wlr50_clean.rr_retention_reward_same439.v1'
+                        or not branch_requested or source_root.resolve()!=checkpoint_output.resolve()):
+                    raise ValueError('same439 reward continuation requires the existing learned branch')
             elif p02_append:
                 if (planned.get('schema') != 'wlr50_clean.p02_progress_append.v1'
                         or not branch_requested or source_root.resolve()!=checkpoint_output.resolve()):
@@ -523,6 +528,12 @@ def _preflight_checkpoint(args: argparse.Namespace, contract: dict[str, Any]) ->
     if getattr(args,"experiment_id",None) == "rr_rl_timing_policy_learning_v1" and args.resume_migration is not None:
         from .semantic_rear_policy_timing_profile import REAR_POLICY_TIMING_POLICY, REAR_POLICY_TIMING_OBSERVATION_LAYOUT
         args._migration_record=validate_migration_plan(args.checkpoint,contract,args.resume_migration)
+        if args._migration_record.get('rr_retention_same439_factor') is not None:
+            if (args._observation_layout != REAR_OWNER_OBSERVATION_LAYOUT
+                    or source_layout != REAR_OWNER_OBSERVATION_LAYOUT
+                    or args._policy_version != REAR_OWNER_POLICY or metadata['seed'] != args.seed):
+                raise ValueError('same439 reward continuation requires original owner policy/layout/seed')
+            return
         if args._migration_record.get('rear_owner_append439_factor') is not None:
             if args._observation_layout != REAR_OWNER_OBSERVATION_LAYOUT or metadata['seed'] != args.seed:
                 raise ValueError('owner append requires explicit439 and original seed')

@@ -3823,6 +3823,9 @@ def validate_migration_plan(checkpoint: Path, current_contract: Mapping[str, Any
                             project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
     path = Path(plan_path).resolve(strict=True)
     supplied = json.loads(path.read_text(encoding="utf-8"))
+    if supplied.get("schema") == "wlr50_clean.rr_retention_reward_same439.v1":
+        from .semantic_rr_retention_migration import validate_rr_retention_migration
+        return validate_rr_retention_migration(checkpoint, current_contract, plan_path, project_root=project_root)
     if supplied.get("schema") == "wlr50_clean.rear_owner_recovery_append439.v1":
         from .semantic_rear_owner_migration import validate_rear_owner_migration
         return validate_rear_owner_migration(checkpoint, current_contract, plan_path, project_root=project_root)
