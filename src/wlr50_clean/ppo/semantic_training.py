@@ -601,6 +601,11 @@ def save_semantic_checkpoint(runner: Any, checkpoint: Path, infos: Mapping[str, 
         metadata["policy_contract"] = _runner_policy_contract(runner)
     elif runner._semantic_policy_version != LEGACY_POLICY:
         raise RuntimeError("state-dependent checkpoint has an unsupported observation layout")
+    if "front_retention439_runtime_identity" in metadata or "front_retention439_auxiliary" in metadata:
+        from .semantic_front_retention439 import validate_front_retention439_lineage
+        route = metadata.get("checkpoint_output_routing", {})
+        validate_front_retention439_lineage(metadata, metadata["runtime_contract"], Path(route.get("output_root", "")),
+            checkpoint_output_routing=route)
     runner.save(str(checkpoint), infos=metadata)
     loaded = load_checkpoint_round_trip(runner, checkpoint)
     if dict(loaded) != metadata:
@@ -892,6 +897,11 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
                              migration: Mapping[str, Any] | None = None,
                              warm_start: Mapping[str, Any] | None = None,
                              policy_migration: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    if migration is not None and migration.get("front_retention439_identity_factor") is not None:
+        if warm_start is not None or policy_migration is not None:
+            raise ValueError("front retention accounting identity cannot mix another migration")
+        from .semantic_front_retention439 import load_front_retention439_identity
+        return load_front_retention439_identity(runner, checkpoint, contract=contract, seed=seed, record=migration)
     if migration is not None and migration.get("rr_retention_same439_factor") is not None:
         if warm_start is not None or policy_migration is not None:
             raise ValueError("same439 reward continuation cannot mix another migration")
@@ -949,6 +959,11 @@ def load_semantic_checkpoint(runner: Any, checkpoint: Path, *, contract: Mapping
         return _load_v3_warm_start(runner, checkpoint, contract=contract, seed=seed, record=warm_start)
     sidecar = checkpoint.with_name(checkpoint.stem + "_manifest.json")
     metadata = json.loads(sidecar.read_text(encoding="utf-8"))
+    if "front_retention439_runtime_identity" in metadata or "front_retention439_auxiliary" in metadata:
+        from .semantic_front_retention439 import validate_front_retention439_lineage
+        route = metadata.get("checkpoint_output_routing", {})
+        validate_front_retention439_lineage(metadata, metadata["runtime_contract"], Path(route.get("output_root", "")),
+            checkpoint_output_routing=route)
     from .semantic_policy_distribution import policy_version_from_metadata
     verified = None
     if migration is not None and any(migration.get(key) is not None for key in (
@@ -2317,7 +2332,7 @@ def train_semantic(runner: Any, env: SemanticRslAdapter, *, run_dir: Path,
                     from .semantic_migration import continuation_topology
                     infos["execution_topology"] = continuation_topology(sampling, prefix_request,
                         observation_layout=getattr(runner, "_semantic_observation_layout", None))
-                for key in ("rr_retention_reward_migration", "rear_owner_recovery_migration", "cooperative_prep_migration", "p02_progress_migration", "rear_live_swing_migration", "rear_recapture_migration", "rear_policy_timing_migration", "rear_policy_timing_branch",
+                for key in ("front_retention439_runtime_identity", "front_retention439_auxiliary", "rr_retention_reward_migration", "rear_owner_recovery_migration", "cooperative_prep_migration", "p02_progress_migration", "rear_live_swing_migration", "rear_recapture_migration", "rear_policy_timing_migration", "rear_policy_timing_branch",
                             "new_mdp_warm_start", "new_mdp_origin_global_policy_decisions", "source_stage_requested_decisions",
                             "new_mdp_initial_action_comparison", "policy_distribution_migration",
                             "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison",

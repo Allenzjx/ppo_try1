@@ -145,6 +145,11 @@ def build_rear_policy_output_routing(metadata, contract, destination):
 def validate_rear_policy_namespace(metadata,contract,output_root, *, checkpoint_output_routing=None):
     from .semantic_migration import digest
     from .semantic_policy_distribution import policy_contract
+    if 'front_retention439_runtime_identity' in metadata or 'front_retention439_auxiliary' in metadata:
+        from .semantic_front_retention439 import validate_front_retention439_lineage
+        validate_front_retention439_lineage(metadata,contract,output_root,
+            checkpoint_output_routing=checkpoint_output_routing)
+        return
     if metadata.get('rr_retention_reward_migration') is not None:
         from .semantic_rr_retention_migration import validate_rr_retention_lineage
         validate_rr_retention_lineage(metadata,contract,output_root,
