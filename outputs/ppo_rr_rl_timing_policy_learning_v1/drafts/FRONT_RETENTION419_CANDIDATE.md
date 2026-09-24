@@ -1,0 +1,45 @@
+# Inactive 419 front-retention candidate — not executed or approved for fitting
+
+Prepared during active recapture-v2 training. No production, configuration, old helper, checkpoint, training data or ledger is modified. No Torch import, model query, test, optimization or simulator is run. New AUX remains **0**.
+
+This is a contingency only if the next natural-P01 deterministic evaluation again establishes actual P02 regression. It is not a prerequisite for the current course and does not relabel a recording failure as a task failure.
+
+## Minimal reusable code
+
+`front_retention419_candidate.patch` is **unapplied**. It adds only an output-local kernel, `outputs/ppo_rr_rl_timing_policy_learning_v1/front_retention419_v1/front_retention419.py`. Apply from the repository root only after review. It does not add a CLI, collect data, select a checkpoint, publish a pointer or start an optimizer automatically.
+
+The kernel is a narrow adaptation of `outputs/ppo_rr_capture_then_rl_transfer_v1/front_retention_410_v1/front_retention.py`, SHA256 `bcf181232e50a6036ac5dbbcd7db34790a5e0cca1aa3d14d9b070a987df6ef9e`. Changes are 419 shape/type checks, the **actual** `rear_policy_timing_effective_log_std(..., full419, .25)` kernel, and honest offline-query target/report wording. HISTORY retains the student's saved389 prefix and rho=.9. The new9 timing values are neither zeroed nor reconstructed. Old410 helper/data remain immutable.
+
+Interfaces remain `tensors`, `distribution`, `inspect`, `Budget`, `fit`. Only the512 scalars `actor.mlp.0.weight[:,0:2]` can change. P01/P02 means and log-sigmas can both change; this is not mean-only training. Legal P03–P13 one-hots have zero first2 coordinates, so same-input complete Gaussian remains exact. Future trajectories can differ. Real protection rows must be distinguished from synthetic algebraic phase probes; no invented P13 physical coverage.
+
+The existing finite SGD, cumulative REQUEST/full-Gaussian bidirectional-KL/log-sigma bounds, first-rejection rollback/stop, no LR search, and complete nonselected actor/critic/PPO-Adam/LR/Identity/RNG preservation remain. There is **no chosen budget**; callers must explicitly provide1–32 attempts and every positive finite bound. The `.1` HISTORY derivative is not rescaled. Independent AUX is never counted as PPO.
+
+## Required small data/runner adapter — deliberately not implemented blindly
+
+The old410 CLI cannot safely be reused unchanged: it binds frozen v9/410, historical executed raw labels and a different output branch. A later narrowly scoped adapter is needed; no current run/hash/row-count is fabricated now.
+
+1. Select an explicit newest chosen **sealed** student checkpoint on `ancestor220544_recapture_v2`, with checkpoint+sidecar SHA, exact runtime/419 policy, completed-update counters, original seed and unchanged branch route. Preserve every update actually learned on that branch. Resolve parent-main and branch pointers separately; neither is promoted by AUX.
+2. Select the **officially published same-runtime v2 CP220544 parent** as the frozen teacher. Require exact checkpoint+sidecar SHA, same419 policy/runtime contract and the intact registered initial419 recapture lineage at220544/1688/33760. Do not silently load410 v7, the incompatible old419-v1 runtime, or the student as teacher. Its mean is only an ancestor reference, not an oracle for every student state.
+3. Read bounded explicitly named sealed rollouts from the actual current branch. Verify sealed run/result/update references, row observation419, schema/runtime/policy and row identity. Use actual learner P01/P02 **pre-action inputs**, never zero-credit prefix rows, nominal roll-in states, future endpoint substitutes or reset guesses. Keep all original PPO samples/outcomes untouched, including failures. No performance-based action cherry-picking is needed for teacher queries.
+4. Fix train/held-out row IDs before querying. Prefer episode-disjoint rows when available; otherwise report the same-trajectory correlation. Preserve source run/rollout SHA, row/global-decision/input tick, phase, input tensor hash, actual student action/logp provenance and outcome separately. Saved student samples/logp/GAE are **not** supervision targets. Use direct real P03–P06 inputs only as invariance holdout, not targets.
+5. Evaluate the frozen teacher's deterministic conditional raw mean on the **unchanged exact student419 input**. In particular retain student's previous-action HISTORY, FL-assist state and measured timing/context; do not substitute teacher's historical trajectory or reconstruct new controller state. Use the official deterministic forward, and check the pure candidate distribution mean matches it. Capture query device/dtype and teacher actor/checkpoint hashes. Full original student RNG must be restored after constructing/loading/querying the teacher, since the official checkpoint loader restores checkpoint RNG; querying must not advance it.
+6. Store targets under an explicit name such as `ancestor_query_conditional_raw_mean_full12`. Label them `offline_ancestor_query_not_executed_action_not_success_demonstration`; do not call them recorded raw actions, on-policy samples or physically successful teacher actions. They are before tanh/caps/mapper/filter/physical projection. In assisted P05 there is no fitting scope at all; no ignored raw channel is credited as the actuator's successful descent.
+7. CPU zero-step inspection is a later separate action: report student/teacher mean and REQUEST disagreement plus initial-gradient/JVP per wheel. An initially negative FL-wheel direction or a small gradient is diagnostic, not an automatic fit instruction or proof of recovery. No deployed teacher, action replacement or simulator intervention is part of this candidate.
+
+## Official publication protocol to reuse, not bypass
+
+Reuse the compact state-verification flow from `front_retention_410_v1/retention_cli.py` (source SHA256 `6f7e745b1e3275823df2dd3b8f93a421e1f7ee2048307e29c8786d8159fd604b`), but bind the current419 actor/layout and current branch. Run only at an explicit legal sealed-update boundary, with empty rollout. Inspect first; actual fitting requires a separate source-bound authorization and finite budget.
+
+The new independent ledger should be `rear_policy_timing_branch.front_retention_auxiliary`, schema `wlr50_clean.rear419_ancestor_query_front_retention_auxiliary.v1`. Append-only event fields: monotonic event_index; kind `offline_ancestor_query_P01_P02_phase_columns_not_PPO`; student and teacher checkpoint/sidecar bindings; data/inspection/helper/report hashes; finite budget; accepted_auxiliary_updates and attempted_auxiliary_optimizer_steps;512 parameter whitelist; same-input P03–P13 Gaussian guarantee; explicit target-not-executed and no physical-success/deployed-teacher flags; unchanged original PPO counters. Keep the prior full branch fields, old410/419 migrations and every old AUX ledger unchanged. Normal production save already carries the whole `rear_policy_timing_branch`; actual next-PPO carry must still be verified, not assumed tested here.
+
+After any accepted finite step, save a **unique** AUX checkpoint into the same branch's `checkpoints/history` using `save_semantic_checkpoint`. Preserve the actual source device, runner config, effective Adam LR, all Adam options/moments/steps, critic, Identity and full Python/NumPy/CPU/CUDA RNG. Construct an independent runner and `load_semantic_checkpoint` under the exact current runtime, then recheck hashes/counters/lineage/route and empty storage. Refuse overwrite. Verify both parent and branch `checkpoint_last.pt`, `checkpoint_last_pointer.json`, and `resume_state.json` are unchanged. Fresh subsequent on-policy collection is required; the old sealed PPO batch is never reused as on-policy after AUX.
+
+## Necessary bounded checks before future use
+
+- 419 official deterministic mean and stochastic log-sigma kernel equality;419 rejection of old410/389 inputs. Teacher querying leaves original student HISTORY/input/weights/RNG untouched.
+- Only512 permitted parameters may change; complete same-input P03–P13 Gaussian equality, including a real P03–P06 holdout. No blanket future-trajectory invariance claim.
+- The first rejected proposal restores all512 temporary scalars and stops; zero gradient/no-op gives no accepted credit; limits remain cumulative against the original student.
+- Checkpoint/data/teacher mismatch, nonsealed or prefix rows, wrong branch, duplicate train/holdout input and forged executed-label semantics fail closed. No reset observation reconstruction.
+- Synthetic populated-Adam identity save/freshload, no main/branch pointer promotion, nested ledger append preserving all ancestors,0 PPO credit; then separately verify one actual future PPO save carries the ledger. Synthetic checks remain0 robot/AUX credit.
+
+No adapter/CLI, source data, query targets, inspection or checkpoint was produced in this preparation. The patch is a reviewed starting point, **not an executable full workflow or permission to fit**.

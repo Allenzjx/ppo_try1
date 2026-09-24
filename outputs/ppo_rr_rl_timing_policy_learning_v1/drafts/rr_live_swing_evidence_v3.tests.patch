@@ -1,0 +1,219 @@
+--- /dev/null
++++ b/tests/unit/test_semantic_rl_live_swing_evidence_v3.py
+@@ -0,0 +1,216 @@
++"""V3 real-evaluator wiring regressions; synthetic sensors, not physical success."""
++from copy import deepcopy
++from pathlib import Path
++
++import pytest
++import yaml
++
++from test_semantic_all_stage_physical_acceptance import new_observation, set_leg
++from test_semantic_supervisor import advance
++from test_semantic_source_partial_order_v1 import contract, layer
++from wlr50_clean.ppo.semantic_supervisor import (
++    TaskEvaluator, TaskStageSupervisor, NominalMotionProvider, load_task_spec,
++)
++from wlr50_clean.ppo.semantic_rear_policy_timing import (
++    MODE, RECAPTURE_MODE, LIVE_SWING_MODE, public_timing, rear_dependency,
++)
++from wlr50_clean.ppo.semantic_rear_policy_timing_profile import REAR_POLICY_TIMING_OBSERVATION_DIM
++
++ROOT = Path(__file__).resolve().parents[2]
++CONFIG = ROOT / 'configs/ppo_rr_rl_timing_policy_learning_v1'
++
++
++def setup(mode=LIVE_SWING_MODE):
++    spec = load_task_spec(CONFIG / 'stage_task_spec.yaml')
++    spec['nominal']['rear_policy_timing'] = mode
++    ev, obs = TaskEvaluator(spec=spec), new_observation()
++    obs['center_of_mass'] = dict(valid=True, position_w_m=[.30, 0., .10],
++        velocity_w_m_s=[0., 0., 0.], total_mass_kg=3., included_bodies=['synthetic'])
++    ev.observe(obs)
++    return ev, obs
++
++
++def step(ev, obs, leg, **kwargs):
++    obs = advance(obs)
++    set_leg(obs, leg, **kwargs)
++    return obs, ev.observe(obs)
++
++
++def place(ev, obs, leg):
++    # Same measured sequence for each leg, including RR's free-AIR predicate.
++    for update in (
++        dict(bottom=.004, hip=1.5),
++        dict(bottom=.012, hip=3.),
++        dict(x=.501, bottom=.065, hip=4.5),
++        dict(x=.501, bottom=.049, surface='TOP', hip=4.5),
++        dict(x=.501, bottom=.049, surface='TOP', hip=4.5),
++    ):
++        obs, snap = step(ev, obs, leg, **update)
++    assert snap['history']['placed'][leg], (leg, snap['current_legs'][leg])
++    return obs
++
++
++def prefix(mode=LIVE_SWING_MODE):
++    ev, obs = setup(mode)
++    for leg in ('FR', 'FL', 'RR'):
++        obs = place(ev, obs, leg)
++    assert not ev.snapshot['history']['placed']['RL']
++    return ev, obs
++
++
++def rl_lift(ev, obs):
++    obs, snap = step(ev, obs, 'RL', bottom=.004, hip=1.5)
++    assert not snap['history']['active_lift']['RL']
++    obs, snap = step(ev, obs, 'RL', bottom=.012, hip=3.)
++    assert snap['history']['active_lift']['RL']
++    assert snap['current_legs']['RL']['air']
++    return obs, snap
++
++
++def task(snap):
++    return dict(stage_id='P12', physical_evaluator=snap, termination_reason=None)
++
++
++def timing(ev, snap):
++    return public_timing(task(snap), [dict(stage='P09', ticks=700,
++        sequence_diagnostic={'late_group_start_tick':1})],
++        ev.spec['support'], 120., mode=ev.spec['nominal']['rear_policy_timing'])
++
++
++def test_real_evaluator_qualified_air_reaches_dependency_and_public_task():
++    ev, obs = prefix()
++    obs, short = step(ev, obs, 'RL', bottom=.002, hip=.2)
++    assert short['current_legs']['RL']['air']
++    assert not short['current_legs']['RL']['current_lift_valid']
++    assert not rear_dependency(task(short), ev.spec['support'])['rl_current_swing']
++    obs, snap = rl_lift(ev, obs)
++    current = snap['current_legs']['RL']
++    assert current['current_lift_valid'] and current['motion_continuation_allowed']
++    assert current['current_lift_qualified_tick'] == obs['physics_tick']
++    assert current['bearing_force_n'] == 0. and not current['support']
++    assert rear_dependency(task(snap), ev.spec['support'])['rl_current_swing']
++    assert timing(ev, snap)['rl_swing_capture']
++    # This real qualifier is BELOW the top and before crossing, not success.
++    assert current['clearance_m'] < 0. and not snap['history']['front_edge_crossed']['RL']
++    assert not snap['history']['placed']['RL']
++
++
++@pytest.mark.parametrize('surface', ['WALL', 'AMBIGUOUS', 'TOP'])
++def test_edge_or_top_is_not_air_but_does_not_erase_same_attempt(surface):
++    ev, obs = prefix()
++    obs, _ = rl_lift(ev, obs)
++    qualified_tick = ev.snapshot['current_legs']['RL']['current_lift_qualified_tick']
++    obs, contact = step(ev, obs, 'RL', bottom=.013, surface=surface)
++    assert not contact['current_legs']['RL']['air']
++    assert contact['current_legs']['RL']['current_lift_valid']
++    assert not rear_dependency(task(contact), ev.spec['support'])['rl_current_swing']
++    obs, air = step(ev, obs, 'RL', bottom=.013)
++    assert rear_dependency(task(air), ev.spec['support'])['rl_current_swing']
++    assert air['current_legs']['RL']['current_lift_qualified_tick'] == qualified_tick
++    assert not air['current_legs']['RL']['support']
++
++
++@pytest.mark.parametrize('crossed_before_ground', [False, True])
++def test_any_ground_revokes_current_not_completed_history_and_new_work_recovers(crossed_before_ground):
++    ev, obs = prefix()
++    obs, _ = rl_lift(ev, obs)
++    if crossed_before_ground:
++        for _ in range(2):
++            obs, _ = step(ev, obs, 'RL', x=.501, bottom=.049, surface='TOP')
++        assert ev.snapshot['history']['placed']['RL']
++    historical = deepcopy(ev.snapshot['history'])
++    obs, ground = step(ev, obs, 'RL', bottom=0., surface='GROUND')
++    rl = ground['current_legs']['RL']
++    assert not rl['current_lift_valid'] and not rl['active_attempt']
++    assert rl['current_lift_qualified_tick'] is None
++    assert ground['history']['event_ticks'] == historical['event_ticks']
++    assert ground['history']['front_edge_crossed'] == historical['front_edge_crossed']
++    assert ground['history']['placed'] == historical['placed']
++    # For crossed case the old active_lift event is intentionally retained.
++    assert ground['history']['active_lift']['RL'] is crossed_before_ground
++    for _ in range(3):
++        obs, stale = step(ev, obs, 'RL', bottom=.001)
++        assert not stale['current_legs']['RL']['current_lift_valid']
++        assert not rear_dependency(task(stale), ev.spec['support'])['rl_current_swing']
++    # A fresh actual rise/actuation earns a new current qualification even
++    # when the historical first-lift tick remains the earlier event.
++    obs, _ = step(ev, obs, 'RL', bottom=.004, hip=4.5)
++    obs, fresh = step(ev, obs, 'RL', bottom=.014, hip=6.)
++    assert fresh['current_legs']['RL']['current_lift_valid']
++    assert fresh['current_legs']['RL']['current_lift_qualified_tick'] > historical['event_ticks']['active_lift']['RL']
++    assert fresh['history']['event_ticks']['active_lift']['RL'] == historical['event_ticks']['active_lift']['RL']
++
++
++def test_rr_drop_live_rl_keeps_lane_then_rl_ground_stops_only_lane(contract, tmp_path):
++    ev, obs = prefix()
++    obs, _ = rl_lift(ev, obs)
++    obs, snap = step(ev, obs, 'RR', x=.52, bottom=.075)
++    item = task(snap)
++    dep = rear_dependency(item, ev.spec['support'])
++    assert not dep['rr_current_bearing'] and dep['rl_current_swing']
++    p = NominalMotionProvider.from_handoff(contract, spec=ev.spec, stage_id='P12',
++        nominal_full12=contract.phase('P12').start_full12, tracking_servo_names=())
++    p._continuous_advisory(item, observation=obs)
++    source = layer(p, 'P12')
++    assert source['ticks'] == source['rl_ticks'] == 1
++    assert not source['rl_dependency_wait']
++    cfg = tmp_path / 'v3.yaml'
++    cfg.write_text(yaml.safe_dump(ev.spec), encoding='utf8')
++    sup = TaskStageSupervisor(cfg)
++    # Snapshot is entirely from TaskEvaluator; no manually inserted RL fields.
++    assert sup._current_capture_retention('RR', snap) == pytest.approx(1.)
++    assert timing(ev, snap)['rl_swing_capture'] and not timing(ev, snap)['rr_carry_capture']
++    obs, lost = step(ev, obs, 'RL', bottom=0., surface='GROUND')
++    p._continuous_advisory(task(lost), observation=obs)
++    assert source['ticks'] == 2 and source['rl_ticks'] == 1
++    assert source['rl_dependency_wait']
++    assert timing(ev, lost)['rr_carry_capture'] and not timing(ev, lost)['rl_swing_capture']
++    assert 0. < sup._current_capture_retention('RR', lost) < .5
++    assert sup.physical_potential(snap) > sup.physical_potential(lost)
++
++
++def test_actor_visible_rl_slot_tracks_current_even_when_placement_history_remains(tmp_path):
++    ev, obs = prefix()
++    obs, _ = rl_lift(ev, obs)
++    for _ in range(2):
++        obs, _ = step(ev, obs, 'RL', x=.501, bottom=.049, surface='TOP')
++    cfg = tmp_path / 'v3.yaml'
++    cfg.write_text(yaml.safe_dump(ev.spec), encoding='utf8')
++    sup = TaskStageSupervisor(cfg, evaluator=ev, initial_stage_id='P12')
++    before = sup.observe_and_update(obs)
++    assert before['active_lift_history']['RL']
++    obs, _ = step(ev, obs, 'RL', bottom=0., surface='GROUND')
++    after = sup.observe_and_update(obs)
++    assert not after['active_lift_history']['RL']
++    assert after['history']['active_lift']['RL']
++    assert after['placed_history']['RL'] and after['front_edge_crossed_history']['RL']
++    assert after['rl_lift_semantics'] == LIVE_SWING_MODE
++    assert REAR_POLICY_TIMING_OBSERVATION_DIM == 419
++
++
++@pytest.mark.parametrize('fault', ['body_collision', 'unverified_force'])
++def test_physical_failure_or_unverified_sensor_never_grants_continuation(fault):
++    ev, obs = prefix()
++    obs, _ = rl_lift(ev, obs)
++    obs = advance(obs)
++    if fault == 'body_collision':
++        obs['body_collision']['detected'] = True
++    else:
++        obs['contacts']['rear_left_wheel']['ground'].pop('force_w_n')
++    snap = ev.observe(obs)
++    assert not rear_dependency(task(snap), ev.spec['support'])['rl_current_swing']
++    assert not timing(ev, snap)['rl_swing_capture']
++
++
++@pytest.mark.parametrize('old_mode', [MODE, RECAPTURE_MODE])
++def test_v1_v2_actual_evaluator_fields_and_history_semantics_unchanged(old_mode):
++    ev, obs = prefix(old_mode)
++    obs, snap = rl_lift(ev, obs)
++    assert 'current_lift_valid' not in snap['current_legs']['RL']
++    assert 'motion_continuation_allowed' not in snap['current_legs']['RL']
++    assert not rear_dependency(task(snap), ev.spec['support'])['rl_current_swing']
++    for _ in range(2):
++        obs, _ = step(ev, obs, 'RL', x=.501, bottom=.049, surface='TOP')
++    obs, ground = step(ev, obs, 'RL', bottom=0., surface='GROUND')
++    assert ground['history']['active_lift']['RL'] and ground['history']['placed']['RL']
++    assert ground['current_legs']['RL']['active_attempt']  # Preserve old opt-in semantics.

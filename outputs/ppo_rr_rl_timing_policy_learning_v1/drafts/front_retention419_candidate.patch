@@ -1,0 +1,424 @@
+*** Begin Patch
+*** Add File: outputs/ppo_rr_rl_timing_policy_learning_v1/front_retention419_v1/front_retention419.py
++"""UNAPPLIED 419 finite ancestor-query retention candidate; no import-time fit/save.
++
++Targets are offline conditional raw means queried from a separately bound
++ancestor on sealed STUDENT observations. They are not actually executed actions,
++success demonstrations, nominal targets, current-policy draws or PPO data.
++
++Only a temporary 256 x 2 first-layer leaf is optimized.  These two columns
++multiply exact P01/P02 indicators, not physical feature columns.  A change can
++alter ALL twelve means AND sigmas in P01/P02.  It cannot change the same-input
++Gaussian in P03--P13, where both indicators are zero.  Different future visited
++states can still produce different actions; this is not physical invariance.
++"""
++from __future__ import annotations
++
++from dataclasses import asdict, dataclass
++import math
++from pathlib import Path
++import sys
++
++ROOT = Path(__file__).resolve().parents[3]
++if str(ROOT / "src") not in sys.path:
++    sys.path.insert(0, str(ROOT / "src"))
++
++import torch
++from tensordict import TensorDict
++from wlr50_clean.ppo import semantic_training as training
++from wlr50_clean.ppo.semantic_history_actor import HISTORY_RHO, history_conditioned_head
++from wlr50_clean.ppo.semantic_rear_policy_timing_actor import (
++    SemanticRearPolicyTimingHistoryMLPModel, rear_policy_timing_effective_log_std)
++from wlr50_clean.ppo.semantic_p05_capture_actor import p05_capture_request_history
++
++SCHEMA = "wlr50_clean.finite_front_retention419_phase_columns_aux.v1"
++CHANNELS = ("FL_hip", "FL_knee", "FR_hip", "FR_knee", "RL_hip", "RL_knee",
++            "RR_hip", "RR_knee", "FL_wheel", "FR_wheel", "RL_wheel", "RR_wheel")
++UNITS = ("deg",) * 8 + ("rad/s",) * 4
++
++
++def require(condition, message):
++    if not condition:
++        raise ValueError(message)
++
++
++@dataclass(frozen=True)
++class Budget:
++    # Deliberately no automatic real-data budget or learning-rate search.
++    max_attempts: int
++    learning_rate: float
++    maximum_train_request_shift_full12: tuple[float, ...]
++    maximum_validation_request_shift_full12: tuple[float, ...]
++    maximum_per_state_full_gaussian_kl: float
++    maximum_abs_log_sigma_change: float
++
++    def validate(self):
++        require(type(self.max_attempts) is int and 1 <= self.max_attempts <= 32,
++                "finite AUX budget requires 1..32 attempts")
++        for name in ("learning_rate", "maximum_per_state_full_gaussian_kl",
++                     "maximum_abs_log_sigma_change"):
++            value = getattr(self, name)
++            require(type(value) in (float, int) and math.isfinite(value) and value > 0,
++                    "budget must explicitly provide positive finite " + name)
++        for name in ("maximum_train_request_shift_full12",
++                     "maximum_validation_request_shift_full12"):
++            values = getattr(self, name)
++            require(isinstance(values, (tuple, list)) and len(values) == 12
++                    and all(type(v) in (float, int) and math.isfinite(v) and v > 0 for v in values),
++                    "budget requires twelve positive finite REQUEST bounds: " + name)
++
++
++def tensors(observations, *, device="cpu"):
++    require(torch.device(device).type in ("cpu", "cuda"), "candidate supports source CPU/CUDA device")
++    x = torch.as_tensor(observations, dtype=torch.float32, device=device)
++    validate_observation(x)
++    return TensorDict({"policy": x, "critic": x.clone()}, batch_size=[len(x)], device=x.device)
++
++
++def validate_observation(x):
++    require(isinstance(x, torch.Tensor) and x.device.type in ("cpu", "cuda")
++            and x.dtype == torch.float32 and x.ndim == 2 and x.shape[1] == 419
++            and 1 <= len(x) <= 2048, "states require bounded source-device float32 N x 419")
++    require(bool(torch.isfinite(x).all()) and bool((x.abs() <= 20).all()),
++            "states must preserve finite schema-clipped observations")
++    bits = x[:, :13]
++    require(bool(((bits == 0) | (bits == 1)).all()) and bool((bits.sum(-1) == 1).all()),
++            "phase features must be exact binary one-hot P01--P13")
++
++
++def first_layer(actor):
++    require(type(actor) is SemanticRearPolicyTimingHistoryMLPModel,
++            "only current SemanticRearPolicyTimingHistoryMLPModel is supported")
++    require(actor.obs_dim == 419 and not actor.is_recurrent
++            and actor.exploration_std_temperature == .25 and HISTORY_RHO == .9,
++            "current 419/full12 quarter-sigma HISTORY kernel required")
++    require(type(actor.obs_normalizer) is torch.nn.Identity, "actor must retain Identity normalization")
++    require(len(actor.mlp) == 6 and type(actor.mlp[0]) is torch.nn.Linear
++            and type(actor.mlp[1]) is torch.nn.ELU and type(actor.mlp[2]) is torch.nn.Linear
++            and type(actor.mlp[3]) is torch.nn.ELU and type(actor.mlp[4]) is torch.nn.Linear
++            and type(actor.mlp[5]) is torch.nn.Unflatten,
++            "unexpected canonical 256/256 mean+log-sigma MLP")
++    layer = actor.mlp[0]
++    require(tuple(layer.weight.shape) == (256, 419) and tuple(layer.bias.shape) == (256,)
++            and tuple(actor.mlp[2].weight.shape) == (256, 256)
++            and tuple(actor.mlp[4].weight.shape) == (24, 256), "unexpected actor shapes")
++    require(layer.weight.device.type in ("cpu", "cuda")
++            and all(p.device == layer.weight.device and p.dtype == torch.float32 for p in actor.parameters()),
++            "candidate requires source-device float32 actor")
++    require(dict(actor.named_parameters())["mlp.0.weight"] is layer.weight,
++            "first-layer binding mismatch")
++    return layer
++
++
++def distribution(actor, obs, leaf=None):
++    """Exact pure official mu/log-sigma kernel; no sample/cache/RNG update.
++
++    Unlike a mean-only surrogate, this evaluates the learned sigma head and the
++    official rear-policy multiplier on the exact full419 observation.
++    """
++    layer = first_layer(actor)
++    x = obs["policy"]
++    validate_observation(x)
++    require(x.device == layer.weight.device, "observation and actor must retain the same source device")
++    latent = actor.get_latent(obs)
++    require(torch.equal(latent, x), "Identity observation normalization required")
++    center, evidence = p05_capture_request_history(latent[:, :389])
++    if leaf is None:
++        raw_head = actor.mlp(latent)
++    else:
++        require(tuple(leaf.shape) == (256, 2) and leaf.device == layer.weight.device
++                and leaf.dtype == layer.weight.dtype, "temporary leaf must contain all 512 selected scalars")
++        weight = torch.cat((leaf, layer.weight[:, 2:].detach()), dim=1)
++        raw_head = torch.func.functional_call(actor.mlp, {"0.weight": weight}, (latent,))
++    head = history_conditioned_head(raw_head, center, HISTORY_RHO)
++    log_sigma, _ = rear_policy_timing_effective_log_std(head[:, 1, :], latent, .25)
++    mu = head[:, 0, :]
++    cap = evidence["current_cap_full12"]
++    return {"mean": mu, "log_sigma": log_sigma, "sigma": log_sigma.exp(),
++            "network_mean": raw_head[:, 0, :], "history": center, "caps": cap,
++            "request": cap * mu.tanh()}
++
++
++def _values(value):
++    return value.detach().cpu().tolist()
++
++
++def _detached(d):
++    return {k: v.detach().clone() for k, v in d.items()}
++
++
++def _targets(values, rows, device):
++    value = torch.as_tensor(values, dtype=torch.float32, device=device)
++    require(value.shape == (rows, 12) and bool(torch.isfinite(value).all()),
++            "targets must be bound offline ancestor conditional raw means, never final or nominal targets")
++    return value
++
++
++def _dataset(actor, train_obs, targets_raw, validation_obs, validation_targets_raw, invariance_obs):
++    first_layer(actor)
++    for obs in (train_obs, validation_obs, invariance_obs):
++        validate_observation(obs["policy"])
++    tx, vx, ix = (o["policy"] for o in (train_obs, validation_obs, invariance_obs))
++    require(bool((tx[:, :2].sum(-1) == 1).all())
++            and bool((vx[:, :2].sum(-1) == 1).all()), "train/validation are P01/P02 only")
++    require(bool((ix[:, :2] == 0).all()), "invariance holdout requires real P03+ states")
++    # Different original source-row IDs are verified by the data loader. Also
++    # reject accidental exact-observation leakage between selected partitions.
++    require(tx.device == vx.device == ix.device == first_layer(actor).weight.device,
++            "all datasets and actor must use one unchanged source device")
++    train_rows = {row.numpy().tobytes() for row in tx.detach().cpu()}
++    require(not any(row.numpy().tobytes() in train_rows for row in vx.detach().cpu()),
++            "train and validation states must be disjoint")
++    return _targets(targets_raw, len(tx), tx.device), _targets(validation_targets_raw, len(vx), vx.device)
++
++
++def _summary(d, target=None):
++    result = {k + "_full12": _values(v) for k, v in d.items()}
++    if target is not None:
++        error = d["mean"] - target
++        request_error = d["request"] - d["caps"] * target.tanh()
++        result.update(queried_ancestor_conditional_raw_mean_full12=_values(target),
++                      conditional_raw_mse=float(error.square().mean()),
++                      conditional_raw_half_mse=float(.5 * error.square().mean()),
++                      requested_residual_error_full12=_values(request_error),
++                      requested_residual_absolute_error_mean_per_channel=_values(request_error.abs().mean(0)),
++                      target_negative_log_likelihood_mean=float(-torch.distributions.Normal(
++                          d["mean"], d["sigma"]).log_prob(target).sum(-1).mean()))
++    return result
++
++
++def _math_probe(invariance_obs):
++    # Synthetic algebraic coverage only; not invented physical P13 evidence.
++    x = invariance_obs["policy"][:1].repeat(11, 1).clone()
++    x[:, :13] = 0
++    x[torch.arange(11, device=x.device), torch.arange(2, 13, device=x.device)] = 1
++    return tensors(x, device=x.device)
++
++
++def _first_gradient_response(actor, obs, leaf, gradient):
++    def outputs(candidate):
++        d = distribution(actor, obs, candidate)
++        return torch.cat((d["mean"], d["log_sigma"], d["request"]), dim=-1)
++    _, tangent = torch.autograd.functional.jvp(outputs, leaf, -gradient, create_graph=False, strict=True)
++    return {"raw_mean_per_unit_lr_full12": _values(tangent[:, :12]),
++            "log_sigma_per_unit_lr_full12": _values(tangent[:, 12:24]),
++            "requested_residual_per_unit_lr_full12": _values(tangent[:, 24:36]),
++            "maximum_abs_requested_residual_per_unit_lr_per_channel": _values(tangent[:, 24:36].abs().amax(0))}
++
++
++def inspect(actor, train_obs, targets_raw, validation_obs, validation_targets_raw, invariance_obs):
++    """Read-only same-device inspection; CLI uses CPU before authorization."""
++    target, vtarget = _dataset(actor, train_obs, targets_raw, validation_obs,
++                               validation_targets_raw, invariance_obs)
++    original_hash = training.parameter_hash(actor)
++    rng = torch.get_rng_state().clone()
++    with torch.no_grad():
++        td, vd, inv = (distribution(actor, obs) for obs in (train_obs, validation_obs, invariance_obs))
++        require(torch.equal(td["mean"], actor(train_obs, stochastic_output=False)),
++                "inspection mean disagrees with official deterministic actor")
++    leaf = torch.nn.Parameter(first_layer(actor).weight[:, :2].detach().clone())
++    candidate = distribution(actor, train_obs, leaf)
++    loss = .5 * (candidate["mean"] - target).square().mean()
++    gradient, = torch.autograd.grad(loss, (leaf,))
++    require(bool(torch.isfinite(gradient).all()), "nonfinite inspection gradient")
++    response = {"semantics": "read-only JVP along negative frozen initial gradient; unit LR tangent, not an SGD update or finite-step prediction",
++                "train": _first_gradient_response(actor, train_obs, leaf, gradient),
++                "validation": _first_gradient_response(actor, validation_obs, leaf, gradient),
++                "raw_half_MSE_per_unit_lr": -float(gradient.square().sum()),
++                "optimizer_steps_performed": 0, "finite_step_or_closed_loop_success_prediction": False}
++    require(training.parameter_hash(actor) == original_hash and torch.equal(torch.get_rng_state(), rng),
++            "inspection changed actor or CPU RNG")
++    return {"schema": SCHEMA + ".inspection", "automatic_aux_enabled": False,
++            "channel_order": CHANNELS, "requested_residual_units": UNITS,
++            "train": _summary(td, target), "validation": _summary(vd, vtarget),
++            "invariance_holdout": _summary(inv),
++            "actual_invariance_phase_ids": sorted(set(int(v) + 1 for v in invariance_obs["policy"][:, :13].argmax(-1))),
++            "selected_gradient_l2": float(gradient.norm()),
++            "selected_gradient_by_phase_column_l2": _values(gradient.norm(dim=0)),
++            "selected_gradient_full256x2": _values(gradient),
++            "frozen_first_gradient_response": response,
++            "gradient_semantics": "true conditional mean derivative; HISTORY rho=.9, chain=.1; no rescaling",
++            "optimized_parameter_scope": "actor.mlp.0.weight[:,0:2] only (512 scalars)",
++            "P01_P02_mean_and_sigma_may_both_change": True,
++            "request_semantics": "cap*tanh(raw mean), before mapper/filter/projection/nominal; not final drive",
++            "same_input_P03_P13_math": "exact one-hot phase has x[0]=x[1]=0, hence DeltaW*x=0",
++            "PPO_decisions_added": 0, "PPO_updates_added": 0, "PPO_optimizer_steps_added": 0,
++            "teacher_deployed": False, "offline_ancestor_queries_used": True,
++            "targets_were_executed_actions": False, "physical_success_claimed": False}
++
++
++def gaussian_change(before, after):
++    """Full diagonal Gaussian, both KL directions including sigma changes."""
++    dlog = after["log_sigma"] - before["log_sigma"]
++    dmu = after["mean"] - before["mean"]
++    # Inspect the actual float32 Gaussian parameters in float64 and use expm1:
++    # naive float32 variance-ratio subtraction can hide a small positive KL.
++    old_sigma, new_sigma = before["sigma"].double(), after["sigma"].double()
++    log_ratio = (new_sigma / old_sigma).log()
++    delta = after["mean"].double() - before["mean"].double()
++    forward = (log_ratio + .5 * (torch.expm1(-2 * log_ratio)
++                                + (delta / new_sigma).square())).sum(-1).clamp_min(0)
++    reverse = (-log_ratio + .5 * (torch.expm1(2 * log_ratio)
++                                 + (delta / old_sigma).square())).sum(-1).clamp_min(0)
++    return {"kl_original_to_candidate": forward, "kl_candidate_to_original": reverse,
++            "log_sigma_delta": dlog, "raw_mean_delta": dmu,
++            "requested_residual_delta": after["request"] - before["request"]}
++
++
++def _exact_invariance(before, after):
++    return all(torch.equal(before[key], after[key]) for key in ("mean", "log_sigma", "sigma", "request"))
++
++
++def _change_report(before, after):
++    return {k: _values(v) for k, v in gaussian_change(before, after).items()}
++
++
++def fit(runner, train_obs, targets_raw, validation_obs, validation_targets_raw, invariance_obs,
++        *, budget: Budget, authorized=False):
++    """Independent, finite, constant-LR SGD; only last accepted leaf is copied.
++
++    A rejected proposal restores the WHOLE 512-scalar temporary leaf, then stops.
++    Every trust comparison is against the initial model, not merely last step.
++    Raw-target holdout loss is reported, not a fixed accept-rate/success gate.
++    This method does not save, publish, change ledgers, sample or run physics.
++    """
++    require(authorized is True, "AUX requires explicit authorization after CPU inspection")
++    budget.validate()
++    require(runner.alg.storage.step == 0 and runner.alg.transition.actions is None,
++            "AUX requires verified complete-update boundary and fresh empty rollout")
++    actor, critic = runner.alg.actor, runner.alg.critic
++    target, vtarget = _dataset(actor, train_obs, targets_raw, validation_obs,
++                               validation_targets_raw, invariance_obs)
++    layer = first_layer(actor)
++    before = {k: v.detach().clone() for k, v in actor.state_dict().items()}
++    gradients = {k: None if p.grad is None else p.grad.detach().clone() for k, p in actor.named_parameters()}
++    hashes = {"actor": training.parameter_hash(actor), "critic": training.parameter_hash(critic),
++              "optimizer": training.state_hash(runner.alg.optimizer.state_dict()),
++              "normalizers": training.state_hash(training._normalizers(runner))}
++    rng = training.capture_training_rng_state(seed=runner.cfg["seed"])
++    lr = (runner.alg.learning_rate, training.optimizer_learning_rate(runner))
++    initial = inspect(actor, train_obs, target, validation_obs, vtarget, invariance_obs)
++    probes = _math_probe(invariance_obs)
++    with torch.no_grad():
++        base, held, inv, mathbase = (_detached(distribution(actor, obs)) for obs in
++                                    (train_obs, validation_obs, invariance_obs, probes))
++    leaf = torch.nn.Parameter(layer.weight[:, :2].detach().clone())
++    optimizer = torch.optim.SGD([leaf], lr=budget.learning_rate, momentum=0., weight_decay=0.)
++    records, stop = [], "finite_budget_exhausted"
++    try:
++        with torch.no_grad():
++            require(_exact_invariance(base, distribution(actor, train_obs, leaf)),
++                    "functional leaf does not match original full actor")
++        for index in range(budget.max_attempts):
++            proposed = distribution(actor, train_obs, leaf)
++            loss = .5 * (proposed["mean"] - target).square().mean()
++            require(bool(torch.isfinite(loss)), "nonfinite auxiliary loss")
++            if float(loss.detach()) < 1e-14:
++                stop = "raw_conditional_means_already_match_selected_targets"
++                break
++            gradient, = torch.autograd.grad(loss, (leaf,))
++            require(bool(torch.isfinite(gradient).all()), "nonfinite auxiliary gradient")
++            if not bool(gradient.any()):
++                stop = "zero_selected_gradient_no_optimizer_step"
++                break
++            previous_leaf = leaf.detach().clone()
++            leaf.grad = gradient
++            optimizer.step()  # independent temporary SGD, NEVER runner PPO Adam
++            optimizer.zero_grad(set_to_none=True)
++            rejection = []
++            with torch.no_grad():
++                if torch.equal(leaf, previous_leaf):
++                    rejection.append("numerically_unchanged_full512_proposal")
++                try:
++                    cand, valid, ip, mp = (distribution(actor, obs, leaf) for obs in
++                                           (train_obs, validation_obs, invariance_obs, probes))
++                    change, vchange = gaussian_change(base, cand), gaussian_change(held, valid)
++                    next_loss = .5 * (cand["mean"] - target).square().mean()
++                    if not all(bool(torch.isfinite(t).all()) for d in (cand, valid, change, vchange) for t in d.values()):
++                        rejection.append("nonfinite_candidate")
++                    if float(next_loss) > float(loss.detach()):
++                        rejection.append("training_raw_target_loss_increased")
++                    for name, delta, limit in (("train", change, budget.maximum_train_request_shift_full12),
++                                                ("validation", vchange, budget.maximum_validation_request_shift_full12)):
++                        if bool((delta["requested_residual_delta"].abs().amax(0)
++                                 > delta["requested_residual_delta"].new_tensor(limit)).any()):
++                            rejection.append(name + "_REQUEST_bound")
++                        if max(float(delta["kl_original_to_candidate"].max()), float(delta["kl_candidate_to_original"].max())) > budget.maximum_per_state_full_gaussian_kl:
++                            rejection.append(name + "_full_Gaussian_KL_bound")
++                        if float(delta["log_sigma_delta"].abs().max()) > budget.maximum_abs_log_sigma_change:
++                            rejection.append(name + "_log_sigma_bound")
++                    real_equal, math_equal = _exact_invariance(inv, ip), _exact_invariance(mathbase, mp)
++                    if not real_equal or not math_equal:
++                        rejection.append("protected_same_input_Gaussian_changed")
++                    row = {"attempt": index + 1, "learning_rate": budget.learning_rate,
++                           "loss_before": float(loss.detach()), "loss_after_candidate": float(next_loss),
++                           "validation_raw_mse_after_candidate": float((valid["mean"] - vtarget).square().mean()),
++                           "selected_gradient_l2": float(gradient.norm()),
++                           "train_candidate": _summary(cand), "validation_candidate": _summary(valid),
++                           "train_change_from_original": _change_report(base, cand),
++                           "validation_change_from_original": _change_report(held, valid),
++                           "real_holdout_entire_Gaussian_bitwise_equal": real_equal,
++                           "synthetic_P03_P13_math_probes_bitwise_equal": math_equal}
++                except (ValueError, RuntimeError, OverflowError) as error:
++                    rejection.append("unrepresentable_candidate")
++                    row = {"attempt": index + 1, "learning_rate": budget.learning_rate,
++                           "loss_before": float(loss.detach()), "candidate_error": str(error)}
++                row.update(accepted=not rejection, rejection_reasons=rejection)
++                if rejection:
++                    leaf.copy_(previous_leaf)
++                    require(torch.equal(leaf, previous_leaf), "rejected full512 leaf rollback failed")
++                    row["rejected_full512_leaf_restored"] = True
++                    stop = "first_candidate_rejected_then_stop_no_LR_search"
++                records.append(row)
++            if rejection:
++                break
++        # No original actor parameter was modified during any proposal.
++        require(training.parameter_hash(actor) == hashes["actor"], "proposal modified live actor")
++        with torch.no_grad():
++            layer.weight[:, :2].copy_(leaf)
++        for key, value in actor.state_dict().items():
++            require(torch.equal(value[:, 2:], before[key][:, 2:]) if key == "mlp.0.weight"
++                    else torch.equal(value, before[key]), "non-whitelisted actor state changed")
++        with torch.no_grad():
++            require(_exact_invariance(inv, distribution(actor, invariance_obs))
++                    and _exact_invariance(mathbase, distribution(actor, probes)),
++                    "final protected same-input Gaussian changed")
++        require(training.parameter_hash(critic) == hashes["critic"]
++                and training.state_hash(runner.alg.optimizer.state_dict()) == hashes["optimizer"]
++                and training.state_hash(training._normalizers(runner)) == hashes["normalizers"],
++                "critic/PPO Adam/normalizers changed")
++        require((runner.alg.learning_rate, training.optimizer_learning_rate(runner)) == lr
++                and training.capture_training_rng_state(seed=runner.cfg["seed"]) == rng,
++                "PPO learning rate or complete training RNG changed")
++        for key, p in actor.named_parameters():
++            require(p.grad is None if gradients[key] is None else p.grad is not None
++                    and torch.equal(p.grad, gradients[key]), "live actor gradients changed")
++        final = inspect(actor, train_obs, target, validation_obs, vtarget, invariance_obs)
++        final_hash = training.parameter_hash(actor)
++        require(not any(r["accepted"] for r in records) or final_hash != hashes["actor"],
++                "accepted AUX steps require an actually changed actor")
++        return {"schema": SCHEMA, "budget": asdict(budget), "steps": records,
++                "accepted_auxiliary_updates": sum(r["accepted"] for r in records),
++                "attempted_auxiliary_optimizer_steps": len(records), "stop_reason": stop,
++                "before": initial, "after": final, "optimized_scalar_count": 512,
++                "optimized_parameters": ["actor.mlp.0.weight[:,0:2]"],
++                "auxiliary_optimizer": "independent one-leaf constant-LR SGD; momentum=0; weight_decay=0",
++                "objective": "half mean squared error to offline ancestor conditional raw means on student states; not executed labels or PPO",
++                "validation_target_loss_is_reported_not_an_accept_rate_gate": True,
++                "P01_P02_mean_and_sigma_may_both_change": True,
++                "kernel_or_sigma_rule_changed": False, "MDP_or_control_changed": False,
++                "actor_parameter_sha256_before": hashes["actor"],
++                "actor_parameter_sha256_after": final_hash,
++                "PPO_Adam_preserved_sha256": hashes["optimizer"], "PPO_LR_preserved": lr[0],
++                "training_rng_preserved": True, "fresh_PPO_rollout_required": True,
++                "PPO_decisions_added": 0, "PPO_updates_added": 0, "PPO_optimizer_steps_added": 0,
++                "teacher_deployed": False, "offline_ancestor_queries_used": True,
++            "targets_were_executed_actions": False, "physical_success_claimed": False,
++                "same_input_only_not_same_future_state_trajectory": True,
++                "actual_invariance_phase_ids": initial["actual_invariance_phase_ids"],
++                "synthetic_math_probe_phases": list(range(3, 14)),
++                "P03_P13_math_proof": "only columns0:2 changed; legal one-hot P03+ has x[0:2]=0; all other MLP/kernel state unchanged"}
++    except BaseException:
++        actor.load_state_dict(before, strict=True)
++        raise
+*** End Patch

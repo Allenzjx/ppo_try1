@@ -1,0 +1,24 @@
+*** Begin Patch
+*** Update File: C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/src/wlr50_clean/ppo/semantic_supervisor.py
+@@
+-        same_air_lift = bool(type(event) is int and type(air_count) is int
+-            and air_count > 0 and tick-air_count+1 <= event <= tick
+-            and history.get("active_lift", {}).get("FR") is True
+-            and current.get("active_attempt") is True)
++        first_event_in_current_air = bool(type(event) is int and type(air_count) is int
++            and air_count > 0 and tick-air_count+1 <= event <= tick)
++        # Before crossing, the evaluator revokes active_lift on real GROUND and
++        # only restores it after new measured qualification; its event tick is
++        # intentionally the FIRST historical event, not a per-attempt clock.
++        revocable_pre_cross_lift = bool(type(event) is int and type(air_count) is int
++            and air_count > 0 and not history.get("front_edge_crossed", {}).get("FR", False)
++            and not history.get("placed", {}).get("FR", False))
++        same_air_lift = bool(history.get("active_lift", {}).get("FR") is True
++            and current.get("active_attempt") is True
++            and (first_event_in_current_air or revocable_pre_cross_lift))
+*** Update File: C:/robotics_sim/wlr_robot/fsm_base_on_recording_ppo_phase_v1/tests/unit/test_semantic_p02_progress_credit_v1.py
+@@
+-    assert task["history"]["event_ticks"]["active_lift"]["FR"] > old_event
++    assert task["history"]["active_lift"]["FR"]
++    assert task["history"]["event_ticks"]["active_lift"]["FR"] == old_event  # First historical event remains.
+*** End Patch

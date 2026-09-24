@@ -1,0 +1,51 @@
+*** Begin Patch
+*** Update File: src/wlr50_clean/ppo/semantic_migration.py
+@@
+     supplied = json.loads(path.read_text(encoding="utf-8"))
++    if supplied.get("schema") == "wlr50_clean.rear_recapture_same419.v1":
++        from .semantic_rear_recapture_migration import validate_rear_recapture_migration
++        return validate_rear_recapture_migration(checkpoint,current_contract,path,project_root=project_root)
+     if supplied.get("schema") == "wlr50_clean.rear_policy_timing_append.v1":
+*** Update File: src/wlr50_clean/ppo/semantic_training.py
+@@
+                              policy_migration: Mapping[str, Any] | None = None) -> dict[str, Any]:
++    if migration is not None and migration.get("rear_recapture_same419_factor") is not None:
++        if warm_start is not None or policy_migration is not None:
++            raise ValueError("same419 recapture migration cannot mix another boundary")
++        from .semantic_rear_recapture_migration import load_rear_recapture_migration
++        return load_rear_recapture_migration(runner, checkpoint, contract=contract, seed=seed, record=migration)
+     if migration is not None and migration.get("rear_policy_timing_factor") is not None:
+@@
+-                for key in ("rear_policy_timing_migration", "rear_policy_timing_branch",
++                for key in ("rear_recapture_migration", "rear_policy_timing_migration", "rear_policy_timing_branch",
+*** Update File: src/wlr50_clean/ppo/semantic_cli.py
+@@
+             planned=json.loads(args.resume_migration.read_text(encoding="utf-8"))
+-            if not isinstance(planned.get("rear_policy_timing_factor"),dict):
+-                raise ValueError("rear timing cross-namespace source requires its explicit migration")
+-            source_root=version_paths("v3",experiment_id="rr_capture_then_rl_transfer_v1")[1]
++            initial_append = isinstance(planned.get("rear_policy_timing_factor"),dict)
++            same419 = isinstance(planned.get("rear_recapture_same419_factor"),dict)
++            if initial_append == same419:
++                raise ValueError("rear timing requires exactly one declared migration boundary")
++            if initial_append:
++                source_root=version_paths("v3",experiment_id="rr_capture_then_rl_transfer_v1")[1]
++            else:
++                if planned.get("schema") != "wlr50_clean.rear_recapture_same419.v1":
++                    raise ValueError("unsupported same419 migration schema")
++                source_root=output_root
+*** Update File: src/wlr50_clean/ppo/semantic_rear_policy_timing_migration.py
+@@
+ def validate_rear_policy_namespace(metadata,contract,output_root):
+     from .semantic_migration import digest
+     receipt=metadata.get(MIGRATION,{})
++    runtime_bound = receipt.get('target_contract_sha256') == digest(contract)
++    if metadata.get('rear_recapture_migration') is not None:
++        from .semantic_rear_recapture_migration import validate_rear_recapture_lineage
++        validate_rear_recapture_lineage(metadata, contract, receipt)
++        runtime_bound = True
+     if (contract.get('experiment_id')!=EXPERIMENT or Path(output_root).resolve().name!='ppo_'+EXPERIMENT
+-            or receipt.get('schema')!=SCHEMA or receipt.get('target_contract_sha256')!=digest(contract)
++            or receipt.get('schema')!=SCHEMA or not runtime_bound
+*** End Patch
+

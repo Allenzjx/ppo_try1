@@ -1,9 +1,9 @@
 # v10 video export — dormant sealed-source command
 
-Status: adapter prepared as outputs-only text. It has **not** been imported,
-compiled, tested, or executed while the natural-P01 viewport writer is live.
-Do not run this command until the run is sealed and both manifest SHA values
-have been read from the closed source.
+The original run closed with a video artifact error after 830 real frames. The
+explicit partial mode below accepts only those exact closed source/run hashes;
+it cannot be used for an ordinary successful export and must not invent the
+missing tick6648 frame or a task termination.
 
 The adapter is intentionally specific to learned CP222720. It binds the
 99dff5f runtime, the exact v10 zero-learning publication, its AUX CP222592
@@ -21,9 +21,10 @@ $env:MKL_NUM_THREADS='1'
 & 'C:\Users\kskzz\miniconda3\envs\env_isaaclab\python.exe' `
   'C:\robotics_sim\wlr_robot\fsm_base_on_recording_ppo_phase_v1\outputs\ppo_rr_capture_then_rl_transfer_v1\export_rr_capture_video_v10.py' `
   --source 'C:\robotics_sim\wlr_robot\fsm_base_on_recording_ppo_phase_v1\runs\ppo_rr_capture_then_rl_transfer_v1\video_eval\validation\20260923T1241379571238Z_g99dff5fd366e_d4c5e1bc1e8a4bfeb2b946c7f12630dd\source' `
-  --destination '<NEW_OUTPUTS_ONLY_DESTINATION_AFTER_SEAL>' `
-  --source-manifest-sha256 '<SEALED_SEMANTIC_VIDEO_SOURCE_MANIFEST_SHA256>' `
-  --source-run-manifest-sha256 '<SEALED_PARENT_RUN_MANIFEST_SHA256>' `
+  --destination 'C:\robotics_sim\wlr_robot\fsm_base_on_recording_ppo_phase_v1\outputs\ppo_rr_capture_then_rl_transfer_v1\video_review\CP222720_v10_capture_abort_review' `
+  --source-manifest-sha256 '2fd4142d6ea60b78f889d0e08ced30ff4d31ec748c0beb93a571a4046b61aa5c' `
+  --source-run-manifest-sha256 '9bb1f89252d23e0a8a638dbeff0952a4a63e6cb1fa96beb0fa3177813784768b' `
+  --diagnostic-partial `
   --expected-head '99dff5fd366e9cad80899176bf8b008e02112daf' `
   --checkpoint 'C:\robotics_sim\wlr_robot\fsm_base_on_recording_ppo_phase_v1\outputs\ppo_rr_capture_then_rl_transfer_v1\branches\ancestor220544_signed_wheel_v8\checkpoints\history\checkpoint_step_000222720.pt' `
   --checkpoint-sha256 '069a71f547427b69491ff749dccc14fcf403565d81b3c37db3c6ac9b1e739e55' `
@@ -37,7 +38,7 @@ $env:MKL_NUM_THREADS='1'
   --migration-plan 'C:\robotics_sim\wlr_robot\fsm_base_on_recording_ppo_phase_v1\outputs\ppo_rr_capture_then_rl_transfer_v1\staging_v10\CP222592_RR410_capture_reserve_v10_g99dff5fd366e_migration.json' `
   --migration-plan-sha256 '4fa505698d5fe094c4ea6c98b40a6e131e61a2b14443bef1e0e2fe0fe1fa883a' `
   --publication 'C:\robotics_sim\wlr_robot\fsm_base_on_recording_ppo_phase_v1\outputs\ppo_rr_capture_then_rl_transfer_v1\staging_v10\CP222592_RR410_capture_reserve_v10_g99dff5fd366e_publication.json' `
-  --publication-sha256 'ce49e5e3c1cb5492ba908ec13e212b0810b878698aeeb75f4104648fb04e7c8' `
+  --publication-sha256 'ce49e5e3c1cb5492ba908ec13e212b0810b878698aeeeb75f4104648fb04e7c8' `
   --publisher-script 'C:\robotics_sim\wlr_robot\fsm_base_on_recording_ppo_phase_v1\outputs\ppo_rr_capture_then_rl_transfer_v1\staging_v10\publish_rr_capture_reserve_v10.py' `
   --publisher-script-sha256 '3a3c1f46748ad68283e79896f026681e12c84cba567463d19c6f9e5d7b05aa3e' `
   --front-retention-ledger-sha256 '52aad294be62450ec44fb3c28b4f20a0b3cf9d54b3cb653c23fddad5047ac815' `

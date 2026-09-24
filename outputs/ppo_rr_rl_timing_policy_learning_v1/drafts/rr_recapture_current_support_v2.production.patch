@@ -1,0 +1,88 @@
+*** Begin Patch
+*** Update File: src/wlr50_clean/ppo/semantic_rear_policy_timing.py
+@@
+ MODE = "rr_capture_before_rl_transfer_v1"
++RECAPTURE_MODE = "rr_recapture_current_support_v2"
++MODES = (MODE, RECAPTURE_MODE)
+@@
+-def public_timing(task, layers, support, physics_hz):
++def public_timing(task, layers, support, physics_hz, *, mode=MODE):
++    if mode not in (None, *MODES):
++        raise ValueError("unknown rear policy timing mode")
+     dep = rear_dependency(task, support)
+@@
+     ev = task.get("physical_evaluator", {})
+     rr = ev.get("current_legs", {}).get("RR", {})
+     swing = rear and dep["rl_current_swing"]
+-    prep = rear and not swing and (late_started or task.get("stage_id") in ("P10", "P11", "P12"))
+-    handoff = rear and not swing and not prep and dep["rr_top_contact"]
+-    carry = rear and not swing and not prep and not handoff and bool(
+-        rr.get("current_lift_valid") or task.get("stage_id") == "P09")
++    placed = ev.get("history", {}).get("placed", {})
++    live = bool(ev.get("valid") is True and ev.get("termination_reason") is None
++                and task.get("termination_reason") is None)
++    # A task request, not new AIR/lift/support evidence. After first capture,
++    # old source clocks and placed history cannot hide current loss of load.
++    # Preserve a real ongoing RL swing and the already-placed RL continuation.
++    recapture = bool(mode == RECAPTURE_MODE and rear and live and not swing
++        and placed.get("RL") is not True and not dep["rr_current_bearing"]
++        and (late_started or placed.get("RR") is True
++             or task.get("stage_id") in ("P10", "P11", "P12")))
++    prep = rear and not swing and not recapture and (
++        late_started or task.get("stage_id") in ("P10", "P11", "P12"))
++    handoff = rear and not swing and not prep and not recapture and dep["rr_top_contact"]
++    carry = recapture or (rear and not swing and not prep and not handoff and bool(
++        rr.get("current_lift_valid") or task.get("stage_id") == "P09"))
+*** Update File: src/wlr50_clean/ppo/semantic_supervisor.py
+@@
+     def _current_capture_retention(self, leg: str, evaluation: Mapping[str,Any]) -> float:
+         current=evaluation["current_legs"][leg]
++        from .semantic_rear_policy_timing import RECAPTURE_MODE, rear_dependency
++        if leg == "RR" and self.spec["nominal"].get("rear_policy_timing") == RECAPTURE_MODE:
++            dependency = rear_dependency({"physical_evaluator": evaluation}, self.spec["support"])
++            if not (dependency["rl_current_swing"] or evaluation["history"]["placed"].get("RL") is True):
++                # Only the existing .2 retention share changes. Historical .8
++                # event credit, qualification and completion history stay put.
++                # A legitimate RL swing/placed continuation retains legacy AIR.
++                legal = bool(evaluation.get("valid") is True
++                    and evaluation.get("termination_reason") is None
++                    and current.get("within_top_xy") is True
++                    and current.get("within_lateral_span") is True
++                    and current.get("ground_contact") is False
++                    and (dependency["rr_top_contact"] or
++                         (current.get("air") is True and current.get("obstacle_pair_active") is False)))
++                if not legal:
++                    return 0.
++                clearance = _number(current["clearance_m"], "RR current recapture clearance")
++                if clearance < self.spec["geometry"]["top_gap_min_m"]:
++                    return 0.
++                contact = (_clip(current["consecutive_top_samples"] / self.spec["history"]["minimum_top_samples"])
++                           if dependency["rr_current_bearing"] else 0.)
++                # Reuse existing bounded XY/gap and geometric/contact halves.
++                # AIR can approach the top, but cannot earn the contact half.
++                return self._current_capture_progress("RR", evaluation, contact)
+         outside=_number(current.get("top_xy_outside_distance_m"), f"{leg} current platform outside distance")
+@@
+-        from .semantic_rear_policy_timing import MODE as REAR_TIMING_MODE
++        from .semantic_rear_policy_timing import MODES as REAR_TIMING_MODES
+         self._rear_policy_timing_mode = nominal.get("rear_policy_timing")
+-        if self._rear_policy_timing_mode not in (None, REAR_TIMING_MODE):
++        if self._rear_policy_timing_mode not in (None, *REAR_TIMING_MODES):
+@@
+     def rear_policy_timing(self, task: Mapping[str, Any]) -> dict[str, Any]:
+         from .semantic_rear_policy_timing import public_timing
+-        return public_timing(task, self._continuous_layers, self.spec["support"], self.physics_hz)
++        return public_timing(task, self._continuous_layers, self.spec["support"], self.physics_hz,
++                             mode=self._rear_policy_timing_mode)
+*** Update File: src/wlr50_clean/ppo/semantic_backend.py
+@@
+-    from .semantic_rear_policy_timing import MODE as REAR_TIMING_MODE
++    from .semantic_rear_policy_timing import MODES as REAR_TIMING_MODES
+     rear_timing = profile.get("rear_policy_timing_mode")
+-    if rear_timing not in (None, REAR_TIMING_MODE):
++    if rear_timing not in (None, *REAR_TIMING_MODES):
+@@
+-                if provider is not None else public_timing(controller.task_snapshot, [], self._rr_support_spec, 120.))
++                if provider is not None else public_timing(controller.task_snapshot, [], self._rr_support_spec, 120.,
++                    mode=self._rear_policy_timing_mode))
+*** End Patch

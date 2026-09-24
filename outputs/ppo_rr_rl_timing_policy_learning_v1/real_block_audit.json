@@ -1,0 +1,57 @@
+{
+  "schema": "wlr50_clean.real_block_readonly_audit.v1",
+  "audited_at_utc": "2026-09-23T19:15:41.166473+00:00",
+  "scope": "first completed 128-decision natural-P01 PPO update only; excludes unfinished samples and later completed blocks",
+  "run": "runs/ppo_rr_rl_timing_policy_learning_v1/train/20260923T1908118345669Z_gfa4b98ed506e_1e77c2dd353745ebb86708c5095a34c9",
+  "control_head": "fa4b98ed506eb2230e61e13bd93ceecdcb6cfdad",
+  "analysis": "base Python -I stdlib JSON arithmetic only; no model forward, simulation, CUDA, Torch, production or raw-log mutation",
+  "initial_publication": {"global_policy_decisions": 220544, "ppo_updates": 1688, "optimizer_steps": 33760},
+  "sealed_checkpoint": {
+    "path": "outputs/ppo_rr_rl_timing_policy_learning_v1/checkpoints/history/checkpoint_step_000220672.pt",
+    "global_policy_decisions": 220672, "ppo_updates": 1689, "optimizer_steps": 33780,
+    "actor_parameter_sha256": "9b743204542e5bea63f565a08ca2e735fd018d04f4b212de3862ab9de211cb0d"
+  },
+  "new_completed": {"policy_decisions": 128, "ppo_updates": 1, "optimizer_steps": 20, "auxiliary_updates": 0},
+  "decision_range": [220545, 220672],
+  "actual_request_phase_samples": {"P01": 2, "P02": 126},
+  "rear_phase_samples": {"P07": 0, "P08": 0, "P09": 0, "P10": 0, "P11": 0, "P12": 0, "P13": 0},
+  "policy_request_checks": {
+    "count": 128, "rear_task_assists_enabled_false": 128, "RR_WAIT14_zero": 128,
+    "one_Gaussian_draw": 128, "no_extra_forward_or_draw": 128, "all12_mask_one": 128,
+    "original_raw_mean_sigma_old_logp_match": 128, "transformed_targets_not_policy_samples": 128
+  },
+  "actuator_checks": {
+    "final_dispatch_verified": 128, "rear_assist_owner_violations": [],
+    "last_tick_RR_channel_native_effect_decisions": {"6": 128, "7": 128},
+    "evidence_limit": "128 decision-end native audits in P01/P02 only; no RR-capture/RL-phase physical coverage claim; not every intra-decision tick independently recomputed"
+  },
+  "likelihood_checks": {
+    "minibatches": 20, "sample_visits": 640, "each_rollout_sample_visits": 5,
+    "old_raw_Normal_max_abs_error": 2.499309022852003e-06,
+    "current_raw_Normal_max_abs_error": 2.9549667175388095e-06,
+    "minibatch_old_logp_exact_max_abs_error": 0.0,
+    "exp_current_minus_old_ratio_max_abs_error": 1.6174293149262553e-07,
+    "float32_vs_float64_tolerance": 3e-05,
+    "official_no_extra_model_forwards": 0, "official_no_extra_random_draws": 0
+  },
+  "ordinary_phase_changes": [{"global_policy_decision": 220546, "request_phase": "P01", "end_phase": "P02", "terminal": false, "terminal_bootstrap_allowed": true}],
+  "terminal_samples": 0,
+  "tail_bootstrap": {
+    "terminal_env_indices": [], "nonterminal_env_indices": [0],
+    "value_source": "existing_official_compute_returns_last_values; not re-evaluated or logged here",
+    "last_values_measured_separately": null
+  },
+  "teacher_prefix_samples_included": false,
+  "optimizer_evidence": {
+    "optimizer_steps": 20,
+    "actor_parameter_sha256_before": "09cb1ce11b799b9b1620fabf4667e72f99b65cbbf81cb1c0198180be32c62684",
+    "actor_parameter_sha256_after": "9b743204542e5bea63f565a08ca2e735fd018d04f4b212de3862ab9de211cb0d",
+    "actor_parameters_changed": true, "finite_nonzero_gradient_observed": true,
+    "gradient_norm_min": 1.2167444307570185, "gradient_norm_max": 1.414213443555578,
+    "kl_mean": 0.01840478739942286, "clip_fraction": 0.2890625,
+    "entropy": -22.945246315002443, "value_loss": 0.04395293109118938,
+    "surrogate_loss": -0.03865899108350277, "optimizer_learning_rate": 1e-05,
+    "ppo_update": 1689, "global_policy_decisions": 220672
+  },
+  "result": "PASS_WITH_EXPLICIT_REAR_PHASE_COVERAGE_NOT_YET_REACHED"
+}

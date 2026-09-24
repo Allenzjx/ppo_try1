@@ -64,9 +64,18 @@ CURRENT_MANIFEST_SHA = "314f4e25189d895f24c51c590dbe3aa284c20cf9de7a049fad526bd1
 PUBLISHED_CP_SHA = "8f1634e58d5303a53a1abef39c3ef8cc459223b1a2ca582c85d6d978cdf0b223"
 PUBLISHED_MANIFEST_SHA = "35a6c9453f0eda960b58ad6b61898c8b5a625e637373d320b63fba4c0a86a671"
 PLAN_SHA = "4fa505698d5fe094c4ea6c98b40a6e131e61a2b14443bef1e0e2fe0fe1fa883a"
-PUBLICATION_SHA = "ce49e5e3c1cb5492ba908ec13e212b0810b878698aeeb75f4104648fb04e7c8"
+PUBLICATION_SHA = "ce49e5e3c1cb5492ba908ec13e212b0810b878698aeeeb75f4104648fb04e7c8"
 PUBLISHER_SHA = "3a3c1f46748ad68283e79896f026681e12c84cba567463d19c6f9e5d7b05aa3e"
 LEDGER_SHA = SOURCE_SELECTION["front_retention_auxiliary_sha256"]
+PARTIAL_SOURCE_MANIFEST_SHA = "2fd4142d6ea60b78f889d0e08ced30ff4d31ec748c0beb93a571a4046b61aa5c"
+PARTIAL_RUN_MANIFEST_SHA = "9bb1f89252d23e0a8a638dbeff0952a4a63e6cb1fa96beb0fa3177813784768b"
+PARTIAL_VIDEO_ERROR = (
+    "VideoArtifactError: VIDEO_OR_ARTIFACT_ERROR: encode failed: RuntimeError: "
+    "viewport callback_count=0, expected 1"
+)
+PARTIAL_PHYSICS_ENDPOINT = 6648
+PARTIAL_LAST_ENCODED_TICK = 6640
+PARTIAL_FRAME_COUNT = 830
 RR_FEATURE_NAMES = (
     "mode", "initialized", "knee_hold_deg", "hip_entry_deg", "hip_target_deg",
     "travel_used_deg", "descent_elapsed_s", "window_start_gap_m",
@@ -183,12 +192,24 @@ def configure(args):
             sha256(manifests["migration_source_manifest"]) ==
                 SOURCE_SELECTION["manifest_sha256"],
             "checkpoint sidecar differs from its immutable pin")
+    diagnostic_partial = bool(args.diagnostic_partial)
+    source_manifest_sha = checked_sha(args.source_manifest_sha256,
+                                         "--source-manifest-sha256")
+    source_run_manifest_sha = checked_sha(args.source_run_manifest_sha256,
+                                             "--source-run-manifest-sha256")
+    if diagnostic_partial:
+        require(source_manifest_sha == PARTIAL_SOURCE_MANIFEST_SHA and
+                source_run_manifest_sha == PARTIAL_RUN_MANIFEST_SHA,
+                "partial mode accepts only the exact closed callback-abort source")
     _PINS = {**files, **manifests, **hashes,
-        "source_manifest_sha256": checked_sha(args.source_manifest_sha256,
-                                                "--source-manifest-sha256"),
-        "source_run_manifest_sha256": checked_sha(args.source_run_manifest_sha256,
-                                                    "--source-run-manifest-sha256"),
+        "source_manifest_sha256": source_manifest_sha,
+        "source_run_manifest_sha256": source_run_manifest_sha,
         "current_counters": dict(CURRENT_COUNTERS),
+        "diagnostic_partial": diagnostic_partial,
+        # Compatibility fields used only while the reviewed v8 renderer builds
+        # its labels; v10 replaces its checkpoint validator before source read.
+        "checkpoint_role": "ancestor-branch-descendant",
+        "checkpoint_output_branch": BRANCH,
     }
     return _PINS
 
@@ -378,6 +399,103 @@ def checkpoint_identity(manifest):
     }
 
 
+def diagnostic_partial_source(source):
+    """Accept only the exact 830-frame closed artifact-abort source.
+
+    This path cannot accept a task result and cannot be reached unless the
+    explicit partial flag and both immutable source hashes were configured.
+    """
+    m, p = media(), pins()
+    require(p["diagnostic_partial"], "partial source requires explicit mode")
+    source = Path(source).resolve(strict=True)
+    run_path = source.parent / "run_manifest.json"
+    manifest_path = source / "semantic_video_source_manifest.json"
+    require(sha256(run_path) == PARTIAL_RUN_MANIFEST_SHA and
+            sha256(manifest_path) == PARTIAL_SOURCE_MANIFEST_SHA,
+            "callback-abort source/run manifest changed")
+    run_manifest, manifest = read_json(run_path), read_json(manifest_path)
+    require(bool(run_manifest.get("completed_at_utc")) and
+            run_manifest.get("lifecycle") == "DIAGNOSTIC_FAILURE" and
+            manifest.get("schema") == "wlr50_clean.semantic_video_source.v1" and
+            manifest.get("experiment_id") == "rr_capture_then_rl_transfer_v1" and
+            manifest.get("role") == "C" and manifest.get("from_phase") == "P01" and
+            manifest.get("fresh_process_single_episode") is True and
+            manifest.get("episode_count") == 1 and
+            manifest.get("optimizer_updates") == 0 and
+            manifest.get("diagnostic_only") is True and
+            manifest.get("physical_task_success") is False and
+            manifest.get("success_candidate") is False and
+            manifest.get("source_acceptance_error") == PARTIAL_VIDEO_ERROR and
+            manifest.get("episode_physics_ticks") == PARTIAL_PHYSICS_ENDPOINT and
+            run_manifest.get("runtime_contract") == manifest.get("runtime_contract"),
+            "source is not the exact closed non-task-terminal capture abort")
+    interval = manifest.get("task_interval_window") or {}
+    require(interval.get("frame_count") == 831 and
+            interval.get("endpoint_episode_tick") == PARTIAL_PHYSICS_ENDPOINT and
+            interval.get("physical_duration_s") == 55.4 and
+            interval.get("extra_physics_ticks") == 0,
+            "declared task interval differs from the real missing-final-frame boundary")
+    checkpoint = _cached_identity(manifest)
+    capture_path = m.artifact(source, manifest, "viewport_buffer_video_manifest.json")
+    capture = read_json(capture_path)
+    require(capture.get("valid") is False and
+            capture.get("status") == "VIDEO_OR_ARTIFACT_ERROR" and
+            capture.get("error") ==
+                "encode failed: RuntimeError: viewport callback_count=0, expected 1" and
+            capture.get("frame_count") == PARTIAL_FRAME_COUNT and
+            capture.get("encoder_finalized_before_app_close") is True and
+            capture.get("frame_ledger_complete") is True and
+            capture.get("one_callback_per_render") is True and
+            capture.get("active_render_product_identity_proven") is True and
+            (capture.get("full_decode") or {}).get("valid") is True and
+            (capture.get("full_decode") or {}).get("frame_count") ==
+                PARTIAL_FRAME_COUNT,
+            "viewport partial is not the exact finalized 830-frame callback abort")
+    return {"source": source, "manifest": manifest, "manifest_path": manifest_path,
+        "run_manifest": run_manifest, "run_manifest_path": run_path,
+        "video": m.artifact(source, manifest, "actual_viewport_video.mp4"),
+        "ledger_path": m.artifact(source, manifest, "viewport_frame_ledger.jsonl"),
+        "capture": capture, "capture_path": capture_path,
+        "tick_path": m.artifact(source, manifest, "capture_assist_ticks.jsonl"),
+        "native_tick_path": m.artifact(source, manifest, "native_tick_audit.jsonl"),
+        "checkpoint": checkpoint, "endpoint": PARTIAL_PHYSICS_ENDPOINT}
+
+
+def checked_partial_media(context, *, ffmpeg):
+    """Fully decode the real prefix and prove exactly one final interval is absent."""
+    m, helper = media(), media().shared()
+    decoded = helper.decode_frame_timeline(context["video"], ffmpeg=ffmpeg)
+    ledger = helper.load_viewport_frame_ledger(context["ledger_path"])
+    require(len(decoded) == len(ledger) == PARTIAL_FRAME_COUNT,
+            "partial decode/ledger is not exactly 830 frames")
+    expected = list(range(m.STRIDE, PARTIAL_LAST_ENCODED_TICK + 1, m.STRIDE))
+    require([row.frame_index for row in ledger] == list(range(PARTIAL_FRAME_COUNT)) and
+            [row.sim_step for row in ledger] == expected and
+            all(abs(frame.pts_s - index / m.FPS) < 1e-5
+                for index, frame in enumerate(decoded)) and
+            ledger[-1].sim_step == PARTIAL_LAST_ENCODED_TICK and
+            PARTIAL_LAST_ENCODED_TICK + m.STRIDE == PARTIAL_PHYSICS_ENDPOINT,
+            "partial frame lineage is not the continuous prefix ending at tick6640")
+    validation = helper.validate_mp4(context["video"], ffmpeg=ffmpeg,
+        expected_fps=m.FPS, expected_frame_count=PARTIAL_FRAME_COUNT,
+        expected_width=1280, expected_height=720, maximum_duration_s=200.0,
+        require_sane_container_duration=False)
+    require(validation.get("valid") is True and
+            validation.get("sha256") == context["capture"].get("video_sha256"),
+            "830-frame source prefix does not fully decode or changed after closure")
+    validation.update({
+        "diagnostic_partial": True,
+        "declared_episode_frame_count": 831,
+        "actual_encoded_frame_count": PARTIAL_FRAME_COUNT,
+        "last_encoded_physics_tick": PARTIAL_LAST_ENCODED_TICK,
+        "physical_episode_endpoint_tick": PARTIAL_PHYSICS_ENDPOINT,
+        "missing_physical_interval_s": [PARTIAL_LAST_ENCODED_TICK / 120.0,
+                                        PARTIAL_PHYSICS_ENDPOINT / 120.0],
+        "missing_frames_fabricated": False,
+    })
+    return decoded, ledger, validation
+
+
 def validate_snapshot(state):
     metadata = {"schema", "version", "feedback_revision", "window_reference_semantics",
         "capture_search_semantics", "mode_name", "reason", "active", "owners",
@@ -461,14 +579,28 @@ def capture_rows(candidate, ledger):
                          **above})
     terminal = _last_json_line(candidate["source"] / "video_policy_decisions.jsonl")
     task = ((terminal.get("step_info") or {}).get("semantic_task") or {})
-    require((terminal.get("step_info") or {}).get("physics_tick") == rows[-1]["tick"] and
-            isinstance(task.get("termination_reason"), str),
-            "terminal semantic-task decision does not align with final video row")
-    rows[-1]["semantic_terminal_reason"] = task["termination_reason"]
-    rows[-1]["semantic_terminal_source"] = task.get("termination_source")
-    selected.append({"milestone": "TERMINAL_SEMANTIC_TASK", "tick": rows[-1]["tick"],
-        "phase": rows[-1]["phase"], "termination_reason": task["termination_reason"],
-        "termination_source": task.get("termination_source")})
+    require((terminal.get("step_info") or {}).get("physics_tick") == rows[-1]["tick"],
+            "last complete policy decision does not align with final encoded frame")
+    if pins()["diagnostic_partial"]:
+        require(task.get("termination_reason") is None and
+                task.get("termination_source") is None and
+                rows[-1]["tick"] == PARTIAL_LAST_ENCODED_TICK and
+                rows[-1]["phase"] == "P05",
+                "capture-abort prefix must not be reclassified as a task terminal")
+        rows[-1]["semantic_terminal_reason"] = None
+        rows[-1]["semantic_terminal_source"] = None
+        selected.append({"milestone": "CAPTURE_ABORT_LAST_COMPLETE_POLICY_DECISION",
+            "tick": rows[-1]["tick"], "phase": rows[-1]["phase"],
+            "termination_reason": None, "termination_source": None})
+    else:
+        require(isinstance(task.get("termination_reason"), str),
+                "terminal semantic-task decision lacks its termination reason")
+        rows[-1]["semantic_terminal_reason"] = task["termination_reason"]
+        rows[-1]["semantic_terminal_source"] = task.get("termination_source")
+        selected.append({"milestone": "TERMINAL_SEMANTIC_TASK",
+            "tick": rows[-1]["tick"], "phase": rows[-1]["phase"],
+            "termination_reason": task["termination_reason"],
+            "termination_source": task.get("termination_source")})
     return rows, selected
 
 
@@ -483,6 +615,20 @@ def panel_lines(row, result, *, rr_reached, feedback_v2):
     reason = str(row["rr_assist_reason"])
     if len(reason) > 37:
         reason = reason[:34] + "..."
+    if pins()["diagnostic_partial"]:
+        return [
+            "CAPTURE_ABORT | OLD v10 CP222720 DET | P05 INCOMPLETE | NOT A TASK TERMINAL",
+            "RR NOT REACHED | encoded 830/declared 831 | missing physical interval 55.333-55.400s",
+            "REAR TASK ASSIST: ON (old v10) | NOT THE NEW NO-REAR-ASSIST EVALUATION",
+            f"PPO v10 +{credit['global_policy_decisions']}/+{credit['ppo_updates']}/+{credit['optimizer_steps']} | controller +0 PPO | retention AUX 32/32 (not PPO)",
+            f"FL {row['fl_assist_mode']} active={row['fl_assist_active']} | RR {row['rr_assist_mode']} reason={reason}",
+            f"RR gap {f(row['rr_post_gap_mm'])}mm front {f(row['rr_front_distance_mm'])}mm {row['rr_post_contact']} | RR/P10/RL=False/False/False",
+            m._wheel_line("source nominal wheel rad/s: ", row["source_nominal_wheel_rad_s"]),
+            m._wheel_line("FINAL canonical target rad/s: ", row["wheel_final_canonical_rad_s"]),
+            m._wheel_line("MEASURED canonical qdot rad/s: ", row["wheel_actual_canonical_rad_s"]),
+            "real continuous prefix only | no fabricated final frame | C capture stops after this frame",
+            f"1x 15fps | t={row['time_s']:.3f}s tick={row['tick']} {row['phase']} | source task kept running to tick6648",
+        ]
     return [
         f"{display_id()} DET | PPO + FL/RR ASSISTS + WHEEL v9 + INHERITED AUX | {result}",
         f"PPO v10 +{credit['global_policy_decisions']}/+{credit['ppo_updates']}/+{credit['optimizer_steps']} | controller migration +0 PPO | retention AUX 32/32 (not PPO)",
@@ -500,6 +646,17 @@ def panel_lines(row, result, *, rr_reached, feedback_v2):
 
 def detail_plan(rows):
     last = rows[-1]
+    if pins()["diagnostic_partial"]:
+        p05 = [index for index, row in enumerate(rows) if row["phase"] == "P05"]
+        require(p05 and not last["run_RR_window_reached"],
+                "partial diagnostic must contain P05 and must not claim RR")
+        start = p05[0]
+        return {"kind": "P05_CAPTURE_ABORT", "start": start, "end": len(rows),
+            "filename": "CP222720_DET_v10_P05_CAPTURE_ABORT_detail.mp4",
+            "title": ("DETAIL | OLD v10 CP222720 | CAPTURE ABORT / P05 INCOMPLETE | "
+                      "RR NOT REACHED | NOT TASK TERMINAL"),
+            "requested_RR_detail_unavailable_reason":
+                "CAPTURE_ABORT_IN_P05__RR_WINDOW_NOT_REACHED"}
     if last["run_RR_window_reached"]:
         start = next(index for index, row in enumerate(rows)
             if row["phase"] in ("P09", "P10", "P11", "P12", "P13") or
@@ -562,8 +719,13 @@ def encode_pair(baseline, candidate, full, output, *, ffmpeg):
     b_count, c_count = len(b_ledger), candidate["frame_count"]
     count = max(b_count, c_count)
     m.require(count <= m.MAX_FRAMES, "comparison exceeds 200 seconds")
+    candidate_label = (
+        "OLD v10 CP222720 | CAPTURE_ABORT P05 | REAR ASSIST ON | NOT NO-REAR EVAL"
+        if pins()["diagnostic_partial"] else
+        f"{display_id()} | v10 RESERVE + FL/RR/WHEELv9 | PPO +1 | AUX 32/32"
+    )
     labels = (f"HISTORICAL N_REF (NOT FRESH B) | {m.DEFAULT_HISTORICAL_VERSION}",
-        f"{display_id()} | v10 RESERVE + FL/RR/WHEELv9 | PPO +1 | AUX 32/32")
+              candidate_label)
     font, filters = "C\\:/Windows/Fonts/arial.ttf", []
     for index, (label, frames) in enumerate(zip(labels, (b_count, c_count))):
         filters.append(f"[{index}:v]setpts=PTS-STARTPTS,scale=960:540,pad=960:610:0:70:black,"
@@ -588,6 +750,8 @@ def encode_pair(baseline, candidate, full, output, *, ffmpeg):
         "freeze_added_frames": {"historical_N": count - b_count,
                                 "candidate": count - c_count},
         "freeze_is_physical_evidence": False, "normal_speed": True,
+        "candidate_capture_abort_freezes_after_real_frame_830":
+            bool(pins()["diagnostic_partial"]),
         "validation": m.shared().validate_output(output, count, 1920, 610, ffmpeg),
         "previews": m.shared().preview(output, count, ffmpeg), "command": command}
 
@@ -597,18 +761,28 @@ def export(source, destination):
     source, destination = Path(source).resolve(strict=True), Path(destination).resolve()
     m.require(destination.is_relative_to(HERE.resolve()) and not destination.exists(),
               "new isolated destination under this output namespace is required")
-    candidate = m.sealed_source(source, candidate=True)
+    candidate = (diagnostic_partial_source(source) if p["diagnostic_partial"]
+                 else m.sealed_source(source, candidate=True))
     m.require(sha256(candidate["manifest_path"]) == p["source_manifest_sha256"] and
               sha256(candidate["run_manifest_path"]) == p["source_run_manifest_sha256"],
               "sealed source/run manifest differs from explicit invocation")
     baseline = m.sealed_source(m.DEFAULT_HISTORICAL_N, candidate=False)
     ffmpeg = m.shared().find_ffmpeg(candidate["capture"].get("full_decode", {}).get(
         "ffmpeg_path"))
-    _, ledger, source_validation = m.shared().checked_media(candidate, ffmpeg=ffmpeg)
+    if p["diagnostic_partial"]:
+        _, ledger, source_validation = checked_partial_media(candidate, ffmpeg=ffmpeg)
+    else:
+        _, ledger, source_validation = m.shared().checked_media(candidate, ffmpeg=ffmpeg)
     rows, selected = capture_rows(candidate, ledger)
     m.require(0 < len(rows) <= 3000, "source exceeds one normal-speed 200 s episode")
-    result, success, acceptance = m.outcome(candidate["manifest"])
-    suffix = "SUCCESS" if success else "INCOMPLETE"
+    if p["diagnostic_partial"]:
+        result = "CAPTURE_ABORT / P05 INCOMPLETE / RR NOT REACHED"
+        success = False
+        acceptance = PARTIAL_VIDEO_ERROR
+        suffix = "CAPTURE_ABORT_P05_INCOMPLETE"
+    else:
+        result, success, acceptance = m.outcome(candidate["manifest"])
+        suffix = "SUCCESS" if success else "INCOMPLETE"
     destination.mkdir(parents=True)
     full = m.encode_full(candidate, rows,
         destination / f"CP222720_DET_v10_full_attempt_{suffix}.mp4",
@@ -640,6 +814,7 @@ def export(source, destination):
             "front_retention_auxiliary": identity["front_retention_auxiliary"],
         },
         "physical_result": result, "physical_task_success": success,
+        "task_terminal_observed": not p["diagnostic_partial"],
         "semantic_terminal_reason": last["semantic_terminal_reason"],
         "semantic_terminal_source": last["semantic_terminal_source"],
         "source_acceptance_detail": acceptance,
@@ -650,14 +825,32 @@ def export(source, destination):
         "RL_window_reached": last["run_RL_window_reached"],
         "RL_placed": last["run_RL_placed"],
         "RL_success_claimed": bool(success and last["run_RL_placed"]),
-        "attempt_classification": ("TASK_SUCCESS" if success else
+        "attempt_classification": ("VIDEO_ARTIFACT_ERROR_NOT_TASK_FAILURE"
+            if p["diagnostic_partial"] else "TASK_SUCCESS" if success else
             "RL_WINDOW_REACHED_INCOMPLETE" if last["run_RL_window_reached"] else
             "P10_REACHED_RL_NOT_REACHED" if last["run_P10_reached"] else
             "RR_WINDOW_ONLY" if last["run_RR_window_reached"] else
             "PREDECESSOR_ONLY"),
-        "full_episode_continuous": True, "full_failure_tail_preserved": True,
+        "full_episode_continuous": not p["diagnostic_partial"],
+        "continuous_encoded_prefix": True,
+        "full_failure_tail_preserved": not p["diagnostic_partial"],
+        "all_available_encoded_tail_preserved": True,
         "normal_speed": True, "single_episode": True, "stitched": False,
         "extra_intro_frames": 0,
+        "diagnostic_partial": p["diagnostic_partial"],
+        "capture_abort": ({
+            "classification": "VIDEO_ARTIFACT_ERROR_NOT_TASK_FAILURE",
+            "declared_episode_physics_ticks": PARTIAL_PHYSICS_ENDPOINT,
+            "last_complete_policy_decision": 830,
+            "last_encoded_physics_tick": PARTIAL_LAST_ENCODED_TICK,
+            "actual_encoded_frames": PARTIAL_FRAME_COUNT,
+            "declared_interval_frames": 831,
+            "missing_physical_interval_s": [55.333333333333336, 55.4],
+            "missing_final_frame_fabricated": False,
+            "source_modified": False,
+            "rear_task_assist": "ON_IN_OLD_V10_SOURCE",
+            "is_new_no_rear_assist_evaluation": False,
+        } if p["diagnostic_partial"] else None),
         "source_validation": source_validation,
         "full": full, "detail": detail, "historical_N_comparison": pair,
         "historical_N_is_fresh_same_controller_B": False,
@@ -683,6 +876,8 @@ def parser():
     result.add_argument("--destination", type=Path, required=True)
     result.add_argument("--source-manifest-sha256", required=True)
     result.add_argument("--source-run-manifest-sha256", required=True)
+    result.add_argument("--diagnostic-partial", action="store_true",
+                        help="accept only the exact closed 830-frame callback-abort source")
     result.add_argument("--expected-head", required=True)
     result.add_argument("--checkpoint", type=Path, required=True)
     result.add_argument("--checkpoint-sha256", required=True)
