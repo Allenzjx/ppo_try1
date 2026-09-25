@@ -339,6 +339,38 @@ def build_actuator_target_effect_audit(
         except (TypeError, KeyError, ValueError, AttributeError) as exc:
             raise ActuatorTargetEffectError(str(exc)) from exc
 
+    pause_receipt = raw_ack.get("continuation_source_pause_evidence")
+    pause_pre = getattr(adapter, "_semantic_continuation_pause_pre_dispatch", None)
+    pause_context = None
+    if pause_pre is None:
+        if pause_receipt is not None:
+            raise ActuatorTargetEffectError("unexpected continuous source pause receipt")
+    else:
+        from .semantic_rr_continuation_pause import project as project_continuation_pause
+        try:
+            if not isinstance(pause_receipt, Mapping):
+                raise ValueError("missing continuous source pause receipt")
+            if owner_state is not None:
+                raise ValueError("continuous source pause cannot duplicate rear owner recovery")
+            pause_context = dict(pause_pre["context"])
+            if assist_snapshot is not None and assist_snapshot["active"]:
+                pause_context["owned_indices"] = [i for i in pause_context["owned_indices"] if i not in (0,1)]
+            if (tuple(pause_pre["previous_ack"]["drive_target_full12"][:8]) != previous
+                    or pause_pre["previous_tick"] + 1 != raw_ack["physics_tick"]):
+                raise ValueError("pause pre-state differs from independent previous FINAL/tick")
+            pause_input = tuple(a+b for a,b in zip(corrected_native,actual_bias,strict=True))
+            if assist_snapshot is not None:
+                pause_input = apply_capture_assist_snapshot(pause_input,assist_snapshot)
+            if rr_assist_snapshot is not None:
+                pause_input = assisted_candidate
+            reconstructed_pause = project_continuation_pause(pause_input,actuation.projected_residual_full12,
+                context=pause_context,previous_ack=pause_pre["previous_ack"],
+                previous_tick=pause_pre["previous_tick"],write_count=pause_pre["write_count"])
+            if dict(pause_receipt) != reconstructed_pause:
+                raise ValueError("pause receipt differs from independent context/ACK reconstruction")
+        except (TypeError,KeyError,ValueError) as exc:
+            raise ActuatorTargetEffectError(str(exc)) from exc
+
     def physical_targets(bias: Sequence[float], native_targets: Sequence[float] = corrected_native,
                          *, verify_wheel_receipt: bool = False, rr_branch: str = "zero_current_policy") -> Any:
         servo = []
@@ -362,6 +394,14 @@ def build_actuator_target_effect_audit(
             owner_candidate = apply_owner_state(base_candidate,
                 actuation.projected_residual_full12 if rr_branch == "actual" else (0.,)*12,
                 owner_state, owner_receipt["capacities_full12"])
+        pause_candidate = None
+        if pause_context is not None:
+            base_candidate = assisted if assisted is not None else tuple(a+b for a,b in zip(native_targets,bias,strict=True))
+            replayed_pause = project_continuation_pause(base_candidate,
+                actuation.projected_residual_full12 if rr_branch == "actual" else (0.,)*12,
+                context=pause_context,previous_ack=pause_pre["previous_ack"],
+                previous_tick=pause_pre["previous_tick"],write_count=pause_pre["write_count"])
+            pause_candidate = replayed_pause["candidate_after_full12"]
         for index, name in enumerate(SERVO_ORDER):
             lower, upper = servo_limits_deg(name)
             native_target, effective_bias = native_targets[index], bias[index]
@@ -371,6 +411,8 @@ def build_actuator_target_effect_audit(
                 native_target, effective_bias = assisted[index], 0.
             if owner_candidate is not None and index in owner_receipt["owner_indices"]:
                 native_target, effective_bias = owner_candidate[index], 0.
+            if pause_candidate is not None and index in pause_receipt["pause_indices"]:
+                native_target, effective_bias = pause_candidate[index], 0.
             servo.append(bounded_drive_feedback_step(
                 previous_deg=previous[index],
                 native_deg=native_target,
@@ -510,6 +552,13 @@ def build_actuator_target_effect_audit(
             all12_policy_channels_unmodified_at_actuator=bool(
                 result.get("all12_policy_channels_unmodified_at_actuator", True)
                 and not wheel_receipt["envelope_active"]))
+    if pause_receipt is not None:
+        result.update(continuation_source_pause_evidence=dict(pause_receipt),
+            continuation_source_pause_context_and_ACK_independently_verified=True,
+            continuation_source_pause_native_targets_independently_reconstructed=True,
+            policy_request_execution_semantics="raw_sample_unchanged_declared_source_pause_allows_requested_delta",
+            all12_policy_channels_unmodified_at_actuator=bool(
+                result.get("all12_policy_channels_unmodified_at_actuator",True) and not pause_receipt["pause_indices"]))
     if geometry_enabled:
         # Remove geometry only in this third, zero-current-policy branch.
         # The existing actual-minus-counterfactual fields remain PPO-only.

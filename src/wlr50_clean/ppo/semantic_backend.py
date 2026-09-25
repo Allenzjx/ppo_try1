@@ -149,7 +149,10 @@ class SemanticIsaacBackend(IsaacFSMBackend):
 
     def __init__(self, simulation_app: Any = None, *, execution_profile: Path | str = DEFAULT_EXECUTION_PROFILE,
                  task_spec_path: Path | str = CONFIG_ROOT / "stage_task_spec.yaml",
-                 controller_factory: Any = None, **kwargs: Any) -> None:
+                 controller_factory: Any = None, continuation_source_pause: bool = False, **kwargs: Any) -> None:
+        if type(continuation_source_pause) is not bool:
+            raise ValueError("continuation source pause opt-in must be Boolean")
+        self._continuation_source_pause_enabled = continuation_source_pause
         super().__init__(simulation_app, **kwargs)
         self.execution_profile_path = Path(execution_profile).resolve()
         self.execution_profile = load_execution_profile(execution_profile)
@@ -170,6 +173,8 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         if owner_mode not in (None, OWNER_MODE) or owner_mode != rr_task_spec.get("rear_owner_recovery_mode"):
             raise ValueError("rear owner recovery task/execution modes differ")
         self._rear_owner_recovery = RearOwnerRecovery() if owner_mode else None
+        if continuation_source_pause and owner_mode:
+            raise ValueError("continuous source pause cannot duplicate rear owner recovery")
         if self.execution_profile.get("p02_progress_credit_mode") != rr_task_spec.get("p02_progress_credit_mode"):
             raise ValueError("P02 progress execution and supervisor modes differ")
         if self.execution_profile.get("cooperative_preparation_mode") != rr_task_spec.get("cooperative_preparation_mode"):
@@ -329,6 +334,9 @@ class SemanticIsaacBackend(IsaacFSMBackend):
 
     def _atomic_apply(self, adapter, command, *, physics_tick, tracking_servo_names,
                       drive_feedback_bias_full12):
+        # Per-dispatch audit input, not hidden controller memory. Clear it even
+        # when this write has no policy plan or is a frozen reset prefix.
+        adapter._semantic_continuation_pause_pre_dispatch = None
         plan = self._semantic_actuation_plan
         if plan is not None:
             from .semantic_residual_adapter import SemanticActuationDispatch
@@ -398,6 +406,7 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                 adapter._semantic_owner_pre_dispatch = dict(state_before=owner.snapshot(),
                     context=copy.deepcopy(owner_context), previous_ack=copy.deepcopy(adapter.last_ack))
             adapter = SemanticActuationDispatch(adapter, plan, nominal_geometry_context=geometry,
+                continuation_pause_context=self._prepare_continuation_pause_audit(adapter, physics_tick),
                 policy_headroom_mode=getattr(self, "_policy_headroom_mode", None),
                 tracking_reference_mode=getattr(self, "_tracking_reference_mode", None),
                 tracking_reference_bootstrap_tick=SETTLE_TICKS + self._reset_prime_tick_count,
@@ -417,6 +426,35 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                     "state": self._rr_capture_assist.snapshot(),
                 }
         return ack
+
+    def _continuation_pause_context(self, physics_tick):
+        if (not getattr(self, "_continuation_source_pause_enabled", False)
+                or getattr(self._controller, "mode", None) in ("TEACHER", "TAKEOVER")):
+            return None
+        from .semantic_rr_continuation_pause import make_context
+        active = getattr(self._controller, "_semantic", None) or self._controller
+        inputs = active.nominal_provider.continuation_pause_inputs(self._controller.task_snapshot)
+        if not inputs["active"]:
+            return None  # Preserve the exact prefix's original dispatch route.
+        return make_context(inputs, dispatch_physics_tick=physics_tick)
+
+    def _prepare_continuation_pause_audit(self, adapter, physics_tick):
+        context = self._continuation_pause_context(physics_tick)
+        if context is not None:
+            import copy
+            adapter._semantic_continuation_pause_pre_dispatch = dict(
+                context=copy.deepcopy(context), previous_ack=copy.deepcopy(adapter.last_ack),
+                previous_tick=adapter._last_physics_tick, write_count=adapter.write_count)
+        return context
+
+    def continuation_source_pause_features(self):
+        from .semantic_rr_continuation_pause import features
+        adapter = getattr(self, "_adapter", None)
+        controller = getattr(self, "_controller", None)
+        if (adapter is None or controller is None or getattr(controller, "task_snapshot", None) is None
+                or getattr(adapter, "_last_physics_tick", None) is None):
+            return features(None)
+        return features(self._continuation_pause_context(adapter._last_physics_tick + 1))
 
     def _rr_carry_pre_dispatch_context(self, physics_tick):
         """Read-only shared input, independently captured before native audit/write."""

@@ -92,8 +92,9 @@ def tensor_observation(values, device):
     import torch
     from tensordict import TensorDict
     data = torch.tensor([values], dtype=torch.float32, device=device)
-    if tuple(data.shape) != (1, 448) or not bool(torch.isfinite(data).all()):
-        raise ValueError('finite448 local observation required')
+    dimension = settings()['observation_dimension']
+    if tuple(data.shape) != (1, dimension) or not bool(torch.isfinite(data).all()):
+        raise ValueError('finite configured local observation required')
     return TensorDict({'policy': data, 'critic': data.clone()}, batch_size=[1], device=device)
 
 
@@ -103,6 +104,11 @@ class CaptureCore:
         from .semantic_rr_capture_local_task import RRCaptureLocalTask
         self.inner = inner
         self.task = RRCaptureLocalTask() if task is None else task
+        self.continuous = hasattr(self.task, 'obs16')
+        self.assist = None
+        if self.continuous:
+            from .semantic_rr_authorized_assist import AuthorizedRRAssist
+            self.assist = AuthorizedRRAssist(enabled=settings().get('rr_authorized_assist', False))
         self.tick_observer = None
         self.inner.tick_observer = self._observe
         self.observation = None
@@ -120,11 +126,16 @@ class CaptureCore:
         # The owner controller is absent, not a hidden unobserved transform.
         if len(self.inner.observation) != 422:
             raise ValueError('accepted CP225280 control must expose original422')
-        self.observation = tuple(self.inner.observation) + (0.,) * 17 + tuple(self.task.obs9())
+        context = (tuple(self.task.obs16()) + tuple(self.assist.obs7())
+                   + tuple(self.backend.continuation_source_pause_features())
+                   if self.continuous else tuple(self.task.obs9()))
+        self.observation = tuple(self.inner.observation) + (0.,) * 17 + context
         return self.observation
 
     def reset(self, seed=1001):
         self.task.reset()
+        if self.assist is not None:
+            self.assist.reset()
         self.inner.reset(seed=seed)
         self.task.observe(self.inner.frame)
         self.done = False
@@ -135,16 +146,23 @@ class CaptureCore:
         if self.done:
             raise RuntimeError('cannot advance a completed local task')
         before = self.task.snapshot()
-        step = self.inner.step(raw)
+        issued, assist_receipt = list(raw), None
+        if self.assist is not None:
+            issued, assist_receipt = self.assist.request(self, raw)
+        step = self.inner.step(issued)
         local = self.task.reward(before, termination_reason=step.info.get('termination_reason'))
         snapshot = self.task.snapshot()
-        self.done = bool(step.terminated or snapshot['local_success'])
+        self.done = bool(step.terminated or (not self.continuous and snapshot['local_success']))
         info = dict(step.info)
         info.update(rr_capture_local=snapshot, local_reward=local,
                     local_task_success=bool(snapshot['local_success']),
                     full_task_success=bool(step.info.get('full_task_success')),
                     original_global_reward_not_optimized=step.reward)
-        if snapshot['local_success'] and not step.terminated:
+        if assist_receipt is not None:
+            info['authorized_RR_assist'] = assist_receipt
+            info['selected_policy_raw_full12'] = list(raw)
+            info['applied_raw_full12'] = issued
+        if not self.continuous and snapshot['local_success'] and not step.terminated:
             info.update(termination_reason='RR_CAPTURE_HOLD_LOCAL_SUCCESS',
                         task_outcome_label='RR_LOCAL_SUCCESS_NOT_FULL_TASK',
                         terminal_bootstrap_allowed=False)
@@ -154,23 +172,32 @@ class CaptureCore:
 def build_core(app):
     from .semantic_backend import SemanticIsaacBackend
     from .semantic_env import SemanticEpisodeEnv
-    from .semantic_rr_capture_deferred_late import MODE, controller_factory
-    from .semantic_rr_capture_local_task import RRCaptureLocalTask
+    if settings().get('continuous_rr_rl') is True:
+        from .semantic_rr_capture_continuation_source import MODE, controller_factory
+        from .semantic_rr_capture_continuation_task import RRCaptureContinuationTask
+        from .semantic_rr_capture_continuation_task import RRCaptureContinuationTaskConfig
+        local_task = RRCaptureContinuationTask(RRCaptureContinuationTaskConfig(
+            **settings().get('continuation_task', {})))
+        factory = controller_factory(task_spec_path=CONFIG/'stage_task_spec.yaml',
+            read_local_state=lambda: local_task.snapshot())
+    else:
+        from .semantic_rr_capture_deferred_late import MODE, controller_factory
+        from .semantic_rr_capture_local_task import RRCaptureLocalTask
+        local_task = RRCaptureLocalTask()
+        factory = controller_factory(task_spec_path=CONFIG/'stage_task_spec.yaml',
+            read_local_active=lambda: local_task.active)
     if settings()['capture_source_dispatch'] != MODE:
-        raise ValueError('unknown RR-local source scheduling version')
-    local_task = RRCaptureLocalTask()
-    factory = controller_factory(task_spec_path=CONFIG/'stage_task_spec.yaml',
-        read_local_active=lambda: local_task.active)
+        raise ValueError('unknown RR source scheduling version')
     backend = SemanticIsaacBackend(app, audit_actuator_target_effect=True,
         execution_profile=CONFIG/'execution_profile.yaml', task_spec_path=CONFIG/'stage_task_spec.yaml',
-        controller_factory=factory)
+        controller_factory=factory, continuation_source_pause=settings().get('continuous_rr_rl', False))
     return CaptureCore(SemanticEpisodeEnv(backend, collect_trace=False,
         action_config=CONFIG/'execution_profile.yaml', reward_config_path=CONFIG/'reward_config.yaml',
         observation_schema_path=CONFIG/'observation_schema.json'), task=local_task)
 
 
 def make_runner(device, seed, *, legacy_config=None, coordinate_source_config=None,
-                coordinate_source_head=None):
+                coordinate_source_head=None, saved_configuration=None):
     import torch
     from types import SimpleNamespace
     from .rl_library_wrapper import build_rsl_runner_config, construct_runner
@@ -179,7 +206,12 @@ def make_runner(device, seed, *, legacy_config=None, coordinate_source_config=No
     # Real saved regression observation used only to instantiate tensor shapes;
     # never treated as an environment transition or copied into PPO storage.
     data = json.loads((ROOT/'outputs/ppo_rl_recovery_learning_v1/staged_cp225280_front_branch/CP225280_front_replay_dataset.json').read_text())
-    dimension = 447 if legacy_config is not None else 448
+    dimension = 447 if legacy_config is not None else cfg['observation_dimension']
+    if saved_configuration is not None:
+        layout = saved_configuration['actor']['observation_layout']
+        dimensions = {'role439_rr_capture_local_v1':447, 'role439_rr_capture_local_v2':448,
+                      'role439_rr_rl_continuous_v3':465}
+        dimension = dimensions[layout]
     initial = data['training_rows'][0]['observation'][:422] + [0.] * (dimension-422)
     def initial_observation():
         from tensordict import TensorDict
@@ -201,6 +233,8 @@ def make_runner(device, seed, *, legacy_config=None, coordinate_source_config=No
         distribution_cfg={'class_name': 'HeteroscedasticGaussianDistribution', 'init_std': .15, 'std_type': 'log'},
         initial_capture_std=cfg['active_initial_sigma_full12'])
     configuration['actor'][GAIN_KEY] = list(checked_gain(cfg[GAIN_KEY]))
+    if cfg.get('continuous_rr_rl') is True:
+        configuration['actor'].update(continuation=True, observation_layout='role439_rr_rl_continuous_v3')
     if coordinate_source_config is not None:
         if legacy_config is not None or coordinate_source_head != SOURCE_HEAD:
             raise ValueError('identity cold source requires exact0ff full448 config')
@@ -216,11 +250,16 @@ def make_runner(device, seed, *, legacy_config=None, coordinate_source_config=No
             raise ValueError('explicit historical447 runner configuration required')
         configuration['actor']['legacy447_migration_only'] = True
         configuration['device'] = device
+    if saved_configuration is not None:
+        if legacy_config is not None or coordinate_source_config is not None:
+            raise ValueError('one explicit cold source configuration only')
+        configuration = copy.deepcopy(saved_configuration)
+        configuration['device'] = device
     runner = construct_runner(env, configuration, log_dir=None)
     # Explicit exclusion of prior parameters, including weight decay/momentum.
     params = list(runner.alg.actor.trainable_parameters()) + list(runner.alg.critic.parameters())
     runner.alg.optimizer = torch.optim.Adam(params, lr=cfg['learning_rate'])
-    runner._semantic_policy_version = 'frozen_prior_rr_capture_local448_v2'
+    runner._semantic_policy_version = runner.alg.actor.policy_version
     runner._semantic_front_replay = None
     runner.logger.writer = None
     runner.local_configuration = copy.deepcopy(configuration)
@@ -272,7 +311,7 @@ def checkpoint_path(decisions, revision=None, auxiliary_updates=0):
     if type(auxiliary_updates) is not int or auxiliary_updates < 0:
         raise ValueError('auxiliary_updates must count actual nonnegative AUX optimizer steps')
     suffix = ('_aux'+f'{auxiliary_updates:06d}' if auxiliary_updates else '')
-    suffix += '_lineage448_v2' + ('_g'+revision[:12] if revision else '')
+    suffix += ('_continuous465_v3' if settings().get('continuous_rr_rl') else '_lineage448_v2') + ('_g'+revision[:12] if revision else '')
     return OUTPUT/'checkpoints/history'/f'checkpoint_CP{225280+decisions}_local{decisions:06d}{suffix}.pt'
 
 
@@ -297,7 +336,7 @@ def save(runner, runtime, prior, counts, *, source_run, publish_pointer=True):
         source_run=str(source_run), runner_config=runner.local_configuration,
         state_hashes=identity, learning_rate=runner.alg.learning_rate,
         training_rng=capture_training_rng_state(seed=1001),
-        rollout_empty=True, front_FL_assist=True, rear_task_assists=False,
+        rollout_empty=True, front_FL_assist=True, rear_task_assists=settings().get('rr_authorized_assist', False),
         full_task_success=False, local_task_semantics=settings()['local_terminal'])
     if getattr(runner, 'local_migration', None) is not None:
         infos['local_migration'] = copy.deepcopy(runner.local_migration)
@@ -305,6 +344,7 @@ def save(runner, runtime, prior, counts, *, source_run, publish_pointer=True):
         infos['local_control_rebinds'] = copy.deepcopy(runner.local_control_rebinds)
     infos['local_auxiliary_events'] = copy.deepcopy(ledger)
     infos['local_mean_coordinate_migrations'] = copy.deepcopy(getattr(runner, 'local_mean_coordinate_migrations', []))
+    infos['local_continuation_migrations'] = copy.deepcopy(getattr(runner, 'local_continuation_migrations', []))
     payload.update(infos=infos, iter=counts['local_ppo_updates'])
     torch.save(payload, target)
     loaded = torch.load(target, map_location=runner.device, weights_only=False)
@@ -357,6 +397,7 @@ def load(runner, path, runtime):
     runner.local_control_rebinds = copy.deepcopy(metadata.get('local_control_rebinds', []))
     runner.local_auxiliary_events = ledger
     runner.local_mean_coordinate_migrations = copy.deepcopy(metadata.get('local_mean_coordinate_migrations', []))
+    runner.local_continuation_migrations = copy.deepcopy(metadata.get('local_continuation_migrations', []))
     runner.current_learning_iteration = metadata['counts']['local_ppo_updates']
     restore_training_rng_state(metadata['training_rng'], expected_seed=1001)
     runner.checkpoint_load_provenance = {'checkpoint': str(path), 'checkpoint_sha256':sha(path),
@@ -702,6 +743,7 @@ def train(core, runner, runtime, prior, counts, run, decisions):
             if core.done:
                 prefix(core, runner, stream, counts)
             phase_counts = Counter()
+            coverage = Counter()
             for index in range(512):
                 if core.done:
                     prefix(core, runner, stream, counts)
@@ -714,7 +756,12 @@ def train(core, runner, runtime, prior, counts, run, decisions):
                     selected = raw.detach().clone()
                     before = core.task.snapshot()
                     step = core.step(raw[0].cpu().tolist())
-                    verified_native_effect(step.info, tuple(raw[0].cpu().tolist()))
+                    verified_native_effect(step.info, tuple(step.info.get('applied_raw_full12', raw[0].cpu().tolist())))
+                    if 'applied_raw_full12' in step.info:
+                        applied = step.info['applied_raw_full12']
+                        original = raw[0].cpu().tolist()
+                        if any(applied[i] != original[i] for i in (0,1,2,3,4,5,8,9,10,11)):
+                            raise RuntimeError('RR-only assist altered another sampled action channel')
                     nxt = tensor_observation(step.observation, runner.device)
                     reward = torch.tensor([step.reward], device=runner.device)
                     done = torch.tensor([step.terminated], dtype=torch.bool, device=runner.device)
@@ -724,8 +771,20 @@ def train(core, runner, runtime, prior, counts, run, decisions):
                     if not torch.equal(runner.alg.storage.actions_log_prob[index].view(-1), old_logp.view(-1)):
                         raise RuntimeError('PPO old likelihood differs from composed sampled Gaussian')
                 counts['local_policy_decisions'] += 1
-                counts['task_v2_policy_decisions'] = counts.get('task_v2_policy_decisions', 0) + 1
+                task_counter = 'task_v3_policy_decisions' if core.continuous else 'task_v2_policy_decisions'
+                counts[task_counter] = counts.get(task_counter, 0) + 1
                 phase_counts[step.info['phase_id']] += 1
+                if core.continuous:
+                    coverage['RR_capture_active'] += int(before.get('active', False))
+                    coverage['RL_preparation_geometry_ready'] += int(before.get('rr_geometry_ready_for_RL_prep', False))
+                    coverage['RR_current_contact'] += int(before.get('rr_contact_now', False))
+                    coverage['RR_current_bearing'] += int(before.get('rr_bearing_now', False))
+                    rl_metrics = before.get('rl_metrics') or {}
+                    coverage['RL_current_qualified'] += int(rl_metrics.get('current_qualified', False))
+                    coverage['RL_current_AIR_swing'] += int(rl_metrics.get('current_air_lift_valid', False))
+                    coverage['RL_current_TOP'] += int(rl_metrics.get('current_top_contact', False))
+                    for name, amount in step.info['local_reward'].get('milestone_events', {}).items():
+                        coverage['first_event_' + name] += int(amount > 0)
                 line(stream, {'kind':'activated_on_policy', 'global_decision':225280+counts['local_policy_decisions'],
                     'PPO_credit':1, 'observation':obs['policy'][0].cpu().tolist(),
                     'policy_request':audit, 'old_logp':old_logp.cpu().tolist(),
@@ -749,13 +808,22 @@ def train(core, runner, runtime, prior, counts, run, decisions):
             report = audited_ppo_update(runner, likelihood_audit_path=run/'rollouts'/f'likelihood_{update_number:04d}.json')
             runner.alg.actor.assert_frozen_state()
             counts['local_ppo_updates'] += 1
-            counts['task_v2_ppo_updates'] = counts.get('task_v2_ppo_updates', 0) + 1
+            update_counter = 'task_v3_ppo_updates' if core.continuous else 'task_v2_ppo_updates'
+            counts[update_counter] = counts.get(update_counter, 0) + 1
             counts['local_optimizer_steps'] += report['optimizer_steps']
             runner.current_learning_iteration = counts['local_ppo_updates']
-            report.update(counts=dict(counts), actual_phase_counts=dict(phase_counts))
+            report.update(counts=dict(counts), actual_phase_counts=dict(phase_counts),
+                          actual_optimizer_sample_coverage=dict(coverage),
+                          coverage_overlaps_not_additive=True)
             line(updates, report)
             pointer = save(runner,runtime,prior,counts,source_run=run)
             print(json.dumps({'completed_update':counts['local_ppo_updates'],'checkpoint':pointer}),flush=True)
+            from .semantic_training import _stop_request
+            stop = _stop_request(run, runtime)
+            if stop is not None:
+                write(run/'stop_after_update.accepted.json', dict(stop, checkpoint=pointer,
+                    complete_update=counts['local_ppo_updates'], rollout_empty=True))
+                break
     return pointer
 
 
@@ -847,7 +915,7 @@ def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False):
                 'prior':prior,'counts':counts,'source_run':str(run),'continuous_natural_P01':True,
                 'checkpoint_load_provenance':runner.checkpoint_load_provenance,
                 'rear_owner_projection':False,'ignored_legacy_sampling_profile':True,
-                'control_contributions':{'policy_version':settings()['version'], 'observation_dimension':448,
+                'control_contributions':{'policy_version':settings()['version'], 'observation_dimension':settings()['observation_dimension'],
                     'local_mean_coordinate_gain_full12':list(settings()['local_mean_coordinate_gain_full12']),
                     'local_mean_coordinate_migrations':copy.deepcopy(getattr(runner, 'local_mean_coordinate_migrations', [])),
                     'capture_source_dispatch':settings()['capture_source_dispatch'],
@@ -857,17 +925,19 @@ def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False):
                     'local_auxiliary_optimizer_steps':counts.get('auxiliary_updates', 0),
                     'AUX_updates_during_evaluation':0,
                     'FL_capture_assist_mode':'p05_hip_only_continuation_v1',
-                    'rear_owner_projection':False,'rr_capture_assist_mode':None,
+                    'rear_owner_projection':False,'rr_capture_assist_mode':('authorized_fallback_v1' if settings().get('rr_authorized_assist') else None),
                     'nominal_geometry_advisory':None,'rr_capture_wheel_mode':'off',
                     'diagnostic_only_RR_joint_override':diagnostic},
                 'checkpoint_model_unchanged':unchanged,'policy_switches':0,'front_FL_assist':True,
-                'rear_task_assists':False,'diagnostic_intervention':diagnostic,'PPO_updates':0,
+                'rear_task_assists':settings().get('rr_authorized_assist', False),'diagnostic_intervention':diagnostic,'PPO_updates':0,
                 'physical_summary':summary,'local_task':core.task.snapshot(),'terminal_info':last_info,
                 'actual_ticks':core.frame.physics_tick,'time_s':core.frame.sim_time_s,
                 'time_receipt':interval_receipt(core.frame.physics_tick),
                 'recorder':media,'height_diagnostics':heights_receipt,'error':error,
                 'full_task_success':bool(summary.get('task_success')),
-                'local_RR_success':bool(core.task.snapshot()['local_success'])}
+                'local_RR_success':bool(core.task.snapshot().get('rr_milestone', core.task.snapshot()['local_success'])),
+                'RR_milestone_is_not_full_success':True,
+                'local_continuation_migrations':copy.deepcopy(getattr(runner, 'local_continuation_migrations', []))}
             result['sealed_files']={p.name:{'path':str(p),'sha256':sha(p),'bytes':p.stat().st_size}
                 for p in source.iterdir() if p.is_file() and p.name!='source_manifest.json'}
             write(source/'source_manifest.json',result)

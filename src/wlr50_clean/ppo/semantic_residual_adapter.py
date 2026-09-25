@@ -99,7 +99,8 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
                             rr_capture_assist_context: Mapping[str, Any] | None = None,
                             rr_carry_wheel_context: Mapping[str, Any] | None = None,
                             rear_owner_recovery: Any = None,
-                            rear_owner_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
+                            rear_owner_context: Mapping[str, Any] | None = None,
+                            continuation_pause_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Dispatch independent policy residual without treating it as tracking bias."""
     # Keep the original controller envelope, including for the exact-zero path.
     controller = _full12_drive_feedback_bias(controller_bias_full12)
@@ -148,7 +149,7 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
         any(tracking_reference["previous_requested_full12"][:8]))
     if (not any(residual) and nominal_geometry_context is None and not reference_history_nonzero
             and capture_assist is None and rr_capture_assist is None and rr_carry_wheel_context is None
-            and rear_owner_recovery is None):
+            and rear_owner_recovery is None and continuation_pause_context is None):
         ack = adapter.apply_full12(command, physics_tick=physics_tick,
             tracking_servo_names=tracking_servo_names, drive_feedback_bias_full12=controller)
         if policy_headroom_mode is not None:
@@ -296,6 +297,24 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
             capacities=context["capacities_full12"])
         evidence["rear_owner_recovery_evidence"] = receipt
         owner_targets = tuple(receipt["candidate_after_full12"])
+    pause_targets = None
+    if continuation_pause_context is not None:
+        from .semantic_rr_continuation_pause import project as project_continuation_pause
+        candidate = tuple(a+b for a,b in zip(corrected_native, effective_combined, strict=True))
+        if assist_targets is not None:
+            candidate = assist_targets
+        if rr_assist_targets is not None:
+            candidate = rr_assist_targets
+        if owner_targets is not None:
+            raise RobotAdapterError("continuous source pause cannot duplicate rear owner recovery")
+        context = dict(continuation_pause_context)
+        if "capture_assist_evidence" in evidence and evidence["capture_assist_evidence"]["owner_indices"]:
+            context["owned_indices"] = [i for i in context["owned_indices"] if i not in (0,1)]
+        receipt = project_continuation_pause(candidate, residual, context=context,
+            previous_ack=adapter.last_ack, previous_tick=adapter._last_physics_tick,
+            write_count=adapter.write_count)
+        pause_targets = tuple(receipt["candidate_after_full12"])
+        evidence["continuation_source_pause_evidence"] = receipt
     final_servo = []
     for index, (name, target, bias) in enumerate(zip(SERVO_ORDER, corrected_native[:8], effective_combined[:8], strict=True)):
         if assist_targets is not None and index in evidence["capture_assist_evidence"]["owner_indices"]:
@@ -304,6 +323,8 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
             target, bias = rr_assist_targets[index], 0.
         if owner_targets is not None and index in evidence["rear_owner_recovery_evidence"]["owner_indices"]:
             target, bias = owner_targets[index], 0.
+        if pause_targets is not None and index in evidence["continuation_source_pause_evidence"]["pause_indices"]:
+            target, bias = pause_targets[index], 0.
         lower, upper = servo_limits_deg(name)
         final_servo.append(bounded_drive_feedback_step(
             previous_deg=adapter._final_drive_servo_deg[name], native_deg=target,
@@ -396,7 +417,8 @@ class SemanticActuationDispatch:
                  capture_assist: Any = None, capture_assist_context: Mapping[str, Any] | None = None,
                  rr_capture_assist: Any = None, rr_capture_assist_context: Mapping[str, Any] | None = None,
                  rr_carry_wheel_context: Mapping[str, Any] | None = None,
-                 rear_owner_recovery: Any = None, rear_owner_context: Mapping[str, Any] | None = None):
+                 rear_owner_recovery: Any = None, rear_owner_context: Mapping[str, Any] | None = None,
+                 continuation_pause_context: Mapping[str, Any] | None = None):
         self.adapter, self.plan = adapter, plan
         self.nominal_geometry_context = nominal_geometry_context
         self.policy_headroom_mode = policy_headroom_mode
@@ -409,6 +431,7 @@ class SemanticActuationDispatch:
         self.rr_carry_wheel_context = rr_carry_wheel_context
         self.rear_owner_recovery = rear_owner_recovery
         self.rear_owner_context = rear_owner_context
+        self.continuation_pause_context = continuation_pause_context
 
     def __getattr__(self, name):
         return getattr(self.adapter, name)
@@ -428,4 +451,5 @@ class SemanticActuationDispatch:
             capture_assist=self.capture_assist, capture_assist_context=self.capture_assist_context,
             rr_capture_assist=self.rr_capture_assist, rr_capture_assist_context=self.rr_capture_assist_context,
             rr_carry_wheel_context=self.rr_carry_wheel_context,
-            rear_owner_recovery=self.rear_owner_recovery, rear_owner_context=self.rear_owner_context)
+            rear_owner_recovery=self.rear_owner_recovery, rear_owner_context=self.rear_owner_context,
+            continuation_pause_context=self.continuation_pause_context)

@@ -98,9 +98,21 @@ def assert_coordinate_binding(runner,runtime,metadata=None):
     if gain==RR10:
         if len(history)!=1:raise ValueError('gain10 requires its once-only coordinate migration receipt')
         event=history[0]
+        bound_head = event.get('destination_head')
+        continuation = (metadata.get('local_continuation_migrations', []) if metadata is not None
+                        else getattr(runner, 'local_continuation_migrations', []))
+        if not isinstance(continuation, list):
+            raise ValueError('continuation lineage must be an explicit list')
+        for change in continuation:
+            if (change.get('schema') != 'wlr50_clean.rr_continuation_publication.v3'
+                    or change.get('source_head') != bound_head
+                    or change.get('gain_preserved') is not True
+                    or change.get('new_PPO_updates') != 0 or change.get('new_AUX_steps') != 0):
+                raise ValueError('broken explicit continuation coordinate binding')
+            bound_head = change.get('destination_head')
         if (event.get('schema')!='wlr50_clean.rr_mean_coordinate_publication.v1'
                 or event.get('source_head')!=SOURCE_HEAD
-                or event.get('destination_head')!=runtime['source_git_commit']
+                or bound_head!=runtime['source_git_commit']
                 or event.get('source_gain')!=list(IDENTITY) or event.get('target_gain')!=list(RR10)
                 or event.get('new_PPO_updates')!=0 or event.get('new_AUX_steps')!=0):
             raise ValueError('coordinate lineage does not match this gain/runtime')
