@@ -9,6 +9,7 @@ there is deliberately no within-episode release or catch-up API.
 from __future__ import annotations
 
 from dataclasses import replace
+import math
 
 MODE = "rr_local_defer_p09_late_and_new_p12_until_terminal_v2"
 SOURCE_REVISIONS = (
@@ -22,6 +23,7 @@ WHEEL_NAMES = ("front_left_ankle", "front_right_ankle", "rear_left_ankle", "rear
 DEFERRED_INDICES = (0, 1, 4, 5, 8)
 DEFERRED_SERVOS = frozenset(SERVO_NAMES[i] for i in DEFERRED_INDICES if i < 8)
 DEFERRED_NAMES = DEFERRED_SERVOS | {WHEEL_NAMES[0]}
+SUPPORTED_CARRY_MODE = "current_free_lift_before_pending_knee_and_roll_v1"
 
 
 def public_active(read_active):
@@ -136,8 +138,19 @@ def provider_type(base):
         def __init__(self, *args, read_local_active, **kwargs):
             self._read_local_active = read_local_active
             super().__init__(*args, **kwargs)
-            if self._p09_late_source is None or self._rr_carry_source_mode:
-                raise ValueError("deferred source requires selected v3 pending-late source, no alternate carry")
+            if (self._p09_late_source is None
+                    or self._rr_carry_source_mode not in (None, SUPPORTED_CARRY_MODE)):
+                raise ValueError("deferred source requires the selected pending-late and supported carry source")
+            if self._rr_carry_source_mode is not None:
+                # The accepted controller already uses this readiness mode.
+                # Keep its earlier knee/roll events and their original base
+                # permission checks; only the later five-channel event differs.
+                knee_times = self._rr_carry_knee_source_times
+                carry_times = (*knee_times, self._rr_carry_roll_source_time)
+                if not knee_times or any(type(t) not in (int, float)
+                        or not math.isfinite(t) or not 0. <= t < self._p09_late_source[1]
+                        for t in carry_times):
+                    raise ValueError("pending carry knee and roll events must precede the deferred late event")
 
         def _sequence_permission(self, layer, task, observation):
             active = public_active(self._read_local_active)

@@ -1,4 +1,4 @@
-"""Stdlib-only wiring tests; do not import/run Isaac, Torch, or production YAML."""
+"""Pure wiring tests plus a YAML-backed factory test; no Torch or simulator."""
 from dataclasses import replace
 import ast
 import importlib.util
@@ -10,7 +10,8 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from wlr50_clean.ppo.semantic_rr_capture_deferred_late import (DeferredLateCarrier,
-    DEFERRED_INDICES, DEFERRED_SERVOS, WHEEL_NAMES, provider_type, public_active)
+    DEFERRED_INDICES, DEFERRED_SERVOS, WHEEL_NAMES, SUPPORTED_CARRY_MODE,
+    controller_factory, provider_type, public_active)
 from wlr50_clean.reference.motion_contract import load_motion_contract
 
 # Load the pure executor file directly: importing fsm/__init__ would pull its
@@ -143,6 +144,40 @@ class DeferredSourceTests(unittest.TestCase):
 
 
 class PermissionTests(unittest.TestCase):
+    def test_existing_carry_mode_is_preserved_with_pre_late_events(self):
+        class ExistingCarry(BaseProvider):
+            def __init__(self):
+                super().__init__()
+                self._rr_carry_source_mode = SUPPORTED_CARRY_MODE
+                self._rr_carry_knee_source_times = (.6666666667, 1.)
+                self._rr_carry_roll_source_time = 1.9333333333
+        provider = provider_type(ExistingCarry)(read_local_active=lambda: True)
+        self.assertEqual(provider._rr_carry_source_mode, SUPPORTED_CARRY_MODE)
+        self.assertEqual(provider._rr_carry_knee_source_times, (.6666666667, 1.))
+        self.assertEqual(provider._rr_carry_roll_source_time, 1.9333333333)
+
+    def test_unknown_carry_or_missing_late_source_rejected(self):
+        for late, mode in ((None, None), ((5.3, 5.4), "unknown_carry")):
+            class InvalidCarry(BaseProvider):
+                def __init__(self):
+                    super().__init__()
+                    self._p09_late_source, self._rr_carry_source_mode = late, mode
+            with self.assertRaisesRegex(ValueError, "supported carry"):
+                provider_type(InvalidCarry)(read_local_active=lambda: True)
+
+    def test_missing_nonfinite_or_post_late_carry_events_rejected(self):
+        for knees, roll in (((), 1.9), ((float("nan"),), 1.9), ((5.4,), 1.9),
+                            ((.7,), 5.4), ((.7,), None), ((-.1,), 1.9)):
+            class InvalidCarry(BaseProvider):
+                def __init__(self):
+                    super().__init__()
+                    self._p09_late_source = (5.3, 5.4)
+                    self._rr_carry_source_mode = SUPPORTED_CARRY_MODE
+                    self._rr_carry_knee_source_times = knees
+                    self._rr_carry_roll_source_time = roll
+            with self.assertRaisesRegex(ValueError, "must precede"):
+                provider_type(InvalidCarry)(read_local_active=lambda: True)
+
     def test_inactive_prefix_all_stages_delegate_without_mutation(self):
         for phase in (f"P{i:02d}" for i in range(1, 14)):
             provider, state, layer, task = make_provider(False)
@@ -289,6 +324,45 @@ class PermissionTests(unittest.TestCase):
         task["base_permission"] = True
         self.assertTrue(provider._sequence_permission(layer, task, None))
         self.assertEqual(len(provider.calls), 1)
+
+
+@unittest.skipUnless(importlib.util.find_spec("yaml"), "real controller factory requires PyYAML")
+class AcceptedControllerFactoryTests(unittest.TestCase):
+    def test_real_accepted_factory_preserves_source_configuration_and_carry_times(self):
+        from wlr50_clean.ppo.semantic_supervisor import SemanticControllerAdapter
+        task_path = ROOT / "configs/ppo_rr_capture_first_cp225280_v1/stage_task_spec.yaml"
+        paths = (ROOT / "configs/fsm_states.yaml", ROOT / "configs/recording_motion_contract.json")
+        original = SemanticControllerAdapter.from_paths(*paths, task_spec_path=task_path)
+        wrapped = controller_factory(task_spec_path=task_path,
+            read_local_active=lambda: False)(*paths)
+        a, b = original.nominal_provider, wrapped.nominal_provider
+        self.assertEqual(a.spec, b.spec)
+        self.assertEqual(a.contract, b.contract)
+        self.assertEqual(a._reference_fsm_spec, b._reference_fsm_spec)
+        self.assertEqual(a._p09_late_source, b._p09_late_source)
+        self.assertEqual(a._rr_carry_source_mode, b._rr_carry_source_mode)
+        self.assertEqual(b._rr_carry_source_mode, SUPPORTED_CARRY_MODE)
+        self.assertEqual(a._rr_carry_knee_source_times, b._rr_carry_knee_source_times)
+        self.assertEqual(a._rr_carry_roll_source_time, b._rr_carry_roll_source_time)
+        self.assertEqual([round(t*120) for t in b._rr_carry_knee_source_times],
+                         [80, 88, 96, 104, 112, 120])
+        self.assertEqual(round(b._rr_carry_roll_source_time*120), 232)
+        self.assertEqual(round(b._p09_late_source[1]*120), 648)
+        # The real FSM normal corrections/time scaling are included here,
+        # unlike a stand-in BaseProvider. Stop remains singular after endpoint.
+        motion = MotionExecutor(physics_hz=b.physics_hz,
+            servo_rate_limit_deg_s=b.servo_rate_limit_deg_s,
+            initial_full12=b.contract.phase("P09").start_full12)
+        b._start_source_motion(motion, b.contract.phase("P09"))
+        late_tick = motion._scaled_source_tick(b._p09_late_source[1])
+        for _ in range(late_tick):
+            before = motion.tick()
+        carrier = DeferredLateCarrier(motion, previous_sample=before, pending_event_tick=late_tick)
+        endpoint = motion._endpoint_tick(motion.phase)
+        while carrier._tick_index <= endpoint + 240:
+            carrier.tick()
+        self.assertEqual(carrier.stop_event_ticks, [864])
+        self.assertFalse(carrier.receipt()["pending_event_consumed"])
 
 
 if __name__ == "__main__":

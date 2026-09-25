@@ -250,15 +250,16 @@ def initialize_prior(runner):
             'new_local_mean_initialized_zero': True, 'prior_weights_fully_frozen': True}
 
 
-def checkpoint_path(decisions):
-    return OUTPUT/'checkpoints/history'/f'checkpoint_CP{225280+decisions}_local{decisions:06d}_lineage448_v2.pt'
+def checkpoint_path(decisions, revision=None):
+    suffix = '_lineage448_v2' + ('_g'+revision[:12] if revision else '')
+    return OUTPUT/'checkpoints/history'/f'checkpoint_CP{225280+decisions}_local{decisions:06d}{suffix}.pt'
 
 
 def save(runner, runtime, prior, counts, *, source_run):
     import torch
     from .semantic_training import state_hash
     from .rl_library_wrapper import capture_training_rng_state
-    target = checkpoint_path(counts['local_policy_decisions'])
+    target = checkpoint_path(counts['local_policy_decisions'], runtime.get('source_git_commit'))
     target.parent.mkdir(parents=True, exist_ok=True)
     if target.exists():
         raise FileExistsError(target)
@@ -661,7 +662,9 @@ def main():
         write(run/'run_manifest.json',{'lifecycle':'COMPLETE','mode':args.mode,'result':result})
         print(json.dumps({'run':str(run),'lifecycle':'COMPLETE'}),flush=True)
     except BaseException:
-        write(run/'failure.json',{'traceback':traceback.format_exc()})
+        failure = {'traceback':traceback.format_exc()}
+        write(run/'failure.json',failure)
+        print(json.dumps({'lifecycle':'FAILED', **failure}),flush=True)
         raise
     finally:
         if app is not None: app.close(wait_for_replicator=False,skip_cleanup=True)
