@@ -1,0 +1,40 @@
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 actor :  ['policy']
+	 critic :  ['critic']
+--------------------------------------------------------------------------------
+Actor Model: SemanticRRCaptureLocalHistoryMLPModel(
+  (obs_normalizer): Identity()
+  (distribution): HeteroscedasticGaussianDistribution()
+  (mlp): MLP(
+    (0): Linear(in_features=447, out_features=128, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=128, out_features=128, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=128, out_features=24, bias=True)
+    (5): Unflatten(dim=-1, unflattened_size=[2, 12])
+  )
+  (frozen_prior): SemanticRearOwnerRecoveryHistoryMLPModel(
+    (obs_normalizer): Identity()
+    (distribution): HeteroscedasticGaussianDistribution()
+    (mlp): MLP(
+      (0): Linear(in_features=439, out_features=256, bias=True)
+      (1): ELU(alpha=1.0)
+      (2): Linear(in_features=256, out_features=256, bias=True)
+      (3): ELU(alpha=1.0)
+      (4): Linear(in_features=256, out_features=24, bias=True)
+      (5): Unflatten(dim=-1, unflattened_size=[2, 12])
+    )
+  )
+)
+Critic Model: MLPModel(
+  (obs_normalizer): Identity()
+  (mlp): MLP(
+    (0): Linear(in_features=447, out_features=128, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=128, out_features=128, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=128, out_features=1, bias=True)
+  )
+)
+{"run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_capture_first_cp225280_v1\\initialize_ecf205e", "lifecycle": "COMPLETE"}

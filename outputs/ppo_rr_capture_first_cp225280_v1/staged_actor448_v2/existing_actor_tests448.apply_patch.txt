@@ -1,0 +1,11 @@
+*** Begin Patch
+*** Update File: tests/unit/test_semantic_rr_capture_local_actor.py
+@@
+ def observations(active=False, batch=1, phase=8):
+-    x = torch.zeros(batch, 447)
++    x = torch.zeros(batch, module.OBSERVATION_DIMENSION)
+@@
+     if active:
+         x[:, 440:444] = torch.tensor([.01, .04, -.32, .55])
++        x[:, 447] = 1.
+*** End Patch

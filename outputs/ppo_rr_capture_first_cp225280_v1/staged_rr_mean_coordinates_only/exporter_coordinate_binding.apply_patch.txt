@@ -1,0 +1,30 @@
+*** Begin Patch
+*** Update File: outputs/ppo_rr_capture_first_cp225280_v1/export_formal_from_sealed.py
+@@
+ import hashlib
++import importlib.util
+ import json
+@@
+ OUTPUT = Path(__file__).resolve().parent
++_COORDINATE_SPEC = importlib.util.spec_from_file_location(
++    '_rr_capture_coordinate_video', OUTPUT / 'coordinate_video_validator.py')
++if _COORDINATE_SPEC is None or _COORDINATE_SPEC.loader is None:
++    raise RuntimeError('coordinate video validator cannot be loaded')
++COORDINATES = importlib.util.module_from_spec(_COORDINATE_SPEC)
++_COORDINATE_SPEC.loader.exec_module(COORDINATES)
+ EXPORTER = OUTPUT / "export_rr_capture_first_video.py"
+@@
+     version["auxiliary_training"] = auxiliary_training_disclosure(source, checkpoint)
++    version["mean_coordinates"] = COORDINATES.validate_coordinate_video_binding(source, checkpoint)
+     return version
+@@
+         "auxiliary_training": version["auxiliary_training"],
++        "mean_coordinates": version["mean_coordinates"],
+         "runtime_head": expected_head, "counts": counts,
+*** Update File: outputs/ppo_rr_capture_first_cp225280_v1/export_rr_capture_first_video.py
+@@
+             row = _decision_row(item, context["version_family"])
++            row["local_mean_coordinate_gain_full12"] = VERSIONS.COORDINATES.validate_coordinate_video_request(
++                item.get("policy_request") or {}, context["checkpoint"]["version_family"]["mean_coordinates"])
+             require(context["checkpoint"]["diagnostic"] or row["diagnostic_intervention"] is None,
+*** End Patch

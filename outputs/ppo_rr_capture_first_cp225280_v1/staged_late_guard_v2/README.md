@@ -1,0 +1,56 @@
+# Unapplied v2 candidate — defer P09 late and a new P12 unload during RR-local capture
+
+Status: **outputs-only preparation, not deployed, not physically tested, not a proven fix**. Current `ecf205e` training stays unchanged until its normal completed block boundary. Separately required lineage448 migration precedes the next formal evaluation; this source candidate does not implement that migration. The companion module wraps the **existing single MotionExecutor**; it does not rebuild the source executor, mapper, controller stack, or actor.
+
+## Is delaying all five channels physically justified?
+
+The Recording late event changes only FL hip/knee, RL hip/knee and FL wheel. Its logical changes are FL `[38.6,-13.4] → [-18.5,-31.4]`, RL `[31.2,0] → [15.4,19.4]` (the existing upstream height adjustment makes the current pre-late RL hip suggestion approximately28.2), and FL wheel `0 → -1.07 rad/s`. RR hip/knee and FR hip/knee source values do not change in this event. It is whole-body FL/RL reconfiguration plus a wheel pulse, not the P10 RR-knee unfolding action. P10 RR knee and P11 FR hip remain independently available.
+
+| Actual stochastic episode | First RR TOP native evidence / late source release | Following evidence |
+|---|---|---|
+|1|TOP9436 inferred consistently from native contact counts; late source release9436, so its new targets act only afterward|TOP at9440, successful continuous0.5s bearing hold at9496; the late group participated during successful hold|
+|2|TOP9695 inferred from counter; late release9695|TOP9696 then AIR endpoint9704; first-loss RR knee actually unfolded rather than refolded|
+|3|TOP8857 inferred from counter; late release8857|TOP8864, later AIR endpoint8880; late FL/RL targets continue afterward; P12 new RL lane remains blocked and RL stays GROUND through9400|
+
+These cases establish that the group did **not cause the first TOP contact before that contact existed**. They do **not** establish that the complete group is unnecessary for subsequent loading/hold: episode1 is a positive counterexample to a blanket claim that its execution always destroys capture. FL/RL support-geometry changes and the wheel pulse may help some states and harm others. Delaying all five is therefore a bounded control counterfactual; compare first contact, hold/drop, RR gap/body response and retained support before considering it a repair. No available evidence selects a universally safe subset of those four joint changes.
+
+An independently prepared later snapshot, `train_first2048_live_episode4_contact_drop.json`, adds episode4 first TOP endpoint8496, maximum native hold0.058333s, and AIR gap58.593mm at8936/P11. This corroborates short contact followed by loss, not single-cause attribution. Its summary does not expose the precise late-event timestamp, so no new exact synchronization claim is derived from that report; the active episode was not rescanned for this addition.
+
+## Exact candidate semantics
+
+- At inactive local gate, use the original provider unchanged. No prior parameters, observation columns, HISTORY, mapper state, source config, FL assist or residual masks change.
+- Once the existing published `task.active` gate is true, allow ordinary P09 pre-late carry. At the **unconsumed** late group only, retain the pending event at source tick648 and never emit its five changed source goals in this local episode. Reject retrofitting an already-issued late group instead of changing a distant in-flight goal.
+- A small `DeferredLateCarrier` wraps the same executor's future samples. Its independent carrier cursor advances, preserving later **authored wheel-only stop events**, while the dependent event cursor remains648/pending. Four source servo channels keep their preceding original logical source values; they do not gain late tracking/ownership. Other source values remain untouched. This is explicitly a changed source schedule, not preservation of the original complete atomic timing.
+- The late FL reverse pulse is not issued. The original all-wheel stop at source tick864 (7.2s) is still emitted once by the carrier, even while the load-dependent event is pending. Existing `_rr_waiting_late_group` semantics continue to permit measured RR carry; a fresh stop retains source ownership over carry on that tick. As before, **nominal stop does not mean all final wheel targets are zero**, because all12 policy residual channels remain open.
+- P10 RR knee, P11 FR hip and current safety checks use their original code. In addition, **P12 at source_ticks=0** waits while the local gate is active, unless the existing production `rear_dependency(...).rl_current_swing` is true. A real current qualified AIR swing retains its continuation; old active-lift/placed history, unqualified AIR, GROUND or disabled continuation does not bypass this guard. Once P12 source_ticks>0, delegate the original wheel-clock/stop and RL-joint-pause behavior unchanged. Do not hold or feed back an already-issued target.
+- No all-body hold, no new desired posture, no RR assistance or actuator writes. Policy may still independently request FL/RL movement; this tests source timing, not a general protection against every Gaussian sample.
+- Do not release the event when `hold_progress` briefly reaches1 within a decision. This local route commits terminal at the decision endpoint; afterward `CaptureCore.done` forbids another step. Consequently the event stays pending for the entire active local episode and is discarded only with the ordinary terminal episode reset. It is never replayed/caught up inside this route. A future continuing full-task route needs a different reviewed design.
+
+## Integration/factory points (unapplied)
+
+`integration.patch` shows only the opt-in route/config wiring. The companion module is intended, after review and a new frozen version, for `src/wlr50_clean/ppo/semantic_rr_capture_deferred_late.py`.
+
+1. `semantic_rr_capture_local.build_core`: instantiate the existing `RRCaptureLocalTask` once; pass a `read_local_active=lambda: local_task.active` callback to a controller factory; supply that factory using **existing** `SemanticIsaacBackend(controller_factory=...)`. The factory constructs the original supervisor/controller with a small provider subclass.
+2. The subclass intercepts `_sequence_permission` for the not-yet-issued P09 late group and the not-yet-started P12 lane, `_rr_waiting_late_group` for existing carry/stop ownership, and public diagnostics. P12 eligibility calls the actual existing `rear_dependency` function, not a copied/loosened test. Its ordinary source loop/composition remains the production implementation.
+3. `CaptureCore` accepts this same task object. Reset that task **before** `inner.reset` so the backend's initial controller frame cannot observe the previous episode's active gate. No controller is swapped or recreated during a rollout.
+4. New settings opt-in: `p09_late_dispatch=rr_local_defer_p09_late_and_new_p12_until_terminal_v2`. Absent setting retains the existing provider. Receipts declare two revisions: `rr_local_p09_five_channel_pending_with_independent_stop_carrier_v2` and `rr_local_p12_pending_start_preserve_qualified_RL_AIR_and_started_clock_v2`. The v2 local contract must declare both scheduling changes and bind code/settings. The patch does not authorize bypassing the current checkpoint contract: root must explicitly migrate the compatible local/prior/Adam state and collect fresh rollouts after a completed block, without overwriting v1 artifacts.
+
+## Observability and timing limits
+
+P09 permission is determined by the existing public local `active` bit. P12 additionally uses its already-observed source-start clock and the existing ground-revoked current RL AIR dependency, not a new hidden qualification. There is no second hold permission, success-release latch, learned-angle gate or new stochastic state. **No additional observation beyond the separately required lineage448 migration is proposed for these source guards.** The pending/carrier counters are source-event accounting and logged separately. If a future revision adds another action-deciding state, expose it instead of reusing this argument.
+
+The callback sees `RRCaptureLocalTask` updated by the existing post-native observer. Controller source evaluation happens before that observer; at the initial gate this is the previous native observation's latched active value. The current three natural prefixes activate well before the pending late group, so this is not an observed entry race. The candidate rejects activation after the late group has already been issued. It does not attempt a second controller evaluation, move the gate or hot-edit an already-composed command. Verify first affected native tick and prefix parity in an eventual real run.
+
+## Tests and remaining risk
+
+Run only: `C:\Program Files\Python313\python.exe outputs/ppo_rr_capture_first_cp225280_v1/staged_late_guard_v2/test_deferred_late.py`.
+
+**21 stdlib tests passed** against the real Recording contract, pure original MotionExecutor and actual pure `rear_dependency` helper. Covered exact five-channel difference, original stop at864 emitted once, unchanged other channels, no new late tracking, no endpoint/consumption claim, stale or already-issued event rejection, unexpected later capture/mixed actions rejection, inactive prefix delegation, P09 carry/P10/P11/started-P12 delegation, current safety delegation, no transient-hold release, carry-vs-stop priority, gate reset/unlatch protection, and absence of actuator/learning/history API writes. Five new P12 cases cover pending GROUND even with RR bearing, legitimate qualified AIR, negative variants using the real dependency helper, already-started delegation and unchanged pre-gate permission.
+
+Episode5 supplies direct support for the additional pending-start guard: P12 starts at8120 with local hold0.016667s and RL GROUND; RL source knee changes by8128 and RL becomes qualified AIR by8144, before the local RR hold terminal. This is not the earlier episode3 blocked-P12 case. See `../episode5_P12_start_before_RR_hold_readonly.md` for the bounded evidence and causal limits.
+
+`git apply --check` accepted the integration patch against the current production text. It was **not applied**. The companion new module must also be reviewed/copied into its declared package path before that patch could run; this is not a standalone executable patch or a completed checkpoint migration.
+
+These tests do not exercise floating-body dynamics, the full YAML-backed provider, GPU actor, optimizer, or a saved/reloaded v2 checkpoint. They prove bounded source wiring only. No physics instance was started. No production/config file was modified. The first physical comparison remains pending parent review after the current block and original-version deterministic evaluation.
+
+The candidate never uses FINAL or measured q as nominal. It leaves the mapper, policy-free nominal history, residual composition and one atomic write unchanged. Its four deferred logical goals are never issued, so it does not claim to solve “pause an already-issued distant goal.” Whole-body support effects, continued policy cancellation of wheels, and useful lost late assistance remain physical risks to measure.

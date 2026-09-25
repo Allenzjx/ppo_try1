@@ -1,0 +1,858 @@
+{
+  "schema": "wlr50_clean.rr_capture_training_progress_readonly.v1",
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_capture_first_cp225280_v1\\train_gain10_continuous2048_from_CP229376_0d0f894",
+  "live_snapshot": true,
+  "sources": {
+    "decisions": {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_capture_first_cp225280_v1\\train_gain10_continuous2048_from_CP229376_0d0f894\\decisions.jsonl",
+      "available": true,
+      "snapshot_bytes": 227176139,
+      "complete_rows": 10502,
+      "ignored_incomplete_tail_bytes": 0
+    },
+    "updates": {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_capture_first_cp225280_v1\\train_gain10_continuous2048_from_CP229376_0d0f894\\updates.jsonl",
+      "available": true,
+      "snapshot_bytes": 1906,
+      "complete_rows": 2,
+      "ignored_incomplete_tail_bytes": 0
+    }
+  },
+  "counts": {
+    "actual_on_policy_decisions": 1517,
+    "prefix_decisions_credit0": 8985,
+    "diagnostic_rows_not_PPO": 0,
+    "auxiliary_rows_not_PPO": 0,
+    "invalid_or_intervened_PPO_credit_claims": 0,
+    "unknown_or_unclassified_rows": 0,
+    "active_observation_old_likelihood_verified_samples": 1517,
+    "active_observation_or_old_likelihood_missing_or_mismatch": 0,
+    "selected_vs_issued_raw_known_samples": 1517,
+    "selected_vs_issued_raw_mismatches": 0
+  },
+  "actual_phase_counts": {
+    "P09": 1042,
+    "P10": 8,
+    "P11": 350,
+    "P12": 117
+  },
+  "rr_physical_evidence": {
+    "current_top_contact_known_samples": 1517,
+    "current_top_contact_true_samples": 73,
+    "current_top_bearing_known_samples": 1517,
+    "current_top_bearing_true_samples": 73,
+    "ground_contact_known_samples": 1517,
+    "ground_contact_true_samples": 64,
+    "bearing_transition_comparable_samples": 1517,
+    "bearing_drops_between_decision_endpoints": 4,
+    "bearing_gains_between_decision_endpoints": 11,
+    "gap_comparable_samples": 1517,
+    "gap_descent_samples": 775,
+    "actual_joint_motion_comparable_samples": 1517,
+    "actual_hip_negative_samples": 804,
+    "actual_knee_positive_samples": 718,
+    "actual_hip_negative_and_knee_positive_samples": 409,
+    "actual_entry_relative_5deg_bin_known_samples": 1517,
+    "actual_entry_relative_hip_le_minus5deg_samples": 695,
+    "actual_entry_relative_knee_ge_plus5deg_samples": 895,
+    "actual_entry_relative_hip_le_minus5_knee_ge_plus5deg_samples": 407,
+    "hold_duration_known_samples": 1517,
+    "positive_native_observer_hold_samples": 73,
+    "logged_native_physics_ticks": 12128,
+    "all_native_ticks_verified_samples": 1517,
+    "logged_local_success_samples": 7
+  },
+  "capture_opportunities_with_logged_activation": 9,
+  "episodes": [
+    {
+      "index": 1,
+      "activation_tick": 7979,
+      "activation_time_s": 66.49166666666666,
+      "credited_samples": 87,
+      "first_top_contact_endpoint": 8624,
+      "first_top_bearing_endpoint": 8624,
+      "min_active_logged_gap_m": -0.03261072336986032,
+      "max_native_observer_hold_s": 0.5166666666666657,
+      "local_success_endpoint": 8680,
+      "first_active_actual_rr_reference": {
+        "tick": 7984,
+        "actual_rr_hip_knee_deg": [
+          7.223446996471035,
+          -57.760433040130486
+        ],
+        "source": "first_logged_active_endpoint_actual_q_not_FINAL_or_exact_gate_tick"
+      },
+      "active_actual_rr_angle_ranges_deg": {
+        "hip": [
+          -26.000345069993095,
+          14.416076739695928
+        ],
+        "knee": [
+          -57.760433040130486,
+          -16.202992271097692
+        ]
+      },
+      "last_tick": 8680,
+      "last_phase": "P12",
+      "last_metrics": {
+        "tick": 8680,
+        "time_s": 72.33333333333333,
+        "phase_id": "P12",
+        "live": true,
+        "termination_reason": null,
+        "activation_eligible": false,
+        "geometry_valid": true,
+        "crossed": true,
+        "placed": true,
+        "free_air": false,
+        "ground_contact": false,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "gap_m": 5.450453359409635e-06,
+        "top_xy_outside_distance_m": 0.0,
+        "current_top_contact": true,
+        "current_top_bearing": true,
+        "bearing_force_n": 13.282523155212402,
+        "load_fraction": 0.4905040208721039,
+        "load_fraction_valid": true,
+        "consecutive_top_samples": 63,
+        "final_rr_hip_deg": -15.03006082027693,
+        "final_rr_knee_deg": -14.040684553179684,
+        "actual_rr_hip_knee_deg": [
+          -16.40903826762435,
+          -23.34573260507752
+        ],
+        "final_target_source": "drive_target_full12",
+        "final_ack_verified": true,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "current_attempt_capture_eligible": true,
+        "motion_continuation_allowed": true
+      },
+      "termination_reason": "RR_CAPTURE_HOLD_LOCAL_SUCCESS"
+    },
+    {
+      "index": 2,
+      "activation_tick": 7975,
+      "activation_time_s": 66.45833333333333,
+      "credited_samples": 294,
+      "first_top_contact_endpoint": 10272,
+      "first_top_bearing_endpoint": 10272,
+      "min_active_logged_gap_m": -0.01533691165795703,
+      "max_native_observer_hold_s": 0.5,
+      "local_success_endpoint": 10328,
+      "first_active_actual_rr_reference": {
+        "tick": 7976,
+        "actual_rr_hip_knee_deg": [
+          7.223423944582586,
+          -57.757072587058836
+        ],
+        "source": "first_logged_active_endpoint_actual_q_not_FINAL_or_exact_gate_tick"
+      },
+      "active_actual_rr_angle_ranges_deg": {
+        "hip": [
+          -27.51986920747688,
+          13.981326661288152
+        ],
+        "knee": [
+          -57.789194966725404,
+          -19.435855701500834
+        ]
+      },
+      "last_tick": 10328,
+      "last_phase": "P11",
+      "last_metrics": {
+        "tick": 10328,
+        "time_s": 86.06666666666666,
+        "phase_id": "P11",
+        "live": true,
+        "termination_reason": null,
+        "activation_eligible": false,
+        "geometry_valid": true,
+        "crossed": true,
+        "placed": true,
+        "free_air": false,
+        "ground_contact": false,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "gap_m": -0.0003756249591570643,
+        "top_xy_outside_distance_m": 0.0,
+        "current_top_contact": true,
+        "current_top_bearing": true,
+        "bearing_force_n": 13.665306091308594,
+        "load_fraction": 0.46644947806342263,
+        "load_fraction_valid": true,
+        "consecutive_top_samples": 61,
+        "final_rr_hip_deg": 4.033961358501859,
+        "final_rr_knee_deg": -28.016222696991846,
+        "actual_rr_hip_knee_deg": [
+          4.250560202672441,
+          -31.310392290567293
+        ],
+        "final_target_source": "drive_target_full12",
+        "final_ack_verified": true,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "current_attempt_capture_eligible": true,
+        "motion_continuation_allowed": true
+      },
+      "termination_reason": "RR_CAPTURE_HOLD_LOCAL_SUCCESS"
+    },
+    {
+      "index": 3,
+      "activation_tick": 7975,
+      "activation_time_s": 66.45833333333333,
+      "credited_samples": 124,
+      "first_top_contact_endpoint": 8904,
+      "first_top_bearing_endpoint": 8904,
+      "min_active_logged_gap_m": -0.0244255898925973,
+      "max_native_observer_hold_s": 0.5416666666666714,
+      "local_success_endpoint": 8968,
+      "first_active_actual_rr_reference": {
+        "tick": 7976,
+        "actual_rr_hip_knee_deg": [
+          7.223423944582586,
+          -57.757072587058836
+        ],
+        "source": "first_logged_active_endpoint_actual_q_not_FINAL_or_exact_gate_tick"
+      },
+      "active_actual_rr_angle_ranges_deg": {
+        "hip": [
+          -27.20407028855946,
+          14.655869313529442
+        ],
+        "knee": [
+          -57.76854047467529,
+          -17.696006736865364
+        ]
+      },
+      "last_tick": 8968,
+      "last_phase": "P12",
+      "last_metrics": {
+        "tick": 8968,
+        "time_s": 74.73333333333333,
+        "phase_id": "P12",
+        "live": true,
+        "termination_reason": null,
+        "activation_eligible": false,
+        "geometry_valid": true,
+        "crossed": true,
+        "placed": true,
+        "free_air": false,
+        "ground_contact": false,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "gap_m": -2.465653362605097e-05,
+        "top_xy_outside_distance_m": 0.0,
+        "current_top_contact": true,
+        "current_top_bearing": true,
+        "bearing_force_n": 12.275890350341797,
+        "load_fraction": 0.4879574746796465,
+        "load_fraction_valid": true,
+        "consecutive_top_samples": 66,
+        "final_rr_hip_deg": -8.33655906749614,
+        "final_rr_knee_deg": -20.650195794688045,
+        "actual_rr_hip_knee_deg": [
+          -5.802261201253597,
+          -18.69657310121158
+        ],
+        "final_target_source": "drive_target_full12",
+        "final_ack_verified": true,
+        "current_lift_valid": false,
+        "lift_established": true,
+        "current_attempt_capture_eligible": true,
+        "motion_continuation_allowed": true
+      },
+      "termination_reason": "RR_CAPTURE_HOLD_LOCAL_SUCCESS"
+    },
+    {
+      "index": 4,
+      "activation_tick": 7975,
+      "activation_time_s": 66.45833333333333,
+      "credited_samples": 354,
+      "first_top_contact_endpoint": null,
+      "first_top_bearing_endpoint": null,
+      "min_active_logged_gap_m": -0.02095907842343895,
+      "max_native_observer_hold_s": 0.0,
+      "local_success_endpoint": null,
+      "first_active_actual_rr_reference": {
+        "tick": 7976,
+        "actual_rr_hip_knee_deg": [
+          7.223423944582586,
+          -57.757072587058836
+        ],
+        "source": "first_logged_active_endpoint_actual_q_not_FINAL_or_exact_gate_tick"
+      },
+      "active_actual_rr_angle_ranges_deg": {
+        "hip": [
+          -26.821296242188193,
+          14.448933364698274
+        ],
+        "knee": [
+          -57.7888534572669,
+          -11.990565308046122
+        ]
+      },
+      "last_tick": 10804,
+      "last_phase": "P09",
+      "last_metrics": {
+        "tick": 10804,
+        "time_s": 90.03333333333333,
+        "phase_id": "P09",
+        "live": false,
+        "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+        "activation_eligible": false,
+        "geometry_valid": true,
+        "crossed": true,
+        "placed": false,
+        "free_air": true,
+        "ground_contact": false,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "gap_m": 0.050074995129119754,
+        "top_xy_outside_distance_m": 0.0,
+        "current_top_contact": false,
+        "current_top_bearing": false,
+        "bearing_force_n": 0.0,
+        "load_fraction": 0.0,
+        "load_fraction_valid": false,
+        "consecutive_top_samples": 0,
+        "final_rr_hip_deg": -2.2152523611100374,
+        "final_rr_knee_deg": -58.0,
+        "actual_rr_hip_knee_deg": [
+          2.1311268900080966,
+          -57.75930605891743
+        ],
+        "final_target_source": "drive_target_full12",
+        "final_ack_verified": true,
+        "current_lift_valid": false,
+        "lift_established": true,
+        "current_attempt_capture_eligible": false,
+        "motion_continuation_allowed": true
+      },
+      "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED"
+    },
+    {
+      "index": 5,
+      "activation_tick": 7975,
+      "activation_time_s": 66.45833333333333,
+      "credited_samples": 90,
+      "first_top_contact_endpoint": 8632,
+      "first_top_bearing_endpoint": 8632,
+      "min_active_logged_gap_m": -0.0011124710062234144,
+      "max_native_observer_hold_s": 0.5499999999999972,
+      "local_success_endpoint": 8696,
+      "first_active_actual_rr_reference": {
+        "tick": 7976,
+        "actual_rr_hip_knee_deg": [
+          7.223423944582586,
+          -57.757072587058836
+        ],
+        "source": "first_logged_active_endpoint_actual_q_not_FINAL_or_exact_gate_tick"
+      },
+      "active_actual_rr_angle_ranges_deg": {
+        "hip": [
+          -8.816634990957672,
+          12.804091477644034
+        ],
+        "knee": [
+          -57.800246212802485,
+          -22.93269228294663
+        ]
+      },
+      "last_tick": 8696,
+      "last_phase": "P12",
+      "last_metrics": {
+        "tick": 8696,
+        "time_s": 72.46666666666667,
+        "phase_id": "P12",
+        "live": true,
+        "termination_reason": null,
+        "activation_eligible": false,
+        "geometry_valid": true,
+        "crossed": true,
+        "placed": true,
+        "free_air": false,
+        "ground_contact": false,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "gap_m": -0.00022683611760965922,
+        "top_xy_outside_distance_m": 0.0,
+        "current_top_contact": true,
+        "current_top_bearing": true,
+        "bearing_force_n": 14.361286163330078,
+        "load_fraction": 0.4834957789256335,
+        "load_fraction_valid": true,
+        "consecutive_top_samples": 67,
+        "final_rr_hip_deg": -6.485058664618238,
+        "final_rr_knee_deg": -29.115912520378366,
+        "actual_rr_hip_knee_deg": [
+          -8.240393275024852,
+          -30.206124871600068
+        ],
+        "final_target_source": "drive_target_full12",
+        "final_ack_verified": true,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "current_attempt_capture_eligible": true,
+        "motion_continuation_allowed": true
+      },
+      "termination_reason": "RR_CAPTURE_HOLD_LOCAL_SUCCESS"
+    },
+    {
+      "index": 6,
+      "activation_tick": 7975,
+      "activation_time_s": 66.45833333333333,
+      "credited_samples": 35,
+      "first_top_contact_endpoint": 8192,
+      "first_top_bearing_endpoint": 8192,
+      "min_active_logged_gap_m": -0.0006662582334468342,
+      "max_native_observer_hold_s": 0.5499999999999972,
+      "local_success_endpoint": 8256,
+      "first_active_actual_rr_reference": {
+        "tick": 7976,
+        "actual_rr_hip_knee_deg": [
+          7.223423944582586,
+          -57.757072587058836
+        ],
+        "source": "first_logged_active_endpoint_actual_q_not_FINAL_or_exact_gate_tick"
+      },
+      "active_actual_rr_angle_ranges_deg": {
+        "hip": [
+          -21.84531730917902,
+          7.223423944582586
+        ],
+        "knee": [
+          -57.77981028680581,
+          -18.0293626570443
+        ]
+      },
+      "last_tick": 8256,
+      "last_phase": "P12",
+      "last_metrics": {
+        "tick": 8256,
+        "time_s": 68.8,
+        "phase_id": "P12",
+        "live": true,
+        "termination_reason": null,
+        "activation_eligible": false,
+        "geometry_valid": true,
+        "crossed": true,
+        "placed": true,
+        "free_air": false,
+        "ground_contact": false,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "gap_m": -0.0004958150476742848,
+        "top_xy_outside_distance_m": 0.0,
+        "current_top_contact": true,
+        "current_top_bearing": true,
+        "bearing_force_n": 12.713814735412598,
+        "load_fraction": 0.44623958807008607,
+        "load_fraction_valid": true,
+        "consecutive_top_samples": 67,
+        "final_rr_hip_deg": -17.73752173740386,
+        "final_rr_knee_deg": 4.610785677693428,
+        "actual_rr_hip_knee_deg": [
+          -21.28149373093093,
+          -18.0293626570443
+        ],
+        "final_target_source": "drive_target_full12",
+        "final_ack_verified": true,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "current_attempt_capture_eligible": true,
+        "motion_continuation_allowed": true
+      },
+      "termination_reason": "RR_CAPTURE_HOLD_LOCAL_SUCCESS"
+    },
+    {
+      "index": 7,
+      "activation_tick": 7975,
+      "activation_time_s": 66.45833333333333,
+      "credited_samples": 132,
+      "first_top_contact_endpoint": 8312,
+      "first_top_bearing_endpoint": 8312,
+      "min_active_logged_gap_m": -0.015750418257341275,
+      "max_native_observer_hold_s": 0.5583333333333371,
+      "local_success_endpoint": 9032,
+      "first_active_actual_rr_reference": {
+        "tick": 7976,
+        "actual_rr_hip_knee_deg": [
+          7.223423944582586,
+          -57.757072587058836
+        ],
+        "source": "first_logged_active_endpoint_actual_q_not_FINAL_or_exact_gate_tick"
+      },
+      "active_actual_rr_angle_ranges_deg": {
+        "hip": [
+          -20.761168212412066,
+          13.432806975649124
+        ],
+        "knee": [
+          -57.757072587058836,
+          -20.33308471879934
+        ]
+      },
+      "last_tick": 9032,
+      "last_phase": "P12",
+      "last_metrics": {
+        "tick": 9032,
+        "time_s": 75.26666666666667,
+        "phase_id": "P12",
+        "live": true,
+        "termination_reason": null,
+        "activation_eligible": false,
+        "geometry_valid": true,
+        "crossed": true,
+        "placed": true,
+        "free_air": false,
+        "ground_contact": false,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "gap_m": -0.00022512143174408666,
+        "top_xy_outside_distance_m": 0.0,
+        "current_top_contact": true,
+        "current_top_bearing": true,
+        "bearing_force_n": 12.786470413208008,
+        "load_fraction": 0.466123888016362,
+        "load_fraction_valid": true,
+        "consecutive_top_samples": 68,
+        "final_rr_hip_deg": -3.3135962208899086,
+        "final_rr_knee_deg": -5.892446909847113,
+        "actual_rr_hip_knee_deg": [
+          -5.710588963534624,
+          -37.184423278669954
+        ],
+        "final_target_source": "drive_target_full12",
+        "final_ack_verified": true,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "current_attempt_capture_eligible": true,
+        "motion_continuation_allowed": true
+      },
+      "termination_reason": "RR_CAPTURE_HOLD_LOCAL_SUCCESS"
+    },
+    {
+      "index": 8,
+      "activation_tick": 7975,
+      "activation_time_s": 66.45833333333333,
+      "credited_samples": 29,
+      "first_top_contact_endpoint": 8144,
+      "first_top_bearing_endpoint": 8144,
+      "min_active_logged_gap_m": -2.0114790253975e-05,
+      "max_native_observer_hold_s": 0.5416666666666714,
+      "local_success_endpoint": 8208,
+      "first_active_actual_rr_reference": {
+        "tick": 7976,
+        "actual_rr_hip_knee_deg": [
+          7.223423944582586,
+          -57.757072587058836
+        ],
+        "source": "first_logged_active_endpoint_actual_q_not_FINAL_or_exact_gate_tick"
+      },
+      "active_actual_rr_angle_ranges_deg": {
+        "hip": [
+          -18.451380942674053,
+          13.609676431753895
+        ],
+        "knee": [
+          -57.757072587058836,
+          -28.239312135939656
+        ]
+      },
+      "last_tick": 8208,
+      "last_phase": "P12",
+      "last_metrics": {
+        "tick": 8208,
+        "time_s": 68.4,
+        "phase_id": "P12",
+        "live": true,
+        "termination_reason": null,
+        "activation_eligible": false,
+        "geometry_valid": true,
+        "crossed": true,
+        "placed": true,
+        "free_air": false,
+        "ground_contact": false,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "gap_m": 9.39333610908144e-07,
+        "top_xy_outside_distance_m": 0.0,
+        "current_top_contact": true,
+        "current_top_bearing": true,
+        "bearing_force_n": 13.642916679382324,
+        "load_fraction": 0.48329793071307703,
+        "load_fraction_valid": true,
+        "consecutive_top_samples": 66,
+        "final_rr_hip_deg": -2.624750648048323,
+        "final_rr_knee_deg": 3.8644642734942884,
+        "actual_rr_hip_knee_deg": [
+          -6.279818209623956,
+          -36.783890740456656
+        ],
+        "final_target_source": "drive_target_full12",
+        "final_ack_verified": true,
+        "current_lift_valid": false,
+        "lift_established": true,
+        "current_attempt_capture_eligible": true,
+        "motion_continuation_allowed": true
+      },
+      "termination_reason": "RR_CAPTURE_HOLD_LOCAL_SUCCESS"
+    },
+    {
+      "index": 9,
+      "activation_tick": 7975,
+      "activation_time_s": 66.45833333333333,
+      "credited_samples": 372,
+      "first_top_contact_endpoint": null,
+      "first_top_bearing_endpoint": null,
+      "min_active_logged_gap_m": -0.051371565344504384,
+      "max_native_observer_hold_s": 0.0,
+      "local_success_endpoint": null,
+      "first_active_actual_rr_reference": {
+        "tick": 7976,
+        "actual_rr_hip_knee_deg": [
+          7.223423944582586,
+          -57.757072587058836
+        ],
+        "source": "first_logged_active_endpoint_actual_q_not_FINAL_or_exact_gate_tick"
+      },
+      "active_actual_rr_angle_ranges_deg": {
+        "hip": [
+          -26.10906289855948,
+          14.514875426040161
+        ],
+        "knee": [
+          -57.757072587058836,
+          5.410398147448597
+        ]
+      },
+      "last_tick": 10948,
+      "last_phase": "P11",
+      "last_metrics": {
+        "tick": 10948,
+        "time_s": 91.23333333333333,
+        "phase_id": "P11",
+        "live": false,
+        "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+        "activation_eligible": false,
+        "geometry_valid": true,
+        "crossed": true,
+        "placed": true,
+        "free_air": true,
+        "ground_contact": false,
+        "within_top_xy": false,
+        "within_lateral_span": true,
+        "gap_m": -0.050202361145052686,
+        "top_xy_outside_distance_m": 0.07559519188571329,
+        "current_top_contact": false,
+        "current_top_bearing": false,
+        "bearing_force_n": 0.0,
+        "load_fraction": 0.0,
+        "load_fraction_valid": true,
+        "consecutive_top_samples": 0,
+        "final_rr_hip_deg": 8.488203104650788,
+        "final_rr_knee_deg": -22.489600877953023,
+        "actual_rr_hip_knee_deg": [
+          8.380803768309478,
+          -27.92608478324475
+        ],
+        "final_target_source": "drive_target_full12",
+        "final_ack_verified": true,
+        "current_lift_valid": false,
+        "lift_established": true,
+        "current_attempt_capture_eligible": false,
+        "motion_continuation_allowed": true
+      },
+      "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED"
+    },
+    {
+      "index": 10,
+      "activation_tick": null,
+      "activation_time_s": null,
+      "credited_samples": 0,
+      "first_top_contact_endpoint": null,
+      "first_top_bearing_endpoint": null,
+      "min_active_logged_gap_m": null,
+      "max_native_observer_hold_s": 0.0,
+      "local_success_endpoint": null,
+      "first_active_actual_rr_reference": null,
+      "active_actual_rr_angle_ranges_deg": null,
+      "last_tick": 88,
+      "last_phase": "P02",
+      "last_metrics": {
+        "tick": 88,
+        "time_s": 0.7333333333333333,
+        "phase_id": "P02",
+        "live": true,
+        "termination_reason": null,
+        "activation_eligible": false,
+        "geometry_valid": true,
+        "crossed": false,
+        "placed": false,
+        "free_air": false,
+        "ground_contact": true,
+        "within_top_xy": false,
+        "within_lateral_span": true,
+        "gap_m": -0.0509899734678836,
+        "top_xy_outside_distance_m": 0.8169378556506669,
+        "current_top_contact": false,
+        "current_top_bearing": false,
+        "bearing_force_n": 14.409860610961914,
+        "load_fraction": 0.4912552515877131,
+        "load_fraction_valid": true,
+        "consecutive_top_samples": 0,
+        "final_rr_hip_deg": 0.6219497813483724,
+        "final_rr_knee_deg": -4.195218458604538,
+        "actual_rr_hip_knee_deg": [
+          2.5665471807281786,
+          -3.530081700137613
+        ],
+        "final_target_source": "drive_target_full12",
+        "final_ack_verified": true,
+        "current_lift_valid": false,
+        "lift_established": false,
+        "current_attempt_capture_eligible": false,
+        "motion_continuation_allowed": true
+      },
+      "termination_reason": null
+    }
+  ],
+  "updates": [
+    {
+      "reported_branch_counters": {
+        "auxiliary_updates": 64,
+        "capture_opportunities": 18,
+        "completed_local_episodes": 12,
+        "local_optimizer_steps": 180,
+        "local_policy_decisions": 4608,
+        "local_ppo_updates": 9,
+        "local_successes": 7,
+        "prefix_decisions": 17952,
+        "task_v2_policy_decisions": 2560,
+        "task_v2_ppo_updates": 5
+      },
+      "run_local_credited_sample_start": 1,
+      "run_local_credited_sample_end": 512,
+      "sample_count_from_actual_phase_report": 512,
+      "available_decision_rows": 512,
+      "reported_phase_counts": {
+        "P09": 490,
+        "P10": 3,
+        "P11": 8,
+        "P12": 11
+      },
+      "decision_phase_counts": {
+        "P09": 490,
+        "P10": 3,
+        "P11": 8,
+        "P12": 11
+      },
+      "phase_counts_match": true,
+      "active_old_likelihood_verified_samples": 512,
+      "selected_vs_issued_raw_known_samples": 512,
+      "selected_vs_issued_raw_mismatches": 0,
+      "native_all_ticks_verified_samples": 512,
+      "optimizer_steps": 20,
+      "actor_parameters_changed": true,
+      "finite_nonzero_gradient_observed": true,
+      "likelihood": {
+        "available": true,
+        "tensor_rollout_inspected": false,
+        "tensor_storage_verification": "N/A: no Torch/tensor deserialization",
+        "update_number": 9,
+        "saved_sample_coverage": 512,
+        "old_logp_matches_decision_receipts": true,
+        "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_capture_first_cp225280_v1\\train_gain10_continuous2048_from_CP229376_0d0f894\\rollouts\\likelihood_0009.json",
+        "source": "actual_official_PPO_log_prob_call_before_each_optimizer_step",
+        "minibatches": 20,
+        "extra_random_draws": 0,
+        "extra_model_forwards": 0,
+        "observed_sample_exposures": 2560,
+        "unique_sample_exposure_range": [
+          5,
+          5
+        ],
+        "old_logp_comparable_exposures": 2560,
+        "old_logp_mismatches": 0,
+        "ambiguous_or_missing_exposures": 0
+      }
+    },
+    {
+      "reported_branch_counters": {
+        "auxiliary_updates": 64,
+        "capture_opportunities": 21,
+        "completed_local_episodes": 15,
+        "local_optimizer_steps": 200,
+        "local_policy_decisions": 5120,
+        "local_ppo_updates": 10,
+        "local_successes": 9,
+        "prefix_decisions": 20943,
+        "task_v2_policy_decisions": 3072,
+        "task_v2_ppo_updates": 6
+      },
+      "run_local_credited_sample_start": 513,
+      "run_local_credited_sample_end": 1024,
+      "sample_count_from_actual_phase_report": 512,
+      "available_decision_rows": 512,
+      "reported_phase_counts": {
+        "P09": 496,
+        "P10": 2,
+        "P11": 2,
+        "P12": 12
+      },
+      "decision_phase_counts": {
+        "P09": 496,
+        "P10": 2,
+        "P11": 2,
+        "P12": 12
+      },
+      "phase_counts_match": true,
+      "active_old_likelihood_verified_samples": 512,
+      "selected_vs_issued_raw_known_samples": 512,
+      "selected_vs_issued_raw_mismatches": 0,
+      "native_all_ticks_verified_samples": 512,
+      "optimizer_steps": 20,
+      "actor_parameters_changed": true,
+      "finite_nonzero_gradient_observed": true,
+      "likelihood": {
+        "available": true,
+        "tensor_rollout_inspected": false,
+        "tensor_storage_verification": "N/A: no Torch/tensor deserialization",
+        "update_number": 10,
+        "saved_sample_coverage": 512,
+        "old_logp_matches_decision_receipts": true,
+        "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_capture_first_cp225280_v1\\train_gain10_continuous2048_from_CP229376_0d0f894\\rollouts\\likelihood_0010.json",
+        "source": "actual_official_PPO_log_prob_call_before_each_optimizer_step",
+        "minibatches": 20,
+        "extra_random_draws": 0,
+        "extra_model_forwards": 0,
+        "observed_sample_exposures": 2560,
+        "unique_sample_exposure_range": [
+          5,
+          5
+        ],
+        "old_logp_comparable_exposures": 2560,
+        "old_logp_mismatches": 0,
+        "ambiguous_or_missing_exposures": 0
+      }
+    }
+  ],
+  "completed_updates_observed": 2,
+  "optimizer_steps_observed": 40,
+  "pending_credited_samples_after_last_update": 493,
+  "measurement_epsilon": 1e-06,
+  "small_direction_count_semantics": "Numerically nonzero directions at1e-6, potentially noise; not meaningful candidate coverage.",
+  "entry_relative_5deg_semantics": "Reporting bins ONLY, not control/reward/success thresholds; actual q relative to first logged active endpoint actual q, separately timestamped.",
+  "issues": [],
+  "scope": [
+    "Only explicitly named run JSON/JSONL read; historical global counters are never added as new samples.",
+    "Counts are observed rows, not a physical-success claim; diagnostic/AUX rows cannot contribute PPO credit.",
+    "Motion is measured before/after actual q, never commanded target substituted for q.",
+    "Contact/drop counts use decision endpoints and are lower bounds; no full 120Hz contact reconstruction.",
+    "Hold seconds are logged native-observer state; reader does not independently revalidate all ticks.",
+    "Storage tensors/returns/advantages remain uninspected; JSON official minibatch likelihood evidence is separate.",
+    "Missing file/measurement means unavailable, never zero; live absence is not final failure."
+  ]
+}

@@ -1,0 +1,33 @@
+--- a/src/wlr50_clean/ppo/semantic_rr_capture_deferred_late.py
++++ b/src/wlr50_clean/ppo/semantic_rr_capture_deferred_late.py
+@@ -74,6 +74,7 @@
+         self.pending_event = waypoints[0]
+         self.pending_atomic_group = groups[0]
+         self.before = tuple(previous_sample.full12)
++        self.before_tracking = tuple(previous_sample.tracking_servo_names)
+         self.last = tuple(previous_sample.full12)
+         self.last_carrier_tick = pending_event_tick - 1
+         self.last_emitted_groups = ()
+@@ -109,8 +110,11 @@
+             self.stop_event_ticks.append(sample.tick_index)
+         result = replace(sample, full12=tuple(values), nominal_full12=tuple(nominal),
+             atomic_groups=groups,
+-            tracking_servo_names=tuple(n for n in sample.tracking_servo_names
+-                                      if n not in DEFERRED_SERVOS),
++            # The late atomic sample is NOT consumed. It cannot acquire FR/RR
++            # tracking merely because their logical goal values are unchanged.
++            # Keep this layer's real pre-late responsibility; wheel-only stops
++            # do not create servo tracking. Other layers remain untouched.
++            tracking_servo_names=self.before_tracking,
+             endpoint_issued=False,
+             target_progressed=any(abs(a-b) > 1e-12 for a, b in zip(values, self.last)))
+         self.last, self.last_emitted_groups = result.full12, result.atomic_groups
+@@ -128,6 +132,8 @@
+             source_stop_event_ticks=list(self.stop_event_ticks),
+             deferred_source_values=[self.before[i] for i in DEFERRED_INDICES],
+             reference_kind="pre_late_original_logical_source_not_FINAL_or_actual_q",
++            deferred_source_tracking_servo_names=list(self.before_tracking),
++            deferred_tracking_source="previous_sample_before_unconsumed_late",
+             policy_channels_restricted=[], mapper_or_history_resets=0,
+             extra_actuator_writes=0, within_episode_release_supported=False)
+ 

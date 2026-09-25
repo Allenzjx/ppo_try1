@@ -1,0 +1,61 @@
+--- a/src/wlr50_clean/ppo/semantic_rr_capture_local.py
++++ b/src/wlr50_clean/ppo/semantic_rr_capture_local.py
+@@ -95,10 +95,10 @@
+ 
+ class CaptureCore:
+     """Task-only wrapper; unchanged12-channel physics/mapper and native history."""
+-    def __init__(self, inner):
++    def __init__(self, inner, *, task=None):
+         from .semantic_rr_capture_local_task import RRCaptureLocalTask
+         self.inner = inner
+-        self.task = RRCaptureLocalTask()
++        self.task = RRCaptureLocalTask() if task is None else task
+         self.tick_observer = None
+         self.inner.tick_observer = self._observe
+         self.observation = None
+@@ -120,8 +120,8 @@
+         return self.observation
+ 
+     def reset(self, seed=1001):
++        self.task.reset()
+         self.inner.reset(seed=seed)
+-        self.task.reset()
+         self.task.observe(self.inner.frame)
+         self.done = False
+         return self._encode()
+@@ -150,11 +150,22 @@
+ def build_core(app):
+     from .semantic_backend import SemanticIsaacBackend
+     from .semantic_env import SemanticEpisodeEnv
++    factory, local_task = None, None
++    mode = settings().get('p09_late_dispatch')
++    if mode is not None:
++        from .semantic_rr_capture_deferred_late import MODE, controller_factory
++        from .semantic_rr_capture_local_task import RRCaptureLocalTask
++        if mode != MODE:
++            raise ValueError('unknown RR local source-event scheduling version')
++        local_task = RRCaptureLocalTask()
++        factory = controller_factory(task_spec_path=CONFIG/'stage_task_spec.yaml',
++            read_local_active=lambda: local_task.active)
+     backend = SemanticIsaacBackend(app, audit_actuator_target_effect=True,
+-        execution_profile=CONFIG/'execution_profile.yaml', task_spec_path=CONFIG/'stage_task_spec.yaml')
++        execution_profile=CONFIG/'execution_profile.yaml', task_spec_path=CONFIG/'stage_task_spec.yaml',
++        controller_factory=factory)
+     return CaptureCore(SemanticEpisodeEnv(backend, collect_trace=False,
+         action_config=CONFIG/'execution_profile.yaml', reward_config_path=CONFIG/'reward_config.yaml',
+-        observation_schema_path=CONFIG/'observation_schema.json'))
++        observation_schema_path=CONFIG/'observation_schema.json'), task=local_task)
+ 
+ 
+ def make_runner(device, seed):
+--- a/configs/ppo_rr_capture_first_cp225280_v1/local_training.json
++++ b/configs/ppo_rr_capture_first_cp225280_v1/local_training.json
+@@ -1,6 +1,7 @@
+ {
+   "schema": "wlr50_clean.rr_capture_local_contract.v1",
+-  "version": "frozen_cp225280_raw_head_plus_local447_v1",
++  "version": "frozen_cp225280_raw_head_plus_local447_deferred_late_v2",
++  "p09_late_dispatch": "rr_local_defer_p09_late_and_new_p12_until_terminal_v2",
+   "control_configuration_source": "49eb23163a6e20bc56301dbafb59b137ecebce66",
+   "prior_checkpoint_sha256": "fbe28e3718a5796afc2271e7b10aa04017369593b5c62e0bde1973a20f68032f",
+   "prior_manifest_sha256": "f501b7a735c0aaa42be00114e09f80d46f7f009d7717aa416fc30ad3cc837d6d",

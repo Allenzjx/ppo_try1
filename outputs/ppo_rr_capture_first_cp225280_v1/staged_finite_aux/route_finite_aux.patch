@@ -1,0 +1,174 @@
+--- a/src/wlr50_clean/ppo/semantic_rr_capture_local.py
++++ b/src/wlr50_clean/ppo/semantic_rr_capture_local.py
+@@ -250,16 +250,27 @@
+             'new_local_mean_initialized_zero': True, 'prior_weights_fully_frozen': True}
+ 
+ 
+-def checkpoint_path(decisions, revision=None):
+-    suffix = '_lineage448_v2' + ('_g'+revision[:12] if revision else '')
++def auxiliary_events(runner, counts):
++    """One shared ledger validator; this route never performs AUX optimization."""
++    from .semantic_rr_capture_local_aux import validate_local_auxiliary_events
++    return validate_local_auxiliary_events(getattr(runner, 'local_auxiliary_events', None), counts)
++
++
++def checkpoint_path(decisions, revision=None, auxiliary_updates=0):
++    if type(auxiliary_updates) is not int or auxiliary_updates < 0:
++        raise ValueError('auxiliary_updates must count actual nonnegative AUX optimizer steps')
++    suffix = ('_aux'+f'{auxiliary_updates:06d}' if auxiliary_updates else '')
++    suffix += '_lineage448_v2' + ('_g'+revision[:12] if revision else '')
+     return OUTPUT/'checkpoints/history'/f'checkpoint_CP{225280+decisions}_local{decisions:06d}{suffix}.pt'
+ 
+ 
+ def save(runner, runtime, prior, counts, *, source_run):
++    ledger = auxiliary_events(runner, counts)
+     import torch
+     from .semantic_training import state_hash
+     from .rl_library_wrapper import capture_training_rng_state
+-    target = checkpoint_path(counts['local_policy_decisions'], runtime.get('source_git_commit'))
++    target = checkpoint_path(counts['local_policy_decisions'], runtime.get('source_git_commit'),
++                             counts.get('auxiliary_updates', 0))
+     target.parent.mkdir(parents=True, exist_ok=True)
+     if target.exists():
+         raise FileExistsError(target)
+@@ -278,9 +289,12 @@
+         infos['local_migration'] = copy.deepcopy(runner.local_migration)
+     if getattr(runner, 'local_control_rebinds', None) is not None:
+         infos['local_control_rebinds'] = copy.deepcopy(runner.local_control_rebinds)
++    infos['local_auxiliary_events'] = copy.deepcopy(ledger)
+     payload.update(infos=infos, iter=counts['local_ppo_updates'])
+     torch.save(payload, target)
+     loaded = torch.load(target, map_location=runner.device, weights_only=False)
++    if loaded.get('infos') != infos:
++        raise RuntimeError('checkpoint serialized round trip changed metadata/AUX ledger')
+     if any(state_hash(loaded[key]) != value for key, value in identity.items()):
+         raise RuntimeError('checkpoint serialized round trip changed training state')
+     runner.alg.load(loaded, None, True)
+@@ -300,14 +314,17 @@
+     import torch
+     from .semantic_training import state_hash, parameter_hash
+     from .rl_library_wrapper import restore_training_rng_state
++    from .semantic_rr_capture_local_aux import validate_local_auxiliary_events
+     path = Path(path).resolve(strict=True)
+     metadata = json.loads(path.with_name(path.stem + '_manifest.json').read_text())
+     if (metadata['schema'] != SCHEMA or metadata['runtime_contract'] != runtime
+             or metadata['checkpoint_sha256'] != sha(path) or not metadata['save_load_round_trip']):
+         raise ValueError('new-route checkpoint contract/hash mismatch')
++    ledger = validate_local_auxiliary_events(metadata.get('local_auxiliary_events'), metadata['counts'])
+     data = torch.load(path, map_location=runner.device, weights_only=False)
+-    if any(metadata.get(k) != v for k, v in data['infos'].items()):
+-        raise ValueError('new checkpoint embedded infos differ from manifest')
++    if (any(metadata.get(k) != v for k, v in data['infos'].items())
++            or metadata.get('local_auxiliary_events', []) != data['infos'].get('local_auxiliary_events', [])):
++        raise ValueError('new checkpoint embedded infos/AUX ledger differ from manifest')
+     runner.alg.load(data, None, True)
+     runner.alg.actor.assert_frozen_state(runner.alg.optimizer)
+     source_metadata = json.loads(SOURCE_MANIFEST.read_text())
+@@ -320,6 +337,7 @@
+     runner.alg.learning_rate = metadata['learning_rate']
+     runner.local_migration = metadata.get('local_migration')
+     runner.local_control_rebinds = copy.deepcopy(metadata.get('local_control_rebinds', []))
++    runner.local_auxiliary_events = ledger
+     runner.current_learning_iteration = metadata['counts']['local_ppo_updates']
+     restore_training_rng_state(metadata['training_rng'], expected_seed=1001)
+     runner.checkpoint_load_provenance = {'checkpoint': str(path), 'checkpoint_sha256':sha(path),
+@@ -338,8 +356,57 @@
+ })
+ 
+ 
++
++FINITE_AUX_REBIND_SOURCE_HEAD = '1e10d39c9a80c017cb7e4a0035d00c40a5b4dd81'
++FINITE_AUX_ROUTE_FILE = 'src/wlr50_clean/ppo/semantic_rr_capture_local.py'
++FINITE_AUX_ADDED_FILE = 'src/wlr50_clean/ppo/semantic_rr_capture_local_aux.py'
++
++
++def validate_finite_aux_rebind_runtime(old, new):
++    """Metadata-only support publication; task/control/actor/physics stay exact."""
++    def digest(value, length=64):
++        return (isinstance(value, str) and len(value) == length
++                and all(c in '0123456789abcdef' for c in value))
++    if (old.get('source_git_commit') != FINITE_AUX_REBIND_SOURCE_HEAD
++            or not digest(new.get('source_git_commit'), 40)
++            or new['source_git_commit'] == FINITE_AUX_REBIND_SOURCE_HEAD):
++        raise ValueError('finite AUX publication requires exact1e source and a new HEAD')
++    allowed = {'source_git_commit', 'runtime_content_sha256', 'files'}
++    if set(old) != set(new) or any(old[k] != new[k] for k in old if k not in allowed):
++        raise ValueError('finite AUX publication changed protected config/task/actor/physics runtime')
++    for runtime in (old, new):
++        files = runtime['files']
++        if not files or any(not digest(v) for v in files.values()):
++            raise ValueError('finite AUX runtime file digest invalid')
++        calculated = hashlib.sha256(json.dumps(files, sort_keys=True,
++            separators=(',', ':')).encode()).hexdigest()
++        if runtime['runtime_content_sha256'] != calculated:
++            raise ValueError('finite AUX runtime inventory digest mismatch')
++        cfg = runtime['local_contract']
++        if (cfg.get('observation_dimension') != 448
++                or cfg.get('schema') != 'wlr50_clean.rr_capture_local_contract.v2'
++                or cfg.get('version') != 'frozen_cp225280_raw_head_plus_local448_lineage_v2'
++                or cfg.get('source_tracking_owner_revision') != SAME448_REBIND_REVISION
++                or cfg.get('capture_source_dispatch') !=
++                    'rr_local_defer_p09_late_and_new_p12_until_terminal_v2'):
++            raise ValueError('finite AUX publication requires exact448 corrected tracking contract')
++        for name, item in runtime['selected_configuration'].items():
++            if (item.get('path') != 'configs/' + NAME + '/' + name
++                    or files.get(item['path']) != item.get('sha256')):
++                raise ValueError('finite AUX selected configuration is unbound')
++    old_files, new_files = old['files'], new['files']
++    if (set(old_files) - set(new_files)
++            or set(new_files) - set(old_files) != {FINITE_AUX_ADDED_FILE}
++            or {p for p in old_files if old_files[p] != new_files[p]} != {FINITE_AUX_ROUTE_FILE}):
++        raise ValueError('finite AUX publication allows only route edit plus one new AUX helper')
++    return {p: {'before': old_files.get(p), 'after': new_files[p]}
++            for p in (FINITE_AUX_ROUTE_FILE, FINITE_AUX_ADDED_FILE)}
++
++
+ def validate_same448_rebind_runtime(old, new):
+-    """One source-owner bugfix only; ordinary resume remains exact-runtime."""
++    """Explicit cold publications only; ordinary resume remains exact-runtime."""
++    if old.get('source_git_commit') == FINITE_AUX_REBIND_SOURCE_HEAD:
++        return validate_finite_aux_rebind_runtime(old, new)
+     def digest(value, length=64):
+         return (isinstance(value, str) and len(value) == length
+                 and all(c in '0123456789abcdef' for c in value))
+@@ -452,8 +519,9 @@
+     if (runner.alg.optimizer is not optimizer
+             or parameter_ids != tuple(tuple(id(p) for p in g['params']) for g in optimizer.param_groups)):
+         raise RuntimeError('same448 rebind replaced actual Adam or its parameter ordering')
+-    if loaded_counts != counts or runner.local_migration != metadata.get('local_migration'):
+-        raise RuntimeError('same448 rebind changed counts or historical447 migration lineage')
++    if (loaded_counts != counts or runner.local_migration != metadata.get('local_migration')
++            or runner.local_auxiliary_events != metadata.get('local_auxiliary_events', [])):
++        raise RuntimeError('same448 rebind changed counts or historical447/AUX lineage')
+     if (runner.alg.learning_rate != saved_lr
+             or any(g['lr'] != saved_lr for g in optimizer.param_groups)
+             or any(state_hash(runner.alg.save()[k]) != h for k, h in metadata['state_hashes'].items())):
+@@ -471,6 +539,10 @@
+     if not isinstance(history, list):
+         raise ValueError('same448 control rebind lineage must be a list')
+     history.append({'schema': 'wlr50_clean.same448_control_rebind.v1',
++        'rebind_kind': ('metadata_only_finite_auxiliary_ledger_support_v1'
++            if old_runtime['source_git_commit'] == FINITE_AUX_REBIND_SOURCE_HEAD
++            else 'source_tracking_owner_repair_v1'),
++        'local_auxiliary_events_preserved': True,
+         'source_tracking_owner_revision': SAME448_REBIND_REVISION,
+         'source_checkpoint': str(path), 'source_checkpoint_sha256': checkpoint_sha256,
+         'source_manifest': str(manifest_path), 'source_manifest_sha256': manifest_sha256,
+@@ -686,6 +758,7 @@
+ 
+ 
+ def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False):
++    ledger = auxiliary_events(runner, counts)
+     import torch
+     from .semantic_video import REVIEW_CAMERA, capture_task_interval_frame, capture_assist_tick_evidence
+     from .semantic_legacy_evaluation import PhysicalEvaluationRecorder
+@@ -757,6 +830,9 @@
+                     'capture_source_dispatch':settings()['capture_source_dispatch'],
+                     'source_tracking_owner_revision':settings()['source_tracking_owner_revision'],
+                     'local_branch_counters':dict(counts), 'frozen_prior':prior,
++                    'local_auxiliary_events':copy.deepcopy(ledger),
++                    'local_auxiliary_optimizer_steps':counts.get('auxiliary_updates', 0),
++                    'AUX_updates_during_evaluation':0,
+                     'FL_capture_assist_mode':'p05_hip_only_continuation_v1',
+                     'rear_owner_projection':False,'rr_capture_assist_mode':None,
+                     'nominal_geometry_advisory':None,'rr_capture_wheel_mode':'off',

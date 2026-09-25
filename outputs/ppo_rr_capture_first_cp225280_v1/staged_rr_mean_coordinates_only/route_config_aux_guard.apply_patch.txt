@@ -1,0 +1,82 @@
+*** Begin Patch
+*** Update File: configs/ppo_rr_capture_first_cp225280_v1/local_training.json
+@@
+   "version": "frozen_cp225280_raw_head_plus_local448_lineage_v2",
++  "local_mean_coordinate_gain_full12": [1, 1, 1, 1, 1, 1, 10, 10, 1, 1, 1, 1],
+*** Update File: src/wlr50_clean/ppo/semantic_rr_capture_local.py
+@@
+-def make_runner(device, seed, *, legacy_config=None):
++def make_runner(device, seed, *, legacy_config=None, coordinate_source_config=None,
++                coordinate_source_head=None):
+     import torch
+@@
+     from .rl_library_wrapper import build_rsl_runner_config, construct_runner
++    from .semantic_rr_mean_coordinates import GAIN_KEY, IDENTITY, SOURCE_HEAD, checked_gain, configuration_with_gain
+     cfg = settings()
+@@
+         initial_capture_std=cfg['active_initial_sigma_full12'])
++    configuration['actor'][GAIN_KEY] = list(checked_gain(cfg[GAIN_KEY]))
++    if coordinate_source_config is not None:
++        if legacy_config is not None or coordinate_source_head != SOURCE_HEAD:
++            raise ValueError('identity cold source requires exact0ff full448 config')
++        old_config = copy.deepcopy(coordinate_source_config)
++        expected = copy.deepcopy(configuration)
++        expected['actor'].pop(GAIN_KEY)
++        if GAIN_KEY in old_config['actor'] or old_config != expected:
++            raise ValueError('old0ff source config differs beyond absent identity gain')
++        configuration = configuration_with_gain(old_config, IDENTITY)
+     if legacy_config is not None:
+@@
+-def save(runner, runtime, prior, counts, *, source_run):
++def save(runner, runtime, prior, counts, *, source_run, publish_pointer=True):
++    from .semantic_rr_mean_coordinates import assert_coordinate_binding
++    assert_coordinate_binding(runner, runtime)
+     ledger = auxiliary_events(runner, counts)
+@@
+     infos['local_auxiliary_events'] = copy.deepcopy(ledger)
++    infos['local_mean_coordinate_migrations'] = copy.deepcopy(getattr(runner, 'local_mean_coordinate_migrations', []))
+     payload.update(infos=infos, iter=counts['local_ppo_updates'])
+@@
+-    write(OUTPUT/'checkpoints/checkpoint_last_pointer.json', pointer, replace=(OUTPUT/'checkpoints/checkpoint_last_pointer.json').exists())
++    if publish_pointer:
++        write(OUTPUT/'checkpoints/checkpoint_last_pointer.json', pointer, replace=(OUTPUT/'checkpoints/checkpoint_last_pointer.json').exists())
+     return pointer
+@@
+ def load(runner, path, runtime):
++    from .semantic_rr_mean_coordinates import assert_coordinate_binding
+     import torch
+@@
+         raise ValueError('new-route checkpoint contract/hash mismatch')
++    assert_coordinate_binding(runner, runtime, metadata)
+     ledger = validate_local_auxiliary_events(metadata.get('local_auxiliary_events'), metadata['counts'])
+@@
+     runner.local_auxiliary_events = ledger
++    runner.local_mean_coordinate_migrations = copy.deepcopy(metadata.get('local_mean_coordinate_migrations', []))
+     runner.current_learning_iteration = metadata['counts']['local_ppo_updates']
+@@
+ def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False):
++    from .semantic_rr_mean_coordinates import assert_coordinate_binding
++    assert_coordinate_binding(runner, runtime)
+     ledger = auxiliary_events(runner, counts)
+@@
+                 'control_contributions':{'policy_version':settings()['version'], 'observation_dimension':448,
++                    'local_mean_coordinate_gain_full12':list(settings()['local_mean_coordinate_gain_full12']),
++                    'local_mean_coordinate_migrations':copy.deepcopy(getattr(runner, 'local_mean_coordinate_migrations', [])),
+                     'capture_source_dispatch':settings()['capture_source_dispatch'],
+@@
+     runtime=contract(args.expected_head)
++    from .semantic_rr_mean_coordinates import GAIN_KEY, IDENTITY, checked_gain
++    if checked_gain(runtime['local_contract'][GAIN_KEY]) != IDENTITY:
++        if args.mode in ('initialize', 'migrate', 'rebind'):
++            raise ValueError('gain10 runtime rejects initialize/migrate/rebind: use the independent cold coordinate publisher; rollback requires matching old source/config/checkpoint')
++        if not args.checkpoint:
++            raise ValueError('gain10 train/eval/diagnostic requires an explicitly published checkpoint; implicit initialization is prohibited')
+     run=args.run_dir.resolve()
+*** Update File: src/wlr50_clean/ppo/semantic_rr_capture_local_aux.py
+@@
+     if not isaac_stopped:
+         raise ValueError('explicit Isaac exit acknowledgement required before any Torch import')
++    if tuple(getattr(runner.alg.actor, 'local_mean_coordinate_gain_full12', (1.,)*12)) != (1.,)*12:
++        raise ValueError('old finite AUX SGD recipe is identity-coordinate only; gain10 reuse prohibited')
+     if package.get('package_sha256') != canonical_sha({k:v for k,v in package.items() if k!='package_sha256'}):
+*** End Patch

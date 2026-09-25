@@ -1,0 +1,122 @@
+{
+  "schema": "wlr50_clean.rr_capture_training_progress_readonly.v1",
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_capture_first_cp225280_v1\\train_first2048_ecf205e",
+  "live_snapshot": true,
+  "sources": {
+    "decisions": {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_capture_first_cp225280_v1\\train_first2048_ecf205e\\decisions.jsonl",
+      "available": true,
+      "snapshot_bytes": 15535428,
+      "complete_rows": 1102,
+      "ignored_incomplete_tail_bytes": 0
+    },
+    "updates": {
+      "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_capture_first_cp225280_v1\\train_first2048_ecf205e\\updates.jsonl",
+      "available": true,
+      "snapshot_bytes": 0,
+      "complete_rows": 0,
+      "ignored_incomplete_tail_bytes": 0
+    }
+  },
+  "counts": {
+    "actual_on_policy_decisions": 104,
+    "prefix_decisions_credit0": 998,
+    "diagnostic_rows_not_PPO": 0,
+    "auxiliary_rows_not_PPO": 0,
+    "invalid_or_intervened_PPO_credit_claims": 0,
+    "unknown_or_unclassified_rows": 0,
+    "active_observation_old_likelihood_verified_samples": 104,
+    "active_observation_or_old_likelihood_missing_or_mismatch": 0,
+    "selected_vs_issued_raw_known_samples": 104,
+    "selected_vs_issued_raw_mismatches": 0
+  },
+  "actual_phase_counts": {
+    "P09": 104
+  },
+  "rr_physical_evidence": {
+    "current_top_contact_known_samples": 104,
+    "current_top_contact_true_samples": 0,
+    "current_top_bearing_known_samples": 104,
+    "current_top_bearing_true_samples": 0,
+    "ground_contact_known_samples": 104,
+    "ground_contact_true_samples": 0,
+    "bearing_transition_comparable_samples": 104,
+    "bearing_drops_between_decision_endpoints": 0,
+    "bearing_gains_between_decision_endpoints": 0,
+    "gap_comparable_samples": 104,
+    "gap_descent_samples": 55,
+    "actual_joint_motion_comparable_samples": 104,
+    "actual_hip_negative_samples": 51,
+    "actual_knee_positive_samples": 52,
+    "actual_hip_negative_and_knee_positive_samples": 28,
+    "hold_duration_known_samples": 104,
+    "positive_native_observer_hold_samples": 0,
+    "logged_native_physics_ticks": 832,
+    "all_native_ticks_verified_samples": 104
+  },
+  "capture_opportunities_with_logged_activation": 1,
+  "episodes": [
+    {
+      "index": 1,
+      "activation_tick": 7979,
+      "activation_time_s": 66.49166666666666,
+      "credited_samples": 104,
+      "first_top_contact_endpoint": null,
+      "first_top_bearing_endpoint": null,
+      "min_active_logged_gap_m": 0.010653444483413689,
+      "max_native_observer_hold_s": 0.0,
+      "local_success_endpoint": null,
+      "last_tick": 8816,
+      "last_phase": "P09",
+      "last_metrics": {
+        "tick": 8816,
+        "time_s": 73.46666666666667,
+        "phase_id": "P09",
+        "live": true,
+        "termination_reason": null,
+        "activation_eligible": true,
+        "geometry_valid": true,
+        "crossed": true,
+        "placed": false,
+        "free_air": true,
+        "ground_contact": false,
+        "within_top_xy": true,
+        "within_lateral_span": true,
+        "gap_m": 0.015476110955720393,
+        "top_xy_outside_distance_m": 0.0,
+        "current_top_contact": false,
+        "current_top_bearing": false,
+        "bearing_force_n": 0.0,
+        "load_fraction": 0.0,
+        "load_fraction_valid": true,
+        "consecutive_top_samples": 0,
+        "final_rr_hip_deg": 15.366208907297986,
+        "final_rr_knee_deg": -33.4325599617044,
+        "actual_rr_hip_knee_deg": [
+          14.560099816082108,
+          -28.764968617105716
+        ],
+        "final_target_source": "drive_target_full12",
+        "final_ack_verified": true,
+        "current_lift_valid": true,
+        "motion_continuation_allowed": true
+      },
+      "termination_reason": null
+    }
+  ],
+  "updates": [],
+  "completed_updates_observed": 0,
+  "optimizer_steps_observed": 0,
+  "pending_credited_samples_after_last_update": 104,
+  "measurement_epsilon": 1e-06,
+  "issues": [],
+  "scope": [
+    "Only explicitly named run JSON/JSONL read; historical global counters are never added as new samples.",
+    "Counts are observed rows, not a physical-success claim; diagnostic/AUX rows cannot contribute PPO credit.",
+    "Motion is measured before/after actual q, never commanded target substituted for q.",
+    "Contact/drop counts use decision endpoints and are lower bounds; no full 120Hz contact reconstruction.",
+    "Hold seconds are logged native-observer state; reader does not independently revalidate all ticks.",
+    "Storage tensors/returns/advantages remain uninspected; JSON official minibatch likelihood evidence is separate.",
+    "Missing file/measurement means unavailable, never zero; live absence is not final failure."
+  ]
+}

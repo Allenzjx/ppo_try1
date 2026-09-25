@@ -1,0 +1,40 @@
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 actor :  ['policy']
+	 critic :  ['critic']
+--------------------------------------------------------------------------------
+Actor Model: SemanticRRCaptureLocalHistoryMLPModel(
+  (obs_normalizer): Identity()
+  (distribution): HeteroscedasticGaussianDistribution()
+  (mlp): MLP(
+    (0): Linear(in_features=448, out_features=128, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=128, out_features=128, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=128, out_features=24, bias=True)
+    (5): Unflatten(dim=-1, unflattened_size=[2, 12])
+  )
+  (frozen_prior): SemanticRearOwnerRecoveryHistoryMLPModel(
+    (obs_normalizer): Identity()
+    (distribution): HeteroscedasticGaussianDistribution()
+    (mlp): MLP(
+      (0): Linear(in_features=439, out_features=256, bias=True)
+      (1): ELU(alpha=1.0)
+      (2): Linear(in_features=256, out_features=256, bias=True)
+      (3): ELU(alpha=1.0)
+      (4): Linear(in_features=256, out_features=24, bias=True)
+      (5): Unflatten(dim=-1, unflattened_size=[2, 12])
+    )
+  )
+)
+Critic Model: MLPModel(
+  (obs_normalizer): Identity()
+  (mlp): MLP(
+    (0): Linear(in_features=448, out_features=128, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=128, out_features=128, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=128, out_features=1, bias=True)
+  )
+)
+{"lifecycle": "COMPLETE", "result": {"checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_capture_first_cp225280_v1\\checkpoints\\history\\checkpoint_CP228352_local003072_aux000064_lineage448_v2_g0ff03eafeeb7.pt", "checkpoint_sha256": "c9bebd75202635e7bfc3efa6f943597e357b2597d2450240bd786820b407e60b", "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_capture_first_cp225280_v1\\checkpoints\\history\\checkpoint_CP228352_local003072_aux000064_lineage448_v2_g0ff03eafeeb7_manifest.json", "manifest_sha256": "9d9ac5f0187e3d6a568b13876259ebe9041903b260a0edba1a522446df09cbe1", "counts": {"auxiliary_updates": 64, "capture_opportunities": 9, "completed_local_episodes": 6, "local_optimizer_steps": 120, "local_policy_decisions": 3072, "local_ppo_updates": 6, "local_successes": 2, "prefix_decisions": 8976, "task_v2_policy_decisions": 1024, "task_v2_ppo_updates": 2}, "evaluated": false}, "actual_AUX_steps": 64, "accepted_AUX_steps": 64}

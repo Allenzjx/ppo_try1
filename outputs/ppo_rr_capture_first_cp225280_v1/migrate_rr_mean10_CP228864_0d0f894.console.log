@@ -1,0 +1,79 @@
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 actor :  ['policy']
+	 critic :  ['critic']
+--------------------------------------------------------------------------------
+Actor Model: SemanticRRCaptureLocalHistoryMLPModel(
+  (obs_normalizer): Identity()
+  (distribution): HeteroscedasticGaussianDistribution()
+  (mlp): MLP(
+    (0): Linear(in_features=448, out_features=128, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=128, out_features=128, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=128, out_features=24, bias=True)
+    (5): Unflatten(dim=-1, unflattened_size=[2, 12])
+  )
+  (frozen_prior): SemanticRearOwnerRecoveryHistoryMLPModel(
+    (obs_normalizer): Identity()
+    (distribution): HeteroscedasticGaussianDistribution()
+    (mlp): MLP(
+      (0): Linear(in_features=439, out_features=256, bias=True)
+      (1): ELU(alpha=1.0)
+      (2): Linear(in_features=256, out_features=256, bias=True)
+      (3): ELU(alpha=1.0)
+      (4): Linear(in_features=256, out_features=24, bias=True)
+      (5): Unflatten(dim=-1, unflattened_size=[2, 12])
+    )
+  )
+)
+Critic Model: MLPModel(
+  (obs_normalizer): Identity()
+  (mlp): MLP(
+    (0): Linear(in_features=448, out_features=128, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=128, out_features=128, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=128, out_features=1, bias=True)
+  )
+)
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 actor :  ['policy']
+	 critic :  ['critic']
+--------------------------------------------------------------------------------
+Actor Model: SemanticRRCaptureLocalHistoryMLPModel(
+  (obs_normalizer): Identity()
+  (distribution): HeteroscedasticGaussianDistribution()
+  (mlp): MLP(
+    (0): Linear(in_features=448, out_features=128, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=128, out_features=128, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=128, out_features=24, bias=True)
+    (5): Unflatten(dim=-1, unflattened_size=[2, 12])
+  )
+  (frozen_prior): SemanticRearOwnerRecoveryHistoryMLPModel(
+    (obs_normalizer): Identity()
+    (distribution): HeteroscedasticGaussianDistribution()
+    (mlp): MLP(
+      (0): Linear(in_features=439, out_features=256, bias=True)
+      (1): ELU(alpha=1.0)
+      (2): Linear(in_features=256, out_features=256, bias=True)
+      (3): ELU(alpha=1.0)
+      (4): Linear(in_features=256, out_features=24, bias=True)
+      (5): Unflatten(dim=-1, unflattened_size=[2, 12])
+    )
+  )
+)
+Critic Model: MLPModel(
+  (obs_normalizer): Identity()
+  (mlp): MLP(
+    (0): Linear(in_features=448, out_features=128, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=128, out_features=128, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=128, out_features=1, bias=True)
+  )
+)
+{"lifecycle": "COMPLETE", "result": {"checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_capture_first_cp225280_v1\\checkpoints\\history\\checkpoint_CP228864_local003584_aux000064_lineage448_v2_g0d0f89489992.pt", "checkpoint_sha256": "ea6a93db6342a5eaf09cf119c914ebc6e3ddba730e384b7751914cfdfb443101", "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_capture_first_cp225280_v1\\checkpoints\\history\\checkpoint_CP228864_local003584_aux000064_lineage448_v2_g0d0f89489992_manifest.json", "manifest_sha256": "6c02b9d5c099fc3a8a7332e2df726a174b72acbf87359d61441b597aacbadc48", "counts": {"auxiliary_updates": 64, "capture_opportunities": 12, "completed_local_episodes": 8, "local_optimizer_steps": 140, "local_policy_decisions": 3584, "local_ppo_updates": 7, "local_successes": 3, "prefix_decisions": 11968, "task_v2_policy_decisions": 1536, "task_v2_ppo_updates": 3}, "evaluated": false}}

@@ -1,0 +1,101 @@
+[INFO][AppLauncher]: Using device: cuda:0
+[INFO][AppLauncher]: Loading experience file: C:\robotics_sim\IsaacLab\apps\isaaclab.python.headless.kit
+Loading user config located at: 'c:/users/kskzz/miniconda3/envs/env_isaaclab/lib/site-packages/isaacsim/kit/data/Kit/Isaac-Sim/5.1/user.config.json'
+[Info] [carb] Logging to file: c:/users/kskzz/miniconda3/envs/env_isaaclab/lib/site-packages/isaacsim/kit/logs/Kit/Isaac-Sim/5.1/kit_20260925_020745.log
+2026-09-25T06:07:45Z [366ms] [Warning] [omni.usd_config.extension] Enable omni.materialx.libs extension to use MaterialX
+2026-09-25T06:07:46Z [1,340ms] [Warning] [carb] Acquiring non optional plugin interface which is not listed as dependency: [omni::physx::IPhysxBenchmarks v1.0] (plugin: <default plugin>), by client: omni.physics.physx.plugin. Add it to CARB_PLUGIN_IMPL_DEPS() macro of a client.
+2026-09-25T06:07:46Z [1,371ms] [Warning] [omni.isaac.dynamic_control] omni.isaac.dynamic_control is deprecated as of Isaac Sim 4.5. No action is needed from end-users.
+2026-09-25T06:07:49Z [4,549ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) UHD Graphics
+2026-09-25T06:07:49Z [4,549ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) UHD Graphics
+2026-09-25T06:07:49Z [4,549ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) UHD Graphics
+2026-09-25T06:07:49Z [4,549ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) UHD Graphics
+2026-09-25T06:07:49Z [4,549ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) UHD Graphics
+2026-09-25T06:07:49Z [4,549ms] [Warning] [gpu.foundation.plugin] Skipping unsupported non-NVIDIA GPU: Intel(R) UHD Graphics
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 581.29        | Graphics API: D3D12
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA GeForce RTX 4080 Laptop.. | Yes: 0 |     | 11997   MB | 10de      | e7a00100.. |
+|     |                                  |        |     |            | 27e0      | 0          |
+|     |                                  |        |     |            | 1         |            |
+|---------------------------------------------------------------------------------------------|
+| 1   | Intel(R) UHD Graphics            |        |     | 128     MB | 8086      | d09c0100.. |
+|     |                                  |        |     |            | a788      | 0          |
+|     |                                  |        |     |            | N/A       |            |
+|---------------------------------------------------------------------------------------------|
+| 2   | Intel(R) UHD Graphics            |        |     | 128     MB | 8086      | 4a430200.. |
+|     |                                  |        |     |            | a788      | 0          |
+|     |                                  |        |     |            | N/A       |            |
+|---------------------------------------------------------------------------------------------|
+| 3   | Intel(R) UHD Graphics            |        |     | 128     MB | 8086      | cd3e0200.. |
+|     |                                  |        |     |            | a788      | 0          |
+|     |                                  |        |     |            | N/A       |            |
+|=============================================================================================|
+| OS: Windows 11 Home, Version: 10.0 (25H2), Build: 26200, Kernel: 10.0.26100.9457
+| Processor: 13th Gen Intel(R) Core(TM) i9-13900HX
+| Cores: 24 | Logical Cores: 32
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 32456 | Free Memory: 10870
+| Total Page/Swap (MB): 71473 | Free Page/Swap: 35434
+|---------------------------------------------------------------------------------------------|
+2026-09-25T06:07:50Z [5,075ms] [Warning] [gpu.foundation.plugin] PCIe link width current (8) and maximum (16) for device 0 don't match.
+--------------------------------------------------------------------------------
+Resolved observation sets: 
+	 actor :  ['policy']
+	 critic :  ['critic']
+--------------------------------------------------------------------------------
+Actor Model: SemanticRRCaptureLocalHistoryMLPModel(
+  (obs_normalizer): Identity()
+  (distribution): HeteroscedasticGaussianDistribution()
+  (mlp): MLP(
+    (0): Linear(in_features=448, out_features=128, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=128, out_features=128, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=128, out_features=24, bias=True)
+    (5): Unflatten(dim=-1, unflattened_size=[2, 12])
+  )
+  (frozen_prior): SemanticRearOwnerRecoveryHistoryMLPModel(
+    (obs_normalizer): Identity()
+    (distribution): HeteroscedasticGaussianDistribution()
+    (mlp): MLP(
+      (0): Linear(in_features=439, out_features=256, bias=True)
+      (1): ELU(alpha=1.0)
+      (2): Linear(in_features=256, out_features=256, bias=True)
+      (3): ELU(alpha=1.0)
+      (4): Linear(in_features=256, out_features=24, bias=True)
+      (5): Unflatten(dim=-1, unflattened_size=[2, 12])
+    )
+  )
+)
+Critic Model: MLPModel(
+  (obs_normalizer): Identity()
+  (mlp): MLP(
+    (0): Linear(in_features=448, out_features=128, bias=True)
+    (1): ELU(alpha=1.0)
+    (2): Linear(in_features=128, out_features=128, bias=True)
+    (3): ELU(alpha=1.0)
+    (4): Linear(in_features=128, out_features=1, bias=True)
+  )
+)
+
+[36m===================================================================================================================[0m
+[36m[1m[INFO][IsaacLab]: Logging to file: C:\Users\kskzz\AppData\Local\Temp\isaaclab\logs\isaaclab_2026-09-25_02-07-52.log[0m
+[36m===================================================================================================================[0m
+
+[33m02:07:52 [simulation_context.py] WARNING: The `enable_external_forces_every_iteration` parameter in the PhysxCfg is set to False. If you are experiencing noisy velocities, consider enabling this flag. You may need to slightly increase the number of velocity iterations (setting it to 1 or 2 rather than 0), together with this flag, to improve the accuracy of velocity updates.[0m
+[33m02:07:53 [semantics.py] WARNING: Failed to add labels to prim /World/Obstacle using Replicator API: No module named 'omni.replicator'. 
+Please ensure Replicator API is enabled by passing '--enable_cameras' to the AppLauncher.
+Falling back to legacy approach.[0m
+{"capture_entry": {"schema": "wlr50_clean.rr_capture_local_task.v2", "active": true, "activation_tick": 7979, "activation_time_s": 66.49166666666666, "entry_rr_hip_deg": 7.485143838259594, "entry_rr_knee_deg": -58.0, "entry_gap_m": 0.05903472328704941, "hold_elapsed_s": 0.0, "capture_hold_progress": 0.0, "local_success": false, "metrics": {"tick": 7984, "time_s": 66.53333333333333, "phase_id": "P09", "live": true, "termination_reason": null, "activation_eligible": true, "geometry_valid": true, "crossed": true, "placed": false, "free_air": true, "ground_contact": false, "within_top_xy": true, "within_lateral_span": true, "gap_m": 0.0589881241361859, "top_xy_outside_distance_m": 0.0, "current_top_contact": false, "current_top_bearing": false, "bearing_force_n": 0.0, "load_fraction": 0.0, "load_fraction_valid": true, "consecutive_top_samples": 0, "final_rr_hip_deg": 7.485143838259594, "final_rr_knee_deg": -58.0, "actual_rr_hip_knee_deg": [7.223446996471035, -57.760433040130486], "final_target_source": "drive_target_full12", "final_ack_verified": true, "current_lift_valid": true, "lift_established": true, "current_attempt_capture_eligible": true, "motion_continuation_allowed": true}, "obs9": [1.0, 0.000208333333333357, 0.041584132434775524, -0.32222222222222224, 0.5903472328704941, 0.0, 0.0, 0.0, 1.0], "potential": 0.3190644523002455, "potential_components": {"legal_xy": 0.2, "gap_closure": 0.11906445230024547, "real_contact": 0.0, "bearing_hold": 0.0}, "full_task_success": false, "physical_state_or_target_writes": 0}, "uncredited_prefix_decisions": 998}
+{"capture_entry": {"schema": "wlr50_clean.rr_capture_local_task.v2", "active": true, "activation_tick": 7975, "activation_time_s": 66.45833333333333, "entry_rr_hip_deg": 7.485781126179644, "entry_rr_knee_deg": -58.0, "entry_gap_m": 0.059079466175728776, "hold_elapsed_s": 0.0, "capture_hold_progress": 0.0, "local_success": false, "metrics": {"tick": 7976, "time_s": 66.46666666666667, "phase_id": "P09", "live": true, "termination_reason": null, "activation_eligible": true, "geometry_valid": true, "crossed": true, "placed": false, "free_air": true, "ground_contact": false, "within_top_xy": true, "within_lateral_span": true, "gap_m": 0.059064464082040136, "top_xy_outside_distance_m": 0.0, "current_top_contact": false, "current_top_bearing": false, "bearing_force_n": 0.0, "load_fraction": 0.0, "load_fraction_valid": true, "consecutive_top_samples": 0, "final_rr_hip_deg": 7.485781126179644, "final_rr_knee_deg": -58.0, "actual_rr_hip_knee_deg": [7.223423944582586, -57.757072587058836], "final_target_source": "drive_target_full12", "final_ack_verified": true, "current_lift_valid": true, "lift_established": true, "current_attempt_capture_eligible": true, "motion_continuation_allowed": true}, "obs9": [1.0, 4.166666666669983e-05, 0.04158767292322024, -0.32222222222222224, 0.5907946617572877, 0.0, 0.0, 0.0, 1.0], "potential": 0.31895632844623634, "potential_components": {"legal_xy": 0.2, "gap_closure": 0.1189563284462363, "real_contact": 0.0, "bearing_hold": 0.0}, "full_task_success": false, "physical_state_or_target_writes": 0}, "uncredited_prefix_decisions": 997}
+{"collected": 2688, "phase": "P12", "time_s": 72.26666666666667, "local": {"schema": "wlr50_clean.rr_capture_local_task.v2", "active": true, "activation_tick": 7975, "activation_time_s": 66.45833333333333, "entry_rr_hip_deg": 7.485781126179644, "entry_rr_knee_deg": -58.0, "entry_gap_m": 0.059079466175728776, "hold_elapsed_s": 0.0, "capture_hold_progress": 0.0, "local_success": false, "metrics": {"tick": 8672, "time_s": 72.26666666666667, "phase_id": "P12", "live": true, "termination_reason": null, "activation_eligible": false, "geometry_valid": true, "crossed": true, "placed": true, "free_air": false, "ground_contact": false, "within_top_xy": false, "within_lateral_span": true, "gap_m": -0.0006826339793064851, "top_xy_outside_distance_m": 0.0012008466022049857, "current_top_contact": false, "current_top_bearing": false, "bearing_force_n": 14.750223159790039, "load_fraction": 0.48803108468659745, "load_fraction_valid": true, "consecutive_top_samples": 0, "final_rr_hip_deg": -0.11058778521645962, "final_rr_knee_deg": -31.51983116128467, "actual_rr_hip_knee_deg": [3.049561510245378, -34.35164671663677], "final_target_source": "drive_target_full12", "final_ack_verified": true, "current_lift_valid": false, "lift_established": true, "current_attempt_capture_eligible": true, "motion_continuation_allowed": true}, "obs9": [1.0, 0.029041666666666684, 0.04158767292322024, -0.32222222222222224, 0.5907946617572877, 0.0, 0.0, 0.0, 1.0], "potential": 0.19904391516314704, "potential_components": {"legal_xy": 0.19904391516314704, "gap_closure": 0.0, "real_contact": 0.0, "bearing_hold": 0.0}, "full_task_success": false, "physical_state_or_target_writes": 0}}
+{"collected": 2816, "phase": "P12", "time_s": 80.8, "local": {"schema": "wlr50_clean.rr_capture_local_task.v2", "active": true, "activation_tick": 7975, "activation_time_s": 66.45833333333333, "entry_rr_hip_deg": 7.485781126179644, "entry_rr_knee_deg": -58.0, "entry_gap_m": 0.059079466175728776, "hold_elapsed_s": 0.0, "capture_hold_progress": 0.0, "local_success": false, "metrics": {"tick": 9696, "time_s": 80.8, "phase_id": "P12", "live": true, "termination_reason": null, "activation_eligible": false, "geometry_valid": true, "crossed": true, "placed": true, "free_air": true, "ground_contact": false, "within_top_xy": false, "within_lateral_span": true, "gap_m": 0.034228613092292914, "top_xy_outside_distance_m": 0.03395982759166116, "current_top_contact": false, "current_top_bearing": false, "bearing_force_n": 0.0, "load_fraction": 0.0, "load_fraction_valid": true, "consecutive_top_samples": 0, "final_rr_hip_deg": 8.44792375236584, "final_rr_knee_deg": -48.87746605617611, "actual_rr_hip_knee_deg": [8.479084214050438, -45.220410629662176], "final_target_source": "drive_target_full12", "final_ack_verified": true, "current_lift_valid": true, "lift_established": true, "current_attempt_capture_eligible": true, "motion_continuation_allowed": true}, "obs9": [1.0, 0.07170833333333335, 0.04158767292322024, -0.32222222222222224, 0.5907946617572877, 0.0, 0.0, 0.0, 1.0], "potential": 0.17608124509746081, "potential_components": {"legal_xy": 0.17608124509746081, "gap_closure": 0.0, "real_contact": 0.0, "bearing_hold": 0.0}, "full_task_success": false, "physical_state_or_target_writes": 0}}
+{"collected": 2944, "phase": "P12", "time_s": 89.33333333333333, "local": {"schema": "wlr50_clean.rr_capture_local_task.v2", "active": true, "activation_tick": 7975, "activation_time_s": 66.45833333333333, "entry_rr_hip_deg": 7.485781126179644, "entry_rr_knee_deg": -58.0, "entry_gap_m": 0.059079466175728776, "hold_elapsed_s": 0.0, "capture_hold_progress": 0.0, "local_success": false, "metrics": {"tick": 10720, "time_s": 89.33333333333333, "phase_id": "P12", "live": true, "termination_reason": null, "activation_eligible": false, "geometry_valid": true, "crossed": true, "placed": true, "free_air": true, "ground_contact": false, "within_top_xy": false, "within_lateral_span": true, "gap_m": 0.0033662009184536115, "top_xy_outside_distance_m": 0.013488105704072662, "current_top_contact": false, "current_top_bearing": false, "bearing_force_n": 0.0, "load_fraction": 0.0, "load_fraction_valid": true, "consecutive_top_samples": 0, "final_rr_hip_deg": -2.8777246929816975, "final_rr_knee_deg": -39.07202490521287, "actual_rr_hip_knee_deg": [-4.1947881329221435, -40.25243155571838], "final_target_source": "drive_target_full12", "final_ack_verified": true, "current_lift_valid": true, "lift_established": true, "current_attempt_capture_eligible": true, "motion_continuation_allowed": true}, "obs9": [1.0, 0.114375, 0.04158767292322024, -0.32222222222222224, 0.5907946617572877, 0.0, 0.0, 0.0, 1.0], "potential": 0.1897618864669198, "potential_components": {"legal_xy": 0.1897618864669198, "gap_closure": 0.0, "real_contact": 0.0, "bearing_hold": 0.0}, "full_task_success": false, "physical_state_or_target_writes": 0}}
+{"collected": 3072, "phase": "P12", "time_s": 97.86666666666666, "local": {"schema": "wlr50_clean.rr_capture_local_task.v2", "active": true, "activation_tick": 7975, "activation_time_s": 66.45833333333333, "entry_rr_hip_deg": 7.485781126179644, "entry_rr_knee_deg": -58.0, "entry_gap_m": 0.059079466175728776, "hold_elapsed_s": 0.0, "capture_hold_progress": 0.0, "local_success": false, "metrics": {"tick": 11744, "time_s": 97.86666666666666, "phase_id": "P12", "live": true, "termination_reason": null, "activation_eligible": false, "geometry_valid": true, "crossed": true, "placed": true, "free_air": true, "ground_contact": false, "within_top_xy": false, "within_lateral_span": true, "gap_m": 0.029042183962404086, "top_xy_outside_distance_m": 0.07740130202937479, "current_top_contact": false, "current_top_bearing": false, "bearing_force_n": 0.0, "load_fraction": 0.0, "load_fraction_valid": true, "consecutive_top_samples": 0, "final_rr_hip_deg": 8.79977701096197, "final_rr_knee_deg": -47.158333817120734, "actual_rr_hip_knee_deg": [8.028959379820964, -48.727579579774904], "final_target_source": "drive_target_full12", "final_ack_verified": true, "current_lift_valid": true, "lift_established": true, "current_attempt_capture_eligible": true, "motion_continuation_allowed": true}, "obs9": [1.0, 0.15704166666666666, 0.04158767292322024, -0.32222222222222224, 0.5907946617572877, 0.0, 0.0, 0.0, 1.0], "potential": 0.1527177799540759, "potential_components": {"legal_xy": 0.1527177799540759, "gap_closure": 0.0, "real_contact": 0.0, "bearing_hold": 0.0}, "full_task_success": false, "physical_state_or_target_writes": 0}}
+{"completed_update": 6, "checkpoint": {"checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_capture_first_cp225280_v1\\checkpoints\\history\\checkpoint_CP228352_local003072_lineage448_v2_g1e10d39c9a80.pt", "checkpoint_sha256": "46cc0c4939c5f6eb61ab3a629eac37a3fd8db31f44b9463890cf11f85c6714e4", "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_capture_first_cp225280_v1\\checkpoints\\history\\checkpoint_CP228352_local003072_lineage448_v2_g1e10d39c9a80_manifest.json", "manifest_sha256": "96f024bbdb87b9ec36fab6a39710df84aa55b4caafaff82e2937fb19ab4a9ee3", "counts": {"auxiliary_updates": 0, "capture_opportunities": 9, "completed_local_episodes": 6, "local_optimizer_steps": 120, "local_policy_decisions": 3072, "local_ppo_updates": 6, "local_successes": 2, "prefix_decisions": 8976, "task_v2_policy_decisions": 1024, "task_v2_ppo_updates": 2}, "evaluated": false}}
+{"run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_capture_first_cp225280_v1\\train_tracking_fixed512_1e10d39", "lifecycle": "COMPLETE"}

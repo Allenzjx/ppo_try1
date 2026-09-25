@@ -1,0 +1,3348 @@
+{
+  "schema": "wlr50_clean.v2_episode1_capture_minimum_gap_readonly.v1",
+  "run": "runs/ppo_rr_capture_first_cp225280_v1/train_v2_fresh512_5f8487b",
+  "source_head_prefix": "5f8487b",
+  "scope": {
+    "consumed_complete_episode_byte_boundary": 49438973,
+    "snapshot_available_bytes_at_first_read": 49559330,
+    "prefix_credit0": 998,
+    "active_credit1": 348,
+    "terminal_tick": 10767
+  },
+  "status": "READ_ONLY_FIRST_EPISODE_ONLY_NO_RUNTIME_OR_REWARD_CHANGE",
+  "outcome": {
+    "min_gap_tick": 10328,
+    "min_gap_mm": 1.7344899701311756,
+    "TOP_endpoints": 0,
+    "max_hold_s": 0,
+    "all12_masks_open": true,
+    "RRk_headroom_clipped_endpoints": 233,
+    "RRk_FINAL_minus58_endpoints": 233,
+    "N_ranges_deg": {
+      "0": [
+        38.6,
+        38.6
+      ],
+      "1": [
+        -13.4,
+        -13.4
+      ],
+      "4": [
+        28.199999999999996,
+        28.199999999999996
+      ],
+      "5": [
+        0,
+        0
+      ],
+      "6": [
+        -6.9,
+        -6.9
+      ],
+      "7": [
+        -37.8,
+        -37.8
+      ]
+    },
+    "phases": [
+      "P09"
+    ],
+    "reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "first_uncompleted_task": "RR current TOP capture and usable hold",
+    "full_task_success": false,
+    "video": false
+  },
+  "timing_scope": "Target/source/mapped/request/FINAL at last native dispatch per decision; FL/RL measured angles reconstructed from logged nominal minus current_actual_canonical_error_deg at source_observation_tick(endpoint-1), not fabricated endpoint q. RR endpoint q separately available from local sensor metrics. No independent120Hz target/contact log inspected.",
+  "event_evidence": {
+    "first_logged_deferred_endpoint": 7992,
+    "inferred_first_deferred_source_observation_tick": 7980,
+    "pending_event_source_tick": 648,
+    "pending_event_consumed": false,
+    "first_logged_stop_receipt_endpoint": 8200,
+    "previous_endpoint_without_stop": 8192,
+    "stop_source_tick": 864,
+    "inferred_stop_source_observation_tick": 8196,
+    "inferred_next_physics_application_episode_tick": 8197,
+    "command_native_tick_from_existing_offset": 8376,
+    "dispatch_scope": "Carrier receipt gives8196=8200-((869-1)-864). Native dispatch interval8193–8200 is verified; JSON does not retain each internal tick's exact12 wheel targets, so8197 is execution-clock inference, not independent per-tick zero-target proof.",
+    "source_stop_occurrences_in_retained_receipt": 1,
+    "carried_event_stays_pending_through_terminal": true,
+    "P10_P11_layers_present": false,
+    "P12_new_start_guard_triggered": false,
+    "target_N_unchanged_deg": {
+      "RR": [
+        -6.9,
+        -37.8
+      ],
+      "FL": [
+        38.6,
+        -13.4
+      ],
+      "RL": [
+        28.2,
+        0
+      ]
+    },
+    "source_owner_side_effect": {
+      "before_endpoint": 8192,
+      "after_endpoint": 8200,
+      "tracking_before": [
+        "rear_right_hip",
+        "rear_right_knee"
+      ],
+      "tracking_after": [],
+      "mapped_N_RR_before": [
+        -7.240736812333376,
+        -42.8
+      ],
+      "mapped_N_RR_after": [
+        -8.490736812333376,
+        -44.05
+      ],
+      "last_observed_tracking": [],
+      "meaning": "The progressing carrier reaches the original wheel-stop waypoint with no servo tracking names; inherited composition ends RR tracking while retaining its logical goals. This is a real changed feedback-ownership consequence of deferred scheduling, not a policy mask or omitted RR joint target. Whether it removed physically necessary capture help is unproven."
+    }
+  },
+  "local_change_quantification": {
+    "window": [
+      10312,
+      10328,
+      10336,
+      10352
+    ],
+    "RR_knee_N_and_mapped_fixed": true,
+    "RR_actual_delta_10312_to_10336_deg": [
+      0.6939198989166169,
+      -3.2708239142627775
+    ],
+    "RR_REQUEST_delta_10312_to_10336_deg": [
+      -0.1392891312005986,
+      -12
+    ],
+    "RR_FINAL_delta_10312_to_10336_deg": [
+      -0.1392891312005986,
+      -10.982805543531583
+    ],
+    "RR_actual_delta_10328_to_10352_deg": [
+      1.5104229104147429,
+      -5.219784242980069
+    ],
+    "gap_rise_10328_to_10352_mm": 21.772470906870637,
+    "RRk_clip_at10336": {
+      "request": -14.96719445646842,
+      "effective": -13.950000000000003,
+      "FINAL": -58
+    },
+    "all_selected_controller_bias_RR_zero": true,
+    "FL_actual_pre_dispatch_delta10312_to10336": [
+      -2.830280127891541,
+      -1.046542075196868
+    ],
+    "RL_actual_pre_dispatch_delta10312_to10336": [
+      8.014742047578892,
+      -4.534289622528503
+    ]
+  },
+  "interpretation": [
+    "No source RR knee reversal occurs near the minimum: N[-6.9,-37.8], mappedN[-8.490737,-44.05], controllerbias0 are constant. Filtered policy knee REQUEST becomes12deg more negative from10312 to10336; effective correction eventually clips at-13.95 and FINAL=-58. Actual RR knee refolds and gap rises.",
+    "Full-body response overlaps: FL is realAIR/0N at10328 and10336; RL is GROUND_AND_OBSTACLE with front-wall contact and bearing_verified=false. Its logged force is not trustworthy verified support. Do not attribute the whole gap response to one RR axis.",
+    "RR's legalXY/established lineage survives at the minimum, with current_lift_valid=false but current_attempt_capture_eligible=true; new task predicate correctly keeps recovery active without inventingTOP.",
+    "The intentionally delayed FL/RL late goals never issue; no inherited old late owner overwrites them. RR target and all12policy remain available. Yet the independent stop carrier also ends RR tracking at source endpoint; this changed feedback ownership warrants explicit acknowledgement, not a claim of unchanged capture support.",
+    "P10 RR knee/P11 FR hip never actually became available in this episode because realRRplaced remainedfalse and phases did not progress. Their absence is not evidence that the P12 guard masked those lanes.",
+    "The first incomplete task remains physicalRRcapture, not merely phase progression. These data neither prove a purewheel violation nor establish which withheld whole-body preparation was necessary."
+  ],
+  "rows": [
+    {
+      "tick": 7992,
+      "time_s": 66.6,
+      "source_observation_tick": 7991,
+      "native_command_tick": 8171,
+      "phase_start_end": [
+        "P09",
+        "P09"
+      ],
+      "gap_mm": 56.29934602042982,
+      "RR_actual_endpoint_deg": [
+        10.103489321334353,
+        -55.25898553964004
+      ],
+      "RR_current": {
+        "within_top_xy": false,
+        "top_xy_outside_distance_m": 0.0011173404948746635,
+        "current_top_contact": false,
+        "current_top_bearing": false,
+        "bearing_force_n": 0,
+        "ground_contact": false,
+        "free_air": true,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "current_attempt_capture_eligible": true,
+        "motion_continuation_allowed": true
+      },
+      "legs": {
+        "FL": {
+          "N_source_deg": [
+            38.6,
+            -13.4
+          ],
+          "mapped_N_deg": [
+            38.6,
+            -12.15
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.03938836604356766,
+            -1.5099616050720215
+          ],
+          "conditional_mean": [
+            -0.018924960866570473,
+            -1.5261807441711426
+          ],
+          "REQUEST_deg": [
+            -1.2597762902391736,
+            -32.649560535943344
+          ],
+          "effective_deg": [
+            -1.2597762902391736,
+            -32.649560535943344
+          ],
+          "headroom_intervals_deg": [
+            [
+              -171.6,
+              94.4
+            ],
+            [
+              -45.85,
+              220.15
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            37.34022370976083,
+            -44.79956053594334
+          ],
+          "FINAL_deg": [
+            37.34022370976083,
+            -44.79956053594334
+          ],
+          "actual_before_last_dispatch_deg": [
+            37.297137461591895,
+            -45.29884046126676
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": false,
+            "top_contact": true,
+            "top_surface_contact": true,
+            "contact_surface": "TOP",
+            "contact_mode": null,
+            "within_top_xy": true,
+            "clearance_m": -0.0004589615287312748,
+            "front_distance_m": 0.4052344594700301,
+            "bearing_verified": true,
+            "bearing_force_n": 3.0531885623931885,
+            "support": true,
+            "current_lift_valid": null,
+            "lift_established": null,
+            "motion_continuation_allowed": null
+          }
+        },
+        "RL": {
+          "N_source_deg": [
+            28.199999999999996,
+            0
+          ],
+          "mapped_N_deg": [
+            28.199999999999996,
+            0
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.6187811493873596,
+            0.021393733099102974
+          ],
+          "conditional_mean": [
+            -0.5875259041786194,
+            0.021502507850527763
+          ],
+          "REQUEST_deg": [
+            -13.206691779564062,
+            0.7700569122367753
+          ],
+          "effective_deg": [
+            -13.206691779564062,
+            0.7700569122367753
+          ],
+          "headroom_intervals_deg": [
+            [
+              -161.2,
+              104.80000000000001
+            ],
+            [
+              -58,
+              208
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            14.993308220435933,
+            0.7700569122367753
+          ],
+          "FINAL_deg": [
+            14.993308220435933,
+            0.7700569122367753
+          ],
+          "actual_before_last_dispatch_deg": [
+            16.393819365513732,
+            0.4810943660095519
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": true,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "NONE",
+            "contact_mode": "GROUND",
+            "within_top_xy": false,
+            "clearance_m": -0.05074003818500093,
+            "front_distance_m": -0.14247122066188211,
+            "bearing_verified": true,
+            "bearing_force_n": 12.250971794128418,
+            "support": true,
+            "current_lift_valid": false,
+            "lift_established": null,
+            "motion_continuation_allowed": true
+          }
+        },
+        "RR": {
+          "N_source_deg": [
+            -6.9,
+            -37.8
+          ],
+          "mapped_N_deg": [
+            -4.4,
+            -35.3
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            1.385321855545044,
+            -0.3507268726825714
+          ],
+          "conditional_mean": [
+            0.7779926061630249,
+            -0.6184362769126892
+          ],
+          "REQUEST_deg": [
+            19.635143838259594,
+            -15.555506616981774
+          ],
+          "effective_deg": [
+            19.635143838259594,
+            -15.555506616981774
+          ],
+          "headroom_intervals_deg": [
+            [
+              -128.6,
+              137.4
+            ],
+            [
+              -22.700000000000003,
+              243.3
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            15.235143838259594,
+            -50.85550661698177
+          ],
+          "FINAL_deg": [
+            15.235143838259594,
+            -50.85550661698177
+          ],
+          "actual_before_last_dispatch_deg": [
+            9.68214775804096,
+            -55.6587291910042
+          ],
+          "contact": {
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "NONE",
+            "contact_mode": "AIR",
+            "within_top_xy": false,
+            "clearance_m": 0.056299346020429825,
+            "front_distance_m": -0.006117340494874668,
+            "bearing_verified": true,
+            "bearing_force_n": 0,
+            "support": false,
+            "current_lift_valid": true,
+            "lift_established": true,
+            "motion_continuation_allowed": true
+          }
+        }
+      },
+      "N_wheels_canonical": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "final_wheels_canonical": [
+        -0.7107851751047591,
+        0.2748972162095665,
+        0.30456569710303083,
+        0.2353465156928714
+      ],
+      "carry": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": true,
+        "ordered_source_wheel_owner": false,
+        "late_reconfiguration_waiting": true,
+        "current_TOP_continuation_eligible": false,
+        "reason": "current_AIR_safe_approach",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "deferred": [
+        {
+          "mode": "rr_local_defer_p09_late_and_new_p12_until_terminal_v2",
+          "pending_event_tick": 648,
+          "source_control_revisions": [
+            "rr_local_p09_five_channel_pending_with_independent_stop_carrier_v2",
+            "rr_local_p12_pending_start_preserve_qualified_RL_AIR_and_started_clock_v2"
+          ],
+          "pending_changed_channels": [
+            "front_left_hip",
+            "front_left_knee",
+            "rear_left_hip",
+            "rear_left_knee",
+            "front_left_ankle"
+          ],
+          "pending_event_consumed": false,
+          "pending_event_discarded": false,
+          "carrier_next_tick": 661,
+          "carrier_proposed_atomic_groups": 1,
+          "actually_emitted_atomic_groups": 0,
+          "source_stop_event_ticks": [],
+          "deferred_source_values": [
+            38.6,
+            -13.4,
+            31.2,
+            0,
+            0
+          ],
+          "reference_kind": "pre_late_original_logical_source_not_FINAL_or_actual_q",
+          "policy_channels_restricted": [],
+          "mapper_or_history_resets": 0,
+          "extra_actuator_writes": 0,
+          "within_episode_release_supported": false
+        }
+      ],
+      "all12_mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "all12_unmodified_at_actuator": true,
+      "native_verified": {
+        "physics_ticks": 8,
+        "verified_tick_count": 8,
+        "all_ticks_verified": true,
+        "actual_native_effect_tick_count": 8,
+        "own_phase_request_effect_tick_count": 8
+      },
+      "tracking_servos": [
+        "rear_right_hip",
+        "rear_right_knee"
+      ]
+    },
+    {
+      "tick": 8192,
+      "time_s": 68.26666666666667,
+      "source_observation_tick": 8191,
+      "native_command_tick": 8371,
+      "phase_start_end": [
+        "P09",
+        "P09"
+      ],
+      "gap_mm": 60.150332559372146,
+      "RR_actual_endpoint_deg": [
+        -3.484342164421859,
+        -55.408160286207696
+      ],
+      "RR_current": {
+        "within_top_xy": true,
+        "top_xy_outside_distance_m": 0,
+        "current_top_contact": false,
+        "current_top_bearing": false,
+        "bearing_force_n": 0,
+        "ground_contact": false,
+        "free_air": true,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "current_attempt_capture_eligible": true,
+        "motion_continuation_allowed": true
+      },
+      "legs": {
+        "FL": {
+          "N_source_deg": [
+            38.6,
+            -13.4
+          ],
+          "mapped_N_deg": [
+            38.6,
+            -12.15
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.13678084313869476,
+            -1.6367090940475464
+          ],
+          "conditional_mean": [
+            -0.11089178919792175,
+            -1.6586954593658447
+          ],
+          "REQUEST_deg": [
+            -4.349893371690349,
+            -33.37239993985791
+          ],
+          "effective_deg": [
+            -4.349893371690349,
+            -33.37239993985791
+          ],
+          "headroom_intervals_deg": [
+            [
+              -171.6,
+              94.4
+            ],
+            [
+              -45.85,
+              220.15
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            34.25010662830965,
+            -45.522399939857905
+          ],
+          "FINAL_deg": [
+            34.25010662830965,
+            -45.522399939857905
+          ],
+          "actual_before_last_dispatch_deg": [
+            34.67462827315755,
+            -45.82374391407682
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": false,
+            "top_contact": true,
+            "top_surface_contact": true,
+            "contact_surface": "TOP",
+            "contact_mode": null,
+            "within_top_xy": true,
+            "clearance_m": -0.0013056617010373597,
+            "front_distance_m": 0.421558741162535,
+            "bearing_verified": true,
+            "bearing_force_n": 3.0393128395080566,
+            "support": true,
+            "current_lift_valid": null,
+            "lift_established": null,
+            "motion_continuation_allowed": null
+          }
+        },
+        "RL": {
+          "N_source_deg": [
+            28.199999999999996,
+            0
+          ],
+          "mapped_N_deg": [
+            28.199999999999996,
+            0
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.549098551273346,
+            0.07519014924764633
+          ],
+          "conditional_mean": [
+            -0.598436176776886,
+            0.16513466835021973
+          ],
+          "REQUEST_deg": [
+            -11.996262937066756,
+            2.7017557794030997
+          ],
+          "effective_deg": [
+            -11.996262937066756,
+            2.7017557794030997
+          ],
+          "headroom_intervals_deg": [
+            [
+              -161.2,
+              104.80000000000001
+            ],
+            [
+              -58,
+              208
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            16.20373706293324,
+            2.7017557794030997
+          ],
+          "FINAL_deg": [
+            16.20373706293324,
+            2.7017557794030997
+          ],
+          "actual_before_last_dispatch_deg": [
+            16.338267729446724,
+            3.837266856717358
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": true,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "NONE",
+            "contact_mode": "GROUND",
+            "within_top_xy": false,
+            "clearance_m": -0.050011610879586076,
+            "front_distance_m": -0.13010087268519754,
+            "bearing_verified": true,
+            "bearing_force_n": 12.440094947814941,
+            "support": true,
+            "current_lift_valid": false,
+            "lift_established": null,
+            "motion_continuation_allowed": true
+          }
+        },
+        "RR": {
+          "N_source_deg": [
+            -6.9,
+            -37.8
+          ],
+          "mapped_N_deg": [
+            -7.240736812333376,
+            -42.8
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            0.13344717025756836,
+            -0.7550891637802124
+          ],
+          "conditional_mean": [
+            0.26920443773269653,
+            -0.49778124690055847
+          ],
+          "REQUEST_deg": [
+            3.183854966534251,
+            -19.702883066494728
+          ],
+          "effective_deg": [
+            3.183854966534251,
+            -15.200000000000003
+          ],
+          "headroom_intervals_deg": [
+            [
+              -125.75926318766662,
+              140.24073681233338
+            ],
+            [
+              -15.200000000000003,
+              250.8
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            -4.056881845799125,
+            -58
+          ],
+          "FINAL_deg": [
+            -4.056881845799125,
+            -58
+          ],
+          "actual_before_last_dispatch_deg": [
+            -3.41184739034499,
+            -55.20681313966489
+          ],
+          "contact": {
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "NONE",
+            "contact_mode": "AIR",
+            "within_top_xy": true,
+            "clearance_m": 0.06015033255937215,
+            "front_distance_m": 0.03141284329723959,
+            "bearing_verified": true,
+            "bearing_force_n": 0,
+            "support": false,
+            "current_lift_valid": true,
+            "lift_established": true,
+            "motion_continuation_allowed": true
+          }
+        }
+      },
+      "N_wheels_canonical": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "final_wheels_canonical": [
+        -0.663325953914653,
+        0.035596811609453105,
+        0.31956187575498946,
+        0.26712198054003977
+      ],
+      "carry": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": true,
+        "ordered_source_wheel_owner": false,
+        "late_reconfiguration_waiting": true,
+        "current_TOP_continuation_eligible": false,
+        "reason": "current_AIR_safe_approach",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "deferred": [
+        {
+          "mode": "rr_local_defer_p09_late_and_new_p12_until_terminal_v2",
+          "pending_event_tick": 648,
+          "source_control_revisions": [
+            "rr_local_p09_five_channel_pending_with_independent_stop_carrier_v2",
+            "rr_local_p12_pending_start_preserve_qualified_RL_AIR_and_started_clock_v2"
+          ],
+          "pending_changed_channels": [
+            "front_left_hip",
+            "front_left_knee",
+            "rear_left_hip",
+            "rear_left_knee",
+            "front_left_ankle"
+          ],
+          "pending_event_consumed": false,
+          "pending_event_discarded": false,
+          "carrier_next_tick": 861,
+          "carrier_proposed_atomic_groups": 1,
+          "actually_emitted_atomic_groups": 0,
+          "source_stop_event_ticks": [],
+          "deferred_source_values": [
+            38.6,
+            -13.4,
+            31.2,
+            0,
+            0
+          ],
+          "reference_kind": "pre_late_original_logical_source_not_FINAL_or_actual_q",
+          "policy_channels_restricted": [],
+          "mapper_or_history_resets": 0,
+          "extra_actuator_writes": 0,
+          "within_episode_release_supported": false
+        }
+      ],
+      "all12_mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "all12_unmodified_at_actuator": true,
+      "native_verified": {
+        "physics_ticks": 8,
+        "verified_tick_count": 8,
+        "all_ticks_verified": true,
+        "actual_native_effect_tick_count": 8,
+        "own_phase_request_effect_tick_count": 8
+      },
+      "tracking_servos": [
+        "rear_right_hip",
+        "rear_right_knee"
+      ]
+    },
+    {
+      "tick": 8200,
+      "time_s": 68.33333333333333,
+      "source_observation_tick": 8199,
+      "native_command_tick": 8379,
+      "phase_start_end": [
+        "P09",
+        "P09"
+      ],
+      "gap_mm": 59.357166153782146,
+      "RR_actual_endpoint_deg": [
+        -3.280736573141306,
+        -56.54317721681832
+      ],
+      "RR_current": {
+        "within_top_xy": true,
+        "top_xy_outside_distance_m": 0,
+        "current_top_contact": false,
+        "current_top_bearing": false,
+        "bearing_force_n": 0,
+        "ground_contact": false,
+        "free_air": true,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "current_attempt_capture_eligible": true,
+        "motion_continuation_allowed": true
+      },
+      "legs": {
+        "FL": {
+          "N_source_deg": [
+            38.6,
+            -13.4
+          ],
+          "mapped_N_deg": [
+            38.6,
+            -12.15
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.07720788568258286,
+            -1.6344934701919556
+          ],
+          "conditional_mean": [
+            -0.10965552926063538,
+            -1.6527765989303589
+          ],
+          "REQUEST_deg": [
+            -2.4657547857076665,
+            -33.361158246878084
+          ],
+          "effective_deg": [
+            -2.4657547857076665,
+            -33.361158246878084
+          ],
+          "headroom_intervals_deg": [
+            [
+              -171.6,
+              94.4
+            ],
+            [
+              -45.85,
+              220.15
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            36.134245214292335,
+            -45.51115824687808
+          ],
+          "FINAL_deg": [
+            36.134245214292335,
+            -45.51115824687808
+          ],
+          "actual_before_last_dispatch_deg": [
+            35.040832280602366,
+            -45.8812609370775
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": false,
+            "top_contact": true,
+            "top_surface_contact": true,
+            "contact_surface": "TOP",
+            "contact_mode": null,
+            "within_top_xy": true,
+            "clearance_m": -0.0012111972801540083,
+            "front_distance_m": 0.4244479571087325,
+            "bearing_verified": true,
+            "bearing_force_n": 2.16146183013916,
+            "support": true,
+            "current_lift_valid": null,
+            "lift_established": null,
+            "motion_continuation_allowed": null
+          }
+        },
+        "RL": {
+          "N_source_deg": [
+            28.199999999999996,
+            0
+          ],
+          "mapped_N_deg": [
+            28.199999999999996,
+            0
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.5524169206619263,
+            0.1377282738685608
+          ],
+          "conditional_mean": [
+            -0.5584809184074402,
+            0.07880257815122604
+          ],
+          "REQUEST_deg": [
+            -12.05590683673416,
+            4.927102986647774
+          ],
+          "effective_deg": [
+            -12.05590683673416,
+            4.927102986647774
+          ],
+          "headroom_intervals_deg": [
+            [
+              -161.2,
+              104.80000000000001
+            ],
+            [
+              -58,
+              208
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            16.144093163265836,
+            4.927102986647774
+          ],
+          "FINAL_deg": [
+            16.144093163265836,
+            4.927102986647774
+          ],
+          "actual_before_last_dispatch_deg": [
+            16.76378168454935,
+            3.907640857056938
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": true,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "NONE",
+            "contact_mode": "GROUND",
+            "within_top_xy": false,
+            "clearance_m": -0.05009769393907092,
+            "front_distance_m": -0.12889790194201822,
+            "bearing_verified": true,
+            "bearing_force_n": 13.297784805297852,
+            "support": true,
+            "current_lift_valid": false,
+            "lift_established": null,
+            "motion_continuation_allowed": true
+          }
+        },
+        "RR": {
+          "N_source_deg": [
+            -6.9,
+            -37.8
+          ],
+          "mapped_N_deg": [
+            -8.490736812333376,
+            -44.05
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            0.3656775951385498,
+            -0.7956158518791199
+          ],
+          "conditional_mean": [
+            0.21916106343269348,
+            -0.7549306750297546
+          ],
+          "REQUEST_deg": [
+            7.183854966534251,
+            -23.702883066494728
+          ],
+          "effective_deg": [
+            7.183854966534251,
+            -13.950000000000003
+          ],
+          "headroom_intervals_deg": [
+            [
+              -124.50926318766662,
+              141.49073681233338
+            ],
+            [
+              -13.950000000000003,
+              252.05
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            -1.3068818457991247,
+            -58
+          ],
+          "FINAL_deg": [
+            -1.3068818457991247,
+            -58
+          ],
+          "actual_before_last_dispatch_deg": [
+            -3.431191553291524,
+            -56.44133226610426
+          ],
+          "contact": {
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "NONE",
+            "contact_mode": "AIR",
+            "within_top_xy": true,
+            "clearance_m": 0.05935716615378214,
+            "front_distance_m": 0.03479624135326986,
+            "bearing_verified": true,
+            "bearing_force_n": 0,
+            "support": false,
+            "current_lift_valid": true,
+            "lift_established": true,
+            "motion_continuation_allowed": true
+          }
+        }
+      },
+      "N_wheels_canonical": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "final_wheels_canonical": [
+        -0.6821621178909121,
+        0.1555968116094532,
+        0.35427359706628714,
+        0.24587192620099227
+      ],
+      "carry": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": true,
+        "ordered_source_wheel_owner": false,
+        "late_reconfiguration_waiting": true,
+        "current_TOP_continuation_eligible": false,
+        "reason": "current_AIR_safe_approach",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "deferred": [
+        {
+          "mode": "rr_local_defer_p09_late_and_new_p12_until_terminal_v2",
+          "pending_event_tick": 648,
+          "source_control_revisions": [
+            "rr_local_p09_five_channel_pending_with_independent_stop_carrier_v2",
+            "rr_local_p12_pending_start_preserve_qualified_RL_AIR_and_started_clock_v2"
+          ],
+          "pending_changed_channels": [
+            "front_left_hip",
+            "front_left_knee",
+            "rear_left_hip",
+            "rear_left_knee",
+            "front_left_ankle"
+          ],
+          "pending_event_consumed": false,
+          "pending_event_discarded": false,
+          "carrier_next_tick": 869,
+          "carrier_proposed_atomic_groups": 1,
+          "actually_emitted_atomic_groups": 0,
+          "source_stop_event_ticks": [
+            864
+          ],
+          "deferred_source_values": [
+            38.6,
+            -13.4,
+            31.2,
+            0,
+            0
+          ],
+          "reference_kind": "pre_late_original_logical_source_not_FINAL_or_actual_q",
+          "policy_channels_restricted": [],
+          "mapper_or_history_resets": 0,
+          "extra_actuator_writes": 0,
+          "within_episode_release_supported": false
+        }
+      ],
+      "all12_mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "all12_unmodified_at_actuator": true,
+      "native_verified": {
+        "physics_ticks": 8,
+        "verified_tick_count": 8,
+        "all_ticks_verified": true,
+        "actual_native_effect_tick_count": 8,
+        "own_phase_request_effect_tick_count": 8
+      },
+      "tracking_servos": []
+    },
+    {
+      "tick": 10304,
+      "time_s": 85.86666666666666,
+      "source_observation_tick": 10303,
+      "native_command_tick": 10483,
+      "phase_start_end": [
+        "P09",
+        "P09"
+      ],
+      "gap_mm": 32.614930920696935,
+      "RR_actual_endpoint_deg": [
+        8.515163834567383,
+        -53.97768303248066
+      ],
+      "RR_current": {
+        "within_top_xy": true,
+        "top_xy_outside_distance_m": 0,
+        "current_top_contact": false,
+        "current_top_bearing": false,
+        "bearing_force_n": 0,
+        "ground_contact": false,
+        "free_air": true,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "current_attempt_capture_eligible": true,
+        "motion_continuation_allowed": true
+      },
+      "legs": {
+        "FL": {
+          "N_source_deg": [
+            38.6,
+            -13.4
+          ],
+          "mapped_N_deg": [
+            38.6,
+            -12.15
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.060635052621364594,
+            -1.2985763549804688
+          ],
+          "conditional_mean": [
+            -0.009383445605635643,
+            -1.3479548692703247
+          ],
+          "REQUEST_deg": [
+            -1.9379472406686773,
+            -31.008823772801065
+          ],
+          "effective_deg": [
+            -1.9379472406686773,
+            -31.008823772801065
+          ],
+          "headroom_intervals_deg": [
+            [
+              -171.6,
+              94.4
+            ],
+            [
+              -45.85,
+              220.15
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            36.662052759331324,
+            -43.158823772801064
+          ],
+          "FINAL_deg": [
+            36.662052759331324,
+            -43.158823772801064
+          ],
+          "actual_before_last_dispatch_deg": [
+            37.85033155794415,
+            -43.438310591733625
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": false,
+            "top_contact": true,
+            "top_surface_contact": true,
+            "contact_surface": "TOP",
+            "contact_mode": null,
+            "within_top_xy": true,
+            "clearance_m": -0.0013663450503011015,
+            "front_distance_m": 0.5142043266994918,
+            "bearing_verified": true,
+            "bearing_force_n": 1.7177362442016602,
+            "support": true,
+            "current_lift_valid": null,
+            "lift_established": null,
+            "motion_continuation_allowed": null
+          }
+        },
+        "RL": {
+          "N_source_deg": [
+            28.199999999999996,
+            0
+          ],
+          "mapped_N_deg": [
+            28.199999999999996,
+            0
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.5961740612983704,
+            -0.014427865855395794
+          ],
+          "conditional_mean": [
+            -0.59732586145401,
+            -0.004497635178267956
+          ],
+          "REQUEST_deg": [
+            -12.823716529025736,
+            -0.5193671335666009
+          ],
+          "effective_deg": [
+            -12.823716529025736,
+            -0.5193671335666009
+          ],
+          "headroom_intervals_deg": [
+            [
+              -161.2,
+              104.80000000000001
+            ],
+            [
+              -58,
+              208
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            15.37628347097426,
+            -0.5193671335666009
+          ],
+          "FINAL_deg": [
+            15.37628347097426,
+            -0.5193671335666009
+          ],
+          "actual_before_last_dispatch_deg": [
+            22.23215578501391,
+            0.9230905013943427
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": true,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "FRONT_WALL",
+            "contact_mode": "GROUND_AND_OBSTACLE",
+            "within_top_xy": false,
+            "clearance_m": -0.04999806035457428,
+            "front_distance_m": -0.04968490855861063,
+            "bearing_verified": false,
+            "bearing_force_n": 15.061884880065918,
+            "support": true,
+            "current_lift_valid": false,
+            "lift_established": null,
+            "motion_continuation_allowed": true
+          }
+        },
+        "RR": {
+          "N_source_deg": [
+            -6.9,
+            -37.8
+          ],
+          "mapped_N_deg": [
+            -8.490736812333376,
+            -44.05
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            0.887694239616394,
+            0.18249091506004333
+          ],
+          "conditional_mean": [
+            0.6657409071922302,
+            0.024052254855632782
+          ],
+          "REQUEST_deg": [
+            17.04607209441079,
+            -6.120676312097608
+          ],
+          "effective_deg": [
+            17.04607209441079,
+            -6.120676312097608
+          ],
+          "headroom_intervals_deg": [
+            [
+              -124.50926318766662,
+              141.49073681233338
+            ],
+            [
+              -13.950000000000003,
+              252.05
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            8.555335282077413,
+            -50.170676312097605
+          ],
+          "FINAL_deg": [
+            8.555335282077413,
+            -50.170676312097605
+          ],
+          "actual_before_last_dispatch_deg": [
+            8.531939632942581,
+            -54.32468396307399
+          ],
+          "contact": {
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "NONE",
+            "contact_mode": "AIR",
+            "within_top_xy": true,
+            "clearance_m": 0.032614930920696936,
+            "front_distance_m": 0.09407067639660482,
+            "bearing_verified": true,
+            "bearing_force_n": 0,
+            "support": false,
+            "current_lift_valid": true,
+            "lift_established": true,
+            "motion_continuation_allowed": true
+          }
+        }
+      },
+      "N_wheels_canonical": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "final_wheels_canonical": [
+        -0.6778342334495604,
+        0.37963025479397733,
+        0.08336160435694773,
+        0.1720143085548004
+      ],
+      "carry": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": true,
+        "ordered_source_wheel_owner": false,
+        "late_reconfiguration_waiting": true,
+        "current_TOP_continuation_eligible": false,
+        "reason": "current_AIR_safe_approach",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "deferred": [
+        {
+          "mode": "rr_local_defer_p09_late_and_new_p12_until_terminal_v2",
+          "pending_event_tick": 648,
+          "source_control_revisions": [
+            "rr_local_p09_five_channel_pending_with_independent_stop_carrier_v2",
+            "rr_local_p12_pending_start_preserve_qualified_RL_AIR_and_started_clock_v2"
+          ],
+          "pending_changed_channels": [
+            "front_left_hip",
+            "front_left_knee",
+            "rear_left_hip",
+            "rear_left_knee",
+            "front_left_ankle"
+          ],
+          "pending_event_consumed": false,
+          "pending_event_discarded": false,
+          "carrier_next_tick": 2973,
+          "carrier_proposed_atomic_groups": 1,
+          "actually_emitted_atomic_groups": 0,
+          "source_stop_event_ticks": [
+            864
+          ],
+          "deferred_source_values": [
+            38.6,
+            -13.4,
+            31.2,
+            0,
+            0
+          ],
+          "reference_kind": "pre_late_original_logical_source_not_FINAL_or_actual_q",
+          "policy_channels_restricted": [],
+          "mapper_or_history_resets": 0,
+          "extra_actuator_writes": 0,
+          "within_episode_release_supported": false
+        }
+      ],
+      "all12_mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "all12_unmodified_at_actuator": true,
+      "native_verified": {
+        "physics_ticks": 8,
+        "verified_tick_count": 8,
+        "all_ticks_verified": true,
+        "actual_native_effect_tick_count": 8,
+        "own_phase_request_effect_tick_count": 8
+      },
+      "tracking_servos": []
+    },
+    {
+      "tick": 10312,
+      "time_s": 85.93333333333334,
+      "source_observation_tick": 10311,
+      "native_command_tick": 10491,
+      "phase_start_end": [
+        "P09",
+        "P09"
+      ],
+      "gap_mm": 20.137436763969244,
+      "RR_actual_endpoint_deg": [
+        8.827640720227235,
+        -50.95157796599027
+      ],
+      "RR_current": {
+        "within_top_xy": true,
+        "top_xy_outside_distance_m": 0,
+        "current_top_contact": false,
+        "current_top_bearing": false,
+        "bearing_force_n": 0,
+        "ground_contact": false,
+        "free_air": true,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "current_attempt_capture_eligible": true,
+        "motion_continuation_allowed": true
+      },
+      "legs": {
+        "FL": {
+          "N_source_deg": [
+            38.6,
+            -13.4
+          ],
+          "mapped_N_deg": [
+            38.6,
+            -12.15
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.12635213136672974,
+            -1.3283721208572388
+          ],
+          "conditional_mean": [
+            -0.05339542403817177,
+            -1.3259336948394775
+          ],
+          "REQUEST_deg": [
+            -4.021887987811937,
+            -31.27863264988258
+          ],
+          "effective_deg": [
+            -4.021887987811937,
+            -31.27863264988258
+          ],
+          "headroom_intervals_deg": [
+            [
+              -171.6,
+              94.4
+            ],
+            [
+              -45.85,
+              220.15
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            34.578112012188065,
+            -43.42863264988258
+          ],
+          "FINAL_deg": [
+            34.578112012188065,
+            -43.42863264988258
+          ],
+          "actual_before_last_dispatch_deg": [
+            36.60210765693515,
+            -43.38424622935839
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": false,
+            "top_contact": true,
+            "top_surface_contact": true,
+            "contact_surface": "TOP",
+            "contact_mode": null,
+            "within_top_xy": true,
+            "clearance_m": -0.001183962079177217,
+            "front_distance_m": 0.51228350741696,
+            "bearing_verified": true,
+            "bearing_force_n": 3.0354342460632324,
+            "support": true,
+            "current_lift_valid": null,
+            "lift_established": null,
+            "motion_continuation_allowed": null
+          }
+        },
+        "RL": {
+          "N_source_deg": [
+            28.199999999999996,
+            0
+          ],
+          "mapped_N_deg": [
+            28.199999999999996,
+            0
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.5954207181930542,
+            -0.15661194920539856
+          ],
+          "conditional_mean": [
+            -0.5959048867225647,
+            -0.00039171986281871796
+          ],
+          "REQUEST_deg": [
+            -12.810792992582133,
+            -4.5193671335666
+          ],
+          "effective_deg": [
+            -12.810792992582133,
+            -4.5193671335666
+          ],
+          "headroom_intervals_deg": [
+            [
+              -161.2,
+              104.80000000000001
+            ],
+            [
+              -58,
+              208
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            15.389207007417863,
+            -4.5193671335666
+          ],
+          "FINAL_deg": [
+            15.389207007417863,
+            -4.5193671335666
+          ],
+          "actual_before_last_dispatch_deg": [
+            23.776850877136486,
+            -0.08669621812499331
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": true,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "FRONT_WALL",
+            "contact_mode": "GROUND_AND_OBSTACLE",
+            "within_top_xy": false,
+            "clearance_m": -0.049994417657234426,
+            "front_distance_m": -0.04967581885028238,
+            "bearing_verified": false,
+            "bearing_force_n": 11.5446195602417,
+            "support": true,
+            "current_lift_valid": false,
+            "lift_established": null,
+            "motion_continuation_allowed": true
+          }
+        },
+        "RR": {
+          "N_source_deg": [
+            -6.9,
+            -37.8
+          ],
+          "mapped_N_deg": [
+            -8.490736812333376,
+            -44.05
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            0.9605740308761597,
+            -0.08260947465896606
+          ],
+          "conditional_mean": [
+            0.8764001131057739,
+            0.0922321230173111
+          ],
+          "REQUEST_deg": [
+            17.868787333820514,
+            -2.9671944564684196
+          ],
+          "effective_deg": [
+            17.868787333820514,
+            -2.9671944564684196
+          ],
+          "headroom_intervals_deg": [
+            [
+              -124.50926318766662,
+              141.49073681233338
+            ],
+            [
+              -13.950000000000003,
+              252.05
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            9.378050521487138,
+            -47.01719445646842
+          ],
+          "FINAL_deg": [
+            9.378050521487138,
+            -47.01719445646842
+          ],
+          "actual_before_last_dispatch_deg": [
+            8.798128326597256,
+            -51.30691172737101
+          ],
+          "contact": {
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "NONE",
+            "contact_mode": "AIR",
+            "within_top_xy": true,
+            "clearance_m": 0.020137436763969244,
+            "front_distance_m": 0.08855033261608725,
+            "bearing_verified": true,
+            "bearing_force_n": 0,
+            "support": false,
+            "current_lift_valid": true,
+            "lift_established": true,
+            "motion_continuation_allowed": true
+          }
+        }
+      },
+      "N_wheels_canonical": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "final_wheels_canonical": [
+        -0.6842232365326375,
+        0.31946644469258845,
+        0.047132067905689856,
+        0.15405871199277157
+      ],
+      "carry": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": true,
+        "ordered_source_wheel_owner": false,
+        "late_reconfiguration_waiting": true,
+        "current_TOP_continuation_eligible": false,
+        "reason": "current_AIR_safe_approach",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "deferred": [
+        {
+          "mode": "rr_local_defer_p09_late_and_new_p12_until_terminal_v2",
+          "pending_event_tick": 648,
+          "source_control_revisions": [
+            "rr_local_p09_five_channel_pending_with_independent_stop_carrier_v2",
+            "rr_local_p12_pending_start_preserve_qualified_RL_AIR_and_started_clock_v2"
+          ],
+          "pending_changed_channels": [
+            "front_left_hip",
+            "front_left_knee",
+            "rear_left_hip",
+            "rear_left_knee",
+            "front_left_ankle"
+          ],
+          "pending_event_consumed": false,
+          "pending_event_discarded": false,
+          "carrier_next_tick": 2981,
+          "carrier_proposed_atomic_groups": 1,
+          "actually_emitted_atomic_groups": 0,
+          "source_stop_event_ticks": [
+            864
+          ],
+          "deferred_source_values": [
+            38.6,
+            -13.4,
+            31.2,
+            0,
+            0
+          ],
+          "reference_kind": "pre_late_original_logical_source_not_FINAL_or_actual_q",
+          "policy_channels_restricted": [],
+          "mapper_or_history_resets": 0,
+          "extra_actuator_writes": 0,
+          "within_episode_release_supported": false
+        }
+      ],
+      "all12_mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "all12_unmodified_at_actuator": true,
+      "native_verified": {
+        "physics_ticks": 8,
+        "verified_tick_count": 8,
+        "all_ticks_verified": true,
+        "actual_native_effect_tick_count": 8,
+        "own_phase_request_effect_tick_count": 8
+      },
+      "tracking_servos": []
+    },
+    {
+      "tick": 10320,
+      "time_s": 86,
+      "source_observation_tick": 10319,
+      "native_command_tick": 10499,
+      "phase_start_end": [
+        "P09",
+        "P09"
+      ],
+      "gap_mm": 5.820645878861809,
+      "RR_actual_endpoint_deg": [
+        9.55516173476573,
+        -50.12408688766488
+      ],
+      "RR_current": {
+        "within_top_xy": true,
+        "top_xy_outside_distance_m": 0,
+        "current_top_contact": false,
+        "current_top_bearing": false,
+        "bearing_force_n": 0,
+        "ground_contact": false,
+        "free_air": true,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "current_attempt_capture_eligible": true,
+        "motion_continuation_allowed": true
+      },
+      "legs": {
+        "FL": {
+          "N_source_deg": [
+            38.6,
+            -13.4
+          ],
+          "mapped_N_deg": [
+            38.6,
+            -12.15
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.18317951261997223,
+            -1.4406993389129639
+          ],
+          "conditional_mean": [
+            -0.11233468353748322,
+            -1.3532001972198486
+          ],
+          "REQUEST_deg": [
+            -5.797049502271442,
+            -32.17818309226995
+          ],
+          "effective_deg": [
+            -5.797049502271442,
+            -32.17818309226995
+          ],
+          "headroom_intervals_deg": [
+            [
+              -171.6,
+              94.4
+            ],
+            [
+              -45.85,
+              220.15
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            32.80295049772856,
+            -44.328183092269946
+          ],
+          "FINAL_deg": [
+            32.80295049772856,
+            -44.328183092269946
+          ],
+          "actual_before_last_dispatch_deg": [
+            35.01130195772582,
+            -43.723467574487074
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": false,
+            "top_contact": true,
+            "top_surface_contact": true,
+            "contact_surface": "TOP",
+            "contact_mode": null,
+            "within_top_xy": true,
+            "clearance_m": -0.0008408165403416823,
+            "front_distance_m": 0.5095041428310836,
+            "bearing_verified": true,
+            "bearing_force_n": 1.4183660745620728,
+            "support": true,
+            "current_lift_valid": null,
+            "lift_established": null,
+            "motion_continuation_allowed": null
+          }
+        },
+        "RL": {
+          "N_source_deg": [
+            28.199999999999996,
+            0
+          ],
+          "mapped_N_deg": [
+            28.199999999999996,
+            0
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.6077117323875427,
+            -0.12690071761608124
+          ],
+          "conditional_mean": [
+            -0.5949963331222534,
+            -0.12787625193595886
+          ],
+          "REQUEST_deg": [
+            -13.020343756953537,
+            -4.544059783145998
+          ],
+          "effective_deg": [
+            -13.020343756953537,
+            -4.544059783145998
+          ],
+          "headroom_intervals_deg": [
+            [
+              -161.2,
+              104.80000000000001
+            ],
+            [
+              -58,
+              208
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            15.179656243046459,
+            -4.544059783145998
+          ],
+          "FINAL_deg": [
+            15.179656243046459,
+            -4.544059783145998
+          ],
+          "actual_before_last_dispatch_deg": [
+            26.97444321066568,
+            -1.7444008721706743
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": true,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "FRONT_WALL",
+            "contact_mode": "GROUND_AND_OBSTACLE",
+            "within_top_xy": false,
+            "clearance_m": -0.05000205848092697,
+            "front_distance_m": -0.04965388434100504,
+            "bearing_verified": false,
+            "bearing_force_n": 14.99509334564209,
+            "support": true,
+            "current_lift_valid": false,
+            "lift_established": null,
+            "motion_continuation_allowed": true
+          }
+        },
+        "RR": {
+          "N_source_deg": [
+            -6.9,
+            -37.8
+          ],
+          "mapped_N_deg": [
+            -8.490736812333376,
+            -44.05
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            1.0976974964141846,
+            -0.42784881591796875
+          ],
+          "conditional_mean": [
+            0.9454840421676636,
+            -0.14522260427474976
+          ],
+          "REQUEST_deg": [
+            19.192090408626115,
+            -6.96719445646842
+          ],
+          "effective_deg": [
+            19.192090408626115,
+            -6.96719445646842
+          ],
+          "headroom_intervals_deg": [
+            [
+              -124.50926318766662,
+              141.49073681233338
+            ],
+            [
+              -13.950000000000003,
+              252.05
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            10.701353596292739,
+            -51.01719445646842
+          ],
+          "FINAL_deg": [
+            10.701353596292739,
+            -51.01719445646842
+          ],
+          "actual_before_last_dispatch_deg": [
+            9.481277017192761,
+            -50.06896384596829
+          ],
+          "contact": {
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "NONE",
+            "contact_mode": "AIR",
+            "within_top_xy": true,
+            "clearance_m": 0.005820645878861809,
+            "front_distance_m": 0.086952868531462,
+            "bearing_verified": true,
+            "bearing_force_n": 0,
+            "support": false,
+            "current_lift_valid": true,
+            "lift_established": true,
+            "motion_continuation_allowed": true
+          }
+        }
+      },
+      "N_wheels_canonical": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "final_wheels_canonical": [
+        -0.7023030109156068,
+        0.27046479778567456,
+        0.028448114142857472,
+        0.20730902133881002
+      ],
+      "carry": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": true,
+        "ordered_source_wheel_owner": false,
+        "late_reconfiguration_waiting": true,
+        "current_TOP_continuation_eligible": false,
+        "reason": "current_AIR_safe_approach",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "deferred": [
+        {
+          "mode": "rr_local_defer_p09_late_and_new_p12_until_terminal_v2",
+          "pending_event_tick": 648,
+          "source_control_revisions": [
+            "rr_local_p09_five_channel_pending_with_independent_stop_carrier_v2",
+            "rr_local_p12_pending_start_preserve_qualified_RL_AIR_and_started_clock_v2"
+          ],
+          "pending_changed_channels": [
+            "front_left_hip",
+            "front_left_knee",
+            "rear_left_hip",
+            "rear_left_knee",
+            "front_left_ankle"
+          ],
+          "pending_event_consumed": false,
+          "pending_event_discarded": false,
+          "carrier_next_tick": 2989,
+          "carrier_proposed_atomic_groups": 1,
+          "actually_emitted_atomic_groups": 0,
+          "source_stop_event_ticks": [
+            864
+          ],
+          "deferred_source_values": [
+            38.6,
+            -13.4,
+            31.2,
+            0,
+            0
+          ],
+          "reference_kind": "pre_late_original_logical_source_not_FINAL_or_actual_q",
+          "policy_channels_restricted": [],
+          "mapper_or_history_resets": 0,
+          "extra_actuator_writes": 0,
+          "within_episode_release_supported": false
+        }
+      ],
+      "all12_mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "all12_unmodified_at_actuator": true,
+      "native_verified": {
+        "physics_ticks": 8,
+        "verified_tick_count": 8,
+        "all_ticks_verified": true,
+        "actual_native_effect_tick_count": 8,
+        "own_phase_request_effect_tick_count": 8
+      },
+      "tracking_servos": []
+    },
+    {
+      "tick": 10328,
+      "time_s": 86.06666666666666,
+      "source_observation_tick": 10327,
+      "native_command_tick": 10507,
+      "phase_start_end": [
+        "P09",
+        "P09"
+      ],
+      "gap_mm": 1.7344899701311756,
+      "RR_actual_endpoint_deg": [
+        9.936879663136585,
+        -51.62445746716866
+      ],
+      "RR_current": {
+        "within_top_xy": true,
+        "top_xy_outside_distance_m": 0,
+        "current_top_contact": false,
+        "current_top_bearing": false,
+        "bearing_force_n": 0,
+        "ground_contact": false,
+        "free_air": true,
+        "current_lift_valid": false,
+        "lift_established": true,
+        "current_attempt_capture_eligible": true,
+        "motion_continuation_allowed": true
+      },
+      "legs": {
+        "FL": {
+          "N_source_deg": [
+            38.6,
+            -13.4
+          ],
+          "mapped_N_deg": [
+            38.6,
+            -12.15
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.2028348743915558,
+            -1.4566749334335327
+          ],
+          "conditional_mean": [
+            -0.16104350984096527,
+            -1.458726167678833
+          ],
+          "REQUEST_deg": [
+            -6.403143216433229,
+            -32.29217544408395
+          ],
+          "effective_deg": [
+            -6.403143216433229,
+            -32.29217544408395
+          ],
+          "headroom_intervals_deg": [
+            [
+              -171.6,
+              94.4
+            ],
+            [
+              -45.85,
+              220.15
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            32.19685678356677,
+            -44.44217544408395
+          ],
+          "FINAL_deg": [
+            32.19685678356677,
+            -44.44217544408395
+          ],
+          "actual_before_last_dispatch_deg": [
+            33.6843191453974,
+            -44.04228714456493
+          ],
+          "contact": {
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "NONE",
+            "contact_mode": null,
+            "within_top_xy": true,
+            "clearance_m": -0.00011927852240063014,
+            "front_distance_m": 0.5065618191463912,
+            "bearing_verified": true,
+            "bearing_force_n": 0,
+            "support": false,
+            "current_lift_valid": null,
+            "lift_established": null,
+            "motion_continuation_allowed": null
+          }
+        },
+        "RL": {
+          "N_source_deg": [
+            28.199999999999996,
+            0
+          ],
+          "mapped_N_deg": [
+            28.199999999999996,
+            0
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.585874617099762,
+            -0.16946455836296082
+          ],
+          "conditional_mean": [
+            -0.6092521548271179,
+            -0.10273617506027222
+          ],
+          "REQUEST_deg": [
+            -12.646130518945226,
+            -6.042986579136637
+          ],
+          "effective_deg": [
+            -12.646130518945226,
+            -6.042986579136637
+          ],
+          "headroom_intervals_deg": [
+            [
+              -161.2,
+              104.80000000000001
+            ],
+            [
+              -58,
+              208
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            15.55386948105477,
+            -6.042986579136637
+          ],
+          "FINAL_deg": [
+            15.55386948105477,
+            -6.042986579136637
+          ],
+          "actual_before_last_dispatch_deg": [
+            29.742952815250923,
+            -3.286898350927796
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": true,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "FRONT_WALL",
+            "contact_mode": "GROUND_AND_OBSTACLE",
+            "within_top_xy": false,
+            "clearance_m": -0.04999229135462857,
+            "front_distance_m": -0.04966547744441385,
+            "bearing_verified": false,
+            "bearing_force_n": 12.74302864074707,
+            "support": true,
+            "current_lift_valid": false,
+            "lift_established": null,
+            "motion_continuation_allowed": true
+          }
+        },
+        "RR": {
+          "N_source_deg": [
+            -6.9,
+            -37.8
+          ],
+          "mapped_N_deg": [
+            -8.490736812333376,
+            -44.05
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            1.0912405252456665,
+            -0.6458832621574402
+          ],
+          "conditional_mean": [
+            1.0713953971862793,
+            -0.45770248770713806
+          ],
+          "REQUEST_deg": [
+            19.135931285058255,
+            -10.96719445646842
+          ],
+          "effective_deg": [
+            19.135931285058255,
+            -10.96719445646842
+          ],
+          "headroom_intervals_deg": [
+            [
+              -124.50926318766662,
+              141.49073681233338
+            ],
+            [
+              -13.950000000000003,
+              252.05
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            10.64519447272488,
+            -55.01719445646842
+          ],
+          "FINAL_deg": [
+            10.64519447272488,
+            -55.01719445646842
+          ],
+          "actual_before_last_dispatch_deg": [
+            9.904972434428869,
+            -51.35569293842324
+          ],
+          "contact": {
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "NONE",
+            "contact_mode": "AIR",
+            "within_top_xy": true,
+            "clearance_m": 0.0017344899701311756,
+            "front_distance_m": 0.08916312796902304,
+            "bearing_verified": true,
+            "bearing_force_n": 0,
+            "support": false,
+            "current_lift_valid": false,
+            "lift_established": true,
+            "motion_continuation_allowed": true
+          }
+        }
+      },
+      "N_wheels_canonical": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "final_wheels_canonical": [
+        -0.7044346579428913,
+        0.2022873491620218,
+        0.06968413648895047,
+        0.18245645342748143
+      ],
+      "carry": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": false,
+        "late_reconfiguration_waiting": true,
+        "current_TOP_continuation_eligible": false,
+        "reason": "no_extra_wall_push_source_and_residual_adjustment_continue",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "deferred": [
+        {
+          "mode": "rr_local_defer_p09_late_and_new_p12_until_terminal_v2",
+          "pending_event_tick": 648,
+          "source_control_revisions": [
+            "rr_local_p09_five_channel_pending_with_independent_stop_carrier_v2",
+            "rr_local_p12_pending_start_preserve_qualified_RL_AIR_and_started_clock_v2"
+          ],
+          "pending_changed_channels": [
+            "front_left_hip",
+            "front_left_knee",
+            "rear_left_hip",
+            "rear_left_knee",
+            "front_left_ankle"
+          ],
+          "pending_event_consumed": false,
+          "pending_event_discarded": false,
+          "carrier_next_tick": 2997,
+          "carrier_proposed_atomic_groups": 1,
+          "actually_emitted_atomic_groups": 0,
+          "source_stop_event_ticks": [
+            864
+          ],
+          "deferred_source_values": [
+            38.6,
+            -13.4,
+            31.2,
+            0,
+            0
+          ],
+          "reference_kind": "pre_late_original_logical_source_not_FINAL_or_actual_q",
+          "policy_channels_restricted": [],
+          "mapper_or_history_resets": 0,
+          "extra_actuator_writes": 0,
+          "within_episode_release_supported": false
+        }
+      ],
+      "all12_mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "all12_unmodified_at_actuator": true,
+      "native_verified": {
+        "physics_ticks": 8,
+        "verified_tick_count": 8,
+        "all_ticks_verified": true,
+        "actual_native_effect_tick_count": 8,
+        "own_phase_request_effect_tick_count": 8
+      },
+      "tracking_servos": []
+    },
+    {
+      "tick": 10336,
+      "time_s": 86.13333333333333,
+      "source_observation_tick": 10335,
+      "native_command_tick": 10515,
+      "phase_start_end": [
+        "P09",
+        "P09"
+      ],
+      "gap_mm": 8.116581069295407,
+      "RR_actual_endpoint_deg": [
+        9.521560619143852,
+        -54.222401880253045
+      ],
+      "RR_current": {
+        "within_top_xy": true,
+        "top_xy_outside_distance_m": 0,
+        "current_top_contact": false,
+        "current_top_bearing": false,
+        "bearing_force_n": 0,
+        "ground_contact": false,
+        "free_air": true,
+        "current_lift_valid": false,
+        "lift_established": true,
+        "current_attempt_capture_eligible": true,
+        "motion_continuation_allowed": true
+      },
+      "legs": {
+        "FL": {
+          "N_source_deg": [
+            38.6,
+            -13.4
+          ],
+          "mapped_N_deg": [
+            38.6,
+            -12.15
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.12404137849807739,
+            -1.5217740535736084
+          ],
+          "conditional_mean": [
+            -0.17599916458129883,
+            -1.4761152267456055
+          ],
+          "REQUEST_deg": [
+            -3.949090938987325,
+            -32.72422760238543
+          ],
+          "effective_deg": [
+            -3.949090938987325,
+            -32.72422760238543
+          ],
+          "headroom_intervals_deg": [
+            [
+              -171.6,
+              94.4
+            ],
+            [
+              -45.85,
+              220.15
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            34.650909061012676,
+            -44.87422760238543
+          ],
+          "FINAL_deg": [
+            34.650909061012676,
+            -44.87422760238543
+          ],
+          "actual_before_last_dispatch_deg": [
+            33.771827529043605,
+            -44.43078830455526
+          ],
+          "contact": {
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "NONE",
+            "contact_mode": null,
+            "within_top_xy": true,
+            "clearance_m": -0.000020376808320135553,
+            "front_distance_m": 0.5049200688106978,
+            "bearing_verified": true,
+            "bearing_force_n": 0,
+            "support": false,
+            "current_lift_valid": null,
+            "lift_established": null,
+            "motion_continuation_allowed": null
+          }
+        },
+        "RL": {
+          "N_source_deg": [
+            28.199999999999996,
+            0
+          ],
+          "mapped_N_deg": [
+            28.199999999999996,
+            0
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.6081694960594177,
+            -0.2026670277118683
+          ],
+          "conditional_mean": [
+            -0.5891698598861694,
+            -0.14288641512393951
+          ],
+          "REQUEST_deg": [
+            -13.02809464388694,
+            -7.197735379937874
+          ],
+          "effective_deg": [
+            -13.02809464388694,
+            -7.197735379937874
+          ],
+          "headroom_intervals_deg": [
+            [
+              -161.2,
+              104.80000000000001
+            ],
+            [
+              -58,
+              208
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            15.171905356113056,
+            -7.197735379937874
+          ],
+          "FINAL_deg": [
+            15.171905356113056,
+            -7.197735379937874
+          ],
+          "actual_before_last_dispatch_deg": [
+            31.791592924715378,
+            -4.620985840653496
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": true,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "FRONT_WALL",
+            "contact_mode": "GROUND_AND_OBSTACLE",
+            "within_top_xy": false,
+            "clearance_m": -0.04998944118096946,
+            "front_distance_m": -0.049654182364228916,
+            "bearing_verified": false,
+            "bearing_force_n": 12.467952728271484,
+            "support": true,
+            "current_lift_valid": false,
+            "lift_established": null,
+            "motion_continuation_allowed": true
+          }
+        },
+        "RR": {
+          "N_source_deg": [
+            -6.9,
+            -37.8
+          ],
+          "mapped_N_deg": [
+            -8.490736812333376,
+            -44.05
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            0.9476759433746338,
+            -0.8605252504348755
+          ],
+          "conditional_mean": [
+            1.0698031187057495,
+            -0.6513086557388306
+          ],
+          "REQUEST_deg": [
+            17.729498202619915,
+            -14.96719445646842
+          ],
+          "effective_deg": [
+            17.729498202619915,
+            -13.950000000000003
+          ],
+          "headroom_intervals_deg": [
+            [
+              -124.50926318766662,
+              141.49073681233338
+            ],
+            [
+              -13.950000000000003,
+              252.05
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            9.23876139028654,
+            -58
+          ],
+          "FINAL_deg": [
+            9.23876139028654,
+            -58
+          ],
+          "actual_before_last_dispatch_deg": [
+            9.570993259488175,
+            -53.91694216019174
+          ],
+          "contact": {
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "NONE",
+            "contact_mode": "AIR",
+            "within_top_xy": true,
+            "clearance_m": 0.008116581069295407,
+            "front_distance_m": 0.09348953111004477,
+            "bearing_verified": true,
+            "bearing_force_n": 0,
+            "support": false,
+            "current_lift_valid": false,
+            "lift_established": true,
+            "motion_continuation_allowed": true
+          }
+        }
+      },
+      "N_wheels_canonical": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "final_wheels_canonical": [
+        -0.7067257401806173,
+        0.1866992488131378,
+        0.10432693635631829,
+        0.15923882843840823
+      ],
+      "carry": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": false,
+        "late_reconfiguration_waiting": true,
+        "current_TOP_continuation_eligible": false,
+        "reason": "no_extra_wall_push_source_and_residual_adjustment_continue",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "deferred": [
+        {
+          "mode": "rr_local_defer_p09_late_and_new_p12_until_terminal_v2",
+          "pending_event_tick": 648,
+          "source_control_revisions": [
+            "rr_local_p09_five_channel_pending_with_independent_stop_carrier_v2",
+            "rr_local_p12_pending_start_preserve_qualified_RL_AIR_and_started_clock_v2"
+          ],
+          "pending_changed_channels": [
+            "front_left_hip",
+            "front_left_knee",
+            "rear_left_hip",
+            "rear_left_knee",
+            "front_left_ankle"
+          ],
+          "pending_event_consumed": false,
+          "pending_event_discarded": false,
+          "carrier_next_tick": 3005,
+          "carrier_proposed_atomic_groups": 1,
+          "actually_emitted_atomic_groups": 0,
+          "source_stop_event_ticks": [
+            864
+          ],
+          "deferred_source_values": [
+            38.6,
+            -13.4,
+            31.2,
+            0,
+            0
+          ],
+          "reference_kind": "pre_late_original_logical_source_not_FINAL_or_actual_q",
+          "policy_channels_restricted": [],
+          "mapper_or_history_resets": 0,
+          "extra_actuator_writes": 0,
+          "within_episode_release_supported": false
+        }
+      ],
+      "all12_mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "all12_unmodified_at_actuator": true,
+      "native_verified": {
+        "physics_ticks": 8,
+        "verified_tick_count": 8,
+        "all_ticks_verified": true,
+        "actual_native_effect_tick_count": 8,
+        "own_phase_request_effect_tick_count": 8
+      },
+      "tracking_servos": []
+    },
+    {
+      "tick": 10352,
+      "time_s": 86.26666666666667,
+      "source_observation_tick": 10351,
+      "native_command_tick": 10531,
+      "phase_start_end": [
+        "P09",
+        "P09"
+      ],
+      "gap_mm": 23.506960877001813,
+      "RR_actual_endpoint_deg": [
+        11.447302573551328,
+        -56.84424171014873
+      ],
+      "RR_current": {
+        "within_top_xy": true,
+        "top_xy_outside_distance_m": 0,
+        "current_top_contact": false,
+        "current_top_bearing": false,
+        "bearing_force_n": 0,
+        "ground_contact": false,
+        "free_air": true,
+        "current_lift_valid": true,
+        "lift_established": true,
+        "current_attempt_capture_eligible": true,
+        "motion_continuation_allowed": true
+      },
+      "legs": {
+        "FL": {
+          "N_source_deg": [
+            38.6,
+            -13.4
+          ],
+          "mapped_N_deg": [
+            38.6,
+            -12.15
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.08216582238674164,
+            -1.6242518424987793
+          ],
+          "conditional_mean": [
+            -0.11595740169286728,
+            -1.5373561382293701
+          ],
+          "REQUEST_deg": [
+            -2.62340524111319,
+            -33.30859013605906
+          ],
+          "effective_deg": [
+            -2.62340524111319,
+            -33.30859013605906
+          ],
+          "headroom_intervals_deg": [
+            [
+              -171.6,
+              94.4
+            ],
+            [
+              -45.85,
+              220.15
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            35.97659475888681,
+            -45.45859013605906
+          ],
+          "FINAL_deg": [
+            35.97659475888681,
+            -45.45859013605906
+          ],
+          "actual_before_last_dispatch_deg": [
+            34.77408607275669,
+            -45.082449823077
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": false,
+            "top_contact": true,
+            "top_surface_contact": true,
+            "contact_surface": "TOP",
+            "contact_mode": null,
+            "within_top_xy": true,
+            "clearance_m": 0.0000039557332602718764,
+            "front_distance_m": 0.5011488829357589,
+            "bearing_verified": true,
+            "bearing_force_n": 2.0131030082702637,
+            "support": true,
+            "current_lift_valid": null,
+            "lift_established": null,
+            "motion_continuation_allowed": null
+          }
+        },
+        "RL": {
+          "N_source_deg": [
+            28.199999999999996,
+            0
+          ],
+          "mapped_N_deg": [
+            28.199999999999996,
+            0
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.6212577223777771,
+            -0.18592798709869385
+          ],
+          "conditional_mean": [
+            -0.598828911781311,
+            -0.14581196010112762
+          ],
+          "REQUEST_deg": [
+            -13.248074895103025,
+            -6.6173307113085125
+          ],
+          "effective_deg": [
+            -13.248074895103025,
+            -6.6173307113085125
+          ],
+          "headroom_intervals_deg": [
+            [
+              -161.2,
+              104.80000000000001
+            ],
+            [
+              -58,
+              208
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            14.95192510489697,
+            -6.6173307113085125
+          ],
+          "FINAL_deg": [
+            14.95192510489697,
+            -6.6173307113085125
+          ],
+          "actual_before_last_dispatch_deg": [
+            30.18321656386619,
+            -5.079963880707775
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": true,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "FRONT_WALL",
+            "contact_mode": "GROUND_AND_OBSTACLE",
+            "within_top_xy": false,
+            "clearance_m": -0.049991730693934984,
+            "front_distance_m": -0.04968073623347635,
+            "bearing_verified": false,
+            "bearing_force_n": 13.125532150268555,
+            "support": true,
+            "current_lift_valid": false,
+            "lift_established": null,
+            "motion_continuation_allowed": true
+          }
+        },
+        "RR": {
+          "N_source_deg": [
+            -6.9,
+            -37.8
+          ],
+          "mapped_N_deg": [
+            -8.490736812333376,
+            -44.05
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            1.612645149230957,
+            -0.9222021102905273
+          ],
+          "conditional_mean": [
+            1.11770498752594,
+            -1.1776354312896729
+          ],
+          "REQUEST_deg": [
+            22.16519914361015,
+            -22.96719445646842
+          ],
+          "effective_deg": [
+            22.16519914361015,
+            -13.950000000000003
+          ],
+          "headroom_intervals_deg": [
+            [
+              -124.50926318766662,
+              141.49073681233338
+            ],
+            [
+              -13.950000000000003,
+              252.05
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            13.674462331276773,
+            -58
+          ],
+          "FINAL_deg": [
+            13.674462331276773,
+            -58
+          ],
+          "actual_before_last_dispatch_deg": [
+            11.271560098659608,
+            -56.7603601569518
+          ],
+          "contact": {
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "NONE",
+            "contact_mode": "AIR",
+            "within_top_xy": true,
+            "clearance_m": 0.023506960877001812,
+            "front_distance_m": 0.09141892535519247,
+            "bearing_verified": true,
+            "bearing_force_n": 0,
+            "support": false,
+            "current_lift_valid": true,
+            "lift_established": true,
+            "motion_continuation_allowed": true
+          }
+        }
+      },
+      "N_wheels_canonical": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "final_wheels_canonical": [
+        -0.7331141782724528,
+        0.25330623018721243,
+        0.20323510308396253,
+        0.19231644632417297
+      ],
+      "carry": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": true,
+        "ordered_source_wheel_owner": false,
+        "late_reconfiguration_waiting": true,
+        "current_TOP_continuation_eligible": false,
+        "reason": "current_AIR_safe_approach",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "deferred": [
+        {
+          "mode": "rr_local_defer_p09_late_and_new_p12_until_terminal_v2",
+          "pending_event_tick": 648,
+          "source_control_revisions": [
+            "rr_local_p09_five_channel_pending_with_independent_stop_carrier_v2",
+            "rr_local_p12_pending_start_preserve_qualified_RL_AIR_and_started_clock_v2"
+          ],
+          "pending_changed_channels": [
+            "front_left_hip",
+            "front_left_knee",
+            "rear_left_hip",
+            "rear_left_knee",
+            "front_left_ankle"
+          ],
+          "pending_event_consumed": false,
+          "pending_event_discarded": false,
+          "carrier_next_tick": 3021,
+          "carrier_proposed_atomic_groups": 1,
+          "actually_emitted_atomic_groups": 0,
+          "source_stop_event_ticks": [
+            864
+          ],
+          "deferred_source_values": [
+            38.6,
+            -13.4,
+            31.2,
+            0,
+            0
+          ],
+          "reference_kind": "pre_late_original_logical_source_not_FINAL_or_actual_q",
+          "policy_channels_restricted": [],
+          "mapper_or_history_resets": 0,
+          "extra_actuator_writes": 0,
+          "within_episode_release_supported": false
+        }
+      ],
+      "all12_mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "all12_unmodified_at_actuator": true,
+      "native_verified": {
+        "physics_ticks": 8,
+        "verified_tick_count": 8,
+        "all_ticks_verified": true,
+        "actual_native_effect_tick_count": 8,
+        "own_phase_request_effect_tick_count": 8
+      },
+      "tracking_servos": []
+    },
+    {
+      "tick": 10767,
+      "time_s": 89.725,
+      "source_observation_tick": 10766,
+      "native_command_tick": 10946,
+      "phase_start_end": [
+        "P09",
+        "P09"
+      ],
+      "gap_mm": 25.23550348280264,
+      "RR_actual_endpoint_deg": [
+        10.037133179774033,
+        -57.78176372090843
+      ],
+      "RR_current": {
+        "within_top_xy": true,
+        "top_xy_outside_distance_m": 0,
+        "current_top_contact": false,
+        "current_top_bearing": false,
+        "bearing_force_n": 0,
+        "ground_contact": false,
+        "free_air": true,
+        "current_lift_valid": false,
+        "lift_established": true,
+        "current_attempt_capture_eligible": false,
+        "motion_continuation_allowed": true
+      },
+      "legs": {
+        "FL": {
+          "N_source_deg": [
+            38.6,
+            -13.4
+          ],
+          "mapped_N_deg": [
+            38.6,
+            -12.15
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            0.2399376630783081,
+            -1.5100808143615723
+          ],
+          "conditional_mean": [
+            0.19197911024093628,
+            -1.5280840396881104
+          ],
+          "REQUEST_deg": [
+            7.533979803167199,
+            -32.650322089030006
+          ],
+          "effective_deg": [
+            7.533979803167199,
+            -32.650322089030006
+          ],
+          "headroom_intervals_deg": [
+            [
+              -171.6,
+              94.4
+            ],
+            [
+              -45.85,
+              220.15
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            46.1339798031672,
+            -44.800322089030004
+          ],
+          "FINAL_deg": [
+            46.1339798031672,
+            -44.800322089030004
+          ],
+          "actual_before_last_dispatch_deg": [
+            45.43199180082004,
+            -45.02578998881716
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": false,
+            "top_contact": true,
+            "top_surface_contact": true,
+            "contact_surface": "TOP",
+            "contact_mode": null,
+            "within_top_xy": true,
+            "clearance_m": -0.0004160079662770613,
+            "front_distance_m": 0.5118715201122725,
+            "bearing_verified": true,
+            "bearing_force_n": 3.282658338546753,
+            "support": true,
+            "current_lift_valid": null,
+            "lift_established": null,
+            "motion_continuation_allowed": null
+          }
+        },
+        "RL": {
+          "N_source_deg": [
+            28.199999999999996,
+            0
+          ],
+          "mapped_N_deg": [
+            28.199999999999996,
+            0
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            -0.48041653633117676,
+            -0.005891213193535805
+          ],
+          "conditional_mean": [
+            -0.5396369695663452,
+            -0.027677902951836586
+          ],
+          "REQUEST_deg": [
+            -10.71785131887659,
+            -0.21208122144823363
+          ],
+          "effective_deg": [
+            -10.71785131887659,
+            -0.21208122144823363
+          ],
+          "headroom_intervals_deg": [
+            [
+              -161.2,
+              104.80000000000001
+            ],
+            [
+              -58,
+              208
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            17.482148681123405,
+            -0.21208122144823363
+          ],
+          "FINAL_deg": [
+            17.482148681123405,
+            -0.21208122144823363
+          ],
+          "actual_before_last_dispatch_deg": [
+            18.935508633046602,
+            -0.0008443421155031605
+          ],
+          "contact": {
+            "air": false,
+            "ground_contact": true,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "FRONT_WALL",
+            "contact_mode": "GROUND_AND_OBSTACLE",
+            "within_top_xy": false,
+            "clearance_m": -0.04999912911906089,
+            "front_distance_m": -0.049871322085145664,
+            "bearing_verified": false,
+            "bearing_force_n": 12.012320518493652,
+            "support": true,
+            "current_lift_valid": false,
+            "lift_established": null,
+            "motion_continuation_allowed": true
+          }
+        },
+        "RR": {
+          "N_source_deg": [
+            -6.9,
+            -37.8
+          ],
+          "mapped_N_deg": [
+            -8.490736812333376,
+            -44.05
+          ],
+          "controller_bias_deg": [
+            0,
+            0
+          ],
+          "policy_raw": [
+            0.8819741010665894,
+            -0.4768298268318176
+          ],
+          "conditional_mean": [
+            1.0979117155075073,
+            -0.5973288416862488
+          ],
+          "REQUEST_deg": [
+            16.977765857537253,
+            -15.973240898553364
+          ],
+          "effective_deg": [
+            16.977765857537253,
+            -13.950000000000003
+          ],
+          "headroom_intervals_deg": [
+            [
+              -124.50926318766662,
+              141.49073681233338
+            ],
+            [
+              -13.950000000000003,
+              252.05
+            ]
+          ],
+          "candidate_before_final_slew_deg": [
+            8.487029045203878,
+            -58
+          ],
+          "FINAL_deg": [
+            8.487029045203878,
+            -58
+          ],
+          "actual_before_last_dispatch_deg": [
+            10.190328346441893,
+            -57.778239343296704
+          ],
+          "contact": {
+            "air": true,
+            "ground_contact": false,
+            "top_contact": false,
+            "top_surface_contact": false,
+            "contact_surface": "NONE",
+            "contact_mode": "AIR",
+            "within_top_xy": true,
+            "clearance_m": 0.025235503482802638,
+            "front_distance_m": 0.09249097449612265,
+            "bearing_verified": true,
+            "bearing_force_n": 0,
+            "support": false,
+            "current_lift_valid": false,
+            "lift_established": true,
+            "motion_continuation_allowed": true
+          }
+        }
+      },
+      "N_wheels_canonical": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "final_wheels_canonical": [
+        -1.0231424284919972,
+        0.09553620508180558,
+        -0.0821464132090841,
+        -0.08666111630377839
+      ],
+      "carry": {
+        "source_joint_owners_continued": true,
+        "added_rolling_suggestion": false,
+        "ordered_source_wheel_owner": false,
+        "late_reconfiguration_waiting": true,
+        "current_TOP_continuation_eligible": false,
+        "reason": "no_extra_wall_push_source_and_residual_adjustment_continue",
+        "fixed_lift_timer_gate": false,
+        "above_top_15mm_action_gate": false
+      },
+      "deferred": [
+        {
+          "mode": "rr_local_defer_p09_late_and_new_p12_until_terminal_v2",
+          "pending_event_tick": 648,
+          "source_control_revisions": [
+            "rr_local_p09_five_channel_pending_with_independent_stop_carrier_v2",
+            "rr_local_p12_pending_start_preserve_qualified_RL_AIR_and_started_clock_v2"
+          ],
+          "pending_changed_channels": [
+            "front_left_hip",
+            "front_left_knee",
+            "rear_left_hip",
+            "rear_left_knee",
+            "front_left_ankle"
+          ],
+          "pending_event_consumed": false,
+          "pending_event_discarded": false,
+          "carrier_next_tick": 3435,
+          "carrier_proposed_atomic_groups": 1,
+          "actually_emitted_atomic_groups": 0,
+          "source_stop_event_ticks": [
+            864
+          ],
+          "deferred_source_values": [
+            38.6,
+            -13.4,
+            31.2,
+            0,
+            0
+          ],
+          "reference_kind": "pre_late_original_logical_source_not_FINAL_or_actual_q",
+          "policy_channels_restricted": [],
+          "mapper_or_history_resets": 0,
+          "extra_actuator_writes": 0,
+          "within_episode_release_supported": false
+        }
+      ],
+      "all12_mask": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "all12_unmodified_at_actuator": true,
+      "native_verified": {
+        "physics_ticks": 7,
+        "verified_tick_count": 7,
+        "all_ticks_verified": true,
+        "actual_native_effect_tick_count": 7,
+        "own_phase_request_effect_tick_count": 7
+      },
+      "tracking_servos": []
+    }
+  ]
+}
