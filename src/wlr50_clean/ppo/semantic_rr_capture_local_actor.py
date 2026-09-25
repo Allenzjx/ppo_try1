@@ -42,6 +42,16 @@ CAPTURE_FIELDS = LEGACY_CAPTURE_FIELDS + ("current_attempt_capture_eligible",)
 # quarter temperature, cooperative multipliers, or second additive noise draw.
 # These modest defaults are construction settings, not proven physical tuning.
 DEFAULT_CAPTURE_STD = (.04, .05, .03, .03, .04, .05, .20, .20, .05, .05, .05, .05)
+IDENTITY_LOCAL_MEAN_COORDINATES = (1.,) * 12
+
+
+def checked_local_mean_coordinates(value):
+    if (not isinstance(value, (tuple, list)) or len(value) != 12
+            or any(type(x) not in (int, float) or not math.isfinite(x) for x in value)
+            or any(value[i] != 1. for i in (0, 1, 2, 3, 4, 5, 8, 9, 10, 11))
+            or value[6] != value[7] or value[6] not in (1., 10.)):
+        raise ValueError("only identity or explicitly versioned RR mean coordinate gain10 is supported")
+    return tuple(float(x) for x in value)
 
 
 def tensor_state_sha256(state: Mapping[str, torch.Tensor]) -> str:
@@ -109,9 +119,13 @@ class SemanticRRCaptureLocalHistoryMLPModel(MLPModel):
     def __init__(self, obs, obs_groups, obs_set, output_dim, hidden_dims=(64, 64),
                  activation="elu", obs_normalization=False, distribution_cfg=None,
                  observation_layout=OBSERVATION_LAYOUT, initial_capture_std=DEFAULT_CAPTURE_STD,
-                 expected_prior_state_sha256=None, legacy447_migration_only=False):
+                 expected_prior_state_sha256=None, legacy447_migration_only=False,
+                 local_mean_coordinate_gain_full12=IDENTITY_LOCAL_MEAN_COORDINATES):
         if type(legacy447_migration_only) is not bool:
             raise ValueError("legacy447 migration flag must be an explicit boolean")
+        self.local_mean_coordinate_gain_full12 = checked_local_mean_coordinates(local_mean_coordinate_gain_full12)
+        if legacy447_migration_only and self.local_mean_coordinate_gain_full12 != IDENTITY_LOCAL_MEAN_COORDINATES:
+            raise ValueError("legacy447 migration actor must keep identity parameter coordinates")
         dimension = LEGACY_OBSERVATION_DIMENSION if legacy447_migration_only else OBSERVATION_DIMENSION
         layout = LEGACY_OBSERVATION_LAYOUT if legacy447_migration_only else OBSERVATION_LAYOUT
         if (observation_layout != layout or obs_set != "actor" or output_dim != 12
@@ -260,6 +274,12 @@ class SemanticRRCaptureLocalHistoryMLPModel(MLPModel):
         if bool(active.any()):
             local_head = self.mlp(latent)
             local_mean = local_head[..., 0, :]
+            # Fixed serialized PARAMETER coordinates only; action/HISTORY units
+            # and all log-std rows remain exactly the existing contract.
+            if self.local_mean_coordinate_gain_full12 != IDENTITY_LOCAL_MEAN_COORDINATES:
+                local_mean = torch.cat((local_mean[..., :6],
+                    local_mean[..., 6:8] * self.local_mean_coordinate_gain_full12[6],
+                    local_mean[..., 8:]), dim=-1)
             applied_local = torch.where(active.unsqueeze(-1), local_mean, torch.zeros_like(local_mean))
             combined_mean = torch.where(active.unsqueeze(-1), prior_head[..., 0, :] + local_mean,
                                         prior_head[..., 0, :])
@@ -274,6 +294,7 @@ class SemanticRRCaptureLocalHistoryMLPModel(MLPModel):
         # second filter, shadow action history, or independent nominal rollout.
         prior_conditional = (1. - HISTORY_RHO) * prior_head[..., 0, :] + HISTORY_RHO * center
         self._last_forward_evidence = {
+            "local_mean_coordinate_gain_full12": self.local_mean_coordinate_gain_full12,
             "active": active.detach().clone(), "capture_context": latent[..., PRIOR_DIMENSION:].detach().clone(),
             "prior_raw_mean": prior_head[..., 0, :].detach().clone(),
             "local_raw_mean_delta": local_mean.detach().clone(),
@@ -333,6 +354,7 @@ def audited_capture_local_policy_request(actor, observation, action_call, *, sto
         prior_raw_mean_full12=vector(evidence["prior_raw_mean"]),
         local_raw_mean_delta_full12=vector(evidence["local_raw_mean_delta"]),
         applied_local_raw_mean_delta_full12=vector(evidence["applied_local_raw_mean_delta"]),
+        local_mean_coordinate_gain_full12=list(actor.local_mean_coordinate_gain_full12),
         combined_raw_mean_full12=vector(evidence["combined_raw_mean"]),
         history_center_full12=vector(evidence["history_center"]), rho=HISTORY_RHO,
         prior_same_observation_conditional_mean_full12=vector(evidence["prior_same_observation_conditional_mean"]),

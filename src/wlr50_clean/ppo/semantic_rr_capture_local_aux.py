@@ -208,6 +208,8 @@ def fit_rr_mean_rows(runner, package, sealed_recipe, *, isaac_stopped=False):
     """Bounded independent AUX only. Returns ALL attempts; never publishes."""
     if not isaac_stopped:
         raise ValueError('explicit Isaac exit acknowledgement required before any Torch import')
+    if tuple(getattr(runner.alg.actor, 'local_mean_coordinate_gain_full12', (1.,)*12)) != (1.,)*12:
+        raise ValueError('old finite AUX SGD recipe is identity-coordinate only; gain10 reuse prohibited')
     if package.get('package_sha256') != canonical_sha({k:v for k,v in package.items() if k!='package_sha256'}):
         raise ValueError('AUX evidence package digest mismatch')
     for item in package['bindings'].values():

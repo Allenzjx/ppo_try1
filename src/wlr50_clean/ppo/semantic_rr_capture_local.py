@@ -169,10 +169,12 @@ def build_core(app):
         observation_schema_path=CONFIG/'observation_schema.json'), task=local_task)
 
 
-def make_runner(device, seed, *, legacy_config=None):
+def make_runner(device, seed, *, legacy_config=None, coordinate_source_config=None,
+                coordinate_source_head=None):
     import torch
     from types import SimpleNamespace
     from .rl_library_wrapper import build_rsl_runner_config, construct_runner
+    from .semantic_rr_mean_coordinates import GAIN_KEY, IDENTITY, SOURCE_HEAD, checked_gain, configuration_with_gain
     cfg = settings()
     # Real saved regression observation used only to instantiate tensor shapes;
     # never treated as an environment transition or copied into PPO storage.
@@ -198,6 +200,16 @@ def make_runner(device, seed, *, legacy_config=None):
         observation_layout='role439_rr_capture_local_v2',
         distribution_cfg={'class_name': 'HeteroscedasticGaussianDistribution', 'init_std': .15, 'std_type': 'log'},
         initial_capture_std=cfg['active_initial_sigma_full12'])
+    configuration['actor'][GAIN_KEY] = list(checked_gain(cfg[GAIN_KEY]))
+    if coordinate_source_config is not None:
+        if legacy_config is not None or coordinate_source_head != SOURCE_HEAD:
+            raise ValueError('identity cold source requires exact0ff full448 config')
+        old_config = copy.deepcopy(coordinate_source_config)
+        expected = copy.deepcopy(configuration)
+        expected['actor'].pop(GAIN_KEY)
+        if GAIN_KEY in old_config['actor'] or old_config != expected:
+            raise ValueError('old0ff source config differs beyond absent identity gain')
+        configuration = configuration_with_gain(old_config, IDENTITY)
     if legacy_config is not None:
         configuration = copy.deepcopy(legacy_config)
         if configuration['actor']['observation_layout'] != 'role439_rr_capture_local_v1':
@@ -264,7 +276,9 @@ def checkpoint_path(decisions, revision=None, auxiliary_updates=0):
     return OUTPUT/'checkpoints/history'/f'checkpoint_CP{225280+decisions}_local{decisions:06d}{suffix}.pt'
 
 
-def save(runner, runtime, prior, counts, *, source_run):
+def save(runner, runtime, prior, counts, *, source_run, publish_pointer=True):
+    from .semantic_rr_mean_coordinates import assert_coordinate_binding
+    assert_coordinate_binding(runner, runtime)
     ledger = auxiliary_events(runner, counts)
     import torch
     from .semantic_training import state_hash
@@ -290,6 +304,7 @@ def save(runner, runtime, prior, counts, *, source_run):
     if getattr(runner, 'local_control_rebinds', None) is not None:
         infos['local_control_rebinds'] = copy.deepcopy(runner.local_control_rebinds)
     infos['local_auxiliary_events'] = copy.deepcopy(ledger)
+    infos['local_mean_coordinate_migrations'] = copy.deepcopy(getattr(runner, 'local_mean_coordinate_migrations', []))
     payload.update(infos=infos, iter=counts['local_ppo_updates'])
     torch.save(payload, target)
     loaded = torch.load(target, map_location=runner.device, weights_only=False)
@@ -306,11 +321,13 @@ def save(runner, runtime, prior, counts, *, source_run):
     write(manifest, dict(infos, checkpoint=str(target), checkpoint_sha256=sha(target), save_load_round_trip=True))
     pointer = {'checkpoint': str(target), 'checkpoint_sha256': sha(target), 'manifest': str(manifest),
                'manifest_sha256': sha(manifest), 'counts': dict(counts), 'evaluated': False}
-    write(OUTPUT/'checkpoints/checkpoint_last_pointer.json', pointer, replace=(OUTPUT/'checkpoints/checkpoint_last_pointer.json').exists())
+    if publish_pointer:
+        write(OUTPUT/'checkpoints/checkpoint_last_pointer.json', pointer, replace=(OUTPUT/'checkpoints/checkpoint_last_pointer.json').exists())
     return pointer
 
 
 def load(runner, path, runtime):
+    from .semantic_rr_mean_coordinates import assert_coordinate_binding
     import torch
     from .semantic_training import state_hash, parameter_hash
     from .rl_library_wrapper import restore_training_rng_state
@@ -320,6 +337,7 @@ def load(runner, path, runtime):
     if (metadata['schema'] != SCHEMA or metadata['runtime_contract'] != runtime
             or metadata['checkpoint_sha256'] != sha(path) or not metadata['save_load_round_trip']):
         raise ValueError('new-route checkpoint contract/hash mismatch')
+    assert_coordinate_binding(runner, runtime, metadata)
     ledger = validate_local_auxiliary_events(metadata.get('local_auxiliary_events'), metadata['counts'])
     data = torch.load(path, map_location=runner.device, weights_only=False)
     if (any(metadata.get(k) != v for k, v in data['infos'].items())
@@ -338,6 +356,7 @@ def load(runner, path, runtime):
     runner.local_migration = metadata.get('local_migration')
     runner.local_control_rebinds = copy.deepcopy(metadata.get('local_control_rebinds', []))
     runner.local_auxiliary_events = ledger
+    runner.local_mean_coordinate_migrations = copy.deepcopy(metadata.get('local_mean_coordinate_migrations', []))
     runner.current_learning_iteration = metadata['counts']['local_ppo_updates']
     restore_training_rng_state(metadata['training_rng'], expected_seed=1001)
     runner.checkpoint_load_provenance = {'checkpoint': str(path), 'checkpoint_sha256':sha(path),
@@ -758,6 +777,8 @@ def diagnostic_request(core, prior_raw, entry, elapsed, captured_targets=None):
 
 
 def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False):
+    from .semantic_rr_mean_coordinates import assert_coordinate_binding
+    assert_coordinate_binding(runner, runtime)
     ledger = auxiliary_events(runner, counts)
     import torch
     from .semantic_video import REVIEW_CAMERA, capture_task_interval_frame, capture_assist_tick_evidence
@@ -827,6 +848,8 @@ def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False):
                 'checkpoint_load_provenance':runner.checkpoint_load_provenance,
                 'rear_owner_projection':False,'ignored_legacy_sampling_profile':True,
                 'control_contributions':{'policy_version':settings()['version'], 'observation_dimension':448,
+                    'local_mean_coordinate_gain_full12':list(settings()['local_mean_coordinate_gain_full12']),
+                    'local_mean_coordinate_migrations':copy.deepcopy(getattr(runner, 'local_mean_coordinate_migrations', [])),
                     'capture_source_dispatch':settings()['capture_source_dispatch'],
                     'source_tracking_owner_revision':settings()['source_tracking_owner_revision'],
                     'local_branch_counters':dict(counts), 'frozen_prior':prior,
@@ -864,6 +887,12 @@ def main():
     parser.add_argument('--device',default='cuda:0')
     args=parser.parse_args()
     runtime=contract(args.expected_head)
+    from .semantic_rr_mean_coordinates import GAIN_KEY, IDENTITY, checked_gain
+    if checked_gain(runtime['local_contract'][GAIN_KEY]) != IDENTITY:
+        if args.mode in ('initialize', 'migrate', 'rebind'):
+            raise ValueError('gain10 runtime rejects initialize/migrate/rebind: use the independent cold coordinate publisher; rollback requires matching old source/config/checkpoint')
+        if not args.checkpoint:
+            raise ValueError('gain10 train/eval/diagnostic requires an explicitly published checkpoint; implicit initialization is prohibited')
     run=args.run_dir.resolve()
     if not run.is_relative_to(ROOT/'runs'/NAME): raise ValueError('new run must use isolated namespace')
     run.mkdir(parents=True,exist_ok=False)
