@@ -342,7 +342,6 @@ def provider_type(base):
                 # Capture work and receiving-side preparation can overlap.
                 # No AIR/force/history flag is synthesized by these task roles.
                 result["rl_prep_transfer"] = not result.get("rl_swing_capture", False)
-                result["rr_continuation_mode"] = MODE
             for layer in self._continuous_layers:
                 motion = layer["motion"]
                 if isinstance(motion, ContinuousLateCarrier):
