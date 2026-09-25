@@ -43,7 +43,9 @@ frame. Thus its memory can be current or exactly one native tick old here;
 anything older fails closed. This never substitutes old force for current force.
     """
     tick = evaluation.get("physics_tick")
-    observed = state.get("observation_tick", state.get("metrics", {}).get("tick"))
+    observed = state.get("observation_tick")
+    if observed is None:
+        observed = (state.get("metrics") or {}).get("tick")
     live = (evaluation.get("valid") is True
             and evaluation.get("termination_reason") is None)
     rr = evaluation.get("current_legs", {}).get("RR", {})
