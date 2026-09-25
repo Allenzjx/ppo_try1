@@ -18,10 +18,17 @@ SPEC.loader.exec_module(local)
 
 def observed(tick, *, crossed=True, qualified=True, within=True, gap=.055,
              top=False, bearing=False, placed=False, samples=0, terminal=None,
-             ground=False, outside=0., final=(8., -58.), phase="P09"):
+             ground=False, outside=0., final=(8., -58.), phase="P09",
+             established=None, continuation=True):
     drive = [0.] * 12
     drive[6:8] = final
-    rr = dict(current_lift_valid=qualified, motion_continuation_allowed=True,
+    # Synthetic evaluator facts, never inferred from historical placed/crossed.
+    # Default GROUND revokes establishment; legal loaded TOP with current AIR
+    # validity false must explicitly provide established=True.
+    if established is None:
+        established = qualified and not ground
+    rr = dict(current_lift_valid=qualified, lift_established=established,
+        active_attempt=established, motion_continuation_allowed=continuation,
         air=not top and not ground, ground_contact=ground, obstacle_pair_active=top,
         within_top_xy=within, within_lateral_span=True, clearance_m=gap,
         top_xy_outside_distance_m=outside, top_contact=top, top_surface_contact=top,
@@ -43,7 +50,7 @@ def observed(tick, *, crossed=True, qualified=True, within=True, gap=.055,
 class RRCaptureLocalTaskTests(unittest.TestCase):
     def test_real_gate_and_committed_final_anchor_are_immutable(self):
         task = local.RRCaptureLocalTask()
-        self.assertEqual(task.obs8(), (0.,)*8)
+        self.assertEqual(task.obs9(), (0.,)*9)
         for tick, changes in enumerate((dict(crossed=False), dict(qualified=False),
                                        dict(within=False), dict(top=True, bearing=True, placed=True))):
             self.assertFalse(task.observe(observed(tick, **changes))["active"])
@@ -52,7 +59,7 @@ class RRCaptureLocalTaskTests(unittest.TestCase):
         result = task.observe(SimpleNamespace(frame=frame))
         self.assertEqual(frame.info, original)
         self.assertTrue(result["active"])
-        self.assertEqual(result["obs8"][2:5], (8./180., -58./180., .055/.1))
+        self.assertEqual(result["obs9"][2:5], (8./180., -58./180., .055/.1))
         task.observe(observed(5, final=(-20., -20.), qualified=False))
         self.assertTrue(task.active)
         self.assertEqual(task.entry_rr_hip_deg, 8.)
@@ -84,7 +91,7 @@ class RRCaptureLocalTaskTests(unittest.TestCase):
         task.observe(observed(1, top=True, bearing=True, placed=False, samples=1, gap=0.))
         reward = task.reward(before)
         self.assertGreater(reward["reward"], 0.)
-        self.assertEqual(task.obs8()[5:7], (1., 1.))
+        self.assertEqual(task.obs9()[5:7], (1., 1.))
         self.assertFalse(reward["rr_subtask_success"])
         self.assertTrue(reward["terminal_bootstrap_allowed"])
 
@@ -124,7 +131,7 @@ class RRCaptureLocalTaskTests(unittest.TestCase):
         self.assertTrue(task.active)
         task.reset()
         self.assertFalse(task.active)
-        self.assertEqual(task.obs8(), (0.,)*8)
+        self.assertEqual(task.obs9(), (0.,)*9)
         self.assertIsNone(task.entry_rr_hip_deg)
         task.observe(observed(0, crossed=False))
 
@@ -208,7 +215,7 @@ class RRCaptureLocalTaskTests(unittest.TestCase):
         frame = observed(1, top=True, bearing=True, placed=True, samples=200)
         frame.info["semantic_task"]["physical_evaluator"]["current_legs"]["RR"]["bearing_force_n"] = .1
         task.observe(frame)
-        self.assertEqual(task.obs8()[5:7], (1., 0.))
+        self.assertEqual(task.obs9()[5:7], (1., 0.))
         self.assertFalse(task.local_success)
         frame = observed(2, top=True, bearing=True, placed=True, samples=201)
         frame.info["semantic_task"]["physical_evaluator"]["current_legs"]["RR"]["bearing_verified"] = False

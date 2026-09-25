@@ -7,6 +7,10 @@ including the frozen prefix. It never changes the supplied objects. Capture
 decision, not once per observation. The caller owns actual episode termination
 and bootstrap; ordinary phase changes and rollout budgets are not terminals.
 
+Version2 adds one explicit local observation: current_attempt_capture_eligible.
+The gate remains latched after GROUND, but capture hold/success needs a fresh
+same-attempt lift-established lineage. This is NOT an AIR-at-touchdown demand.
+
 The policy gate latches at qualified AIR after the existing RR crossing. It
 survives contact and loss of load. A success is current verified capture plus
 continuous measured bearing observation, not a historical placed flag alone.
@@ -19,12 +23,12 @@ from dataclasses import dataclass
 import math
 
 
-SCHEMA = "wlr50_clean.rr_capture_local_task.v1"
+SCHEMA = "wlr50_clean.rr_capture_local_task.v2"
 SUCCESS = "RR_CAPTURE_HOLD_SUCCESS"
 OBSERVATION_FIELDS = (
     "active", "activation_age_norm", "entry_rr_hip_norm", "entry_rr_knee_norm",
     "entry_gap_norm", "current_top_contact", "current_top_bearing",
-    "capture_hold_progress",
+    "capture_hold_progress", "current_attempt_capture_eligible",
 )
 OBSERVATION_DIM = len(OBSERVATION_FIELDS)
 
@@ -130,6 +134,15 @@ def extract_rr_metrics(source, *, force_noise_floor_n=.2):
     eligible = bool(live and geometry_valid and crossed and free_air
         and rr.get("current_lift_valid") is True and rr.get("motion_continuation_allowed") is True
         and rr.get("within_top_xy") is True and rr.get("within_lateral_span") is True)
+    # Current same-attempt establishment is reset by EVERY actual GROUND in
+    # the selected physical evaluator and re-earned only from fresh measured
+    # unsupported AIR rise. Unlike current_lift_valid it may remain true at a
+    # legitimate loaded TOP contact with changed other-support geometry.
+    established = rr.get("lift_established")
+    if type(established) is not bool:
+        raise ValueError("RR v2 capture requires explicit current lift_established evidence")
+    capture_eligible = bool(live and established and rr.get("ground_contact") is False
+                            and rr.get("motion_continuation_allowed") is True)
     raw = info.get("raw_observation")
     actual = raw.get("actual_full12") if isinstance(raw, Mapping) else getattr(raw, "actual_full12", None)
     # Numerical physical failure must remain reportable as a real terminal;
@@ -153,6 +166,7 @@ def extract_rr_metrics(source, *, force_noise_floor_n=.2):
         final_rr_hip_deg=final[6], final_rr_knee_deg=final[7], actual_rr_hip_knee_deg=actual_rr,
         final_target_source=final_key, final_ack_verified=ack is not None,
         current_lift_valid=rr.get("current_lift_valid") is True,
+        lift_established=established, current_attempt_capture_eligible=capture_eligible,
         motion_continuation_allowed=rr.get("motion_continuation_allowed") is True)
 
 
@@ -200,20 +214,23 @@ class RRCaptureLocalTask:
             self.entry_rr_knee_deg = current["final_rr_knee_deg"]
             self.entry_gap_m = current["gap_m"]
         self.metrics = current
-        if self.active and current["current_top_bearing"]:
+        if (self.active and current["current_top_bearing"]
+                and current["current_attempt_capture_eligible"]):
             if (not adjacent or previous is None or not previous["current_top_bearing"]
+                    or not previous["current_attempt_capture_eligible"]
                     or self.hold_started_s is None):
                 self.hold_started_s = current["time_s"]
             self.hold_elapsed_s = current["time_s"]-self.hold_started_s
         else:
             self.hold_started_s, self.hold_elapsed_s = None, 0.
         self.local_success = bool(self.active and current["current_top_bearing"]
+            and current["current_attempt_capture_eligible"]
             and current["placed"] and current["crossed"]
             and current["consecutive_top_samples"] >= self.config.minimum_top_samples
             and self.hold_elapsed_s + 1e-10 >= self.config.hold_duration_s)
         return self.snapshot()
 
-    def obs8(self):
+    def obs9(self):
         cfg, current = self.config, self.metrics
         active = float(self.active)
         return (active,
@@ -223,7 +240,8 @@ class RRCaptureLocalTask:
             self.entry_gap_m/cfg.entry_gap_scale_m if self.active else 0.,
             float(current["current_top_contact"]) if current else 0.,
             float(current["current_top_bearing"]) if current else 0.,
-            min(1., self.hold_elapsed_s/cfg.hold_duration_s))
+            min(1., self.hold_elapsed_s/cfg.hold_duration_s),
+            float(current["current_attempt_capture_eligible"]) if current else 0.)
 
     def potential_components(self):
         current, cfg = self.metrics, self.config
@@ -237,7 +255,10 @@ class RRCaptureLocalTask:
             and current["gap_m"] >= cfg.minimum_legal_gap_m)
         if legal_descent:
             parts["gap_closure"] = .4 / (1.+max(0., current["gap_m"])/cfg.gap_scale_m)
-        parts["real_contact"] = .1 * (current["current_top_contact"] + current["current_top_bearing"])
+        # Sensor contact remains a fact even without fresh lift qualification.
+        # Only qualified same-attempt contact advances this RR capture task.
+        parts["real_contact"] = (.1 * (current["current_top_contact"] + current["current_top_bearing"])
+                                 if current["current_attempt_capture_eligible"] else 0.)
         parts["bearing_hold"] = .2 * min(1., self.hold_elapsed_s/cfg.hold_duration_s)
         return parts
 
@@ -246,9 +267,9 @@ class RRCaptureLocalTask:
         return dict(schema=SCHEMA, active=self.active, activation_tick=self.activation_tick,
             activation_time_s=self.activation_time_s, entry_rr_hip_deg=self.entry_rr_hip_deg,
             entry_rr_knee_deg=self.entry_rr_knee_deg, entry_gap_m=self.entry_gap_m,
-            hold_elapsed_s=self.hold_elapsed_s, capture_hold_progress=self.obs8()[7],
+            hold_elapsed_s=self.hold_elapsed_s, capture_hold_progress=self.obs9()[7],
             local_success=self.local_success, metrics=deepcopy(self.metrics),
-            obs8=self.obs8(), potential=sum(parts.values()), potential_components=parts,
+            obs9=self.obs9(), potential=sum(parts.values()), potential_components=parts,
             full_task_success=False, physical_state_or_target_writes=0)
 
     def reward(self, before, *, termination_reason=None):

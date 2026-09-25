@@ -34,12 +34,14 @@ class Inner:
 def test_wrapper_preserves_422_and_explicit_absent_owner_state():
     inner=Inner(); core=CaptureCore(inner)
     obs=core.reset()
-    assert len(obs)==447 and obs[:422]==inner.observation and obs[422:439]==(0.,)*17
+    assert len(obs)==448 and obs[:422]==inner.observation and obs[422:439]==(0.,)*17
+    assert len(obs[439:])==9
     seen=[]
     core.tick_observer=lambda a,b,c: seen.append(b.physics_tick)
     step=core.step([0.]*12)
     assert seen==list(range(1,9))
     assert step.observation[439]==1.
+    assert step.observation[447]==1.  # explicit same-attempt capture eligibility
     assert step.reward==0.  # activated inside a PREFIX decision, not credited
     step=core.step([0.]*12)
     assert step.info['local_reward']['on_policy_rr_sample'] is True

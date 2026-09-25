@@ -26,14 +26,18 @@ from .semantic_rear_owner_actor import (
 from .semantic_rear_owner_profile import REAR_OWNER_OBSERVATION_LAYOUT
 
 
-POLICY_VERSION = "frozen_cp225280_rr_capture_local_history_v1"
-OBSERVATION_LAYOUT = "role439_rr_capture_local_v1"
+LEGACY_POLICY_VERSION = "frozen_cp225280_rr_capture_local_history_v1"
+LEGACY_OBSERVATION_LAYOUT = "role439_rr_capture_local_v1"
+LEGACY_OBSERVATION_DIMENSION = 447
+POLICY_VERSION = "frozen_cp225280_rr_capture_local_history_v2"
+OBSERVATION_LAYOUT = "role439_rr_capture_local_v2"
 PRIOR_DIMENSION = 439
-OBSERVATION_DIMENSION = 447
-CAPTURE_FIELDS = (
+OBSERVATION_DIMENSION = 448
+LEGACY_CAPTURE_FIELDS = (
     "active", "activation_age_norm", "entry_rr_hip_norm", "entry_rr_knee_norm",
     "entry_gap_norm", "current_top_contact", "current_top_bearing", "capture_hold_progress",
 )
+CAPTURE_FIELDS = LEGACY_CAPTURE_FIELDS + ("current_attempt_capture_eligible",)
 # Raw Gaussian innovation sigma, AFTER the mean's HISTORY kernel. No hidden
 # quarter temperature, cooperative multipliers, or second additive noise draw.
 # These modest defaults are construction settings, not proven physical tuning.
@@ -67,21 +71,29 @@ def _checked_std(value: Sequence[float]) -> tuple[float, ...]:
     return tuple(float(x) for x in value)
 
 
-def validate_capture_local_latent(latent):
+def validate_capture_local_latent(latent, *, legacy447_migration_only=False):
+    if type(legacy447_migration_only) is not bool:
+        raise ValueError("legacy447 migration flag must be an explicit boolean")
+    dimension = LEGACY_OBSERVATION_DIMENSION if legacy447_migration_only else OBSERVATION_DIMENSION
     if (not isinstance(latent, torch.Tensor) or not latent.is_floating_point()
-            or latent.ndim < 2 or latent.shape[-1] != OBSERVATION_DIMENSION
+            or latent.ndim < 2 or latent.shape[-1] != dimension
             or not bool(torch.isfinite(latent).all()) or not bool((latent.abs() <= 20.).all())):
-        raise ValueError("capture local actor requires finite schema-clipped447 observations")
+        raise ValueError(f"capture local actor requires finite schema-clipped{dimension} observations")
     validate_rear_owner_latent(latent[..., :PRIOR_DIMENSION])
     context = latent[..., PRIOR_DIMENSION:]
-    for index in (0, 5, 6):
+    boolean_indices = (0, 5, 6) if legacy447_migration_only else (0, 5, 6, 8)
+    for index in boolean_indices:
         if not bool(((context[..., index] == 0) | (context[..., index] == 1)).all()):
-            raise ValueError("capture activation and current contact/bearing must be boolean features")
+            raise ValueError("capture activation, contact/bearing and current-attempt eligibility must be boolean features")
     for index in (1, 7):
         if not bool(((context[..., index] >= 0) & (context[..., index] <= 1)).all()):
             raise ValueError("capture age and hold progress must be normalized to [0,1]")
     if not bool((context[..., 6] <= context[..., 5]).all()):
         raise ValueError("current TOP bearing cannot be true without current TOP contact")
+    # Eligibility is observed task history, not another action gate. An active
+    # recovering policy may see eligibility0 after GROUND, and actual TOP can
+    # exist without a qualified lift attempt. Do not erase its control or fake
+    # eligibility here; the physical task owns requalification and success.
     return context[..., 0].bool()
 
 
@@ -96,15 +108,22 @@ class SemanticRRCaptureLocalHistoryMLPModel(MLPModel):
 
     def __init__(self, obs, obs_groups, obs_set, output_dim, hidden_dims=(64, 64),
                  activation="elu", obs_normalization=False, distribution_cfg=None,
-                 observation_layout=None, initial_capture_std=DEFAULT_CAPTURE_STD,
-                 expected_prior_state_sha256=None):
-        if (observation_layout != OBSERVATION_LAYOUT or obs_set != "actor" or output_dim != 12
+                 observation_layout=OBSERVATION_LAYOUT, initial_capture_std=DEFAULT_CAPTURE_STD,
+                 expected_prior_state_sha256=None, legacy447_migration_only=False):
+        if type(legacy447_migration_only) is not bool:
+            raise ValueError("legacy447 migration flag must be an explicit boolean")
+        dimension = LEGACY_OBSERVATION_DIMENSION if legacy447_migration_only else OBSERVATION_DIMENSION
+        layout = LEGACY_OBSERVATION_LAYOUT if legacy447_migration_only else OBSERVATION_LAYOUT
+        if (observation_layout != layout or obs_set != "actor" or output_dim != 12
                 or obs_groups.get("actor") != ["policy"] or obs_normalization is not False
-                or obs["policy"].ndim != 2 or obs["policy"].shape[-1] != OBSERVATION_DIMENSION
+                or obs["policy"].ndim != 2 or obs["policy"].shape[-1] != dimension
                 or not isinstance(distribution_cfg, dict)
                 or distribution_cfg.get("class_name") != "HeteroscedasticGaussianDistribution"
                 or distribution_cfg.get("std_type") != "log"):
-            raise ValueError("local RR actor requires explicit447/full12/Identity/log-Gaussian configuration")
+            raise ValueError(f"local RR actor requires explicit{dimension}/full12/Identity/log-Gaussian configuration")
+        self.legacy447_migration_only = legacy447_migration_only
+        self.observation_dimension = dimension
+        self.policy_version = LEGACY_POLICY_VERSION if legacy447_migration_only else POLICY_VERSION
         self.initial_capture_std = _checked_std(initial_capture_std)
         self.expected_prior_state_sha256 = _checked_hash(expected_prior_state_sha256)
         super().__init__(obs, obs_groups, obs_set, output_dim, hidden_dims, activation,
@@ -218,11 +237,13 @@ class SemanticRRCaptureLocalHistoryMLPModel(MLPModel):
         return self.expected_prior_state_sha256
 
     def forward(self, obs, masks=None, hidden_state=None, stochastic_output=False):
+        if self.legacy447_migration_only and stochastic_output:
+            raise ValueError("legacy447 migration-only actor rejects stochastic/PPO forward")
         if self._prior_anchor is None:
             raise RuntimeError("load the verified CP225280 prior before inference/training")
         obs = unpad_trajectories(obs, masks) if masks is not None and not self.is_recurrent else obs
         latent = self.get_latent(obs, masks, hidden_state)
-        active = validate_capture_local_latent(latent)
+        active = validate_capture_local_latent(latent, legacy447_migration_only=self.legacy447_migration_only)
         if stochastic_output and not bool(active.all()):
             raise ValueError("inactive frozen prefix is deterministic and may not enter PPO Gaussian storage")
         if (self.frozen_prior.training or any(p.requires_grad for p in self.frozen_prior.parameters())
@@ -286,6 +307,8 @@ def audited_capture_local_policy_request(actor, observation, action_call, *, sto
     """
     if type(actor) is not SemanticRRCaptureLocalHistoryMLPModel:
         raise ValueError("capture request audit requires its explicit composite actor")
+    if actor.legacy447_migration_only:
+        raise ValueError("legacy447 migration-only actor cannot enter a production/PPO request audit")
     seen = []
 
     def observed(_module, _inputs, _output):
@@ -304,7 +327,7 @@ def audited_capture_local_policy_request(actor, observation, action_call, *, sto
         raise RuntimeError("capture audit observation differs from the actual forward")
     active = bool(evidence["active"][0])
     vector = lambda value: value[0].detach().cpu().tolist()
-    record = dict(schema="wlr50_clean.actual_rr_capture_local_request.v1", policy_version=POLICY_VERSION,
+    record = dict(schema="wlr50_clean.actual_rr_capture_local_request.v2", policy_version=POLICY_VERSION,
         mode="active_combined_raw_Gaussian" if stochastic else "deterministic_combined_conditional_mean",
         capture_active=active, capture_context=dict(zip(CAPTURE_FIELDS, vector(evidence["capture_context"]))),
         prior_raw_mean_full12=vector(evidence["prior_raw_mean"]),

@@ -1,8 +1,9 @@
 """Isolated frozen-CP225280/local-RR PPO route, using official RSL-RL PPO.
 
 The existing semantic routes and validators are unchanged. The six control
-files are the accepted49eb configuration; only the new observed local task,
-actor and critic differ. No task helper writes rear actuator targets.
+files are the accepted49eb configuration. This isolated v2 route adds observed
+same-attempt capture eligibility and defers unconsumed dependent source events
+only after activation. No task helper writes rear actuator targets.
 """
 from __future__ import annotations
 
@@ -23,7 +24,10 @@ CONFIG = ROOT / 'configs' / NAME
 OUTPUT = ROOT / 'outputs' / NAME
 SOURCE = ROOT / 'outputs/ppo_rr_rl_timing_policy_learning_v1/branches/ancestor220544_recapture_v2/checkpoints/history/checkpoint_rear_owner_CP225280_gf6d1d2df8d87.pt'
 SOURCE_MANIFEST = SOURCE.with_name(SOURCE.stem + '_manifest.json')
-SCHEMA = 'wlr50_clean.frozen_prior_rr_capture_checkpoint.v1'
+SCHEMA = 'wlr50_clean.frozen_prior_rr_capture_checkpoint.v2'
+LEGACY_HEAD = 'ecf205e80094693938057589fc91f7f31082ef89'
+LEGACY_CHECKPOINT_SHA = 'afb7e0e2970c0e7b1c544d4b9f385cbb30e94aa5a8eeebe576c3323ce655d806'
+LEGACY_MANIFEST_SHA = 'cc0d320288542dafaf245a726724a16c0ac55bbc72f869221f74a4b643652a88'
 
 
 def sha(path):
@@ -88,17 +92,17 @@ def tensor_observation(values, device):
     import torch
     from tensordict import TensorDict
     data = torch.tensor([values], dtype=torch.float32, device=device)
-    if tuple(data.shape) != (1, 447) or not bool(torch.isfinite(data).all()):
-        raise ValueError('finite447 local observation required')
+    if tuple(data.shape) != (1, 448) or not bool(torch.isfinite(data).all()):
+        raise ValueError('finite448 local observation required')
     return TensorDict({'policy': data, 'critic': data.clone()}, batch_size=[1], device=device)
 
 
 class CaptureCore:
     """Task-only wrapper; unchanged12-channel physics/mapper and native history."""
-    def __init__(self, inner):
+    def __init__(self, inner, *, task=None):
         from .semantic_rr_capture_local_task import RRCaptureLocalTask
         self.inner = inner
-        self.task = RRCaptureLocalTask()
+        self.task = RRCaptureLocalTask() if task is None else task
         self.tick_observer = None
         self.inner.tick_observer = self._observe
         self.observation = None
@@ -116,12 +120,12 @@ class CaptureCore:
         # The owner controller is absent, not a hidden unobserved transform.
         if len(self.inner.observation) != 422:
             raise ValueError('accepted CP225280 control must expose original422')
-        self.observation = tuple(self.inner.observation) + (0.,) * 17 + tuple(self.task.obs8())
+        self.observation = tuple(self.inner.observation) + (0.,) * 17 + tuple(self.task.obs9())
         return self.observation
 
     def reset(self, seed=1001):
-        self.inner.reset(seed=seed)
         self.task.reset()
+        self.inner.reset(seed=seed)
         self.task.observe(self.inner.frame)
         self.done = False
         return self._encode()
@@ -150,14 +154,22 @@ class CaptureCore:
 def build_core(app):
     from .semantic_backend import SemanticIsaacBackend
     from .semantic_env import SemanticEpisodeEnv
+    from .semantic_rr_capture_deferred_late import MODE, controller_factory
+    from .semantic_rr_capture_local_task import RRCaptureLocalTask
+    if settings()['capture_source_dispatch'] != MODE:
+        raise ValueError('unknown RR-local source scheduling version')
+    local_task = RRCaptureLocalTask()
+    factory = controller_factory(task_spec_path=CONFIG/'stage_task_spec.yaml',
+        read_local_active=lambda: local_task.active)
     backend = SemanticIsaacBackend(app, audit_actuator_target_effect=True,
-        execution_profile=CONFIG/'execution_profile.yaml', task_spec_path=CONFIG/'stage_task_spec.yaml')
+        execution_profile=CONFIG/'execution_profile.yaml', task_spec_path=CONFIG/'stage_task_spec.yaml',
+        controller_factory=factory)
     return CaptureCore(SemanticEpisodeEnv(backend, collect_trace=False,
         action_config=CONFIG/'execution_profile.yaml', reward_config_path=CONFIG/'reward_config.yaml',
-        observation_schema_path=CONFIG/'observation_schema.json'))
+        observation_schema_path=CONFIG/'observation_schema.json'), task=local_task)
 
 
-def make_runner(device, seed):
+def make_runner(device, seed, *, legacy_config=None):
     import torch
     from types import SimpleNamespace
     from .rl_library_wrapper import build_rsl_runner_config, construct_runner
@@ -165,9 +177,14 @@ def make_runner(device, seed):
     # Real saved regression observation used only to instantiate tensor shapes;
     # never treated as an environment transition or copied into PPO storage.
     data = json.loads((ROOT/'outputs/ppo_rl_recovery_learning_v1/staged_cp225280_front_branch/CP225280_front_replay_dataset.json').read_text())
-    initial = data['training_rows'][0]['observation'][:422] + [0.] * 25
+    dimension = 447 if legacy_config is not None else 448
+    initial = data['training_rows'][0]['observation'][:422] + [0.] * (dimension-422)
+    def initial_observation():
+        from tensordict import TensorDict
+        tensor = torch.tensor([initial], dtype=torch.float32, device=device)
+        return TensorDict({'policy':tensor, 'critic':tensor.clone()}, batch_size=[1], device=device)
     env = SimpleNamespace(num_envs=1, num_actions=12, cfg={'local_capture_task': NAME},
-        device=device, get_observations=lambda: tensor_observation(initial, device))
+        device=device, get_observations=initial_observation)
     profile = SimpleNamespace(activation='elu', entropy_start=cfg['entropy_coef'],
         actor_hidden_dims=cfg['actor_hidden_dims'], critic_hidden_dims=cfg['critic_hidden_dims'],
         initial_action_std=.15, rollout_length=cfg['rollout_length'], update_epochs=cfg['update_epochs'],
@@ -178,14 +195,20 @@ def make_runner(device, seed):
     configuration['device'] = device
     configuration['actor'].update(
         class_name='wlr50_clean.ppo.semantic_rr_capture_local_actor:SemanticRRCaptureLocalHistoryMLPModel',
-        observation_layout='role439_rr_capture_local_v1',
+        observation_layout='role439_rr_capture_local_v2',
         distribution_cfg={'class_name': 'HeteroscedasticGaussianDistribution', 'init_std': .15, 'std_type': 'log'},
         initial_capture_std=cfg['active_initial_sigma_full12'])
+    if legacy_config is not None:
+        configuration = copy.deepcopy(legacy_config)
+        if configuration['actor']['observation_layout'] != 'role439_rr_capture_local_v1':
+            raise ValueError('explicit historical447 runner configuration required')
+        configuration['actor']['legacy447_migration_only'] = True
+        configuration['device'] = device
     runner = construct_runner(env, configuration, log_dir=None)
     # Explicit exclusion of prior parameters, including weight decay/momentum.
     params = list(runner.alg.actor.trainable_parameters()) + list(runner.alg.critic.parameters())
     runner.alg.optimizer = torch.optim.Adam(params, lr=cfg['learning_rate'])
-    runner._semantic_policy_version = 'frozen_prior_rr_capture_local447_v1'
+    runner._semantic_policy_version = 'frozen_prior_rr_capture_local448_v2'
     runner._semantic_front_replay = None
     runner.logger.writer = None
     runner.local_configuration = copy.deepcopy(configuration)
@@ -228,7 +251,7 @@ def initialize_prior(runner):
 
 
 def checkpoint_path(decisions):
-    return OUTPUT/'checkpoints/history'/f'checkpoint_CP{225280+decisions}_local{decisions:06d}.pt'
+    return OUTPUT/'checkpoints/history'/f'checkpoint_CP{225280+decisions}_local{decisions:06d}_lineage448_v2.pt'
 
 
 def save(runner, runtime, prior, counts, *, source_run):
@@ -250,6 +273,8 @@ def save(runner, runtime, prior, counts, *, source_run):
         training_rng=capture_training_rng_state(seed=1001),
         rollout_empty=True, front_FL_assist=True, rear_task_assists=False,
         full_task_success=False, local_task_semantics=settings()['local_terminal'])
+    if getattr(runner, 'local_migration', None) is not None:
+        infos['local_migration'] = copy.deepcopy(runner.local_migration)
     payload.update(infos=infos, iter=counts['local_ppo_updates'])
     torch.save(payload, target)
     loaded = torch.load(target, map_location=runner.device, weights_only=False)
@@ -290,6 +315,7 @@ def load(runner, path, runtime):
         if state_hash(runner.alg.save()[key]) != value:
             raise ValueError('actual reloaded state differs: ' + key)
     runner.alg.learning_rate = metadata['learning_rate']
+    runner.local_migration = metadata.get('local_migration')
     runner.current_learning_iteration = metadata['counts']['local_ppo_updates']
     restore_training_rng_state(metadata['training_rng'], expected_seed=1001)
     runner.checkpoint_load_provenance = {'checkpoint': str(path), 'checkpoint_sha256':sha(path),
@@ -297,6 +323,90 @@ def load(runner, path, runtime):
         'manifest_sha256':sha(path.with_name(path.stem+'_manifest.json')),
         'strict_actual_composite_load_verified':True,'actor_critic_optimizer_hashes_verified':True}
     return metadata['prior'], metadata['counts']
+
+
+def migrate_checkpoint(runner, path):
+    """One explicit cold migration, never a permissive ordinary load path."""
+    import torch
+    from tensordict import TensorDict
+    from .semantic_training import state_hash, parameter_hash
+    from .rl_library_wrapper import restore_training_rng_state
+    from .semantic_rr_capture_local_migration import migrate_local447_to448
+    path = Path(path).resolve(strict=True)
+    manifest_path = path.with_name(path.stem+'_manifest.json')
+    if sha(path) != LEGACY_CHECKPOINT_SHA or sha(manifest_path) != LEGACY_MANIFEST_SHA:
+        raise ValueError('migration accepts only the sealed complete2048 local checkpoint')
+    metadata = json.loads(manifest_path.read_text())
+    old_runtime = metadata['runtime_contract']
+    if (metadata['schema'] != 'wlr50_clean.frozen_prior_rr_capture_checkpoint.v1'
+            or old_runtime['source_git_commit'] != LEGACY_HEAD
+            or old_runtime['local_contract']['observation_dimension'] != 447
+            or not metadata['rollout_empty'] or not metadata['save_load_round_trip']):
+        raise ValueError('legacy runtime/boundary does not match the declared migration')
+    data = torch.load(path, map_location=runner.device, weights_only=False)
+    if any(metadata.get(k) != v for k,v in data['infos'].items()):
+        raise ValueError('legacy embedded infos differ from its immutable sidecar')
+    old = make_runner(runner.device, 1001, legacy_config=metadata['runner_config'])
+    old.alg.load(data, None, True)
+    old.alg.learning_rate = metadata['learning_rate']
+    for key,digest in metadata['state_hashes'].items():
+        if state_hash(old.alg.save()[key]) != digest:
+            raise ValueError('legacy actual load differs: '+key)
+    old.alg.actor.assert_frozen_state(old.alg.optimizer)
+    original_hash = state_hash(old.alg.save())
+    receipt = migrate_local447_to448(old.alg.actor, runner.alg.actor,
+        old.alg.critic, runner.alg.critic, old.alg.optimizer, runner.alg.optimizer,
+        isaac_stopped=True)
+    source_meta = json.loads(SOURCE_MANIFEST.read_text())
+    if parameter_hash(runner.alg.actor.frozen_prior) != source_meta['actor_parameter_sha256']:
+        raise ValueError('migration changed immutable prior')
+    runner.alg.actor.assert_frozen_state(runner.alg.optimizer)
+    # Check actual historical observations, without treating them as new PPO
+    # data. Both eligibility values must leave the migrated function unchanged
+    # before any new update because the only new input columns are zero.
+    rollout = Path(metadata['source_run'])/'rollouts/rollout_0004.pt'
+    recorded = torch.load(rollout, map_location=runner.device, weights_only=False)
+    values = recorded['observations']['policy'].reshape(-1,447)[::16].clone()
+    errors = dict(actor_mean=0., conditional_log_sigma=0., critic=0.)
+    old.alg.eval_mode(); runner.alg.eval_mode()
+    for inactive in (False,True):
+        inputs = values.clone()
+        if inactive:
+            inputs[:,439:444] = 0.
+        obs_old = TensorDict({'policy':inputs, 'critic':inputs.clone()}, batch_size=[len(inputs)])
+        with torch.inference_mode():
+            reference = old.alg.actor(obs_old, stochastic_output=False)
+            reference_sigma = old.alg.actor._last_forward_evidence['head_log_std'].clone()
+            value = old.alg.critic(obs_old)
+            for eligibility in (0.,1.):
+                expanded = torch.cat((inputs, inputs.new_full((len(inputs),1),eligibility)),dim=1)
+                obs_new = TensorDict({'policy':expanded, 'critic':expanded.clone()}, batch_size=[len(inputs)])
+                actual = runner.alg.actor(obs_new, stochastic_output=False)
+                errors['actor_mean'] = max(errors['actor_mean'], float((actual-reference).abs().max()))
+                errors['critic'] = max(errors['critic'],float((runner.alg.critic(obs_new)-value).abs().max()))
+                sigma = runner.alg.actor._last_forward_evidence['head_log_std']
+                errors['conditional_log_sigma'] = max(errors['conditional_log_sigma'],float((sigma-reference_sigma).abs().max()))
+    if max(errors.values()) > 2e-6 or state_hash(old.alg.save()) != original_hash:
+        raise RuntimeError('migration altered old function/state beyond numerical comparison tolerance')
+    runner.alg.learning_rate = metadata['learning_rate']
+    runner.current_learning_iteration = metadata['counts']['local_ppo_updates']
+    if runner.alg.storage.step or runner.alg.transition.actions is not None:
+        raise RuntimeError('migration must not retain any old rollout')
+    restore_training_rng_state(metadata['training_rng'], expected_seed=1001)
+    runner.local_migration = dict(receipt, source_checkpoint=str(path),
+        source_checkpoint_sha256=sha(path), source_manifest_sha256=sha(manifest_path),
+        source_git_commit=LEGACY_HEAD, source_counts=metadata['counts'],
+        effective_learning_rate=runner.alg.learning_rate,
+        actual_observation_comparison_max_abs=errors, comparison_rollout_sha256=sha(rollout),
+        normalizer='Identity_unchanged', full_saved_training_RNG_restored=True,
+        new_training_credit=0, old_incomplete_rollout_reused=False,
+        task_change='same_attempt_capture_eligibility_plus_pending_P09_late_and_new_P12',
+        fresh_v2_collection_required=True)
+    # Adam options contain tuples (e.g. betas). Embed the exact JSON-canonical
+    # receipt also used by the sidecar; the actual Adam tensors stay untouched.
+    runner.local_migration = json.loads(json.dumps(runner.local_migration, allow_nan=False))
+    counts = dict(metadata['counts'], task_v2_policy_decisions=0, task_v2_ppo_updates=0)
+    return metadata['prior'], counts
 
 
 def request(runner, observation, *, stochastic):
@@ -360,6 +470,7 @@ def train(core, runner, runtime, prior, counts, run, decisions):
                     if not torch.equal(runner.alg.storage.actions_log_prob[index].view(-1), old_logp.view(-1)):
                         raise RuntimeError('PPO old likelihood differs from composed sampled Gaussian')
                 counts['local_policy_decisions'] += 1
+                counts['task_v2_policy_decisions'] = counts.get('task_v2_policy_decisions', 0) + 1
                 phase_counts[step.info['phase_id']] += 1
                 line(stream, {'kind':'activated_on_policy', 'global_decision':225280+counts['local_policy_decisions'],
                     'PPO_credit':1, 'observation':obs['policy'][0].cpu().tolist(),
@@ -384,6 +495,7 @@ def train(core, runner, runtime, prior, counts, run, decisions):
             report = audited_ppo_update(runner, likelihood_audit_path=run/'rollouts'/f'likelihood_{update_number:04d}.json')
             runner.alg.actor.assert_frozen_state()
             counts['local_ppo_updates'] += 1
+            counts['task_v2_ppo_updates'] = counts.get('task_v2_ppo_updates', 0) + 1
             counts['local_optimizer_steps'] += report['optimizer_steps']
             runner.current_learning_iteration = counts['local_ppo_updates']
             report.update(counts=dict(counts), actual_phase_counts=dict(phase_counts))
@@ -472,13 +584,14 @@ def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False):
             summary=physical.summary(); physical.close()
             media=recorder.finalize()
             unchanged=before_hash==state_hash(runner.alg.save())
-            result={'schema':'wlr50_clean.frozen_prior_rr_capture_video.v1','runtime_contract':runtime,
+            result={'schema':'wlr50_clean.frozen_prior_rr_capture_video.v2','runtime_contract':runtime,
                 'camera':REVIEW_CAMERA,
                 'mode':'INDEPENDENT_DIRECTION_DIAGNOSTIC' if diagnostic else 'DETERMINISTIC_COMPOSITE_POLICY',
                 'prior':prior,'counts':counts,'source_run':str(run),'continuous_natural_P01':True,
                 'checkpoint_load_provenance':runner.checkpoint_load_provenance,
                 'rear_owner_projection':False,'ignored_legacy_sampling_profile':True,
-                'control_contributions':{'policy_version':settings()['version'], 'observation_dimension':447,
+                'control_contributions':{'policy_version':settings()['version'], 'observation_dimension':448,
+                    'capture_source_dispatch':settings()['capture_source_dispatch'],
                     'local_branch_counters':dict(counts), 'frozen_prior':prior,
                     'FL_capture_assist_mode':'p05_hip_only_continuation_v1',
                     'rear_owner_projection':False,'rr_capture_assist_mode':None,
@@ -501,7 +614,7 @@ def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode',choices=('initialize','diagnostic','train','eval'))
+    parser.add_argument('mode',choices=('initialize','migrate','diagnostic','train','eval'))
     parser.add_argument('--expected-head',required=True)
     parser.add_argument('--run-dir',type=Path,required=True)
     parser.add_argument('--checkpoint',type=Path)
@@ -520,20 +633,24 @@ def main():
         import torch
         import tensordict
         from .rl_library_wrapper import seed_training_rngs
-        if args.mode!='initialize':
+        if args.mode not in ('initialize','migrate'):
             from isaaclab.app import AppLauncher
             app=AppLauncher(headless=args.mode=='train',enable_cameras=False).app
             app.update()
         seed_training_rngs(1001)
         runner=make_runner(args.device,1001)
-        if args.checkpoint:
+        if args.mode=='migrate':
+            if not args.checkpoint:
+                raise ValueError('migration requires the sealed previous complete checkpoint')
+            prior,counts=migrate_checkpoint(runner,args.checkpoint)
+        elif args.checkpoint:
             prior,counts=load(runner,args.checkpoint,runtime)
         else:
             prior=initialize_prior(runner)
             counts=dict(local_policy_decisions=0,local_ppo_updates=0,local_optimizer_steps=0,
                 prefix_decisions=0,capture_opportunities=0,local_successes=0,completed_local_episodes=0,
-                auxiliary_updates=0)
-        if args.mode=='initialize': result=save(runner,runtime,prior,counts,source_run=run)
+                auxiliary_updates=0, task_v2_policy_decisions=0, task_v2_ppo_updates=0)
+        if args.mode in ('initialize','migrate'): result=save(runner,runtime,prior,counts,source_run=run)
         else:
             core=build_core(app)
             if args.mode=='train': result=train(core,runner,runtime,prior,counts,run,args.decisions)

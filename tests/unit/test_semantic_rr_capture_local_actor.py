@@ -26,7 +26,7 @@ def cpu_rng():
 
 
 def observations(active=False, batch=1, phase=8):
-    x = torch.zeros(batch, 447)
+    x = torch.zeros(batch, module.OBSERVATION_DIMENSION)
     x[:, phase] = 1.
     x[:, 20] = .02
     x[:, 158:158 + phase] = 1.
@@ -36,6 +36,7 @@ def observations(active=False, batch=1, phase=8):
     x[:, 439] = float(active)
     if active:
         x[:, 440:444] = torch.tensor([.01, .04, -.32, .55])
+        x[:, 447] = 1.
     return TensorDict({"policy": x, "critic": x.clone()}, batch_size=[batch])
 
 

@@ -27,7 +27,7 @@ def cpu_rng():
 
 
 def observation(*, active, index=0):
-    values = [0.] * 447
+    values = [0.] * 448
     values[8] = 1.
     values[20] = .02
     values[158:166] = [1.] * 8
@@ -36,6 +36,7 @@ def observation(*, active, index=0):
     values[439] = float(active)
     if active:
         values[440:444] = [.01 + index / 30000., .04, -.32, .55]
+        values[447] = 1.
     return route.tensor_observation(values, "cpu")
 
 
