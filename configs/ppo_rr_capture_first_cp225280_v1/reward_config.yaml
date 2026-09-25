@@ -1,0 +1,80 @@
+schema: wlr50_clean.semantic_reward.v2
+revision: task_conditioned_hip_wheel_quality_v1
+objective_profile: task_conditioned_hip_wheel_quality_v1
+quality_epsilon: 0.06
+cooperative_preparation:
+  mode: rr_capture_cooperative_preparation_v4
+  counterroll_cost_per_s: 0.01
+  force_noise_floor_n: 0.2
+  clearance_scale_m: 0.020
+  workspace_weights: {edge: 0.25, receiver: 0.5, fl_range: 0.125, rl_space: 0.125}
+# Reuses the existing RL workspace share; no angle/height target or contact credit.
+# Small task prior only for supported actual FL counterroll without forward or
+# legal RR gap progress under a positive nominal suggestion. Stops/reverse source
+# pulses, early front work and AIR wheel rotation are excluded. No action shaping.
+# Epsilon is the maximum body-family coefficient, not a second multiplier.
+front_body_quality:
+  phases: [P01, P02]
+  transfer_weight_floor: 0.5
+  attitude_fraction: 0.5
+  rate_fraction: 0.5
+  sample_audit: true
+task_space_quality:
+  phases: [P01, P02, P05, P06, P07, P08, P09]
+  clearance_margin_m: 0.020
+  geometry_fraction: 0.5
+  front_fraction: 0.5
+  sample_audit: true
+# Half the .06 budget preserves the previous P01/P02 .03 tilt/rate cost.
+# Half prices only insufficient conservative collider/obstacle separation.
+# The 20 mm engineering margin is 15 mm task clearance plus 5 mm geometry
+# tolerance, not a historical base_z or a reward for increasing height forever.
+return_profile: v3_gamma_09985_lambda_099_v1
+contact_loss_semantics: recent_touchdown_without_active_command_change
+smoothness_components: applied_only
+physical_transfer_weighting: true
+carry_body_allowance: current_functional_carry_and_capture_settle_v1
+capture_settle_window_s: 0.5
+# Legacy allowance fields remain compatible but do not gate this objective.
+# P01/P02 retain tilt/rate cost with a positive transfer floor. Geometry cost
+# also covers the declared capture/rolling/rear window. No linkage-motion,
+# contact-force, acceleration or residual-size cost is enabled in this version.
+rebound_window_s: 0.25
+rebound_command_motion_deg: 0.1
+gamma: 0.9985
+physics_hz: 120.0
+decision_hz: 15.0
+maximum_task_duration_s: 200.0
+time_limit_semantics: finite_horizon_task_termination_no_bootstrap
+potential_terminal_value: 0.0
+potential_weight: 5.0
+success_reward: 40.0
+failure_cost: 40.0
+time_cost_per_s: 0.02
+family_weights:
+  task_progress: 1.0
+  body_stability: 0.06
+  contact_motion_quality: 0.0
+  control_smoothness: 0.0
+  control_regularization: 0.0
+transfer_attitude_weight: 0.2
+transfer_contact_weight: 0.2
+attitude_scale_rad: 0.5
+euler_rate_scale_rad_s: 0.5
+angular_acceleration_scale_rad_s2: 20.0
+touchdown_speed_allowance_m_s: 0.05
+touchdown_speed_scale_m_s: 0.5
+slip_speed_allowance_m_s: 0.15
+slip_speed_scale_m_s: 0.5
+control_regularization_enabled: false
+signal_ownership:
+  task_progress: [global_physical_potential, finite_task_elapsed_time, task_terminal_event]
+  body_stability: [gravity_attitude, euler_roll_pitch_derivative, conservative_collider_obstacle_separation_deficit]
+  contact_motion_quality: [touchdown_vertical_speed, touchdown_load, post_contact_rebound, contact_chatter, uncontrolled_contact_slip]
+  control_smoothness: [actual_drive_first_difference, actual_drive_second_difference]
+  control_regularization: [projected_residual_magnitude]
+reference_imitation_reward: false
+phase_label_transition_bonus: false
+nonzero_residual_bonus: false
+cost_integration: actual_physics_time
+normalization: fixed_engineering_scales_not_reference_statistics
