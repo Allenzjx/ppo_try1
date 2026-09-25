@@ -1,0 +1,181 @@
+"""Same439 reward-only retention: ordinary imports, no physics or model load."""
+from copy import deepcopy
+from dataclasses import replace
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+import yaml
+
+from wlr50_clean.ppo import semantic_reward as reward
+from wlr50_clean.ppo.semantic_observation import load_semantic_observation_schema
+
+
+ROOT = Path(__file__).resolve().parents[2]
+CONFIG = ROOT / 'configs/ppo_rr_rl_timing_policy_learning_v1'
+
+
+@pytest.fixture
+def binding():
+    return reward._rr_retention_reward_binding(reward.load_semantic_reward_config(CONFIG/'reward_config.yaml'))
+
+
+def leg(kind='GROUND', **changes):
+    row = dict(ground_contact=True, air=False, top_contact=False, top_surface_contact=False,
+        obstacle_pair_active=False, within_top_xy=False, within_lateral_span=True,
+        contact_surface='NONE', clearance_m=-.05, top_xy_outside_distance_m=.05,
+        current_lift_valid=False, active_attempt=False, motion_continuation_allowed=True,
+        support=True, bearing_verified=True, bearing_force_n=5., consecutive_top_samples=0)
+    if kind in ('AIR', 'TOP'):
+        row.update(ground_contact=False, air=True, within_top_xy=True, clearance_m=.02,
+            top_xy_outside_distance_m=0., current_lift_valid=True, active_attempt=True,
+            support=False, bearing_force_n=0.)
+    if kind == 'TOP':
+        row.update(air=False, top_contact=True, top_surface_contact=True,
+            obstacle_pair_active=True, contact_surface='TOP', clearance_m=0.,
+            support=True, bearing_force_n=5., consecutive_top_samples=2)
+    return dict(row, **changes)
+
+
+def task(rr=None):
+    return dict(task_progress_potential=.61625, stage_id='P12', physical_evaluator=dict(
+        valid=True, termination_reason=None, physics_tick=7000,
+        history=dict(placed=dict(RR=True, RL=False), active_lift=dict(RR=True),
+                     front_edge_crossed=dict(RR=True)),
+        current_legs=dict(RR=leg() if rr is None else rr, RL=leg())))
+
+
+@pytest.mark.parametrize('rr', [leg('AIR'), leg('AIR', current_lift_valid=False),
+                              leg('TOP'), leg('TOP', current_lift_valid=False)])
+def test_legal_AIR_TOP_preserve_exact_old_arithmetic(binding, rr):
+    delta, audit = reward._rr_retention_reward_delta(task(rr), binding)
+    expected = .5 * (.025 / (.025 + abs(rr['clearance_m'])))
+    if rr['top_contact']:
+        expected += .5
+    assert delta == 0.
+    assert audit['old_retention'] == audit['new_retention'] == expected
+
+
+def test_ground_geometry_continuous_but_never_contact(binding):
+    d0, a0 = reward._rr_retention_reward_delta(task(), binding)
+    d1, a1 = reward._rr_retention_reward_delta(task(leg(top_xy_outside_distance_m=.01)), binding)
+    assert 0 < d0 < d1
+    assert 0 < a0['new_retention'] < a1['new_retention'] <= .125
+    assert a0['old_retention'] == 0 and a0['contact_half'] == 0
+    assert not a0['measured_TOP_bearing']
+    for rr in [leg('TOP', bearing_verified=False), leg('TOP', ground_contact=True, current_lift_valid=False),
+               leg('AIR', bearing_force_n=1000.),
+               leg('TOP', contact_surface='FRONT_WALL', top_contact=False, top_surface_contact=False)]:
+        _, audit = reward._rr_retention_reward_delta(task(rr), binding)
+        assert audit['contact_half'] == 0 and not audit['measured_TOP_bearing']
+
+
+def test_reward_local_pair_preserves_all439_observation_values(binding):
+    schema = load_semantic_observation_schema(CONFIG/'observation_schema.json')
+    groups = {row['name']: (0.,)*row['size'] for row in schema.groups}
+    groups['task_progress'] = (.5, .61625)
+    before = SimpleNamespace(task=task(), groups=groups)
+    after = SimpleNamespace(task=task(leg(top_xy_outside_distance_m=.01)), groups=deepcopy(groups))
+    frozen = deepcopy((before, after))
+    encoded = schema.encode(groups)
+    assert len(encoded) == 439
+    p0, p1, audit = reward._reward_only_potential_pair(before, after, None, binding)
+    assert (before, after) == frozen
+    assert schema.encode(before.groups) == schema.encode(after.groups) == encoded
+    assert p0 != before.task['task_progress_potential'] and p1 != after.task['task_progress_potential']
+    assert audit['shared_observation_potential_before'] == audit['shared_observation_potential_after'] == .61625
+    delta0 = audit['before']['delta_global_potential']
+    delta1 = audit['after']['delta_global_potential']
+    assert 5*(.9985*p1-p0) == pytest.approx(5*(.9985*.61625-.61625)+5*(.9985*delta1-delta0))
+
+
+def test_terminal_invalid_current_geometry_not_read(binding):
+    class ForbiddenCurrent:
+        def __getitem__(self, key):
+            raise AssertionError('terminal current observation must not be read')
+    before = SimpleNamespace(task=task())
+    p0, p1, audit = reward._reward_only_potential_pair(before, SimpleNamespace(task=ForbiddenCurrent()), 'NAN_INF', binding)
+    assert p0 > .61625 and p1 == 0.
+    assert audit['shared_observation_potential_after'] is None
+    assert audit['after']['scope'] == 'terminal_zero_geometry_not_read'
+
+
+@pytest.mark.parametrize('mode', ['RR_unplaced', 'RL_placed', 'RL_current_AIR'])
+def test_scope_does_not_change_first_RR_lift_or_legitimate_RL_continuation(binding, mode):
+    current = task(); ev = current['physical_evaluator']
+    if mode == 'RR_unplaced':
+        ev['history']['placed']['RR'] = False
+    elif mode == 'RL_placed':
+        ev['history']['placed']['RL'] = True
+    else:
+        ev['current_legs']['RL'] = leg('AIR')
+    delta, audit = reward._rr_retention_reward_delta(current, binding)
+    assert delta == 0. and audit['scope'] == 'unchanged'
+
+
+def test_binding_selected_path_schema_old_mode_and_scale_mismatch(tmp_path, monkeypatch):
+    config = reward.load_semantic_reward_config(CONFIG/'reward_config.yaml')
+    assert reward._rr_retention_reward_binding(config)['mode'] == 'rr_recapture_retention_reward_only_v1'
+    assert reward._rr_retention_reward_binding(replace(config, path=tmp_path/'unrelated/reward_config.yaml')) is None
+    old = deepcopy(config.values); old['cooperative_preparation']['mode'] = 'rr_capture_cooperative_preparation_v4'
+    assert reward._rr_retention_reward_binding(replace(config, values=old)) is None
+    invalid = deepcopy(config.values); invalid['schema'] = 'wrong'
+    with pytest.raises(ValueError, match='schema'):
+        reward._rr_retention_reward_binding(replace(config, values=invalid))
+    candidate = tmp_path/'configs/ppo_rr_rl_timing_policy_learning_v1/reward_config.yaml'
+    candidate.parent.mkdir(parents=True)
+    monkeypatch.setattr(reward, 'CONFIG_ROOT', tmp_path/'configs/ppo_semantic_v2')
+    stage = yaml.safe_load((CONFIG/'stage_task_spec.yaml').read_text())
+    stage['geometry']['top_gap_max_m'] = .03
+    candidate.with_name('stage_task_spec.yaml').write_text(yaml.safe_dump(stage))
+    with pytest.raises(ValueError, match='top_gap_max_m'):
+        reward._rr_retention_reward_binding(replace(config, path=candidate))
+
+
+def test_legacy_pair_keeps_original_no_RR_read():
+    before = SimpleNamespace(task={'task_progress_potential': .3})
+    after = SimpleNamespace(task={'task_progress_potential': .4})
+    assert reward._reward_only_potential_pair(before, after, None, None) == (.3, .4, None)
+
+
+@pytest.mark.parametrize('middle', [leg(), leg('AIR', within_top_xy=False, top_xy_outside_distance_m=.07)])
+def test_TOP_loss_recovery_TOP_sequence_has_one_retention_share(binding, middle):
+    closer = dict(middle, top_xy_outside_distance_m=.01)
+    states = [task(leg('TOP')), task(middle), task(closer), task(leg('TOP'))]
+    expected_reward_phi = []
+    for state in states:
+        _, audit = reward._rr_retention_reward_delta(state, binding)
+        # The unaffected part of global Phi is fixed; the old shared scalar
+        # contains exactly its existing RR-retention contribution.
+        state['task_progress_potential'] = .58 + binding['global_retention_share']*audit['old_retention']
+        expected_reward_phi.append(.58 + binding['global_retention_share']*audit['new_retention'])
+    total = 0.
+    for i, (before, after) in enumerate(zip(states, states[1:])):
+        saved = deepcopy((before, after))
+        p0, p1, audit = reward._reward_only_potential_pair(
+            SimpleNamespace(task=before), SimpleNamespace(task=after), None, binding)
+        assert (before, after) == saved
+        assert (p0, p1) == pytest.approx(expected_reward_phi[i:i+2])
+        shaping = 5*(.9985*p1-p0)
+        original = 5*(.9985*after['task_progress_potential']-before['task_progress_potential'])
+        one_substitution = 5*(.9985*audit['after']['delta_global_potential']-audit['before']['delta_global_potential'])
+        assert shaping == pytest.approx(original + one_substitution)
+        total += .9985**i*shaping
+    assert total == pytest.approx(5*(.9985**3*expected_reward_phi[-1]-expected_reward_phi[0]))
+    assert total < 0.  # Same complete state: no repeat-capture farming bonus.
+
+
+def test_outside_to_current_RL_swing_scope_exit_is_bounded_PBRS_not_event(binding):
+    before = task(leg('AIR', within_top_xy=False, top_xy_outside_distance_m=.05))
+    after = deepcopy(before)
+    after['physical_evaluator']['current_legs']['RL'] = leg('AIR')
+    p0, p1, audit = reward._reward_only_potential_pair(
+        SimpleNamespace(task=before), SimpleNamespace(task=after), None, binding)
+    delta_before = audit['before']['delta_global_potential']
+    assert 0 < delta_before <= binding['global_retention_share']*.5
+    assert audit['after']['delta_global_potential'] == 0.
+    assert audit['after']['scope'] == 'unchanged'
+    correction = 5*(.9985*p1-p0)-5*(.9985*after['task_progress_potential']-before['task_progress_potential'])
+    assert correction == pytest.approx(-5*delta_before)
+    assert abs(correction) <= 5*binding['global_retention_share']*.5
+    assert 'terminal_event' not in audit  # This is potential exit, not an extra failure event.

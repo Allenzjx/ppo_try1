@@ -1,0 +1,57 @@
+# Same-439 reward-only continuation: read-only boundary memo
+
+Inspected frozen `f6d1d2df8d87d5f3eaaefc2254adb5f81fc52e2b`. No production/config edits, model imports, publication, PPO credit, or physical runs were performed for this memo. The proposed RR post-placement retention reward is not approved or implemented here. Finish the current complete-update boundary and the planned natural-P01 deterministic video first.
+
+## Result
+
+There is no existing authorized generic same-439 reward migration. The smallest safe implementation is one narrow same-439 identity migration factor on the existing `ResumeMigration` path, not `NewMdpWarmStart` and not another 422-to-439 append. Reuse the current full-state loader/saver and historical-contract reconstruction; do not invent another runner, optimizer or project.
+
+The source must be the **actual latest complete f6d 439 checkpoint at the later boundary**, selected from the sealed run/complete update and bound by its checkpoint plus sidecar SHA-256. Read its actual counters, state hashes, stage usage and effective LR. Do not hardcode CP225280 or this memo's creation-time pointer. The source can have a greater decision/update count than any earlier publication. Preserve its branch `ancestor220544_recapture_v2` and original 220544 branch origin; a new reward revision origin is separately copied from the actual selected source counters.
+
+## Why the existing shortcuts fail
+
+- `semantic_rear_owner_migration.build_rear_owner_migration()` is deliberately pinned to the exact learned CP225280, 422-dimensional source and an append map. Reusing it would ignore later learned 439 columns/state or fail validation; do not relax those old pins or overwrite the old receipt.
+- `semantic_cli._preflight_checkpoint()` requires runtime equality without a reviewed plan. In the rear experiment its current migration branches recognize append439/same422/append422, then fall back to **419**. A new same439 factor needs an explicit branch before that fallback.
+- `semantic_rear_owner_migration.validate_rear_owner_lineage()` binds its original target to the f6d runtime. Merely changing `runtime_contract`, or rewriting that historical receipt to the next HEAD, breaks ancestry. A new outer receipt must reconstruct f6d and call the unchanged old owner validator on that historical contract.
+- The generic `build_migration_plan()` factors are specialized, not permission to accept arbitrary same-shaped rewards. The same410/same419 identity checkers also have exact storage dimensions; do not call them on439 or broadly relax them.
+- `NewMdpWarmStart` follows a different boundary with optimizer treatment; it is not required or appropriate for this requested full-Adam identity continuation.
+
+## Reusable implementation pieces
+
+1. **Integrity / reviewed delta:** `semantic_migration.checkpoint_metadata()`, `_contract()`, `file_sha()`, `digest()`, `source_num_envs()`; `semantic_cli.runtime_contract()`. Validate source embedded/sidecar agreement again during actual load. Require actual source f6d, existing owner439 policy/layout, N1, intact route/lineage, save-load receipt and complete-update evidence. Require unchanged selected configs, budgets, dynamics, actor contract, Gaussian/HISTORY kernel, return profile and runner configuration. Admit only the reviewed reward file and migration-wiring files, with exact old/new bytes; reject unrelated files or metadata. Record `same_mdp_claimed=False`, zero learning credit and discard-old-rollout=True.
+2. **Identity loader pattern:** `semantic_rear_recapture_migration.load_rear_recapture_migration()` is the shortest model: verify plan; call `load_semantic_checkpoint(runner, checkpoint, contract=source_metadata['runtime_contract'], seed=source_seed)` **without another migration**, using the same439 runner; verify all state; then return infos with the new runtime and a new outer receipt. No tensor remap is necessary. The loader at `semantic_training.py:1068` onward checks source SHA, embedded infos, actor/critic/Adam/normalizer hashes and restores `training_rng_state`. `rl_library_wrapper.load_checkpoint_round_trip()` synchronizes the runner's effective LR to the loaded Adam LR, so do not set it to a factory default.
+3. **Verification pattern:** adapt `semantic_cooperative_prep_migration._verify_target_identity()` to exact `(128,1,439)` observations and `(128,1,12)` raw actions, with storage step0 and empty pending transition. Check actor/critic tensors and buffers, all Adam moments/steps/options, Identity normalizers, both optimizer and `alg.learning_rate`, `current_learning_iteration`, Python/NumPy/Torch CPU/CUDA RNG receipt, counters, stage-used counts, branch receipts and route. Use `preserved_keys()` plus runner/policy/model/optimizer hashes and route. No new random model initialization is needed (`initialize_actor=False`); restore source RNG after construction/load.
+4. **Lineage inverse:** reuse the approach of `semantic_cooperative_prep_migration._previous_contract()`: copy target contract, restore original HEAD/runtime digest and the explicit before hashes, restore selected configs only if actually changed, then require the reconstructed contract digest to match the new receipt's source digest. Remove only the new outer receipt from a historical metadata copy; substitute reconstructed f6d runtime; preserve its owner receipt byte-for-byte; call `validate_rear_owner_lineage()` with the unchanged branch route. Later learned descendants may have counters above the new revision origin; hashes of mutable learned state are checked during the one-time migration, not frozen forever in descendant validation.
+5. **Publication pattern:** reuse `publish_cooperative_prep_checkpoint()` / `publish_rear_owner_checkpoint()` structure with same439 source and target factories, immutable unique same-branch path, `save_semantic_checkpoint()`, then a newly constructed independent runner and ordinary `load_semantic_checkpoint()`. Verify state identity and zero decisions/PPO/Adam/AUX added. Do not promote the main latest pointer during this zero-credit publication. An outputs-only publisher can accept explicit checkpoint and expected hashes; the existing `publish_rear_owner.py` must not be reused unchanged because it hardcodes225280.
+
+## Minimum production wiring if the reward change is approved
+
+Suggested narrow factor/receipt names: `rear_retention_same439_factor` / `rear_retention_reward_migration`; a single dedicated module may contain build/validate/load/lineage/publish. These names are a proposal, not an existing API.
+
+| File | Minimal change |
+| --- | --- |
+| `semantic_reward.py` | Only the reviewed RR post-placement retention semantics; no concurrent owner/sigma/caps/role edits. |
+| One same439 migration module | Narrow reviewed delta, actual source binding, identity load, inverse ancestry, immutable publication. |
+| `semantic_migration.py:3822` | Route the new exact schema in `validate_migration_plan()` before generic legacy factors. |
+| `semantic_cli.py:523` | Recognize the new factor with exact owner439 policy/layout and original seed, before419 fallback. |
+| `semantic_training.py:890` and `:2315` | Dispatch the exclusive factor before ordinary load; carry the new receipt in every later normal update save. |
+| `semantic_rear_policy_timing_migration.py:145` | Recognize new outer lineage **before** existing owner lineage and validate the reconstructed historical owner receipt. |
+
+This is six runtime paths including the reward; selected YAML/schema files and actor/distribution/HISTORY files need not change for a truly reward-only sparse term. Tests and outputs are not runtime inventory. Review the actual final diff and pin those bytes, not a filename wildcard. Existing CLI/PS `-ResumeMigration` transport already works; no wrapper rewrite is required. Alternatively publish the explicit zero-credit identity boundary first, then use ordinary training resume from that publication; training and evaluation still consume the same validated next-runtime checkpoint.
+
+If the proposed implementation changes `task_progress_potential` rather than adding a reward-only term, that value is also an observation (`semantic_observation.py:408`, task_progress group). Then it is **same shape but changed observation meaning**, not a numerically identical physical-state input. Declare this and test it; don't claim deterministic physical-state action equivalence. For a sparse reward-only change, same numeric439 input must produce identical mean/std/value/raw-action log probability immediately across publication.
+
+## HISTORY and fresh rollout distinction
+
+Keep the existing HISTORY codec, rho, mean/kernel law and owner public17 fields unchanged. Checkpoints do not save a bitwise Isaac physical episode or its per-episode mapper state. A migration starts with fresh legal reset and empty new-version rollout; build physical/action/contact/HISTORY via the normal natural-P01 or continuous legal uncredited prefix. Do not seed a new episode with an old rollout's mapper/owner cache. Do not zero HISTORY at ordinary phase transitions. Retain used training counts; restarting reset sampling is not restarting budgets. If a publication normalizes its declared execution topology to fresh P01 (as current append/same422 publishers do), explicitly record that fresh sampling epoch rather than claiming the old suffix simulator state was restored.
+
+## Focused tests / acceptance before real continuation
+
+1. Pure integrity cases: actual latest f6d439 source accepted; stale225280/422, wrong sidecar/hash/HEAD, route tampering, mixed migration factors, unreviewed files/config/budget/caps/kernel changes rejected. Build/validate the exact target plan twice and require equality.
+2. Fresh CPU model test **only after Isaac has exited**: populated nonzero Adam and learned439 columns survive load/save/independent reload bitwise; LR, RNG, seed, iteration, normalization, counts and route exact. Same439 numerical input preserves deterministic actor, critic, sigma and log probability. Source tensors must not be zero-appended/reinitialized.
+3. Storage negative: nonzero storage.step or pending transition rejects; target storage exact128x1x439/raw12. No old returns/advantages/log-prob rows inherited. One synthetic fresh update preserves outer+inner receipts and increases counters only by actual work. This is synthetic credit, not physical PPO.
+4. Ancestry negative: alter old owner receipt or target/source contract hashes => reject. Normal trained descendants of the new runtime validate with changed weights/Adam/counters and intact historical receipts. Ordinary CLI preflight, prefix wrapper and independent eval all recognize439; do not repeat the prior suffix419 routing failure.
+5. Reward examples from live-coverage agent: confirm exact current-state retention eligibility and ineligible/ground/outside/valid-RL-recovery cases; no fake support, phase reward, terminal semantics or safety changes. If sparse reward only, observations/final controller commands for identical input histories remain unchanged.
+6. After actual frozen next-runtime publication, recollect compatible real PPO rows and then save/reload natural-P01 deterministic evaluation. Report controller/reward change, zero-credit publication and real subsequent PPO separately. Current f6d video remains a f6d reference, never relabeled as the next version.
+
+No migration or tests above have been executed by this memo task; it is a bounded implementation map for the next authorized boundary.

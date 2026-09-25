@@ -1,0 +1,56 @@
+*** Begin Patch
+*** Update File: tests/unit/test_semantic_front_retention439.py
+@@
+     assert calls and not (branch/"checkpoints/checkpoint_last_pointer.json").exists()
+ 
+ 
++def test_sparse_P10_P13_full_gaussian_and_raw_logp_synthetic_unit_only(cpu_state):
++    """All rows here are synthetic; this test never claims a reached P13 state."""
++    import importlib.util
++    import sys
++    torch,t,make,*_ = cpu_state
++    path=ROOT/"outputs/ppo_rl_recovery_learning_v1/staged_front_retention439/front_retention439.py"
++    spec=importlib.util.spec_from_file_location("front439_numeric_unit_kernel",path)
++    kernel=importlib.util.module_from_spec(spec);sys.modules[spec.name]=kernel;spec.loader.exec_module(kernel)
++    deps=kernel._numeric_dependencies()
++    actor=make().alg.actor
++    x=torch.zeros(3,439)
++    for row,phase in enumerate((9,10,11)):
++        x[row,phase]=1.;x[row,20]=.03;x[row,158:158+phase]=1.
++    observations=kernel.tensors(x,deps=deps)
++    p13,evidence=kernel._synthetic_p13_invariance(observations,deps)
++    assert evidence["actual_rows_by_phase"]["P13"]==0
++    assert evidence["synthetic_P13_rows"]==3 and evidence["real_P13_validation_claimed"] is False
++    first=kernel.first_layer(actor,deps)
++    original=t.parameter_hash(actor)
++    # Independent finite leaf perturbation: no fit, SGD, or optimizer step.
++    leaf=first.weight[:,kernel.PHASE_COLUMNS].detach().clone()+.125
++    for supplied in (observations,p13):
++        before=kernel.distribution(actor,supplied,deps=deps)
++        after=kernel.distribution(actor,supplied,leaf,deps)
++        assert kernel._exact_gaussian(before,after)
++        raw=before["mean"].detach()+.137*before["sigma"].detach()
++        logp_before=torch.distributions.Normal(before["mean"],before["sigma"]).log_prob(raw).sum(-1)
++        logp_after=torch.distributions.Normal(after["mean"],after["sigma"]).log_prob(raw).sum(-1)
++        assert torch.equal(logp_before,logp_after)
++    assert t.parameter_hash(actor)==original
++    # Counterexample: selected phase input is nonzero, so there is no promise.
++    selected=x[:1].clone();selected[:,:13]=0.;selected[:,1]=1.
++    selected=kernel.tensors(selected,deps=deps)
++    assert not kernel._exact_gaussian(kernel.distribution(actor,selected,deps=deps),
++                                      kernel.distribution(actor,selected,leaf,deps))
++    # Non-Identity normalization invalidates the zero-column argument.
++    normalizer=actor.obs_normalizer
++    try:
++        actor.obs_normalizer=torch.nn.LayerNorm(439)
++        with pytest.raises(ValueError,match="Identity"):
++            kernel.first_layer(actor,deps)
++    finally:
++        actor.obs_normalizer=normalizer
++
++
++
+ def test_aux_then_one_ordinary_ppo_update_validates_and_carries_ledger(cpu_state,tmp_path):
+     torch,t,make,path,source,target,record,branch,calls=cpu_state
+     from test_semantic_rear_policy_training_audit import Synthetic419Core
+*** End Patch

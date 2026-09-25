@@ -1,0 +1,683 @@
+{
+  "schema": "wlr50_clean.P05_six_endpoint_fullbody_readonly.v1",
+  "joint_order": [
+    "FL hip",
+    "FL knee",
+    "FR hip",
+    "FR knee",
+    "RL hip",
+    "RL knee",
+    "RR hip",
+    "RR knee"
+  ],
+  "wheel_order": [
+    "FL",
+    "FR",
+    "RL",
+    "RR"
+  ],
+  "units": "joint deg; wheel canonical forward-positive rad/s; position m",
+  "scope": "Six decision endpoints only. Last dispatched FINAL ACK versus endpoint measured response; no assertion that target was constant over all eight physics substeps. Two checkpoints/runtime versions and naturally different histories; not a single-factor causal experiment.",
+  "rows": [
+    {
+      "run": "CP225280 original student probe",
+      "requested_P05_age_s": 2,
+      "P05_age_s": 2.0,
+      "episode_time_s": 25.133333333333333,
+      "episode_physics_tick": 3016,
+      "decision_id": 376,
+      "actuator_dispatch_tick_with_startup_offset": 3195,
+      "source_N_full12": [
+        48.2,
+        -36.7,
+        0.0,
+        45.9,
+        17.5,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_N_full12": [
+        49.45,
+        -37.95,
+        0.0,
+        45.30214389304248,
+        15.588750871558233,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "final_ACK_full12": [
+        48.346466600281865,
+        -58.0,
+        5.629254679420334,
+        35.35499366855597,
+        9.585895755626751,
+        1.836036033072223,
+        6.400641051425392,
+        -9.761399703781274,
+        -0.4638118641642203,
+        0.27712178059219755,
+        0.34394277838992343,
+        0.16605123668542204
+      ],
+      "actual_endpoint_full12": [
+        48.32564242383096,
+        -57.992098165764304,
+        10.45479287256592,
+        36.064077194190126,
+        11.104060688260526,
+        1.6728743574499336,
+        6.382904280415402,
+        -9.484937731783624,
+        -0.46347856521606445,
+        0.2775191068649292,
+        0.42124608159065247,
+        0.22204430401325226
+      ],
+      "COM_world_m": [
+        0.160341023415659,
+        -0.11745635201727146,
+        0.15792589679244315
+      ],
+      "base_world_m": [
+        0.1849815547466278,
+        0.0016186907887458801,
+        0.0752185732126236
+      ],
+      "FL_gap_m": 0.041207420391362895,
+      "FL_front_distance_m": -0.15270983832049723,
+      "legs": {
+        "FL": {
+          "air": true,
+          "ground_contact": false,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 0.0
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_contact": true,
+          "within_top_xy": true,
+          "bearing_force_n": 12.775958061218262
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 14.751888275146484
+        },
+        "RR": {
+          "air": false,
+          "ground_contact": true,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 1.5817643404006958
+        }
+      },
+      "source_decisions": "runs\\ppo_rr_rl_timing_policy_learning_v1\\direction_probe\\20260924_owner439_student_entry_v2\\diagnostic_decisions.jsonl",
+      "source_physical": "runs\\ppo_rr_rl_timing_policy_learning_v1\\direction_probe\\20260924_owner439_student_entry_v2\\physical_observations.jsonl",
+      "probe_no_intervention_verified": true
+    },
+    {
+      "run": "CP229120 formal DET",
+      "requested_P05_age_s": 2,
+      "P05_age_s": 2.0,
+      "episode_time_s": 19.866666666666667,
+      "episode_physics_tick": 2384,
+      "decision_id": 298,
+      "actuator_dispatch_tick_with_startup_offset": 2563,
+      "source_N_full12": [
+        48.2,
+        -36.7,
+        0.0,
+        45.9,
+        17.5,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_N_full12": [
+        49.45,
+        -37.95,
+        0.0,
+        45.923851515160344,
+        15.291220645753953,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "final_ACK_full12": [
+        47.68688458627059,
+        -58.0,
+        5.458268711735227,
+        39.58585849110936,
+        8.906956817749265,
+        1.5762241710588716,
+        6.4669911985997235,
+        -10.448670270515958,
+        -0.400082878105619,
+        0.3161405266024279,
+        0.16601640178672372,
+        0.24061768668998057
+      ],
+      "actual_endpoint_full12": [
+        47.66952762197037,
+        -57.990779939254494,
+        14.320827645633937,
+        40.31473955621542,
+        10.728373816926792,
+        1.8313541695446818,
+        6.076276598006019,
+        -10.62482629481976,
+        -0.39999523758888245,
+        0.24089130759239197,
+        0.33675727248191833,
+        0.1638438105583191
+      ],
+      "COM_world_m": [
+        0.15382247511898992,
+        -0.11752148038186012,
+        0.14964127520634515
+      ],
+      "base_world_m": [
+        0.17422503232955933,
+        0.001391872763633728,
+        0.06406236439943314
+      ],
+      "FL_gap_m": 0.022319943599863667,
+      "FL_front_distance_m": -0.16158377783465738,
+      "legs": {
+        "FL": {
+          "air": true,
+          "ground_contact": false,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 0.0
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_contact": true,
+          "within_top_xy": true,
+          "bearing_force_n": 12.26075553894043
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 13.922029495239258
+        },
+        "RR": {
+          "air": false,
+          "ground_contact": true,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 2.5445268154144287
+        }
+      },
+      "source_decisions": "runs\\ppo_rr_rl_timing_policy_learning_v1\\video_eval\\validation\\20260924T1008401445075Z_g72e63592bdf4_3f1b5877a524484aab1eecca97694515\\source\\video_policy_decisions.jsonl",
+      "source_physical": "runs\\ppo_rr_rl_timing_policy_learning_v1\\video_eval\\validation\\20260924T1008401445075Z_g72e63592bdf4_3f1b5877a524484aab1eecca97694515\\source\\physical_observations.jsonl",
+      "probe_no_intervention_verified": null
+    },
+    {
+      "run": "CP225280 original student probe",
+      "requested_P05_age_s": 4,
+      "P05_age_s": 4.0,
+      "episode_time_s": 27.133333333333333,
+      "episode_physics_tick": 3256,
+      "decision_id": 406,
+      "actuator_dispatch_tick_with_startup_offset": 3435,
+      "source_N_full12": [
+        48.2,
+        -36.7,
+        0.0,
+        45.9,
+        17.5,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_N_full12": [
+        49.45,
+        -37.95,
+        0.0,
+        45.30214389304248,
+        15.588750871558233,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "final_ACK_full12": [
+        48.352338852117995,
+        -58.0,
+        5.7616970943507635,
+        35.10797342611793,
+        9.58149511579936,
+        1.8370389554039277,
+        6.565335873709114,
+        -9.848441312902084,
+        -0.4788178553700411,
+        0.2755999306944478,
+        0.3427768912084173,
+        0.1661964855927445
+      ],
+      "actual_endpoint_full12": [
+        48.329187292010204,
+        -57.992323562006916,
+        7.892125532770998,
+        35.74640509589283,
+        11.046964575667452,
+        1.620806117859634,
+        6.670782239779453,
+        -9.554313670730735,
+        -0.4787384867668152,
+        0.10105560719966888,
+        0.4288935661315918,
+        0.2154005616903305
+      ],
+      "COM_world_m": [
+        0.18866587847169372,
+        -0.11773906142997853,
+        0.16171200817761644
+      ],
+      "base_world_m": [
+        0.21495689451694489,
+        0.001659095287322998,
+        0.08089638501405716
+      ],
+      "FL_gap_m": 0.05056252043624239,
+      "FL_front_distance_m": -0.12400978462863321,
+      "legs": {
+        "FL": {
+          "air": true,
+          "ground_contact": false,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 0.0
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_contact": true,
+          "within_top_xy": true,
+          "bearing_force_n": 12.421350479125977
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 14.120115280151367
+        },
+        "RR": {
+          "air": false,
+          "ground_contact": true,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 2.206864833831787
+        }
+      },
+      "source_decisions": "runs\\ppo_rr_rl_timing_policy_learning_v1\\direction_probe\\20260924_owner439_student_entry_v2\\diagnostic_decisions.jsonl",
+      "source_physical": "runs\\ppo_rr_rl_timing_policy_learning_v1\\direction_probe\\20260924_owner439_student_entry_v2\\physical_observations.jsonl",
+      "probe_no_intervention_verified": true
+    },
+    {
+      "run": "CP229120 formal DET",
+      "requested_P05_age_s": 4,
+      "P05_age_s": 4.0,
+      "episode_time_s": 21.866666666666667,
+      "episode_physics_tick": 2624,
+      "decision_id": 328,
+      "actuator_dispatch_tick_with_startup_offset": 2803,
+      "source_N_full12": [
+        48.2,
+        -36.7,
+        0.0,
+        45.9,
+        17.5,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_N_full12": [
+        49.45,
+        -37.95,
+        0.0,
+        45.923851515160344,
+        15.291220645753953,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "final_ACK_full12": [
+        47.660247913593956,
+        -58.0,
+        5.618958478037934,
+        39.368301190318896,
+        8.87034281485143,
+        1.599389784585477,
+        6.657127920574415,
+        -10.580948138404159,
+        -0.4190619107662055,
+        0.31583191406370553,
+        0.16017866387590285,
+        0.24245680273833364
+      ],
+      "actual_endpoint_full12": [
+        47.63830682727424,
+        -57.99024718449923,
+        17.762233826870496,
+        40.04835534839576,
+        10.72994817553048,
+        1.929427255011308,
+        6.30194049865454,
+        -10.734372283823008,
+        -0.41896581649780273,
+        0.253142774105072,
+        0.3361842632293701,
+        0.23208869993686676
+      ],
+      "COM_world_m": [
+        0.1776860765026239,
+        -0.11771011744154619,
+        0.1445379610139345
+      ],
+      "base_world_m": [
+        0.19618186354637146,
+        0.0011749416589736938,
+        0.0570719838142395
+      ],
+      "FL_gap_m": 0.011466847437694272,
+      "FL_front_distance_m": -0.13843986051249857,
+      "legs": {
+        "FL": {
+          "air": true,
+          "ground_contact": false,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 0.0
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_contact": true,
+          "within_top_xy": true,
+          "bearing_force_n": 12.284127235412598
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 13.835832595825195
+        },
+        "RR": {
+          "air": false,
+          "ground_contact": true,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 2.357861042022705
+        }
+      },
+      "source_decisions": "runs\\ppo_rr_rl_timing_policy_learning_v1\\video_eval\\validation\\20260924T1008401445075Z_g72e63592bdf4_3f1b5877a524484aab1eecca97694515\\source\\video_policy_decisions.jsonl",
+      "source_physical": "runs\\ppo_rr_rl_timing_policy_learning_v1\\video_eval\\validation\\20260924T1008401445075Z_g72e63592bdf4_3f1b5877a524484aab1eecca97694515\\source\\physical_observations.jsonl",
+      "probe_no_intervention_verified": null
+    },
+    {
+      "run": "CP225280 original student probe",
+      "requested_P05_age_s": 6,
+      "P05_age_s": 6.0,
+      "episode_time_s": 29.133333333333333,
+      "episode_physics_tick": 3496,
+      "decision_id": 436,
+      "actuator_dispatch_tick_with_startup_offset": 3675,
+      "source_N_full12": [
+        48.2,
+        -36.7,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_N_full12": [
+        49.45,
+        -37.95,
+        0.0,
+        45.30214389304248,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "final_ACK_full12": [
+        48.40665954972083,
+        -58.0,
+        5.759659398097792,
+        35.10576293260208,
+        0.9175887462288834,
+        1.837492303836177,
+        6.609897103182773,
+        -9.80493334744516,
+        -0.48039346880813855,
+        0.27442339032804824,
+        0.34574409983776133,
+        0.16658912333097217
+      ],
+      "actual_endpoint_full12": [
+        48.38474746581367,
+        -57.991831788386676,
+        11.966203599089374,
+        35.80903451548726,
+        2.3324036936065795,
+        1.5681962656124935,
+        6.650476514263828,
+        -9.511169073291057,
+        -0.4803551435470581,
+        0.21305729448795319,
+        0.4361400306224823,
+        0.179556205868721
+      ],
+      "COM_world_m": [
+        0.20382579287652658,
+        -0.12459952183064206,
+        0.1642226713239238
+      ],
+      "base_world_m": [
+        0.22571203112602234,
+        -0.0012698173522949219,
+        0.08966156840324402
+      ],
+      "FL_gap_m": 0.05857265589164232,
+      "FL_front_distance_m": -0.1116022433536088,
+      "legs": {
+        "FL": {
+          "air": true,
+          "ground_contact": false,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 0.0
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_contact": true,
+          "within_top_xy": true,
+          "bearing_force_n": 12.367743492126465
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 14.781571388244629
+        },
+        "RR": {
+          "air": false,
+          "ground_contact": true,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 1.6181081533432007
+        }
+      },
+      "source_decisions": "runs\\ppo_rr_rl_timing_policy_learning_v1\\direction_probe\\20260924_owner439_student_entry_v2\\diagnostic_decisions.jsonl",
+      "source_physical": "runs\\ppo_rr_rl_timing_policy_learning_v1\\direction_probe\\20260924_owner439_student_entry_v2\\physical_observations.jsonl",
+      "probe_no_intervention_verified": true
+    },
+    {
+      "run": "CP229120 formal DET",
+      "requested_P05_age_s": 6,
+      "P05_age_s": 6.0,
+      "episode_time_s": 23.866666666666667,
+      "episode_physics_tick": 2864,
+      "decision_id": 358,
+      "actuator_dispatch_tick_with_startup_offset": 3043,
+      "source_N_full12": [
+        48.2,
+        -36.7,
+        0.0,
+        45.9,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "mapped_N_full12": [
+        49.45,
+        -37.95,
+        0.0,
+        45.923851515160344,
+        6.9,
+        0.0,
+        0.0,
+        0.0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "final_ACK_full12": [
+        47.706544483233706,
+        -58.0,
+        5.627480364147929,
+        39.353506657433186,
+        0.5053554776995224,
+        1.60343074708976,
+        6.697702601640781,
+        -10.54761778629378,
+        -0.4215214841333798,
+        0.31477514248164606,
+        0.163119973188642,
+        0.24267055149248734
+      ],
+      "actual_endpoint_full12": [
+        47.68653137790912,
+        -57.987822467343875,
+        32.199578628383506,
+        40.2136834923505,
+        2.3659290368173527,
+        1.8583718365803135,
+        6.285195436130607,
+        -10.750874874631407,
+        -0.4217163622379303,
+        0.2143859565258026,
+        0.34345346689224243,
+        0.08176010102033615
+      ],
+      "COM_world_m": [
+        0.19044663134949066,
+        -0.12313898879328089,
+        0.13112750076075055
+      ],
+      "base_world_m": [
+        0.19867677986621857,
+        -0.0001341402530670166,
+        0.04439697414636612
+      ],
+      "FL_gap_m": -0.015447125112614854,
+      "FL_front_distance_m": -0.13148089902568216,
+      "legs": {
+        "FL": {
+          "air": true,
+          "ground_contact": false,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 0.0
+        },
+        "FR": {
+          "air": false,
+          "ground_contact": false,
+          "top_contact": true,
+          "within_top_xy": true,
+          "bearing_force_n": 12.179092407226562
+        },
+        "RL": {
+          "air": false,
+          "ground_contact": true,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 14.77972412109375
+        },
+        "RR": {
+          "air": false,
+          "ground_contact": true,
+          "top_contact": false,
+          "within_top_xy": false,
+          "bearing_force_n": 2.0867061614990234
+        }
+      },
+      "source_decisions": "runs\\ppo_rr_rl_timing_policy_learning_v1\\video_eval\\validation\\20260924T1008401445075Z_g72e63592bdf4_3f1b5877a524484aab1eecca97694515\\source\\video_policy_decisions.jsonl",
+      "source_physical": "runs\\ppo_rr_rl_timing_policy_learning_v1\\video_eval\\validation\\20260924T1008401445075Z_g72e63592bdf4_3f1b5877a524484aab1eecca97694515\\source\\physical_observations.jsonl",
+      "probe_no_intervention_verified": null
+    }
+  ]
+}

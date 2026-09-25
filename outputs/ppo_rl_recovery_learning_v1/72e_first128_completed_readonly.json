@@ -1,0 +1,763 @@
+{
+  "schema": "readonly.72e_completed_prefix.v1",
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_rl_timing_policy_learning_v1\\train\\20260924T0731401970292Z_g72e63592bdf4_8abca665b0f64439bdd233a9d189e513",
+  "runtime_head": "72e63592bdf412d375abfda29b03cf456fbf4f7e",
+  "completed_update_evidence": [
+    {
+      "optimizer_steps": 20,
+      "actor_parameter_sha256_before": "435d95f5262bd76a7a612eb62dce8041507d374062c5bde88ec81010557be0f4",
+      "actor_parameter_sha256_after": "f2e9b1f5736165229b355741dbde2d8acfce37a17a6ac48e4dc67a025308b72b",
+      "actor_parameters_changed": true,
+      "finite_nonzero_gradient_observed": true,
+      "gradient_norm_min": 1.4142131339338098,
+      "gradient_norm_max": 1.4142135419189725,
+      "kl_mean": 0.02326307863952527,
+      "clip_fraction": 0.2609375,
+      "entropy": -9.516745471954346,
+      "value_loss": 0.24863987639546395,
+      "surrogate_loss": -0.041326002776622774,
+      "optimizer_learning_rate": 1e-05,
+      "ppo_update": 1732,
+      "global_policy_decisions": 226176
+    }
+  ],
+  "source_prefix": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_rl_timing_policy_learning_v1\\train\\20260924T0731401970292Z_g72e63592bdf4_8abca665b0f64439bdd233a9d189e513\\residual_and_projection_audit.jsonl",
+    "rows": 128,
+    "bytes": 17627451,
+    "sha256": "6cd82063a23eb40786695408f81cca05561feccdf7bf2827af1ae195401c0ec5"
+  },
+  "update_prefix": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_rl_timing_policy_learning_v1\\train\\20260924T0731401970292Z_g72e63592bdf4_8abca665b0f64439bdd233a9d189e513\\optimizer_updates.jsonl",
+    "rows": 1,
+    "bytes": 640,
+    "sha256": "8b56aba3b2775008e71506c19341cec4e36cd4673628679226617cdb2f882a07"
+  },
+  "credit": {
+    "new_policy_decisions": 128,
+    "PPO_updates": 1,
+    "Adam_steps": 20,
+    "prefix_decisions": 0,
+    "partial_rollout": 0
+  },
+  "semantics": [
+    "Decision-end physical-window counts, not duration-normalized success rates.",
+    "Only optimizer-confirmed requested prefix rows; no unfinished/live tail contributes.",
+    "Successful nominal prefix is not policy learning or natural-P01 success.",
+    "Positive local fixed-FR-axis projections of both CoM and body displacement, plus declining RL load fraction while RR and a front leg currently bear. NOT verified lateral/rightward transfer, NOT absolute RL force decline, NOT qualified RL unloading. Forward movement alone can make the projection positive; a load fraction can decline because other legs load more. World xyz components and current absolute forces are reported separately; yaw/body-frame decomposition is not inferred from the projection.",
+    "First-two-update coverage does not prove deterministic improvement or causal learning from reward-only revision."
+  ],
+  "physical_windows": {
+    "RR_reachable_AIR_preparation": 84,
+    "RR_actual_bearing_front_preparation": 31,
+    "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": 11,
+    "qualified_RL_edge_recovery": 1,
+    "RL_qualified_AIR_capture_region": 0,
+    "RL_actual_TOP_bearing": 0,
+    "RL_placed_history": 0,
+    "P13_actual_stage": 0,
+    "all_task_complete": 0
+  },
+  "episodes": [
+    {
+      "episode": 1,
+      "count": 128,
+      "ticks": [
+        6144,
+        7160
+      ],
+      "phases": {
+        "P11": 1,
+        "P12": 127
+      },
+      "terminal": false,
+      "reason": null,
+      "RR_placed_ground": 0,
+      "RR_current_bearing": 31,
+      "RL_current_qualified": 2,
+      "coverage": {
+        "RR_actual_bearing_front_preparation": 31,
+        "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": 11,
+        "qualified_RL_edge_recovery": 1,
+        "RR_reachable_AIR_preparation": 84
+      },
+      "first": {
+        "global_decision": 226049,
+        "episode": 1,
+        "tick": 6144,
+        "time_s": 51.2,
+        "phase": "P11",
+        "terminal": false,
+        "reason": null,
+        "RR_placed": true,
+        "RL_placed": false,
+        "RR_current_qualified": true,
+        "RL_current_qualified": false,
+        "RR_ground": false,
+        "RL_ground": true,
+        "RR_contact_mode": "TOP",
+        "RL_contact_mode": "GROUND",
+        "RL_current_qualified_tick": null,
+        "history_events": {
+          "active_lift": {
+            "FR": 24,
+            "FL": 1559,
+            "RR": 5427
+          },
+          "front_edge_crossed": {
+            "FR": 1486,
+            "FL": 2468,
+            "RR": 6133
+          },
+          "placed": {
+            "FR": 1502,
+            "FL": 2677,
+            "RR": 6133
+          }
+        },
+        "windows": [
+          "RR_actual_bearing_front_preparation",
+          "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline"
+        ],
+        "physical": {
+          "physics_tick": 6144,
+          "sim_time_s": 51.2,
+          "RR": {
+            "clearance_m": -0.00018580882939423643,
+            "front_distance_m": 0.003873649667021084,
+            "air": false,
+            "ground_contact": false,
+            "within_top_xy": true,
+            "current_lift_valid": true,
+            "active_attempt": true,
+            "contact_surface": "TOP",
+            "bearing_force_n": 15.464421272277832,
+            "bearing_verified": true
+          },
+          "RL": {
+            "clearance_m": -0.05035304199076043,
+            "front_distance_m": -0.15685793416667337,
+            "air": false,
+            "ground_contact": true,
+            "within_top_xy": false,
+            "current_lift_valid": false,
+            "active_attempt": false,
+            "contact_surface": "NONE",
+            "bearing_force_n": 1.9549851417541504,
+            "bearing_verified": true
+          },
+          "RR_actual_bearing": true,
+          "front_actual_bearing": [
+            "FL"
+          ],
+          "RL_current_load_fraction": 0.06488026824872423,
+          "RL_below_existing_unload_fraction": true,
+          "FR_direction_window_reference_tick": 6084,
+          "FR_direction_window_s": 0.5,
+          "FR_body_toward_m": 0.027492731601127234,
+          "FR_CoM_toward_m": 0.02447154682345034,
+          "RL_load_fraction_drop": 0.34292545717612627,
+          "FR_direction_window_fixed_axis_world": [
+            0.8424986270505157,
+            -0.5386984902689038,
+            0.0
+          ],
+          "FR_window_body_world_displacement_xyz_m": [
+            0.028887629508972168,
+            -0.005856603384017944,
+            0.025871917605400085
+          ],
+          "FR_window_CoM_world_displacement_xyz_m": [
+            0.02137510240114182,
+            -0.01199753204097155,
+            0.012047204379080023
+          ],
+          "RL_current_bearing_force_n": 1.9549851417541504,
+          "RL_current_bearing_force_verified": true,
+          "RL_current_contact_reaction_force_n": 1.954985141754168,
+          "RL_current_qualified_lift": false,
+          "RL_current_ground_contact": true,
+          "RL_current_absolute_force_drop_over_FR_window_n": null,
+          "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+          "fl_range_credit": 0.8721946945795982,
+          "rl_space_credit": 0.0
+        },
+        "owner_active": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "potential_semantics": "rr_recapture_retention_reward_only_v1",
+        "reward_only": {
+          "mode": "rr_recapture_retention_reward_only_v1",
+          "task_spec_sha256": "a6b4e6d030cdad81ee1df3241c4e959541ac50313d7f824e2d7a63342b369b58",
+          "shared_observation_potential_before": 0.6770908628878275,
+          "shared_observation_potential_after": 0.6715349948397257,
+          "reward_potential_before": 0.6770908628878275,
+          "reward_potential_after": 0.6715349948397257,
+          "before": {
+            "mode": "rr_recapture_retention_reward_only_v1",
+            "physics_tick": 6136,
+            "scope": "replace_existing_RR_retention_share",
+            "old_retention": 0.9953588222073972,
+            "new_retention": 0.9953588222073972,
+            "delta_global_potential": 0.0,
+            "changes_observation_or_contact": false,
+            "geometry_proximity": 0.9907176444147945,
+            "current_qualified": true,
+            "original_legal_AIR_or_TOP": true,
+            "current_ground": false,
+            "measured_TOP": true,
+            "measured_TOP_bearing": true,
+            "contact_half": 0.5,
+            "outside_preparation_only": false
+          },
+          "after": {
+            "mode": "rr_recapture_retention_reward_only_v1",
+            "physics_tick": 6144,
+            "scope": "replace_existing_RR_retention_share",
+            "old_retention": 0.9963112395823203,
+            "new_retention": 0.9963112395823203,
+            "delta_global_potential": 0.0,
+            "changes_observation_or_contact": false,
+            "geometry_proximity": 0.9926224791646405,
+            "current_qualified": true,
+            "original_legal_AIR_or_TOP": true,
+            "current_ground": false,
+            "measured_TOP": true,
+            "measured_TOP_bearing": true,
+            "contact_half": 0.5,
+            "outside_preparation_only": false
+          },
+          "global_retention_share": 0.0425,
+          "not_an_additional_reward_family": true,
+          "shared_task_groups_and_encoded_observation_modified": false
+        }
+      },
+      "last": {
+        "global_decision": 226176,
+        "episode": 1,
+        "tick": 7160,
+        "time_s": 59.666666666666664,
+        "phase": "P12",
+        "terminal": false,
+        "reason": null,
+        "RR_placed": true,
+        "RL_placed": false,
+        "RR_current_qualified": true,
+        "RL_current_qualified": false,
+        "RR_ground": false,
+        "RL_ground": true,
+        "RR_contact_mode": "AIR",
+        "RL_contact_mode": "GROUND_AND_OBSTACLE",
+        "RL_current_qualified_tick": null,
+        "history_events": {
+          "active_lift": {
+            "FR": 24,
+            "FL": 1559,
+            "RR": 5427,
+            "RL": 6198
+          },
+          "front_edge_crossed": {
+            "FR": 1486,
+            "FL": 2468,
+            "RR": 6133
+          },
+          "placed": {
+            "FR": 1502,
+            "FL": 2677,
+            "RR": 6133
+          }
+        },
+        "windows": [
+          "RR_reachable_AIR_preparation"
+        ],
+        "physical": {
+          "physics_tick": 7160,
+          "sim_time_s": 59.666666666666664,
+          "RR": {
+            "clearance_m": 0.034339211273494694,
+            "front_distance_m": 0.07717419011425619,
+            "air": true,
+            "ground_contact": false,
+            "within_top_xy": true,
+            "current_lift_valid": true,
+            "active_attempt": true,
+            "contact_surface": "NONE",
+            "bearing_force_n": 0.0,
+            "bearing_verified": true
+          },
+          "RL": {
+            "clearance_m": -0.05103600734331543,
+            "front_distance_m": -0.050616916586641025,
+            "air": false,
+            "ground_contact": true,
+            "within_top_xy": false,
+            "current_lift_valid": false,
+            "active_attempt": false,
+            "contact_surface": "OBSTACLE_AMBIGUOUS",
+            "bearing_force_n": 11.072441101074219,
+            "bearing_verified": false
+          },
+          "RR_actual_bearing": false,
+          "front_actual_bearing": [
+            "FL",
+            "FR"
+          ],
+          "RL_current_load_fraction": null,
+          "RL_below_existing_unload_fraction": null,
+          "FR_direction_window_reference_tick": 7100,
+          "FR_direction_window_s": 0.5,
+          "FR_body_toward_m": 0.042938569466225554,
+          "FR_CoM_toward_m": 0.035130905458589795,
+          "RL_load_fraction_drop": null,
+          "FR_direction_window_fixed_axis_world": [
+            0.6532111222307424,
+            -0.757175824887492,
+            0.0
+          ],
+          "FR_window_body_world_displacement_xyz_m": [
+            0.05029284954071045,
+            -0.01332150399684906,
+            -0.02617873251438141
+          ],
+          "FR_window_CoM_world_displacement_xyz_m": [
+            0.0337195984332358,
+            -0.01730758998650425,
+            -0.02714744798582666
+          ],
+          "RL_current_bearing_force_n": 11.072441101074219,
+          "RL_current_bearing_force_verified": false,
+          "RL_current_contact_reaction_force_n": 20.9076204906547,
+          "RL_current_qualified_lift": false,
+          "RL_current_ground_contact": true,
+          "RL_current_absolute_force_drop_over_FR_window_n": null,
+          "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+          "fl_range_credit": 0.0,
+          "rl_space_credit": 0.0
+        },
+        "owner_active": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "potential_semantics": "rr_recapture_retention_reward_only_v1",
+        "reward_only": {
+          "mode": "rr_recapture_retention_reward_only_v1",
+          "task_spec_sha256": "a6b4e6d030cdad81ee1df3241c4e959541ac50313d7f824e2d7a63342b369b58",
+          "shared_observation_potential_before": 0.6188629821548345,
+          "shared_observation_potential_after": 0.6198902647671531,
+          "reward_potential_before": 0.6188629821548345,
+          "reward_potential_after": 0.6198902647671531,
+          "before": {
+            "mode": "rr_recapture_retention_reward_only_v1",
+            "physics_tick": 7152,
+            "scope": "replace_existing_RR_retention_share",
+            "old_retention": 0.18648193305492755,
+            "new_retention": 0.18648193305492755,
+            "delta_global_potential": 0.0,
+            "changes_observation_or_contact": false,
+            "geometry_proximity": 0.3729638661098551,
+            "current_qualified": true,
+            "original_legal_AIR_or_TOP": true,
+            "current_ground": false,
+            "measured_TOP": false,
+            "measured_TOP_bearing": false,
+            "contact_half": 0.0,
+            "outside_preparation_only": false
+          },
+          "after": {
+            "mode": "rr_recapture_retention_reward_only_v1",
+            "physics_tick": 7160,
+            "scope": "replace_existing_RR_retention_share",
+            "old_retention": 0.21065328863889754,
+            "new_retention": 0.21065328863889754,
+            "delta_global_potential": 0.0,
+            "changes_observation_or_contact": false,
+            "geometry_proximity": 0.4213065772777951,
+            "current_qualified": true,
+            "original_legal_AIR_or_TOP": true,
+            "current_ground": false,
+            "measured_TOP": false,
+            "measured_TOP_bearing": false,
+            "contact_half": 0.0,
+            "outside_preparation_only": false
+          },
+          "global_retention_share": 0.0425,
+          "not_an_additional_reward_family": true,
+          "shared_task_groups_and_encoded_observation_modified": false
+        }
+      }
+    }
+  ],
+  "first_episode_handoff": {
+    "prefix_result": {
+      "kind": "checkpoint_prefix_result",
+      "policy_credit": false,
+      "request": {
+        "schema": "wlr50_clean.checkpoint_policy_prefix_request.v1",
+        "source": "successful_nominal",
+        "target_phase": "P10",
+        "teacher_offset_decisions": 0,
+        "maximum_prefix_decisions": 1800,
+        "fallback": "one_fresh_P01",
+        "task_horizon_includes_prefix": true,
+        "entry_is_exact_historical_snapshot": false,
+        "ordinary_phase_transitions_end_episode": false
+      },
+      "prefix_decisions": 767,
+      "prefix_physics_ticks": 6136,
+      "accepted": true,
+      "miss": null,
+      "target_first_observed_decision": 767
+    },
+    "handoff": {
+      "mode": "successful_nominal_initialized_suffix",
+      "from_P01_current_policy": false,
+      "target_first_observed_decision": 767,
+      "requested_phase_still_active_at_credit": true,
+      "requested_phase": "P10",
+      "actual_phase": "P10",
+      "physics_tick": 6136,
+      "sim_time_s": 51.13333333333333,
+      "remaining_task_time_s": 148.86666666666667,
+      "prefix_policy_provenance": {
+        "execution_profile_sha256": "11966f2d46b333022037f928a6f031035a4933d89f7df173e3fb026bcc3c8929",
+        "interface_contract": {
+          "action_dimension": 12,
+          "observation_dimension": 439,
+          "observation_layout": "role422_rear_owner_recovery_v1"
+        },
+        "policy_credit": false,
+        "raw_action_full12": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "runtime_content_sha256": "452c7d15c30486224ee32e0051baee7a714192c9cb66c805d7e872d31e151896",
+        "schema": "wlr50_clean.successful_nominal_prefix.v1",
+        "source": "successful_nominal",
+        "stage_task_spec_sha256": "a6b4e6d030cdad81ee1df3241c4e959541ac50313d7f824e2d7a63342b369b58"
+      }
+    },
+    "evidence_prefix_sha256": "5593c3dcd69588e5c4d7d592de97c2b19014a197e7d5bd71c60adf9b29d83e81",
+    "first_learner_endpoint_tick": 6144,
+    "RR_placement_event_tick": 6133,
+    "RR_placement_credit": "successful nominal prefix, NOT learner first placement",
+    "first_RL_qualified_after_handoff": {
+      "global_decision": 226056,
+      "episode": 1,
+      "tick": 6200,
+      "time_s": 51.666666666666664,
+      "phase": "P12",
+      "terminal": false,
+      "reason": null,
+      "RR_placed": true,
+      "RL_placed": false,
+      "RR_current_qualified": false,
+      "RL_current_qualified": true,
+      "RR_ground": false,
+      "RL_ground": false,
+      "RR_contact_mode": "TOP",
+      "RL_contact_mode": "AIR",
+      "RL_current_qualified_tick": 6198,
+      "history_events": {
+        "active_lift": {
+          "FR": 24,
+          "FL": 1559,
+          "RR": 5427,
+          "RL": 6198
+        },
+        "front_edge_crossed": {
+          "FR": 1486,
+          "FL": 2468,
+          "RR": 6133
+        },
+        "placed": {
+          "FR": 1502,
+          "FL": 2677,
+          "RR": 6133
+        }
+      },
+      "windows": [
+        "RR_actual_bearing_front_preparation",
+        "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline"
+      ],
+      "physical": {
+        "physics_tick": 6200,
+        "sim_time_s": 51.666666666666664,
+        "RR": {
+          "clearance_m": -0.0008791821109147627,
+          "front_distance_m": 0.045925322602506924,
+          "air": false,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": false,
+          "active_attempt": true,
+          "contact_surface": "TOP",
+          "bearing_force_n": 12.690861701965332,
+          "bearing_verified": true
+        },
+        "RL": {
+          "clearance_m": -0.041137808125228804,
+          "front_distance_m": -0.05300470845866556,
+          "air": true,
+          "ground_contact": false,
+          "within_top_xy": false,
+          "current_lift_valid": true,
+          "active_attempt": true,
+          "contact_surface": "NONE",
+          "bearing_force_n": 0.0,
+          "bearing_verified": true
+        },
+        "RR_actual_bearing": true,
+        "front_actual_bearing": [
+          "FL"
+        ],
+        "RL_current_load_fraction": 0.0,
+        "RL_below_existing_unload_fraction": true,
+        "FR_direction_window_reference_tick": 6140,
+        "FR_direction_window_s": 0.5,
+        "FR_body_toward_m": 0.09158587027013232,
+        "FR_CoM_toward_m": 0.07637564282218953,
+        "RL_load_fraction_drop": 0.08232291715721328,
+        "FR_direction_window_fixed_axis_world": [
+          0.8364312683047583,
+          -0.5480718323377818,
+          0.0
+        ],
+        "FR_window_body_world_displacement_xyz_m": [
+          0.09339529275894165,
+          -0.024571828544139862,
+          0.02836132049560547
+        ],
+        "FR_window_CoM_world_displacement_xyz_m": [
+          0.07286404356476794,
+          -0.028153022175363196,
+          0.008724165310316057
+        ],
+        "RL_current_bearing_force_n": 0.0,
+        "RL_current_bearing_force_verified": true,
+        "RL_current_contact_reaction_force_n": 0,
+        "RL_current_qualified_lift": true,
+        "RL_current_ground_contact": false,
+        "RL_current_absolute_force_drop_over_FR_window_n": null,
+        "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+        "fl_range_credit": 1.0,
+        "rl_space_credit": 1.0
+      },
+      "owner_active": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "potential_semantics": "rr_recapture_retention_reward_only_v1",
+      "reward_only": {
+        "mode": "rr_recapture_retention_reward_only_v1",
+        "task_spec_sha256": "a6b4e6d030cdad81ee1df3241c4e959541ac50313d7f824e2d7a63342b369b58",
+        "shared_observation_potential_before": 0.6891891917523199,
+        "shared_observation_potential_after": 0.7583742075644612,
+        "reward_potential_before": 0.6891891917523199,
+        "reward_potential_after": 0.7583742075644612,
+        "before": {
+          "mode": "rr_recapture_retention_reward_only_v1",
+          "physics_tick": 6192,
+          "scope": "replace_existing_RR_retention_share",
+          "old_retention": 0.989708026008601,
+          "new_retention": 0.989708026008601,
+          "delta_global_potential": 0.0,
+          "changes_observation_or_contact": false,
+          "geometry_proximity": 0.9794160520172019,
+          "current_qualified": false,
+          "original_legal_AIR_or_TOP": true,
+          "current_ground": false,
+          "measured_TOP": true,
+          "measured_TOP_bearing": true,
+          "contact_half": 0.5,
+          "outside_preparation_only": false
+        },
+        "after": {
+          "mode": "rr_recapture_retention_reward_only_v1",
+          "physics_tick": 6200,
+          "scope": "unchanged",
+          "old_retention": null,
+          "new_retention": null,
+          "delta_global_potential": 0.0,
+          "changes_observation_or_contact": false
+        },
+        "global_retention_share": 0.0425,
+        "not_an_additional_reward_family": true,
+        "shared_task_groups_and_encoded_observation_modified": false
+      }
+    },
+    "first_RL_qualification_loss": {
+      "global_decision": 226058,
+      "episode": 1,
+      "tick": 6216,
+      "time_s": 51.8,
+      "phase": "P12",
+      "terminal": false,
+      "reason": null,
+      "RR_placed": true,
+      "RL_placed": false,
+      "RR_current_qualified": true,
+      "RL_current_qualified": false,
+      "RR_ground": false,
+      "RL_ground": true,
+      "RR_contact_mode": "AIR",
+      "RL_contact_mode": "GROUND",
+      "RL_current_qualified_tick": null,
+      "history_events": {
+        "active_lift": {
+          "FR": 24,
+          "FL": 1559,
+          "RR": 5427,
+          "RL": 6198
+        },
+        "front_edge_crossed": {
+          "FR": 1486,
+          "FL": 2468,
+          "RR": 6133
+        },
+        "placed": {
+          "FR": 1502,
+          "FL": 2677,
+          "RR": 6133
+        }
+      },
+      "windows": [
+        "RR_reachable_AIR_preparation"
+      ],
+      "physical": {
+        "physics_tick": 6216,
+        "sim_time_s": 51.8,
+        "RR": {
+          "clearance_m": -0.0004832974056998701,
+          "front_distance_m": 0.05372906071972494,
+          "air": true,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": true,
+          "active_attempt": true,
+          "contact_surface": "NONE",
+          "bearing_force_n": 0.0,
+          "bearing_verified": true
+        },
+        "RL": {
+          "clearance_m": -0.0507070987731367,
+          "front_distance_m": -0.05113502996135111,
+          "air": false,
+          "ground_contact": true,
+          "within_top_xy": false,
+          "current_lift_valid": false,
+          "active_attempt": false,
+          "contact_surface": "NONE",
+          "bearing_force_n": 15.141701698303223,
+          "bearing_verified": true
+        },
+        "RR_actual_bearing": false,
+        "front_actual_bearing": [
+          "FR"
+        ],
+        "RL_current_load_fraction": 0.4958540232938469,
+        "RL_below_existing_unload_fraction": false,
+        "FR_direction_window_reference_tick": 6156,
+        "FR_direction_window_s": 0.5,
+        "FR_body_toward_m": 0.08058143466821723,
+        "FR_CoM_toward_m": 0.06701490686512346,
+        "RL_load_fraction_drop": -0.41751218250669886,
+        "FR_direction_window_fixed_axis_world": [
+          0.8431312308943576,
+          -0.5377078458517838,
+          0.0
+        ],
+        "FR_window_body_world_displacement_xyz_m": [
+          0.08126705884933472,
+          -0.02243344485759735,
+          0.003631412982940674
+        ],
+        "FR_window_CoM_world_displacement_xyz_m": [
+          0.06400411671478268,
+          -0.024271613772732736,
+          -0.009521260985130175
+        ],
+        "RL_current_bearing_force_n": 15.141701698303223,
+        "RL_current_bearing_force_verified": true,
+        "RL_current_contact_reaction_force_n": 15.14170169830336,
+        "RL_current_qualified_lift": false,
+        "RL_current_ground_contact": true,
+        "RL_current_absolute_force_drop_over_FR_window_n": null,
+        "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+        "fl_range_credit": 0.21155844978406277,
+        "rl_space_credit": 0.0
+      },
+      "owner_active": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "potential_semantics": "rr_recapture_retention_reward_only_v1",
+      "reward_only": {
+        "mode": "rr_recapture_retention_reward_only_v1",
+        "task_spec_sha256": "a6b4e6d030cdad81ee1df3241c4e959541ac50313d7f824e2d7a63342b369b58",
+        "shared_observation_potential_before": 0.7324596301063042,
+        "shared_observation_potential_after": 0.6323464403199283,
+        "reward_potential_before": 0.7324596301063042,
+        "reward_potential_after": 0.6323464403199283,
+        "before": {
+          "mode": "rr_recapture_retention_reward_only_v1",
+          "physics_tick": 6208,
+          "scope": "replace_existing_RR_retention_share",
+          "old_retention": 0.9795243911044955,
+          "new_retention": 0.9795243911044955,
+          "delta_global_potential": 0.0,
+          "changes_observation_or_contact": false,
+          "geometry_proximity": 0.9590487822089909,
+          "current_qualified": true,
+          "original_legal_AIR_or_TOP": true,
+          "current_ground": false,
+          "measured_TOP": true,
+          "measured_TOP_bearing": true,
+          "contact_half": 0.5,
+          "outside_preparation_only": false
+        },
+        "after": {
+          "mode": "rr_recapture_retention_reward_only_v1",
+          "physics_tick": 6216,
+          "scope": "replace_existing_RR_retention_share",
+          "old_retention": 0.4905173691221025,
+          "new_retention": 0.4905173691221025,
+          "delta_global_potential": 0.0,
+          "changes_observation_or_contact": false,
+          "geometry_proximity": 0.981034738244205,
+          "current_qualified": true,
+          "original_legal_AIR_or_TOP": true,
+          "current_ground": false,
+          "measured_TOP": false,
+          "measured_TOP_bearing": false,
+          "contact_half": 0.0,
+          "outside_preparation_only": false
+        },
+        "global_retention_share": 0.0425,
+        "not_an_additional_reward_family": true,
+        "shared_task_groups_and_encoded_observation_modified": false
+      }
+    },
+    "note": "Post-handoff occurrence is student-controlled suffix evidence, not proof that reward/PPO update caused the action; first rollout used frozen CP226048 weights."
+  },
+  "RR_placed_ground_count": 0,
+  "RL_qualified_count": 2
+}

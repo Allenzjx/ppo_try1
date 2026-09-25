@@ -1,0 +1,2454 @@
+{
+  "schema": "readonly.optimized_physical_course_coverage.v2",
+  "semantics": "nonexclusive real endpoint and separately aligned input windows; not phase-label substitution",
+  "window_semantics": {
+    "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": "Positive local fixed-FR-axis projections of both CoM and body displacement, plus declining RL load fraction while RR and a front leg currently bear. NOT verified lateral/rightward transfer, NOT absolute RL force decline, NOT qualified RL unloading. Forward movement alone can make the projection positive; a load fraction can decline because other legs load more. World xyz components and current absolute forces are reported separately; yaw/body-frame decomposition is not inferred from the projection."
+  },
+  "superseded_window_label": {
+    "FR_directed_body_CoM_motion_with_RL_unload": "Renamed without changing its numeric predicate; older reports are preserved, but their label does not establish real lateral motion or qualified unloading."
+  },
+  "limitations": [
+    "No Torch/checkpoint/tensor/model/physics access.",
+    "No per-tick duration claim: endpoint counts are optimized policy intervals, not 120Hz samples.",
+    "Window CoM motion is local fixed-window displacement, not total transfer or receiving-leg bearing.",
+    "Positive local fixed-FR-axis projections of both CoM and body displacement, plus declining RL load fraction while RR and a front leg currently bear. NOT verified lateral/rightward transfer, NOT absolute RL force decline, NOT qualified RL unloading. Forward movement alone can make the projection positive; a load fraction can decline because other legs load more. World xyz components and current absolute forces are reported separately; yaw/body-frame decomposition is not inferred from the projection.",
+    "Nonterminal per-row raw GAE is not serialized in JSON: null is intentional, not zero.",
+    "Actual standardized optimizer advantages retain their original signs; no advantage relabeling.",
+    "Physical progress/capture does not imply complete P01 success; prefix has zero learning credit."
+  ],
+  "runs": [
+    {
+      "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_rl_timing_policy_learning_v1\\train\\20260924T0550107325587Z_gf6d1d2df8d87_44bb94e9c5a84f44bfb4e14785d144d7",
+      "lifecycle": "STOPPED_AT_VERIFIED_UPDATE_BOUNDARY",
+      "completed_at_utc": "2026-09-24T06:50:37.202163+00:00",
+      "bound_support": {
+        "force_noise_floor_n": 0.2,
+        "unloaded_leg_maximum_load_fraction": 0.2,
+        "frozen_task_sha256": "a6b4e6d030cdad81ee1df3241c4e959541ac50313d7f824e2d7a63342b369b58",
+        "frozen_head": "f6d1d2df8d87d5f3eaaefc2254adb5f81fc52e2b"
+      },
+      "optimized_decisions": 768,
+      "ppo_updates": 6,
+      "optimizer_steps": 120,
+      "actual_request_phase_counts": {
+        "P01": 0,
+        "P02": 0,
+        "P03": 0,
+        "P04": 0,
+        "P05": 0,
+        "P06": 0,
+        "P07": 4,
+        "P08": 4,
+        "P09": 276,
+        "P10": 7,
+        "P11": 11,
+        "P12": 466,
+        "P13": 0
+      },
+      "input_physical_window_counts": {
+        "RR_reachable_AIR_preparation": 48,
+        "RR_actual_bearing_front_preparation": 28,
+        "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": 22,
+        "qualified_RL_edge_recovery": 0,
+        "RL_qualified_AIR_capture_region": 0,
+        "RL_actual_TOP_bearing": 0,
+        "RL_placed_history": 0,
+        "P13_actual_stage": 0,
+        "all_task_complete": 0
+      },
+      "input_physical_window_missing_alignment": 4,
+      "endpoint_physical_window_counts": {
+        "RR_reachable_AIR_preparation": 48,
+        "RR_actual_bearing_front_preparation": 28,
+        "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": 22,
+        "qualified_RL_edge_recovery": 0,
+        "RL_qualified_AIR_capture_region": 0,
+        "RL_actual_TOP_bearing": 0,
+        "RL_placed_history": 0,
+        "P13_actual_stage": 0,
+        "all_task_complete": 0
+      },
+      "physical_event_history_counts": {
+        "RR_current_qualified": 463,
+        "RR_front_edge_crossed_history": 559,
+        "RR_placed_history": 486,
+        "RL_current_qualified": 0,
+        "RL_front_edge_crossed_history": 0,
+        "RL_placed_history": 0
+      },
+      "public_owner_active_input_counts": {
+        "0": 444,
+        "1": 444,
+        "4": 444,
+        "5": 444
+      },
+      "public_owner_active_endpoint_counts": null,
+      "public_owner_endpoint_receipt_missing": 768,
+      "public_owner_clock_semantics": "actual public17 at policy input; omitted native endpoint receipt is unavailable, not inactive",
+      "prefix": {
+        "decisions": 2580,
+        "physics_ticks": 20640,
+        "learner_starts": 4,
+        "PPO_credit": 0
+      },
+      "raw_policy_checks": {
+        "raw12_mean_sigma_logp_equal": 768,
+        "public_owner17": 768
+      },
+      "maximum_old_raw_logp_error": 3.269245794967901e-06,
+      "examples": {
+        "RR_reachable_AIR_preparation": [
+          {
+            "global_policy_decision": 225338,
+            "ppo_update": 1726,
+            "request_phase": "P09",
+            "end_phase": "P09",
+            "episode_start_tick": 5616,
+            "episode_end_tick": 5624,
+            "reward": 0.03807632997632027,
+            "old_value": -12.138948440551758,
+            "terminal": false,
+            "old_log_probability": 7.970767974853516,
+            "termination_reason": null,
+            "full_task_success": false,
+            "raw_GAE": null,
+            "raw_GAE_source": "not_saved_per_row_in_JSON",
+            "reward_breakdown": {
+              "families": {
+                "task_progress": 0.03807633012592223,
+                "body_stability": -0.0,
+                "contact_motion_quality": -0.0,
+                "control_smoothness": -0.0,
+                "control_regularization": -0.0
+              },
+              "potential_before": 0.610739199787894,
+              "potential_after": 0.6195504581669956,
+              "potential_shaping": 0.03940966345925556,
+              "terminal_event": 0.0,
+              "cooperative_counterroll_cost": 0.0
+            },
+            "effective_sigma_full12": [
+              0.1881403625011444,
+              0.21325331926345825,
+              0.008154681883752346,
+              0.38265669345855713,
+              0.22693151235580444,
+              0.04632597416639328,
+              1.4896132946014404,
+              0.025147680193185806,
+              0.7128991484642029,
+              0.05302772298455238,
+              0.10134023427963257,
+              0.050478022545576096
+            ],
+            "physical": {
+              "physics_tick": 5624,
+              "sim_time_s": 46.86666666666667,
+              "RR": {
+                "clearance_m": 0.04368857820334092,
+                "front_distance_m": 0.003381076882597256,
+                "air": true,
+                "ground_contact": false,
+                "within_top_xy": true,
+                "current_lift_valid": true,
+                "active_attempt": true,
+                "contact_surface": "NONE",
+                "bearing_force_n": 0.0,
+                "bearing_verified": true
+              },
+              "RL": {
+                "clearance_m": -0.05073029620426716,
+                "front_distance_m": -0.16007667439151163,
+                "air": false,
+                "ground_contact": true,
+                "within_top_xy": false,
+                "current_lift_valid": false,
+                "active_attempt": false,
+                "contact_surface": "NONE",
+                "bearing_force_n": 14.349808692932129,
+                "bearing_verified": true
+              },
+              "RR_actual_bearing": false,
+              "front_actual_bearing": [
+                "FL",
+                "FR"
+              ],
+              "RL_current_load_fraction": 0.4756893721637064,
+              "RL_below_existing_unload_fraction": false,
+              "FR_direction_window_reference_tick": 5564,
+              "FR_direction_window_s": 0.5,
+              "FR_body_toward_m": 0.006504460357076497,
+              "FR_CoM_toward_m": 0.007359737422225362,
+              "RL_load_fraction_drop": -0.04954455313598699,
+              "FR_direction_window_fixed_axis_world": [
+                0.7911550552465705,
+                -0.6116156297527034,
+                0.0
+              ],
+              "FR_window_body_world_displacement_xyz_m": [
+                0.00885009765625,
+                0.0008131563663482666,
+                -0.004345029592514038
+              ],
+              "FR_window_CoM_world_displacement_xyz_m": [
+                0.011359937087281557,
+                0.002661367944960122,
+                -0.004651692926225304
+              ],
+              "RL_current_bearing_force_n": 14.349808692932129,
+              "RL_current_bearing_force_verified": true,
+              "RL_current_contact_reaction_force_n": 14.349808692932259,
+              "RL_current_qualified_lift": false,
+              "RL_current_ground_contact": true,
+              "RL_current_absolute_force_drop_over_FR_window_n": null,
+              "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+              "fl_range_credit": 0.33083318948634916,
+              "rl_space_credit": 0.0
+            },
+            "endpoint_windows": [
+              "RR_reachable_AIR_preparation"
+            ],
+            "standardized_advantage": -0.009333005174994469
+          },
+          {
+            "global_policy_decision": 225339,
+            "ppo_update": 1726,
+            "request_phase": "P09",
+            "end_phase": "P09",
+            "episode_start_tick": 5624,
+            "episode_end_tick": 5632,
+            "reward": -0.03605279326438904,
+            "old_value": -12.30621337890625,
+            "terminal": false,
+            "old_log_probability": 9.162481307983398,
+            "termination_reason": null,
+            "full_task_success": false,
+            "raw_GAE": null,
+            "raw_GAE_source": "not_saved_per_row_in_JSON",
+            "reward_breakdown": {
+              "families": {
+                "task_progress": -0.036052794706305104,
+                "body_stability": -0.0,
+                "contact_motion_quality": -0.0,
+                "control_smoothness": -0.0,
+                "control_regularization": -0.0
+              },
+              "potential_before": 0.6195504581669956,
+              "potential_after": 0.6135268561766662,
+              "potential_shaping": -0.03471946137297177,
+              "terminal_event": 0.0,
+              "cooperative_counterroll_cost": 0.0
+            },
+            "effective_sigma_full12": [
+              0.1276586502790451,
+              0.18878401815891266,
+              0.005972414277493954,
+              0.326913446187973,
+              0.23126943409442902,
+              0.050980664789676666,
+              1.3478072881698608,
+              0.022384358569979668,
+              0.45593592524528503,
+              0.034886572510004044,
+              0.07633189111948013,
+              0.032512884587049484
+            ],
+            "physical": {
+              "physics_tick": 5632,
+              "sim_time_s": 46.93333333333333,
+              "RR": {
+                "clearance_m": 0.050523550175513326,
+                "front_distance_m": -0.00020825522113199213,
+                "air": true,
+                "ground_contact": false,
+                "within_top_xy": true,
+                "current_lift_valid": true,
+                "active_attempt": true,
+                "contact_surface": "NONE",
+                "bearing_force_n": 0.0,
+                "bearing_verified": true
+              },
+              "RL": {
+                "clearance_m": -0.05097520190608556,
+                "front_distance_m": -0.1612567569510972,
+                "air": false,
+                "ground_contact": true,
+                "within_top_xy": false,
+                "current_lift_valid": false,
+                "active_attempt": false,
+                "contact_surface": "NONE",
+                "bearing_force_n": 13.435921669006348,
+                "bearing_verified": true
+              },
+              "RR_actual_bearing": false,
+              "front_actual_bearing": [
+                "FL",
+                "FR"
+              ],
+              "RL_current_load_fraction": 0.44241969217214855,
+              "RL_below_existing_unload_fraction": false,
+              "FR_direction_window_reference_tick": 5572,
+              "FR_direction_window_s": 0.5,
+              "FR_body_toward_m": 0.002112110390600527,
+              "FR_CoM_toward_m": 0.0025088278002367258,
+              "RL_load_fraction_drop": -0.006440434553886543,
+              "FR_direction_window_fixed_axis_world": [
+                0.7909848628778401,
+                -0.6118357187171445,
+                0.0
+              ],
+              "FR_window_body_world_displacement_xyz_m": [
+                0.004010975360870361,
+                0.0017333254218101501,
+                -0.003333739936351776
+              ],
+              "FR_window_CoM_world_displacement_xyz_m": [
+                0.007011640300030653,
+                0.004964197819964003,
+                -0.0018224553789949471
+              ],
+              "RL_current_bearing_force_n": 13.435921669006348,
+              "RL_current_bearing_force_verified": true,
+              "RL_current_contact_reaction_force_n": 13.435921669006468,
+              "RL_current_qualified_lift": false,
+              "RL_current_ground_contact": true,
+              "RL_current_absolute_force_drop_over_FR_window_n": null,
+              "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+              "fl_range_credit": 0.3266358485138993,
+              "rl_space_credit": 0.0
+            },
+            "endpoint_windows": [
+              "RR_reachable_AIR_preparation"
+            ],
+            "standardized_advantage": -0.01692427322268486
+          }
+        ],
+        "RR_actual_bearing_front_preparation": [
+          {
+            "global_policy_decision": 225367,
+            "ppo_update": 1726,
+            "request_phase": "P09",
+            "end_phase": "P10",
+            "episode_start_tick": 5848,
+            "episode_end_tick": 5856,
+            "reward": 0.16559964418411255,
+            "old_value": -12.377930641174316,
+            "terminal": false,
+            "old_log_probability": 17.753543853759766,
+            "termination_reason": null,
+            "full_task_success": false,
+            "raw_GAE": null,
+            "raw_GAE_source": "not_saved_per_row_in_JSON",
+            "reward_breakdown": {
+              "families": {
+                "task_progress": 0.16559965087138293,
+                "body_stability": -0.0,
+                "contact_motion_quality": -0.0,
+                "control_smoothness": -0.0,
+                "control_regularization": -0.0
+              },
+              "potential_before": 0.636829589977124,
+              "potential_after": 0.6712230213500924,
+              "potential_shaping": 0.16693298420471625,
+              "terminal_event": 0.0,
+              "cooperative_counterroll_cost": 0.0
+            },
+            "effective_sigma_full12": [
+              0.14960741996765137,
+              0.1083923727273941,
+              0.006580139510333538,
+              0.02149084582924843,
+              0.11255419254302979,
+              0.0059074517339468,
+              0.36933615803718567,
+              0.01948435790836811,
+              0.24757272005081177,
+              0.03842511028051376,
+              0.07832105457782745,
+              0.031328439712524414
+            ],
+            "physical": {
+              "physics_tick": 5856,
+              "sim_time_s": 48.8,
+              "RR": {
+                "clearance_m": -0.0015358806749854875,
+                "front_distance_m": 0.0009580288631880762,
+                "air": false,
+                "ground_contact": false,
+                "within_top_xy": true,
+                "current_lift_valid": true,
+                "active_attempt": true,
+                "contact_surface": "TOP",
+                "bearing_force_n": 5.399672508239746,
+                "bearing_verified": true
+              },
+              "RL": {
+                "clearance_m": -0.051007855306446706,
+                "front_distance_m": -0.14489751713443155,
+                "air": false,
+                "ground_contact": true,
+                "within_top_xy": false,
+                "current_lift_valid": false,
+                "active_attempt": false,
+                "contact_surface": "NONE",
+                "bearing_force_n": 9.866665840148926,
+                "bearing_verified": true
+              },
+              "RR_actual_bearing": true,
+              "front_actual_bearing": [
+                "FL",
+                "FR"
+              ],
+              "RL_current_load_fraction": 0.31580331888458363,
+              "RL_below_existing_unload_fraction": false,
+              "FR_direction_window_reference_tick": 5796,
+              "FR_direction_window_s": 0.5,
+              "FR_body_toward_m": 0.0103872533696143,
+              "FR_CoM_toward_m": 0.00909398304917271,
+              "RL_load_fraction_drop": 0.1699905079160448,
+              "FR_direction_window_fixed_axis_world": [
+                0.8318832509281562,
+                -0.5549506796330663,
+                0.0
+              ],
+              "FR_window_body_world_displacement_xyz_m": [
+                0.013410210609436035,
+                0.0013847649097442627,
+                -0.013782382011413574
+              ],
+              "FR_window_CoM_world_displacement_xyz_m": [
+                0.014904056179222414,
+                0.005954496099364381,
+                -0.006248002939612862
+              ],
+              "RL_current_bearing_force_n": 9.866665840148926,
+              "RL_current_bearing_force_verified": true,
+              "RL_current_contact_reaction_force_n": 9.866665840149015,
+              "RL_current_qualified_lift": false,
+              "RL_current_ground_contact": true,
+              "RL_current_absolute_force_drop_over_FR_window_n": null,
+              "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+              "fl_range_credit": 0.31679402023860326,
+              "rl_space_credit": 0.0
+            },
+            "endpoint_windows": [
+              "RR_actual_bearing_front_preparation",
+              "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline"
+            ],
+            "standardized_advantage": -0.7678926587104797
+          },
+          {
+            "global_policy_decision": 225368,
+            "ppo_update": 1726,
+            "request_phase": "P10",
+            "end_phase": "P10",
+            "episode_start_tick": 5856,
+            "episode_end_tick": 5864,
+            "reward": -0.149330735206604,
+            "old_value": -12.140180587768555,
+            "terminal": false,
+            "old_log_probability": 6.396482467651367,
+            "termination_reason": null,
+            "full_task_success": false,
+            "raw_GAE": null,
+            "raw_GAE_source": "not_saved_per_row_in_JSON",
+            "reward_breakdown": {
+              "families": {
+                "task_progress": -0.14933072791931526,
+                "body_stability": -0.0,
+                "contact_motion_quality": -0.0,
+                "control_smoothness": -0.0,
+                "control_regularization": -0.0
+              },
+              "potential_before": 0.6712230213500924,
+              "potential_after": 0.6425874235682483,
+              "potential_shaping": -0.14799739458598193,
+              "terminal_event": 0.0,
+              "cooperative_counterroll_cost": 0.0
+            },
+            "effective_sigma_full12": [
+              0.19209140539169312,
+              0.31350719928741455,
+              0.013969008810818195,
+              0.4455077648162842,
+              0.21543282270431519,
+              0.07299815863370895,
+              0.34537598490715027,
+              0.01987270824611187,
+              0.24656957387924194,
+              0.1171882301568985,
+              0.07744263857603073,
+              0.09942373633384705
+            ],
+            "physical": {
+              "physics_tick": 5864,
+              "sim_time_s": 48.86666666666667,
+              "RR": {
+                "clearance_m": -0.0013515246505910322,
+                "front_distance_m": 0.0032287274105513575,
+                "air": false,
+                "ground_contact": false,
+                "within_top_xy": true,
+                "current_lift_valid": true,
+                "active_attempt": true,
+                "contact_surface": "TOP",
+                "bearing_force_n": 0.754539966583252,
+                "bearing_verified": true
+              },
+              "RL": {
+                "clearance_m": -0.05080818313237126,
+                "front_distance_m": -0.14391410010028238,
+                "air": false,
+                "ground_contact": true,
+                "within_top_xy": false,
+                "current_lift_valid": false,
+                "active_attempt": false,
+                "contact_surface": "NONE",
+                "bearing_force_n": 14.993362426757812,
+                "bearing_verified": true
+              },
+              "RR_actual_bearing": true,
+              "front_actual_bearing": [
+                "FR"
+              ],
+              "RL_current_load_fraction": 0.47478336963865253,
+              "RL_below_existing_unload_fraction": false,
+              "FR_direction_window_reference_tick": 5804,
+              "FR_direction_window_s": 0.5,
+              "FR_body_toward_m": 0.011177612004987965,
+              "FR_CoM_toward_m": 0.008555064401787743,
+              "RL_load_fraction_drop": 0.025548681484571234,
+              "FR_direction_window_fixed_axis_world": [
+                0.8293970413153089,
+                -0.5586595992708007,
+                0.0
+              ],
+              "FR_window_body_world_displacement_xyz_m": [
+                0.014332890510559082,
+                0.001270979642868042,
+                -0.007644064724445343
+              ],
+              "FR_window_CoM_world_displacement_xyz_m": [
+                0.014392443386905818,
+                0.00605375002062869,
+                -0.0017609842152066513
+              ],
+              "RL_current_bearing_force_n": 14.993362426757812,
+              "RL_current_bearing_force_verified": true,
+              "RL_current_contact_reaction_force_n": 14.993362426757948,
+              "RL_current_qualified_lift": false,
+              "RL_current_ground_contact": true,
+              "RL_current_absolute_force_drop_over_FR_window_n": null,
+              "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+              "fl_range_credit": 0.325571667095716,
+              "rl_space_credit": 0.0
+            },
+            "endpoint_windows": [
+              "RR_actual_bearing_front_preparation",
+              "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline"
+            ],
+            "standardized_advantage": -0.8502117395401001
+          }
+        ],
+        "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": [
+          {
+            "global_policy_decision": 225367,
+            "ppo_update": 1726,
+            "request_phase": "P09",
+            "end_phase": "P10",
+            "episode_start_tick": 5848,
+            "episode_end_tick": 5856,
+            "reward": 0.16559964418411255,
+            "old_value": -12.377930641174316,
+            "terminal": false,
+            "old_log_probability": 17.753543853759766,
+            "termination_reason": null,
+            "full_task_success": false,
+            "raw_GAE": null,
+            "raw_GAE_source": "not_saved_per_row_in_JSON",
+            "reward_breakdown": {
+              "families": {
+                "task_progress": 0.16559965087138293,
+                "body_stability": -0.0,
+                "contact_motion_quality": -0.0,
+                "control_smoothness": -0.0,
+                "control_regularization": -0.0
+              },
+              "potential_before": 0.636829589977124,
+              "potential_after": 0.6712230213500924,
+              "potential_shaping": 0.16693298420471625,
+              "terminal_event": 0.0,
+              "cooperative_counterroll_cost": 0.0
+            },
+            "effective_sigma_full12": [
+              0.14960741996765137,
+              0.1083923727273941,
+              0.006580139510333538,
+              0.02149084582924843,
+              0.11255419254302979,
+              0.0059074517339468,
+              0.36933615803718567,
+              0.01948435790836811,
+              0.24757272005081177,
+              0.03842511028051376,
+              0.07832105457782745,
+              0.031328439712524414
+            ],
+            "physical": {
+              "physics_tick": 5856,
+              "sim_time_s": 48.8,
+              "RR": {
+                "clearance_m": -0.0015358806749854875,
+                "front_distance_m": 0.0009580288631880762,
+                "air": false,
+                "ground_contact": false,
+                "within_top_xy": true,
+                "current_lift_valid": true,
+                "active_attempt": true,
+                "contact_surface": "TOP",
+                "bearing_force_n": 5.399672508239746,
+                "bearing_verified": true
+              },
+              "RL": {
+                "clearance_m": -0.051007855306446706,
+                "front_distance_m": -0.14489751713443155,
+                "air": false,
+                "ground_contact": true,
+                "within_top_xy": false,
+                "current_lift_valid": false,
+                "active_attempt": false,
+                "contact_surface": "NONE",
+                "bearing_force_n": 9.866665840148926,
+                "bearing_verified": true
+              },
+              "RR_actual_bearing": true,
+              "front_actual_bearing": [
+                "FL",
+                "FR"
+              ],
+              "RL_current_load_fraction": 0.31580331888458363,
+              "RL_below_existing_unload_fraction": false,
+              "FR_direction_window_reference_tick": 5796,
+              "FR_direction_window_s": 0.5,
+              "FR_body_toward_m": 0.0103872533696143,
+              "FR_CoM_toward_m": 0.00909398304917271,
+              "RL_load_fraction_drop": 0.1699905079160448,
+              "FR_direction_window_fixed_axis_world": [
+                0.8318832509281562,
+                -0.5549506796330663,
+                0.0
+              ],
+              "FR_window_body_world_displacement_xyz_m": [
+                0.013410210609436035,
+                0.0013847649097442627,
+                -0.013782382011413574
+              ],
+              "FR_window_CoM_world_displacement_xyz_m": [
+                0.014904056179222414,
+                0.005954496099364381,
+                -0.006248002939612862
+              ],
+              "RL_current_bearing_force_n": 9.866665840148926,
+              "RL_current_bearing_force_verified": true,
+              "RL_current_contact_reaction_force_n": 9.866665840149015,
+              "RL_current_qualified_lift": false,
+              "RL_current_ground_contact": true,
+              "RL_current_absolute_force_drop_over_FR_window_n": null,
+              "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+              "fl_range_credit": 0.31679402023860326,
+              "rl_space_credit": 0.0
+            },
+            "endpoint_windows": [
+              "RR_actual_bearing_front_preparation",
+              "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline"
+            ],
+            "standardized_advantage": -0.7678926587104797
+          },
+          {
+            "global_policy_decision": 225368,
+            "ppo_update": 1726,
+            "request_phase": "P10",
+            "end_phase": "P10",
+            "episode_start_tick": 5856,
+            "episode_end_tick": 5864,
+            "reward": -0.149330735206604,
+            "old_value": -12.140180587768555,
+            "terminal": false,
+            "old_log_probability": 6.396482467651367,
+            "termination_reason": null,
+            "full_task_success": false,
+            "raw_GAE": null,
+            "raw_GAE_source": "not_saved_per_row_in_JSON",
+            "reward_breakdown": {
+              "families": {
+                "task_progress": -0.14933072791931526,
+                "body_stability": -0.0,
+                "contact_motion_quality": -0.0,
+                "control_smoothness": -0.0,
+                "control_regularization": -0.0
+              },
+              "potential_before": 0.6712230213500924,
+              "potential_after": 0.6425874235682483,
+              "potential_shaping": -0.14799739458598193,
+              "terminal_event": 0.0,
+              "cooperative_counterroll_cost": 0.0
+            },
+            "effective_sigma_full12": [
+              0.19209140539169312,
+              0.31350719928741455,
+              0.013969008810818195,
+              0.4455077648162842,
+              0.21543282270431519,
+              0.07299815863370895,
+              0.34537598490715027,
+              0.01987270824611187,
+              0.24656957387924194,
+              0.1171882301568985,
+              0.07744263857603073,
+              0.09942373633384705
+            ],
+            "physical": {
+              "physics_tick": 5864,
+              "sim_time_s": 48.86666666666667,
+              "RR": {
+                "clearance_m": -0.0013515246505910322,
+                "front_distance_m": 0.0032287274105513575,
+                "air": false,
+                "ground_contact": false,
+                "within_top_xy": true,
+                "current_lift_valid": true,
+                "active_attempt": true,
+                "contact_surface": "TOP",
+                "bearing_force_n": 0.754539966583252,
+                "bearing_verified": true
+              },
+              "RL": {
+                "clearance_m": -0.05080818313237126,
+                "front_distance_m": -0.14391410010028238,
+                "air": false,
+                "ground_contact": true,
+                "within_top_xy": false,
+                "current_lift_valid": false,
+                "active_attempt": false,
+                "contact_surface": "NONE",
+                "bearing_force_n": 14.993362426757812,
+                "bearing_verified": true
+              },
+              "RR_actual_bearing": true,
+              "front_actual_bearing": [
+                "FR"
+              ],
+              "RL_current_load_fraction": 0.47478336963865253,
+              "RL_below_existing_unload_fraction": false,
+              "FR_direction_window_reference_tick": 5804,
+              "FR_direction_window_s": 0.5,
+              "FR_body_toward_m": 0.011177612004987965,
+              "FR_CoM_toward_m": 0.008555064401787743,
+              "RL_load_fraction_drop": 0.025548681484571234,
+              "FR_direction_window_fixed_axis_world": [
+                0.8293970413153089,
+                -0.5586595992708007,
+                0.0
+              ],
+              "FR_window_body_world_displacement_xyz_m": [
+                0.014332890510559082,
+                0.001270979642868042,
+                -0.007644064724445343
+              ],
+              "FR_window_CoM_world_displacement_xyz_m": [
+                0.014392443386905818,
+                0.00605375002062869,
+                -0.0017609842152066513
+              ],
+              "RL_current_bearing_force_n": 14.993362426757812,
+              "RL_current_bearing_force_verified": true,
+              "RL_current_contact_reaction_force_n": 14.993362426757948,
+              "RL_current_qualified_lift": false,
+              "RL_current_ground_contact": true,
+              "RL_current_absolute_force_drop_over_FR_window_n": null,
+              "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+              "fl_range_credit": 0.325571667095716,
+              "rl_space_credit": 0.0
+            },
+            "endpoint_windows": [
+              "RR_actual_bearing_front_preparation",
+              "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline"
+            ],
+            "standardized_advantage": -0.8502117395401001
+          }
+        ],
+        "qualified_RL_edge_recovery": [],
+        "RL_qualified_AIR_capture_region": [],
+        "RL_actual_TOP_bearing": [],
+        "RL_placed_history": [],
+        "P13_actual_stage": [],
+        "all_task_complete": []
+      },
+      "terminal_examples": [
+        {
+          "global_policy_decision": 225398,
+          "ppo_update": 1726,
+          "request_phase": "P12",
+          "end_phase": "P12",
+          "episode_start_tick": 6096,
+          "episode_end_tick": 6103,
+          "reward": -43.35036087036133,
+          "old_value": -12.935110092163086,
+          "terminal": true,
+          "old_log_probability": 18.436199188232422,
+          "termination_reason": "HARD_JOINT_LIMIT",
+          "full_task_success": false,
+          "raw_GAE": -30.415250778198242,
+          "raw_GAE_source": "exact_terminal_advantage_audit",
+          "reward_breakdown": {
+            "families": {
+              "task_progress": -43.35036244027275,
+              "body_stability": -0.0,
+              "contact_motion_quality": -0.0,
+              "control_smoothness": -0.0,
+              "control_regularization": -0.0
+            },
+            "potential_before": 0.6698391547212154,
+            "potential_after": 0.0,
+            "potential_shaping": -3.349195773606077,
+            "terminal_event": -40.0,
+            "cooperative_counterroll_cost": 0.0
+          },
+          "effective_sigma_full12": [
+            0.04168282076716423,
+            0.1852319836616516,
+            0.003614117158576846,
+            0.22388559579849243,
+            0.2625901699066162,
+            0.1694153994321823,
+            0.2066439539194107,
+            0.012050711549818516,
+            0.02465386874973774,
+            0.04250489920377731,
+            0.028809789568185806,
+            0.017246471717953682
+          ],
+          "physical": {
+            "physical_status": "invalid_or_unavailable"
+          },
+          "endpoint_windows": [],
+          "standardized_advantage": -1.8988746404647827
+        },
+        {
+          "global_policy_decision": 225434,
+          "ppo_update": 1727,
+          "request_phase": "P09",
+          "end_phase": "P09",
+          "episode_start_tick": 5440,
+          "episode_end_tick": 5445,
+          "reward": -42.44551086425781,
+          "old_value": -12.521000862121582,
+          "terminal": true,
+          "old_log_probability": 18.47583770751953,
+          "termination_reason": "BODY_COLLISION",
+          "full_task_success": false,
+          "raw_GAE": -29.924510955810547,
+          "raw_GAE_source": "exact_terminal_advantage_audit",
+          "reward_breakdown": {
+            "families": {
+              "task_progress": -42.444583333333334,
+              "body_stability": -0.0009290548327149891,
+              "contact_motion_quality": -0.0,
+              "control_smoothness": -0.0,
+              "control_regularization": -0.0
+            },
+            "potential_before": 0.48875,
+            "potential_after": 0.0,
+            "potential_shaping": -2.44375,
+            "terminal_event": -40.0,
+            "cooperative_counterroll_cost": 0.0
+          },
+          "effective_sigma_full12": [
+            0.09693929553031921,
+            0.08960170298814774,
+            0.004255909007042646,
+            0.014985544607043266,
+            0.11255848407745361,
+            0.008160022087395191,
+            0.15004394948482513,
+            0.00882760714739561,
+            0.10746033489704132,
+            0.025929097086191177,
+            0.05266117677092552,
+            0.017207246273756027
+          ],
+          "physical": {
+            "physical_status": "invalid_or_unavailable"
+          },
+          "endpoint_windows": [],
+          "standardized_advantage": -2.3061764240264893
+        },
+        {
+          "global_policy_decision": 225992,
+          "ppo_update": 1731,
+          "request_phase": "P12",
+          "end_phase": "P12",
+          "episode_start_tick": 9616,
+          "episode_end_tick": 9617,
+          "reward": -43.05485534667969,
+          "old_value": -11.320124626159668,
+          "terminal": true,
+          "old_log_probability": 17.522031784057617,
+          "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+          "full_task_success": false,
+          "raw_GAE": -31.734729766845703,
+          "raw_GAE_source": "exact_terminal_advantage_audit",
+          "reward_breakdown": {
+            "families": {
+              "task_progress": -43.054854166666665,
+              "body_stability": -0.0,
+              "contact_motion_quality": -0.0,
+              "control_smoothness": -0.0,
+              "control_regularization": -0.0
+            },
+            "potential_before": 0.6109375,
+            "potential_after": 0.0,
+            "potential_shaping": -3.0546875,
+            "terminal_event": -40.0,
+            "cooperative_counterroll_cost": 0.0
+          },
+          "effective_sigma_full12": [
+            0.1619732677936554,
+            0.13709786534309387,
+            0.012365603819489479,
+            0.02010737545788288,
+            0.10654068738222122,
+            0.011545791290700436,
+            0.3243606984615326,
+            0.021434403955936432,
+            0.16275204718112946,
+            0.0915054976940155,
+            0.05376433953642845,
+            0.06946973502635956
+          ],
+          "physical": {
+            "physics_tick": 9617,
+            "sim_time_s": 80.14166666666667,
+            "RR": {
+              "clearance_m": 0.05891080013471814,
+              "front_distance_m": -0.15889224069285746,
+              "air": true,
+              "ground_contact": false,
+              "within_top_xy": false,
+              "current_lift_valid": true,
+              "active_attempt": true,
+              "contact_surface": "NONE",
+              "bearing_force_n": 0.0,
+              "bearing_verified": true
+            },
+            "RL": {
+              "clearance_m": -0.050232807163323456,
+              "front_distance_m": -0.21982198612857218,
+              "air": false,
+              "ground_contact": true,
+              "within_top_xy": false,
+              "current_lift_valid": false,
+              "active_attempt": false,
+              "contact_surface": "NONE",
+              "bearing_force_n": 12.223420143127441,
+              "bearing_verified": true
+            },
+            "RR_actual_bearing": false,
+            "front_actual_bearing": [
+              "FL",
+              "FR"
+            ],
+            "RL_current_load_fraction": 0.44183381967416374,
+            "RL_below_existing_unload_fraction": false,
+            "FR_direction_window_reference_tick": 9557,
+            "FR_direction_window_s": 0.5,
+            "FR_body_toward_m": -0.0007510976818568798,
+            "FR_CoM_toward_m": -0.0014675618340549527,
+            "RL_load_fraction_drop": -0.05159906678624604,
+            "FR_direction_window_fixed_axis_world": [
+              0.5778219367980099,
+              -0.8161628571277895,
+              0.0
+            ],
+            "FR_window_body_world_displacement_xyz_m": [
+              -0.0017246603965759277,
+              -0.0003007352352142334,
+              -0.0027711838483810425
+            ],
+            "FR_window_CoM_world_displacement_xyz_m": [
+              -0.0029831834277279645,
+              -0.0003138920005256174,
+              -0.002848976383958507
+            ],
+            "RL_current_bearing_force_n": 12.223420143127441,
+            "RL_current_bearing_force_verified": true,
+            "RL_current_contact_reaction_force_n": 12.223420143127552,
+            "RL_current_qualified_lift": false,
+            "RL_current_ground_contact": true,
+            "RL_current_absolute_force_drop_over_FR_window_n": null,
+            "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+            "fl_range_credit": null,
+            "rl_space_credit": null
+          },
+          "endpoint_windows": [],
+          "standardized_advantage": -1.7180325984954834
+        }
+      ],
+      "final_optimized_endpoint": {
+        "global_policy_decision": 226048,
+        "ppo_update": 1731,
+        "request_phase": "P09",
+        "end_phase": "P09",
+        "episode_start_tick": 5600,
+        "episode_end_tick": 5608,
+        "reward": 0.029252449050545692,
+        "old_value": -12.225918769836426,
+        "terminal": false,
+        "old_log_probability": 18.395442962646484,
+        "termination_reason": null,
+        "full_task_success": false,
+        "raw_GAE": null,
+        "raw_GAE_source": "not_saved_per_row_in_JSON",
+        "reward_breakdown": {
+          "families": {
+            "task_progress": 0.029252449531492607,
+            "body_stability": -0.0,
+            "contact_motion_quality": -0.0,
+            "control_smoothness": -0.0,
+            "control_regularization": -0.0
+          },
+          "potential_before": 0.5989409122924989,
+          "potential_after": 0.6059670193945559,
+          "potential_shaping": 0.03058578286482594,
+          "terminal_event": 0.0,
+          "cooperative_counterroll_cost": 0.0
+        },
+        "effective_sigma_full12": [
+          0.16146931052207947,
+          0.1060071662068367,
+          0.00678772758692503,
+          0.018071172758936882,
+          0.11848530918359756,
+          0.006511978339403868,
+          0.40204742550849915,
+          0.023301128298044205,
+          0.24391251802444458,
+          0.037528153508901596,
+          0.0673917755484581,
+          0.028965968638658524
+        ],
+        "physical": {
+          "physics_tick": 5608,
+          "sim_time_s": 46.733333333333334,
+          "RR": {
+            "clearance_m": 0.038440334953090294,
+            "front_distance_m": -0.03456464069056864,
+            "air": true,
+            "ground_contact": false,
+            "within_top_xy": false,
+            "current_lift_valid": true,
+            "active_attempt": true,
+            "contact_surface": "NONE",
+            "bearing_force_n": 0.0,
+            "bearing_verified": true
+          },
+          "RL": {
+            "clearance_m": -0.05018088423680319,
+            "front_distance_m": -0.1695972348945176,
+            "air": false,
+            "ground_contact": true,
+            "within_top_xy": false,
+            "current_lift_valid": false,
+            "active_attempt": false,
+            "contact_surface": "NONE",
+            "bearing_force_n": 13.008671760559082,
+            "bearing_verified": true
+          },
+          "RR_actual_bearing": false,
+          "front_actual_bearing": [
+            "FL",
+            "FR"
+          ],
+          "RL_current_load_fraction": 0.4515856943282077,
+          "RL_below_existing_unload_fraction": false,
+          "FR_direction_window_reference_tick": 5548,
+          "FR_direction_window_s": 0.5,
+          "FR_body_toward_m": -0.00012980434960634812,
+          "FR_CoM_toward_m": 0.0005531786308335721,
+          "RL_load_fraction_drop": -0.039981056024861794,
+          "FR_direction_window_fixed_axis_world": [
+            0.7907801097369461,
+            -0.6121003333150731,
+            0.0
+          ],
+          "FR_window_body_world_displacement_xyz_m": [
+            -0.0003654360771179199,
+            -0.0002600476145744324,
+            0.0028429850935935974
+          ],
+          "FR_window_CoM_world_displacement_xyz_m": [
+            -0.0013010159903606988,
+            -0.0025845373909414437,
+            -0.00547150356641779
+          ],
+          "RL_current_bearing_force_n": 13.008671760559082,
+          "RL_current_bearing_force_verified": true,
+          "RL_current_contact_reaction_force_n": 13.0086717605592,
+          "RL_current_qualified_lift": false,
+          "RL_current_ground_contact": true,
+          "RL_current_absolute_force_drop_over_FR_window_n": null,
+          "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+          "fl_range_credit": null,
+          "rl_space_credit": null
+        },
+        "endpoint_windows": [],
+        "standardized_advantage": 1.0162614583969116
+      },
+      "ends_nonterminal_partial": true,
+      "ordinary_phase_change_is_not_terminal": true,
+      "updates": [
+        {
+          "ppo_update": 1726,
+          "first_global_policy_decision": 225281,
+          "last_global_policy_decision": 225408,
+          "sample_count": 128,
+          "optimizer_steps": 20,
+          "learning_rate": 1e-05,
+          "gamma": 0.9985,
+          "gae_lambda": 0.99,
+          "tail_bootstrap": {
+            "terminal_env_indices": [],
+            "nonterminal_env_indices": [
+              0
+            ],
+            "value_source": "existing_official_compute_returns_last_values; not re-evaluated or logged here",
+            "last_values_measured_separately": null
+          },
+          "by_request_phase": {
+            "P07": {
+              "sample_count": 2,
+              "terminal_count": 0,
+              "raw_gae_returns_minus_old_values": {
+                "count": 2,
+                "finite_count": 2,
+                "nonfinite_count": 0,
+                "minimum": -5.622215270996094,
+                "maximum": 1.699549674987793,
+                "mean": -1.9613327980041504,
+                "std_population": 3.6608824729919434,
+                "positive_count": 1,
+                "negative_count": 1,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 2,
+                "finite_count": 2,
+                "nonfinite_count": 0,
+                "minimum": 1.1360194683074951,
+                "maximum": 2.0322701930999756,
+                "mean": 1.5841448307037354,
+                "std_population": 0.44812536239624023,
+                "positive_count": 2,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 2,
+                "finite_count": 2,
+                "nonfinite_count": 0,
+                "minimum": -13.328773498535156,
+                "maximum": -13.328773498535156,
+                "mean": -13.328773498535156,
+                "std_population": 0.0,
+                "positive_count": 0,
+                "negative_count": 2,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 2,
+                "finite_count": 2,
+                "nonfinite_count": 0,
+                "minimum": -18.95098876953125,
+                "maximum": -11.629223823547363,
+                "mean": -15.290106296539307,
+                "std_population": 3.6608824729919434,
+                "positive_count": 0,
+                "negative_count": 2,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 2,
+                "finite_count": 2,
+                "nonfinite_count": 0,
+                "minimum": 0.004431281238794327,
+                "maximum": 0.004499967209994793,
+                "mean": 0.00446562422439456,
+                "std_population": 3.434298560023308e-05,
+                "positive_count": 2,
+                "negative_count": 0,
+                "zero_count": 0
+              }
+            },
+            "P08": {
+              "sample_count": 2,
+              "terminal_count": 0,
+              "raw_gae_returns_minus_old_values": {
+                "count": 2,
+                "finite_count": 2,
+                "nonfinite_count": 0,
+                "minimum": -5.753125190734863,
+                "maximum": 1.579726219177246,
+                "mean": -2.0866994857788086,
+                "std_population": 3.6664257049560547,
+                "positive_count": 1,
+                "negative_count": 1,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 2,
+                "finite_count": 2,
+                "nonfinite_count": 0,
+                "minimum": 1.119994878768921,
+                "maximum": 2.0176026821136475,
+                "mean": 1.5687987804412842,
+                "std_population": 0.4488039016723633,
+                "positive_count": 2,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 2,
+                "finite_count": 2,
+                "nonfinite_count": 0,
+                "minimum": -13.288302421569824,
+                "maximum": -13.215129852294922,
+                "mean": -13.251716136932373,
+                "std_population": 0.03658628463745117,
+                "positive_count": 0,
+                "negative_count": 2,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 2,
+                "finite_count": 2,
+                "nonfinite_count": 0,
+                "minimum": -19.041427612304688,
+                "maximum": -11.635403633117676,
+                "mean": -15.338415622711182,
+                "std_population": 3.703011989593506,
+                "positive_count": 0,
+                "negative_count": 2,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 2,
+                "finite_count": 2,
+                "nonfinite_count": 0,
+                "minimum": -0.004715029615908861,
+                "maximum": 0.0021380579564720392,
+                "mean": -0.001288485829718411,
+                "std_population": 0.00342654378619045,
+                "positive_count": 1,
+                "negative_count": 1,
+                "zero_count": 0
+              }
+            },
+            "P09": {
+              "sample_count": 93,
+              "terminal_count": 0,
+              "raw_gae_returns_minus_old_values": {
+                "count": 93,
+                "finite_count": 93,
+                "nonfinite_count": 0,
+                "minimum": -21.175891876220703,
+                "maximum": 1.1921806335449219,
+                "mean": -11.76351588259461,
+                "std_population": 5.507272107766308,
+                "positive_count": 7,
+                "negative_count": 86,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 93,
+                "finite_count": 93,
+                "nonfinite_count": 0,
+                "minimum": -0.7678926587104797,
+                "maximum": 1.9701637029647827,
+                "mean": 0.3842681372958806,
+                "std_population": 0.6741404184733542,
+                "positive_count": 63,
+                "negative_count": 30,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 93,
+                "finite_count": 93,
+                "nonfinite_count": 0,
+                "minimum": -13.022510528564453,
+                "maximum": -11.6541109085083,
+                "mean": -12.296557221361386,
+                "std_population": 0.32175301409496565,
+                "positive_count": 0,
+                "negative_count": 93,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 93,
+                "finite_count": 93,
+                "nonfinite_count": 0,
+                "minimum": -33.5538215637207,
+                "maximum": -11.636240005493164,
+                "mean": -24.060073134719683,
+                "std_population": 5.563214401063702,
+                "positive_count": 0,
+                "negative_count": 93,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 93,
+                "finite_count": 93,
+                "nonfinite_count": 0,
+                "minimum": -0.11108957976102829,
+                "maximum": 0.20196673274040222,
+                "mean": 0.0053960767720753365,
+                "std_population": 0.03612603620774657,
+                "positive_count": 37,
+                "negative_count": 56,
+                "zero_count": 0
+              }
+            },
+            "P10": {
+              "sample_count": 6,
+              "terminal_count": 0,
+              "raw_gae_returns_minus_old_values": {
+                "count": 6,
+                "finite_count": 6,
+                "nonfinite_count": 0,
+                "minimum": -23.115514755249023,
+                "maximum": -21.8483829498291,
+                "mean": -22.443051020304363,
+                "std_population": 0.4080894713537321,
+                "positive_count": 0,
+                "negative_count": 6,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 6,
+                "finite_count": 6,
+                "nonfinite_count": 0,
+                "minimum": -1.0053201913833618,
+                "maximum": -0.8502117395401001,
+                "mean": -0.9230045278867086,
+                "std_population": 0.04995386562950129,
+                "positive_count": 0,
+                "negative_count": 6,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 6,
+                "finite_count": 6,
+                "nonfinite_count": 0,
+                "minimum": -12.140180587768555,
+                "maximum": -11.942546844482422,
+                "mean": -12.052433649698893,
+                "std_population": 0.06770597950296676,
+                "positive_count": 0,
+                "negative_count": 6,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 6,
+                "finite_count": 6,
+                "nonfinite_count": 0,
+                "minimum": -35.1064453125,
+                "maximum": -33.988563537597656,
+                "mean": -34.49548467000326,
+                "std_population": 0.39479637965449843,
+                "positive_count": 0,
+                "negative_count": 6,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 6,
+                "finite_count": 6,
+                "nonfinite_count": 0,
+                "minimum": -0.149330735206604,
+                "maximum": 0.004018787760287523,
+                "mean": -0.04399718429582814,
+                "std_population": 0.050094863686343895,
+                "positive_count": 1,
+                "negative_count": 5,
+                "zero_count": 0
+              }
+            },
+            "P11": {
+              "sample_count": 10,
+              "terminal_count": 0,
+              "raw_gae_returns_minus_old_values": {
+                "count": 10,
+                "finite_count": 10,
+                "nonfinite_count": 0,
+                "minimum": -25.708187103271484,
+                "maximum": -23.308998107910156,
+                "mean": -24.482890701293947,
+                "std_population": 0.7133671373156615,
+                "positive_count": 0,
+                "negative_count": 10,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 10,
+                "finite_count": 10,
+                "nonfinite_count": 0,
+                "minimum": -1.322687029838562,
+                "maximum": -1.0290043354034424,
+                "mean": -1.172699546813965,
+                "std_population": 0.08732266636105121,
+                "positive_count": 0,
+                "negative_count": 10,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 10,
+                "finite_count": 10,
+                "nonfinite_count": 0,
+                "minimum": -12.571880340576172,
+                "maximum": -12.087303161621094,
+                "mean": -12.278685188293457,
+                "std_population": 0.16724980769165063,
+                "positive_count": 0,
+                "negative_count": 10,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 10,
+                "finite_count": 10,
+                "nonfinite_count": 0,
+                "minimum": -38.280067443847656,
+                "maximum": -35.39630126953125,
+                "mean": -36.761576080322264,
+                "std_population": 0.8667326698953361,
+                "positive_count": 0,
+                "negative_count": 10,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 10,
+                "finite_count": 10,
+                "nonfinite_count": 0,
+                "minimum": -0.2018430083990097,
+                "maximum": 0.19101861119270325,
+                "mean": 0.01823661362286657,
+                "std_population": 0.10672851448394416,
+                "positive_count": 6,
+                "negative_count": 4,
+                "zero_count": 0
+              }
+            },
+            "P12": {
+              "sample_count": 15,
+              "terminal_count": 1,
+              "raw_gae_returns_minus_old_values": {
+                "count": 15,
+                "finite_count": 15,
+                "nonfinite_count": 0,
+                "minimum": -30.415250778198242,
+                "maximum": -26.242610931396484,
+                "mean": -28.39725201924642,
+                "std_population": 1.286526099763782,
+                "positive_count": 0,
+                "negative_count": 15,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 15,
+                "finite_count": 15,
+                "nonfinite_count": 0,
+                "minimum": -1.8988746404647827,
+                "maximum": -1.3881053924560547,
+                "mean": -1.6518531322479248,
+                "std_population": 0.15748254680982374,
+                "positive_count": 0,
+                "negative_count": 15,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 15,
+                "finite_count": 15,
+                "nonfinite_count": 0,
+                "minimum": -12.935110092163086,
+                "maximum": -12.159210205078125,
+                "mean": -12.53864860534668,
+                "std_population": 0.22063781601055235,
+                "positive_count": 0,
+                "negative_count": 15,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 15,
+                "finite_count": 15,
+                "nonfinite_count": 0,
+                "minimum": -43.35036087036133,
+                "maximum": -38.60881042480469,
+                "mean": -40.935900624593096,
+                "std_population": 1.4627664211241576,
+                "positive_count": 0,
+                "negative_count": 15,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 15,
+                "finite_count": 15,
+                "nonfinite_count": 0,
+                "minimum": -43.35036087036133,
+                "maximum": -0.0036252017598599195,
+                "mean": -2.8975410451957333,
+                "std_population": 10.811471376989324,
+                "positive_count": 0,
+                "negative_count": 15,
+                "zero_count": 0
+              }
+            }
+          }
+        },
+        {
+          "ppo_update": 1727,
+          "first_global_policy_decision": 225409,
+          "last_global_policy_decision": 225536,
+          "sample_count": 128,
+          "optimizer_steps": 20,
+          "learning_rate": 1e-05,
+          "gamma": 0.9985,
+          "gae_lambda": 0.99,
+          "tail_bootstrap": {
+            "terminal_env_indices": [],
+            "nonterminal_env_indices": [
+              0
+            ],
+            "value_source": "existing_official_compute_returns_last_values; not re-evaluated or logged here",
+            "last_values_measured_separately": null
+          },
+          "by_request_phase": {
+            "P07": {
+              "sample_count": 1,
+              "terminal_count": 0,
+              "raw_gae_returns_minus_old_values": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": 2.0532445907592773,
+                "maximum": 2.0532445907592773,
+                "mean": 2.0532445907592773,
+                "std_population": 0.0,
+                "positive_count": 1,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": 0.6573309302330017,
+                "maximum": 0.6573309302330017,
+                "mean": 0.6573309302330017,
+                "std_population": 0.0,
+                "positive_count": 1,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": -13.475863456726074,
+                "maximum": -13.475863456726074,
+                "mean": -13.475863456726074,
+                "std_population": 0.0,
+                "positive_count": 0,
+                "negative_count": 1,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": -11.422618865966797,
+                "maximum": -11.422618865966797,
+                "mean": -11.422618865966797,
+                "std_population": 0.0,
+                "positive_count": 0,
+                "negative_count": 1,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": 0.004423906095325947,
+                "maximum": 0.004423906095325947,
+                "mean": 0.004423906095325947,
+                "std_population": 0.0,
+                "positive_count": 1,
+                "negative_count": 0,
+                "zero_count": 0
+              }
+            },
+            "P08": {
+              "sample_count": 1,
+              "terminal_count": 0,
+              "raw_gae_returns_minus_old_values": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": 2.1353635787963867,
+                "maximum": 2.1353635787963867,
+                "mean": 2.1353635787963867,
+                "std_population": 0.0,
+                "positive_count": 1,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": 0.6649412512779236,
+                "maximum": 0.6649412512779236,
+                "mean": 0.6649412512779236,
+                "std_population": 0.0,
+                "positive_count": 1,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": -13.558218955993652,
+                "maximum": -13.558218955993652,
+                "mean": -13.558218955993652,
+                "std_population": 0.0,
+                "positive_count": 0,
+                "negative_count": 1,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": -11.422855377197266,
+                "maximum": -11.422855377197266,
+                "mean": -11.422855377197266,
+                "std_population": 0.0,
+                "positive_count": 0,
+                "negative_count": 1,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": -0.0046965330839157104,
+                "maximum": -0.0046965330839157104,
+                "mean": -0.0046965330839157104,
+                "std_population": 0.0,
+                "positive_count": 0,
+                "negative_count": 1,
+                "zero_count": 0
+              }
+            },
+            "P09": {
+              "sample_count": 126,
+              "terminal_count": 1,
+              "raw_gae_returns_minus_old_values": {
+                "count": 126,
+                "finite_count": 126,
+                "nonfinite_count": 0,
+                "minimum": -29.924510955810547,
+                "maximum": 1.8320655822753906,
+                "mean": -5.15292879891774,
+                "std_population": 10.795299637751816,
+                "positive_count": 79,
+                "negative_count": 47,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 126,
+                "finite_count": 126,
+                "nonfinite_count": 0,
+                "minimum": -2.3061764240264893,
+                "maximum": 0.6368333697319031,
+                "mean": -0.010494198117937361,
+                "std_population": 1.0004439311139943,
+                "positive_count": 100,
+                "negative_count": 26,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 126,
+                "finite_count": 126,
+                "nonfinite_count": 0,
+                "minimum": -13.272035598754883,
+                "maximum": -11.863635063171387,
+                "mean": -12.459760824839273,
+                "std_population": 0.36106173377200607,
+                "positive_count": 0,
+                "negative_count": 126,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 126,
+                "finite_count": 126,
+                "nonfinite_count": 0,
+                "minimum": -42.44551086425781,
+                "maximum": -11.409791946411133,
+                "mean": -17.612689631325857,
+                "std_population": 10.620149822348699,
+                "positive_count": 0,
+                "negative_count": 126,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 126,
+                "finite_count": 126,
+                "nonfinite_count": 0,
+                "minimum": -42.44551086425781,
+                "maximum": 0.23484155535697937,
+                "mean": -0.33627211986128264,
+                "std_population": 3.766493069537333,
+                "positive_count": 33,
+                "negative_count": 93,
+                "zero_count": 0
+              }
+            }
+          }
+        },
+        {
+          "ppo_update": 1728,
+          "first_global_policy_decision": 225537,
+          "last_global_policy_decision": 225664,
+          "sample_count": 128,
+          "optimizer_steps": 20,
+          "learning_rate": 1e-05,
+          "gamma": 0.9985,
+          "gae_lambda": 0.99,
+          "tail_bootstrap": {
+            "terminal_env_indices": [],
+            "nonterminal_env_indices": [
+              0
+            ],
+            "value_source": "existing_official_compute_returns_last_values; not re-evaluated or logged here",
+            "last_values_measured_separately": null
+          },
+          "by_request_phase": {
+            "P09": {
+              "sample_count": 3,
+              "terminal_count": 0,
+              "raw_gae_returns_minus_old_values": {
+                "count": 3,
+                "finite_count": 3,
+                "nonfinite_count": 0,
+                "minimum": 1.4876708984375,
+                "maximum": 1.8042573928833008,
+                "mean": 1.615796407063802,
+                "std_population": 0.13610542353256494,
+                "positive_count": 3,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 3,
+                "finite_count": 3,
+                "nonfinite_count": 0,
+                "minimum": 2.875948667526245,
+                "maximum": 4.094734191894531,
+                "mean": 3.3692026138305664,
+                "std_population": 0.523974689124275,
+                "positive_count": 3,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 3,
+                "finite_count": 3,
+                "nonfinite_count": 0,
+                "minimum": -13.37814712524414,
+                "maximum": -13.081854820251465,
+                "mean": -13.2001314163208,
+                "std_population": 0.1281245584133028,
+                "positive_count": 0,
+                "negative_count": 3,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 3,
+                "finite_count": 3,
+                "nonfinite_count": 0,
+                "minimum": -11.594183921813965,
+                "maximum": -11.57388973236084,
+                "mean": -11.584335009256998,
+                "std_population": 0.00829579287786398,
+                "positive_count": 0,
+                "negative_count": 3,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 3,
+                "finite_count": 3,
+                "nonfinite_count": 0,
+                "minimum": 0.006715745199471712,
+                "maximum": 0.16618259251117706,
+                "mean": 0.060697935366382204,
+                "std_population": 0.07459578596895734,
+                "positive_count": 3,
+                "negative_count": 0,
+                "zero_count": 0
+              }
+            },
+            "P10": {
+              "sample_count": 1,
+              "terminal_count": 0,
+              "raw_gae_returns_minus_old_values": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": 1.0772209167480469,
+                "maximum": 1.0772209167480469,
+                "mean": 1.0772209167480469,
+                "std_population": 0.0,
+                "positive_count": 1,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": 1.2958102226257324,
+                "maximum": 1.2958102226257324,
+                "mean": 1.2958102226257324,
+                "std_population": 0.0,
+                "positive_count": 1,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": -12.844482421875,
+                "maximum": -12.844482421875,
+                "mean": -12.844482421875,
+                "std_population": 0.0,
+                "positive_count": 0,
+                "negative_count": 1,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": -11.767261505126953,
+                "maximum": -11.767261505126953,
+                "mean": -11.767261505126953,
+                "std_population": 0.0,
+                "positive_count": 0,
+                "negative_count": 1,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": -0.0067111169919371605,
+                "maximum": -0.0067111169919371605,
+                "mean": -0.0067111169919371605,
+                "std_population": 0.0,
+                "positive_count": 0,
+                "negative_count": 1,
+                "zero_count": 0
+              }
+            },
+            "P11": {
+              "sample_count": 1,
+              "terminal_count": 0,
+              "raw_gae_returns_minus_old_values": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": 0.9625377655029297,
+                "maximum": 0.9625377655029297,
+                "mean": 0.9625377655029297,
+                "std_population": 0.0,
+                "positive_count": 1,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": 0.8543063998222351,
+                "maximum": 0.8543063998222351,
+                "mean": 0.8543063998222351,
+                "std_population": 0.0,
+                "positive_count": 1,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": -12.731130599975586,
+                "maximum": -12.731130599975586,
+                "mean": -12.731130599975586,
+                "std_population": 0.0,
+                "positive_count": 0,
+                "negative_count": 1,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": -11.768592834472656,
+                "maximum": -11.768592834472656,
+                "mean": -11.768592834472656,
+                "std_population": 0.0,
+                "positive_count": 0,
+                "negative_count": 1,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": 0.013558898121118546,
+                "maximum": 0.013558898121118546,
+                "mean": 0.013558898121118546,
+                "std_population": 0.0,
+                "positive_count": 1,
+                "negative_count": 0,
+                "zero_count": 0
+              }
+            },
+            "P12": {
+              "sample_count": 123,
+              "terminal_count": 0,
+              "raw_gae_returns_minus_old_values": {
+                "count": 123,
+                "finite_count": 123,
+                "nonfinite_count": 0,
+                "minimum": 0.04282093048095703,
+                "maximum": 1.3393239974975586,
+                "mean": 0.7147405128168866,
+                "std_population": 0.2203244269943188,
+                "positive_count": 123,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 123,
+                "finite_count": 123,
+                "nonfinite_count": 0,
+                "minimum": -2.6863930225372314,
+                "maximum": 2.304847240447998,
+                "mean": -0.09965632852106317,
+                "std_population": 0.8481986278087315,
+                "positive_count": 46,
+                "negative_count": 77,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 123,
+                "finite_count": 123,
+                "nonfinite_count": 0,
+                "minimum": -12.900613784790039,
+                "maximum": -12.078617095947266,
+                "mean": -12.433539483605362,
+                "std_population": 0.13797210678109062,
+                "positive_count": 0,
+                "negative_count": 123,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 123,
+                "finite_count": 123,
+                "nonfinite_count": 0,
+                "minimum": -12.046131134033203,
+                "maximum": -11.520617485046387,
+                "mean": -11.718798970788475,
+                "std_population": 0.14604942662702441,
+                "positive_count": 0,
+                "negative_count": 123,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 123,
+                "finite_count": 123,
+                "nonfinite_count": 0,
+                "minimum": -0.21875964105129242,
+                "maximum": 0.19033905863761902,
+                "mean": -0.008344042591932343,
+                "std_population": 0.03262747851622485,
+                "positive_count": 11,
+                "negative_count": 112,
+                "zero_count": 0
+              }
+            }
+          }
+        },
+        {
+          "ppo_update": 1729,
+          "first_global_policy_decision": 225665,
+          "last_global_policy_decision": 225792,
+          "sample_count": 128,
+          "optimizer_steps": 20,
+          "learning_rate": 1e-05,
+          "gamma": 0.9985,
+          "gae_lambda": 0.99,
+          "tail_bootstrap": {
+            "terminal_env_indices": [],
+            "nonterminal_env_indices": [
+              0
+            ],
+            "value_source": "existing_official_compute_returns_last_values; not re-evaluated or logged here",
+            "last_values_measured_separately": null
+          },
+          "by_request_phase": {
+            "P12": {
+              "sample_count": 128,
+              "terminal_count": 0,
+              "raw_gae_returns_minus_old_values": {
+                "count": 128,
+                "finite_count": 128,
+                "nonfinite_count": 0,
+                "minimum": -0.1768627166748047,
+                "maximum": 0.8415718078613281,
+                "mean": 0.45855116844177246,
+                "std_population": 0.27434212389991564,
+                "positive_count": 116,
+                "negative_count": 12,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 128,
+                "finite_count": 128,
+                "nonfinite_count": 0,
+                "minimum": -2.3070716857910156,
+                "maximum": 1.3906779289245605,
+                "mean": -1.0113581083714962e-09,
+                "std_population": 0.99608607203336,
+                "positive_count": 76,
+                "negative_count": 52,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 128,
+                "finite_count": 128,
+                "nonfinite_count": 0,
+                "minimum": -12.34537124633789,
+                "maximum": -11.595516204833984,
+                "mean": -12.016615405678749,
+                "std_population": 0.15287383465444784,
+                "positive_count": 0,
+                "negative_count": 128,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 128,
+                "finite_count": 128,
+                "nonfinite_count": 0,
+                "minimum": -12.093171119689941,
+                "maximum": -11.22635555267334,
+                "mean": -11.558064237236977,
+                "std_population": 0.22921398724862108,
+                "positive_count": 0,
+                "negative_count": 128,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 128,
+                "finite_count": 128,
+                "nonfinite_count": 0,
+                "minimum": -0.032477863132953644,
+                "maximum": 0.01926042139530182,
+                "mean": -0.005934607366725686,
+                "std_population": 0.005205354132972161,
+                "positive_count": 4,
+                "negative_count": 124,
+                "zero_count": 0
+              }
+            }
+          }
+        },
+        {
+          "ppo_update": 1730,
+          "first_global_policy_decision": 225793,
+          "last_global_policy_decision": 225920,
+          "sample_count": 128,
+          "optimizer_steps": 20,
+          "learning_rate": 1e-05,
+          "gamma": 0.9985,
+          "gae_lambda": 0.99,
+          "tail_bootstrap": {
+            "terminal_env_indices": [],
+            "nonterminal_env_indices": [
+              0
+            ],
+            "value_source": "existing_official_compute_returns_last_values; not re-evaluated or logged here",
+            "last_values_measured_separately": null
+          },
+          "by_request_phase": {
+            "P12": {
+              "sample_count": 128,
+              "terminal_count": 0,
+              "raw_gae_returns_minus_old_values": {
+                "count": 128,
+                "finite_count": 128,
+                "nonfinite_count": 0,
+                "minimum": 0.040045738220214844,
+                "maximum": 1.0265684127807617,
+                "mean": 0.41713253408670425,
+                "std_population": 0.23009304183386817,
+                "positive_count": 128,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 128,
+                "finite_count": 128,
+                "nonfinite_count": 0,
+                "minimum": -1.6324306726455688,
+                "maximum": 2.6382830142974854,
+                "mean": -9.808718459680676e-08,
+                "std_population": 0.9960860816993821,
+                "positive_count": 46,
+                "negative_count": 82,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 128,
+                "finite_count": 128,
+                "nonfinite_count": 0,
+                "minimum": -11.93791675567627,
+                "maximum": -11.294610023498535,
+                "mean": -11.662049517035484,
+                "std_population": 0.13538683159118428,
+                "positive_count": 0,
+                "negative_count": 128,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 128,
+                "finite_count": 128,
+                "nonfinite_count": 0,
+                "minimum": -11.775282859802246,
+                "maximum": -10.891653060913086,
+                "mean": -11.24491698294878,
+                "std_population": 0.2656974576215937,
+                "positive_count": 0,
+                "negative_count": 128,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 128,
+                "finite_count": 128,
+                "nonfinite_count": 0,
+                "minimum": -0.032477863132953644,
+                "maximum": 0.020607290789484978,
+                "mean": -0.005940444339103124,
+                "std_population": 0.006109912960057513,
+                "positive_count": 5,
+                "negative_count": 123,
+                "zero_count": 0
+              }
+            }
+          }
+        },
+        {
+          "ppo_update": 1731,
+          "first_global_policy_decision": 225921,
+          "last_global_policy_decision": 226048,
+          "sample_count": 128,
+          "optimizer_steps": 20,
+          "learning_rate": 1e-05,
+          "gamma": 0.9985,
+          "gae_lambda": 0.99,
+          "tail_bootstrap": {
+            "terminal_env_indices": [],
+            "nonterminal_env_indices": [
+              0
+            ],
+            "value_source": "existing_official_compute_returns_last_values; not re-evaluated or logged here",
+            "last_values_measured_separately": null
+          },
+          "by_request_phase": {
+            "P07": {
+              "sample_count": 1,
+              "terminal_count": 0,
+              "raw_gae_returns_minus_old_values": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": 1.8233928680419922,
+                "maximum": 1.8233928680419922,
+                "mean": 1.8233928680419922,
+                "std_population": 0.0,
+                "positive_count": 1,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": 1.1765859127044678,
+                "maximum": 1.1765859127044678,
+                "mean": 1.1765859127044678,
+                "std_population": 0.0,
+                "positive_count": 1,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": -13.031874656677246,
+                "maximum": -13.031874656677246,
+                "mean": -13.031874656677246,
+                "std_population": 0.0,
+                "positive_count": 0,
+                "negative_count": 1,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": -11.208481788635254,
+                "maximum": -11.208481788635254,
+                "mean": -11.208481788635254,
+                "std_population": 0.0,
+                "positive_count": 0,
+                "negative_count": 1,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": 0.004432040732353926,
+                "maximum": 0.004432040732353926,
+                "mean": 0.004432040732353926,
+                "std_population": 0.0,
+                "positive_count": 1,
+                "negative_count": 0,
+                "zero_count": 0
+              }
+            },
+            "P08": {
+              "sample_count": 1,
+              "terminal_count": 0,
+              "raw_gae_returns_minus_old_values": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": 1.7835140228271484,
+                "maximum": 1.7835140228271484,
+                "mean": 1.7835140228271484,
+                "std_population": 0.0,
+                "positive_count": 1,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": 1.17314612865448,
+                "maximum": 1.17314612865448,
+                "mean": 1.17314612865448,
+                "std_population": 0.0,
+                "positive_count": 1,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": -12.995437622070312,
+                "maximum": -12.995437622070312,
+                "mean": -12.995437622070312,
+                "std_population": 0.0,
+                "positive_count": 0,
+                "negative_count": 1,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": -11.211923599243164,
+                "maximum": -11.211923599243164,
+                "mean": -11.211923599243164,
+                "std_population": 0.0,
+                "positive_count": 0,
+                "negative_count": 1,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 1,
+                "finite_count": 1,
+                "nonfinite_count": 0,
+                "minimum": -0.004700306802988052,
+                "maximum": -0.004700306802988052,
+                "mean": -0.004700306802988052,
+                "std_population": 0.0,
+                "positive_count": 0,
+                "negative_count": 1,
+                "zero_count": 0
+              }
+            },
+            "P09": {
+              "sample_count": 54,
+              "terminal_count": 0,
+              "raw_gae_returns_minus_old_values": {
+                "count": 54,
+                "finite_count": 54,
+                "nonfinite_count": 0,
+                "minimum": -0.035292625427246094,
+                "maximum": 1.513962745666504,
+                "mean": 0.39211516910129124,
+                "std_population": 0.3048337910175045,
+                "positive_count": 53,
+                "negative_count": 1,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 54,
+                "finite_count": 54,
+                "nonfinite_count": 0,
+                "minimum": 1.0162614583969116,
+                "maximum": 1.149895429611206,
+                "mean": 1.0531283705322831,
+                "std_population": 0.026294005580284857,
+                "positive_count": 54,
+                "negative_count": 0,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 54,
+                "finite_count": 54,
+                "nonfinite_count": 0,
+                "minimum": -12.722882270812988,
+                "maximum": -11.551559448242188,
+                "mean": -12.015172976034659,
+                "std_population": 0.2794707742389164,
+                "positive_count": 0,
+                "negative_count": 54,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 54,
+                "finite_count": 54,
+                "nonfinite_count": 0,
+                "minimum": -12.261211395263672,
+                "maximum": -11.144157409667969,
+                "mean": -11.623057806933367,
+                "std_population": 0.3679138617474692,
+                "positive_count": 0,
+                "negative_count": 54,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 54,
+                "finite_count": 54,
+                "nonfinite_count": 0,
+                "minimum": -0.11108957976102829,
+                "maximum": 0.23714065551757812,
+                "mean": 0.006540625358293591,
+                "std_population": 0.04998543136889788,
+                "positive_count": 24,
+                "negative_count": 30,
+                "zero_count": 0
+              }
+            },
+            "P12": {
+              "sample_count": 72,
+              "terminal_count": 1,
+              "raw_gae_returns_minus_old_values": {
+                "count": 72,
+                "finite_count": 72,
+                "nonfinite_count": 0,
+                "minimum": -31.734729766845703,
+                "maximum": -13.263009071350098,
+                "mean": -21.352353201972115,
+                "std_population": 5.397325190525378,
+                "positive_count": 0,
+                "negative_count": 72,
+                "zero_count": 0
+              },
+              "stored_advantages": {
+                "count": 72,
+                "finite_count": 72,
+                "nonfinite_count": 0,
+                "minimum": -1.7180325984954834,
+                "maximum": -0.12471987307071686,
+                "mean": -0.8224813515941302,
+                "std_population": 0.4655563615172064,
+                "positive_count": 0,
+                "negative_count": 72,
+                "zero_count": 0
+              },
+              "old_values": {
+                "count": 72,
+                "finite_count": 72,
+                "nonfinite_count": 0,
+                "minimum": -11.780915260314941,
+                "maximum": -11.134801864624023,
+                "mean": -11.333704312642416,
+                "std_population": 0.12159928759882535,
+                "positive_count": 0,
+                "negative_count": 72,
+                "zero_count": 0
+              },
+              "returns": {
+                "count": 72,
+                "finite_count": 72,
+                "nonfinite_count": 0,
+                "minimum": -43.05485534667969,
+                "maximum": -24.79140281677246,
+                "mean": -32.68605748812357,
+                "std_population": 5.331314621526403,
+                "positive_count": 0,
+                "negative_count": 72,
+                "zero_count": 0
+              },
+              "rewards": {
+                "count": 72,
+                "finite_count": 72,
+                "nonfinite_count": 0,
+                "minimum": -43.05485534667969,
+                "maximum": 0.020607290789484978,
+                "mean": -0.6042011805564269,
+                "std_population": 5.037970589129598,
+                "positive_count": 2,
+                "negative_count": 70,
+                "zero_count": 0
+              }
+            }
+          }
+        }
+      ],
+      "planned_unconsumed_no_credit": 256,
+      "final_global_policy_decisions": 226048
+    }
+  ],
+  "total_optimized_decisions": 768,
+  "total_ppo_updates": 6,
+  "total_optimizer_steps": 120
+}

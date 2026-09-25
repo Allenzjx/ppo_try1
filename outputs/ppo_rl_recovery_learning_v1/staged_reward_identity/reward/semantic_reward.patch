@@ -1,0 +1,165 @@
+--- a/src/wlr50_clean/ppo/semantic_reward.py
++++ b/src/wlr50_clean/ppo/semantic_reward.py
+@@ -190,6 +190,133 @@
+ 
+ 
+ 
++RR_RETENTION_REWARD_ONLY_MODE = "rr_recapture_retention_reward_only_v1"
++
++
++def _rr_retention_reward_binding(config) -> Mapping[str, Any] | None:
++    """Bind the unchanged task scales once, before collection; never read hot config."""
++    if config.values.get("cooperative_preparation", {}).get("mode") != "rr_capture_cooperative_preparation_v5":
++        return None
++    from hashlib import sha256
++    path = config.path.with_name("stage_task_spec.yaml")
++    payload = path.read_bytes()
++    spec = yaml.safe_load(payload.decode("utf-8-sig"))
++    expected = {
++        ("potential_definition",): "global_physical_progress_v3",
++        ("capture_retention_semantics",): "current_platform_region_after_placement",
++        ("capture_approach_semantics",): "post_cross_FL_multiscale_positive_gap_plus_real_contact_v1",
++        ("cooperative_preparation_mode",): "rr_capture_cooperative_preparation_v5",
++        ("rear_owner_recovery_mode",): "issued_rear_transfer_owner_suspension_v1",
++        ("p09_lift_semantics",): "functional_free_air_lift_v3",
++        ("nominal", "rear_policy_timing"): "rr_rl_edge_recovery_v4",
++        ("geometry", "top_gap_min_m"): -.015,
++        ("geometry", "top_gap_max_m"): .025,
++        ("history", "minimum_top_samples"): 2,
++        ("support", "force_noise_floor_n"): .2,
++    }
++    for keys, value in expected.items():
++        actual = spec
++        for key in keys:
++            actual = actual[key]
++        if type(actual) is bool or actual != value:
++            raise ValueError("reward-only RR retention binding differs: " + ".".join(keys))
++    return {"mode": RR_RETENTION_REWARD_ONLY_MODE,
++            "task_spec_sha256": sha256(payload).hexdigest(),
++            "gap_scale_m": spec["geometry"]["top_gap_max_m"],
++            "minimum_gap_m": spec["geometry"]["top_gap_min_m"],
++            "minimum_top_samples": spec["history"]["minimum_top_samples"],
++            "force_floor_n": spec["support"]["force_noise_floor_n"],
++            "xy_scale_m": .25, "preparation_share_of_geometry": .25,
++            "global_retention_share": .85 / 4. * .2}
++
++
++def _rr_retention_reward_delta(task: Mapping[str, Any], binding: Mapping[str, Any]):
++    """Replace one old retention subshare, without changing any observation or event.
++
++    Ground/outside geometry is preparation only. Qualified AIR/EDGE can approach;
++    the contact half still needs actual TOP bearing. Original legal AIR/TOP values
++    are exact, including transient loss of qualification with real TOP support.
++    """
++    ev = task["physical_evaluator"]
++    history, legs = ev["history"], ev["current_legs"]
++    rr, rl = legs["RR"], legs["RL"]
++    audit = {"mode": binding["mode"], "physics_tick": ev["physics_tick"],
++             "scope": "unchanged", "old_retention": None, "new_retention": None,
++             "delta_global_potential": 0., "changes_observation_or_contact": False}
++    rl_swing = bool(rl.get("current_lift_valid") is True
++        and rl.get("motion_continuation_allowed") is True and rl.get("air") is True
++        and rl.get("ground_contact") is False)
++    if (history["placed"]["RR"] is not True or history["placed"]["RL"] is True or rl_swing):
++        return 0., audit
++    if ev.get("valid") is not True or ev.get("termination_reason") is not None:
++        raise ValueError("RR reward substitution requires a valid nonterminal endpoint")
++    if history["active_lift"]["RR"] is not True or history["front_edge_crossed"]["RR"] is not True:
++        raise ValueError("RR placed retention requires its original physical event history")
++    gap = finite(rr["clearance_m"], "RR reward current gap")
++    outside = finite(rr["top_xy_outside_distance_m"], "RR reward current outside distance")
++    if outside < 0.:
++        raise ValueError("RR reward outside distance cannot be negative")
++    clip = lambda value: min(1., max(0., value))
++    top = bool(rr.get("ground_contact") is False and rr.get("air") is False
++        and rr.get("top_contact") is True and rr.get("top_surface_contact") is True
++        and rr.get("obstacle_pair_active") is True and rr.get("within_top_xy") is True
++        and rr.get("contact_surface") == "TOP")
++    bearing = bool(top and rr.get("support") is True and rr.get("bearing_verified") is True
++        and finite(rr["bearing_force_n"], "RR reward bearing force") >= binding["force_floor_n"])
++    old_legal = bool(rr.get("within_top_xy") is True and rr.get("within_lateral_span") is True
++        and rr.get("ground_contact") is False
++        and (top or (rr.get("air") is True and rr.get("obstacle_pair_active") is False))
++        and gap >= binding["minimum_gap_m"])
++    geometry = (clip(1. - outside / binding["xy_scale_m"])
++                * binding["gap_scale_m"] / (binding["gap_scale_m"] + abs(gap)))
++    contact = (clip(finite(rr["consecutive_top_samples"], "RR reward TOP samples")
++                    / binding["minimum_top_samples"]) if bearing and old_legal else 0.)
++    old = .5 * geometry + .5 * contact if old_legal else 0.
++    current_qualified = bool(rr.get("current_lift_valid") is True
++        and rr.get("active_attempt") is True and rr.get("motion_continuation_allowed") is True
++        and rr.get("ground_contact") is False)
++    if old_legal:
++        new = old  # Exact old arithmetic: no actor-visible value or accepted AIR path changes.
++    else:
++        fraction = 1. if current_qualified else binding["preparation_share_of_geometry"]
++        new = .5 * geometry * fraction  # Outside legal TOP never earns the contact half.
++    delta = binding["global_retention_share"] * (new - old)
++    audit.update(scope="replace_existing_RR_retention_share", old_retention=old,
++        new_retention=new, delta_global_potential=delta, geometry_proximity=geometry,
++        current_qualified=current_qualified, original_legal_AIR_or_TOP=old_legal,
++        current_ground=rr.get("ground_contact"), measured_TOP=top,
++        measured_TOP_bearing=bearing and old_legal, contact_half=.5 * contact,
++        outside_preparation_only=not old_legal and not current_qualified)
++    return delta, audit
++
++
++def _reward_only_potential_pair(previous, current, termination_reason, binding):
++    """Decision endpoints only. Terminal zero precedes access to invalid geometry."""
++    shared_before = finite(previous.task["task_progress_potential"], "potential before")
++    shared_after = (None if termination_reason else
++                    finite(current.task["task_progress_potential"], "potential after"))
++    if binding is None:
++        return shared_before, 0. if termination_reason else shared_after, None
++    before_delta, before = _rr_retention_reward_delta(previous.task, binding)
++    if termination_reason:
++        after_delta, after = 0., {"scope": "terminal_zero_geometry_not_read"}
++    else:
++        after_delta, after = _rr_retention_reward_delta(current.task, binding)
++    phi_before = shared_before + before_delta
++    phi_after = 0. if termination_reason else shared_after + after_delta
++    if not (0. <= phi_before <= 1. and 0. <= phi_after <= 1.):
++        raise ValueError("reward-only replacement must remain in the existing potential range")
++    return phi_before, phi_after, {
++        "mode": binding["mode"], "task_spec_sha256": binding["task_spec_sha256"],
++        "shared_observation_potential_before": shared_before,
++        "shared_observation_potential_after": shared_after,
++        "reward_potential_before": phi_before, "reward_potential_after": phi_after,
++        "before": before, "after": after,
++        "global_retention_share": binding["global_retention_share"],
++        "not_an_additional_reward_family": True,
++        "shared_task_groups_and_encoded_observation_modified": False}
++
++
+ @dataclass(frozen=True)
+ class SemanticRewardConfig:
+     values: Mapping[str, Any]
+@@ -274,6 +401,7 @@
+ class SemanticRewardCalculator:
+     def __init__(self, config: SemanticRewardConfig | None = None):
+         self.config = config or load_semantic_reward_config()
++        self._rr_retention_binding = _rr_retention_reward_binding(self.config)
+         self.reset()
+ 
+     def reset(self) -> None:
+@@ -455,8 +583,8 @@
+             for name,cost in {**smooth_parts,"gravity_attitude":attitude,"euler_rate":rates,
+                               "angular_acceleration":acceleration,"contact_quality":contact}.items():
+                 diagnostics[name] = diagnostics.get(name,0.0)+cost*dt
+-        phi_before = finite(previous.task["task_progress_potential"],"potential before")
+-        phi_after = 0.0 if termination_reason else finite(current.task["task_progress_potential"],"potential after")
++        phi_before, phi_after, rr_potential_audit = _reward_only_potential_pair(
++            previous, current, termination_reason, self._rr_retention_binding)
+         potential = v["potential_weight"]*(self.config.gamma*phi_after-phi_before)
+         event = v["success_reward"] if task_success else (-v["failure_cost"] if termination_reason else 0.0)
+         unweighted = {"task_progress":potential+event-v["time_cost_per_s"]*total_dt-counterroll_cost,
+@@ -469,6 +597,9 @@
+                 "terminal_event":event,"elapsed_physics_s":total_dt,"cost_components":diagnostics,
+                 "discount_convention":"one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",
+                 "terminal_bootstrap_allowed":False if termination_reason else True}
++        if rr_potential_audit is not None:
++            result["potential_semantics"] = RR_RETENTION_REWARD_ONLY_MODE
++            result["rr_retention_reward_only"] = rr_potential_audit
+         if front_quality:
+             result["front_quality_sample_audit"] = front_sample_audit
+             result["front_quality_semantics"] = "P01_P02_tilt_rate_only_positive_transfer_floor_v1"

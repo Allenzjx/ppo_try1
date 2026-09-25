@@ -1,0 +1,2564 @@
+{
+  "schema": "outputs.bounded_892385_P07_sealed.v1",
+  "summary": {
+    "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_rl_timing_policy_learning_v1\\train\\20260924T1527536734451Z_g892385cba8a7_f00e6fb48d074b26a2a98898505632e6",
+    "lifecycle": "SUCCEEDED",
+    "completed_at_utc": "2026-09-24T16:40:40.185988+00:00",
+    "bound_support": {
+      "force_noise_floor_n": 0.2,
+      "unloaded_leg_maximum_load_fraction": 0.2,
+      "frozen_task_sha256": "a6b4e6d030cdad81ee1df3241c4e959541ac50313d7f824e2d7a63342b369b58",
+      "frozen_head": "892385cba8a7089b52567bb7f558c018fac82a77"
+    },
+    "optimized_decisions": 512,
+    "ppo_updates": 1,
+    "optimizer_steps": 20,
+    "actual_request_phase_counts": {
+      "P01": 0,
+      "P02": 0,
+      "P03": 0,
+      "P04": 0,
+      "P05": 0,
+      "P06": 0,
+      "P07": 6,
+      "P08": 6,
+      "P09": 430,
+      "P10": 2,
+      "P11": 26,
+      "P12": 42,
+      "P13": 0
+    },
+    "input_physical_window_counts": {
+      "RR_reachable_AIR_preparation": 87,
+      "RR_actual_bearing_front_preparation": 19,
+      "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": 18,
+      "qualified_RL_edge_recovery": 0,
+      "RL_qualified_AIR_capture_region": 0,
+      "RL_actual_TOP_bearing": 0,
+      "RL_placed_history": 0,
+      "P13_actual_stage": 0,
+      "all_task_complete": 0
+    },
+    "input_physical_window_missing_alignment": 6,
+    "endpoint_physical_window_counts": {
+      "RR_reachable_AIR_preparation": 88,
+      "RR_actual_bearing_front_preparation": 19,
+      "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": 18,
+      "qualified_RL_edge_recovery": 0,
+      "RL_qualified_AIR_capture_region": 0,
+      "RL_actual_TOP_bearing": 0,
+      "RL_placed_history": 0,
+      "P13_actual_stage": 0,
+      "all_task_complete": 0
+    },
+    "physical_event_history_counts": {
+      "RR_current_qualified": 312,
+      "RR_front_edge_crossed_history": 157,
+      "RR_placed_history": 73,
+      "RL_current_qualified": 0,
+      "RL_front_edge_crossed_history": 0,
+      "RL_placed_history": 0
+    },
+    "public_owner_active_input_counts": {
+      "0": 18,
+      "1": 18,
+      "4": 52,
+      "5": 52
+    },
+    "public_owner_active_endpoint_counts": null,
+    "public_owner_endpoint_receipt_missing": 512,
+    "public_owner_clock_semantics": "actual public17 at policy input; omitted native endpoint receipt is unavailable, not inactive",
+    "prefix": {
+      "decisions": 3870,
+      "physics_ticks": 30960,
+      "learner_starts": 6,
+      "PPO_credit": 0
+    },
+    "raw_policy_checks": {
+      "raw12_mean_sigma_logp_equal": 512,
+      "public_owner17": 512
+    },
+    "maximum_old_raw_logp_error": 3.091444696678991e-06,
+    "examples": {
+      "RR_reachable_AIR_preparation": [
+        {
+          "global_policy_decision": 225846,
+          "ppo_update": 1727,
+          "request_phase": "P09",
+          "end_phase": "P09",
+          "episode_start_tick": 5584,
+          "episode_end_tick": 5592,
+          "reward": 0.024353213608264923,
+          "old_value": -12.416325569152832,
+          "terminal": false,
+          "old_log_probability": 10.379958152770996,
+          "termination_reason": null,
+          "full_task_success": false,
+          "raw_GAE": null,
+          "raw_GAE_source": "not_saved_per_row_in_JSON",
+          "reward_breakdown": {
+            "families": {
+              "task_progress": 0.024353213297200086,
+              "body_stability": -0.0,
+              "contact_motion_quality": -0.0,
+              "control_smoothness": -0.0,
+              "control_regularization": -0.0
+            },
+            "potential_before": 0.6107683340912254,
+            "potential_after": 0.6168908081313283,
+            "potential_shaping": 0.02598568913952992,
+            "terminal_event": 0.0,
+            "cooperative_counterroll_cost": 0.00029914250899650284
+          },
+          "effective_sigma_full12": [
+            0.2009505331516266,
+            0.23989491164684296,
+            0.0068655190989375114,
+            0.43220171332359314,
+            0.23883956670761108,
+            0.041302651166915894,
+            1.6953649520874023,
+            0.021128596737980843,
+            0.6876350045204163,
+            0.04910193011164665,
+            0.10354971140623093,
+            0.042602937668561935
+          ],
+          "physical": {
+            "physics_tick": 5592,
+            "sim_time_s": 46.6,
+            "RR": {
+              "clearance_m": 0.02684665490622415,
+              "front_distance_m": -0.001290854384187412,
+              "air": true,
+              "ground_contact": false,
+              "within_top_xy": true,
+              "current_lift_valid": true,
+              "active_attempt": true,
+              "contact_surface": "NONE",
+              "bearing_force_n": 0.0,
+              "bearing_verified": true
+            },
+            "RL": {
+              "clearance_m": -0.05012968542328461,
+              "front_distance_m": -0.2030239667193925,
+              "air": false,
+              "ground_contact": true,
+              "within_top_xy": false,
+              "current_lift_valid": false,
+              "active_attempt": false,
+              "contact_surface": "NONE",
+              "bearing_force_n": 12.88933277130127,
+              "bearing_verified": true
+            },
+            "RR_actual_bearing": false,
+            "front_actual_bearing": [
+              "FL",
+              "FR"
+            ],
+            "RL_current_load_fraction": 0.42081937731742725,
+            "RL_below_existing_unload_fraction": false,
+            "FR_direction_window_reference_tick": 5532,
+            "FR_direction_window_s": 0.5,
+            "FR_body_toward_m": -0.02018122860061552,
+            "FR_CoM_toward_m": -0.010593491742325642,
+            "RL_load_fraction_drop": -0.007226188718839621,
+            "FR_direction_window_fixed_axis_world": [
+              0.7841586401693807,
+              -0.6205604136969322,
+              0.0
+            ],
+            "FR_window_body_world_displacement_xyz_m": [
+              -0.022820591926574707,
+              0.0036841928958892822,
+              0.021873079240322113
+            ],
+            "FR_window_CoM_world_displacement_xyz_m": [
+              -0.012766314944751,
+              0.0009389506040264756,
+              0.011214766012917682
+            ],
+            "RL_current_bearing_force_n": 12.88933277130127,
+            "RL_current_bearing_force_verified": true,
+            "RL_current_contact_reaction_force_n": 12.889332771301387,
+            "RL_current_qualified_lift": false,
+            "RL_current_ground_contact": true,
+            "RL_current_absolute_force_drop_over_FR_window_n": null,
+            "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+            "fl_range_credit": 0.38371592913517283,
+            "rl_space_credit": 0.0
+          },
+          "endpoint_windows": [
+            "RR_reachable_AIR_preparation"
+          ],
+          "standardized_advantage": -0.9953234195709229
+        },
+        {
+          "global_policy_decision": 225856,
+          "ppo_update": 1727,
+          "request_phase": "P09",
+          "end_phase": "P09",
+          "episode_start_tick": 5664,
+          "episode_end_tick": 5672,
+          "reward": -0.02460656128823757,
+          "old_value": -12.322735786437988,
+          "terminal": false,
+          "old_log_probability": 5.776677131652832,
+          "termination_reason": null,
+          "full_task_success": false,
+          "raw_GAE": null,
+          "raw_GAE_source": "not_saved_per_row_in_JSON",
+          "reward_breakdown": {
+            "families": {
+              "task_progress": -0.024606561709195764,
+              "body_stability": -0.0,
+              "contact_motion_quality": -0.0,
+              "control_smoothness": -0.0,
+              "control_regularization": -0.0
+            },
+            "potential_before": 0.6184299436243678,
+            "potential_after": 0.614697343965143,
+            "potential_shaping": -0.02327322837586243,
+            "terminal_event": 0.0,
+            "cooperative_counterroll_cost": 0.0
+          },
+          "effective_sigma_full12": [
+            0.6130765080451965,
+            0.17699666321277618,
+            0.024798233062028885,
+            0.047933004796504974,
+            0.11927947402000427,
+            0.003250440349802375,
+            0.5407143831253052,
+            0.035161711275577545,
+            2.079963445663452,
+            0.1521417498588562,
+            0.2684616148471832,
+            0.20099034905433655
+          ],
+          "physical": {
+            "physics_tick": 5672,
+            "sim_time_s": 47.266666666666666,
+            "RR": {
+              "clearance_m": 0.039352756300590666,
+              "front_distance_m": -0.0012784566180741308,
+              "air": true,
+              "ground_contact": false,
+              "within_top_xy": true,
+              "current_lift_valid": true,
+              "active_attempt": true,
+              "contact_surface": "NONE",
+              "bearing_force_n": 0.0,
+              "bearing_verified": true
+            },
+            "RL": {
+              "clearance_m": -0.050004399589055844,
+              "front_distance_m": -0.20151275055575724,
+              "air": false,
+              "ground_contact": true,
+              "within_top_xy": false,
+              "current_lift_valid": false,
+              "active_attempt": false,
+              "contact_surface": "NONE",
+              "bearing_force_n": 14.370603561401367,
+              "bearing_verified": true
+            },
+            "RR_actual_bearing": false,
+            "front_actual_bearing": [
+              "FL",
+              "FR"
+            ],
+            "RL_current_load_fraction": 0.4796148044456435,
+            "RL_below_existing_unload_fraction": false,
+            "FR_direction_window_reference_tick": 5612,
+            "FR_direction_window_s": 0.5,
+            "FR_body_toward_m": 0.006952544578183558,
+            "FR_CoM_toward_m": 0.009667695111670344,
+            "RL_load_fraction_drop": -0.02397045904980688,
+            "FR_direction_window_fixed_axis_world": [
+              0.7973930797358235,
+              -0.6034602525348444,
+              0.0
+            ],
+            "FR_window_body_world_displacement_xyz_m": [
+              0.00022643804550170898,
+              -0.011221922934055328,
+              0.008651919662952423
+            ],
+            "FR_window_CoM_world_displacement_xyz_m": [
+              -0.0018112366477973652,
+              -0.018413744125999845,
+              -0.004807286764828167
+            ],
+            "RL_current_bearing_force_n": 14.370603561401367,
+            "RL_current_bearing_force_verified": true,
+            "RL_current_contact_reaction_force_n": 14.370603561401497,
+            "RL_current_qualified_lift": false,
+            "RL_current_ground_contact": true,
+            "RL_current_absolute_force_drop_over_FR_window_n": null,
+            "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+            "fl_range_credit": 0.3076006804795046,
+            "rl_space_credit": 0.0
+          },
+          "endpoint_windows": [
+            "RR_reachable_AIR_preparation"
+          ],
+          "standardized_advantage": -1.3282535076141357
+        }
+      ],
+      "RR_actual_bearing_front_preparation": [
+        {
+          "global_policy_decision": 225933,
+          "ppo_update": 1727,
+          "request_phase": "P09",
+          "end_phase": "P09",
+          "episode_start_tick": 5688,
+          "episode_end_tick": 5696,
+          "reward": 0.07760721445083618,
+          "old_value": -12.73364543914795,
+          "terminal": false,
+          "old_log_probability": 11.890701293945312,
+          "termination_reason": null,
+          "full_task_success": false,
+          "raw_GAE": null,
+          "raw_GAE_source": "not_saved_per_row_in_JSON",
+          "reward_breakdown": {
+            "families": {
+              "task_progress": 0.07760721313987846,
+              "body_stability": -0.0,
+              "contact_motion_quality": -0.0,
+              "control_smoothness": -0.0,
+              "control_regularization": -0.0
+            },
+            "potential_before": 0.6267197777657959,
+            "potential_after": 0.6434730967054965,
+            "potential_shaping": 0.0789405464732118,
+            "terminal_event": 0.0,
+            "cooperative_counterroll_cost": 0.0
+          },
+          "effective_sigma_full12": [
+            0.23742997646331787,
+            0.22310367226600647,
+            0.00732932984828949,
+            0.39201945066452026,
+            0.21813489496707916,
+            0.0516846738755703,
+            1.5503960847854614,
+            0.024497542530298233,
+            0.6580467224121094,
+            0.07356969267129898,
+            0.11622659862041473,
+            0.05941784754395485
+          ],
+          "physical": {
+            "physics_tick": 5696,
+            "sim_time_s": 47.46666666666667,
+            "RR": {
+              "clearance_m": -0.0007109776971768178,
+              "front_distance_m": 0.043923321793791104,
+              "air": false,
+              "ground_contact": false,
+              "within_top_xy": true,
+              "current_lift_valid": true,
+              "active_attempt": true,
+              "contact_surface": "TOP",
+              "bearing_force_n": 12.542923927307129,
+              "bearing_verified": true
+            },
+            "RL": {
+              "clearance_m": -0.04999076033843662,
+              "front_distance_m": -0.15297305243182535,
+              "air": false,
+              "ground_contact": true,
+              "within_top_xy": false,
+              "current_lift_valid": false,
+              "active_attempt": false,
+              "contact_surface": "NONE",
+              "bearing_force_n": 10.522754669189453,
+              "bearing_verified": true
+            },
+            "RR_actual_bearing": true,
+            "front_actual_bearing": [
+              "FL",
+              "FR"
+            ],
+            "RL_current_load_fraction": 0.24964822362404593,
+            "RL_below_existing_unload_fraction": false,
+            "FR_direction_window_reference_tick": 5636,
+            "FR_direction_window_s": 0.5,
+            "FR_body_toward_m": 0.01961247718208849,
+            "FR_CoM_toward_m": 0.02234333866841918,
+            "RL_load_fraction_drop": 0.14609932418454064,
+            "FR_direction_window_fixed_axis_world": [
+              0.7679374823509582,
+              -0.6405248029549456,
+              0.0
+            ],
+            "FR_window_body_world_displacement_xyz_m": [
+              0.024642884731292725,
+              -0.0010745599865913391,
+              -0.008711546659469604
+            ],
+            "FR_window_CoM_world_displacement_xyz_m": [
+              0.023514454083890968,
+              -0.006690932155331689,
+              -0.014543665563396119
+            ],
+            "RL_current_bearing_force_n": 10.522754669189453,
+            "RL_current_bearing_force_verified": true,
+            "RL_current_contact_reaction_force_n": 10.522754669189549,
+            "RL_current_qualified_lift": false,
+            "RL_current_ground_contact": true,
+            "RL_current_absolute_force_drop_over_FR_window_n": null,
+            "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+            "fl_range_credit": 0.46978475555005755,
+            "rl_space_credit": 0.0001319951651911344
+          },
+          "endpoint_windows": [
+            "RR_actual_bearing_front_preparation",
+            "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline"
+          ],
+          "standardized_advantage": -0.29836928844451904
+        },
+        {
+          "global_policy_decision": 225936,
+          "ppo_update": 1727,
+          "request_phase": "P10",
+          "end_phase": "P11",
+          "episode_start_tick": 5712,
+          "episode_end_tick": 5720,
+          "reward": 0.1507437527179718,
+          "old_value": -12.406116485595703,
+          "terminal": false,
+          "old_log_probability": 4.089783668518066,
+          "termination_reason": null,
+          "full_task_success": false,
+          "raw_GAE": null,
+          "raw_GAE_source": "not_saved_per_row_in_JSON",
+          "reward_breakdown": {
+            "families": {
+              "task_progress": 0.15074374690534229,
+              "body_stability": -0.0,
+              "contact_motion_quality": -0.0,
+              "control_smoothness": -0.0,
+              "control_regularization": -0.0
+            },
+            "potential_before": 0.6334310838593196,
+            "potential_after": 0.6648437655553877,
+            "potential_shaping": 0.1520770802386756,
+            "terminal_event": 0.0,
+            "cooperative_counterroll_cost": 0.0
+          },
+          "effective_sigma_full12": [
+            0.3198217749595642,
+            0.3209950625896454,
+            0.014407183043658733,
+            0.5371573567390442,
+            0.21963079273700714,
+            0.08062787353992462,
+            1.4959478378295898,
+            0.02532375417649746,
+            0.3317777216434479,
+            0.22608095407485962,
+            0.11986051499843597,
+            0.2029617428779602
+          ],
+          "physical": {
+            "physics_tick": 5720,
+            "sim_time_s": 47.666666666666664,
+            "RR": {
+              "clearance_m": -0.00010054598933785519,
+              "front_distance_m": 0.07935679299664145,
+              "air": false,
+              "ground_contact": false,
+              "within_top_xy": true,
+              "current_lift_valid": true,
+              "active_attempt": true,
+              "contact_surface": "TOP",
+              "bearing_force_n": 5.955853462219238,
+              "bearing_verified": true
+            },
+            "RL": {
+              "clearance_m": -0.05000756272716774,
+              "front_distance_m": -0.13570060985255594,
+              "air": false,
+              "ground_contact": true,
+              "within_top_xy": false,
+              "current_lift_valid": false,
+              "active_attempt": false,
+              "contact_surface": "NONE",
+              "bearing_force_n": 6.461053371429443,
+              "bearing_verified": true
+            },
+            "RR_actual_bearing": true,
+            "front_actual_bearing": [
+              "FL",
+              "FR"
+            ],
+            "RL_current_load_fraction": 0.2141220773607782,
+            "RL_below_existing_unload_fraction": false,
+            "FR_direction_window_reference_tick": 5660,
+            "FR_direction_window_s": 0.5,
+            "FR_body_toward_m": 0.02467354237183953,
+            "FR_CoM_toward_m": 0.035619410670631166,
+            "RL_load_fraction_drop": 0.18807845810932938,
+            "FR_direction_window_fixed_axis_world": [
+              0.7663386371263523,
+              -0.6424368398895915,
+              0.0
+            ],
+            "FR_window_body_world_displacement_xyz_m": [
+              0.030133426189422607,
+              -0.002461150288581848,
+              -0.009293325245380402
+            ],
+            "FR_window_CoM_world_displacement_xyz_m": [
+              0.03749260369070084,
+              -0.010720711248695974,
+              -0.01675755639750648
+            ],
+            "RL_current_bearing_force_n": 6.461053371429443,
+            "RL_current_bearing_force_verified": true,
+            "RL_current_contact_reaction_force_n": 6.461053371429502,
+            "RL_current_qualified_lift": false,
+            "RL_current_ground_contact": true,
+            "RL_current_absolute_force_drop_over_FR_window_n": null,
+            "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+            "fl_range_credit": 0.4673901101997987,
+            "rl_space_credit": 0.0
+          },
+          "endpoint_windows": [
+            "RR_actual_bearing_front_preparation",
+            "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline"
+          ],
+          "standardized_advantage": -0.40286192297935486
+        }
+      ],
+      "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": [
+        {
+          "global_policy_decision": 225933,
+          "ppo_update": 1727,
+          "request_phase": "P09",
+          "end_phase": "P09",
+          "episode_start_tick": 5688,
+          "episode_end_tick": 5696,
+          "reward": 0.07760721445083618,
+          "old_value": -12.73364543914795,
+          "terminal": false,
+          "old_log_probability": 11.890701293945312,
+          "termination_reason": null,
+          "full_task_success": false,
+          "raw_GAE": null,
+          "raw_GAE_source": "not_saved_per_row_in_JSON",
+          "reward_breakdown": {
+            "families": {
+              "task_progress": 0.07760721313987846,
+              "body_stability": -0.0,
+              "contact_motion_quality": -0.0,
+              "control_smoothness": -0.0,
+              "control_regularization": -0.0
+            },
+            "potential_before": 0.6267197777657959,
+            "potential_after": 0.6434730967054965,
+            "potential_shaping": 0.0789405464732118,
+            "terminal_event": 0.0,
+            "cooperative_counterroll_cost": 0.0
+          },
+          "effective_sigma_full12": [
+            0.23742997646331787,
+            0.22310367226600647,
+            0.00732932984828949,
+            0.39201945066452026,
+            0.21813489496707916,
+            0.0516846738755703,
+            1.5503960847854614,
+            0.024497542530298233,
+            0.6580467224121094,
+            0.07356969267129898,
+            0.11622659862041473,
+            0.05941784754395485
+          ],
+          "physical": {
+            "physics_tick": 5696,
+            "sim_time_s": 47.46666666666667,
+            "RR": {
+              "clearance_m": -0.0007109776971768178,
+              "front_distance_m": 0.043923321793791104,
+              "air": false,
+              "ground_contact": false,
+              "within_top_xy": true,
+              "current_lift_valid": true,
+              "active_attempt": true,
+              "contact_surface": "TOP",
+              "bearing_force_n": 12.542923927307129,
+              "bearing_verified": true
+            },
+            "RL": {
+              "clearance_m": -0.04999076033843662,
+              "front_distance_m": -0.15297305243182535,
+              "air": false,
+              "ground_contact": true,
+              "within_top_xy": false,
+              "current_lift_valid": false,
+              "active_attempt": false,
+              "contact_surface": "NONE",
+              "bearing_force_n": 10.522754669189453,
+              "bearing_verified": true
+            },
+            "RR_actual_bearing": true,
+            "front_actual_bearing": [
+              "FL",
+              "FR"
+            ],
+            "RL_current_load_fraction": 0.24964822362404593,
+            "RL_below_existing_unload_fraction": false,
+            "FR_direction_window_reference_tick": 5636,
+            "FR_direction_window_s": 0.5,
+            "FR_body_toward_m": 0.01961247718208849,
+            "FR_CoM_toward_m": 0.02234333866841918,
+            "RL_load_fraction_drop": 0.14609932418454064,
+            "FR_direction_window_fixed_axis_world": [
+              0.7679374823509582,
+              -0.6405248029549456,
+              0.0
+            ],
+            "FR_window_body_world_displacement_xyz_m": [
+              0.024642884731292725,
+              -0.0010745599865913391,
+              -0.008711546659469604
+            ],
+            "FR_window_CoM_world_displacement_xyz_m": [
+              0.023514454083890968,
+              -0.006690932155331689,
+              -0.014543665563396119
+            ],
+            "RL_current_bearing_force_n": 10.522754669189453,
+            "RL_current_bearing_force_verified": true,
+            "RL_current_contact_reaction_force_n": 10.522754669189549,
+            "RL_current_qualified_lift": false,
+            "RL_current_ground_contact": true,
+            "RL_current_absolute_force_drop_over_FR_window_n": null,
+            "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+            "fl_range_credit": 0.46978475555005755,
+            "rl_space_credit": 0.0001319951651911344
+          },
+          "endpoint_windows": [
+            "RR_actual_bearing_front_preparation",
+            "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline"
+          ],
+          "standardized_advantage": -0.29836928844451904
+        },
+        {
+          "global_policy_decision": 225936,
+          "ppo_update": 1727,
+          "request_phase": "P10",
+          "end_phase": "P11",
+          "episode_start_tick": 5712,
+          "episode_end_tick": 5720,
+          "reward": 0.1507437527179718,
+          "old_value": -12.406116485595703,
+          "terminal": false,
+          "old_log_probability": 4.089783668518066,
+          "termination_reason": null,
+          "full_task_success": false,
+          "raw_GAE": null,
+          "raw_GAE_source": "not_saved_per_row_in_JSON",
+          "reward_breakdown": {
+            "families": {
+              "task_progress": 0.15074374690534229,
+              "body_stability": -0.0,
+              "contact_motion_quality": -0.0,
+              "control_smoothness": -0.0,
+              "control_regularization": -0.0
+            },
+            "potential_before": 0.6334310838593196,
+            "potential_after": 0.6648437655553877,
+            "potential_shaping": 0.1520770802386756,
+            "terminal_event": 0.0,
+            "cooperative_counterroll_cost": 0.0
+          },
+          "effective_sigma_full12": [
+            0.3198217749595642,
+            0.3209950625896454,
+            0.014407183043658733,
+            0.5371573567390442,
+            0.21963079273700714,
+            0.08062787353992462,
+            1.4959478378295898,
+            0.02532375417649746,
+            0.3317777216434479,
+            0.22608095407485962,
+            0.11986051499843597,
+            0.2029617428779602
+          ],
+          "physical": {
+            "physics_tick": 5720,
+            "sim_time_s": 47.666666666666664,
+            "RR": {
+              "clearance_m": -0.00010054598933785519,
+              "front_distance_m": 0.07935679299664145,
+              "air": false,
+              "ground_contact": false,
+              "within_top_xy": true,
+              "current_lift_valid": true,
+              "active_attempt": true,
+              "contact_surface": "TOP",
+              "bearing_force_n": 5.955853462219238,
+              "bearing_verified": true
+            },
+            "RL": {
+              "clearance_m": -0.05000756272716774,
+              "front_distance_m": -0.13570060985255594,
+              "air": false,
+              "ground_contact": true,
+              "within_top_xy": false,
+              "current_lift_valid": false,
+              "active_attempt": false,
+              "contact_surface": "NONE",
+              "bearing_force_n": 6.461053371429443,
+              "bearing_verified": true
+            },
+            "RR_actual_bearing": true,
+            "front_actual_bearing": [
+              "FL",
+              "FR"
+            ],
+            "RL_current_load_fraction": 0.2141220773607782,
+            "RL_below_existing_unload_fraction": false,
+            "FR_direction_window_reference_tick": 5660,
+            "FR_direction_window_s": 0.5,
+            "FR_body_toward_m": 0.02467354237183953,
+            "FR_CoM_toward_m": 0.035619410670631166,
+            "RL_load_fraction_drop": 0.18807845810932938,
+            "FR_direction_window_fixed_axis_world": [
+              0.7663386371263523,
+              -0.6424368398895915,
+              0.0
+            ],
+            "FR_window_body_world_displacement_xyz_m": [
+              0.030133426189422607,
+              -0.002461150288581848,
+              -0.009293325245380402
+            ],
+            "FR_window_CoM_world_displacement_xyz_m": [
+              0.03749260369070084,
+              -0.010720711248695974,
+              -0.01675755639750648
+            ],
+            "RL_current_bearing_force_n": 6.461053371429443,
+            "RL_current_bearing_force_verified": true,
+            "RL_current_contact_reaction_force_n": 6.461053371429502,
+            "RL_current_qualified_lift": false,
+            "RL_current_ground_contact": true,
+            "RL_current_absolute_force_drop_over_FR_window_n": null,
+            "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+            "fl_range_credit": 0.4673901101997987,
+            "rl_space_credit": 0.0
+          },
+          "endpoint_windows": [
+            "RR_actual_bearing_front_preparation",
+            "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline"
+          ],
+          "standardized_advantage": -0.40286192297935486
+        }
+      ],
+      "qualified_RL_edge_recovery": [],
+      "RL_qualified_AIR_capture_region": [],
+      "RL_actual_TOP_bearing": [],
+      "RL_placed_history": [],
+      "P13_actual_stage": [],
+      "all_task_complete": []
+    },
+    "terminal_examples": [
+      {
+        "global_policy_decision": 225866,
+        "ppo_update": 1727,
+        "request_phase": "P09",
+        "end_phase": "P09",
+        "episode_start_tick": 5744,
+        "episode_end_tick": 5750,
+        "reward": -42.91673278808594,
+        "old_value": -12.639174461364746,
+        "terminal": true,
+        "old_log_probability": 19.221961975097656,
+        "termination_reason": "HARD_JOINT_LIMIT",
+        "full_task_success": false,
+        "raw_GAE": -30.277557373046875,
+        "raw_GAE_source": "exact_terminal_advantage_audit",
+        "reward_breakdown": {
+          "families": {
+            "task_progress": -42.916732073628424,
+            "body_stability": -0.0,
+            "contact_motion_quality": -0.0,
+            "control_smoothness": -0.0,
+            "control_regularization": -0.0
+          },
+          "potential_before": 0.5831464147256853,
+          "potential_after": 0.0,
+          "potential_shaping": -2.9157320736284262,
+          "terminal_event": -40.0,
+          "cooperative_counterroll_cost": 0.0
+        },
+        "effective_sigma_full12": [
+          0.17841055989265442,
+          0.09371046721935272,
+          0.01805565133690834,
+          0.02352697029709816,
+          0.08644837886095047,
+          0.005535041447728872,
+          0.12960116565227509,
+          0.018818341195583344,
+          0.5418424606323242,
+          0.05875849351286888,
+          0.1185324639081955,
+          0.07953289896249771
+        ],
+        "physical": {
+          "physical_status": "invalid_or_unavailable"
+        },
+        "endpoint_windows": [],
+        "standardized_advantage": -1.631921410560608
+      },
+      {
+        "global_policy_decision": 225979,
+        "ppo_update": 1727,
+        "request_phase": "P12",
+        "end_phase": "P12",
+        "episode_start_tick": 6056,
+        "episode_end_tick": 6061,
+        "reward": -43.09200668334961,
+        "old_value": -12.633038520812988,
+        "terminal": true,
+        "old_log_probability": 4.94639778137207,
+        "termination_reason": "HARD_JOINT_LIMIT",
+        "full_task_success": false,
+        "raw_GAE": -30.458969116210938,
+        "raw_GAE_source": "exact_terminal_advantage_audit",
+        "reward_breakdown": {
+          "families": {
+            "task_progress": -43.09200747787144,
+            "body_stability": -0.0,
+            "contact_motion_quality": -0.0,
+            "control_smoothness": -0.0,
+            "control_regularization": -0.0
+          },
+          "potential_before": 0.618234828907621,
+          "potential_after": 0.0,
+          "potential_shaping": -3.091174144538105,
+          "terminal_event": -40.0,
+          "cooperative_counterroll_cost": 0.0
+        },
+        "effective_sigma_full12": [
+          0.5044971108436584,
+          0.40367934107780457,
+          0.014976578764617443,
+          0.664049506187439,
+          0.2395203411579132,
+          0.08175094425678253,
+          1.8811882734298706,
+          0.023692265152931213,
+          0.42026570439338684,
+          0.35350316762924194,
+          0.15603557229042053,
+          0.2779850661754608
+        ],
+        "physical": {
+          "physical_status": "invalid_or_unavailable"
+        },
+        "endpoint_windows": [],
+        "standardized_advantage": -1.6506010293960571
+      },
+      {
+        "global_policy_decision": 226027,
+        "ppo_update": 1727,
+        "request_phase": "P09",
+        "end_phase": "P09",
+        "episode_start_tick": 5536,
+        "episode_end_tick": 5539,
+        "reward": -42.31218338012695,
+        "old_value": -12.1913480758667,
+        "terminal": true,
+        "old_log_probability": 22.889314651489258,
+        "termination_reason": "BODY_COLLISION",
+        "full_task_success": false,
+        "raw_GAE": -30.120834350585938,
+        "raw_GAE_source": "exact_terminal_advantage_audit",
+        "reward_breakdown": {
+          "families": {
+            "task_progress": -42.311437500000004,
+            "body_stability": -0.0007473281504630215,
+            "contact_motion_quality": -0.0,
+            "control_smoothness": -0.0,
+            "control_regularization": -0.0
+          },
+          "potential_before": 0.46218750000000003,
+          "potential_after": 0.0,
+          "potential_shaping": -2.3109375,
+          "terminal_event": -40.0,
+          "cooperative_counterroll_cost": 0.0
+        },
+        "effective_sigma_full12": [
+          0.053941402584314346,
+          0.06568603962659836,
+          0.003853599075227976,
+          0.011973101645708084,
+          0.0965099185705185,
+          0.00939607061445713,
+          0.10334672033786774,
+          0.008662010543048382,
+          0.06944197416305542,
+          0.018717866390943527,
+          0.04217853024601936,
+          0.013232681900262833
+        ],
+        "physical": {
+          "physical_status": "invalid_or_unavailable"
+        },
+        "endpoint_windows": [],
+        "standardized_advantage": -1.615783929824829
+      },
+      {
+        "global_policy_decision": 226064,
+        "ppo_update": 1727,
+        "request_phase": "P09",
+        "end_phase": "P09",
+        "episode_start_tick": 5448,
+        "episode_end_tick": 5450,
+        "reward": -42.510990142822266,
+        "old_value": -12.551079750061035,
+        "terminal": true,
+        "old_log_probability": 14.507331848144531,
+        "termination_reason": "BODY_COLLISION",
+        "full_task_success": false,
+        "raw_GAE": -29.959911346435547,
+        "raw_GAE_source": "exact_terminal_advantage_audit",
+        "reward_breakdown": {
+          "families": {
+            "task_progress": -42.51048958333333,
+            "body_stability": -0.0004995997851895937,
+            "contact_motion_quality": -0.0,
+            "control_smoothness": -0.0,
+            "control_regularization": -0.0
+          },
+          "potential_before": 0.50203125,
+          "potential_after": 0.0,
+          "potential_shaping": -2.51015625,
+          "terminal_event": -40.0,
+          "cooperative_counterroll_cost": 0.0
+        },
+        "effective_sigma_full12": [
+          0.15261131525039673,
+          0.09614840149879456,
+          0.005829505622386932,
+          0.020952610298991203,
+          0.11059627681970596,
+          0.006658805534243584,
+          0.1715015321969986,
+          0.011686061508953571,
+          0.22054657340049744,
+          0.04257086291909218,
+          0.08604329079389572,
+          0.03592805936932564
+        ],
+        "physical": {
+          "physical_status": "invalid_or_unavailable"
+        },
+        "endpoint_windows": [],
+        "standardized_advantage": -1.59921395778656
+      },
+      {
+        "global_policy_decision": 226200,
+        "ppo_update": 1727,
+        "request_phase": "P11",
+        "end_phase": "P11",
+        "episode_start_tick": 6240,
+        "episode_end_tick": 6246,
+        "reward": -43.08981704711914,
+        "old_value": -12.823150634765625,
+        "terminal": true,
+        "old_log_probability": 4.06266975402832,
+        "termination_reason": "HARD_JOINT_LIMIT",
+        "full_task_success": false,
+        "raw_GAE": -30.266666412353516,
+        "raw_GAE_source": "exact_terminal_advantage_audit",
+        "reward_breakdown": {
+          "families": {
+            "task_progress": -43.08981748383269,
+            "body_stability": -0.0,
+            "contact_motion_quality": -0.0,
+            "control_smoothness": -0.0,
+            "control_regularization": -0.0
+          },
+          "potential_before": 0.6177634967665382,
+          "potential_after": 0.0,
+          "potential_shaping": -3.088817483832691,
+          "terminal_event": -40.0,
+          "cooperative_counterroll_cost": 0.0
+        },
+        "effective_sigma_full12": [
+          0.25696074962615967,
+          0.32958489656448364,
+          0.008547642268240452,
+          0.5062538385391235,
+          0.25882360339164734,
+          0.08051664382219315,
+          1.6794939041137695,
+          0.01875458098948002,
+          0.24074967205524445,
+          0.16770373284816742,
+          0.09931989759206772,
+          0.12381443381309509
+        ],
+        "physical": {
+          "physical_status": "invalid_or_unavailable"
+        },
+        "endpoint_windows": [],
+        "standardized_advantage": -1.6308000087738037
+      }
+    ],
+    "final_optimized_endpoint": {
+      "global_policy_decision": 226304,
+      "ppo_update": 1727,
+      "request_phase": "P09",
+      "end_phase": "P09",
+      "episode_start_tick": 5984,
+      "episode_end_tick": 5992,
+      "reward": 0.03225564584136009,
+      "old_value": -13.009743690490723,
+      "terminal": false,
+      "old_log_probability": 12.239949226379395,
+      "termination_reason": null,
+      "full_task_success": false,
+      "raw_GAE": null,
+      "raw_GAE_source": "not_saved_per_row_in_JSON",
+      "reward_breakdown": {
+        "families": {
+          "task_progress": 0.03225564470089023,
+          "body_stability": -0.0,
+          "contact_motion_quality": -0.0,
+          "control_smoothness": -0.0,
+          "control_regularization": -0.0
+        },
+        "potential_before": 0.6162319244965012,
+        "potential_after": 0.6238855484259849,
+        "potential_shaping": 0.03358897803422356,
+        "terminal_event": 0.0,
+        "cooperative_counterroll_cost": 0.0
+      },
+      "effective_sigma_full12": [
+        0.09124766290187836,
+        0.16438867151737213,
+        0.004962386097759008,
+        0.28893452882766724,
+        0.21547524631023407,
+        0.05521802604198456,
+        1.1148948669433594,
+        0.020629368722438812,
+        0.3034427762031555,
+        0.024758705869317055,
+        0.06257559359073639,
+        0.023610439151525497
+      ],
+      "physical": {
+        "physics_tick": 5992,
+        "sim_time_s": 49.93333333333333,
+        "RR": {
+          "clearance_m": 0.021168146425572326,
+          "front_distance_m": 0.03198373658489828,
+          "air": true,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": true,
+          "active_attempt": true,
+          "contact_surface": "NONE",
+          "bearing_force_n": 0.0,
+          "bearing_verified": true
+        },
+        "RL": {
+          "clearance_m": -0.0500713539582116,
+          "front_distance_m": -0.13208493249583597,
+          "air": false,
+          "ground_contact": true,
+          "within_top_xy": false,
+          "current_lift_valid": false,
+          "active_attempt": false,
+          "contact_surface": "NONE",
+          "bearing_force_n": 13.672850608825684,
+          "bearing_verified": true
+        },
+        "RR_actual_bearing": false,
+        "front_actual_bearing": [
+          "FR"
+        ],
+        "RL_current_load_fraction": 0.4831119015034235,
+        "RL_below_existing_unload_fraction": false,
+        "FR_direction_window_reference_tick": 5932,
+        "FR_direction_window_s": 0.5,
+        "FR_body_toward_m": 0.04019620766215132,
+        "FR_CoM_toward_m": 0.03627177297533481,
+        "RL_load_fraction_drop": 0.0029575373701873353,
+        "FR_direction_window_fixed_axis_world": [
+          0.7987819375802871,
+          -0.6016206580524659,
+          0.0
+        ],
+        "FR_window_body_world_displacement_xyz_m": [
+          0.03804713487625122,
+          -0.016297385096549988,
+          0.007692448794841766
+        ],
+        "FR_window_CoM_world_displacement_xyz_m": [
+          0.025021936661867916,
+          -0.02706805643820924,
+          -0.005356430530980588
+        ],
+        "RL_current_bearing_force_n": 13.672850608825684,
+        "RL_current_bearing_force_verified": true,
+        "RL_current_contact_reaction_force_n": 13.672850608825808,
+        "RL_current_qualified_lift": false,
+        "RL_current_ground_contact": true,
+        "RL_current_absolute_force_drop_over_FR_window_n": null,
+        "RL_absolute_force_drop_status": "reference_force_not_stored_in_transfer_direction_context",
+        "fl_range_credit": 0.5425682948468366,
+        "rl_space_credit": 0.0
+      },
+      "endpoint_windows": [
+        "RR_reachable_AIR_preparation"
+      ],
+      "standardized_advantage": 1.4697778224945068
+    },
+    "ends_nonterminal_partial": true,
+    "ordinary_phase_change_is_not_terminal": true,
+    "updates": [
+      {
+        "ppo_update": 1727,
+        "first_global_policy_decision": 225793,
+        "last_global_policy_decision": 226304,
+        "sample_count": 512,
+        "optimizer_steps": 20,
+        "learning_rate": 1.0000000000000004e-05,
+        "gamma": 0.9985,
+        "gae_lambda": 0.99,
+        "tail_bootstrap": {
+          "terminal_env_indices": [],
+          "nonterminal_env_indices": [
+            0
+          ],
+          "value_source": "existing_official_compute_returns_last_values; not re-evaluated or logged here",
+          "last_values_measured_separately": null
+        },
+        "by_request_phase": {
+          "P07": {
+            "sample_count": 6,
+            "terminal_count": 0,
+            "raw_gae_returns_minus_old_values": {
+              "count": 6,
+              "finite_count": 6,
+              "nonfinite_count": 0,
+              "minimum": -18.388896942138672,
+              "maximum": 1.997385025024414,
+              "mean": -8.945148785909018,
+              "std_population": 6.991263223917052,
+              "positive_count": 1,
+              "negative_count": 5,
+              "zero_count": 0
+            },
+            "stored_advantages": {
+              "count": 6,
+              "finite_count": 6,
+              "nonfinite_count": 0,
+              "minimum": -0.40776750445365906,
+              "maximum": 1.691371202468872,
+              "mean": 0.5646382023890814,
+              "std_population": 0.7198777661338903,
+              "positive_count": 4,
+              "negative_count": 2,
+              "zero_count": 0
+            },
+            "old_values": {
+              "count": 6,
+              "finite_count": 6,
+              "nonfinite_count": 0,
+              "minimum": -13.32190227508545,
+              "maximum": -13.32190227508545,
+              "mean": -13.32190227508545,
+              "std_population": 0.0,
+              "positive_count": 0,
+              "negative_count": 6,
+              "zero_count": 0
+            },
+            "returns": {
+              "count": 6,
+              "finite_count": 6,
+              "nonfinite_count": 0,
+              "minimum": -31.710800170898438,
+              "maximum": -11.324517250061035,
+              "mean": -22.267051219940186,
+              "std_population": 6.991263438619795,
+              "positive_count": 0,
+              "negative_count": 6,
+              "zero_count": 0
+            },
+            "rewards": {
+              "count": 6,
+              "finite_count": 6,
+              "nonfinite_count": 0,
+              "minimum": 0.00443780655041337,
+              "maximum": 0.008297816850244999,
+              "mean": 0.005105943651869893,
+              "std_population": 0.00142758282210988,
+              "positive_count": 6,
+              "negative_count": 0,
+              "zero_count": 0
+            }
+          },
+          "P08": {
+            "sample_count": 6,
+            "terminal_count": 0,
+            "raw_gae_returns_minus_old_values": {
+              "count": 6,
+              "finite_count": 6,
+              "nonfinite_count": 0,
+              "minimum": -18.714637756347656,
+              "maximum": 1.9358100891113281,
+              "mean": -9.15528678894043,
+              "std_population": 7.0922800164618005,
+              "positive_count": 1,
+              "negative_count": 5,
+              "zero_count": 0
+            },
+            "stored_advantages": {
+              "count": 6,
+              "finite_count": 6,
+              "nonfinite_count": 0,
+              "minimum": -0.44130846858024597,
+              "maximum": 1.6850309371948242,
+              "mean": 0.543000673254331,
+              "std_population": 0.7302792909060716,
+              "positive_count": 4,
+              "negative_count": 2,
+              "zero_count": 0
+            },
+            "old_values": {
+              "count": 6,
+              "finite_count": 6,
+              "nonfinite_count": 0,
+              "minimum": -13.285231590270996,
+              "maximum": -13.168341636657715,
+              "mean": -13.241881370544434,
+              "std_population": 0.04145474624330691,
+              "positive_count": 0,
+              "negative_count": 6,
+              "zero_count": 0
+            },
+            "returns": {
+              "count": 6,
+              "finite_count": 6,
+              "nonfinite_count": 0,
+              "minimum": -31.950027465820312,
+              "maximum": -11.326679229736328,
+              "mean": -22.397168159484863,
+              "std_population": 7.072234736240485,
+              "positive_count": 0,
+              "negative_count": 6,
+              "zero_count": 0
+            },
+            "rewards": {
+              "count": 6,
+              "finite_count": 6,
+              "nonfinite_count": 0,
+              "minimum": -0.008415048010647297,
+              "maximum": 0.006731721106916666,
+              "mean": -0.002046498043152193,
+              "std_population": 0.00534764513881275,
+              "positive_count": 2,
+              "negative_count": 4,
+              "zero_count": 0
+            }
+          },
+          "P09": {
+            "sample_count": 430,
+            "terminal_count": 3,
+            "raw_gae_returns_minus_old_values": {
+              "count": 430,
+              "finite_count": 430,
+              "nonfinite_count": 0,
+              "minimum": -30.277557373046875,
+              "maximum": 1.6249017715454102,
+              "mean": -12.87931068553481,
+              "std_population": 9.383690614551773,
+              "positive_count": 63,
+              "negative_count": 367,
+              "zero_count": 0
+            },
+            "stored_advantages": {
+              "count": 430,
+              "finite_count": 430,
+              "nonfinite_count": 0,
+              "minimum": -1.631921410560608,
+              "maximum": 1.653017282485962,
+              "mean": 0.15954464241621344,
+              "std_population": 0.9662216900115365,
+              "positive_count": 232,
+              "negative_count": 198,
+              "zero_count": 0
+            },
+            "old_values": {
+              "count": 430,
+              "finite_count": 430,
+              "nonfinite_count": 0,
+              "minimum": -13.038887023925781,
+              "maximum": -11.708786010742188,
+              "mean": -12.299088693219561,
+              "std_population": 0.2526530878678404,
+              "positive_count": 0,
+              "negative_count": 430,
+              "zero_count": 0
+            },
+            "returns": {
+              "count": 430,
+              "finite_count": 430,
+              "nonfinite_count": 0,
+              "minimum": -42.91673278808594,
+              "maximum": -11.31776237487793,
+              "mean": -25.17839934992236,
+              "std_population": 9.370281057253347,
+              "positive_count": 0,
+              "negative_count": 430,
+              "zero_count": 0
+            },
+            "rewards": {
+              "count": 430,
+              "finite_count": 430,
+              "nonfinite_count": 0,
+              "minimum": -42.91673278808594,
+              "maximum": 0.24338188767433167,
+              "mean": -0.2955512679233094,
+              "std_population": 3.5445235501194086,
+              "positive_count": 149,
+              "negative_count": 281,
+              "zero_count": 0
+            }
+          },
+          "P10": {
+            "sample_count": 2,
+            "terminal_count": 0,
+            "raw_gae_returns_minus_old_values": {
+              "count": 2,
+              "finite_count": 2,
+              "nonfinite_count": 0,
+              "minimum": -23.176544189453125,
+              "maximum": -18.34125518798828,
+              "mean": -20.758899688720703,
+              "std_population": 2.417644500732422,
+              "positive_count": 0,
+              "negative_count": 2,
+              "zero_count": 0
+            },
+            "stored_advantages": {
+              "count": 2,
+              "finite_count": 2,
+              "nonfinite_count": 0,
+              "minimum": -0.9007428884506226,
+              "maximum": -0.40286192297935486,
+              "mean": -0.6518024057149887,
+              "std_population": 0.24894048273563385,
+              "positive_count": 0,
+              "negative_count": 2,
+              "zero_count": 0
+            },
+            "old_values": {
+              "count": 2,
+              "finite_count": 2,
+              "nonfinite_count": 0,
+              "minimum": -12.406116485595703,
+              "maximum": -12.214829444885254,
+              "mean": -12.310472965240479,
+              "std_population": 0.09564352035522461,
+              "positive_count": 0,
+              "negative_count": 2,
+              "zero_count": 0
+            },
+            "returns": {
+              "count": 2,
+              "finite_count": 2,
+              "nonfinite_count": 0,
+              "minimum": -35.39137268066406,
+              "maximum": -30.747371673583984,
+              "mean": -33.06937217712402,
+              "std_population": 2.322000503540039,
+              "positive_count": 0,
+              "negative_count": 2,
+              "zero_count": 0
+            },
+            "rewards": {
+              "count": 2,
+              "finite_count": 2,
+              "nonfinite_count": 0,
+              "minimum": -0.0053654201328754425,
+              "maximum": 0.1507437527179718,
+              "mean": 0.07268916629254818,
+              "std_population": 0.07805458642542362,
+              "positive_count": 1,
+              "negative_count": 1,
+              "zero_count": 0
+            }
+          },
+          "P11": {
+            "sample_count": 26,
+            "terminal_count": 1,
+            "raw_gae_returns_minus_old_values": {
+              "count": 26,
+              "finite_count": 26,
+              "nonfinite_count": 0,
+              "minimum": -30.266666412353516,
+              "maximum": -18.79762077331543,
+              "mean": -26.32877826690674,
+              "std_population": 2.4426029263103213,
+              "positive_count": 0,
+              "negative_count": 26,
+              "zero_count": 0
+            },
+            "stored_advantages": {
+              "count": 26,
+              "finite_count": 26,
+              "nonfinite_count": 0,
+              "minimum": -1.6308000087738037,
+              "maximum": -0.4498530626296997,
+              "mean": -1.2253227761158576,
+              "std_population": 0.25151041496616533,
+              "positive_count": 0,
+              "negative_count": 26,
+              "zero_count": 0
+            },
+            "old_values": {
+              "count": 26,
+              "finite_count": 26,
+              "nonfinite_count": 0,
+              "minimum": -13.008997917175293,
+              "maximum": -11.682518005371094,
+              "mean": -12.549337827242338,
+              "std_population": 0.38930454761799815,
+              "positive_count": 0,
+              "negative_count": 26,
+              "zero_count": 0
+            },
+            "returns": {
+              "count": 26,
+              "finite_count": 26,
+              "nonfinite_count": 0,
+              "minimum": -43.08981704711914,
+              "maximum": -31.13250732421875,
+              "mean": -38.87811616750864,
+              "std_population": 2.6658243881836183,
+              "positive_count": 0,
+              "negative_count": 26,
+              "zero_count": 0
+            },
+            "rewards": {
+              "count": 26,
+              "finite_count": 26,
+              "nonfinite_count": 0,
+              "minimum": -43.08981704711914,
+              "maximum": 0.1246032863855362,
+              "mean": -1.6714641309025375,
+              "std_population": 8.283916439691328,
+              "positive_count": 7,
+              "negative_count": 19,
+              "zero_count": 0
+            }
+          },
+          "P12": {
+            "sample_count": 42,
+            "terminal_count": 1,
+            "raw_gae_returns_minus_old_values": {
+              "count": 42,
+              "finite_count": 42,
+              "nonfinite_count": 0,
+              "minimum": -30.458969116210938,
+              "maximum": -19.046451568603516,
+              "mean": -24.160849979945592,
+              "std_population": 3.280004868494572,
+              "positive_count": 0,
+              "negative_count": 42,
+              "zero_count": 0
+            },
+            "stored_advantages": {
+              "count": 42,
+              "finite_count": 42,
+              "nonfinite_count": 0,
+              "minimum": -1.6506010293960571,
+              "maximum": -0.4754747152328491,
+              "mean": -1.0020951018446969,
+              "std_population": 0.3377361838240496,
+              "positive_count": 0,
+              "negative_count": 42,
+              "zero_count": 0
+            },
+            "old_values": {
+              "count": 42,
+              "finite_count": 42,
+              "nonfinite_count": 0,
+              "minimum": -12.865131378173828,
+              "maximum": -12.009458541870117,
+              "mean": -12.564786752065023,
+              "std_population": 0.20383523820064214,
+              "positive_count": 0,
+              "negative_count": 42,
+              "zero_count": 0
+            },
+            "returns": {
+              "count": 42,
+              "finite_count": 42,
+              "nonfinite_count": 0,
+              "minimum": -43.09200668334961,
+              "maximum": -31.414812088012695,
+              "mean": -36.725636709304084,
+              "std_population": 3.4447810712215805,
+              "positive_count": 0,
+              "negative_count": 42,
+              "zero_count": 0
+            },
+            "rewards": {
+              "count": 42,
+              "finite_count": 42,
+              "nonfinite_count": 0,
+              "minimum": -43.09200668334961,
+              "maximum": 0.008152090013027191,
+              "mean": -1.0386559054417634,
+              "std_population": 6.567710394078855,
+              "positive_count": 6,
+              "negative_count": 36,
+              "zero_count": 0
+            }
+          }
+        }
+      }
+    ],
+    "planned_unconsumed_no_credit": 0,
+    "final_global_policy_decisions": 226304
+  },
+  "episodes": [
+    {
+      "episode_index": 0,
+      "student_decisions": 74,
+      "global_range": [
+        225793,
+        225866
+      ],
+      "handoff_tick": 5160,
+      "handoff_s": 43.0,
+      "prefix_credit": 0,
+      "from_current_policy_P01": false,
+      "request_phase_counts": {
+        "P07": 1,
+        "P08": 1,
+        "P09": 72
+      },
+      "terminal": true,
+      "endpoint_tick": 5750,
+      "endpoint_s": 47.916666666666664,
+      "endpoint_phase": "P09",
+      "termination_reason": "HARD_JOINT_LIMIT",
+      "termination_source": "HARD_JOINT_LIMIT",
+      "physical_reason": "hard joint limit: rear_right_knee",
+      "safety": {
+        "reason": "hard joint limit: rear_right_knee",
+        "actual_servo_canonical_deg": [
+          11.72398790717125,
+          -44.00832027196884,
+          9.017342627048492,
+          36.13057851791382,
+          20.869377851486206,
+          6.934503391385078,
+          4.717600978910923,
+          -60.058109164237976
+        ],
+        "actual_quantization": "439 fixed-scale float32 terminal observation; not native raw sensor",
+        "final_servo_canonical_deg": [
+          14.318398893232903,
+          -44.36615623800801,
+          8.75958656673754,
+          42.23154193413039,
+          21.028049195697843,
+          7.32750525530726,
+          11.353704061992955,
+          -58.0
+        ],
+        "actual_native_target_rad": [
+          0.25128814578056335,
+          -0.7738670110702515,
+          0.1527658998966217,
+          0.7392644286155701,
+          -0.37014028429985046,
+          -0.12504394352436066,
+          -0.2037966102361679,
+          1.016047716140747
+        ],
+        "hard_limits_deg": [
+          [
+            -135.0,
+            135.0
+          ],
+          [
+            -60.0,
+            210.0
+          ],
+          [
+            -135.0,
+            135.0
+          ],
+          [
+            -60.0,
+            210.0
+          ],
+          [
+            -135.0,
+            135.0
+          ],
+          [
+            -60.0,
+            210.0
+          ],
+          [
+            -135.0,
+            135.0
+          ],
+          [
+            -60.0,
+            210.0
+          ]
+        ],
+        "mapping_matches_dispatch": true
+      },
+      "events": {
+        "RR": {
+          "history_event_ticks": {
+            "active_lift": 5351,
+            "front_edge_crossed": 5587
+          },
+          "event_credit": {
+            "active_lift": "student",
+            "front_edge_crossed": "student"
+          },
+          "fresh_qualification_ticks": [
+            5351
+          ],
+          "inherited_qualification_ticks": []
+        },
+        "RL": {
+          "history_event_ticks": {},
+          "event_credit": {},
+          "fresh_qualification_ticks": [],
+          "inherited_qualification_ticks": []
+        }
+      },
+      "current_contact_counts": {
+        "RR_legal_TOP_bearing_endpoints": 0,
+        "RR_ground_endpoints": 16,
+        "RR_AIR_endpoints": 54,
+        "RR_student_qualified_endpoints": 49
+      },
+      "RR_TOP_loss_endpoint_ticks": [],
+      "RR_legal_TOP_restore_after_ground": [],
+      "RR_legal_TOP_recontact_without_reground": [],
+      "physical_windows": {
+        "RR_reachable_AIR_preparation": 3,
+        "RR_actual_bearing_front_preparation": 0,
+        "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": 0,
+        "qualified_RL_edge_recovery": 0,
+        "RL_qualified_AIR_capture_region": 0,
+        "RL_actual_TOP_bearing": 0,
+        "RL_placed_history": 0,
+        "P13_actual_stage": 0,
+        "all_task_complete": 0
+      },
+      "endpoint_legs": {
+        "FL": {
+          "contact_mode": null,
+          "top_contact": true,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": null,
+          "bearing_force_n": 10.621574401855469,
+          "clearance_m": 3.8475620139921674e-07,
+          "front_distance_m": 0.34546691520046835
+        },
+        "FR": {
+          "contact_mode": null,
+          "top_contact": false,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": null,
+          "bearing_force_n": 0.0,
+          "clearance_m": 0.0012183763024647895,
+          "front_distance_m": 0.5159736309750045
+        },
+        "RL": {
+          "contact_mode": "GROUND",
+          "top_contact": false,
+          "ground_contact": true,
+          "within_top_xy": false,
+          "current_lift_valid": false,
+          "bearing_force_n": 1.2362151145935059,
+          "clearance_m": -0.050878950852092555,
+          "front_distance_m": -0.18908136742282267
+        },
+        "RR": {
+          "contact_mode": "TOP",
+          "top_contact": false,
+          "ground_contact": false,
+          "within_top_xy": false,
+          "current_lift_valid": false,
+          "bearing_force_n": 3.922581672668457,
+          "clearance_m": -0.016201006131554174,
+          "front_distance_m": -0.03648188369441385
+        }
+      }
+    },
+    {
+      "episode_index": 1,
+      "student_decisions": 113,
+      "global_range": [
+        225867,
+        225979
+      ],
+      "handoff_tick": 5160,
+      "handoff_s": 43.0,
+      "prefix_credit": 0,
+      "from_current_policy_P01": false,
+      "request_phase_counts": {
+        "P07": 1,
+        "P08": 1,
+        "P09": 67,
+        "P10": 1,
+        "P11": 1,
+        "P12": 42
+      },
+      "terminal": true,
+      "endpoint_tick": 6061,
+      "endpoint_s": 50.50833333333333,
+      "endpoint_phase": "P12",
+      "termination_reason": "HARD_JOINT_LIMIT",
+      "termination_source": "HARD_JOINT_LIMIT",
+      "physical_reason": "hard joint limit: front_right_knee",
+      "safety": {
+        "reason": "hard joint limit: front_right_knee",
+        "actual_servo_canonical_deg": [
+          62.42375314235687,
+          -47.924766540527344,
+          10.613973140716553,
+          -60.01875579357147,
+          -1.241245698183775,
+          23.749643862247467,
+          -33.5334786772728,
+          -49.21072483062744
+        ],
+        "actual_quantization": "439 fixed-scale float32 terminal observation; not native raw sensor",
+        "final_servo_canonical_deg": [
+          58.40891328838134,
+          -47.593716253550134,
+          11.876131677752298,
+          -57.99999999999999,
+          0.3842831249265828,
+          25.662971530883876,
+          -33.37077878657001,
+          -49.731514510231676
+        ],
+        "actual_native_target_rad": [
+          1.020812749862671,
+          -0.8301985263824463,
+          0.2071598619222641,
+          -1.0101059675216675,
+          -0.009838585741817951,
+          -0.4450581967830658,
+          0.5767928957939148,
+          0.8717353940010071
+        ],
+        "hard_limits_deg": [
+          [
+            -135.0,
+            135.0
+          ],
+          [
+            -60.0,
+            210.0
+          ],
+          [
+            -135.0,
+            135.0
+          ],
+          [
+            -60.0,
+            210.0
+          ],
+          [
+            -135.0,
+            135.0
+          ],
+          [
+            -60.0,
+            210.0
+          ],
+          [
+            -135.0,
+            135.0
+          ],
+          [
+            -60.0,
+            210.0
+          ]
+        ],
+        "mapping_matches_dispatch": true
+      },
+      "events": {
+        "RR": {
+          "history_event_ticks": {
+            "active_lift": 5371,
+            "front_edge_crossed": 5666,
+            "placed": 5697
+          },
+          "event_credit": {
+            "active_lift": "student",
+            "front_edge_crossed": "student",
+            "placed": "student"
+          },
+          "fresh_qualification_ticks": [
+            5371
+          ],
+          "inherited_qualification_ticks": []
+        },
+        "RL": {
+          "history_event_ticks": {},
+          "event_credit": {},
+          "fresh_qualification_ticks": [],
+          "inherited_qualification_ticks": []
+        }
+      },
+      "current_contact_counts": {
+        "RR_legal_TOP_bearing_endpoints": 10,
+        "RR_ground_endpoints": 19,
+        "RR_AIR_endpoints": 84,
+        "RR_student_qualified_endpoints": 86,
+        "RR_nonbearing_after_student_capture_endpoints": 37
+      },
+      "RR_TOP_loss_endpoint_ticks": [
+        5704,
+        5792
+      ],
+      "RR_legal_TOP_restore_after_ground": [],
+      "RR_legal_TOP_recontact_without_reground": [
+        {
+          "tick": 5720,
+          "current_lift_valid": true,
+          "bearing_force_n": 5.955853462219238,
+          "is_renewed_task_placement_claim": false
+        }
+      ],
+      "physical_windows": {
+        "RR_reachable_AIR_preparation": 39,
+        "RR_actual_bearing_front_preparation": 10,
+        "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": 9,
+        "qualified_RL_edge_recovery": 0,
+        "RL_qualified_AIR_capture_region": 0,
+        "RL_actual_TOP_bearing": 0,
+        "RL_placed_history": 0,
+        "P13_actual_stage": 0,
+        "all_task_complete": 0
+      },
+      "endpoint_legs": {
+        "FL": {
+          "contact_mode": null,
+          "top_contact": true,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": null,
+          "bearing_force_n": 4.502072334289551,
+          "clearance_m": 1.330229651777537e-06,
+          "front_distance_m": 0.4236710105640853
+        },
+        "FR": {
+          "contact_mode": null,
+          "top_contact": true,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": null,
+          "bearing_force_n": 14.964921951293945,
+          "clearance_m": -0.0012921597588045342,
+          "front_distance_m": 0.4139143262608016
+        },
+        "RL": {
+          "contact_mode": "GROUND",
+          "top_contact": false,
+          "ground_contact": true,
+          "within_top_xy": false,
+          "current_lift_valid": false,
+          "bearing_force_n": 11.844619750976562,
+          "clearance_m": -0.05065426367562318,
+          "front_distance_m": -0.1600031520621812
+        },
+        "RR": {
+          "contact_mode": "AIR",
+          "top_contact": false,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": false,
+          "bearing_force_n": 0.0,
+          "clearance_m": 0.01457287007725204,
+          "front_distance_m": 0.13959920747112875
+        }
+      }
+    },
+    {
+      "episode_index": 2,
+      "student_decisions": 48,
+      "global_range": [
+        225980,
+        226027
+      ],
+      "handoff_tick": 5160,
+      "handoff_s": 43.0,
+      "prefix_credit": 0,
+      "from_current_policy_P01": false,
+      "request_phase_counts": {
+        "P07": 1,
+        "P08": 1,
+        "P09": 46
+      },
+      "terminal": true,
+      "endpoint_tick": 5539,
+      "endpoint_s": 46.15833333333333,
+      "endpoint_phase": "P09",
+      "termination_reason": "BODY_COLLISION",
+      "termination_source": "BODY_CONTACT",
+      "physical_reason": "central body/obstacle collision",
+      "safety": null,
+      "events": {
+        "RR": {
+          "history_event_ticks": {
+            "active_lift": 5446
+          },
+          "event_credit": {
+            "active_lift": "student"
+          },
+          "fresh_qualification_ticks": [
+            5446
+          ],
+          "inherited_qualification_ticks": []
+        },
+        "RL": {
+          "history_event_ticks": {},
+          "event_credit": {},
+          "fresh_qualification_ticks": [],
+          "inherited_qualification_ticks": []
+        }
+      },
+      "current_contact_counts": {
+        "RR_legal_TOP_bearing_endpoints": 0,
+        "RR_ground_endpoints": 30,
+        "RR_AIR_endpoints": 18,
+        "RR_student_qualified_endpoints": 4
+      },
+      "RR_TOP_loss_endpoint_ticks": [],
+      "RR_legal_TOP_restore_after_ground": [],
+      "RR_legal_TOP_recontact_without_reground": [],
+      "physical_windows": {
+        "RR_reachable_AIR_preparation": 0,
+        "RR_actual_bearing_front_preparation": 0,
+        "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": 0,
+        "qualified_RL_edge_recovery": 0,
+        "RL_qualified_AIR_capture_region": 0,
+        "RL_actual_TOP_bearing": 0,
+        "RL_placed_history": 0,
+        "P13_actual_stage": 0,
+        "all_task_complete": 0
+      },
+      "endpoint_legs": {
+        "FL": {
+          "contact_mode": null,
+          "top_contact": false,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": null,
+          "bearing_force_n": 0.0,
+          "clearance_m": 0.15943625983208887,
+          "front_distance_m": 0.3217732940418685
+        },
+        "FR": {
+          "contact_mode": null,
+          "top_contact": true,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": null,
+          "bearing_force_n": 10.626341819763184,
+          "clearance_m": -0.0012268598704856595,
+          "front_distance_m": 0.4179744158489669
+        },
+        "RL": {
+          "contact_mode": "GROUND",
+          "top_contact": false,
+          "ground_contact": true,
+          "within_top_xy": false,
+          "current_lift_valid": false,
+          "bearing_force_n": 10.084513664245605,
+          "clearance_m": -0.05116597204329924,
+          "front_distance_m": -0.18761780517268534
+        },
+        "RR": {
+          "contact_mode": "AIR",
+          "top_contact": false,
+          "ground_contact": false,
+          "within_top_xy": false,
+          "current_lift_valid": false,
+          "bearing_force_n": 0.0,
+          "clearance_m": -0.04974891129146518,
+          "front_distance_m": -0.2108436788814103
+        }
+      }
+    },
+    {
+      "episode_index": 3,
+      "student_decisions": 37,
+      "global_range": [
+        226028,
+        226064
+      ],
+      "handoff_tick": 5160,
+      "handoff_s": 43.0,
+      "prefix_credit": 0,
+      "from_current_policy_P01": false,
+      "request_phase_counts": {
+        "P07": 1,
+        "P08": 1,
+        "P09": 35
+      },
+      "terminal": true,
+      "endpoint_tick": 5450,
+      "endpoint_s": 45.416666666666664,
+      "endpoint_phase": "P09",
+      "termination_reason": "BODY_COLLISION",
+      "termination_source": "BODY_CONTACT",
+      "physical_reason": "central body/obstacle collision",
+      "safety": null,
+      "events": {
+        "RR": {
+          "history_event_ticks": {
+            "active_lift": 5449
+          },
+          "event_credit": {
+            "active_lift": "student"
+          },
+          "fresh_qualification_ticks": [
+            5449
+          ],
+          "inherited_qualification_ticks": []
+        },
+        "RL": {
+          "history_event_ticks": {},
+          "event_credit": {},
+          "fresh_qualification_ticks": [],
+          "inherited_qualification_ticks": []
+        }
+      },
+      "current_contact_counts": {
+        "RR_legal_TOP_bearing_endpoints": 0,
+        "RR_ground_endpoints": 25,
+        "RR_AIR_endpoints": 12
+      },
+      "RR_TOP_loss_endpoint_ticks": [],
+      "RR_legal_TOP_restore_after_ground": [],
+      "RR_legal_TOP_recontact_without_reground": [],
+      "physical_windows": {
+        "RR_reachable_AIR_preparation": 0,
+        "RR_actual_bearing_front_preparation": 0,
+        "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": 0,
+        "qualified_RL_edge_recovery": 0,
+        "RL_qualified_AIR_capture_region": 0,
+        "RL_actual_TOP_bearing": 0,
+        "RL_placed_history": 0,
+        "P13_actual_stage": 0,
+        "all_task_complete": 0
+      },
+      "endpoint_legs": {
+        "FL": {
+          "contact_mode": null,
+          "top_contact": false,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": null,
+          "bearing_force_n": 0.0,
+          "clearance_m": -0.0002568664087712405,
+          "front_distance_m": 0.42236906630825644
+        },
+        "FR": {
+          "contact_mode": null,
+          "top_contact": true,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": null,
+          "bearing_force_n": 16.156116485595703,
+          "clearance_m": -0.0012016305213692624,
+          "front_distance_m": 0.4369519983036483
+        },
+        "RL": {
+          "contact_mode": "GROUND",
+          "top_contact": false,
+          "ground_contact": true,
+          "within_top_xy": false,
+          "current_lift_valid": false,
+          "bearing_force_n": 12.220970153808594,
+          "clearance_m": -0.05011395302309081,
+          "front_distance_m": -0.16354107515979166
+        },
+        "RR": {
+          "contact_mode": "AIR",
+          "top_contact": false,
+          "ground_contact": false,
+          "within_top_xy": false,
+          "current_lift_valid": false,
+          "bearing_force_n": 0.0,
+          "clearance_m": -0.040623235006987404,
+          "front_distance_m": -0.11397665398288126
+        }
+      }
+    },
+    {
+      "episode_index": 4,
+      "student_decisions": 136,
+      "global_range": [
+        226065,
+        226200
+      ],
+      "handoff_tick": 5160,
+      "handoff_s": 43.0,
+      "prefix_credit": 0,
+      "from_current_policy_P01": false,
+      "request_phase_counts": {
+        "P07": 1,
+        "P08": 1,
+        "P09": 108,
+        "P10": 1,
+        "P11": 25
+      },
+      "terminal": true,
+      "endpoint_tick": 6246,
+      "endpoint_s": 52.05,
+      "endpoint_phase": "P11",
+      "termination_reason": "HARD_JOINT_LIMIT",
+      "termination_source": "HARD_JOINT_LIMIT",
+      "physical_reason": "hard joint limit: front_right_knee",
+      "safety": {
+        "reason": "hard joint limit: front_right_knee",
+        "actual_servo_canonical_deg": [
+          -19.81511279940605,
+          -54.84899640083313,
+          10.85783489048481,
+          -60.016454458236694,
+          -16.461160629987717,
+          35.264624655246735,
+          -27.254014313220978,
+          -47.118982672691345
+        ],
+        "actual_quantization": "439 fixed-scale float32 terminal observation; not native raw sensor",
+        "final_servo_canonical_deg": [
+          -25.277432266628168,
+          -55.75110092757636,
+          12.764051086945386,
+          -57.99999999999999,
+          -15.885418427660559,
+          34.40071158021385,
+          -22.971805368916627,
+          -47.88099172503526
+        ],
+        "actual_native_target_rad": [
+          -0.43978947401046753,
+          -0.9725717306137085,
+          0.2226569801568985,
+          -1.0101059675216675,
+          0.2741212844848633,
+          -0.5975605249404907,
+          0.39529654383659363,
+          0.8394376635551453
+        ],
+        "hard_limits_deg": [
+          [
+            -135.0,
+            135.0
+          ],
+          [
+            -60.0,
+            210.0
+          ],
+          [
+            -135.0,
+            135.0
+          ],
+          [
+            -60.0,
+            210.0
+          ],
+          [
+            -135.0,
+            135.0
+          ],
+          [
+            -60.0,
+            210.0
+          ],
+          [
+            -135.0,
+            135.0
+          ],
+          [
+            -60.0,
+            210.0
+          ]
+        ],
+        "mapping_matches_dispatch": true
+      },
+      "events": {
+        "RR": {
+          "history_event_ticks": {
+            "active_lift": 5409,
+            "front_edge_crossed": 5905,
+            "placed": 6033
+          },
+          "event_credit": {
+            "active_lift": "student",
+            "front_edge_crossed": "student",
+            "placed": "student"
+          },
+          "fresh_qualification_ticks": [
+            5409
+          ],
+          "inherited_qualification_ticks": []
+        },
+        "RL": {
+          "history_event_ticks": {},
+          "event_credit": {},
+          "fresh_qualification_ticks": [],
+          "inherited_qualification_ticks": []
+        }
+      },
+      "current_contact_counts": {
+        "RR_legal_TOP_bearing_endpoints": 9,
+        "RR_ground_endpoints": 16,
+        "RR_AIR_endpoints": 111,
+        "RR_student_qualified_endpoints": 104,
+        "RR_nonbearing_after_student_capture_endpoints": 19
+      },
+      "RR_TOP_loss_endpoint_ticks": [
+        6056,
+        6112
+      ],
+      "RR_legal_TOP_restore_after_ground": [],
+      "RR_legal_TOP_recontact_without_reground": [
+        {
+          "tick": 6064,
+          "current_lift_valid": true,
+          "bearing_force_n": 1.2079180479049683,
+          "is_renewed_task_placement_claim": false
+        }
+      ],
+      "physical_windows": {
+        "RR_reachable_AIR_preparation": 24,
+        "RR_actual_bearing_front_preparation": 9,
+        "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": 9,
+        "qualified_RL_edge_recovery": 0,
+        "RL_qualified_AIR_capture_region": 0,
+        "RL_actual_TOP_bearing": 0,
+        "RL_placed_history": 0,
+        "P13_actual_stage": 0,
+        "all_task_complete": 0
+      },
+      "endpoint_legs": {
+        "FL": {
+          "contact_mode": null,
+          "top_contact": true,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": null,
+          "bearing_force_n": 5.252094745635986,
+          "clearance_m": -0.00023662157576578163,
+          "front_distance_m": 0.4105568562252486
+        },
+        "FR": {
+          "contact_mode": null,
+          "top_contact": true,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": null,
+          "bearing_force_n": 16.7009220123291,
+          "clearance_m": 1.13435099963477e-05,
+          "front_distance_m": 0.48760205848049765
+        },
+        "RL": {
+          "contact_mode": "GROUND",
+          "top_contact": false,
+          "ground_contact": true,
+          "within_top_xy": false,
+          "current_lift_valid": false,
+          "bearing_force_n": 10.517975807189941,
+          "clearance_m": -0.05023184020501624,
+          "front_distance_m": -0.050674464871171665
+        },
+        "RR": {
+          "contact_mode": "AIR",
+          "top_contact": false,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": false,
+          "bearing_force_n": 0.0,
+          "clearance_m": 0.013172372417501549,
+          "front_distance_m": 0.19804406506847982
+        }
+      }
+    },
+    {
+      "episode_index": 5,
+      "student_decisions": 104,
+      "global_range": [
+        226201,
+        226304
+      ],
+      "handoff_tick": 5160,
+      "handoff_s": 43.0,
+      "prefix_credit": 0,
+      "from_current_policy_P01": false,
+      "request_phase_counts": {
+        "P07": 1,
+        "P08": 1,
+        "P09": 102
+      },
+      "terminal": false,
+      "endpoint_tick": 5992,
+      "endpoint_s": 49.93333333333333,
+      "endpoint_phase": "P09",
+      "termination_reason": null,
+      "termination_source": null,
+      "physical_reason": "",
+      "safety": null,
+      "events": {
+        "RR": {
+          "history_event_ticks": {
+            "active_lift": 5447,
+            "front_edge_crossed": 5649
+          },
+          "event_credit": {
+            "active_lift": "student",
+            "front_edge_crossed": "student"
+          },
+          "fresh_qualification_ticks": [
+            5447
+          ],
+          "inherited_qualification_ticks": []
+        },
+        "RL": {
+          "history_event_ticks": {},
+          "event_credit": {},
+          "fresh_qualification_ticks": [],
+          "inherited_qualification_ticks": []
+        }
+      },
+      "current_contact_counts": {
+        "RR_legal_TOP_bearing_endpoints": 0,
+        "RR_ground_endpoints": 31,
+        "RR_AIR_endpoints": 73,
+        "RR_student_qualified_endpoints": 69
+      },
+      "RR_TOP_loss_endpoint_ticks": [],
+      "RR_legal_TOP_restore_after_ground": [],
+      "RR_legal_TOP_recontact_without_reground": [],
+      "physical_windows": {
+        "RR_reachable_AIR_preparation": 22,
+        "RR_actual_bearing_front_preparation": 0,
+        "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": 0,
+        "qualified_RL_edge_recovery": 0,
+        "RL_qualified_AIR_capture_region": 0,
+        "RL_actual_TOP_bearing": 0,
+        "RL_placed_history": 0,
+        "P13_actual_stage": 0,
+        "all_task_complete": 0
+      },
+      "endpoint_legs": {
+        "FL": {
+          "contact_mode": null,
+          "top_contact": false,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": null,
+          "bearing_force_n": 0.0,
+          "clearance_m": 0.05008252952925142,
+          "front_distance_m": 0.4501442943317855
+        },
+        "FR": {
+          "contact_mode": null,
+          "top_contact": true,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": null,
+          "bearing_force_n": 14.628771781921387,
+          "clearance_m": -0.0013106502212210658,
+          "front_distance_m": 0.4865236912472213
+        },
+        "RL": {
+          "contact_mode": "GROUND",
+          "top_contact": false,
+          "ground_contact": true,
+          "within_top_xy": false,
+          "current_lift_valid": false,
+          "bearing_force_n": 13.672850608825684,
+          "clearance_m": -0.0500713539582116,
+          "front_distance_m": -0.13208493249583597
+        },
+        "RR": {
+          "contact_mode": "AIR",
+          "top_contact": false,
+          "ground_contact": false,
+          "within_top_xy": true,
+          "current_lift_valid": true,
+          "bearing_force_n": 0.0,
+          "clearance_m": 0.021168146425572326,
+          "front_distance_m": 0.03198373658489828
+        }
+      }
+    }
+  ],
+  "combined_branch_1024": {
+    "source_reports": [
+      "892385_P12_front_preserved_512_coverage.json",
+      "this sealed P07 block"
+    ],
+    "branch_origin": 225280,
+    "actual_policy_decisions": 1024,
+    "ppo_updates": 2,
+    "optimizer_steps": 40,
+    "request_phase_counts": {
+      "P01": 0,
+      "P02": 0,
+      "P03": 0,
+      "P04": 0,
+      "P05": 0,
+      "P06": 0,
+      "P07": 6,
+      "P08": 6,
+      "P09": 430,
+      "P10": 2,
+      "P11": 26,
+      "P12": 554,
+      "P13": 0
+    },
+    "endpoint_physical_windows": {
+      "RR_reachable_AIR_preparation": 115,
+      "RR_actual_bearing_front_preparation": 76,
+      "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": 40,
+      "qualified_RL_edge_recovery": 2,
+      "RL_qualified_AIR_capture_region": 0,
+      "RL_actual_TOP_bearing": 0,
+      "RL_placed_history": 0,
+      "P13_actual_stage": 0,
+      "all_task_complete": 0
+    },
+    "prefix_decisions": 5424,
+    "prefix_physics_ticks": 43392,
+    "prefix_credit": 0,
+    "fresh_student_RR_capture_events": 2,
+    "fresh_student_RL_qualification_events": 1,
+    "fresh_student_RL_qualified_endpoints": 27,
+    "prefix_inherited_RL_qualified_endpoints": 12,
+    "RL_cross_or_placed_events": 0,
+    "full_task_successes": 0,
+    "replay_exposures": 1280,
+    "separate_AUX_Adam_steps": 0,
+    "pre_update_actor_trajectories_not_new_checkpoint_validation": true
+  },
+  "replay": {
+    "schema": "wlr50_clean.front_replay_regularizer.v1",
+    "before": {
+      "training_rows": {
+        "rows": 100,
+        "mean_kl": 0.007811164017766714,
+        "max_kl": 0.013853490352630615,
+        "phase_counts": {
+          "P01": 1,
+          "P02": 32,
+          "P03": 2,
+          "P04": 1,
+          "P05": 32,
+          "P06": 32
+        }
+      },
+      "heldout_rows": {
+        "rows": 99,
+        "mean_kl": 0.0078866146504879,
+        "max_kl": 0.013667702674865723,
+        "phase_counts": {
+          "P01": 1,
+          "P02": 32,
+          "P03": 2,
+          "P05": 32,
+          "P06": 32
+        }
+      }
+    },
+    "after": {
+      "training_rows": {
+        "rows": 100,
+        "mean_kl": 0.006122784689068794,
+        "max_kl": 0.012188315391540527,
+        "phase_counts": {
+          "P01": 1,
+          "P02": 32,
+          "P03": 2,
+          "P04": 1,
+          "P05": 32,
+          "P06": 32
+        }
+      },
+      "heldout_rows": {
+        "rows": 99,
+        "mean_kl": 0.00617583841085434,
+        "max_kl": 0.012006819248199463,
+        "phase_counts": {
+          "P01": 1,
+          "P02": 32,
+          "P03": 2,
+          "P05": 32,
+          "P06": 32
+        }
+      }
+    },
+    "actual_replay_row_exposures": 640,
+    "actual_replay_phase_exposures": {
+      "P05": 220,
+      "P06": 204,
+      "P01": 6,
+      "P02": 192,
+      "P03": 12,
+      "P04": 6
+    },
+    "on_policy_samples_added": 0,
+    "separate_auxiliary_optimizer_steps": 0,
+    "realtime_teacher_deployed": false,
+    "gradient_semantics": "PPO_actor_gradient_plus_reference_KL_gradient_before_native_actor_norm_clip_same_Adam_step",
+    "physical_front_retention_proven": false
+  },
+  "checkpoint": {
+    "checkpoint": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_rl_timing_policy_learning_v1\\branches\\cp225280_front_preserved_v1\\checkpoints\\history\\checkpoint_step_000226304.pt",
+    "global_policy_decisions": 226304,
+    "manifest": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rr_rl_timing_policy_learning_v1\\branches\\cp225280_front_preserved_v1\\checkpoints\\history\\checkpoint_step_000226304_manifest.json",
+    "sha256": "c0f4727bcc4e1963b5e9d079158dde1f5f662390397b61049ff893c40e1910f6",
+    "sidecar_sha256": "4d1e103507e7083f9d1ecb6d5ff230bd3d106054da2af0ef85e0ce81b9c8569b",
+    "ppo_updates": 1727,
+    "optimizer_steps": 34540,
+    "roundtrip": true
+  },
+  "statements": [
+    "Lifecycle completion is not physical task success.",
+    "All trajectories were collected by pre-update actor, not proof of new checkpoint gains.",
+    "Positive local fixed-FR-axis projections of both CoM and body displacement, plus declining RL load fraction while RR and a front leg currently bear. NOT verified lateral/rightward transfer, NOT absolute RL force decline, NOT qualified RL unloading. Forward movement alone can make the projection positive; a load fraction can decline because other legs load more. World xyz components and current absolute forces are reported separately; yaw/body-frame decomposition is not inferred from the projection.",
+    "Legal TOP restoration after GROUND is not automatically renewed valid traversal.",
+    "Official raw-sample association uses saved index/old-logp receipts; no tensor/model loaded.",
+    "Heldout KL is distribution retention, not physical front-success evidence."
+  ]
+}

@@ -1,0 +1,2187 @@
+{
+  "schema": "completed_update1726_credit_readonly.v1",
+  "run": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\runs\\ppo_rr_rl_timing_policy_learning_v1\\train\\20260924T0550107325587Z_gf6d1d2df8d87_44bb94e9c5a84f44bfb4e14785d144d7",
+  "completed_update": {
+    "optimizer_steps": 20,
+    "actor_parameter_sha256_before": "48d70c95eb271325b0064cd33b91e04f76942455ff1eff026356995494b427e7",
+    "actor_parameter_sha256_after": "c35fa86052985a5eb37d51c1163b63af008b2b13101a885c42ff1cb956d321b9",
+    "actor_parameters_changed": true,
+    "finite_nonzero_gradient_observed": true,
+    "gradient_norm_min": 1.4142131823184723,
+    "gradient_norm_max": 1.414213650987551,
+    "kl_mean": 0.018410449425974064,
+    "clip_fraction": 0.253125,
+    "entropy": -15.09004192352295,
+    "value_loss": 283.5288848876953,
+    "surrogate_loss": -0.02742743007838726,
+    "optimizer_learning_rate": 1e-05,
+    "ppo_update": 1726,
+    "global_policy_decisions": 225408
+  },
+  "counts": {
+    "real_decisions": 128,
+    "ppo_updates": 1,
+    "optimizer_steps": 20,
+    "likelihood_minibatches": 20,
+    "raw_row_exposures": 640,
+    "each_raw_row_exposures": 5,
+    "phases": {
+      "P07": 2,
+      "P08": 2,
+      "P09": 93,
+      "P10": 6,
+      "P11": 10,
+      "P12": 15
+    }
+  },
+  "global_decision_range": [
+    225281,
+    225408
+  ],
+  "excluded": "All rows >=225409, including episode2 terminal 225434; not read or credited.",
+  "episode_boundary": "118 rows completed HARD_JOINT_LIMIT episode plus first10 nonterminal rows after fresh zero-credit successful_nominal prefix",
+  "gamma": 0.9985,
+  "lambda_": 0.99,
+  "discount_clock": "once_per_issued_policy_action_even_for_short_terminal_interval",
+  "terminal_samples": [
+    {
+      "global_policy_decision": 225398,
+      "rollout_step": 117,
+      "environment_index": 0,
+      "request_phase": "P12",
+      "end_phase": "P12",
+      "episode_start_tick": 6096,
+      "episode_end_tick": 6103,
+      "executed_physics_ticks": 7,
+      "sim_time_s": 50.858333333333334,
+      "terminal": true,
+      "termination_reason": "HARD_JOINT_LIMIT",
+      "terminal_bootstrap_allowed": false,
+      "raw_gae_returns_minus_old_values": -30.415250778198242,
+      "stored_advantages": -1.8988746404647827,
+      "old_values": -12.935110092163086,
+      "returns": -43.35036087036133,
+      "rewards": -43.35036087036133
+    }
+  ],
+  "tail_bootstrap": {
+    "terminal_env_indices": [],
+    "nonterminal_env_indices": [
+      0
+    ],
+    "value_source": "existing_official_compute_returns_last_values; not re-evaluated or logged here",
+    "last_values_measured_separately": null
+  },
+  "recorded_overall": {
+    "sample_count": 128,
+    "terminal_count": 1,
+    "raw_gae_returns_minus_old_values": {
+      "count": 128,
+      "finite_count": 128,
+      "nonfinite_count": 0,
+      "minimum": -30.415250778198242,
+      "maximum": 1.699549674987793,
+      "mean": -14.902726836502552,
+      "std_population": 8.137350769173493,
+      "positive_count": 9,
+      "negative_count": 119,
+      "zero_count": 0
+    },
+    "stored_advantages": {
+      "count": 128,
+      "finite_count": 128,
+      "nonfinite_count": 0,
+      "minimum": -1.8988746404647827,
+      "maximum": 2.0322701930999756,
+      "mean": 3.4153345040977e-08,
+      "std_population": 0.99608607082182,
+      "positive_count": 67,
+      "negative_count": 61,
+      "zero_count": 0
+    },
+    "old_values": {
+      "count": 128,
+      "finite_count": 128,
+      "nonfinite_count": 0,
+      "minimum": -13.328773498535156,
+      "maximum": -11.6541109085083,
+      "mean": -12.343140497803688,
+      "std_population": 0.3489457440666842,
+      "positive_count": 0,
+      "negative_count": 128,
+      "zero_count": 0
+    },
+    "returns": {
+      "count": 128,
+      "finite_count": 128,
+      "nonfinite_count": 0,
+      "minimum": -43.35036087036133,
+      "maximum": -11.629223823547363,
+      "mean": -27.245867371559143,
+      "std_population": 8.157858629475372,
+      "positive_count": 0,
+      "negative_count": 128,
+      "zero_count": 0
+    },
+    "rewards": {
+      "count": 128,
+      "finite_count": 128,
+      "nonfinite_count": 0,
+      "minimum": -43.35036087036133,
+      "maximum": 0.20196673274040222,
+      "mean": -0.3362229939913277,
+      "std_population": 3.817162150728867,
+      "positive_count": 47,
+      "negative_count": 81,
+      "zero_count": 0
+    }
+  },
+  "recorded_per_phase": {
+    "P07": {
+      "sample_count": 2,
+      "terminal_count": 0,
+      "raw_gae_returns_minus_old_values": {
+        "count": 2,
+        "finite_count": 2,
+        "nonfinite_count": 0,
+        "minimum": -5.622215270996094,
+        "maximum": 1.699549674987793,
+        "mean": -1.9613327980041504,
+        "std_population": 3.6608824729919434,
+        "positive_count": 1,
+        "negative_count": 1,
+        "zero_count": 0
+      },
+      "stored_advantages": {
+        "count": 2,
+        "finite_count": 2,
+        "nonfinite_count": 0,
+        "minimum": 1.1360194683074951,
+        "maximum": 2.0322701930999756,
+        "mean": 1.5841448307037354,
+        "std_population": 0.44812536239624023,
+        "positive_count": 2,
+        "negative_count": 0,
+        "zero_count": 0
+      },
+      "old_values": {
+        "count": 2,
+        "finite_count": 2,
+        "nonfinite_count": 0,
+        "minimum": -13.328773498535156,
+        "maximum": -13.328773498535156,
+        "mean": -13.328773498535156,
+        "std_population": 0.0,
+        "positive_count": 0,
+        "negative_count": 2,
+        "zero_count": 0
+      },
+      "returns": {
+        "count": 2,
+        "finite_count": 2,
+        "nonfinite_count": 0,
+        "minimum": -18.95098876953125,
+        "maximum": -11.629223823547363,
+        "mean": -15.290106296539307,
+        "std_population": 3.6608824729919434,
+        "positive_count": 0,
+        "negative_count": 2,
+        "zero_count": 0
+      },
+      "rewards": {
+        "count": 2,
+        "finite_count": 2,
+        "nonfinite_count": 0,
+        "minimum": 0.004431281238794327,
+        "maximum": 0.004499967209994793,
+        "mean": 0.00446562422439456,
+        "std_population": 3.434298560023308e-05,
+        "positive_count": 2,
+        "negative_count": 0,
+        "zero_count": 0
+      }
+    },
+    "P08": {
+      "sample_count": 2,
+      "terminal_count": 0,
+      "raw_gae_returns_minus_old_values": {
+        "count": 2,
+        "finite_count": 2,
+        "nonfinite_count": 0,
+        "minimum": -5.753125190734863,
+        "maximum": 1.579726219177246,
+        "mean": -2.0866994857788086,
+        "std_population": 3.6664257049560547,
+        "positive_count": 1,
+        "negative_count": 1,
+        "zero_count": 0
+      },
+      "stored_advantages": {
+        "count": 2,
+        "finite_count": 2,
+        "nonfinite_count": 0,
+        "minimum": 1.119994878768921,
+        "maximum": 2.0176026821136475,
+        "mean": 1.5687987804412842,
+        "std_population": 0.4488039016723633,
+        "positive_count": 2,
+        "negative_count": 0,
+        "zero_count": 0
+      },
+      "old_values": {
+        "count": 2,
+        "finite_count": 2,
+        "nonfinite_count": 0,
+        "minimum": -13.288302421569824,
+        "maximum": -13.215129852294922,
+        "mean": -13.251716136932373,
+        "std_population": 0.03658628463745117,
+        "positive_count": 0,
+        "negative_count": 2,
+        "zero_count": 0
+      },
+      "returns": {
+        "count": 2,
+        "finite_count": 2,
+        "nonfinite_count": 0,
+        "minimum": -19.041427612304688,
+        "maximum": -11.635403633117676,
+        "mean": -15.338415622711182,
+        "std_population": 3.703011989593506,
+        "positive_count": 0,
+        "negative_count": 2,
+        "zero_count": 0
+      },
+      "rewards": {
+        "count": 2,
+        "finite_count": 2,
+        "nonfinite_count": 0,
+        "minimum": -0.004715029615908861,
+        "maximum": 0.0021380579564720392,
+        "mean": -0.001288485829718411,
+        "std_population": 0.00342654378619045,
+        "positive_count": 1,
+        "negative_count": 1,
+        "zero_count": 0
+      }
+    },
+    "P09": {
+      "sample_count": 93,
+      "terminal_count": 0,
+      "raw_gae_returns_minus_old_values": {
+        "count": 93,
+        "finite_count": 93,
+        "nonfinite_count": 0,
+        "minimum": -21.175891876220703,
+        "maximum": 1.1921806335449219,
+        "mean": -11.76351588259461,
+        "std_population": 5.507272107766308,
+        "positive_count": 7,
+        "negative_count": 86,
+        "zero_count": 0
+      },
+      "stored_advantages": {
+        "count": 93,
+        "finite_count": 93,
+        "nonfinite_count": 0,
+        "minimum": -0.7678926587104797,
+        "maximum": 1.9701637029647827,
+        "mean": 0.3842681372958806,
+        "std_population": 0.6741404184733542,
+        "positive_count": 63,
+        "negative_count": 30,
+        "zero_count": 0
+      },
+      "old_values": {
+        "count": 93,
+        "finite_count": 93,
+        "nonfinite_count": 0,
+        "minimum": -13.022510528564453,
+        "maximum": -11.6541109085083,
+        "mean": -12.296557221361386,
+        "std_population": 0.32175301409496565,
+        "positive_count": 0,
+        "negative_count": 93,
+        "zero_count": 0
+      },
+      "returns": {
+        "count": 93,
+        "finite_count": 93,
+        "nonfinite_count": 0,
+        "minimum": -33.5538215637207,
+        "maximum": -11.636240005493164,
+        "mean": -24.060073134719683,
+        "std_population": 5.563214401063702,
+        "positive_count": 0,
+        "negative_count": 93,
+        "zero_count": 0
+      },
+      "rewards": {
+        "count": 93,
+        "finite_count": 93,
+        "nonfinite_count": 0,
+        "minimum": -0.11108957976102829,
+        "maximum": 0.20196673274040222,
+        "mean": 0.0053960767720753365,
+        "std_population": 0.03612603620774657,
+        "positive_count": 37,
+        "negative_count": 56,
+        "zero_count": 0
+      }
+    },
+    "P10": {
+      "sample_count": 6,
+      "terminal_count": 0,
+      "raw_gae_returns_minus_old_values": {
+        "count": 6,
+        "finite_count": 6,
+        "nonfinite_count": 0,
+        "minimum": -23.115514755249023,
+        "maximum": -21.8483829498291,
+        "mean": -22.443051020304363,
+        "std_population": 0.4080894713537321,
+        "positive_count": 0,
+        "negative_count": 6,
+        "zero_count": 0
+      },
+      "stored_advantages": {
+        "count": 6,
+        "finite_count": 6,
+        "nonfinite_count": 0,
+        "minimum": -1.0053201913833618,
+        "maximum": -0.8502117395401001,
+        "mean": -0.9230045278867086,
+        "std_population": 0.04995386562950129,
+        "positive_count": 0,
+        "negative_count": 6,
+        "zero_count": 0
+      },
+      "old_values": {
+        "count": 6,
+        "finite_count": 6,
+        "nonfinite_count": 0,
+        "minimum": -12.140180587768555,
+        "maximum": -11.942546844482422,
+        "mean": -12.052433649698893,
+        "std_population": 0.06770597950296676,
+        "positive_count": 0,
+        "negative_count": 6,
+        "zero_count": 0
+      },
+      "returns": {
+        "count": 6,
+        "finite_count": 6,
+        "nonfinite_count": 0,
+        "minimum": -35.1064453125,
+        "maximum": -33.988563537597656,
+        "mean": -34.49548467000326,
+        "std_population": 0.39479637965449843,
+        "positive_count": 0,
+        "negative_count": 6,
+        "zero_count": 0
+      },
+      "rewards": {
+        "count": 6,
+        "finite_count": 6,
+        "nonfinite_count": 0,
+        "minimum": -0.149330735206604,
+        "maximum": 0.004018787760287523,
+        "mean": -0.04399718429582814,
+        "std_population": 0.050094863686343895,
+        "positive_count": 1,
+        "negative_count": 5,
+        "zero_count": 0
+      }
+    },
+    "P11": {
+      "sample_count": 10,
+      "terminal_count": 0,
+      "raw_gae_returns_minus_old_values": {
+        "count": 10,
+        "finite_count": 10,
+        "nonfinite_count": 0,
+        "minimum": -25.708187103271484,
+        "maximum": -23.308998107910156,
+        "mean": -24.482890701293947,
+        "std_population": 0.7133671373156615,
+        "positive_count": 0,
+        "negative_count": 10,
+        "zero_count": 0
+      },
+      "stored_advantages": {
+        "count": 10,
+        "finite_count": 10,
+        "nonfinite_count": 0,
+        "minimum": -1.322687029838562,
+        "maximum": -1.0290043354034424,
+        "mean": -1.172699546813965,
+        "std_population": 0.08732266636105121,
+        "positive_count": 0,
+        "negative_count": 10,
+        "zero_count": 0
+      },
+      "old_values": {
+        "count": 10,
+        "finite_count": 10,
+        "nonfinite_count": 0,
+        "minimum": -12.571880340576172,
+        "maximum": -12.087303161621094,
+        "mean": -12.278685188293457,
+        "std_population": 0.16724980769165063,
+        "positive_count": 0,
+        "negative_count": 10,
+        "zero_count": 0
+      },
+      "returns": {
+        "count": 10,
+        "finite_count": 10,
+        "nonfinite_count": 0,
+        "minimum": -38.280067443847656,
+        "maximum": -35.39630126953125,
+        "mean": -36.761576080322264,
+        "std_population": 0.8667326698953361,
+        "positive_count": 0,
+        "negative_count": 10,
+        "zero_count": 0
+      },
+      "rewards": {
+        "count": 10,
+        "finite_count": 10,
+        "nonfinite_count": 0,
+        "minimum": -0.2018430083990097,
+        "maximum": 0.19101861119270325,
+        "mean": 0.01823661362286657,
+        "std_population": 0.10672851448394416,
+        "positive_count": 6,
+        "negative_count": 4,
+        "zero_count": 0
+      }
+    },
+    "P12": {
+      "sample_count": 15,
+      "terminal_count": 1,
+      "raw_gae_returns_minus_old_values": {
+        "count": 15,
+        "finite_count": 15,
+        "nonfinite_count": 0,
+        "minimum": -30.415250778198242,
+        "maximum": -26.242610931396484,
+        "mean": -28.39725201924642,
+        "std_population": 1.286526099763782,
+        "positive_count": 0,
+        "negative_count": 15,
+        "zero_count": 0
+      },
+      "stored_advantages": {
+        "count": 15,
+        "finite_count": 15,
+        "nonfinite_count": 0,
+        "minimum": -1.8988746404647827,
+        "maximum": -1.3881053924560547,
+        "mean": -1.6518531322479248,
+        "std_population": 0.15748254680982374,
+        "positive_count": 0,
+        "negative_count": 15,
+        "zero_count": 0
+      },
+      "old_values": {
+        "count": 15,
+        "finite_count": 15,
+        "nonfinite_count": 0,
+        "minimum": -12.935110092163086,
+        "maximum": -12.159210205078125,
+        "mean": -12.53864860534668,
+        "std_population": 0.22063781601055235,
+        "positive_count": 0,
+        "negative_count": 15,
+        "zero_count": 0
+      },
+      "returns": {
+        "count": 15,
+        "finite_count": 15,
+        "nonfinite_count": 0,
+        "minimum": -43.35036087036133,
+        "maximum": -38.60881042480469,
+        "mean": -40.935900624593096,
+        "std_population": 1.4627664211241576,
+        "positive_count": 0,
+        "negative_count": 15,
+        "zero_count": 0
+      },
+      "rewards": {
+        "count": 15,
+        "finite_count": 15,
+        "nonfinite_count": 0,
+        "minimum": -43.35036087036133,
+        "maximum": -0.0036252017598599195,
+        "mean": -2.8975410451957333,
+        "std_population": 10.811471376989324,
+        "positive_count": 0,
+        "negative_count": 15,
+        "zero_count": 0
+      }
+    }
+  },
+  "physical_groups": {
+    "whole_update": {
+      "count": 128,
+      "global_decisions": [
+        225281,
+        225282,
+        225283,
+        225284,
+        225285,
+        225286,
+        225287,
+        225288,
+        225289,
+        225290,
+        225291,
+        225292,
+        225293,
+        225294,
+        225295,
+        225296,
+        225297,
+        225298,
+        225299,
+        225300,
+        225301,
+        225302,
+        225303,
+        225304,
+        225305,
+        225306,
+        225307,
+        225308,
+        225309,
+        225310,
+        225311,
+        225312,
+        225313,
+        225314,
+        225315,
+        225316,
+        225317,
+        225318,
+        225319,
+        225320,
+        225321,
+        225322,
+        225323,
+        225324,
+        225325,
+        225326,
+        225327,
+        225328,
+        225329,
+        225330,
+        225331,
+        225332,
+        225333,
+        225334,
+        225335,
+        225336,
+        225337,
+        225338,
+        225339,
+        225340,
+        225341,
+        225342,
+        225343,
+        225344,
+        225345,
+        225346,
+        225347,
+        225348,
+        225349,
+        225350,
+        225351,
+        225352,
+        225353,
+        225354,
+        225355,
+        225356,
+        225357,
+        225358,
+        225359,
+        225360,
+        225361,
+        225362,
+        225363,
+        225364,
+        225365,
+        225366,
+        225367,
+        225368,
+        225369,
+        225370,
+        225371,
+        225372,
+        225373,
+        225374,
+        225375,
+        225376,
+        225377,
+        225378,
+        225379,
+        225380,
+        225381,
+        225382,
+        225383,
+        225384,
+        225385,
+        225386,
+        225387,
+        225388,
+        225389,
+        225390,
+        225391,
+        225392,
+        225393,
+        225394,
+        225395,
+        225396,
+        225397,
+        225398,
+        225399,
+        225400,
+        225401,
+        225402,
+        225403,
+        225404,
+        225405,
+        225406,
+        225407,
+        225408
+      ],
+      "raw_reward": {
+        "n": 128,
+        "minimum": -43.35036087036133,
+        "maximum": 0.20196673274040222,
+        "mean": -0.3362229939913277,
+        "positive": 47,
+        "negative": 81
+      },
+      "old_value": {
+        "n": 128,
+        "minimum": -13.328773498535156,
+        "maximum": -11.6541109085083,
+        "mean": -12.343140497803688,
+        "positive": 0,
+        "negative": 128
+      },
+      "standardized_advantage": {
+        "n": 128,
+        "minimum": -1.8988746404647827,
+        "maximum": 2.0322701930999756,
+        "mean": 3.4153345040977e-08,
+        "positive": 67,
+        "negative": 61
+      },
+      "raw_GAE_individual_group_summary": null,
+      "last_audited_mean_delta": {
+        "FL_knee": {
+          "n": 128,
+          "minimum": -0.0019545555114746094,
+          "maximum": 0.0010450482368469238,
+          "mean": -0.0002657218719832599,
+          "positive": 46,
+          "negative": 82
+        },
+        "FR_knee": {
+          "n": 128,
+          "minimum": -0.001142263412475586,
+          "maximum": -0.0003632009029388428,
+          "mean": -0.0008316062449011952,
+          "positive": 0,
+          "negative": 128
+        },
+        "RR_knee": {
+          "n": 128,
+          "minimum": -0.00252532958984375,
+          "maximum": -0.00018042325973510742,
+          "mean": -0.0009271438466385007,
+          "positive": 0,
+          "negative": 128
+        }
+      },
+      "final_epoch_pre_minibatch_clipped_samples": 32
+    },
+    "completed_episode0": {
+      "count": 118,
+      "global_decisions": [
+        225281,
+        225282,
+        225283,
+        225284,
+        225285,
+        225286,
+        225287,
+        225288,
+        225289,
+        225290,
+        225291,
+        225292,
+        225293,
+        225294,
+        225295,
+        225296,
+        225297,
+        225298,
+        225299,
+        225300,
+        225301,
+        225302,
+        225303,
+        225304,
+        225305,
+        225306,
+        225307,
+        225308,
+        225309,
+        225310,
+        225311,
+        225312,
+        225313,
+        225314,
+        225315,
+        225316,
+        225317,
+        225318,
+        225319,
+        225320,
+        225321,
+        225322,
+        225323,
+        225324,
+        225325,
+        225326,
+        225327,
+        225328,
+        225329,
+        225330,
+        225331,
+        225332,
+        225333,
+        225334,
+        225335,
+        225336,
+        225337,
+        225338,
+        225339,
+        225340,
+        225341,
+        225342,
+        225343,
+        225344,
+        225345,
+        225346,
+        225347,
+        225348,
+        225349,
+        225350,
+        225351,
+        225352,
+        225353,
+        225354,
+        225355,
+        225356,
+        225357,
+        225358,
+        225359,
+        225360,
+        225361,
+        225362,
+        225363,
+        225364,
+        225365,
+        225366,
+        225367,
+        225368,
+        225369,
+        225370,
+        225371,
+        225372,
+        225373,
+        225374,
+        225375,
+        225376,
+        225377,
+        225378,
+        225379,
+        225380,
+        225381,
+        225382,
+        225383,
+        225384,
+        225385,
+        225386,
+        225387,
+        225388,
+        225389,
+        225390,
+        225391,
+        225392,
+        225393,
+        225394,
+        225395,
+        225396,
+        225397,
+        225398
+      ],
+      "raw_reward": {
+        "n": 118,
+        "minimum": -43.35036087036133,
+        "maximum": 0.20196673274040222,
+        "mean": -0.36483308554035554,
+        "positive": 44,
+        "negative": 74
+      },
+      "old_value": {
+        "n": 118,
+        "minimum": -13.328773498535156,
+        "maximum": -11.6541109085083,
+        "mean": -12.331552101393877,
+        "positive": 0,
+        "negative": 118
+      },
+      "standardized_advantage": {
+        "n": 118,
+        "minimum": -1.8988746404647827,
+        "maximum": 1.1360194683074951,
+        "mean": -0.16299691273815045,
+        "positive": 57,
+        "negative": 61
+      },
+      "raw_GAE_individual_group_summary": null,
+      "last_audited_mean_delta": {
+        "FL_knee": {
+          "n": 118,
+          "minimum": -0.0019545555114746094,
+          "maximum": 0.0010450482368469238,
+          "mean": -0.0002549370845495644,
+          "positive": 45,
+          "negative": 73
+        },
+        "FR_knee": {
+          "n": 118,
+          "minimum": -0.001142263412475586,
+          "maximum": -0.0003632009029388428,
+          "mean": -0.0008409007973337577,
+          "positive": 0,
+          "negative": 118
+        },
+        "RR_knee": {
+          "n": 118,
+          "minimum": -0.00252532958984375,
+          "maximum": -0.00018042325973510742,
+          "mean": -0.0009499160036192102,
+          "positive": 0,
+          "negative": 118
+        }
+      },
+      "final_epoch_pre_minibatch_clipped_samples": 30
+    },
+    "RR_current_TOP_bearing": {
+      "count": 20,
+      "global_decisions": [
+        225367,
+        225368,
+        225375,
+        225382,
+        225383,
+        225384,
+        225385,
+        225386,
+        225387,
+        225388,
+        225389,
+        225390,
+        225391,
+        225392,
+        225393,
+        225394,
+        225395,
+        225396,
+        225397,
+        225398
+      ],
+      "raw_reward": {
+        "n": 20,
+        "minimum": -43.35036087036133,
+        "maximum": 0.19101861119270325,
+        "mean": -2.1528009483008645,
+        "positive": 4,
+        "negative": 16
+      },
+      "old_value": {
+        "n": 20,
+        "minimum": -12.935110092163086,
+        "maximum": -12.095539093017578,
+        "mean": -12.487132453918457,
+        "positive": 0,
+        "negative": 20
+      },
+      "standardized_advantage": {
+        "n": 20,
+        "minimum": -1.8988746404647827,
+        "maximum": -0.7678926587104797,
+        "mean": -1.5028823465108871,
+        "positive": 0,
+        "negative": 20
+      },
+      "raw_GAE_individual_group_summary": null,
+      "last_audited_mean_delta": {
+        "FL_knee": {
+          "n": 20,
+          "minimum": -0.0019545555114746094,
+          "maximum": 0.0009427070617675781,
+          "mean": -0.00036551952362060545,
+          "positive": 8,
+          "negative": 12
+        },
+        "FR_knee": {
+          "n": 20,
+          "minimum": -0.001142263412475586,
+          "maximum": -0.0007503032684326172,
+          "mean": -0.0009723469614982605,
+          "positive": 0,
+          "negative": 20
+        },
+        "RR_knee": {
+          "n": 20,
+          "minimum": -0.00252532958984375,
+          "maximum": -0.0009087324142456055,
+          "mean": -0.0015816882252693177,
+          "positive": 0,
+          "negative": 20
+        }
+      },
+      "final_epoch_pre_minibatch_clipped_samples": 7
+    },
+    "FR_window_motion_and_RL_unload": {
+      "count": 15,
+      "global_decisions": [
+        225367,
+        225368,
+        225382,
+        225383,
+        225384,
+        225385,
+        225386,
+        225387,
+        225388,
+        225389,
+        225390,
+        225393,
+        225395,
+        225396,
+        225397
+      ],
+      "raw_reward": {
+        "n": 15,
+        "minimum": -0.149330735206604,
+        "maximum": 0.19100743532180786,
+        "mean": 0.009088681094969313,
+        "positive": 3,
+        "negative": 12
+      },
+      "old_value": {
+        "n": 15,
+        "minimum": -12.681228637695312,
+        "maximum": -12.140180587768555,
+        "mean": -12.44624818166097,
+        "positive": 0,
+        "negative": 15
+      },
+      "standardized_advantage": {
+        "n": 15,
+        "minimum": -1.8875043392181396,
+        "maximum": -0.7678926587104797,
+        "mean": -1.4684985915819804,
+        "positive": 0,
+        "negative": 15
+      },
+      "raw_GAE_individual_group_summary": null,
+      "last_audited_mean_delta": {
+        "FL_knee": {
+          "n": 15,
+          "minimum": -0.0017597675323486328,
+          "maximum": 0.0009427070617675781,
+          "mean": -0.0001855134963989258,
+          "positive": 8,
+          "negative": 7
+        },
+        "FR_knee": {
+          "n": 15,
+          "minimum": -0.0011112689971923828,
+          "maximum": -0.0007503032684326172,
+          "mean": -0.00095482071240743,
+          "positive": 0,
+          "negative": 15
+        },
+        "RR_knee": {
+          "n": 15,
+          "minimum": -0.00252532958984375,
+          "maximum": -0.0009087324142456055,
+          "mean": -0.001685247818628947,
+          "positive": 0,
+          "negative": 15
+        }
+      },
+      "final_epoch_pre_minibatch_clipped_samples": 4
+    },
+    "RR_first_placement_decision": {
+      "count": 1,
+      "global_decisions": [
+        225367
+      ],
+      "raw_reward": {
+        "n": 1,
+        "minimum": 0.16559964418411255,
+        "maximum": 0.16559964418411255,
+        "mean": 0.16559964418411255,
+        "positive": 1,
+        "negative": 0
+      },
+      "old_value": {
+        "n": 1,
+        "minimum": -12.377930641174316,
+        "maximum": -12.377930641174316,
+        "mean": -12.377930641174316,
+        "positive": 0,
+        "negative": 1
+      },
+      "standardized_advantage": {
+        "n": 1,
+        "minimum": -0.7678926587104797,
+        "maximum": -0.7678926587104797,
+        "mean": -0.7678926587104797,
+        "positive": 0,
+        "negative": 1
+      },
+      "raw_GAE_individual_group_summary": null,
+      "last_audited_mean_delta": {
+        "FL_knee": {
+          "n": 1,
+          "minimum": -0.0006368160247802734,
+          "maximum": -0.0006368160247802734,
+          "mean": -0.0006368160247802734,
+          "positive": 0,
+          "negative": 1
+        },
+        "FR_knee": {
+          "n": 1,
+          "minimum": -0.001040428876876831,
+          "maximum": -0.001040428876876831,
+          "mean": -0.001040428876876831,
+          "positive": 0,
+          "negative": 1
+        },
+        "RR_knee": {
+          "n": 1,
+          "minimum": -0.0010099411010742188,
+          "maximum": -0.0010099411010742188,
+          "mean": -0.0010099411010742188,
+          "positive": 0,
+          "negative": 1
+        }
+      },
+      "final_epoch_pre_minibatch_clipped_samples": 0
+    },
+    "FL_lower_target_headroom_clipped": {
+      "count": 6,
+      "global_decisions": [
+        225393,
+        225394,
+        225395,
+        225396,
+        225397,
+        225398
+      ],
+      "raw_reward": {
+        "n": 6,
+        "minimum": -43.35036087036133,
+        "maximum": -0.007410495541989803,
+        "mean": -7.234530724895497,
+        "positive": 0,
+        "negative": 6
+      },
+      "old_value": {
+        "n": 6,
+        "minimum": -12.935110092163086,
+        "maximum": -12.55555534362793,
+        "mean": -12.679119745890299,
+        "positive": 0,
+        "negative": 6
+      },
+      "standardized_advantage": {
+        "n": 6,
+        "minimum": -1.8988746404647827,
+        "maximum": -1.7301973104476929,
+        "mean": -1.821888009707133,
+        "positive": 0,
+        "negative": 6
+      },
+      "raw_GAE_individual_group_summary": null,
+      "last_audited_mean_delta": {
+        "FL_knee": {
+          "n": 6,
+          "minimum": -0.0019545555114746094,
+          "maximum": -0.000979781150817871,
+          "mean": -0.0015300909678141277,
+          "positive": 0,
+          "negative": 6
+        },
+        "FR_knee": {
+          "n": 6,
+          "minimum": -0.001142263412475586,
+          "maximum": -0.0009975433349609375,
+          "mean": -0.0010933876037597656,
+          "positive": 0,
+          "negative": 6
+        },
+        "RR_knee": {
+          "n": 6,
+          "minimum": -0.0014743804931640625,
+          "maximum": -0.0009087324142456055,
+          "mean": -0.001176317532857259,
+          "positive": 0,
+          "negative": 6
+        }
+      },
+      "final_epoch_pre_minibatch_clipped_samples": 3
+    },
+    "FL_actual_within_existing_2deg_lower_reserve": {
+      "count": 3,
+      "global_decisions": [
+        225396,
+        225397,
+        225398
+      ],
+      "raw_reward": {
+        "n": 3,
+        "minimum": -43.35036087036133,
+        "maximum": -0.008131265640258789,
+        "mean": -14.456761011853814,
+        "positive": 0,
+        "negative": 3
+      },
+      "old_value": {
+        "n": 3,
+        "minimum": -12.935110092163086,
+        "maximum": -12.66244888305664,
+        "mean": -12.754988352457682,
+        "positive": 0,
+        "negative": 3
+      },
+      "standardized_advantage": {
+        "n": 3,
+        "minimum": -1.8988746404647827,
+        "maximum": -1.8445993661880493,
+        "mean": -1.8769927819569905,
+        "positive": 0,
+        "negative": 3
+      },
+      "raw_GAE_individual_group_summary": null,
+      "last_audited_mean_delta": {
+        "FL_knee": {
+          "n": 3,
+          "minimum": -0.0019545555114746094,
+          "maximum": -0.0016821622848510742,
+          "mean": -0.0017988284428914387,
+          "positive": 0,
+          "negative": 3
+        },
+        "FR_knee": {
+          "n": 3,
+          "minimum": -0.001142263412475586,
+          "maximum": -0.0011022090911865234,
+          "mean": -0.0011185805002848308,
+          "positive": 0,
+          "negative": 3
+        },
+        "RR_knee": {
+          "n": 3,
+          "minimum": -0.001135110855102539,
+          "maximum": -0.0009087324142456055,
+          "mean": -0.0010461608568827312,
+          "positive": 0,
+          "negative": 3
+        }
+      },
+      "final_epoch_pre_minibatch_clipped_samples": 2
+    },
+    "RL_initial_clearance_not_qualified": {
+      "count": 1,
+      "global_decisions": [
+        225398
+      ],
+      "raw_reward": {
+        "n": 1,
+        "minimum": -43.35036087036133,
+        "maximum": -43.35036087036133,
+        "mean": -43.35036087036133,
+        "positive": 0,
+        "negative": 1
+      },
+      "old_value": {
+        "n": 1,
+        "minimum": -12.935110092163086,
+        "maximum": -12.935110092163086,
+        "mean": -12.935110092163086,
+        "positive": 0,
+        "negative": 1
+      },
+      "standardized_advantage": {
+        "n": 1,
+        "minimum": -1.8988746404647827,
+        "maximum": -1.8988746404647827,
+        "mean": -1.8988746404647827,
+        "positive": 0,
+        "negative": 1
+      },
+      "raw_GAE_individual_group_summary": null,
+      "last_audited_mean_delta": {
+        "FL_knee": {
+          "n": 1,
+          "minimum": -0.0019545555114746094,
+          "maximum": -0.0019545555114746094,
+          "mean": -0.0019545555114746094,
+          "positive": 0,
+          "negative": 1
+        },
+        "FR_knee": {
+          "n": 1,
+          "minimum": -0.001142263412475586,
+          "maximum": -0.001142263412475586,
+          "mean": -0.001142263412475586,
+          "positive": 0,
+          "negative": 1
+        },
+        "RR_knee": {
+          "n": 1,
+          "minimum": -0.0010946393013000488,
+          "maximum": -0.0010946393013000488,
+          "mean": -0.0010946393013000488,
+          "positive": 0,
+          "negative": 1
+        }
+      },
+      "final_epoch_pre_minibatch_clipped_samples": 1
+    },
+    "next_episode_first10_nonterminal": {
+      "count": 10,
+      "global_decisions": [
+        225399,
+        225400,
+        225401,
+        225402,
+        225403,
+        225404,
+        225405,
+        225406,
+        225407,
+        225408
+      ],
+      "raw_reward": {
+        "n": 10,
+        "minimum": -0.004998958203941584,
+        "maximum": 0.021603384986519814,
+        "mean": 0.0013760862872004508,
+        "positive": 3,
+        "negative": 7
+      },
+      "old_value": {
+        "n": 10,
+        "minimum": -13.328773498535156,
+        "maximum": -11.699342727661133,
+        "mean": -12.479883575439453,
+        "positive": 0,
+        "negative": 10
+      },
+      "standardized_advantage": {
+        "n": 10,
+        "minimum": 1.8190453052520752,
+        "maximum": 2.0322701930999756,
+        "mean": 1.9233640074729919,
+        "positive": 10,
+        "negative": 0
+      },
+      "raw_GAE_individual_group_summary": null,
+      "last_audited_mean_delta": {
+        "FL_knee": {
+          "n": 10,
+          "minimum": -0.0006248950958251953,
+          "maximum": 9.47713851928711e-05,
+          "mean": -0.0003929823637008667,
+          "positive": 1,
+          "negative": 9
+        },
+        "FR_knee": {
+          "n": 10,
+          "minimum": -0.0008807927370071411,
+          "maximum": -0.00044460780918598175,
+          "mean": -0.0007219305261969566,
+          "positive": 0,
+          "negative": 10
+        },
+        "RR_knee": {
+          "n": 10,
+          "minimum": -0.0009021759033203125,
+          "maximum": -0.0003298521041870117,
+          "mean": -0.0006584323942661286,
+          "positive": 0,
+          "negative": 10
+        }
+      },
+      "final_epoch_pre_minibatch_clipped_samples": 2
+    }
+  },
+  "selected_event_rows": [
+    {
+      "global_policy_decision": 225367,
+      "episode_index": 0,
+      "input_phase": "P09",
+      "endpoint_tick": 5856,
+      "reward": 0.16559964418411255,
+      "old_value": -12.377930641174316,
+      "stored_standardized_advantage": -0.7678926587104797,
+      "directly_logged_individual_raw_GAE": null,
+      "raw_GAE_availability": "only terminal individual and phase/whole aggregate raw GAE are logged; no inverse-normalization fabrication",
+      "potential_before": 0.636829589977124,
+      "potential_after": 0.6712230213500924,
+      "potential_shaping": 0.16693298420471625,
+      "terminal_event": 0.0,
+      "weighted_reward_families": {
+        "task_progress": 0.16559965087138293,
+        "body_stability": -0.0,
+        "contact_motion_quality": -0.0,
+        "control_smoothness": -0.0,
+        "control_regularization": -0.0
+      },
+      "cooperative_counterroll_cost": 0.0,
+      "RR_current_TOP_bearing": true,
+      "RR_bearing_force_n": 5.399672508239746,
+      "RL_air": false,
+      "RL_current_lift_valid": false,
+      "FL_actual_negative_margin_deg": 13.404584728589718,
+      "final_target_FLk_FRk_RRk": [
+        -46.25852700895018,
+        -12.259716339691245,
+        -58.0
+      ],
+      "original_raw_FLk_FRk_RRk": [
+        -1.8063442707061768,
+        -0.369706392288208,
+        -0.5925835967063904
+      ],
+      "original_mean_FLk_FRk_RRk": [
+        -1.7728477716445923,
+        -0.38276034593582153,
+        -0.606732964515686
+      ],
+      "last_audited_pre_minibatch_mean_FLk_FRk_RRk": [
+        -1.7734845876693726,
+        -0.38380077481269836,
+        -0.6077429056167603
+      ],
+      "last_audited_mean_delta_FLk_FRk_RRk": [
+        -0.0006368160247802734,
+        -0.001040428876876831,
+        -0.0010099411010742188
+      ],
+      "last_audited_minibatch": 18,
+      "memberships": [
+        "whole_update",
+        "completed_episode0",
+        "RR_current_TOP_bearing",
+        "FR_window_motion_and_RL_unload",
+        "RR_first_placement_decision"
+      ]
+    },
+    {
+      "global_policy_decision": 225369,
+      "episode_index": 0,
+      "input_phase": "P10",
+      "endpoint_tick": 5872,
+      "reward": -0.05430322885513306,
+      "old_value": -11.942546844482422,
+      "stored_standardized_advantage": -0.889484167098999,
+      "directly_logged_individual_raw_GAE": null,
+      "raw_GAE_availability": "only terminal individual and phase/whole aggregate raw GAE are logged; no inverse-normalization fabrication",
+      "potential_before": 0.6425874235682483,
+      "potential_after": 0.6329428585672215,
+      "potential_shaping": -0.05296989644438754,
+      "terminal_event": 0.0,
+      "weighted_reward_families": {
+        "task_progress": -0.054303229777720875,
+        "body_stability": -0.0,
+        "contact_motion_quality": -0.0,
+        "control_smoothness": -0.0,
+        "control_regularization": -0.0
+      },
+      "cooperative_counterroll_cost": 0.0,
+      "RR_current_TOP_bearing": false,
+      "RR_bearing_force_n": 0.0,
+      "RL_air": false,
+      "RL_current_lift_valid": false,
+      "FL_actual_negative_margin_deg": 13.940115955748325,
+      "final_target_FLk_FRk_RRk": [
+        -45.831704322008996,
+        -4.759716339691245,
+        -47.0641574369904
+      ],
+      "original_raw_FLk_FRk_RRk": [
+        -1.7015527486801147,
+        0.43521565198898315,
+        -0.6209399700164795
+      ],
+      "original_mean_FLk_FRk_RRk": [
+        -1.6564171314239502,
+        0.24764448404312134,
+        -0.5963082313537598
+      ],
+      "last_audited_pre_minibatch_mean_FLk_FRk_RRk": [
+        -1.6572754383087158,
+        0.24656164646148682,
+        -0.5975098609924316
+      ],
+      "last_audited_mean_delta_FLk_FRk_RRk": [
+        -0.000858306884765625,
+        -0.0010828375816345215,
+        -0.001201629638671875
+      ],
+      "last_audited_minibatch": 17,
+      "memberships": [
+        "whole_update",
+        "completed_episode0"
+      ]
+    },
+    {
+      "global_policy_decision": 225370,
+      "episode_index": 0,
+      "input_phase": "P10",
+      "endpoint_tick": 5880,
+      "reward": -0.017824718728661537,
+      "old_value": -12.048124313354492,
+      "stored_standardized_advantage": -0.9034528732299805,
+      "directly_logged_individual_raw_GAE": null,
+      "raw_GAE_availability": "only terminal individual and phase/whole aggregate raw GAE are logged; no inverse-normalization fabrication",
+      "potential_before": 0.6329428585672215,
+      "potential_after": 0.6305904670504687,
+      "potential_shaping": -0.016491386086642246,
+      "terminal_event": 0.0,
+      "weighted_reward_families": {
+        "task_progress": -0.017824719419975578,
+        "body_stability": -0.0,
+        "contact_motion_quality": -0.0,
+        "control_smoothness": -0.0,
+        "control_regularization": -0.0
+      },
+      "cooperative_counterroll_cost": 0.0,
+      "RR_current_TOP_bearing": false,
+      "RR_bearing_force_n": 0.0,
+      "RL_air": false,
+      "RL_current_lift_valid": false,
+      "FL_actual_negative_margin_deg": 13.989368449853288,
+      "final_target_FLk_FRk_RRk": [
+        -45.9609205947779,
+        -0.759716339691245,
+        -44.8275939601415
+      ],
+      "original_raw_FLk_FRk_RRk": [
+        -1.7311546802520752,
+        0.1539410501718521,
+        -0.6315227150917053
+      ],
+      "original_mean_FLk_FRk_RRk": [
+        -1.684557318687439,
+        0.3398192226886749,
+        -0.6232839226722717
+      ],
+      "last_audited_pre_minibatch_mean_FLk_FRk_RRk": [
+        -1.685570478439331,
+        0.3387148380279541,
+        -0.6243331432342529
+      ],
+      "last_audited_mean_delta_FLk_FRk_RRk": [
+        -0.0010131597518920898,
+        -0.0011043846607208252,
+        -0.0010492205619812012
+      ],
+      "last_audited_minibatch": 17,
+      "memberships": [
+        "whole_update",
+        "completed_episode0"
+      ]
+    },
+    {
+      "global_policy_decision": 225375,
+      "episode_index": 0,
+      "input_phase": "P11",
+      "endpoint_tick": 5920,
+      "reward": 0.19101861119270325,
+      "old_value": -12.095539093017578,
+      "stored_standardized_advantage": -1.0666366815567017,
+      "directly_logged_individual_raw_GAE": null,
+      "raw_GAE_availability": "only terminal individual and phase/whole aggregate raw GAE are logged; no inverse-normalization fabrication",
+      "potential_before": 0.632172846802269,
+      "potential_after": 0.6716507123955232,
+      "potential_shaping": 0.19235194762330488,
+      "terminal_event": 0.0,
+      "weighted_reward_families": {
+        "task_progress": 0.19101861428997155,
+        "body_stability": -0.0,
+        "contact_motion_quality": -0.0,
+        "control_smoothness": -0.0,
+        "control_regularization": -0.0
+      },
+      "cooperative_counterroll_cost": 0.0,
+      "RR_current_TOP_bearing": true,
+      "RR_bearing_force_n": 2.4773552417755127,
+      "RL_air": false,
+      "RL_current_lift_valid": false,
+      "FL_actual_negative_margin_deg": 12.750061360805738,
+      "final_target_FLk_FRk_RRk": [
+        -47.884222433150924,
+        -0.7812517801128536,
+        -45.30512021994949
+      ],
+      "original_raw_FLk_FRk_RRk": [
+        -2.7990317344665527,
+        -0.11339868605136871,
+        -0.5532070994377136
+      ],
+      "original_mean_FLk_FRk_RRk": [
+        -2.519892454147339,
+        -0.32071787118911743,
+        -0.5727354288101196
+      ],
+      "last_audited_pre_minibatch_mean_FLk_FRk_RRk": [
+        -2.5201780796051025,
+        -0.32170236110687256,
+        -0.5737943649291992
+      ],
+      "last_audited_mean_delta_FLk_FRk_RRk": [
+        -0.0002856254577636719,
+        -0.000984489917755127,
+        -0.0010589361190795898
+      ],
+      "last_audited_minibatch": 18,
+      "memberships": [
+        "whole_update",
+        "completed_episode0",
+        "RR_current_TOP_bearing"
+      ]
+    },
+    {
+      "global_policy_decision": 225376,
+      "episode_index": 0,
+      "input_phase": "P11",
+      "endpoint_tick": 5928,
+      "reward": -0.2018430083990097,
+      "old_value": -12.117380142211914,
+      "stored_standardized_advantage": -1.1234240531921387,
+      "directly_logged_individual_raw_GAE": null,
+      "raw_GAE_availability": "only terminal individual and phase/whole aggregate raw GAE are logged; no inverse-normalization fabrication",
+      "potential_before": 0.6716507123955232,
+      "potential_after": 0.6325406731539995,
+      "potential_shaping": -0.20029425125627331,
+      "terminal_event": 0.0,
+      "weighted_reward_families": {
+        "task_progress": -0.20184300514193448,
+        "body_stability": -0.0,
+        "contact_motion_quality": -0.0,
+        "control_smoothness": -0.0,
+        "control_regularization": -0.0
+      },
+      "cooperative_counterroll_cost": 0.00021542055232783594,
+      "RR_current_TOP_bearing": false,
+      "RR_bearing_force_n": 0.0,
+      "RL_air": false,
+      "RL_current_lift_valid": false,
+      "FL_actual_negative_margin_deg": 12.559451271638196,
+      "final_target_FLk_FRk_RRk": [
+        -47.823197394267794,
+        -0.5911278496739492,
+        -45.21559012697477
+      ],
+      "original_raw_FLk_FRk_RRk": [
+        -2.6952579021453857,
+        -0.2549339830875397,
+        -0.5498837232589722
+      ],
+      "original_mean_FLk_FRk_RRk": [
+        -2.701784610748291,
+        -0.15819424390792847,
+        -0.5563509464263916
+      ],
+      "last_audited_pre_minibatch_mean_FLk_FRk_RRk": [
+        -2.7016546726226807,
+        -0.15909922122955322,
+        -0.5574952363967896
+      ],
+      "last_audited_mean_delta_FLk_FRk_RRk": [
+        0.00012993812561035156,
+        -0.0009049773216247559,
+        -0.0011442899703979492
+      ],
+      "last_audited_minibatch": 19,
+      "memberships": [
+        "whole_update",
+        "completed_episode0"
+      ]
+    },
+    {
+      "global_policy_decision": 225383,
+      "episode_index": 0,
+      "input_phase": "P11",
+      "endpoint_tick": 5984,
+      "reward": 0.008801756426692009,
+      "old_value": -12.571880340576172,
+      "stored_standardized_advantage": -1.322687029838562,
+      "directly_logged_individual_raw_GAE": null,
+      "raw_GAE_availability": "only terminal individual and phase/whole aggregate raw GAE are logged; no inverse-normalization fabrication",
+      "potential_before": 0.6714674295644668,
+      "potential_after": 0.6745062067722885,
+      "potential_shaping": 0.010135089488316207,
+      "terminal_event": 0.0,
+      "weighted_reward_families": {
+        "task_progress": 0.008801756154982873,
+        "body_stability": -0.0,
+        "contact_motion_quality": -0.0,
+        "control_smoothness": -0.0,
+        "control_regularization": -0.0
+      },
+      "cooperative_counterroll_cost": 0.0,
+      "RR_current_TOP_bearing": true,
+      "RR_bearing_force_n": 13.99057388305664,
+      "RL_air": false,
+      "RL_current_lift_valid": false,
+      "FL_actual_negative_margin_deg": 12.370736559965323,
+      "final_target_FLk_FRk_RRk": [
+        -48.11842529726403,
+        -20.591127849673946,
+        -44.19460899100745
+      ],
+      "original_raw_FLk_FRk_RRk": [
+        -3.8658132553100586,
+        -2.7938129901885986,
+        -0.5127337574958801
+      ],
+      "original_mean_FLk_FRk_RRk": [
+        -3.15030574798584,
+        -2.753636598587036,
+        -0.5866981148719788
+      ],
+      "last_audited_pre_minibatch_mean_FLk_FRk_RRk": [
+        -3.149890422821045,
+        -2.7545740604400635,
+        -0.5888606309890747
+      ],
+      "last_audited_mean_delta_FLk_FRk_RRk": [
+        0.0004153251647949219,
+        -0.0009374618530273438,
+        -0.0021625161170959473
+      ],
+      "last_audited_minibatch": 17,
+      "memberships": [
+        "whole_update",
+        "completed_episode0",
+        "RR_current_TOP_bearing",
+        "FR_window_motion_and_RL_unload"
+      ]
+    },
+    {
+      "global_policy_decision": 225391,
+      "episode_index": 0,
+      "input_phase": "P12",
+      "endpoint_tick": 6048,
+      "reward": -0.007539013400673866,
+      "old_value": -12.67440128326416,
+      "stored_standardized_advantage": -1.6321280002593994,
+      "directly_logged_individual_raw_GAE": null,
+      "raw_GAE_availability": "only terminal individual and phase/whole aggregate raw GAE are logged; no inverse-normalization fabrication",
+      "potential_before": 0.6755221605558142,
+      "potential_after": 0.6752939655160305,
+      "potential_shaping": -0.0062056799402882,
+      "terminal_event": 0.0,
+      "weighted_reward_families": {
+        "task_progress": -0.007539013273621533,
+        "body_stability": -0.0,
+        "contact_motion_quality": -0.0,
+        "control_smoothness": -0.0,
+        "control_regularization": -0.0
+      },
+      "cooperative_counterroll_cost": 0.0,
+      "RR_current_TOP_bearing": true,
+      "RR_bearing_force_n": 15.064852714538574,
+      "RL_air": false,
+      "RL_current_lift_valid": false,
+      "FL_actual_negative_margin_deg": 13.127921086069186,
+      "final_target_FLk_FRk_RRk": [
+        -45.69088314106131,
+        -48.63043612076569,
+        -45.01462645914013
+      ],
+      "original_raw_FLk_FRk_RRk": [
+        -1.6710562705993652,
+        -5.495622634887695,
+        -0.5424638390541077
+      ],
+      "original_mean_FLk_FRk_RRk": [
+        -1.7631484270095825,
+        -5.597307205200195,
+        -0.5458294153213501
+      ],
+      "last_audited_pre_minibatch_mean_FLk_FRk_RRk": [
+        -1.7635235786437988,
+        -5.5982489585876465,
+        -0.5473029613494873
+      ],
+      "last_audited_mean_delta_FLk_FRk_RRk": [
+        -0.0003751516342163086,
+        -0.0009417533874511719,
+        -0.001473546028137207
+      ],
+      "last_audited_minibatch": 19,
+      "memberships": [
+        "whole_update",
+        "completed_episode0",
+        "RR_current_TOP_bearing"
+      ]
+    },
+    {
+      "global_policy_decision": 225392,
+      "episode_index": 0,
+      "input_phase": "P12",
+      "endpoint_tick": 6056,
+      "reward": -0.008700525388121605,
+      "old_value": -12.770906448364258,
+      "stored_standardized_advantage": -1.6617732048034668,
+      "directly_logged_individual_raw_GAE": null,
+      "raw_GAE_availability": "only terminal individual and phase/whole aggregate raw GAE are logged; no inverse-normalization fabrication",
+      "potential_before": 0.6752939655160305,
+      "potential_after": 0.6748327763515019,
+      "potential_shaping": -0.007367191645279436,
+      "terminal_event": 0.0,
+      "weighted_reward_families": {
+        "task_progress": -0.00870052497861277,
+        "body_stability": -0.0,
+        "contact_motion_quality": -0.0,
+        "control_smoothness": -0.0,
+        "control_regularization": -0.0
+      },
+      "cooperative_counterroll_cost": 0.0,
+      "RR_current_TOP_bearing": true,
+      "RR_bearing_force_n": 14.790877342224121,
+      "RL_air": false,
+      "RL_current_lift_valid": false,
+      "FL_actual_negative_margin_deg": 11.328009145419912,
+      "final_target_FLk_FRk_RRk": [
+        -53.27483300503412,
+        -52.63043612076569,
+        -45.70341035920424
+      ],
+      "original_raw_FLk_FRk_RRk": [
+        -1.4685522317886353,
+        -5.726147651672363,
+        -0.5681286454200745
+      ],
+      "original_mean_FLk_FRk_RRk": [
+        -1.6676878929138184,
+        -4.989941120147705,
+        -0.5593658685684204
+      ],
+      "last_audited_pre_minibatch_mean_FLk_FRk_RRk": [
+        -1.668284296989441,
+        -4.990885257720947,
+        -0.5606194138526917
+      ],
+      "last_audited_mean_delta_FLk_FRk_RRk": [
+        -0.0005964040756225586,
+        -0.0009441375732421875,
+        -0.0012535452842712402
+      ],
+      "last_audited_minibatch": 19,
+      "memberships": [
+        "whole_update",
+        "completed_episode0",
+        "RR_current_TOP_bearing"
+      ]
+    },
+    {
+      "global_policy_decision": 225393,
+      "episode_index": 0,
+      "input_phase": "P12",
+      "endpoint_tick": 6064,
+      "reward": -0.007410495541989803,
+      "old_value": -12.55555534362793,
+      "stored_standardized_advantage": -1.7301973104476929,
+      "directly_logged_individual_raw_GAE": null,
+      "raw_GAE_availability": "only terminal individual and phase/whole aggregate raw GAE are logged; no inverse-normalization fabrication",
+      "potential_before": 0.6748327763515019,
+      "potential_after": 0.6746292877973891,
+      "potential_shaping": -0.006077162429043992,
+      "terminal_event": 0.0,
+      "weighted_reward_families": {
+        "task_progress": -0.007410495762377325,
+        "body_stability": -0.0,
+        "contact_motion_quality": -0.0,
+        "control_smoothness": -0.0,
+        "control_regularization": -0.0
+      },
+      "cooperative_counterroll_cost": 0.0,
+      "RR_current_TOP_bearing": true,
+      "RR_bearing_force_n": 14.394411087036133,
+      "RL_air": false,
+      "RL_current_lift_valid": false,
+      "FL_actual_negative_margin_deg": 7.179666432255992,
+      "final_target_FLk_FRk_RRk": [
+        -58.0,
+        -56.63043612076569,
+        -45.3074733812549
+      ],
+      "original_raw_FLk_FRk_RRk": [
+        -1.9906377792358398,
+        -4.493471145629883,
+        -0.5532945990562439
+      ],
+      "original_mean_FLk_FRk_RRk": [
+        -1.473954439163208,
+        -5.195444107055664,
+        -0.581678569316864
+      ],
+      "last_audited_pre_minibatch_mean_FLk_FRk_RRk": [
+        -1.4749342203140259,
+        -5.196441650390625,
+        -0.5828615427017212
+      ],
+      "last_audited_mean_delta_FLk_FRk_RRk": [
+        -0.000979781150817871,
+        -0.0009975433349609375,
+        -0.0011829733848571777
+      ],
+      "last_audited_minibatch": 19,
+      "memberships": [
+        "whole_update",
+        "completed_episode0",
+        "RR_current_TOP_bearing",
+        "FR_window_motion_and_RL_unload",
+        "FL_lower_target_headroom_clipped"
+      ]
+    },
+    {
+      "global_policy_decision": 225396,
+      "episode_index": 0,
+      "input_phase": "P12",
+      "endpoint_tick": 6088,
+      "reward": -0.011790899559855461,
+      "old_value": -12.66244888305664,
+      "stored_standardized_advantage": -1.8445993661880493,
+      "directly_logged_individual_raw_GAE": null,
+      "raw_GAE_availability": "only terminal individual and phase/whole aggregate raw GAE are logged; no inverse-normalization fabrication",
+      "potential_before": 0.6712802048608875,
+      "potential_after": 0.6701939825137868,
+      "potential_shaping": -0.010457566604356594,
+      "terminal_event": 0.0,
+      "weighted_reward_families": {
+        "task_progress": -0.011790899937689928,
+        "body_stability": -0.0,
+        "contact_motion_quality": -0.0,
+        "control_smoothness": -0.0,
+        "control_regularization": -0.0
+      },
+      "cooperative_counterroll_cost": 0.0,
+      "RR_current_TOP_bearing": true,
+      "RR_bearing_force_n": 14.357074737548828,
+      "RL_air": false,
+      "RL_current_lift_valid": false,
+      "FL_actual_negative_margin_deg": 1.802046762840682,
+      "final_target_FLk_FRk_RRk": [
+        -58.0,
+        -57.99999999999999,
+        -46.39441440255339
+      ],
+      "original_raw_FLk_FRk_RRk": [
+        -1.7707139253616333,
+        -2.4292240142822266,
+        -0.5945752263069153
+      ],
+      "original_mean_FLk_FRk_RRk": [
+        -1.5134611129760742,
+        -2.9268124103546143,
+        -0.602766215801239
+      ],
+      "last_audited_pre_minibatch_mean_FLk_FRk_RRk": [
+        -1.5151432752609253,
+        -2.9279236793518066,
+        -0.6039013266563416
+      ],
+      "last_audited_mean_delta_FLk_FRk_RRk": [
+        -0.0016821622848510742,
+        -0.0011112689971923828,
+        -0.001135110855102539
+      ],
+      "last_audited_minibatch": 17,
+      "memberships": [
+        "whole_update",
+        "completed_episode0",
+        "RR_current_TOP_bearing",
+        "FR_window_motion_and_RL_unload",
+        "FL_actual_within_existing_2deg_lower_reserve",
+        "FL_lower_target_headroom_clipped"
+      ]
+    },
+    {
+      "global_policy_decision": 225397,
+      "episode_index": 0,
+      "input_phase": "P12",
+      "endpoint_tick": 6096,
+      "reward": -0.008131265640258789,
+      "old_value": -12.66740608215332,
+      "stored_standardized_advantage": -1.8875043392181396,
+      "directly_logged_individual_raw_GAE": null,
+      "raw_GAE_availability": "only terminal individual and phase/whole aggregate raw GAE are logged; no inverse-normalization fabrication",
+      "potential_before": 0.6701939825137868,
+      "potential_after": 0.6698391547212154,
+      "potential_shaping": -0.006797932623266445,
+      "terminal_event": 0.0,
+      "weighted_reward_families": {
+        "task_progress": -0.008131265956599779,
+        "body_stability": -0.0,
+        "contact_motion_quality": -0.0,
+        "control_smoothness": -0.0,
+        "control_regularization": -0.0
+      },
+      "cooperative_counterroll_cost": 0.0,
+      "RR_current_TOP_bearing": true,
+      "RR_bearing_force_n": 14.838078498840332,
+      "RL_air": true,
+      "RL_current_lift_valid": false,
+      "FL_actual_negative_margin_deg": 0.9799720245271146,
+      "final_target_FLk_FRk_RRk": [
+        -58.0,
+        -57.99999999999999,
+        -46.69595077720669
+      ],
+      "original_raw_FLk_FRk_RRk": [
+        -1.9976741075515747,
+        -2.4556896686553955,
+        -0.6063521504402161
+      ],
+      "original_mean_FLk_FRk_RRk": [
+        -1.7148655652999878,
+        -2.2251439094543457,
+        -0.60664963722229
+      ],
+      "last_audited_pre_minibatch_mean_FLk_FRk_RRk": [
+        -1.7166253328323364,
+        -2.2262461185455322,
+        -0.6075583696365356
+      ],
+      "last_audited_mean_delta_FLk_FRk_RRk": [
+        -0.0017597675323486328,
+        -0.0011022090911865234,
+        -0.0009087324142456055
+      ],
+      "last_audited_minibatch": 18,
+      "memberships": [
+        "whole_update",
+        "completed_episode0",
+        "RR_current_TOP_bearing",
+        "FR_window_motion_and_RL_unload",
+        "FL_actual_within_existing_2deg_lower_reserve",
+        "FL_lower_target_headroom_clipped"
+      ]
+    },
+    {
+      "global_policy_decision": 225398,
+      "episode_index": 0,
+      "input_phase": "P12",
+      "endpoint_tick": 6103,
+      "reward": -43.35036087036133,
+      "old_value": -12.935110092163086,
+      "stored_standardized_advantage": -1.8988746404647827,
+      "directly_logged_individual_raw_GAE": -30.415250778198242,
+      "raw_GAE_availability": "only terminal individual and phase/whole aggregate raw GAE are logged; no inverse-normalization fabrication",
+      "potential_before": 0.6698391547212154,
+      "potential_after": 0.0,
+      "potential_shaping": -3.349195773606077,
+      "terminal_event": -40.0,
+      "weighted_reward_families": {
+        "task_progress": -43.35036244027275,
+        "body_stability": -0.0,
+        "contact_motion_quality": -0.0,
+        "control_smoothness": -0.0,
+        "control_regularization": -0.0
+      },
+      "cooperative_counterroll_cost": 0.0,
+      "RR_current_TOP_bearing": true,
+      "RR_bearing_force_n": 15.422770500183105,
+      "RL_air": true,
+      "RL_current_lift_valid": false,
+      "FL_actual_negative_margin_deg": -0.01156653728363466,
+      "final_target_FLk_FRk_RRk": [
+        -58.0,
+        -57.99999999999999,
+        -46.9583023037836
+      ],
+      "original_raw_FLk_FRk_RRk": [
+        -1.862967610359192,
+        -2.3488645553588867,
+        -0.6167222261428833
+      ],
+      "original_mean_FLk_FRk_RRk": [
+        -1.9084479808807373,
+        -2.2466015815734863,
+        -0.6162329316139221
+      ],
+      "last_audited_pre_minibatch_mean_FLk_FRk_RRk": [
+        -1.910402536392212,
+        -2.247743844985962,
+        -0.6173275709152222
+      ],
+      "last_audited_mean_delta_FLk_FRk_RRk": [
+        -0.0019545555114746094,
+        -0.001142263412475586,
+        -0.0010946393013000488
+      ],
+      "last_audited_minibatch": 16,
+      "memberships": [
+        "whole_update",
+        "completed_episode0",
+        "RR_current_TOP_bearing",
+        "FL_actual_within_existing_2deg_lower_reserve",
+        "FL_lower_target_headroom_clipped",
+        "RL_initial_clearance_not_qualified"
+      ]
+    },
+    {
+      "global_policy_decision": 225399,
+      "episode_index": 1,
+      "input_phase": "P07",
+      "endpoint_tick": 5168,
+      "reward": 0.004499967209994793,
+      "old_value": -13.328773498535156,
+      "stored_standardized_advantage": 2.0322701930999756,
+      "directly_logged_individual_raw_GAE": null,
+      "raw_GAE_availability": "only terminal individual and phase/whole aggregate raw GAE are logged; no inverse-normalization fabrication",
+      "potential_before": 0.4760881325043499,
+      "potential_after": 0.4779717502203229,
+      "potential_shaping": 0.005833300453212675,
+      "terminal_event": 0.0,
+      "weighted_reward_families": {
+        "task_progress": 0.004499967119879342,
+        "body_stability": -0.0,
+        "contact_motion_quality": -0.0,
+        "control_smoothness": -0.0,
+        "control_regularization": -0.0
+      },
+      "cooperative_counterroll_cost": 0.0,
+      "RR_current_TOP_bearing": false,
+      "RR_bearing_force_n": 0.863595724105835,
+      "RL_air": false,
+      "RL_current_lift_valid": false,
+      "FL_actual_negative_margin_deg": 47.003284171048556,
+      "final_target_FLk_FRk_RRk": [
+        -14.25176431610629,
+        42.604767998609105,
+        -1.1549328748774554
+      ],
+      "original_raw_FLk_FRk_RRk": [
+        -0.05844881013035774,
+        -0.02995724231004715,
+        -0.03209248185157776
+      ],
+      "original_mean_FLk_FRk_RRk": [
+        -0.08820883929729462,
+        -0.025521202012896538,
+        -0.050005316734313965
+      ],
+      "last_audited_pre_minibatch_mean_FLk_FRk_RRk": [
+        -0.08838844299316406,
+        -0.02596580982208252,
+        -0.05033516883850098
+      ],
+      "last_audited_mean_delta_FLk_FRk_RRk": [
+        -0.0001796036958694458,
+        -0.00044460780918598175,
+        -0.0003298521041870117
+      ],
+      "last_audited_minibatch": 19,
+      "memberships": [
+        "whole_update",
+        "next_episode_first10_nonterminal"
+      ]
+    },
+    {
+      "global_policy_decision": 225408,
+      "episode_index": 1,
+      "input_phase": "P09",
+      "endpoint_tick": 5240,
+      "reward": -0.004998958203941584,
+      "old_value": -11.699342727661133,
+      "stored_standardized_advantage": 1.8190453052520752,
+      "directly_logged_individual_raw_GAE": null,
+      "raw_GAE_availability": "only terminal individual and phase/whole aggregate raw GAE are logged; no inverse-normalization fabrication",
+      "potential_before": 0.48875,
+      "potential_after": 0.48875,
+      "potential_shaping": -0.0036656250000000057,
+      "terminal_event": 0.0,
+      "weighted_reward_families": {
+        "task_progress": -0.004998958333333339,
+        "body_stability": -0.0,
+        "contact_motion_quality": -0.0,
+        "control_smoothness": -0.0,
+        "control_regularization": -0.0
+      },
+      "cooperative_counterroll_cost": 0.0,
+      "RR_current_TOP_bearing": false,
+      "RR_bearing_force_n": 4.058484077453613,
+      "RL_air": false,
+      "RL_current_lift_valid": false,
+      "FL_actual_negative_margin_deg": 20.769683578546605,
+      "final_target_FLk_FRk_RRk": [
+        -41.16229309204147,
+        -6.0902274480689265,
+        -13.497250069291045
+      ],
+      "original_raw_FLk_FRk_RRk": [
+        -1.1152119636535645,
+        -0.2596098780632019,
+        -0.3941397964954376
+      ],
+      "original_mean_FLk_FRk_RRk": [
+        -1.1939735412597656,
+        -0.2893896698951721,
+        -0.40307486057281494
+      ],
+      "last_audited_pre_minibatch_mean_FLk_FRk_RRk": [
+        -1.1945120096206665,
+        -0.29025620222091675,
+        -0.40365010499954224
+      ],
+      "last_audited_mean_delta_FLk_FRk_RRk": [
+        -0.0005384683609008789,
+        -0.0008665323257446289,
+        -0.0005752444267272949
+      ],
+      "last_audited_minibatch": 19,
+      "memberships": [
+        "whole_update",
+        "next_episode_first10_nonterminal"
+      ]
+    }
+  ],
+  "maximum_current_conditional_logp_error": 2.547817167908306e-06,
+  "interpretation_limits": [
+    "Every reported sample was actually used five times in this completed update; no new/extra model forward.",
+    "Conditional mean differences use each saved input at its last audited minibatch forward, before that minibatch optimizer step. They are NOT an independent final-checkpoint evaluation, per-sample Adam change, or proof of learned physical behavior.",
+    "Positive instantaneous contact reward can coexist with negative standardized GAE when followed soon by a safety failure; negative advantage is not evidence contact itself was penalized.",
+    "Whole/phase raw GAE and terminal raw GAE are directly logged; arbitrary physical-window individual raw GAE is N/A. No unlogged tail bootstrap or reverse standardized inference is invented.",
+    "Overlapping endpoint groups are observed correlations, not causal credit decomposition; RL initial clearance is not qualified lift."
+  ]
+}

@@ -1,0 +1,1010 @@
+{
+  "schema": "bounded.CP230144_DET_P05_failure.v1",
+  "source": "runs/ppo_rr_rl_timing_policy_learning_v1/video_eval/validation/20260924T1206270979619Z_g59e868f3e223_6daab84a9021442ca9d5a14aea51c95e/source",
+  "checkpoint": 230144,
+  "runtime": "59e868f3e223c589e7645a0f5d63f91fa6119fb6",
+  "seed": 4001,
+  "mode": "deterministic_conditional_mean",
+  "rear_task_assist": "OFF",
+  "FLassist": "ON but WAIT throughout P05",
+  "terminal": {
+    "physics_tick": 6832,
+    "sim_time_s": 56.93333333333333,
+    "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "time_outs": false,
+    "task_success": false,
+    "full_task_success": false,
+    "terminal_bootstrap_allowed": false
+  },
+  "taskterminal": {
+    "stage_id": "P05",
+    "stage_age_s": 40,
+    "termination_source": "LOCAL_BOUNDED_RECOVERY_EXHAUSTED",
+    "local_timeout": {
+      "nominal_limit_s": 30,
+      "current_progress_allowance_s": 0.7976046488150866,
+      "fixed_post_window_allowance_s": 0,
+      "effective_limit_s": 30.797604648815085,
+      "nominal_limit_exceeded": true,
+      "classification": "finite_task_terminal_not_external_truncation",
+      "timer_inputs_observable_in_existing372": false,
+      "local_episode_terminal_enabled": true,
+      "observation_semantics": "legacy372_times_plus_explicit_capture_append17",
+      "current_schema_observable": true
+    }
+  },
+  "physical_valid": true,
+  "physical_termination": null,
+  "request_counts": {
+    "P01": 2,
+    "P02": 247,
+    "P03": 4,
+    "P04": 1,
+    "P05": 600
+  },
+  "P05counts": {
+    "AIR": 275,
+    "GROUND": 322,
+    "XY": 0,
+    "TOP": 0,
+    "active_history": 144
+  },
+  "FL_events": [
+    {
+      "leg": "FL",
+      "event": "whole_body_initial_clearance",
+      "physics_tick": 2031,
+      "simulation_time_s": 16.925,
+      "upward_excursion_m": 0.0033707465620737564,
+      "whole_body_joint_motion_deg": 18.05992740673456,
+      "command_motion_deg": 8.816624323670236,
+      "evidence": "active_air_or_early_top"
+    },
+    {
+      "leg": "FL",
+      "event": "qualified_measured_upward_lift",
+      "physics_tick": 2048,
+      "simulation_time_s": 17.066666666666666,
+      "upward_excursion_m": 0.008171359707716382,
+      "joint_motion_deg": 18.923362782453967,
+      "airborne_clearance_above_top_m": -0.04184398558388117
+    },
+    {
+      "leg": "FL",
+      "event": "qualification_revoked_ground_before_cross",
+      "physics_tick": 3196,
+      "simulation_time_s": 26.633333333333333
+    }
+  ],
+  "placed": {
+    "FL": false,
+    "FR": true,
+    "RL": false,
+    "RR": false
+  },
+  "last_current_legs": {
+    "FL": {
+      "front_distance_m": -0.10461774127650614,
+      "clearance_m": -0.051185387231480736,
+      "top_geometry": false,
+      "top_contact": false,
+      "air": true,
+      "crossing_geometry_pending": false,
+      "recent_joint_motion_deg": 0.22773728994844689,
+      "recent_clearance_gain_m": 0,
+      "recent_whole_body_joint_motion_deg": 0.40580885934714206,
+      "whole_body_actuation_evidence": false,
+      "initial_clearance": false,
+      "ground_contact": false,
+      "obstacle_pair_active": false,
+      "consecutive_air_samples": 4,
+      "consecutive_top_samples": 0,
+      "within_top_xy": false,
+      "within_lateral_span": true,
+      "support": false,
+      "contact_surface": "NONE",
+      "top_surface_contact": false,
+      "contact_reaction": false,
+      "contact_reaction_force_n": 0,
+      "bearing_force_n": 0,
+      "bearing_verified": true,
+      "active_attempt": false,
+      "crossing_evidence_status": "PENDING",
+      "top_xy_outside_distance_m": 0.09961774127650613,
+      "load_fraction": 0,
+      "load_fraction_valid": true,
+      "soft_air_actuation_earned": false,
+      "soft_air_earned_tick": null,
+      "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+    },
+    "FR": {
+      "front_distance_m": 0.08618158442806845,
+      "clearance_m": -0.0010847708720547328,
+      "top_geometry": true,
+      "top_contact": true,
+      "air": false,
+      "crossing_geometry_pending": false,
+      "recent_joint_motion_deg": 1.5123712218754513,
+      "recent_clearance_gain_m": 0.000006180752445711368,
+      "recent_whole_body_joint_motion_deg": 5.744978192273241,
+      "whole_body_actuation_evidence": true,
+      "initial_clearance": true,
+      "ground_contact": false,
+      "obstacle_pair_active": true,
+      "consecutive_air_samples": 0,
+      "consecutive_top_samples": 4815,
+      "within_top_xy": true,
+      "within_lateral_span": true,
+      "support": true,
+      "contact_surface": "TOP",
+      "top_surface_contact": true,
+      "contact_reaction": true,
+      "contact_reaction_force_n": 12.478252532413432,
+      "bearing_force_n": 12.478246688842773,
+      "bearing_verified": true,
+      "active_attempt": true,
+      "crossing_evidence_status": "VERIFIED",
+      "top_xy_outside_distance_m": 0,
+      "load_fraction": 0.4329848780096132,
+      "load_fraction_valid": true,
+      "soft_air_actuation_earned": false,
+      "soft_air_earned_tick": null,
+      "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+    },
+    "RL": {
+      "front_distance_m": -0.6332933272616899,
+      "clearance_m": -0.051006542795607415,
+      "top_geometry": false,
+      "top_contact": false,
+      "air": false,
+      "crossing_geometry_pending": false,
+      "recent_joint_motion_deg": 0,
+      "recent_clearance_gain_m": 0,
+      "recent_whole_body_joint_motion_deg": 0,
+      "whole_body_actuation_evidence": false,
+      "initial_clearance": false,
+      "ground_contact": true,
+      "obstacle_pair_active": false,
+      "consecutive_air_samples": 0,
+      "consecutive_top_samples": 0,
+      "within_top_xy": false,
+      "within_lateral_span": true,
+      "support": true,
+      "contact_surface": "NONE",
+      "top_surface_contact": false,
+      "contact_reaction": true,
+      "contact_reaction_force_n": 14.894677162170545,
+      "bearing_force_n": 14.89467716217041,
+      "bearing_verified": true,
+      "active_attempt": false,
+      "crossing_evidence_status": "PENDING",
+      "current_lift_valid": false,
+      "motion_continuation_allowed": true,
+      "motion_continuation_reason": "await_fresh_measured_RL_lift",
+      "contact_mode": "GROUND",
+      "current_lift_qualified_tick": null,
+      "current_lift_evidence_semantics": "same_attempt_measured_lift_revoked_by_any_ground_v3",
+      "top_xy_outside_distance_m": 0.6282933272616898,
+      "load_fraction": 0.5168330242918944,
+      "load_fraction_valid": true,
+      "soft_air_actuation_earned": false,
+      "soft_air_earned_tick": null,
+      "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+    },
+    "RR": {
+      "front_distance_m": -0.6120295565025842,
+      "clearance_m": -0.05148018761118441,
+      "top_geometry": false,
+      "top_contact": false,
+      "air": false,
+      "crossing_geometry_pending": false,
+      "recent_joint_motion_deg": 0,
+      "recent_clearance_gain_m": 0,
+      "recent_whole_body_joint_motion_deg": 0,
+      "whole_body_actuation_evidence": false,
+      "initial_clearance": false,
+      "ground_contact": true,
+      "obstacle_pair_active": false,
+      "consecutive_air_samples": 0,
+      "consecutive_top_samples": 0,
+      "within_top_xy": false,
+      "within_lateral_span": true,
+      "support": true,
+      "contact_surface": "NONE",
+      "top_surface_contact": false,
+      "contact_reaction": true,
+      "contact_reaction_force_n": 1.4462043046951425,
+      "bearing_force_n": 1.4462043046951294,
+      "bearing_verified": true,
+      "active_attempt": false,
+      "crossing_evidence_status": "PENDING",
+      "initial_now": false,
+      "lift_established_now": false,
+      "current_lift_valid": false,
+      "contact_mode": "GROUND",
+      "motion_continuation_allowed": true,
+      "motion_continuation_reason": "bounded_adjustment_to_acquire_measured_response",
+      "ground_relative_lift_m": 0,
+      "recent_wheel_displacement_m": 0,
+      "edge_adjustment_response_observed": null,
+      "body_control_evidence": true,
+      "body_control_evidence_semantics": "unchanged_live_safety_and_short_verified_other_supports_not_static_stability_proof",
+      "observed_other_support_contacts": [
+        "FR",
+        "RL"
+      ],
+      "air_duration_s": 0,
+      "edge_contact_duration_s": 0,
+      "durations_are_diagnostic_only": true,
+      "unsupported_free_lift_m": null,
+      "free_air_reference_tick": 6832,
+      "free_air_reference_bottom_z_m": -0.0014801876111844095,
+      "consecutive_free_air_samples": 0,
+      "free_lift_evidence_semantics": "current_continuous_AIR_rise_from_last_actual_contact",
+      "wheel_bottom_vz_m_s": 0.00004238680479024223,
+      "wheel_bottom_vz_observation_tick": 6832,
+      "wheel_bottom_vz_interval_s": 0.00833333333333286,
+      "wheel_bottom_vz_semantics": "adjacent_measured_collider_bottom_world_z_finite_difference",
+      "lift_established": false,
+      "initial_lift_observed": false,
+      "front_edge_crossed": false,
+      "placed_on_top": false,
+      "top_xy_outside_distance_m": 0.6070295565025842,
+      "load_fraction": 0.05018209769849246,
+      "load_fraction_valid": true,
+      "soft_air_actuation_earned": false,
+      "soft_air_earned_tick": null,
+      "soft_air_evidence_semantics": "current_uninterrupted_measured_actuated_air_for_shaping_not_hard_qualification"
+    }
+  },
+  "selected_physics": {
+    "first_nonnegative_gap": {
+      "tick": 2108,
+      "time": 17.566666666666666,
+      "FL": {
+        "clearance_m": 0.00022703668849780034,
+        "front_distance_m": -0.19690841095614786,
+        "air": true,
+        "ground_contact": false,
+        "top_contact": false,
+        "within_top_xy": false,
+        "bearing_force_n": 0,
+        "active_attempt": true
+      },
+      "assist": {
+        "schema": "wlr50_clean.capture_assist_state.v1",
+        "version": "p05_hip_only_continuation_v1",
+        "feedback_revision": "hold_to_air_progress_window_v2",
+        "mode": 0,
+        "initialized": 0,
+        "knee_hold_deg": 0,
+        "hip_entry_deg": 0,
+        "hip_target_deg": 0,
+        "best_gap_m": 0,
+        "window_start_gap_m": 0,
+        "window_elapsed_s": 0,
+        "hold_elapsed_s": 0,
+        "release_fraction": 0,
+        "blocked_reason": 0,
+        "contact_seen": 0,
+        "mode_name": "WAIT",
+        "reason": "none",
+        "active": false,
+        "last_dispatch_physics_tick": 2287
+      },
+      "N": [
+        37.6,
+        -36.7,
+        0,
+        45.9,
+        17.5,
+        0,
+        0,
+        0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "actual_full12": [
+        28.71547946761818,
+        -56.25131858785442,
+        12.922010026257205,
+        41.61842459328493,
+        11.73956283297967,
+        1.10693619532349,
+        4.649822752586944,
+        -9.505911535177441,
+        -0.25764352083206177,
+        0.25159692764282227,
+        0.3568829894065857,
+        0.24082311987876892
+      ],
+      "body": {
+        "position_w_m": [
+          0.15377382934093475,
+          0.0025016888976097107,
+          0.0625632256269455
+        ],
+        "orientation_wxyz": [
+          0.9997257590293884,
+          -0.02101757563650608,
+          0.01032995618879795,
+          0.0003108693053945899
+        ],
+        "linear_velocity_w_m_s": [
+          0.014237724244594574,
+          -0.0029801656492054462,
+          0.007008125074207783
+        ]
+      },
+      "COM": {
+        "position_w_m": [
+          0.13379954428750632,
+          -0.11513220988490959,
+          0.1462264672701363
+        ],
+        "velocity_w_m_s": [
+          0.016828788322717756,
+          -0.008421853872556487,
+          0.012842375887382115
+        ],
+        "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass"
+      },
+      "dispatch_keys": [
+        "physics_tick",
+        "drive_target_full12",
+        "native_drive_target_full12",
+        "independent_policy_residual_requested_full12",
+        "independent_policy_residual_effective_full12",
+        "servo_tracking_compensation_deg",
+        "tracking_reference_evidence",
+        "capture_assist_evidence",
+        "rr_capture_assist_evidence",
+        "servo_tracking_feedback_sample_tick"
+      ],
+      "dispatch_final": [
+        35.98215379876208,
+        -56.7404451247089,
+        4.751825966365017,
+        40.726174269925124,
+        10.546148251468168,
+        1.1135212704329698,
+        4.983694755164957,
+        -9.697659045840068,
+        -0.257621034102862,
+        0.3215110870834371,
+        0.23251271799485027,
+        0.25709197338332257
+      ]
+    },
+    "peak": {
+      "tick": 2170,
+      "time": 18.083333333333332,
+      "FL": {
+        "clearance_m": 0.017050403174592527,
+        "front_distance_m": -0.17511263148951883,
+        "air": true,
+        "ground_contact": false,
+        "top_contact": false,
+        "within_top_xy": false,
+        "bearing_force_n": 0,
+        "active_attempt": true
+      },
+      "assist": {
+        "schema": "wlr50_clean.capture_assist_state.v1",
+        "version": "p05_hip_only_continuation_v1",
+        "feedback_revision": "hold_to_air_progress_window_v2",
+        "mode": 0,
+        "initialized": 0,
+        "knee_hold_deg": 0,
+        "hip_entry_deg": 0,
+        "hip_target_deg": 0,
+        "best_gap_m": 0,
+        "window_start_gap_m": 0,
+        "window_elapsed_s": 0,
+        "hold_elapsed_s": 0,
+        "release_fraction": 0,
+        "blocked_reason": 0,
+        "contact_seen": 0,
+        "mode_name": "WAIT",
+        "reason": "none",
+        "active": false,
+        "last_dispatch_physics_tick": 2349
+      },
+      "N": [
+        48.2,
+        -36.7,
+        0,
+        45.9,
+        17.5,
+        0,
+        0,
+        0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "actual_full12": [
+        47.4776471176172,
+        -57.70659625845777,
+        14.69402576678885,
+        40.87548784178971,
+        10.941106035042363,
+        1.5207799184555013,
+        5.252813623743649,
+        -10.22266219516847,
+        -0.33218398690223694,
+        0.2608432173728943,
+        0.3937202990055084,
+        0.18176063895225525
+      ],
+      "body": {
+        "position_w_m": [
+          0.15962687134742737,
+          0.0020547136664390564,
+          0.06152539700269699
+        ],
+        "orientation_wxyz": [
+          0.9997562766075134,
+          -0.016616929322481155,
+          0.014529619365930557,
+          0.0005973968072794378
+        ],
+        "linear_velocity_w_m_s": [
+          0.005819951184093952,
+          -0.0030251694843173027,
+          0.007227372378110886
+        ]
+      },
+      "COM": {
+        "position_w_m": [
+          0.14012690828568974,
+          -0.1161894455908649,
+          0.14819202919648297
+        ],
+        "velocity_w_m_s": [
+          0.009983566017338373,
+          -0.011497860560592592,
+          -0.0025049649713334943
+        ],
+        "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass"
+      },
+      "dispatch_keys": [
+        "physics_tick",
+        "drive_target_full12",
+        "native_drive_target_full12",
+        "independent_policy_residual_requested_full12",
+        "independent_policy_residual_effective_full12",
+        "servo_tracking_compensation_deg",
+        "tracking_reference_evidence",
+        "capture_assist_evidence",
+        "rr_capture_assist_evidence",
+        "servo_tracking_feedback_sample_tick"
+      ],
+      "dispatch_final": [
+        47.76695273649604,
+        -57.90331516272788,
+        5.317476104775916,
+        40.08470605375063,
+        9.025890346615167,
+        1.299297129087113,
+        5.6774301986459434,
+        -10.258724690971356,
+        -0.33214234103794754,
+        0.31917179766476517,
+        0.22945727205691355,
+        0.25666509442382784
+      ]
+    },
+    "first_drop_below_top": {
+      "tick": 2602,
+      "time": 21.683333333333334,
+      "FL": {
+        "clearance_m": -0.0000956915643319095,
+        "front_distance_m": -0.14270975845027323,
+        "air": true,
+        "ground_contact": false,
+        "top_contact": false,
+        "within_top_xy": false,
+        "bearing_force_n": 0,
+        "active_attempt": true
+      },
+      "assist": {
+        "schema": "wlr50_clean.capture_assist_state.v1",
+        "version": "p05_hip_only_continuation_v1",
+        "feedback_revision": "hold_to_air_progress_window_v2",
+        "mode": 0,
+        "initialized": 0,
+        "knee_hold_deg": 0,
+        "hip_entry_deg": 0,
+        "hip_target_deg": 0,
+        "best_gap_m": 0,
+        "window_start_gap_m": 0,
+        "window_elapsed_s": 0,
+        "hold_elapsed_s": 0,
+        "release_fraction": 0,
+        "blocked_reason": 0,
+        "contact_seen": 0,
+        "mode_name": "WAIT",
+        "reason": "none",
+        "active": false,
+        "last_dispatch_physics_tick": 2781
+      },
+      "N": [
+        48.2,
+        -36.7,
+        0,
+        45.9,
+        6.9,
+        0,
+        0,
+        0,
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "actual_full12": [
+        47.66282037620542,
+        -57.98947537312302,
+        25.914433431495894,
+        40.25796019364511,
+        4.137936666499359,
+        1.8656981749605042,
+        5.8239288558175515,
+        -11.140056492217793,
+        -0.3960186243057251,
+        0.2861805558204651,
+        0.3631005883216858,
+        0.5745859146118164
+      ],
+      "body": {
+        "position_w_m": [
+          0.18910734355449677,
+          0.0004493817687034607,
+          0.0532151460647583
+        ],
+        "orientation_wxyz": [
+          0.9987382888793945,
+          0.004507844336330891,
+          0.049951326102018356,
+          0.0025174629408866167
+        ],
+        "linear_velocity_w_m_s": [
+          -0.050367336720228195,
+          -0.008023876696825027,
+          -0.018522117286920547
+        ]
+      },
+      "COM": {
+        "position_w_m": [
+          0.17718300457998162,
+          -0.12142779500927688,
+          0.1387795105733856
+        ],
+        "velocity_w_m_s": [
+          -0.028878404933302515,
+          -0.028344838074347546,
+          -0.03242701930215987
+        ],
+        "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass"
+      },
+      "dispatch_keys": [
+        "physics_tick",
+        "drive_target_full12",
+        "native_drive_target_full12",
+        "independent_policy_residual_requested_full12",
+        "independent_policy_residual_effective_full12",
+        "servo_tracking_compensation_deg",
+        "tracking_reference_evidence",
+        "capture_assist_evidence",
+        "rr_capture_assist_evidence",
+        "servo_tracking_feedback_sample_tick"
+      ],
+      "dispatch_final": [
+        47.689116318194934,
+        -58,
+        5.839570737166102,
+        39.44756343588307,
+        0.4821222862682131,
+        1.381408268068915,
+        6.319879389492549,
+        -10.694532716940383,
+        -0.3968439873792023,
+        0.31877886970427183,
+        0.21743299777801195,
+        0.2625531982055941
+      ]
+    },
+    "first_source_STOP": {
+      "tick": 3120,
+      "time": 26,
+      "FL": {
+        "clearance_m": -0.01632237343848613,
+        "front_distance_m": -0.09213545577693338,
+        "air": true,
+        "ground_contact": false,
+        "top_contact": false,
+        "within_top_xy": false,
+        "bearing_force_n": 0,
+        "active_attempt": true
+      },
+      "assist": {
+        "schema": "wlr50_clean.capture_assist_state.v1",
+        "version": "p05_hip_only_continuation_v1",
+        "feedback_revision": "hold_to_air_progress_window_v2",
+        "mode": 0,
+        "initialized": 0,
+        "knee_hold_deg": 0,
+        "hip_entry_deg": 0,
+        "hip_target_deg": 0,
+        "best_gap_m": 0,
+        "window_start_gap_m": 0,
+        "window_elapsed_s": 0,
+        "hold_elapsed_s": 0,
+        "release_fraction": 0,
+        "blocked_reason": 0,
+        "contact_seen": 0,
+        "mode_name": "WAIT",
+        "reason": "none",
+        "active": false,
+        "last_dispatch_physics_tick": 3299
+      },
+      "N": [
+        48.2,
+        -36.7,
+        0,
+        45.9,
+        6.9,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "actual_full12": [
+        47.71345256852272,
+        -57.987760995641345,
+        32.714646608788755,
+        40.25995119378817,
+        2.176187662334868,
+        1.464138867215878,
+        6.106442128475381,
+        -10.680336949751746,
+        -0.39796435832977295,
+        0.21597813069820404,
+        0.3738279342651367,
+        0.20539987087249756
+      ],
+      "body": {
+        "position_w_m": [
+          0.2379053682088852,
+          0.0005910173058509827,
+          0.04431252181529999
+        ],
+        "orientation_wxyz": [
+          0.9973157644271851,
+          0.011392571963369846,
+          0.07221972197294235,
+          0.003973920363932848
+        ],
+        "linear_velocity_w_m_s": [
+          0.008571028709411621,
+          -0.0013870466500520706,
+          0.007222950458526611
+        ]
+      },
+      "COM": {
+        "position_w_m": [
+          0.2303426773202016,
+          -0.1225370286049298,
+          0.13104071774368042
+        ],
+        "velocity_w_m_s": [
+          0.012873715338145792,
+          -0.008452463894791751,
+          -0.0021587386258225547
+        ],
+        "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass"
+      },
+      "dispatch_keys": [
+        "physics_tick",
+        "drive_target_full12",
+        "native_drive_target_full12",
+        "independent_policy_residual_requested_full12",
+        "independent_policy_residual_effective_full12",
+        "servo_tracking_compensation_deg",
+        "tracking_reference_evidence",
+        "capture_assist_evidence",
+        "rr_capture_assist_evidence",
+        "servo_tracking_feedback_sample_tick"
+      ],
+      "dispatch_final": [
+        47.73440009264481,
+        -58,
+        5.8523575201747935,
+        39.43344441571519,
+        0.48121386120595133,
+        1.4191904708321021,
+        6.354069647802975,
+        -10.677637783882812,
+        -0.3979341244689459,
+        0.3168374233195542,
+        0.2237719932392483,
+        0.2609967596719032
+      ]
+    },
+    "first_ground": {
+      "tick": 3196,
+      "time": 26.633333333333333,
+      "FL": {
+        "clearance_m": -0.051305475773000986,
+        "front_distance_m": -0.056875106264833164,
+        "air": false,
+        "ground_contact": true,
+        "top_contact": false,
+        "within_top_xy": false,
+        "bearing_force_n": 17.33548355102539,
+        "active_attempt": false
+      },
+      "assist": {
+        "schema": "wlr50_clean.capture_assist_state.v1",
+        "version": "p05_hip_only_continuation_v1",
+        "feedback_revision": "hold_to_air_progress_window_v2",
+        "mode": 0,
+        "initialized": 0,
+        "knee_hold_deg": 0,
+        "hip_entry_deg": 0,
+        "hip_target_deg": 0,
+        "best_gap_m": 0,
+        "window_start_gap_m": 0,
+        "window_elapsed_s": 0,
+        "hold_elapsed_s": 0,
+        "release_fraction": 0,
+        "blocked_reason": 0,
+        "contact_seen": 0,
+        "mode_name": "WAIT",
+        "reason": "none",
+        "active": false,
+        "last_dispatch_physics_tick": 3375
+      },
+      "N": [
+        24.9,
+        -13.4,
+        0,
+        45.9,
+        6.9,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "actual_full12": [
+        30.335207602867932,
+        -33.87820067839891,
+        29.45726109171797,
+        40.68488458281134,
+        2.1611749065391797,
+        1.5351801983817095,
+        6.289883080335351,
+        -10.564031634791123,
+        -0.969141960144043,
+        -0.27290329337120056,
+        0.2510104179382324,
+        0.08027959614992142
+      ],
+      "body": {
+        "position_w_m": [
+          0.23552736639976501,
+          0.0003262832760810852,
+          0.050881415605545044
+        ],
+        "orientation_wxyz": [
+          0.9980157017707825,
+          0.01290978118777275,
+          0.06149167940020561,
+          0.00409909151494503
+        ],
+        "linear_velocity_w_m_s": [
+          0.04472799599170685,
+          -0.003624176373705268,
+          0.05877385661005974
+        ]
+      },
+      "COM": {
+        "position_w_m": [
+          0.22972977244287238,
+          -0.12287771766950939,
+          0.13067753426290712
+        ],
+        "velocity_w_m_s": [
+          0.020627957722534587,
+          -0.006015684127072814,
+          0.024487267741251387
+        ],
+        "source": "articulation.body_com_pos_w weighted by articulation.data.default_mass"
+      },
+      "dispatch_keys": [
+        "physics_tick",
+        "drive_target_full12",
+        "native_drive_target_full12",
+        "independent_policy_residual_requested_full12",
+        "independent_policy_residual_effective_full12",
+        "servo_tracking_compensation_deg",
+        "tracking_reference_evidence",
+        "capture_assist_evidence",
+        "rr_capture_assist_evidence",
+        "servo_tracking_feedback_sample_tick"
+      ],
+      "dispatch_final": [
+        21.95431170802526,
+        -32.86222422797719,
+        5.726097109950525,
+        39.54338155710291,
+        0.6396768908213506,
+        1.353713652118706,
+        6.241708595786614,
+        -10.506152768124783,
+        -0.689844681251962,
+        0.017667518129106885,
+        -0.08146109154112302,
+        -0.03493292447259973
+      ]
+    }
+  },
+  "source_stop_actual_dispatch": [
+    {
+      "tick": 3119,
+      "sim": 25.991666666666667,
+      "dispatch_tick": 3298,
+      "poststep_nominal_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "dispatched_native_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "requested": [
+        -0.6979341244689459,
+        0.016837423319554234,
+        -0.0762280067607517,
+        -0.03900324032809677
+      ],
+      "effective": null,
+      "FINAL": [
+        -0.3979341244689459,
+        0.3168374233195542,
+        0.2237719932392483,
+        0.2609967596719032
+      ],
+      "actual": [
+        -0.397842675447464,
+        0.22227084636688232,
+        0.374600350856781,
+        0.21261006593704224
+      ]
+    },
+    {
+      "tick": 3120,
+      "sim": 26,
+      "dispatch_tick": 3299,
+      "poststep_nominal_wheels": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "dispatched_native_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "requested": [
+        -0.6979341244689459,
+        0.016837423319554234,
+        -0.0762280067607517,
+        -0.03900324032809677
+      ],
+      "effective": null,
+      "FINAL": [
+        -0.3979341244689459,
+        0.3168374233195542,
+        0.2237719932392483,
+        0.2609967596719032
+      ],
+      "actual": [
+        -0.39796435832977295,
+        0.21597813069820404,
+        0.3738279342651367,
+        0.20539987087249756
+      ]
+    },
+    {
+      "tick": 3121,
+      "sim": 26.008333333333333,
+      "dispatch_tick": 3300,
+      "poststep_nominal_wheels": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "dispatched_native_wheels": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "requested": [
+        -0.6979438457607872,
+        0.016802197856116134,
+        -0.07610484463005582,
+        -0.03900589339629756
+      ],
+      "effective": null,
+      "FINAL": [
+        -0.6979438457607872,
+        0.016802197856116134,
+        -0.07610484463005582,
+        -0.03900589339629756
+      ],
+      "actual": [
+        -0.6978166699409485,
+        -0.03388761356472969,
+        0.07836313545703888,
+        -0.00460746418684721
+      ]
+    },
+    {
+      "tick": 3128,
+      "sim": 26.066666666666666,
+      "dispatch_tick": 3307,
+      "poststep_nominal_wheels": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "dispatched_native_wheels": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "requested": [
+        -0.6979438457607872,
+        0.016802197856116134,
+        -0.07610484463005582,
+        -0.03900589339629756
+      ],
+      "effective": null,
+      "FINAL": [
+        -0.6979438457607872,
+        0.016802197856116134,
+        -0.07610484463005582,
+        -0.03900589339629756
+      ],
+      "actual": [
+        -0.6978512406349182,
+        -0.07790188491344452,
+        0.07338427752256393,
+        -0.08367452025413513
+      ]
+    }
+  ],
+  "no_new_learning_credit": true,
+  "scope": "854 sealed formal decisions plus per-physics P05 clearance/stop/ground window through3208; no current probe read"
+}

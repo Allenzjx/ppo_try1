@@ -1,0 +1,1314 @@
+{
+  "schema": "wlr50_clean.det_p05_failure_review.v1",
+  "scope": "CP229120 formal 868 decision rows; CP225280 probe-v2 rows0..645 only, verified raw==applied with no override; CP229120 selected physics window2144..3320 plus6944; no production/model/simulation changes",
+  "formal_source": "runs/ppo_rr_rl_timing_policy_learning_v1/video_eval/validation/20260924T1008401445075Z_g72e63592bdf4_3f1b5877a524484aab1eecca97694515/source",
+  "formal_checkpoint": 229120,
+  "formal_runtime": "72e63592bdf412d375abfda29b03cf456fbf4f7e",
+  "formal_seed": 4001,
+  "result": {
+    "time_s": 57.86666666666667,
+    "decisions": 868,
+    "physics_ticks": 6944,
+    "stage": "P05",
+    "stage_age_s": 40,
+    "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "termination_source": "LOCAL_BOUNDED_RECOVERY_EXHAUSTED",
+    "physical_evaluator_valid": true,
+    "physical_evaluator_safety_termination": null,
+    "final_all_finite": true,
+    "final_body_obstacle_collision": false,
+    "FR_placed": true,
+    "FL_placed": false,
+    "task_success": false
+  },
+  "classification": "Task incomplete: FL lost top-height clearance before crossing; actual ground contact revoked current qualified lift; no later qualified lift or reachable capture. Existing finite P05 recovery ended. Not capture-assist travel/window exhaustion or a hardware safety stop.",
+  "P05_counts": {
+    "samples": 600,
+    "qualified": 137,
+    "XY": 0,
+    "TOP": 0,
+    "assist_modes": {
+      "WAIT": 600
+    }
+  },
+  "FL_events": [
+    {
+      "leg": "FL",
+      "event": "whole_body_initial_clearance",
+      "physics_tick": 2141,
+      "simulation_time_s": 17.841666666666665,
+      "upward_excursion_m": 0.003162457845953849
+    },
+    {
+      "leg": "FL",
+      "event": "qualified_measured_upward_lift",
+      "physics_tick": 2154,
+      "simulation_time_s": 17.95,
+      "upward_excursion_m": 0.008728343791342207,
+      "airborne_clearance_above_top_m": -0.04129748506254475
+    },
+    {
+      "leg": "FL",
+      "event": "qualification_revoked_ground_before_cross",
+      "physics_tick": 3254,
+      "simulation_time_s": 27.116666666666667
+    }
+  ],
+  "first_measured_failure_chain": {
+    "first_top_height_clearance": {
+      "tick": 2208,
+      "time_s": 18.4,
+      "phase": "P05",
+      "FL_final": [
+        28.69990613103515,
+        -56.218144530157865
+      ],
+      "FL_actual": [
+        20.140002794843337,
+        -55.61590950446272
+      ],
+      "FL_front": -0.20104801314044352,
+      "FL_gap": 0.00024287503362253882,
+      "FL_ground": false,
+      "FL_AIR": true,
+      "FL_TOP": false,
+      "FL_XY": false,
+      "FL_force": 0,
+      "assist": "WAIT",
+      "assist_initialized": 0,
+      "body_xyz": [
+        0.1593673676252365,
+        0.0021262764930725098,
+        0.06686925143003464
+      ],
+      "COM_xyz": [
+        0.13778693885461535,
+        -0.11578524585304013,
+        0.1475912215531921
+      ],
+      "N_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "FINAL_wheels": [
+        -0.2544974021712015,
+        0.3212255485815233,
+        0.18648727119880323,
+        0.24330775205902744
+      ],
+      "actual_wheels": [
+        -0.2545415163040161,
+        0.22701263427734375,
+        0.3573457598686218,
+        0.20218291878700256
+      ]
+    },
+    "first_lost_top_height_clearance": {
+      "tick": 2705,
+      "time_s": 22.541666666666668,
+      "phase": "P05",
+      "FL_final": [
+        47.68630693763531,
+        -58
+      ],
+      "FL_actual": [
+        47.65452852655302,
+        -57.98918850517788
+      ],
+      "FL_front": -0.13867586510348673,
+      "FL_gap": -0.00005772715374061793,
+      "FL_ground": false,
+      "FL_AIR": true,
+      "FL_TOP": false,
+      "FL_XY": false,
+      "FL_force": 0,
+      "assist": "WAIT",
+      "assist_initialized": 0,
+      "body_xyz": [
+        0.1935335099697113,
+        0.000278569757938385,
+        0.05207788199186325
+      ],
+      "COM_xyz": [
+        0.1801191745945524,
+        -0.12079669026775106,
+        0.13875810938119076
+      ],
+      "N_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "FINAL_wheels": [
+        -0.4212174513880091,
+        0.3152068917101054,
+        0.161746283866493,
+        0.24255024762936186
+      ],
+      "actual_wheels": [
+        -0.42086291313171387,
+        0.23429682850837708,
+        0.315314382314682,
+        0.3069121241569519
+      ]
+    },
+    "source_stop_first_recorded": {
+      "tick": 3232,
+      "time_s": 26.933333333333334,
+      "phase": "P05",
+      "FL_final": [
+        47.72538153558197,
+        -58
+      ],
+      "FL_actual": [
+        47.705136813208235,
+        -57.986565712536596
+      ],
+      "FL_front": -0.09644055025744791,
+      "FL_gap": -0.04189181096696189,
+      "FL_ground": false,
+      "FL_AIR": true,
+      "FL_TOP": false,
+      "FL_XY": false,
+      "FL_force": 0,
+      "assist": "WAIT",
+      "assist_initialized": 0,
+      "body_xyz": [
+        0.23194077610969543,
+        0.00038938969373703003,
+        0.02836376428604126
+      ],
+      "COM_xyz": [
+        0.22835847333247858,
+        -0.12253727761606431,
+        0.11901824595419123
+      ],
+      "N_wheels": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "FINAL_wheels": [
+        -0.4215957990540588,
+        0.3140450296789968,
+        0.16568787619171074,
+        0.24211724110712832
+      ],
+      "actual_wheels": [
+        -0.4216724932193756,
+        0.1934763491153717,
+        0.33460578322410583,
+        0.11277304589748383
+      ]
+    },
+    "actual_ground_revocation": {
+      "tick": 3254,
+      "time_s": 27.116666666666667,
+      "phase": "P05",
+      "FL_final": [
+        47.739058344609155,
+        -43.69928021894656
+      ],
+      "FL_actual": [
+        47.6235570337616,
+        -52.248411092687576
+      ],
+      "FL_front": -0.08333816783595438,
+      "FL_gap": -0.05019594398768875,
+      "FL_ground": true,
+      "FL_AIR": false,
+      "FL_TOP": false,
+      "FL_XY": false,
+      "FL_force": 11.755842208862305,
+      "assist": "WAIT",
+      "assist_initialized": 0,
+      "body_xyz": [
+        0.23088783025741577,
+        0.0003980472683906555,
+        0.027610376477241516
+      ],
+      "COM_xyz": [
+        0.22857037815590564,
+        -0.12258275194948921,
+        0.1178917438079045
+      ],
+      "N_wheels": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "FINAL_wheels": [
+        -0.7213023283670486,
+        0.013852610358808594,
+        -0.133686054539769,
+        -0.05765909477669831
+      ],
+      "actual_wheels": [
+        -0.5499436855316162,
+        -0.41023242473602295,
+        0.11760725826025009,
+        -0.19983720779418945
+      ]
+    }
+  },
+  "physics_snapshots": {
+    "2280": {
+      "tick": 2280,
+      "time_s": 19,
+      "phase": "P05",
+      "FL_final": [
+        47.75151391043102,
+        -57.75520587468213
+      ],
+      "FL_actual": [
+        47.402620904679196,
+        -57.62011923337624
+      ],
+      "FL_front": -0.1696132685439622,
+      "FL_gap": 0.023472041190891454,
+      "FL_ground": false,
+      "FL_AIR": true,
+      "FL_TOP": false,
+      "FL_XY": false,
+      "FL_force": 0,
+      "assist": "WAIT",
+      "assist_initialized": 0,
+      "body_xyz": [
+        0.16577677428722382,
+        0.0017449036240577698,
+        0.0653286874294281
+      ],
+      "COM_xyz": [
+        0.14483676708393153,
+        -0.11663635882714027,
+        0.15074451256990212
+      ],
+      "N_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "FINAL_wheels": [
+        -0.35190027005154995,
+        0.31714639936488603,
+        0.17688179846648164,
+        0.23961200437733005
+      ],
+      "actual_wheels": [
+        -0.3519810140132904,
+        0.25947946310043335,
+        0.35010308027267456,
+        0.18175557255744934
+      ]
+    },
+    "2624": {
+      "tick": 2624,
+      "time_s": 21.866666666666667,
+      "phase": "P05",
+      "FL_final": [
+        47.660247913593956,
+        -58
+      ],
+      "FL_actual": [
+        47.63830682727424,
+        -57.99024718449923
+      ],
+      "FL_front": -0.13843986051249857,
+      "FL_gap": 0.011466847437694272,
+      "FL_ground": false,
+      "FL_AIR": true,
+      "FL_TOP": false,
+      "FL_XY": false,
+      "FL_force": 0,
+      "assist": "WAIT",
+      "assist_initialized": 0,
+      "body_xyz": [
+        0.19618186354637146,
+        0.0011749416589736938,
+        0.0570719838142395
+      ],
+      "COM_xyz": [
+        0.1776860765026239,
+        -0.11771011744154619,
+        0.1445379610139345
+      ],
+      "N_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "FINAL_wheels": [
+        -0.4190619107662055,
+        0.31583191406370553,
+        0.16017866387590285,
+        0.24245680273833364
+      ],
+      "actual_wheels": [
+        -0.41896581649780273,
+        0.253142774105072,
+        0.3361842632293701,
+        0.23208869993686676
+      ]
+    },
+    "2864": {
+      "tick": 2864,
+      "time_s": 23.866666666666667,
+      "phase": "P05",
+      "FL_final": [
+        47.706544483233706,
+        -58
+      ],
+      "FL_actual": [
+        47.68653137790912,
+        -57.987822467343875
+      ],
+      "FL_front": -0.13148089902568216,
+      "FL_gap": -0.015447125112614854,
+      "FL_ground": false,
+      "FL_AIR": true,
+      "FL_TOP": false,
+      "FL_XY": false,
+      "FL_force": 0,
+      "assist": "WAIT",
+      "assist_initialized": 0,
+      "body_xyz": [
+        0.19867677986621857,
+        -0.0001341402530670166,
+        0.04439697414636612
+      ],
+      "COM_xyz": [
+        0.19044663134949066,
+        -0.12313898879328089,
+        0.13112750076075055
+      ],
+      "N_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "FINAL_wheels": [
+        -0.4215214841333798,
+        0.31477514248164606,
+        0.163119973188642,
+        0.24267055149248734
+      ],
+      "actual_wheels": [
+        -0.4217163622379303,
+        0.2143859565258026,
+        0.34345346689224243,
+        0.08176010102033615
+      ]
+    },
+    "3254": {
+      "tick": 3254,
+      "time_s": 27.116666666666667,
+      "phase": "P05",
+      "FL_final": [
+        47.739058344609155,
+        -43.69928021894656
+      ],
+      "FL_actual": [
+        47.6235570337616,
+        -52.248411092687576
+      ],
+      "FL_front": -0.08333816783595438,
+      "FL_gap": -0.05019594398768875,
+      "FL_ground": true,
+      "FL_AIR": false,
+      "FL_TOP": false,
+      "FL_XY": false,
+      "FL_force": 11.755842208862305,
+      "assist": "WAIT",
+      "assist_initialized": 0,
+      "body_xyz": [
+        0.23088783025741577,
+        0.0003980472683906555,
+        0.027610376477241516
+      ],
+      "COM_xyz": [
+        0.22857037815590564,
+        -0.12258275194948921,
+        0.1178917438079045
+      ],
+      "N_wheels": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "FINAL_wheels": [
+        -0.7213023283670486,
+        0.013852610358808594,
+        -0.133686054539769,
+        -0.05765909477669831
+      ],
+      "actual_wheels": [
+        -0.5499436855316162,
+        -0.41023242473602295,
+        0.11760725826025009,
+        -0.19983720779418945
+      ]
+    },
+    "6944": {
+      "tick": 6944,
+      "time_s": 57.86666666666667,
+      "phase": "P05",
+      "FL_final": [
+        20.57654660380291,
+        -32.537345320970864
+      ],
+      "FL_actual": [
+        20.92076513396208,
+        -32.895073494551035
+      ],
+      "FL_front": -0.1779327060477769,
+      "FL_gap": -0.050490509968775174,
+      "FL_ground": true,
+      "FL_AIR": false,
+      "FL_TOP": false,
+      "FL_XY": false,
+      "FL_force": 2.477634906768799,
+      "assist": "WAIT",
+      "assist_initialized": 0,
+      "body_xyz": [
+        0.1293550431728363,
+        -0.0002719685435295105,
+        0.05964699387550354
+      ],
+      "COM_xyz": [
+        0.12053500430966387,
+        -0.12312608512318676,
+        0.1352177946480155
+      ],
+      "N_wheels": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "FINAL_wheels": [
+        -0.7006451715625565,
+        0.016669930478979373,
+        -0.1485176294842909,
+        -0.049128468524481786
+      ],
+      "actual_wheels": [
+        -0.6159700751304626,
+        -0.19113081693649292,
+        0.0748881846666336,
+        -0.11907258629798889
+      ]
+    }
+  },
+  "source_and_policy_snapshots": {
+    "age2": {
+      "tick": 2384,
+      "time": 19.866666666666667,
+      "stage_age": 2,
+      "phase": "P05",
+      "front": -0.16158377783465738,
+      "gap": 0.022319943599863667,
+      "ground": false,
+      "air": true,
+      "XY": false,
+      "TOP": false,
+      "force": 0,
+      "qualified": true,
+      "crossed": false,
+      "placed": false,
+      "assist_mode": "WAIT",
+      "assist_initialized": 0,
+      "assist_reason": "none",
+      "N": [
+        48.2,
+        -36.7
+      ],
+      "mappedN": [
+        49.45,
+        -37.95
+      ],
+      "FINAL": [
+        47.68688458627059,
+        -58
+      ],
+      "raw": [
+        -0.09826593101024628,
+        -1.2721706628799438
+      ],
+      "N_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "FINAL_wheels": [
+        -0.400082878105619,
+        0.3161405266024279,
+        0.16601640178672372,
+        0.24061768668998057
+      ],
+      "actual_wheels": [
+        -0.39999523758888245,
+        0.24089130759239197,
+        0.33675727248191833,
+        0.1638438105583191
+      ],
+      "body_forward": -0.34708714144397135,
+      "COM": [
+        0.15382247511898992,
+        -0.11752148038186012,
+        0.14964127520634515
+      ],
+      "source_endpoint_issued": false,
+      "assist_FLhip_actual_prev_tick": 47.669896452185554,
+      "recovery_eligible": false,
+      "recovery_reasons": [
+        "bounded_preedge_distance",
+        "source_endpoint_issued_then_subsequent_tick"
+      ],
+      "termination_reason": null,
+      "termination_source": null
+    },
+    "age4": {
+      "tick": 2624,
+      "time": 21.866666666666667,
+      "stage_age": 4,
+      "phase": "P05",
+      "front": -0.13843986051249857,
+      "gap": 0.011466847437694272,
+      "ground": false,
+      "air": true,
+      "XY": false,
+      "TOP": false,
+      "force": 0,
+      "qualified": true,
+      "crossed": false,
+      "placed": false,
+      "assist_mode": "WAIT",
+      "assist_initialized": 0,
+      "assist_reason": "none",
+      "N": [
+        48.2,
+        -36.7
+      ],
+      "mappedN": [
+        49.45,
+        -37.95
+      ],
+      "FINAL": [
+        47.660247913593956,
+        -58
+      ],
+      "raw": [
+        -0.09976030141115189,
+        -1.314321756362915
+      ],
+      "N_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "FINAL_wheels": [
+        -0.4190619107662055,
+        0.31583191406370553,
+        0.16017866387590285,
+        0.24245680273833364
+      ],
+      "actual_wheels": [
+        -0.41896581649780273,
+        0.253142774105072,
+        0.3361842632293701,
+        0.23208869993686676
+      ],
+      "body_forward": -0.3251303102271592,
+      "COM": [
+        0.1776860765026239,
+        -0.11771011744154619,
+        0.1445379610139345
+      ],
+      "source_endpoint_issued": false,
+      "assist_FLhip_actual_prev_tick": 47.63827950651756,
+      "recovery_eligible": false,
+      "recovery_reasons": [
+        "bounded_preedge_distance",
+        "source_endpoint_issued_then_subsequent_tick"
+      ],
+      "termination_reason": null,
+      "termination_source": null
+    },
+    "age6": {
+      "tick": 2864,
+      "time": 23.866666666666667,
+      "stage_age": 6,
+      "phase": "P05",
+      "front": -0.13148089902568216,
+      "gap": -0.015447125112614854,
+      "ground": false,
+      "air": true,
+      "XY": false,
+      "TOP": false,
+      "force": 0,
+      "qualified": true,
+      "crossed": false,
+      "placed": false,
+      "assist_mode": "WAIT",
+      "assist_initialized": 0,
+      "assist_reason": "none",
+      "N": [
+        48.2,
+        -36.7
+      ],
+      "mappedN": [
+        49.45,
+        -37.95
+      ],
+      "FINAL": [
+        47.706544483233706,
+        -58
+      ],
+      "raw": [
+        -0.09716325253248215,
+        -1.319025993347168
+      ],
+      "N_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "FINAL_wheels": [
+        -0.4215214841333798,
+        0.31477514248164606,
+        0.163119973188642,
+        0.24267055149248734
+      ],
+      "actual_wheels": [
+        -0.4217163622379303,
+        0.2143859565258026,
+        0.34345346689224243,
+        0.08176010102033615
+      ],
+      "body_forward": -0.3226353939073121,
+      "COM": [
+        0.19044663134949066,
+        -0.12313898879328089,
+        0.13112750076075055
+      ],
+      "source_endpoint_issued": false,
+      "assist_FLhip_actual_prev_tick": 47.68661675527374,
+      "recovery_eligible": false,
+      "recovery_reasons": [
+        "positive_conservative_top_gap",
+        "bounded_preedge_distance",
+        "source_endpoint_issued_then_subsequent_tick"
+      ],
+      "termination_reason": null,
+      "termination_source": null
+    },
+    "first_source_endpoint": {
+      "tick": 3320,
+      "time": 27.666666666666668,
+      "stage_age": 9.8,
+      "phase": "P05",
+      "front": -0.06552877681422586,
+      "gap": -0.050003905500443604,
+      "ground": true,
+      "air": false,
+      "XY": false,
+      "TOP": false,
+      "force": 4.1725592613220215,
+      "qualified": false,
+      "crossed": false,
+      "placed": false,
+      "assist_mode": "WAIT",
+      "assist_initialized": 0,
+      "assist_reason": "none",
+      "N": [
+        22.8,
+        -13.4
+      ],
+      "mappedN": [
+        21.55,
+        -12.15
+      ],
+      "FINAL": [
+        19.823361526067558,
+        -32.66282211056563
+      ],
+      "raw": [
+        -0.09622021019458771,
+        -1.273342251777649
+      ],
+      "N_wheels": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "FINAL_wheels": [
+        -0.7071277898250856,
+        0.01652112481074163,
+        -0.1439698772627287,
+        -0.05107930664978695
+      ],
+      "actual_wheels": [
+        -0.8396309018135071,
+        -0.012720562517642975,
+        0.09615807235240936,
+        0.02870226837694645
+      ],
+      "body_forward": -0.2871814634101426,
+      "COM": [
+        0.22539483899155813,
+        -0.12192397960082024,
+        0.1338060126682241
+      ],
+      "source_endpoint_issued": true,
+      "assist_FLhip_actual_prev_tick": 24.877613248460943,
+      "recovery_eligible": false,
+      "recovery_reasons": [
+        "prior_qualified_FL_lift",
+        "current_FL_AIR_no_contact",
+        "positive_conservative_top_gap"
+      ],
+      "termination_reason": null,
+      "termination_source": null
+    },
+    "terminal": {
+      "tick": 6944,
+      "time": 57.86666666666667,
+      "stage_age": 40,
+      "phase": "P05",
+      "front": -0.1779327060477769,
+      "gap": -0.050490509968775174,
+      "ground": true,
+      "air": false,
+      "XY": false,
+      "TOP": false,
+      "force": 2.477634906768799,
+      "qualified": false,
+      "crossed": false,
+      "placed": false,
+      "assist_mode": "WAIT",
+      "assist_initialized": 0,
+      "assist_reason": "none",
+      "N": [
+        22.8,
+        -13.4
+      ],
+      "mappedN": [
+        22.308885301864013,
+        -12.15
+      ],
+      "FINAL": [
+        20.57654660380291,
+        -32.537345320970864
+      ],
+      "raw": [
+        -0.09653984010219574,
+        -1.254255771636963
+      ],
+      "N_wheels": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "FINAL_wheels": [
+        -0.7006451715625565,
+        0.016669930478979373,
+        -0.1485176294842909,
+        -0.049128468524481786
+      ],
+      "actual_wheels": [
+        -0.6159700751304626,
+        -0.19113081693649292,
+        0.0748881846666336,
+        -0.11907258629798889
+      ],
+      "body_forward": -0.39195713060069437,
+      "COM": [
+        0.12053500430966387,
+        -0.12312608512318676,
+        0.1352177946480155
+      ],
+      "source_endpoint_issued": true,
+      "assist_FLhip_actual_prev_tick": 20.974720213310597,
+      "recovery_eligible": false,
+      "recovery_reasons": [
+        "absolute_stage_age_window",
+        "valid_no_abort",
+        "prior_qualified_FL_lift",
+        "current_FL_AIR_no_contact",
+        "positive_conservative_top_gap",
+        "bounded_preedge_distance"
+      ],
+      "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+      "termination_source": "LOCAL_BOUNDED_RECOVERY_EXHAUSTED"
+    }
+  },
+  "reference": {
+    "run": "runs/ppo_rr_rl_timing_policy_learning_v1/direction_probe/20260924_owner439_student_entry_v2",
+    "checkpoint": 225280,
+    "runtime": "b0ff99729b1df84c4648f9d53b1d372f1e9152af",
+    "seed": 4001,
+    "rows_read_inclusive": [
+      0,
+      645
+    ],
+    "intervention_rows_read": 0,
+    "all_read_rows_original_raw_equal_applied": true,
+    "formal_full_task_success_claim": false,
+    "P05_counts": {
+      "samples": 299,
+      "qualified": 299,
+      "XY": 118,
+      "TOP": 1,
+      "assist_modes": {
+        "WAIT": 186,
+        "DESCEND": 112,
+        "HOLD": 1
+      }
+    },
+    "event_ticks": {
+      "active_lift": {
+        "FR": 24,
+        "FL": 2774
+      },
+      "front_edge_crossed": {
+        "FR": 2751,
+        "FL": 4269
+      },
+      "placed": {
+        "FR": 2761,
+        "FL": 5165
+      }
+    },
+    "FL_placed_time_s": 43.041666666666664,
+    "age2": {
+      "tick": 3016,
+      "time": 25.133333333333333,
+      "stage_age": 2,
+      "phase": "P05",
+      "front": -0.15270983832049723,
+      "gap": 0.041207420391362895,
+      "ground": false,
+      "air": true,
+      "XY": false,
+      "TOP": false,
+      "force": 0,
+      "qualified": true,
+      "crossed": false,
+      "placed": false,
+      "assist_mode": "WAIT",
+      "assist_initialized": 0,
+      "assist_reason": "none",
+      "N": [
+        48.2,
+        -36.7
+      ],
+      "mappedN": [
+        49.45,
+        -37.95
+      ],
+      "FINAL": [
+        48.346466600281865,
+        -58
+      ],
+      "raw": [
+        -0.06138439476490021,
+        -1.3312543630599976
+      ],
+      "N_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "FINAL_wheels": [
+        -0.4638118641642203,
+        0.27712178059219755,
+        0.34394277838992343,
+        0.16605123668542204
+      ],
+      "actual_wheels": [
+        -0.46347856521606445,
+        0.2775191068649292,
+        0.42124608159065247,
+        0.22204430401325226
+      ],
+      "body_forward": -0.33633061902690287,
+      "COM": [
+        0.160341023415659,
+        -0.11745635201727146,
+        0.15792589679244315
+      ],
+      "source_endpoint_issued": false,
+      "assist_FLhip_actual_prev_tick": 48.32577902761437,
+      "recovery_eligible": false,
+      "recovery_reasons": [
+        "bounded_preedge_distance",
+        "source_endpoint_issued_then_subsequent_tick"
+      ],
+      "termination_reason": null,
+      "termination_source": null
+    },
+    "age4": {
+      "tick": 3256,
+      "time": 27.133333333333333,
+      "stage_age": 4,
+      "phase": "P05",
+      "front": -0.12400978462863321,
+      "gap": 0.05056252043624239,
+      "ground": false,
+      "air": true,
+      "XY": false,
+      "TOP": false,
+      "force": 0,
+      "qualified": true,
+      "crossed": false,
+      "placed": false,
+      "assist_mode": "WAIT",
+      "assist_initialized": 0,
+      "assist_reason": "none",
+      "N": [
+        48.2,
+        -36.7
+      ],
+      "mappedN": [
+        49.45,
+        -37.95
+      ],
+      "FINAL": [
+        48.352338852117995,
+        -58
+      ],
+      "raw": [
+        -0.06105693429708481,
+        -1.3670480251312256
+      ],
+      "N_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "FINAL_wheels": [
+        -0.4788178553700411,
+        0.2755999306944478,
+        0.3427768912084173,
+        0.1661964855927445
+      ],
+      "actual_wheels": [
+        -0.4787384867668152,
+        0.10105560719966888,
+        0.4288935661315918,
+        0.2154005616903305
+      ],
+      "body_forward": -0.3063552792565858,
+      "COM": [
+        0.18866587847169372,
+        -0.11773906142997853,
+        0.16171200817761644
+      ],
+      "source_endpoint_issued": false,
+      "assist_FLhip_actual_prev_tick": 48.32913606559143,
+      "recovery_eligible": false,
+      "recovery_reasons": [
+        "bounded_preedge_distance",
+        "source_endpoint_issued_then_subsequent_tick"
+      ],
+      "termination_reason": null,
+      "termination_source": null
+    },
+    "age6": {
+      "tick": 3496,
+      "time": 29.133333333333333,
+      "stage_age": 6,
+      "phase": "P05",
+      "front": -0.1116022433536088,
+      "gap": 0.05857265589164232,
+      "ground": false,
+      "air": true,
+      "XY": false,
+      "TOP": false,
+      "force": 0,
+      "qualified": true,
+      "crossed": false,
+      "placed": false,
+      "assist_mode": "WAIT",
+      "assist_initialized": 0,
+      "assist_reason": "none",
+      "N": [
+        48.2,
+        -36.7
+      ],
+      "mappedN": [
+        49.45,
+        -37.95
+      ],
+      "FINAL": [
+        48.40665954972083,
+        -58
+      ],
+      "raw": [
+        -0.05802840366959572,
+        -1.3701930046081543
+      ],
+      "N_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "FINAL_wheels": [
+        -0.48039346880813855,
+        0.27442339032804824,
+        0.34574409983776133,
+        0.16658912333097217
+      ],
+      "actual_wheels": [
+        -0.4803551435470581,
+        0.21305729448795319,
+        0.4361400306224823,
+        0.179556205868721
+      ],
+      "body_forward": -0.29560014264750833,
+      "COM": [
+        0.20382579287652658,
+        -0.12459952183064206,
+        0.1642226713239238
+      ],
+      "source_endpoint_issued": false,
+      "assist_FLhip_actual_prev_tick": 48.38475088090826,
+      "recovery_eligible": false,
+      "recovery_reasons": [
+        "bounded_preedge_distance",
+        "source_endpoint_issued_then_subsequent_tick"
+      ],
+      "termination_reason": null,
+      "termination_source": null
+    },
+    "first_source_endpoint": {
+      "tick": 3952,
+      "time": 32.93333333333333,
+      "stage_age": 9.799999999999997,
+      "phase": "P05",
+      "front": -0.033464249541047764,
+      "gap": 0.02852451796160574,
+      "ground": false,
+      "air": true,
+      "XY": false,
+      "TOP": false,
+      "force": 0,
+      "qualified": true,
+      "crossed": false,
+      "placed": false,
+      "assist_mode": "WAIT",
+      "assist_initialized": 0,
+      "assist_reason": "none",
+      "N": [
+        22.8,
+        -13.4
+      ],
+      "mappedN": [
+        21.55,
+        -12.15
+      ],
+      "FINAL": [
+        20.570014535388857,
+        -33.18259549708621
+      ],
+      "raw": [
+        -0.054497525095939636,
+        -1.359849452972412
+      ],
+      "N_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "FINAL_wheels": [
+        -0.47838673969753115,
+        0.27288893957237537,
+        0.3476905453512234,
+        0.16897983494647215
+      ],
+      "actual_wheels": [
+        -0.4788808524608612,
+        0.12500238418579102,
+        0.3315742313861847,
+        0.26076608896255493
+      ],
+      "body_forward": -0.25278830187487955,
+      "COM": [
+        0.24794197806660165,
+        -0.12547900473968282,
+        0.16680311843130627
+      ],
+      "source_endpoint_issued": true,
+      "assist_FLhip_actual_prev_tick": 25.167255957951795,
+      "recovery_eligible": true,
+      "recovery_reasons": [],
+      "termination_reason": null,
+      "termination_source": null
+    },
+    "first_XY_endpoint": {
+      "tick": 4232,
+      "time": 35.266666666666666,
+      "stage_age": 12.133333333333333,
+      "phase": "P05",
+      "front": -0.004940565993074131,
+      "gap": 0.023420886538308983,
+      "ground": false,
+      "air": true,
+      "XY": true,
+      "TOP": false,
+      "force": 0,
+      "qualified": true,
+      "crossed": false,
+      "placed": false,
+      "assist_mode": "WAIT",
+      "assist_initialized": 0,
+      "assist_reason": "none",
+      "N": [
+        22.8,
+        -13.4
+      ],
+      "mappedN": [
+        23.427477118930643,
+        -12.15
+      ],
+      "FINAL": [
+        22.405633064771738,
+        -33.12263107215641
+      ],
+      "raw": [
+        -0.05683021619915962,
+        -1.3491801023483276
+      ],
+      "N_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "FINAL_wheels": [
+        -0.4750396351713711,
+        0.2728873580696211,
+        0.3448212858584152,
+        0.1701496256111308
+      ],
+      "actual_wheels": [
+        -0.47538042068481445,
+        0.15034246444702148,
+        0.3289364278316498,
+        0.35370099544525146
+      ],
+      "body_forward": -0.21990871088672037,
+      "COM": [
+        0.28060489938405336,
+        -0.12499108619343988,
+        0.1661274551816526
+      ],
+      "source_endpoint_issued": true,
+      "assist_FLhip_actual_prev_tick": 21.81055949034903,
+      "recovery_eligible": true,
+      "recovery_reasons": [],
+      "termination_reason": null,
+      "termination_source": null
+    },
+    "first_TOP_endpoint": {
+      "tick": 5168,
+      "time": 43.06666666666666,
+      "stage_age": 0,
+      "phase": "P05",
+      "front": 0.07265931708645468,
+      "gap": -0.000008010739605018857,
+      "ground": false,
+      "air": false,
+      "XY": true,
+      "TOP": true,
+      "force": 0.37142544984817505,
+      "qualified": true,
+      "crossed": true,
+      "placed": true,
+      "assist_mode": "HOLD",
+      "assist_initialized": 1,
+      "assist_reason": "none",
+      "N": [
+        22.8,
+        -13.4
+      ],
+      "mappedN": [
+        32.8,
+        -12.15
+      ],
+      "FINAL": [
+        5.666808027790255,
+        -33.13164859595877
+      ],
+      "raw": [
+        -0.052807051688432693,
+        -1.3815525770187378
+      ],
+      "N_wheels": [
+        0.3,
+        0.3,
+        0.3,
+        0.3
+      ],
+      "FINAL_wheels": [
+        -0.48584800222117913,
+        0.2682426388292478,
+        0.35834681995364115,
+        0.16643593551017377
+      ],
+      "actual_wheels": [
+        -0.6951010823249817,
+        0.18716391921043396,
+        0.274593710899353,
+        0.21507281064987183
+      ],
+      "body_forward": -0.11098748104739542,
+      "COM": [
+        0.38815461609985785,
+        -0.1237617442993002,
+        0.16230809965745918
+      ],
+      "source_endpoint_issued": true,
+      "assist_FLhip_actual_prev_tick": 5.700969229058043,
+      "recovery_eligible": false,
+      "recovery_reasons": [
+        "P05_only",
+        "current_FL_AIR_no_contact",
+        "positive_conservative_top_gap",
+        "bounded_preedge_distance",
+        "source_endpoint_issued_then_subsequent_tick",
+        "fresh_source_wheel_owner_absent",
+        "unplaced_FL",
+        "first_approach_or_same_air_recross"
+      ],
+      "termination_reason": null,
+      "termination_source": null
+    }
+  },
+  "limitations": [
+    "Positive wheel-bottom gap outside XY is not a top placement; current AIR after a measured ground event does not restore qualification automatically.",
+    "Decision endpoints do not prove continuous absence of fleeting XY/contact between all eight ticks; final event history confirms no qualified FL crossing or placement.",
+    "The first source stop is its logged nominal observation; its final actuator effect can occur at a different tick and is separately shown. Top-height clearance had already been lost before that stop.",
+    "Frozen checkpoints and source revisions differ, despite equal seed and nominal phase-age alignment. This is a bounded trajectory comparison, not a controlled single-parameter causal experiment.",
+    "Only the declared original FL helper exists here; it stayed WAIT/uninitialized in this failed P05. Rear assist remains disabled.",
+    "No video, delivery, RECOVERY or production file modified."
+  ]
+}

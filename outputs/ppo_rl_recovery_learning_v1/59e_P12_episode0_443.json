@@ -1,0 +1,182 @@
+{
+  "schema": "bounded_sealed_episode_audit_v1",
+  "run": "20260924T1121437392178Z_g59e868f3e223_63b8d42e71504d8197a9228aabc8625b",
+  "scope": "only completed episode_index 0 and first 443 complete residual rows; no second episode read",
+  "episode": {
+    "episode_index": 0,
+    "seed": 1001,
+    "policy_decisions": 443,
+    "termination_reason": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "task_success": false,
+    "task_outcome_label": "INCOMPLETE_CONTROLLER_BLOCKED",
+    "full_task_success": false,
+    "duration_s": 81.29166666666667
+  },
+  "global_span": [
+    229633,
+    230075
+  ],
+  "prefix": {
+    "handoff_tick": 6216,
+    "handoff_time_s": 51.8,
+    "decisions": 777,
+    "ppo_credit": 0,
+    "RL_qualified_tick_inherited": 6212,
+    "RR_qualified_tick_inherited": 5427,
+    "RR_cross_and_placed_tick_inherited": 6133
+  },
+  "termination": {
+    "source": "LOCAL_BOUNDED_RECOVERY_EXHAUSTED",
+    "local_timeout": {
+      "nominal_limit_s": 30,
+      "current_progress_allowance_s": 0.01965633600975302,
+      "fixed_post_window_allowance_s": 0,
+      "effective_limit_s": 30.019656336009753,
+      "nominal_limit_exceeded": true,
+      "classification": "finite_task_terminal_not_external_truncation",
+      "timer_inputs_observable_in_existing372": false,
+      "local_episode_terminal_enabled": true,
+      "observation_semantics": "legacy372_times_plus_explicit_capture_append17",
+      "current_schema_observable": true
+    },
+    "physics_tick": 9755,
+    "sim_time_s": 81.29166666666667,
+    "stage_age_s": 30.025,
+    "terminal_count": 1,
+    "terminal_bootstrap_allowed": false,
+    "physical_evaluator": {
+      "valid": true,
+      "success": false,
+      "termination_reason": null,
+      "reason": "",
+      "final_region_valid": false,
+      "final_controlled": false,
+      "final_support_available": false,
+      "home_maximum_servo_error_deg": 57.61350761025967,
+      "maximum_commanded_wheel_speed_rad_s": 0.8700933563420991,
+      "final_stable_for_s": 0,
+      "crossing_contact_evidence": "active_attempt_plus_surface_contact_or_air_geometry_v1",
+      "source": "current_episode_live_joint_geometry_exact_contact_history",
+      "physics_tick": 9755,
+      "simulation_time_s": 81.29166666666667,
+      "evaluator_version": "all_stage_v1",
+      "run_validity": "VALID",
+      "physical_evidence_status": "VERIFIED",
+      "traversal_event_observed": false,
+      "traversal_event_time_s": null,
+      "traversal_task_complete": false,
+      "task_completed_controlled": false,
+      "post_completion_observation_s": 0,
+      "post_completion_observation_started": false,
+      "post_completion_elapsed_s": 0,
+      "post_completion_observation_complete": false,
+      "post_completion_loss_observed": false,
+      "termination_source": null
+    }
+  },
+  "counts": {
+    "phase_P12": 443,
+    "RR_legalTOPbearing": 86,
+    "RL_AIR": 36,
+    "RL_currentqualified": 31,
+    "FL_legalTOPbearing": 84,
+    "FR_AIR": 23,
+    "RR_currentqualified": 170,
+    "FR_legalTOPbearing": 420,
+    "RR_AIR": 38,
+    "RL_GROUND": 405,
+    "FL_AIR": 358,
+    "RR_GROUND": 250
+  },
+  "physical_windows": {
+    "RR_actual_bearing_front_preparation": 86,
+    "positive_FR_axis_CoM_body_projection_with_RL_fraction_decline": 24,
+    "RR_reachable_AIR_preparation": 30
+  },
+  "RR_ground_revoke_tick": 7756,
+  "RR_legal_TOP_bearing_endpoints_after_ground_revoke": 0,
+  "RL_learner_qualifications": [
+    {
+      "qualified_tick": 6302,
+      "revoked_ground_tick": 6501
+    },
+    {
+      "qualified_tick": 6861,
+      "revoked_ground_tick": 6885
+    }
+  ],
+  "RL_learner_crossed": false,
+  "RL_learner_placed": false,
+  "last_legs": {
+    "RR": {
+      "clearance_m": -0.04999492639385632,
+      "front_distance_m": -0.08726855771708841,
+      "air": false,
+      "ground_contact": true,
+      "within_top_xy": false,
+      "top_contact": false,
+      "contact_surface": "NONE",
+      "bearing_force_n": 5.695564270019531,
+      "bearing_verified": true,
+      "current_lift_valid": false,
+      "current_lift_qualified_tick": null,
+      "current_lift_failure": null,
+      "active_attempt": false
+    },
+    "RL": {
+      "clearance_m": -0.05073031702604858,
+      "front_distance_m": -0.17466544764209146,
+      "air": false,
+      "ground_contact": true,
+      "within_top_xy": false,
+      "top_contact": false,
+      "contact_surface": "NONE",
+      "bearing_force_n": 12.825904846191406,
+      "bearing_verified": true,
+      "current_lift_valid": false,
+      "current_lift_qualified_tick": null,
+      "current_lift_failure": null,
+      "active_attempt": false
+    },
+    "FL": {
+      "clearance_m": 0.09592555853889383,
+      "front_distance_m": 0.0871059332592452,
+      "air": true,
+      "ground_contact": false,
+      "within_top_xy": true,
+      "top_contact": false,
+      "contact_surface": "NONE",
+      "bearing_force_n": 0,
+      "bearing_verified": true,
+      "current_lift_valid": null,
+      "current_lift_qualified_tick": null,
+      "current_lift_failure": null,
+      "active_attempt": true
+    },
+    "FR": {
+      "clearance_m": -0.0002759411023834646,
+      "front_distance_m": 0.3853726421101058,
+      "air": false,
+      "ground_contact": false,
+      "within_top_xy": true,
+      "top_contact": true,
+      "contact_surface": "TOP",
+      "bearing_force_n": 9.706493377685547,
+      "bearing_verified": true,
+      "current_lift_valid": null,
+      "current_lift_qualified_tick": null,
+      "current_lift_failure": null,
+      "active_attempt": true
+    }
+  },
+  "last_reward": -43.06101608276367,
+  "last_old_value": -10.29530143737793,
+  "support": {
+    "force_noise_floor_n": 0.2,
+    "unloaded_leg_maximum_load_fraction": 0.2,
+    "frozen_task_sha256": "a6b4e6d030cdad81ee1df3241c4e959541ac50313d7f824e2d7a63342b369b58",
+    "frozen_head": "59e868f3e223c589e7645a0f5d63f91fa6119fb6"
+  },
+  "new_completed_updates_credited": 0,
+  "normalization": "official full512 advantage normalization unavailable until complete update; no GAE claim"
+}

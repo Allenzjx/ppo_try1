@@ -1,0 +1,661 @@
+{
+  "CP225280_entrance_comparison": {
+    "boundary": "Different controller/policy geometry and episode. Descriptive comparison only; not a time-aligned counterfactual or causal attribution.",
+    "fixed_loaded_transfer_start_available": false,
+    "reason": "CP225280 selected entrance never has current RR TOP/load; its local 0.5s directions are not the fixed successful-N axis",
+    "rows": [
+      {
+        "RR_bearing_force_n": 1.4103174209594727,
+        "RR_current_TOP": false,
+        "RR_current_TOP_bearing": false,
+        "RR_front_distance_mm": -219.6041609542405,
+        "RR_gap_mm": -50.23812650616758,
+        "event": "P09_ENTRY",
+        "local_0p5s_COM_toward_FR_mm": 5.420745139064661,
+        "local_direction_recomputed_at_each_window": true,
+        "physics_tick": 6752,
+        "time_s": 56.266666666666666
+      },
+      {
+        "RR_bearing_force_n": 0.0,
+        "RR_current_TOP": false,
+        "RR_current_TOP_bearing": false,
+        "RR_front_distance_mm": -177.00999634433146,
+        "RR_gap_mm": -41.3021969338504,
+        "event": "RR_QUALIFIED",
+        "local_0p5s_COM_toward_FR_mm": 27.28149729208071,
+        "local_direction_recomputed_at_each_window": true,
+        "physics_tick": 6995,
+        "time_s": 58.291666666666664
+      },
+      {
+        "RR_bearing_force_n": 0.0,
+        "RR_current_TOP": false,
+        "RR_current_TOP_bearing": false,
+        "RR_front_distance_mm": 0.007334779020595761,
+        "RR_gap_mm": 59.03472328704941,
+        "event": "RR_CROSSED_AIR",
+        "local_0p5s_COM_toward_FR_mm": 4.470110087760018,
+        "local_direction_recomputed_at_each_window": true,
+        "physics_tick": 7979,
+        "time_s": 66.49166666666666
+      },
+      {
+        "RR_bearing_force_n": 0.0,
+        "RR_current_TOP": false,
+        "RR_current_TOP_bearing": false,
+        "RR_front_distance_mm": 99.88648040127401,
+        "RR_gap_mm": 56.1189036882042,
+        "event": "TERMINAL",
+        "local_0p5s_COM_toward_FR_mm": 0.09926248408695507,
+        "local_direction_recomputed_at_each_window": true,
+        "physics_tick": 10940,
+        "time_s": 91.16666666666667
+      }
+    ]
+  },
+  "claims": {
+    "CP225280_is_time_aligned_or_same_controller": false,
+    "FR_support_point_equals_rigid_body_wheel_center": false,
+    "joint_angles_define_FR_direction": false,
+    "projection_proves_FL_or_any_single_channel_causal": false,
+    "sparse_yaw_rate_integrated_into_yaw": false
+  },
+  "fixed_receiver_direction": {
+    "COM_start_xy_m": [
+      0.7024185999049787,
+      -0.11749699210267131
+    ],
+    "FR_wheel_xy_m": [
+      1.0443284511566162,
+      -0.35766610503196716
+    ],
+    "FR_wheel_xy_semantics": "already-extracted ContactSensor support point owned by front_right_wheel; the compact table did not retain the rigid-body wheel-center xy",
+    "RR_load_n": 6.48427534103397,
+    "RR_loaded_at_reference": true,
+    "frozen_for_all_later_rows": true,
+    "horizontal_distance_m": 0.4178319628608632,
+    "moving_FR_is_not_referenced_again": true,
+    "reference_event": "PRE_LATE_RR_LOADED_CONTEXT",
+    "reference_tick": 6152,
+    "requested_exact_rigid_body_wheel_center_available": false,
+    "unit_xy": [
+      0.8182951081832207,
+      -0.5747983263053321
+    ]
+  },
+  "rear_event_ticks": {
+    "RL_front_edge_crossed": 6658,
+    "RL_placed": 6727,
+    "RL_qualified": 6251
+  },
+  "schema": "outputs.successful_N_fixed_FR_transfer_projection.v1",
+  "scope": {
+    "input": "existing 21 exact 120Hz rows only; no sealed-log rescan",
+    "interpolation": false,
+    "physics_or_model_execution": false,
+    "reference": "successful historical N+0, not same-controller B"
+  },
+  "selected_rows": [
+    {
+      "COM_displacement_from_start_m": {
+        "fixed_FR_receiver_projection": 0.0,
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "COM_position_w_m": [
+        0.7024185999049787,
+        -0.11749699210267131,
+        0.15280017974575927
+      ],
+      "COM_velocity_fixed_FR_receiver_projection_m_s": 0.015436784511981197,
+      "COM_velocity_w_m_s": [
+        0.01764613615400694,
+        -0.0017345868510629965,
+        0.005272823188732478
+      ],
+      "RL": {
+        "contact_class": "GROUND",
+        "event": null,
+        "front_distance_mm": -159.10267489123697,
+        "normal_force_n": 9.59140586853036,
+        "top_gap_mm": -50.423433529333096
+      },
+      "episode_physics_tick": 6152,
+      "event": "PRE_LATE_RR_LOADED_CONTEXT",
+      "measured_normal_load_n": {
+        "FL": 5.92765808105476,
+        "RR": 6.48427534103397
+      },
+      "source_phase": "P09",
+      "time_s": 51.266666666666666,
+      "yaw_displacement_rad": null,
+      "yaw_note": "base orientation/yaw was not retained in the compact source table; yaw rate is logged, but sparse rows are not integrated",
+      "yaw_rate_rad_s": 0.013246766291558743
+    },
+    {
+      "COM_displacement_from_start_m": {
+        "fixed_FR_receiver_projection": 0.00035595771397215647,
+        "x": 0.00039701283724646874,
+        "y": -5.407818698295597e-05,
+        "z": 0.00012822962509381752
+      },
+      "COM_position_w_m": [
+        0.7028156127422251,
+        -0.11755107028965427,
+        0.15292840937085309
+      ],
+      "COM_velocity_fixed_FR_receiver_projection_m_s": 0.008884639643339673,
+      "COM_velocity_w_m_s": [
+        0.008656221429502021,
+        -0.0031337878170343823,
+        0.01587111977735179
+      ],
+      "RL": {
+        "contact_class": "GROUND",
+        "event": null,
+        "front_distance_mm": -158.73393075633402,
+        "normal_force_n": 9.993391990661712,
+        "top_gap_mm": -50.50140454686923
+      },
+      "episode_physics_tick": 6156,
+      "event": "P09_LATE_ATOMIC_FL_RL_LAUNCH",
+      "measured_normal_load_n": {
+        "FL": 8.192388534546263,
+        "RR": 8.006277084350586
+      },
+      "source_phase": "P09",
+      "time_s": 51.3,
+      "yaw_displacement_rad": null,
+      "yaw_note": "base orientation/yaw was not retained in the compact source table; yaw rate is logged, but sparse rows are not integrated",
+      "yaw_rate_rad_s": -0.012654479593038559
+    },
+    {
+      "COM_displacement_from_start_m": {
+        "fixed_FR_receiver_projection": 0.0012906001455403424,
+        "x": 0.001017207944151055,
+        "y": -0.0007971906664756279,
+        "z": 0.0013958806479978103
+      },
+      "COM_position_w_m": [
+        0.7034358078491297,
+        -0.11829418276914694,
+        0.15419606039375708
+      ],
+      "COM_velocity_fixed_FR_receiver_projection_m_s": 0.043548864034926235,
+      "COM_velocity_w_m_s": [
+        0.022696195516978022,
+        -0.043452941885821696,
+        0.05460566651928683
+      ],
+      "RL": {
+        "contact_class": "GROUND",
+        "event": null,
+        "front_distance_mm": -158.82905976939554,
+        "normal_force_n": 7.857341289520335,
+        "top_gap_mm": -50.47402850478711
+      },
+      "episode_physics_tick": 6160,
+      "event": "P09_LATE_EARLY_RESPONSE",
+      "measured_normal_load_n": {
+        "FL": 10.137671470642527,
+        "RR": 9.688446998596921
+      },
+      "source_phase": "P09",
+      "time_s": 51.333333333333336,
+      "yaw_displacement_rad": null,
+      "yaw_note": "base orientation/yaw was not retained in the compact source table; yaw rate is logged, but sparse rows are not integrated",
+      "yaw_rate_rad_s": -0.02047141082584858
+    },
+    {
+      "COM_displacement_from_start_m": {
+        "fixed_FR_receiver_projection": 0.007068685086624153,
+        "x": 0.006545426372321361,
+        "y": -0.0029794705843844277,
+        "z": 0.006289637230791317
+      },
+      "COM_position_w_m": [
+        0.7089640262773,
+        -0.12047646268705574,
+        0.15908981697655059
+      ],
+      "COM_velocity_fixed_FR_receiver_projection_m_s": 0.1187047526138345,
+      "COM_velocity_w_m_s": [
+        0.136321130047469,
+        -0.012445823911779865,
+        0.07648158376506191
+      ],
+      "RL": {
+        "contact_class": "GROUND",
+        "event": null,
+        "front_distance_mm": -157.13268177676554,
+        "normal_force_n": 2.9853758811950954,
+        "top_gap_mm": -50.66809863440609
+      },
+      "episode_physics_tick": 6168,
+      "event": "P10_RR_KNEE_POSITIVE_ENDPOINT",
+      "measured_normal_load_n": {
+        "FL": 11.022011756897056,
+        "RR": 14.346790313720788
+      },
+      "source_phase": "P10",
+      "time_s": 51.4,
+      "yaw_displacement_rad": null,
+      "yaw_note": "base orientation/yaw was not retained in the compact source table; yaw rate is logged, but sparse rows are not integrated",
+      "yaw_rate_rad_s": -0.14934074878692627
+    },
+    {
+      "COM_displacement_from_start_m": {
+        "fixed_FR_receiver_projection": 0.017194193752204375,
+        "x": 0.01899222824888458,
+        "y": -0.002875697800422794,
+        "z": 0.012149623401378096
+      },
+      "COM_position_w_m": [
+        0.7214108281538633,
+        -0.1203726899030941,
+        0.16494980314713736
+      ],
+      "COM_velocity_fixed_FR_receiver_projection_m_s": 0.1579824427713776,
+      "COM_velocity_w_m_s": [
+        0.20336118785717258,
+        0.014660833305905046,
+        0.07695840593346512
+      ],
+      "RL": {
+        "contact_class": "GROUND",
+        "event": null,
+        "front_distance_mm": -150.65538542437906,
+        "normal_force_n": 2.33312487602236,
+        "top_gap_mm": -50.95462405123251
+      },
+      "episode_physics_tick": 6176,
+      "event": "P11_RESPONSE_FR_AIR_RR_LOADED",
+      "measured_normal_load_n": {
+        "FL": 11.846343040466563,
+        "RR": 11.136009397196249
+      },
+      "source_phase": "P11",
+      "time_s": 51.46666666666667,
+      "yaw_displacement_rad": null,
+      "yaw_note": "base orientation/yaw was not retained in the compact source table; yaw rate is logged, but sparse rows are not integrated",
+      "yaw_rate_rad_s": -0.07189538329839706
+    },
+    {
+      "COM_displacement_from_start_m": {
+        "fixed_FR_receiver_projection": 0.038233749270166616,
+        "x": 0.04848932581479126,
+        "y": 0.0025136274360199606,
+        "z": 0.025753971359272904
+      },
+      "COM_position_w_m": [
+        0.7509079257197699,
+        -0.11498336466665135,
+        0.17855415110503217
+      ],
+      "COM_velocity_fixed_FR_receiver_projection_m_s": 0.013496741198917625,
+      "COM_velocity_w_m_s": [
+        0.07891118976867337,
+        0.08885881714028192,
+        0.06868923162458195
+      ],
+      "RL": {
+        "contact_class": "GROUND",
+        "event": null,
+        "front_distance_mm": -139.75116269755716,
+        "normal_force_n": 0.784671187400825,
+        "top_gap_mm": -49.999793294772445
+      },
+      "episode_physics_tick": 6201,
+      "event": "P12_RL_KNEE_POSITIVE_AND_FR_HIP_RESPONSE",
+      "measured_normal_load_n": {
+        "FL": 14.454275131225591,
+        "RR": 13.99945831298959
+      },
+      "source_phase": "P12",
+      "time_s": 51.675,
+      "yaw_displacement_rad": null,
+      "yaw_note": "base orientation/yaw was not retained in the compact source table; yaw rate is logged, but sparse rows are not integrated",
+      "yaw_rate_rad_s": -0.1414935141801834
+    },
+    {
+      "COM_displacement_from_start_m": {
+        "fixed_FR_receiver_projection": 0.064391682399695,
+        "x": 0.07336935555129698,
+        "y": -0.007574652642952345,
+        "z": 0.03627166525667935
+      },
+      "COM_position_w_m": [
+        0.7757879554562757,
+        -0.12507164474562366,
+        0.18907184500243862
+      ],
+      "COM_velocity_fixed_FR_receiver_projection_m_s": 0.19031583723148582,
+      "COM_velocity_w_m_s": [
+        0.1325538589390037,
+        -0.14239370427013567,
+        0.012936708918167176
+      ],
+      "RL": {
+        "contact_class": "AIR",
+        "event": null,
+        "front_distance_mm": -94.70680015254374,
+        "normal_force_n": 0.0,
+        "top_gap_mm": -50.01721503195408
+      },
+      "episode_physics_tick": 6233,
+      "event": "P12_FOUR_WHEEL_REVERSE_BEGIN",
+      "measured_normal_load_n": {
+        "FL": 15.694886207580716,
+        "RR": 14.72447779104647
+      },
+      "source_phase": "P12",
+      "time_s": 51.94166666666666,
+      "yaw_displacement_rad": null,
+      "yaw_note": "base orientation/yaw was not retained in the compact source table; yaw rate is logged, but sparse rows are not integrated",
+      "yaw_rate_rad_s": -0.40529483556747437
+    },
+    {
+      "COM_displacement_from_start_m": {
+        "fixed_FR_receiver_projection": 0.0874307494747555,
+        "x": 0.08963387977587278,
+        "y": -0.024502131412252215,
+        "z": 0.03607615267932307
+      },
+      "COM_position_w_m": [
+        0.7920524796808515,
+        -0.14199912351492353,
+        0.18887633242508234
+      ],
+      "COM_velocity_fixed_FR_receiver_projection_m_s": 0.0846135701337724,
+      "COM_velocity_w_m_s": [
+        0.05860073547136862,
+        -0.06378041355349791,
+        0.013694563236427171
+      ],
+      "RL": {
+        "contact_class": "AIR",
+        "event": "QUALIFIED",
+        "front_distance_mm": -56.508090664628696,
+        "normal_force_n": 0.0,
+        "top_gap_mm": -41.98711625541202
+      },
+      "episode_physics_tick": 6251,
+      "event": "RL_QUALIFIED_EVENT",
+      "measured_normal_load_n": {
+        "FL": 14.678160667419869,
+        "RR": 14.595298503369227
+      },
+      "source_phase": "P12",
+      "time_s": 52.09166666666667,
+      "yaw_displacement_rad": null,
+      "yaw_note": "base orientation/yaw was not retained in the compact source table; yaw rate is logged, but sparse rows are not integrated",
+      "yaw_rate_rad_s": -0.08393850922584534
+    },
+    {
+      "COM_displacement_from_start_m": {
+        "fixed_FR_receiver_projection": 0.09076053805901516,
+        "x": 0.09196146211005651,
+        "y": -0.026981504230652514,
+        "z": 0.03565571035938844
+      },
+      "COM_position_w_m": [
+        0.7943800620150352,
+        -0.14447849633332382,
+        0.1884558901051477
+      ],
+      "COM_velocity_fixed_FR_receiver_projection_m_s": 0.07750368148984924,
+      "COM_velocity_w_m_s": [
+        0.05407592640591936,
+        -0.05785266574305456,
+        0.0013251795450153273
+      ],
+      "RL": {
+        "contact_class": "AIR",
+        "event": null,
+        "front_distance_mm": -54.39844386744852,
+        "normal_force_n": 0.0,
+        "top_gap_mm": -33.43120786117268
+      },
+      "episode_physics_tick": 6256,
+      "event": "REVERSE_AND_LOAD_RESPONSE",
+      "measured_normal_load_n": {
+        "FL": 14.03200817108163,
+        "RR": 14.398564374986854
+      },
+      "source_phase": "P12",
+      "time_s": 52.13333333333333,
+      "yaw_displacement_rad": null,
+      "yaw_note": "base orientation/yaw was not retained in the compact source table; yaw rate is logged, but sparse rows are not integrated",
+      "yaw_rate_rad_s": -0.03584796190261841
+    },
+    {
+      "COM_displacement_from_start_m": {
+        "fixed_FR_receiver_projection": 0.09935094825036658,
+        "x": 0.09598200131673518,
+        "y": -0.03620286480826118,
+        "z": 0.03387599924854051
+      },
+      "COM_position_w_m": [
+        0.7984006012217139,
+        -0.1536998569109325,
+        0.18667617899429978
+      ],
+      "COM_velocity_fixed_FR_receiver_projection_m_s": -0.002713749447050685,
+      "COM_velocity_w_m_s": [
+        -0.011818253466211962,
+        -0.012103496536495426,
+        0.014270700055160715
+      ],
+      "RL": {
+        "contact_class": "AIR",
+        "event": null,
+        "front_distance_mm": -55.192616154435825,
+        "normal_force_n": 0.0,
+        "top_gap_mm": 4.113710636644938
+      },
+      "episode_physics_tick": 6272,
+      "event": "RR_SHORT_AIR_SNAPSHOT",
+      "measured_normal_load_n": {
+        "FL": 4.964398384094365,
+        "RR": 0.0
+      },
+      "source_phase": "P12",
+      "time_s": 52.266666666666666,
+      "yaw_displacement_rad": null,
+      "yaw_note": "base orientation/yaw was not retained in the compact source table; yaw rate is logged, but sparse rows are not integrated",
+      "yaw_rate_rad_s": 0.031683892011642456
+    },
+    {
+      "COM_displacement_from_start_m": {
+        "fixed_FR_receiver_projection": 0.06885609582729102,
+        "x": 0.06226874707342933,
+        "y": -0.03114463610128207,
+        "z": 0.03363414251439989
+      },
+      "COM_position_w_m": [
+        0.764687346978408,
+        -0.14864162820395338,
+        0.18643432226015916
+      ],
+      "COM_velocity_fixed_FR_receiver_projection_m_s": 0.0013123450630279547,
+      "COM_velocity_w_m_s": [
+        -0.003306222064929196,
+        -0.006989947989501776,
+        0.013009262705010663
+      ],
+      "RL": {
+        "contact_class": "AIR",
+        "event": null,
+        "front_distance_mm": -90.38111226725931,
+        "normal_force_n": 0.0,
+        "top_gap_mm": -0.005493095207864673
+      },
+      "episode_physics_tick": 6497,
+      "event": "FIRST_REVERSE_STOP",
+      "measured_normal_load_n": {
+        "FL": 14.54459285736178,
+        "RR": 14.145668029785467
+      },
+      "source_phase": "P12",
+      "time_s": 54.141666666666666,
+      "yaw_displacement_rad": null,
+      "yaw_note": "base orientation/yaw was not retained in the compact source table; yaw rate is logged, but sparse rows are not integrated",
+      "yaw_rate_rad_s": 0.028080731630325317
+    },
+    {
+      "COM_displacement_from_start_m": {
+        "fixed_FR_receiver_projection": 0.08819570485282192,
+        "x": 0.08329034225646337,
+        "y": -0.03486375013348028,
+        "z": 0.04258973851880665
+      },
+      "COM_position_w_m": [
+        0.785708942161442,
+        -0.1523607422361516,
+        0.19538991826456592
+      ],
+      "COM_velocity_fixed_FR_receiver_projection_m_s": 0.012989621102406784,
+      "COM_velocity_w_m_s": [
+        0.011105855187662566,
+        -0.006788040172682505,
+        0.011605313902981505
+      ],
+      "RL": {
+        "contact_class": "AIR",
+        "event": null,
+        "front_distance_mm": -3.890808989289951,
+        "normal_force_n": 0.0,
+        "top_gap_mm": 65.23170783126594
+      },
+      "episode_physics_tick": 6652,
+      "event": "SECOND_STOP_BEFORE_RL_CROSS",
+      "measured_normal_load_n": {
+        "FL": 14.839696884155325,
+        "RR": 12.370643667900366
+      },
+      "source_phase": "P12",
+      "time_s": 55.43333333333333,
+      "yaw_displacement_rad": null,
+      "yaw_note": "base orientation/yaw was not retained in the compact source table; yaw rate is logged, but sparse rows are not integrated",
+      "yaw_rate_rad_s": 0.028602544218301773
+    },
+    {
+      "COM_displacement_from_start_m": {
+        "fixed_FR_receiver_projection": 0.08847084974274798,
+        "x": 0.08358961732328885,
+        "y": -0.03491637653365787,
+        "z": 0.04249630968850493
+      },
+      "COM_position_w_m": [
+        0.7860082172282675,
+        -0.15241336863632918,
+        0.1952964894342642
+      ],
+      "COM_velocity_fixed_FR_receiver_projection_m_s": 0.007252405678751546,
+      "COM_velocity_w_m_s": [
+        0.003975488782954436,
+        -0.006957714509590016,
+        0.005974935850605938
+      ],
+      "RL": {
+        "contact_class": "AIR",
+        "event": "FRONT_EDGE_CROSSED",
+        "front_distance_mm": 0.7476244671309473,
+        "normal_force_n": 0.0,
+        "top_gap_mm": 63.82551026251823
+      },
+      "episode_physics_tick": 6658,
+      "event": "RL_FRONT_EDGE_CROSSED_EVENT",
+      "measured_normal_load_n": {
+        "FL": 13.906991033526253,
+        "RR": 12.190729242075216
+      },
+      "source_phase": "P12",
+      "time_s": 55.483333333333334,
+      "yaw_displacement_rad": null,
+      "yaw_note": "base orientation/yaw was not retained in the compact source table; yaw rate is logged, but sparse rows are not integrated",
+      "yaw_rate_rad_s": 0.008480727672576904
+    },
+    {
+      "COM_displacement_from_start_m": {
+        "fixed_FR_receiver_projection": 0.09103620239079772,
+        "x": 0.08626486976639558,
+        "y": -0.03557087854503019,
+        "z": 0.03445729544374912
+      },
+      "COM_position_w_m": [
+        0.7886834696713743,
+        -0.1530678706477015,
+        0.1872574751895084
+      ],
+      "COM_velocity_fixed_FR_receiver_projection_m_s": -0.006658334468484061,
+      "COM_velocity_w_m_s": [
+        -0.02165226548450706,
+        -0.019240850142450847,
+        0.007150679264680327
+      ],
+      "RL": {
+        "contact_class": "OBSTACLE",
+        "event": "PLACED",
+        "front_distance_mm": 69.47493893932943,
+        "normal_force_n": 12.440806388855055,
+        "top_gap_mm": -0.21415174515518332
+      },
+      "episode_physics_tick": 6727,
+      "event": "RL_PLACED_EVENT",
+      "measured_normal_load_n": {
+        "FL": 4.126483917236336,
+        "RR": 4.853262337843712
+      },
+      "source_phase": "P12",
+      "time_s": 56.05833333333333,
+      "yaw_displacement_rad": null,
+      "yaw_note": "base orientation/yaw was not retained in the compact source table; yaw rate is logged, but sparse rows are not integrated",
+      "yaw_rate_rad_s": 0.026179557666182518
+    },
+    {
+      "COM_displacement_from_start_m": {
+        "fixed_FR_receiver_projection": 0.0909018811800748,
+        "x": 0.08601912862896399,
+        "y": -0.03568703678151272,
+        "z": 0.0345166479560543
+      },
+      "COM_position_w_m": [
+        0.7884377285339427,
+        -0.15318402888418403,
+        0.18731682770181357
+      ],
+      "COM_velocity_fixed_FR_receiver_projection_m_s": -0.006944095055291867,
+      "COM_velocity_w_m_s": [
+        -0.024611863432960564,
+        -0.022957047352576542,
+        0.007611407461505743
+      ],
+      "RL": {
+        "contact_class": "OBSTACLE",
+        "event": null,
+        "front_distance_mm": 69.72402674984579,
+        "normal_force_n": 11.55532550811769,
+        "top_gap_mm": -0.22606250338264716
+      },
+      "episode_physics_tick": 6728,
+      "event": "RL_CAPTURE_RESPONSE",
+      "measured_normal_load_n": {
+        "FL": 3.862046718597616,
+        "RR": 5.395625310331962
+      },
+      "source_phase": "P12",
+      "time_s": 56.06666666666666,
+      "yaw_displacement_rad": null,
+      "yaw_note": "base orientation/yaw was not retained in the compact source table; yaw rate is logged, but sparse rows are not integrated",
+      "yaw_rate_rad_s": 0.03504509851336479
+    }
+  ],
+  "source": {
+    "path": "C:\\robotics_sim\\wlr_robot\\fsm_base_on_recording_ppo_phase_v1\\outputs\\ppo_rl_recovery_learning_v1\\successful_N_P09late_P12_event_response.json",
+    "sha256": "746fc890e7d8854851c62b5673201740e14fc3d052ceca7906927a0fd1e70ea0",
+    "upstream_manifest_sha256": "03549f2590759fe22c09ec83ec12282f17f06de722a15ece547873140a083a20"
+  }
+}

@@ -1,0 +1,792 @@
+*** Begin Patch
+*** Update File: src/wlr50_clean/ppo/semantic_cli.py
+@@
+             same419 = isinstance(planned.get("rear_recapture_same419_factor"),dict)
+             live_swing = isinstance(planned.get("rear_live_swing_same419_factor"),dict)
+             p02_append = isinstance(planned.get("p02_progress_append_factor"),dict)
+-            if sum((initial_append,same419,live_swing,p02_append)) != 1:
++            rr_retention = isinstance(planned.get("rr_retention_same439_factor"),dict)
++            if sum((initial_append,same419,live_swing,p02_append,rr_retention)) != 1:
+                 raise ValueError("rear timing requires exactly one declared migration boundary")
+             if initial_append:
+                 source_root=version_paths("v3",experiment_id="rr_capture_then_rl_transfer_v1")[1]
++            elif rr_retention:
++                if (planned.get('schema') != 'wlr50_clean.rr_retention_reward_same439.v1'
++                        or not branch_requested or source_root.resolve()!=checkpoint_output.resolve()):
++                    raise ValueError('same439 reward continuation requires the existing learned branch')
+             elif p02_append:
+                 if (planned.get('schema') != 'wlr50_clean.p02_progress_append.v1'
+                         or not branch_requested or source_root.resolve()!=checkpoint_output.resolve()):
+@@
+     if getattr(args,"experiment_id",None) == "rr_rl_timing_policy_learning_v1" and args.resume_migration is not None:
+         from .semantic_rear_policy_timing_profile import REAR_POLICY_TIMING_POLICY, REAR_POLICY_TIMING_OBSERVATION_LAYOUT
+         args._migration_record=validate_migration_plan(args.checkpoint,contract,args.resume_migration)
++        if args._migration_record.get('rr_retention_same439_factor') is not None:
++            if (args._observation_layout != REAR_OWNER_OBSERVATION_LAYOUT
++                    or source_layout != REAR_OWNER_OBSERVATION_LAYOUT
++                    or args._policy_version != REAR_OWNER_POLICY or metadata['seed'] != args.seed):
++                raise ValueError('same439 reward continuation requires original owner policy/layout/seed')
++            return
+         if args._migration_record.get('rear_owner_append439_factor') is not None:
+             if args._observation_layout != REAR_OWNER_OBSERVATION_LAYOUT or metadata['seed'] != args.seed:
+                 raise ValueError('owner append requires explicit439 and original seed')
+*** Update File: src/wlr50_clean/ppo/semantic_migration.py
+@@
+                             project_root: Path = PROJECT_ROOT) -> dict[str, Any]:
+     path = Path(plan_path).resolve(strict=True)
+     supplied = json.loads(path.read_text(encoding="utf-8"))
++    if supplied.get("schema") == "wlr50_clean.rr_retention_reward_same439.v1":
++        from .semantic_rr_retention_migration import validate_rr_retention_migration
++        return validate_rr_retention_migration(checkpoint, current_contract, plan_path, project_root=project_root)
+     if supplied.get("schema") == "wlr50_clean.rear_owner_recovery_append439.v1":
+         from .semantic_rear_owner_migration import validate_rear_owner_migration
+         return validate_rear_owner_migration(checkpoint, current_contract, plan_path, project_root=project_root)
+*** Update File: src/wlr50_clean/ppo/semantic_rear_policy_timing_migration.py
+@@
+ def validate_rear_policy_namespace(metadata,contract,output_root, *, checkpoint_output_routing=None):
+     from .semantic_migration import digest
+     from .semantic_policy_distribution import policy_contract
++    if metadata.get('rr_retention_reward_migration') is not None:
++        from .semantic_rr_retention_migration import validate_rr_retention_lineage
++        validate_rr_retention_lineage(metadata,contract,output_root,
++            checkpoint_output_routing=checkpoint_output_routing)
++        return
+     if metadata.get('rear_owner_recovery_migration') is not None:
+         from .semantic_rear_owner_migration import validate_rear_owner_lineage
+         validate_rear_owner_lineage(metadata,contract,output_root,
+*** Update File: src/wlr50_clean/ppo/semantic_reward.py
+@@
+ 
+ 
+ 
++RR_RETENTION_REWARD_ONLY_MODE = "rr_recapture_retention_reward_only_v1"
++
++
++def _rr_retention_reward_binding(config) -> Mapping[str, Any] | None:
++    """Bind the unchanged task scales once, before collection; never read hot config."""
++    selected = config.path.resolve()
++    expected_path = CONFIG_ROOT.parent / "ppo_rr_rl_timing_policy_learning_v1" / "reward_config.yaml"
++    if selected != expected_path.resolve():
++        return None  # Never silently enable this new reward in another experiment.
++    if config.values.get("cooperative_preparation", {}).get("mode") != "rr_capture_cooperative_preparation_v5":
++        return None
++    if (config.values.get("schema") != "wlr50_clean.semantic_reward.v2"
++            or config.values.get("objective_profile") != TASK_CONDITIONED_QUALITY_OBJECTIVE):
++        raise ValueError("reward-only RR retention requires the frozen selected reward schema")
++    from hashlib import sha256
++    path = selected.with_name("stage_task_spec.yaml")
++    payload = path.read_bytes()
++    spec = yaml.safe_load(payload.decode("utf-8-sig"))
++    expected = {
++        ("schema",): "wlr50_clean.semantic_stage_task_spec.v2",
++        ("potential_definition",): "global_physical_progress_v3",
++        ("capture_retention_semantics",): "current_platform_region_after_placement",
++        ("capture_approach_semantics",): "post_cross_FL_multiscale_positive_gap_plus_real_contact_v1",
++        ("cooperative_preparation_mode",): "rr_capture_cooperative_preparation_v5",
++        ("rear_owner_recovery_mode",): "issued_rear_transfer_owner_suspension_v1",
++        ("p09_lift_semantics",): "functional_free_air_lift_v3",
++        ("nominal", "rear_policy_timing"): "rr_rl_edge_recovery_v4",
++        ("geometry", "top_gap_min_m"): -.015,
++        ("geometry", "top_gap_max_m"): .025,
++        ("history", "minimum_top_samples"): 2,
++        ("support", "force_noise_floor_n"): .2,
++    }
++    for keys, value in expected.items():
++        actual = spec
++        for key in keys:
++            actual = actual[key]
++        if type(actual) is bool or actual != value:
++            raise ValueError("reward-only RR retention binding differs: " + ".".join(keys))
++    return {"mode": RR_RETENTION_REWARD_ONLY_MODE,
++            "task_spec_sha256": sha256(payload).hexdigest(),
++            "gap_scale_m": spec["geometry"]["top_gap_max_m"],
++            "minimum_gap_m": spec["geometry"]["top_gap_min_m"],
++            "minimum_top_samples": spec["history"]["minimum_top_samples"],
++            "force_floor_n": spec["support"]["force_noise_floor_n"],
++            "xy_scale_m": .25, "preparation_share_of_geometry": .25,
++            "global_retention_share": .85 / 4. * .2}
++
++
++def _rr_retention_reward_delta(task: Mapping[str, Any], binding: Mapping[str, Any]):
++    """Replace one old retention subshare, without changing any observation or event.
++
++    Ground/outside geometry is preparation only. Qualified AIR/EDGE can approach;
++    the contact half still needs actual TOP bearing. Original legal AIR/TOP values
++    are exact, including transient loss of qualification with real TOP support.
++    """
++    ev = task["physical_evaluator"]
++    history, legs = ev["history"], ev["current_legs"]
++    rr, rl = legs["RR"], legs["RL"]
++    audit = {"mode": binding["mode"], "physics_tick": ev["physics_tick"],
++             "scope": "unchanged", "old_retention": None, "new_retention": None,
++             "delta_global_potential": 0., "changes_observation_or_contact": False}
++    rl_swing = bool(rl.get("current_lift_valid") is True
++        and rl.get("motion_continuation_allowed") is True and rl.get("air") is True
++        and rl.get("ground_contact") is False)
++    if (history["placed"]["RR"] is not True or history["placed"]["RL"] is True or rl_swing):
++        return 0., audit
++    if ev.get("valid") is not True or ev.get("termination_reason") is not None:
++        raise ValueError("RR reward substitution requires a valid nonterminal endpoint")
++    if history["active_lift"]["RR"] is not True or history["front_edge_crossed"]["RR"] is not True:
++        raise ValueError("RR placed retention requires its original physical event history")
++    gap = finite(rr["clearance_m"], "RR reward current gap")
++    outside = finite(rr["top_xy_outside_distance_m"], "RR reward current outside distance")
++    if outside < 0.:
++        raise ValueError("RR reward outside distance cannot be negative")
++    clip = lambda value: min(1., max(0., value))
++    top = bool(rr.get("ground_contact") is False and rr.get("air") is False
++        and rr.get("top_contact") is True and rr.get("top_surface_contact") is True
++        and rr.get("obstacle_pair_active") is True and rr.get("within_top_xy") is True
++        and rr.get("contact_surface") == "TOP")
++    bearing = bool(top and rr.get("support") is True and rr.get("bearing_verified") is True
++        and finite(rr["bearing_force_n"], "RR reward bearing force") >= binding["force_floor_n"])
++    old_legal = bool(rr.get("within_top_xy") is True and rr.get("within_lateral_span") is True
++        and rr.get("ground_contact") is False
++        and (top or (rr.get("air") is True and rr.get("obstacle_pair_active") is False))
++        and gap >= binding["minimum_gap_m"])
++    geometry = (clip(1. - outside / binding["xy_scale_m"])
++                * binding["gap_scale_m"] / (binding["gap_scale_m"] + abs(gap)))
++    contact = (clip(finite(rr["consecutive_top_samples"], "RR reward TOP samples")
++                    / binding["minimum_top_samples"]) if bearing and old_legal else 0.)
++    old = .5 * geometry + .5 * contact if old_legal else 0.
++    current_qualified = bool(rr.get("current_lift_valid") is True
++        and rr.get("active_attempt") is True and rr.get("motion_continuation_allowed") is True
++        and rr.get("ground_contact") is False)
++    if old_legal:
++        new = old  # Exact old arithmetic: no actor-visible value or accepted AIR path changes.
++    else:
++        fraction = 1. if current_qualified else binding["preparation_share_of_geometry"]
++        new = .5 * geometry * fraction  # Outside legal TOP never earns the contact half.
++    delta = binding["global_retention_share"] * (new - old)
++    audit.update(scope="replace_existing_RR_retention_share", old_retention=old,
++        new_retention=new, delta_global_potential=delta, geometry_proximity=geometry,
++        current_qualified=current_qualified, original_legal_AIR_or_TOP=old_legal,
++        current_ground=rr.get("ground_contact"), measured_TOP=top,
++        measured_TOP_bearing=bearing and old_legal, contact_half=.5 * contact,
++        outside_preparation_only=not old_legal and not current_qualified)
++    return delta, audit
++
++
++def _reward_only_potential_pair(previous, current, termination_reason, binding):
++    """Decision endpoints only. Terminal zero precedes access to invalid geometry."""
++    shared_before = finite(previous.task["task_progress_potential"], "potential before")
++    shared_after = (None if termination_reason else
++                    finite(current.task["task_progress_potential"], "potential after"))
++    if binding is None:
++        return shared_before, 0. if termination_reason else shared_after, None
++    before_delta, before = _rr_retention_reward_delta(previous.task, binding)
++    if termination_reason:
++        after_delta, after = 0., {"scope": "terminal_zero_geometry_not_read"}
++    else:
++        after_delta, after = _rr_retention_reward_delta(current.task, binding)
++    phi_before = shared_before + before_delta
++    phi_after = 0. if termination_reason else shared_after + after_delta
++    if not (0. <= phi_before <= 1. and 0. <= phi_after <= 1.):
++        raise ValueError("reward-only replacement must remain in the existing potential range")
++    return phi_before, phi_after, {
++        "mode": binding["mode"], "task_spec_sha256": binding["task_spec_sha256"],
++        "shared_observation_potential_before": shared_before,
++        "shared_observation_potential_after": shared_after,
++        "reward_potential_before": phi_before, "reward_potential_after": phi_after,
++        "before": before, "after": after,
++        "global_retention_share": binding["global_retention_share"],
++        "not_an_additional_reward_family": True,
++        "shared_task_groups_and_encoded_observation_modified": False}
++
+ @dataclass(frozen=True)
+ class SemanticRewardConfig:
+     values: Mapping[str, Any]
+@@
+ class SemanticRewardCalculator:
+     def __init__(self, config: SemanticRewardConfig | None = None):
+         self.config = config or load_semantic_reward_config()
++        self._rr_retention_binding = _rr_retention_reward_binding(self.config)
+         self.reset()
+ 
+     def reset(self) -> None:
+@@
+             for name,cost in {**smooth_parts,"gravity_attitude":attitude,"euler_rate":rates,
+                               "angular_acceleration":acceleration,"contact_quality":contact}.items():
+                 diagnostics[name] = diagnostics.get(name,0.0)+cost*dt
+-        phi_before = finite(previous.task["task_progress_potential"],"potential before")
+-        phi_after = 0.0 if termination_reason else finite(current.task["task_progress_potential"],"potential after")
++        phi_before, phi_after, rr_potential_audit = _reward_only_potential_pair(
++            previous, current, termination_reason, self._rr_retention_binding)
+         potential = v["potential_weight"]*(self.config.gamma*phi_after-phi_before)
+         event = v["success_reward"] if task_success else (-v["failure_cost"] if termination_reason else 0.0)
+         unweighted = {"task_progress":potential+event-v["time_cost_per_s"]*total_dt-counterroll_cost,
+@@
+                 "terminal_event":event,"elapsed_physics_s":total_dt,"cost_components":diagnostics,
+                 "discount_convention":"one_gamma_per_policy_decision; short_N1_terminal_interval_has_zero_next_potential_and_no_bootstrap",
+                 "terminal_bootstrap_allowed":False if termination_reason else True}
++        if rr_potential_audit is not None:
++            result["potential_semantics"] = RR_RETENTION_REWARD_ONLY_MODE
++            result["rr_retention_reward_only"] = rr_potential_audit
+         if front_quality:
+             result["front_quality_sample_audit"] = front_sample_audit
+             result["front_quality_semantics"] = "P01_P02_tilt_rate_only_positive_transfer_floor_v1"
+*** Add File: src/wlr50_clean/ppo/semantic_rr_retention_migration.py
++"""Reviewed reward-only same439 continuation; identity learned state, fresh rollout."""
++from __future__ import annotations
++
++import copy
++import json
++import re
++from pathlib import Path
++
++from .semantic_rear_policy_timing_migration import (
++    COUNTERS, EXPERIMENT, SOURCE_COUNTS, preserved_keys,
++)
++from .semantic_rear_recapture_migration import BRANCH_NAME, CODE
++from .semantic_rear_owner_profile import REAR_OWNER_POLICY, REAR_OWNER_OBSERVATION_LAYOUT
++
++SCHEMA = "wlr50_clean.rr_retention_reward_same439.v1"
++FACTOR_KEY = "rr_retention_same439_factor"
++MIGRATION = "rr_retention_reward_migration"
++SOURCE_HEAD = "f6d1d2df8d87d5f3eaaefc2254adb5f81fc52e2b"
++ALLOWED = frozenset(CODE + name for name in (
++    "semantic_reward.py", "semantic_rr_retention_migration.py",
++    "semantic_migration.py", "semantic_cli.py", "semantic_training.py",
++    "semantic_rear_policy_timing_migration.py",
++))
++MAPPING = "identity_all_actor_critic_buffers_full_Adam_options_steps_LR_Identity_rng"
++
++
++def _policy():
++    from .semantic_policy_distribution import policy_contract
++    return policy_contract(REAR_OWNER_POLICY, observation_layout=REAR_OWNER_OBSERVATION_LAYOUT)
++
++
++def _preserved(metadata):
++    return tuple(sorted(set(preserved_keys(metadata)) | {
++        "runner_config", "policy_contract", "actor_parameter_sha256",
++        "critic_parameter_sha256", "optimizer_state_sha256", "checkpoint_output_routing",
++    }))
++
++
++def _reviewed_delta(old, new, root):
++    from .semantic_migration import file_sha, digest
++    variable = {"files", "source_git_commit", "runtime_content_sha256"}
++    if ({k: v for k, v in old.items() if k not in variable}
++            != {k: v for k, v in new.items() if k not in variable}):
++        raise ValueError("same439 reward boundary changed unrelated runtime metadata/configuration")
++    changed = {p for p in set(old["files"]) | set(new["files"])
++               if old["files"].get(p) != new["files"].get(p)}
++    if changed != ALLOWED or any(p not in new["files"] for p in changed):
++        raise ValueError("same439 reward boundary requires exactly six reviewed runtime paths")
++    if CODE + "semantic_rr_retention_migration.py" in old["files"]:
++        raise ValueError("same439 first reward boundary cannot overwrite an existing migration")
++    if any(file_sha(root / p) != sha for p, sha in new["files"].items()):
++        raise ValueError("target runtime bytes differ from the frozen contract")
++    if any(digest(c["files"]) != c["runtime_content_sha256"] for c in (old, new)):
++        raise ValueError("runtime content digest differs from its full file inventory")
++    return {p: {"before": old["files"].get(p), "after": new["files"][p]}
++            for p in sorted(changed)}
++
++
++def _previous_contract(current, receipt):
++    from .semantic_migration import digest
++    previous = copy.deepcopy(current)
++    if (receipt.get("target_git_commit") != previous.get("source_git_commit")
++            or receipt.get("target_runtime_content_sha256") != previous.get("runtime_content_sha256")
++            or receipt.get("target_contract_sha256") != digest(previous)
++            or set(receipt.get("changed_file_hashes", {})) != ALLOWED):
++        raise ValueError("same439 target contract or reviewed delta changed")
++    previous["source_git_commit"] = receipt["source_git_commit"]
++    previous["runtime_content_sha256"] = receipt["source_runtime_content_sha256"]
++    for path, hashes in receipt["changed_file_hashes"].items():
++        if previous["files"].get(path) != hashes["after"]:
++            raise ValueError("same439 target file differs from receipt: " + path)
++        if hashes["before"] is None:
++            previous["files"].pop(path)
++        else:
++            previous["files"][path] = hashes["before"]
++    if (digest(previous) != receipt["source_contract_sha256"]
++            or digest(previous["files"]) != previous["runtime_content_sha256"]):
++        raise ValueError("same439 historical f6d runtime reconstruction differs")
++    return previous
++
++
++def build_rr_retention_migration(checkpoint, current_contract, *, reason,
++        expected_source_sha256, expected_manifest_sha256, project_root=None):
++    from .semantic_migration import checkpoint_metadata, _contract, file_sha, digest, source_num_envs
++    from .semantic_rear_owner_migration import validate_rear_owner_lineage
++    from .semantic_training import semantic_runner_config
++    from .semantic_return_profile import runner_return_profile
++    root = Path(project_root or Path(__file__).resolve().parents[3])
++    checkpoint = Path(checkpoint).resolve(strict=True)
++    branch = root / "outputs" / ("ppo_" + EXPERIMENT) / "branches" / BRANCH_NAME
++    for value in (expected_source_sha256, expected_manifest_sha256):
++        if not isinstance(value, str) or not re.fullmatch("[0-9a-f]{64}", value):
++            raise ValueError("explicit actual checkpoint and sidecar hashes are required")
++    if (checkpoint.parent != (branch / "checkpoints/history").resolve()
++            or file_sha(checkpoint) != expected_source_sha256
++            or file_sha(checkpoint.with_name(checkpoint.stem + "_manifest.json")) != expected_manifest_sha256):
++        raise ValueError("actual source checkpoint/sidecar/branch differs from explicit selection")
++    metadata = checkpoint_metadata(checkpoint)
++    old, new = _contract(metadata["runtime_contract"]), _contract(current_contract)
++    validate_rear_owner_lineage(metadata, old, branch,
++        checkpoint_output_routing=metadata.get("checkpoint_output_routing"))
++    horizon = runner_return_profile(metadata["runner_config"], semantic_version="v3")["version"]
++    runner_config = semantic_runner_config(seed=metadata["seed"], device=metadata["runner_config"]["device"],
++        semantic_version="v3", policy_version=REAR_OWNER_POLICY,
++        observation_layout=REAR_OWNER_OBSERVATION_LAYOUT, return_profile=horizon)
++    last = metadata.get("last_update", {})
++    if (old.get("source_git_commit") != SOURCE_HEAD or new.get("source_git_commit") == SOURCE_HEAD
++            or not re.fullmatch("[0-9a-f]{40}", new.get("source_git_commit", ""))
++            or old.get("experiment_id") != EXPERIMENT or new.get("experiment_id") != EXPERIMENT
++            or not isinstance(reason, str) or not reason.strip() or MIGRATION in metadata
++            or metadata.get("policy_contract") != _policy() or metadata["runner_config"] != runner_config
++            or source_num_envs(metadata) != 1
++            or last.get("global_policy_decisions") != metadata.get("global_policy_decisions")
++            or last.get("ppo_update") != metadata.get("ppo_updates")
++            or last.get("actor_parameter_sha256_after") != metadata.get("actor_parameter_sha256")
++            or last.get("optimizer_learning_rate") != metadata.get("optimizer_learning_rate")
++            or last.get("optimizer_steps") != runner_config["algorithm"]["num_learning_epochs"]
++                * runner_config["algorithm"]["num_mini_batches"]):
++        raise ValueError("requires latest explicitly selected complete f6d439 learned update; no ancestor publication")
++    changed = _reviewed_delta(old, new, root)
++    origin = {k: metadata[k] for k in COUNTERS}
++    factor = dict(schema=SCHEMA, source_policy_contract=_policy(), target_policy_contract=_policy(),
++        revision_counter_origin=origin, original_branch_origin=SOURCE_COUNTS,
++        source_runner_config=copy.deepcopy(runner_config), target_runner_config=copy.deepcopy(runner_config),
++        source_effective_learning_rate=metadata["optimizer_learning_rate"],
++        source_stage_requested_decisions=copy.deepcopy(metadata["stage_requested_decisions"]),
++        preserved_metadata_sha256={k: digest(metadata[k]) for k in _preserved(metadata)},
++        parameter_mapping=MAPPING, observation_dimension=439, action_dimension=12, num_envs=1,
++        observation_layout=REAR_OWNER_OBSERVATION_LAYOUT, same_mdp_claimed=False,
++        reward_only=True, reward_revision="rr_recapture_retention_reward_only_v1",
++        reward_local_potential_changed=True, shared_task_potential_observation_changed=False,
++        observation_semantics_changed=False,
++        same_numeric_input_Gaussian_and_value_preserved=True,
++        physical_dynamics_changed=False, source_pose_commands_changed=False,
++        control_projection_changed=False, HISTORY_changed=False, conditional_sigma_changed=False,
++        old_rollout_inherited=False, added_policy_decisions=0, added_ppo_updates=0,
++        added_optimizer_steps=0, added_auxiliary_updates=0)
++    record = dict(schema=SCHEMA, reason=reason.strip(), source_checkpoint=str(checkpoint),
++        source_checkpoint_sha256=expected_source_sha256, source_manifest_sha256=expected_manifest_sha256,
++        source_git_commit=old["source_git_commit"], target_git_commit=new["source_git_commit"],
++        source_contract_sha256=digest(old), target_contract_sha256=digest(new),
++        source_runtime_content_sha256=old["runtime_content_sha256"],
++        target_runtime_content_sha256=new["runtime_content_sha256"], changed_file_hashes=changed,
++        discard_old_rollout_storage=True, physics_resume="fresh_legal_reset_not_bitwise_simulator_resume",
++        **{FACTOR_KEY: factor})
++    if _previous_contract(new, record) != old:
++        raise ValueError("same439 reward boundary changed outside its reviewed delta")
++    return record
++
++
++def validate_rr_retention_migration(checkpoint, contract, plan_path, *, project_root=None):
++    from .semantic_migration import file_sha
++    path = Path(plan_path).resolve(strict=True)
++    record = json.loads(path.read_text(encoding="utf-8"))
++    expected = build_rr_retention_migration(checkpoint, contract, reason=record.get("reason", ""),
++        expected_source_sha256=record.get("source_checkpoint_sha256"),
++        expected_manifest_sha256=record.get("source_manifest_sha256"), project_root=project_root)
++    if record != expected:
++        raise ValueError("same439 reward plan/source/runtime changed")
++    return {**record, "plan_path": str(path), "plan_sha256": file_sha(path)}
++
++
++def validate_rr_retention_lineage(metadata, contract, output_root, *, checkpoint_output_routing=None):
++    from .semantic_migration import digest, checkpoint_metadata, file_sha
++    from .semantic_rear_owner_migration import validate_rear_owner_lineage
++    receipt = metadata.get(MIGRATION, {})
++    factor = receipt.get(FACTOR_KEY, {})
++    origin = factor.get("revision_counter_origin", {})
++    if (receipt.get("schema") != SCHEMA or factor.get("schema") != SCHEMA
++            or receipt.get("source_git_commit") != SOURCE_HEAD
++            or factor.get("source_policy_contract") != _policy() or factor.get("target_policy_contract") != _policy()
++            or metadata.get("policy_contract") != _policy()
++            or factor.get("source_runner_config") != factor.get("target_runner_config")
++            or metadata.get("runner_config") != factor.get("target_runner_config")
++            or factor.get("parameter_mapping") != MAPPING or factor.get("observation_dimension") != 439
++            or factor.get("observation_layout") != REAR_OWNER_OBSERVATION_LAYOUT
++            or factor.get("original_branch_origin") != SOURCE_COUNTS
++            or factor.get("reward_only") is not True
++            or factor.get("reward_revision") != "rr_recapture_retention_reward_only_v1"
++            or factor.get("reward_local_potential_changed") is not True
++            or factor.get("shared_task_potential_observation_changed") is not False
++            or factor.get("observation_semantics_changed") is not False
++            or factor.get("same_mdp_claimed") is not False
++            or factor.get("same_numeric_input_Gaussian_and_value_preserved") is not True
++            or factor.get("action_dimension") != 12 or factor.get("num_envs") != 1
++            or receipt.get("discard_old_rollout_storage") is not True
++            or any(factor.get(k) is not False for k in (
++                "physical_dynamics_changed", "source_pose_commands_changed", "control_projection_changed",
++                "HISTORY_changed", "conditional_sigma_changed", "old_rollout_inherited"))
++            or any(type(origin.get(k)) is not int or type(metadata.get(k)) is not int
++                   or metadata[k] < origin[k] for k in COUNTERS)
++            or any(factor.get(k) != 0 for k in (
++                "added_policy_decisions", "added_ppo_updates", "added_optimizer_steps", "added_auxiliary_updates"))):
++        raise ValueError("same439 reward lineage/policy/counts changed")
++    source_path = Path(receipt.get("source_checkpoint", "")).resolve(strict=True)
++    source = checkpoint_metadata(source_path)
++    if (source.get("checkpoint_sha256") != receipt.get("source_checkpoint_sha256")
++            or file_sha(source_path.with_name(source_path.stem + "_manifest.json")) != receipt.get("source_manifest_sha256")
++            or {k: source.get(k) for k in COUNTERS} != origin
++            or source.get("runtime_contract", {}).get("source_git_commit") != SOURCE_HEAD
++            or digest(source["runtime_contract"]) != receipt.get("source_contract_sha256")
++            or factor.get("preserved_metadata_sha256") != {k: digest(source[k]) for k in _preserved(source)}
++            or factor.get("source_stage_requested_decisions") != source.get("stage_requested_decisions")
++            or factor.get("source_effective_learning_rate") != source.get("optimizer_learning_rate")
++            or factor.get("source_runner_config") != source.get("runner_config")
++            or source_path.parent != Path(source["checkpoint_output_routing"]["output_root"]) / "checkpoints/history"):
++        raise ValueError("same439 immutable selected-source receipt changed")
++    if any(type(metadata.get("stage_requested_decisions", {}).get(k)) is not int
++            or metadata["stage_requested_decisions"][k] < value
++            for k, value in source["stage_requested_decisions"].items()):
++        raise ValueError("same439 used stage quantities cannot reset")
++    for key, sha in factor.get("preserved_metadata_sha256", {}).items():
++        if key.endswith(("_branch", "_migration")) or key in (
++                "checkpoint_output_routing", "runner_config", "policy_contract", "seed", "normalization"):
++            if digest(metadata.get(key)) != sha:
++                raise ValueError("same439 protected source lineage changed: " + key)
++    old = _previous_contract(contract, receipt)
++    historical = {k: copy.deepcopy(v) for k, v in metadata.items() if k != MIGRATION}
++    historical["runtime_contract"] = old
++    validate_rear_owner_lineage(historical, old, output_root,
++        checkpoint_output_routing=checkpoint_output_routing)
++    return receipt
++
++
++def _verify_identity(runner, infos, factor):
++    import torch
++    from .semantic_migration import digest
++    from .semantic_training import parameter_hash, state_hash, _normalizers
++    from .rl_library_wrapper import optimizer_learning_rate, capture_training_rng_state
++    actual = dict(actor_parameter_sha256=parameter_hash(runner.alg.actor),
++        critic_parameter_sha256=parameter_hash(runner.alg.critic),
++        optimizer_state_sha256=state_hash(runner.alg.optimizer.state_dict()),
++        normalizer_state_sha256=state_hash(_normalizers(runner)),
++        training_rng_state=capture_training_rng_state(seed=infos["seed"]))
++    if (any(type(getattr(runner.alg, role).obs_normalizer) is not torch.nn.Identity for role in ("actor", "critic"))
++            or runner._semantic_runner_config != factor["target_runner_config"]
++            or optimizer_learning_rate(runner) != factor["source_effective_learning_rate"]
++            or runner.alg.learning_rate != factor["source_effective_learning_rate"]
++            or runner.current_learning_iteration != infos["ppo_updates"]
++            or any(infos.get(k) != value for k, value in actual.items())
++            or any(k not in infos or digest(infos[k]) != sha for k, sha in factor["preserved_metadata_sha256"].items())
++            or runner.alg.storage.step != 0 or runner.alg.transition.actions is not None
++            or tuple(runner.alg.storage.actions.shape) != (128, 1, 12)
++            or any(tuple(runner.alg.storage.observations[k].shape) != (128, 1, 439) for k in ("policy", "critic"))):
++        raise RuntimeError("same439 full-state identity or fresh rollout verification failed")
++
++
++def load_rr_retention_migration(runner, checkpoint, *, contract, seed, record):
++    from .semantic_migration import checkpoint_metadata, continuation_topology
++    from .semantic_training import load_semantic_checkpoint, _runner_policy_contract
++    if any(k.endswith("_factor") and k != FACTOR_KEY and v is not None for k, v in record.items()):
++        raise ValueError("same439 reward migration cannot mix another factor")
++    verified = validate_rr_retention_migration(checkpoint, contract, record["plan_path"])
++    metadata = checkpoint_metadata(Path(checkpoint))
++    if (verified != dict(record) or seed != metadata["seed"]
++            or _runner_policy_contract(runner) != verified[FACTOR_KEY]["target_policy_contract"]):
++        raise ValueError("same439 original seed/policy and unchanged verified plan required")
++    infos = load_semantic_checkpoint(runner, Path(checkpoint), contract=metadata["runtime_contract"], seed=seed)
++    _verify_identity(runner, infos, verified[FACTOR_KEY])
++    sampling = "P01_full_task_only_initial_version"
++    return {**infos, "runtime_contract": dict(contract), "resume_migration": verified, MIGRATION: verified,
++        "old_rollout_inherited": False, "physical_env_state_saved": False,
++        "resume_physics": "fresh_legal_reset_not_bitwise_simulator_resume",
++        "sampling": sampling, "stage": "full_episode", "implemented_reset_sampling": sampling,
++        "phase_suffix_curriculum_implemented": False,
++        "curriculum_epoch": {"reset_sampling": sampling, "prefix_request": None},
++        "execution_topology": continuation_topology(sampling, None, observation_layout=REAR_OWNER_OBSERVATION_LAYOUT)}
++
++
++def publish_rr_retention_checkpoint(checkpoint, contract, plan_path, output_checkpoint):
++    from .semantic_migration import checkpoint_metadata, file_sha
++    from .semantic_training import construct_semantic_runner, load_semantic_checkpoint, save_semantic_checkpoint
++    from .semantic_rr_capture_migration import _shape_env
++    source = checkpoint_metadata(Path(checkpoint))
++    record = validate_rr_retention_migration(checkpoint, contract, plan_path)
++    route = source["checkpoint_output_routing"]
++    destination = Path(output_checkpoint).resolve()
++    if (destination.parent != Path(route["output_root"]) / "checkpoints/history" or destination.exists()
++            or destination.with_name(destination.stem + "_manifest.json").exists()):
++        raise ValueError("unique immutable same-branch publication required; never promote latest pointer here")
++    def make():
++        device = source["runner_config"]["device"]
++        return construct_semantic_runner(_shape_env(439, device), seed=source["seed"], device=device,
++            policy_version=REAR_OWNER_POLICY, observation_layout=REAR_OWNER_OBSERVATION_LAYOUT,
++            initialize_actor=False)[0]
++    runner = make()
++    infos = load_rr_retention_migration(runner, checkpoint, contract=contract, seed=source["seed"], record=record)
++    path, sidecar = save_semantic_checkpoint(runner, destination, infos)
++    fresh = make()
++    loaded = load_semantic_checkpoint(fresh, path, contract=contract, seed=source["seed"])
++    _verify_identity(fresh, loaded, record[FACTOR_KEY])
++    validate_rr_retention_lineage(loaded, contract, Path(route["output_root"]), checkpoint_output_routing=route)
++    return dict(checkpoint=str(path), checkpoint_sha256=file_sha(path), manifest=str(sidecar),
++        manifest_sha256=file_sha(sidecar), save_load_round_trip=True, **{k: loaded[k] for k in COUNTERS},
++        rear_policy_timing_branch_counts=loaded["rear_policy_timing_branch_counts"],
++        added_policy_decisions=0, added_ppo_updates=0, added_optimizer_steps=0, added_auxiliary_updates=0)
+*** Update File: src/wlr50_clean/ppo/semantic_training.py
+@@
+                              migration: Mapping[str, Any] | None = None,
+                              warm_start: Mapping[str, Any] | None = None,
+                              policy_migration: Mapping[str, Any] | None = None) -> dict[str, Any]:
++    if migration is not None and migration.get("rr_retention_same439_factor") is not None:
++        if warm_start is not None or policy_migration is not None:
++            raise ValueError("same439 reward continuation cannot mix another migration")
++        from .semantic_rr_retention_migration import load_rr_retention_migration
++        return load_rr_retention_migration(runner, checkpoint, contract=contract, seed=seed, record=migration)
+     if migration is not None and migration.get("rear_owner_append439_factor") is not None:
+         if warm_start is not None or policy_migration is not None:
+             raise ValueError("owner append cannot mix another migration")
+@@
+                     from .semantic_migration import continuation_topology
+                     infos["execution_topology"] = continuation_topology(sampling, prefix_request,
+                         observation_layout=getattr(runner, "_semantic_observation_layout", None))
+-                for key in ("rear_owner_recovery_migration", "cooperative_prep_migration", "p02_progress_migration", "rear_live_swing_migration", "rear_recapture_migration", "rear_policy_timing_migration", "rear_policy_timing_branch",
++                for key in ("rr_retention_reward_migration", "rear_owner_recovery_migration", "cooperative_prep_migration", "p02_progress_migration", "rear_live_swing_migration", "rear_recapture_migration", "rear_policy_timing_migration", "rear_policy_timing_branch",
+                             "new_mdp_warm_start", "new_mdp_origin_global_policy_decisions", "source_stage_requested_decisions",
+                             "new_mdp_initial_action_comparison", "policy_distribution_migration",
+                             "policy_distribution_migration_evidence", "new_mdp_initial_policy_kernel_comparison",
+*** Add File: tests/unit/test_semantic_rr_retention_migration.py
++"""Same439 contract/identity candidates; run model checks only after Isaac exits."""
++from __future__ import annotations
++import copy
++import json
++import os
++from pathlib import Path
++import pytest
++
++from wlr50_clean.ppo import semantic_rr_retention_migration as m
++from wlr50_clean.ppo.semantic_migration import digest, file_sha
++
++ROOT = Path(__file__).resolve().parents[2]
++SOURCE = Path(os.environ.get("WLR_SAME439_SOURCE_CHECKPOINT", str(ROOT /
++    "outputs/ppo_rr_rl_timing_policy_learning_v1/branches/ancestor220544_recapture_v2/"
++    "checkpoints/history/checkpoint_step_000226048.pt")))
++
++
++def source_metadata():
++    return json.loads(SOURCE.with_name(SOURCE.stem + "_manifest.json").read_text(encoding="utf-8"))
++
++
++def target_contract(old):
++    result = copy.deepcopy(old)
++    result["source_git_commit"] = "e" * 40
++    for path in m.ALLOWED:
++        result["files"][path] = file_sha(ROOT / path)
++    result["runtime_content_sha256"] = digest(result["files"])
++    return result
++
++
++def actual_plan():
++    source = source_metadata()
++    target = target_contract(source["runtime_contract"])
++    record = m.build_rr_retention_migration(SOURCE, target, reason="focused actual-source contract test",
++        expected_source_sha256=file_sha(SOURCE),
++        expected_manifest_sha256=file_sha(SOURCE.with_name(SOURCE.stem + "_manifest.json")))
++    return source, target, record
++
++
++def test_actual_learned439_source_dynamic_counts_and_exact_parent():
++    source, target, record = actual_plan()
++    factor = record[m.FACTOR_KEY]
++    assert factor["revision_counter_origin"] == {k: source[k] for k in m.COUNTERS}
++    assert factor["revision_counter_origin"]["global_policy_decisions"] > 225280
++    assert set(record["changed_file_hashes"]) == m.ALLOWED
++    assert m._previous_contract(target, record) == source["runtime_contract"]
++    assert factor["source_policy_contract"] == factor["target_policy_contract"] == source["policy_contract"]
++    assert factor["source_runner_config"] == factor["target_runner_config"] == source["runner_config"]
++    assert factor["source_effective_learning_rate"] == source["optimizer_learning_rate"]
++    assert factor["old_rollout_inherited"] is False
++    migrated = {**copy.deepcopy(source), "runtime_contract": target, m.MIGRATION: record}
++    route = source["checkpoint_output_routing"]
++    m.validate_rr_retention_lineage(migrated, target, Path(route["output_root"]), checkpoint_output_routing=route)
++    assert migrated["rear_owner_recovery_migration"] == source["rear_owner_recovery_migration"]
++    later = copy.deepcopy(migrated)
++    for key, delta in zip(m.COUNTERS, (128, 1, 20), strict=True):
++        later[key] += delta
++    later["stage_requested_decisions"]["full_episode"] += 128
++    from wlr50_clean.ppo.semantic_rear_policy_timing_migration import rear_policy_timing_branch_counts
++    later = rear_policy_timing_branch_counts(later)
++    later["actor_parameter_sha256"] = "a" * 64
++    later["optimizer_state_sha256"] = "b" * 64
++    m.validate_rr_retention_lineage(later, target, Path(route["output_root"]), checkpoint_output_routing=route)
++
++
++@pytest.mark.parametrize("change", ["hash", "sidecar", "physics", "config", "kernel", "missing_path"])
++def test_plan_rejects_unreviewed_change(change):
++    source = source_metadata()
++    target = target_contract(source["runtime_contract"])
++    kwargs = dict(expected_source_sha256=file_sha(SOURCE),
++        expected_manifest_sha256=file_sha(SOURCE.with_name(SOURCE.stem + "_manifest.json")))
++    if change == "hash": kwargs["expected_source_sha256"] = "0" * 64
++    elif change == "sidecar": kwargs["expected_manifest_sha256"] = "0" * 64
++    elif change == "physics": target["physics_hz"] = 119.
++    elif change == "config": target["training_budgets"]["phase_suffix"] += 128
++    elif change == "kernel": target["files"][m.CODE + "semantic_rear_owner_actor.py"] = "0" * 64
++    else: target["files"][m.CODE + "semantic_reward.py"] = source["runtime_contract"]["files"][m.CODE + "semantic_reward.py"]
++    with pytest.raises(ValueError):
++        m.build_rr_retention_migration(SOURCE, target, reason="reject mutation", **kwargs)
++
++
++@pytest.mark.parametrize("change", ["parent", "origin", "route", "count", "stage_usage", "target"])
++def test_lineage_fails_closed(change):
++    source, target, record = actual_plan()
++    row = {**copy.deepcopy(source), "runtime_contract": target, m.MIGRATION: copy.deepcopy(record)}
++    if change == "parent": row["rear_owner_recovery_migration"]["reason"] += " changed"
++    elif change == "origin": row[m.MIGRATION][m.FACTOR_KEY]["revision_counter_origin"]["ppo_updates"] -= 1
++    elif change == "route": row["checkpoint_output_routing"]["branch"] = "wrong"
++    elif change == "count": row["global_policy_decisions"] -= 1
++    elif change == "stage_usage": row["stage_requested_decisions"]["phase_suffix"] -= 1
++    else: target["source_git_commit"] = "0" * 40
++    route = source["checkpoint_output_routing"]
++    with pytest.raises(ValueError):
++        m.validate_rr_retention_lineage(row, target, Path(route["output_root"]), checkpoint_output_routing=route)
++
++
++def test_resume_schema_cli_namespace_and_save_wiring():
++    # AST/read-only routing assertion: actual API/runner checks below complement this.
++    import ast
++    training = ast.parse((ROOT / (m.CODE + "semantic_training.py")).read_text(encoding="utf-8"))
++    loader = next(n for n in training.body if isinstance(n, ast.FunctionDef) and n.name == "load_semantic_checkpoint")
++    trainer = next(n for n in training.body if isinstance(n, ast.FunctionDef) and n.name == "train_semantic")
++    assert m.FACTOR_KEY in {n.value for n in ast.walk(loader) if isinstance(n, ast.Constant) and isinstance(n.value, str)}
++    assert m.MIGRATION in {n.value for n in ast.walk(trainer) if isinstance(n, ast.Constant) and isinstance(n.value, str)}
++    for filename, token in (("semantic_migration.py", m.SCHEMA),
++            ("semantic_cli.py", m.FACTOR_KEY), ("semantic_rear_policy_timing_migration.py", m.MIGRATION)):
++        assert token in (ROOT / (m.CODE + filename)).read_text(encoding="utf-8")
++
++
++@pytest.mark.parametrize("phase", ["P01", "P07"])
++def test_actual_cli_resume_admission_and_preflight_remain439(tmp_path, phase):
++    from wlr50_clean.ppo import semantic_cli as cli
++    source, target, record = actual_plan()
++    plan = tmp_path / "same439_plan.json"
++    plan.write_text(json.dumps(record), encoding="utf-8")
++    runs_root = cli.version_paths("v3", experiment_id=m.EXPERIMENT)[0]
++    args = cli.parser().parse_args(["train", "--run-dir", str(runs_root / "unit_no_physics" / phase),
++        "--expected-head", target["source_git_commit"], "--semantic-version", "v3",
++        "--experiment-id", m.EXPERIMENT, "--checkpoint", str(SOURCE),
++        "--checkpoint-output-branch", m.BRANCH_NAME, "--resume-migration", str(plan),
++        "--stage", "full_episode" if phase == "P01" else "phase_suffix",
++        "--from-phase", phase, "--prefix-source", "frozen_fsm" if phase == "P01" else "successful_nominal",
++        "--seed", str(source["seed"]), "--decisions", "128"])
++    cli.validate_request(args)
++    cli._preflight_checkpoint(args, target)
++    assert args._policy_version == m.REAR_OWNER_POLICY
++    assert args._observation_layout == m.REAR_OWNER_OBSERVATION_LAYOUT
++    assert args._migration_record[m.FACTOR_KEY]["revision_counter_origin"] == {k: source[k] for k in m.COUNTERS}
++    assert args._checkpoint_output_routing == source["checkpoint_output_routing"]
++    assert not args.new_mdp_warm_start
++
++
++@pytest.fixture
++def cpu_state(tmp_path, monkeypatch):
++    # Explicit CPU-only fixture; never instantiate while the physical runner is active.
++    monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "-1")
++    torch = pytest.importorskip("torch")
++    pytest.importorskip("rsl_rl")
++    assert not torch.cuda.is_available(), "run this suite with CUDA_VISIBLE_DEVICES=-1"
++    from wlr50_clean.ppo import semantic_training as t
++    from wlr50_clean.ppo.semantic_rr_capture_migration import _shape_env
++    old_threads, old_rng = torch.get_num_threads(), torch.get_rng_state()
++    torch.set_num_threads(1)
++    def make(env=None):
++        return t.construct_semantic_runner(env or _shape_env(439, "cpu"), seed=1001, device="cpu",
++            policy_version=m.REAR_OWNER_POLICY, observation_layout=m.REAR_OWNER_OBSERVATION_LAYOUT,
++            initialize_actor=False)[0]
++    runner = make()
++    # Deliberately learned/nonzero new17 columns and populated full Adam; append-zero is invalid here.
++    for role in ("actor", "critic"):
++        with torch.no_grad():
++            getattr(runner.alg, role).mlp[0].weight[:, 422:].fill_(.037)
++    for parameter in list(runner.alg.actor.parameters()) + list(runner.alg.critic.parameters()):
++        parameter.grad = torch.ones_like(parameter)
++    runner.alg.optimizer.step(); runner.alg.optimizer.zero_grad()
++    for group in runner.alg.optimizer.param_groups: group["lr"] = 2.25e-5
++    runner.alg.learning_rate = 2.25e-5
++    base = source_metadata()
++    for key in ("checkpoint_path", "checkpoint_sha256", "save_load_round_trip"):
++        base.pop(key, None)
++    runner.current_learning_iteration = base["ppo_updates"]
++    for state in runner.alg.optimizer.state.values(): state["step"].fill_(float(base["optimizer_steps"]))
++    branch = tmp_path / ("ppo_" + m.EXPERIMENT) / "branches" / m.BRANCH_NAME
++    base["checkpoint_output_routing"]["output_root"] = str(branch)
++    path, sidecar = t.save_semantic_checkpoint(runner, branch / "checkpoints/history/source.pt", base)
++    source = json.loads(sidecar.read_text(encoding="utf-8"))
++    target = target_contract(source["runtime_contract"])
++    factor = dict(schema=m.SCHEMA, source_policy_contract=source["policy_contract"], target_policy_contract=source["policy_contract"],
++        source_runner_config=source["runner_config"], target_runner_config=source["runner_config"],
++        source_effective_learning_rate=2.25e-5, parameter_mapping=m.MAPPING,
++        preserved_metadata_sha256={k: digest(source[k]) for k in m._preserved(source)})
++    record = dict(schema=m.SCHEMA, plan_path=str(tmp_path / "plan.json"), **{m.FACTOR_KEY: factor})
++    # These mocks isolate model identity from the real-files/lineage tests above.
++    monkeypatch.setattr(m, "validate_rr_retention_migration", lambda *a, **k: record)
++    monkeypatch.setattr(m, "validate_rr_retention_lineage", lambda *a, **k: record)
++    yield torch, t, runner, make, path, source, target, record, branch
++    torch.set_rng_state(old_rng); torch.set_num_threads(old_threads)
++
++
++def test_full_439_state_publication_and_independent_reload(cpu_state):
++    torch, t, source_runner, make, path, source, target, record, branch = cpu_state
++    output = branch / "checkpoints/history/same439_published.pt"
++    receipt = m.publish_rr_retention_checkpoint(path, target, record["plan_path"], output)
++    assert receipt["added_policy_decisions"] == receipt["added_ppo_updates"] == receipt["added_optimizer_steps"] == 0
++    before, after = [torch.load(p, map_location="cpu", weights_only=False) for p in (path, output)]
++    assert t.state_hash({k: v for k, v in before.items() if k != "infos"}) == t.state_hash({k: v for k, v in after.items() if k != "infos"})
++    fresh = make()
++    loaded = t.load_semantic_checkpoint(fresh, output, contract=target, seed=1001)
++    m._verify_identity(fresh, loaded, record[m.FACTOR_KEY])
++    for key in m._preserved(source): assert loaded[key] == source[key]
++    assert loaded["sampling"] == "P01_full_task_only_initial_version"
++    assert fresh.alg.storage.step == 0 and fresh.alg.transition.actions is None
++    assert tuple(fresh.alg.storage.observations["policy"].shape) == (128, 1, 439)
++    from tensordict import TensorDict
++    x = torch.zeros(1, 439); x[:, 11] = 1.; x[:, 20] = .03; x[:, 412] = 1.
++    obs = TensorDict({"policy": x, "critic": x.clone()}, batch_size=[1])
++    with torch.no_grad():
++        for role in ("actor", "critic"):
++            assert torch.equal(getattr(source_runner.alg, role)(obs), getattr(fresh.alg, role)(obs))
++        raw = torch.full((1, 12), .07)
++        assert torch.equal(source_runner.alg.actor.get_output_log_prob(raw), fresh.alg.actor.get_output_log_prob(raw))
++    assert not (branch / "checkpoints/checkpoint_last_pointer.json").exists()
++    with pytest.raises(ValueError): m.publish_rr_retention_checkpoint(path, target, record["plan_path"], output)
++
++
++@pytest.mark.parametrize("dirty", ["storage", "transition", "seed", "mixed_factor"])
++def test_load_rejects_partial_rollout_and_mixed_boundary(cpu_state, dirty):
++    torch, t, _, make, path, _, target, record, _ = cpu_state
++    runner = make(); seed = 1001; attempt = copy.deepcopy(record)
++    if dirty == "storage": runner.alg.storage.step = 1
++    elif dirty == "transition": runner.alg.transition.actions = torch.zeros(1, 12)
++    elif dirty == "seed": seed = 4001
++    else: attempt["rear_owner_append439_factor"] = {"not": "same439"}
++    with pytest.raises((ValueError, RuntimeError)):
++        t.load_semantic_checkpoint(runner, path, contract=target, seed=seed, migration=attempt)
++
++
++def test_one_fresh_synthetic_update_carries_both_receipts(cpu_state, tmp_path):
++    torch, t, _, make, path, source, target, record, branch = cpu_state
++    from test_semantic_rear_policy_training_audit import Synthetic419Core
++    class Synthetic439Core(Synthetic419Core):
++        def observation(self, raw=(0.,) * 12):
++            return super().observation(raw) + (0.,) * 20
++    env = t.SemanticRslAdapter(Synthetic439Core(), seed=1001, device="cpu")
++    env.cfg["semantic_version"] = "v3"
++    learner = make(env)
++    infos = t.load_semantic_checkpoint(learner, path, contract=target, seed=1001, migration=record)
++    run = tmp_path / "synthetic_only"
++    result = t.train_semantic(learner, env, run_dir=run, output_root=branch,
++        stage="full_episode", decisions=128, contract=target, seed=1001, resume_infos=infos,
++        checkpoint_interval_updates=1, checkpoint_output_routing=source["checkpoint_output_routing"])
++    assert (result["actual_policy_decisions"], result["ppo_updates_this_run"], result["optimizer_steps_this_run"]) == (128, 1, 20)
++    saved = Path(result["checkpoints"][-1]["checkpoint"])
++    manifest = json.loads(saved.with_name(saved.stem + "_manifest.json").read_text(encoding="utf-8"))
++    assert manifest[m.MIGRATION] == record
++    assert manifest["rear_owner_recovery_migration"] == source["rear_owner_recovery_migration"]
++    for key, delta in zip(m.COUNTERS, (128, 1, 20), strict=True): assert manifest[key] == source[key] + delta
++    fresh = make()
++    t.load_semantic_checkpoint(fresh, saved, contract=target, seed=1001)
++    assert t.state_hash(fresh.alg.optimizer.state_dict()) == manifest["optimizer_state_sha256"]
++    rollout_path = next((run / "rollouts").glob("*.pt"))
++    rollout = torch.load(rollout_path, map_location="cpu", weights_only=False)
++    assert tuple(rollout["observations"]["policy"].shape) == (128, 1, 439)
++    assert tuple(rollout["actions"].shape) == (128, 1, 12)
+*** End Patch
