@@ -365,7 +365,8 @@ def build_actuator_target_effect_audit(
                 pause_input = assisted_candidate
             reconstructed_pause = project_continuation_pause(pause_input,actuation.projected_residual_full12,
                 context=pause_context,previous_ack=pause_pre["previous_ack"],
-                previous_tick=pause_pre["previous_tick"],write_count=pause_pre["write_count"])
+                previous_tick=pause_pre["previous_tick"],write_count=pause_pre["write_count"],
+                policy_headroom_mode=policy_headroom_mode)
             if dict(pause_receipt) != reconstructed_pause:
                 raise ValueError("pause receipt differs from independent context/ACK reconstruction")
         except (TypeError,KeyError,ValueError) as exc:
@@ -400,7 +401,8 @@ def build_actuator_target_effect_audit(
             replayed_pause = project_continuation_pause(base_candidate,
                 actuation.projected_residual_full12 if rr_branch == "actual" else (0.,)*12,
                 context=pause_context,previous_ack=pause_pre["previous_ack"],
-                previous_tick=pause_pre["previous_tick"],write_count=pause_pre["write_count"])
+                previous_tick=pause_pre["previous_tick"],write_count=pause_pre["write_count"],
+                policy_headroom_mode=policy_headroom_mode)
             pause_candidate = replayed_pause["candidate_after_full12"]
         for index, name in enumerate(SERVO_ORDER):
             lower, upper = servo_limits_deg(name)

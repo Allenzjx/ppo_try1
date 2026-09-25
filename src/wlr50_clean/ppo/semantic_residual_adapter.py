@@ -312,7 +312,7 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
             context["owned_indices"] = [i for i in context["owned_indices"] if i not in (0,1)]
         receipt = project_continuation_pause(candidate, residual, context=context,
             previous_ack=adapter.last_ack, previous_tick=adapter._last_physics_tick,
-            write_count=adapter.write_count)
+            write_count=adapter.write_count, policy_headroom_mode=policy_headroom_mode)
         pause_targets = tuple(receipt["candidate_after_full12"])
         evidence["continuation_source_pause_evidence"] = receipt
     final_servo = []

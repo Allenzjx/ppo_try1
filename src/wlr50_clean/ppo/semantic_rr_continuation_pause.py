@@ -2,7 +2,8 @@
 
 Only FL hip/knee and RL hip are eligible. RR capture and all wheel/stop targets
 are untouched. A paused axis keeps adjacent FINAL plus the student's requested
-residual change, before the unchanged hard clamp/slew. It does not freeze the
+residual change, projected through enabled original headroom before unchanged
+hard clamp/slew. It does not freeze the
 policy, synthesize support, write nominal history, or advance a second mapper.
 """
 from __future__ import annotations
@@ -59,7 +60,8 @@ def features(context):
     return tuple(float(i in selected) for i in INDICES)
 
 
-def project(candidate, request, *, context, previous_ack, previous_tick, write_count):
+def project(candidate, request, *, context, previous_ack, previous_tick, write_count,
+            policy_headroom_mode=None):
     """Pure replayable target transform from independently captured pre-state."""
     validate_context(context)
     candidate, request = vector(candidate, "candidate"), vector(request, "policy request")
@@ -77,9 +79,28 @@ def project(candidate, request, *, context, previous_ack, previous_tick, write_c
     output = list(candidate)
     for i in indices:
         output[i] = previous_final[i] + request[i] - previous_request[i]
+    unbounded_output = list(output)
+    delta_headroom = None
+    if policy_headroom_mode is not None:
+        from .semantic_headroom import HEADROOM_MODE, project_semantic_servo_headroom
+        if policy_headroom_mode != HEADROOM_MODE:
+            raise ValueError("unknown source pause headroom mode")
+        # This is a change of the requested residual, not a second policy
+        # residual or mapper advance. The committed FINAL is the held baseline.
+        # Preserve original headroom semantics: outside-band zero stays zero,
+        # inward recovery is allowed, and additional outward motion is blocked.
+        requested_delta = [0.] * 12
+        for i in indices:
+            requested_delta[i] = request[i] - previous_request[i]
+        delta_headroom = project_semantic_servo_headroom(
+            native_full12=previous_final, controller_bias_full12=(0.,)*12,
+            projected_residual_full12=requested_delta)
+        projected = delta_headroom["candidate_native_target_before_final_slew_full12"]
+        for i in indices:
+            output[i] = projected[i]
     if any(not math.isfinite(v) for v in output):
         raise ValueError("source pause produced a nonfinite candidate")
-    return dict(mode=MODE, context=copy.deepcopy(dict(context)), pause_indices=list(indices),
+    receipt = dict(mode=MODE, context=copy.deepcopy(dict(context)), pause_indices=list(indices),
         observation_features=list(features(context)),
         previous_ack_physics_tick=previous_tick, previous_ack_write_count=write_count,
         previous_final_full12=list(previous_final), previous_requested_full12=list(previous_request),
@@ -91,3 +112,14 @@ def project(candidate, request, *, context, previous_ack, previous_tick, write_c
         nominal_history_modified=False, second_mapper_advance=False,
         wheel_stop_modified=False, RR_target_modified=False, task_contact_credit=False,
         task_assist=False)
+    if delta_headroom is not None:
+        receipt.update(
+            headroom_delta_projection_revision="adjacent_FINAL_requested_delta_headroom_v1",
+            policy_headroom_mode=policy_headroom_mode,
+            candidate_before_delta_headroom_full12=unbounded_output,
+            requested_policy_change_delta_full12=requested_delta,
+            effective_policy_change_delta_full12=delta_headroom["effective_policy_residual_full12"],
+            delta_headroom_evidence=delta_headroom,
+            delta_semantics="change_of_requested_residual_around_adjacent_FINAL_not_absolute_PPO_residual",
+            target_semantics="adjacent_FINAL_plus_headroom_bounded_requested_delta_before_original_clamp_slew")
+    return receipt
