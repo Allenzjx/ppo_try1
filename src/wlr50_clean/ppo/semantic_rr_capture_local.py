@@ -276,6 +276,8 @@ def save(runner, runtime, prior, counts, *, source_run):
         full_task_success=False, local_task_semantics=settings()['local_terminal'])
     if getattr(runner, 'local_migration', None) is not None:
         infos['local_migration'] = copy.deepcopy(runner.local_migration)
+    if getattr(runner, 'local_control_rebinds', None) is not None:
+        infos['local_control_rebinds'] = copy.deepcopy(runner.local_control_rebinds)
     payload.update(infos=infos, iter=counts['local_ppo_updates'])
     torch.save(payload, target)
     loaded = torch.load(target, map_location=runner.device, weights_only=False)
@@ -317,6 +319,7 @@ def load(runner, path, runtime):
             raise ValueError('actual reloaded state differs: ' + key)
     runner.alg.learning_rate = metadata['learning_rate']
     runner.local_migration = metadata.get('local_migration')
+    runner.local_control_rebinds = copy.deepcopy(metadata.get('local_control_rebinds', []))
     runner.current_learning_iteration = metadata['counts']['local_ppo_updates']
     restore_training_rng_state(metadata['training_rng'], expected_seed=1001)
     runner.checkpoint_load_provenance = {'checkpoint': str(path), 'checkpoint_sha256':sha(path),
@@ -324,6 +327,165 @@ def load(runner, path, runtime):
         'manifest_sha256':sha(path.with_name(path.stem+'_manifest.json')),
         'strict_actual_composite_load_verified':True,'actor_critic_optimizer_hashes_verified':True}
     return metadata['prior'], metadata['counts']
+
+
+SAME448_REBIND_SOURCE_HEAD = '5f8487b76f27eb165a329a0b6f3096f54ebb4d48'
+SAME448_REBIND_REVISION = 'pending_source_tracking_inheritance_v1'
+SAME448_REBIND_FILES = frozenset({
+    'src/wlr50_clean/ppo/semantic_rr_capture_deferred_late.py',
+    'src/wlr50_clean/ppo/semantic_rr_capture_local.py',
+    'configs/ppo_rr_capture_first_cp225280_v1/local_training.json',
+})
+
+
+def validate_same448_rebind_runtime(old, new):
+    """One source-owner bugfix only; ordinary resume remains exact-runtime."""
+    def digest(value, length=64):
+        return (isinstance(value, str) and len(value) == length
+                and all(c in '0123456789abcdef' for c in value))
+    if (old.get('source_git_commit') != SAME448_REBIND_SOURCE_HEAD
+            or not digest(new.get('source_git_commit'), 40)
+            or new['source_git_commit'] == SAME448_REBIND_SOURCE_HEAD):
+        raise ValueError('same448 rebind source/destination HEAD mismatch')
+    allowed = {'source_git_commit', 'runtime_content_sha256', 'files',
+               'local_contract', 'selected_configuration'}
+    if set(old) != set(new) or any(old[k] != new[k] for k in old if k not in allowed):
+        raise ValueError('same448 rebind changed protected runtime/library/physics contract')
+    for runtime in (old, new):
+        files = runtime['files']
+        if not files or any(not digest(v) for v in files.values()):
+            raise ValueError('same448 runtime file digest is invalid')
+        calculated = hashlib.sha256(json.dumps(files, sort_keys=True,
+            separators=(',', ':')).encode()).hexdigest()
+        if runtime['runtime_content_sha256'] != calculated:
+            raise ValueError('same448 runtime inventory digest mismatch')
+        cfg = runtime['local_contract']
+        if (cfg.get('observation_dimension') != 448
+                or cfg.get('schema') != 'wlr50_clean.rr_capture_local_contract.v2'
+                or cfg.get('version') != 'frozen_cp225280_raw_head_plus_local448_lineage_v2'
+                or cfg.get('capture_source_dispatch') !=
+                    'rr_local_defer_p09_late_and_new_p12_until_terminal_v2'):
+            raise ValueError('same448 rebind requires unchanged task/layout/dispatch v2')
+        for name, item in runtime['selected_configuration'].items():
+            if item.get('path') != 'configs/' + NAME + '/' + name:
+                raise ValueError('same448 selected configuration path mismatch')
+            if files.get(item['path']) != item.get('sha256'):
+                raise ValueError('same448 selected configuration hash is not bound to inventory')
+    if set(old['files']) != set(new['files']):
+        raise ValueError('same448 rebind cannot add/remove tracked runtime files')
+    changed = {p for p in old['files'] if old['files'][p] != new['files'][p]}
+    if changed != SAME448_REBIND_FILES:
+        raise ValueError('same448 rebind requires precisely the declared three-file repair')
+    old_cfg, new_cfg = copy.deepcopy(old['local_contract']), copy.deepcopy(new['local_contract'])
+    if ('source_tracking_owner_revision' in old_cfg
+            or new_cfg.pop('source_tracking_owner_revision', None) != SAME448_REBIND_REVISION
+            or old_cfg != new_cfg):
+        raise ValueError('same448 local contract may only add the source-owner revision')
+    old_selected, new_selected = old['selected_configuration'], new['selected_configuration']
+    if set(old_selected) != set(new_selected):
+        raise ValueError('same448 selected configuration membership changed')
+    for name in old_selected:
+        if name != 'local_training.json' and old_selected[name] != new_selected[name]:
+            raise ValueError('same448 selected control/HISTORY configuration changed: ' + name)
+    if 'local_training.json' not in old_selected:
+        raise ValueError('same448 local training configuration is unbound')
+    return {p: {'before': old['files'][p], 'after': new['files'][p]} for p in sorted(changed)}
+
+
+def rebind_checkpoint(runner, path, runtime, *, checkpoint_sha256, manifest_sha256):
+    """Cold same448 control repair: exact loaded state, zero learning credit."""
+    import torch
+    from .semantic_training import state_hash
+    from .rl_library_wrapper import capture_training_rng_state
+    path = Path(path).resolve(strict=True)
+    manifest_path = path.with_name(path.stem + '_manifest.json')
+    for expected in (checkpoint_sha256, manifest_sha256):
+        if (not isinstance(expected, str) or len(expected) != 64
+                or any(c not in '0123456789abcdef' for c in expected)):
+            raise ValueError('rebind requires explicit sealed checkpoint and sidecar SHA256')
+    if sha(path) != checkpoint_sha256 or sha(manifest_path) != manifest_sha256:
+        raise ValueError('same448 rebind sealed input hash mismatch')
+    metadata = json.loads(manifest_path.read_text(encoding='utf-8'))
+    old_runtime = metadata['runtime_contract']
+    changes = validate_same448_rebind_runtime(old_runtime, runtime)
+    if (metadata.get('schema') != SCHEMA or metadata.get('rollout_empty') is not True
+            or metadata.get('save_load_round_trip') is not True
+            or metadata.get('checkpoint_sha256') != checkpoint_sha256
+            or Path(metadata['checkpoint']).resolve(strict=True) != path
+            or metadata.get('front_FL_assist') is not True
+            or metadata.get('rear_task_assists') is not False
+            or metadata.get('local_task_semantics') != settings()['local_terminal']):
+        raise ValueError('same448 rebind requires a sealed complete v2/448 update')
+    if runner.local_configuration != metadata['runner_config']:
+        raise ValueError('same448 rebind runner configuration differs; no implicit device/layout change')
+    expected_keys = {'actor_state_dict', 'critic_state_dict', 'optimizer_state_dict'}
+    if set(metadata['state_hashes']) != expected_keys:
+        raise ValueError('same448 rebind requires all actual actor/critic/Adam state hashes')
+    counts = metadata['counts']
+    if (not counts or any(type(v) is not int or v < 0 for v in counts.values())
+            or counts['local_policy_decisions'] % old_runtime['local_contract']['rollout_length']
+            or counts['local_ppo_updates'] <= 0
+            or counts['task_v2_ppo_updates'] > counts['local_ppo_updates']
+            or counts['task_v2_policy_decisions'] > counts['local_policy_decisions']):
+        raise ValueError('same448 rebind count/boundary mismatch')
+    if runner.alg.storage.step != 0 or runner.alg.transition.actions is not None:
+        raise ValueError('same448 destination rollout is not empty')
+    data = torch.load(path, map_location=runner.device, weights_only=False)
+    if set(data) != expected_keys | {'infos', 'iter'} or data['iter'] != counts['local_ppo_updates']:
+        raise ValueError('same448 checkpoint payload/update boundary mismatch')
+    sidecar_only = {'checkpoint', 'checkpoint_sha256', 'save_load_round_trip'}
+    if set(metadata) - sidecar_only != set(data['infos']):
+        raise ValueError('same448 checkpoint embedded/sidecar metadata membership mismatch')
+    if any(metadata[k] != v for k, v in data['infos'].items()):
+        raise ValueError('same448 checkpoint embedded/sidecar metadata differs')
+    if any(state_hash(data[k]) != h for k, h in metadata['state_hashes'].items()):
+        raise ValueError('same448 serialized actor/critic/Adam hash mismatch')
+    saved_lr = metadata['learning_rate']
+    if (type(saved_lr) not in (float, int) or not math.isfinite(saved_lr) or saved_lr <= 0
+            or not data['optimizer_state_dict']['param_groups']
+            or any(g['lr'] != saved_lr for g in data['optimizer_state_dict']['param_groups'])):
+        raise ValueError('same448 actual Adam LR disagrees with sealed effective LR')
+    optimizer = runner.alg.optimizer
+    parameter_ids = tuple(tuple(id(p) for p in g['params']) for g in optimizer.param_groups)
+    # Reuse strict load under its actual old runtime, not a relaxed resume path.
+    prior, loaded_counts = load(runner, path, old_runtime)
+    if (runner.alg.optimizer is not optimizer
+            or parameter_ids != tuple(tuple(id(p) for p in g['params']) for g in optimizer.param_groups)):
+        raise RuntimeError('same448 rebind replaced actual Adam or its parameter ordering')
+    if loaded_counts != counts or runner.local_migration != metadata.get('local_migration'):
+        raise RuntimeError('same448 rebind changed counts or historical447 migration lineage')
+    if (runner.alg.learning_rate != saved_lr
+            or any(g['lr'] != saved_lr for g in optimizer.param_groups)
+            or any(state_hash(runner.alg.save()[k]) != h for k, h in metadata['state_hashes'].items())):
+        raise RuntimeError('same448 real loaded training state changed')
+    for model in (runner.alg.actor, runner.alg.actor.frozen_prior, runner.alg.critic):
+        if type(model.obs_normalizer) is not torch.nn.Identity:
+            raise RuntimeError('same448 rebind changed Identity normalizer')
+    if capture_training_rng_state(seed=1001) != metadata['training_rng']:
+        raise RuntimeError('same448 rebind did not preserve full training RNG')
+    if runner.alg.storage.step != 0 or runner.alg.transition.actions is not None:
+        raise RuntimeError('same448 rebind retained a previous rollout')
+    if sha(path) != checkpoint_sha256 or sha(manifest_path) != manifest_sha256:
+        raise RuntimeError('same448 sealed inputs changed while loading')
+    history = copy.deepcopy(metadata.get('local_control_rebinds', []))
+    if not isinstance(history, list):
+        raise ValueError('same448 control rebind lineage must be a list')
+    history.append({'schema': 'wlr50_clean.same448_control_rebind.v1',
+        'source_tracking_owner_revision': SAME448_REBIND_REVISION,
+        'source_checkpoint': str(path), 'source_checkpoint_sha256': checkpoint_sha256,
+        'source_manifest': str(manifest_path), 'source_manifest_sha256': manifest_sha256,
+        'source_head': old_runtime['source_git_commit'], 'destination_head': runtime['source_git_commit'],
+        'source_runtime_sha256': old_runtime['runtime_content_sha256'],
+        'destination_runtime_sha256': runtime['runtime_content_sha256'], 'changed_files': changes,
+        'preserved_state_hashes': copy.deepcopy(metadata['state_hashes']),
+        'source_counts': copy.deepcopy(counts), 'destination_counts': copy.deepcopy(counts),
+        'actual_adam_preserved': True, 'effective_learning_rate': saved_lr,
+        'identity_normalizers_preserved': True, 'full_rng_restored': True,
+        'rollout_empty': True, 'old_rollout_reused': False,
+        'new_policy_decisions': 0, 'new_ppo_updates': 0, 'new_optimizer_steps': 0,
+        'new_auxiliary_updates': 0, 'rear_task_assists': False})
+    runner.local_control_rebinds = history
+    return prior, copy.deepcopy(counts)
 
 
 def migrate_checkpoint(runner, path):
@@ -593,6 +755,7 @@ def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False):
                 'rear_owner_projection':False,'ignored_legacy_sampling_profile':True,
                 'control_contributions':{'policy_version':settings()['version'], 'observation_dimension':448,
                     'capture_source_dispatch':settings()['capture_source_dispatch'],
+                    'source_tracking_owner_revision':settings()['source_tracking_owner_revision'],
                     'local_branch_counters':dict(counts), 'frozen_prior':prior,
                     'FL_capture_assist_mode':'p05_hip_only_continuation_v1',
                     'rear_owner_projection':False,'rr_capture_assist_mode':None,
@@ -615,10 +778,12 @@ def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode',choices=('initialize','migrate','diagnostic','train','eval'))
+    parser.add_argument('mode',choices=('initialize','migrate','rebind','diagnostic','train','eval'))
     parser.add_argument('--expected-head',required=True)
     parser.add_argument('--run-dir',type=Path,required=True)
     parser.add_argument('--checkpoint',type=Path)
+    parser.add_argument('--checkpoint-sha256')
+    parser.add_argument('--manifest-sha256')
     parser.add_argument('--decisions',type=int,default=2048)
     parser.add_argument('--device',default='cuda:0')
     args=parser.parse_args()
@@ -634,13 +799,18 @@ def main():
         import torch
         import tensordict
         from .rl_library_wrapper import seed_training_rngs
-        if args.mode not in ('initialize','migrate'):
+        if args.mode not in ('initialize','migrate','rebind'):
             from isaaclab.app import AppLauncher
             app=AppLauncher(headless=args.mode=='train',enable_cameras=False).app
             app.update()
         seed_training_rngs(1001)
         runner=make_runner(args.device,1001)
-        if args.mode=='migrate':
+        if args.mode=='rebind':
+            if not args.checkpoint:
+                raise ValueError('same448 rebind requires the latest sealed complete checkpoint')
+            prior,counts=rebind_checkpoint(runner,args.checkpoint,runtime,
+                checkpoint_sha256=args.checkpoint_sha256, manifest_sha256=args.manifest_sha256)
+        elif args.mode=='migrate':
             if not args.checkpoint:
                 raise ValueError('migration requires the sealed previous complete checkpoint')
             prior,counts=migrate_checkpoint(runner,args.checkpoint)
@@ -651,7 +821,7 @@ def main():
             counts=dict(local_policy_decisions=0,local_ppo_updates=0,local_optimizer_steps=0,
                 prefix_decisions=0,capture_opportunities=0,local_successes=0,completed_local_episodes=0,
                 auxiliary_updates=0, task_v2_policy_decisions=0, task_v2_ppo_updates=0)
-        if args.mode in ('initialize','migrate'): result=save(runner,runtime,prior,counts,source_run=run)
+        if args.mode in ('initialize','migrate','rebind'): result=save(runner,runtime,prior,counts,source_run=run)
         else:
             core=build_core(app)
             if args.mode=='train': result=train(core,runner,runtime,prior,counts,run,args.decisions)
