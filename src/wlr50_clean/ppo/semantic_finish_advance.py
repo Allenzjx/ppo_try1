@@ -402,6 +402,10 @@ def main():
         started_utc=datetime.now(timezone.utc).isoformat()))
     app=None
     try:
+        # Retain the accepted Windows native-extension import order: importing
+        # tensordict's C extension after Kit may crash before any episode.
+        import torch
+        import tensordict
         from .rl_library_wrapper import seed_training_rngs
         if args.mode!='migrate':
             from isaaclab.app import AppLauncher
