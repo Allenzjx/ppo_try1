@@ -592,7 +592,7 @@ class TaskEvaluator:
     """
 
     def __init__(self, task_spec_path: Path | str = DEFAULT_TASK_SPEC_PATH, *, spec: Mapping[str, Any] | None = None,
-                 finish_recovery_enabled: bool = False):
+                 finish_recovery_enabled: bool = False, finish_advance_config=None):
         self.spec = dict(spec) if spec is not None else load_task_spec(task_spec_path)
         version = self.spec.get("physical_acceptance_version")
         if version not in (None, "all_stage_v1"):
@@ -601,6 +601,12 @@ class TaskEvaluator:
         if type(finish_recovery_enabled) is not bool or (finish_recovery_enabled and not self._all_stage):
             raise ValueError("finish recovery requires explicit bool and all-stage physical acceptance")
         self._finish_recovery_enabled = finish_recovery_enabled
+        self._requested_finish = None
+        if finish_advance_config is not None:
+            if not self._all_stage:
+                raise ValueError("requested finish requires all-stage physical acceptance")
+            from .semantic_finish_advance_task import FinishAdvanceTracker
+            self._requested_finish = FinishAdvanceTracker(finish_advance_config)
         self._finish_settle_pending = False
         self._finish_endpoint_missed = False
         self._finish_endpoint_miss = None
@@ -679,6 +685,15 @@ class TaskEvaluator:
                 finish_endpoint_miss=dict(self._finish_endpoint_miss) if self._finish_endpoint_miss else None,
                 finish_clean_since_s=self._finish_clean_since,
                 finish_clean_restarts=self._finish_clean_restarts)
+        if self._requested_finish is not None:
+            requested = self._requested_finish.snapshot(self.spec["final"], self.spec["episode_maximum_duration_s"])
+            # Numerical/sensor failures can return before normal finish
+            # observation. Expose the authoritative failure without inventing
+            # another control opportunity or replacing its committed cause.
+            requested.update(termination_reason=self._failure,
+                requested_finish_completed=bool(requested["requested_finish_completed"] and self._failure is None))
+            result["requested_finish"] = requested
+            result["evaluation_timing_version"] = requested["mode_version"]
         if self._soft_air_progress_enabled and "current_legs" in result:
             result["current_legs"]={leg:{**row,
                 "soft_air_actuation_earned":self._soft_air_actuation_earned[leg],
@@ -1136,7 +1151,9 @@ class TaskEvaluator:
             self._all_stage_finish(now=now, current=current, body_bounds=body_bounds,
                 front=front, back=back, left=left, right=right,
                 base_linear=base_linear, base_angular=base_angular,
-                speeds=speeds, commands=commands, old_controlled=controlled)
+                speeds=speeds, commands=commands, old_controlled=controlled,
+                base_position=base_position, geometry_bounds=_get(observation, "body_bounds_w_m", {}),
+                final_servo=joint_targets)
         if self._transfer_tracker is not None:
             self._snapshot["transfer_roles"] = self._transfer_tracker.observe(observation, self.snapshot)
         self._last_tick, self._last_time = tick, now
@@ -1248,7 +1265,8 @@ class TaskEvaluator:
             durations_are_diagnostic_only=True, **free_diagnostic)
 
     def _all_stage_finish(self, *, now, current, body_bounds, front, back, left, right,
-                          base_linear, base_angular, speeds, commands, old_controlled):
+                          base_linear, base_angular, speeds, commands, old_controlled,
+                          base_position=None, geometry_bounds=None, final_servo=None):
         final, geo = self.spec["final"], self.spec["geometry"]
         low, high = body_bounds
         tolerance = geo["xy_measurement_tolerance_m"]
@@ -1269,6 +1287,60 @@ class TaskEvaluator:
         event_now = bool(self._failure is None and evidence_ok and history_complete and region)
         if event_now and self._traversal_event_time is None:
             self._traversal_event_time = now
+        if self._requested_finish is not None:
+            requested = self._requested_finish.observe(tick=self._snapshot["physics_tick"], now=now,
+                base_position=base_position, current=current, history=self._history,
+                body_bounds=geometry_bounds, front=front, back=back, final_servo=final_servo,
+                home_error=self._snapshot["home_maximum_servo_error_deg"],
+                support=support, region=region, evidence_ok=evidence_ok,
+                measured_controlled=measured_controlled,
+                commands_controlled=max(map(abs, commands)) <= final["maximum_commanded_wheel_speed_rad_s"],
+                failure=self._failure, final=final, episode_limit=self.spec["episode_maximum_duration_s"])
+            if requested["active"]:
+                # This opt-in replaces only the finish timing AFTER qualified
+                # real RL TOP. Never run legacy fixed-endpoint logic and then
+                # erase a failure/success in a downstream wrapper.
+                if self._failure is None and now >= self.spec["episode_maximum_duration_s"]:
+                    self._fail(TaskResult.INCOMPLETE_CONTROLLER_BLOCKED, "global finite task deadline during requested finish")
+                    self._termination_source = "GLOBAL_FINITE_TASK_DEADLINE"
+                if requested["clean_since_s"] is not None and self._completion_observation_since is None:
+                    self._completion_observation_since = requested["clean_since_s"]
+                if self._completion_observation_since is not None and not region:
+                    self._post_completion_loss = True
+                if self._post_completion_loss and self._failure is None:
+                    self._fail(TaskResult.INCOMPLETE_CONTROLLER_BLOCKED, "requested completion lost platform region during controlled settling")
+                    self._termination_source = "POST_COMPLETION_LOSS"
+                success = bool(requested["requested_finish_completed"] and self._failure is None
+                               and not self._post_completion_loss)
+                home_controlled = bool(measured_controlled and requested["current_home_within_tolerance"]
+                    and max(map(abs, commands)) <= final["maximum_commanded_wheel_speed_rad_s"])
+                observed = requested["clean_elapsed_s"]
+                self._snapshot.update(evaluator_version="all_stage_v1", run_validity="VALID",
+                    physical_evidence_status="VERIFIED" if evidence_ok else "CONTACT_BEARING_UNVERIFIED",
+                    traversal_event_observed=self._traversal_event_time is not None,
+                    traversal_event_time_s=self._traversal_event_time,
+                    traversal_task_complete=bool(event_now), task_completed_controlled=success,
+                    traversal_contacts_complete=history_complete,
+                    post_RL_forward_completed=requested["post_RL_forward_completed"],
+                    home_recovery_completed=requested["home_recovery_completed"],
+                    controlled_settle_completed=success, requested_finish_completed=success,
+                    body_traversal_geometry=dict(valid=True, minimum_w_m=low, maximum_w_m=high,
+                        whole_body_in_platform_region=body_through,
+                        outside_platform_distance_m=math.hypot(outside_x, outside_y)),
+                    final_region_valid=region, final_controlled=home_controlled, final_support_available=support,
+                    strict_recovery_quality=dict(passed=success, controlled_stop=home_controlled,
+                        stable_for_s=observed,
+                        commanded_wheels_within_tolerance=max(map(abs, commands)) <= final["maximum_commanded_wheel_speed_rad_s"],
+                        home_error_deg=self._snapshot["home_maximum_servo_error_deg"]),
+                    post_completion_observation_s=observed,
+                    post_completion_observation_started=self._completion_observation_since is not None,
+                    post_completion_elapsed_s=min(observed, final["post_completion_observation_s"]),
+                    post_completion_observation_complete=success, post_completion_loss_observed=self._post_completion_loss,
+                    final_stable_for_s=min(observed, final["post_completion_observation_s"]),
+                    success=success, termination_reason=self._failure, reason=self._failure_reason,
+                    termination_source=self._termination_source or ("REQUESTED_ADVANCE_HOME_SETTLE_COMPLETE" if success else None),
+                    crossing_contact_evidence="active_attempt_plus_surface_contact_or_air_geometry_v1")
+                return
         controlled_now = bool(event_now and measured_controlled and support)
         if controlled_now and self._completion_observation_since is None:
             self._completion_observation_since = now

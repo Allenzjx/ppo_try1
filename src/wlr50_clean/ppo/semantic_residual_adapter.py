@@ -353,7 +353,8 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
         for target, bias in zip(corrected_native[8:], effective_combined[8:], strict=True))
     if post_rr_targets is not None:
         final_wheels = tuple(max(-WHEEL_VELOCITY_LIMIT_RAD_S,
-            min(WHEEL_VELOCITY_LIMIT_RAD_S, post_rr_targets[i] if i in (8,9) else final_wheels[i-8]))
+            min(WHEEL_VELOCITY_LIMIT_RAD_S, post_rr_targets[i]
+                if i in evidence["post_rr_front_preparation_evidence"]["owner_indices"] else final_wheels[i-8]))
             for i in range(8,12))
     if rr_carry_wheel_context is not None:
         from .semantic_rr_carry_wheel import project_rr_carry_wheels

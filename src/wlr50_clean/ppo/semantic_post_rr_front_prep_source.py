@@ -62,6 +62,11 @@ def make_context(state, *, dispatch_physics_tick, physics_hz=120.,
         post_rr_current_rl_swing=False,
         knee_rate_deg_s=state.get("post_rr_knee_rate_deg_s", knee_rate_deg_s),
         wheel_rate_rad_s2=min(state.get("post_rr_wheel_rate_rad_s2", wheel_rate_rad_s2), wheel_rate_rad_s2))
+    finish = state.get("finish_context")
+    if isinstance(finish, Mapping) and finish.get("active") is True:
+        from .semantic_finish_advance_source import validate_context as validate_finish_context
+        validate_finish_context(finish)
+        context["finish_context"] = deepcopy(dict(finish))
     validate_context(context)
     return context
 
@@ -112,6 +117,12 @@ the incoming candidate. The same transform applies to actual/zero-policy audit
 branches, with identical committed reference and task state.
     """
     validate_context(context)
+    if isinstance(context.get("finish_context"), Mapping) and context["finish_context"].get("active") is True:
+        from .semantic_finish_advance_source import final_reference_candidate as finish_candidate
+        return finish_candidate(candidate, native_full12=native_full12,
+            controller_full12=controller_full12, residual_full12=residual_full12,
+            context=context, previous_ack=previous_ack, previous_tick=previous_tick,
+            write_count=write_count, policy_headroom_mode=policy_headroom_mode)
     candidate = vector(candidate, "candidate")
     native = vector(native_full12, "native")
     controller = vector(controller_full12, "controller")

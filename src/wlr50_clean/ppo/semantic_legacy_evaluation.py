@@ -55,12 +55,15 @@ class PhysicalEvaluationRecorder:
     """Same independent evaluator; no controller success label is substituted."""
     def __init__(self, run_dir: Path | str, *, task_spec_path: Path | str | None = None,
                  quality_score_path: Path | str | None = None,
-                 finish_recovery_enabled: bool = False):
+                 finish_recovery_enabled: bool = False, finish_advance_config=None):
         self.run_dir = Path(run_dir)
-        self.evaluator = (TaskEvaluator(finish_recovery_enabled=finish_recovery_enabled)
+        self.evaluator = (TaskEvaluator(finish_recovery_enabled=finish_recovery_enabled,
+                                       finish_advance_config=finish_advance_config)
                           if task_spec_path is None else TaskEvaluator(task_spec_path,
-                              finish_recovery_enabled=finish_recovery_enabled))
+                              finish_recovery_enabled=finish_recovery_enabled,
+                              finish_advance_config=finish_advance_config))
         self.finish_recovery_enabled = finish_recovery_enabled
+        self.finish_advance_enabled = finish_advance_config is not None
         self.metrics = (SemanticMetricsAccumulator() if quality_score_path is None
                         else SemanticMetricsAccumulator(quality_score_path))
         self._streams = {name: (self.run_dir / name).open("x", encoding="utf-8") for name in (
@@ -142,6 +145,7 @@ class PhysicalEvaluationRecorder:
                 "evaluation_timing_schema": "wlr50_clean.physical_evaluation_timing.v2",
                 "evaluation_timing_version": ev.get("evaluation_timing_version", "original_task_spec_timing"),
                 "finish_recovery_enabled": self.finish_recovery_enabled,
+                "finish_advance_enabled": self.finish_advance_enabled,
                 "metric_coverage": {
                     "version": "all_observed_physical_intervals_v2",
                     "end_time_s": self._last_frame.sim_time_s,

@@ -462,7 +462,7 @@ def build_actuator_target_effect_audit(
         # Full12Command owns hard wheel limits; build_physical_batch owns all
         # standing offsets, joint signs, and degree-to-radian conversion.
         candidate = Full12Command(tuple(servo), tuple(post_rr_candidate[index]
-            if post_rr_candidate is not None and index in (8,9) else native_targets[index] + bias[index]
+            if post_rr_candidate is not None and index in replayed_post_rr["owner_indices"] else native_targets[index] + bias[index]
             for index in range(8, 12))).clamped().to_full12()
         if rr_carry_wheel_context is not None:
             reconstructed = project_rr_carry_wheels(candidate, context=rr_carry_wheel_context,

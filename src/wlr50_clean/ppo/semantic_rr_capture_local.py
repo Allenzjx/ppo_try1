@@ -873,7 +873,8 @@ def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False, *, rou
     recorder=ActiveViewportVideoRecorder(source)
     physical=PhysicalEvaluationRecorder(source,task_spec_path=eval_config/'stage_task_spec.yaml',
                                         quality_score_path=eval_config/'quality_score.yaml',
-                                        finish_recovery_enabled=eval_cfg.get('finish_recovery',{}).get('enabled',False))
+                                        finish_recovery_enabled=eval_cfg.get('finish_recovery',{}).get('enabled',False),
+                                        finish_advance_config=eval_cfg.get('requested_finish'))
     physical.start(core.frame)
     heights=HeightDiagnostics(source,backend); heights.start(core.frame)
     for _ in range(3): backend.render_video_frame()
