@@ -337,6 +337,7 @@ class SemanticIsaacBackend(IsaacFSMBackend):
         # Per-dispatch audit input, not hidden controller memory. Clear it even
         # when this write has no policy plan or is a frozen reset prefix.
         adapter._semantic_continuation_pause_pre_dispatch = None
+        adapter._semantic_post_rr_prep_pre_dispatch = None
         plan = self._semantic_actuation_plan
         if plan is not None:
             from .semantic_residual_adapter import SemanticActuationDispatch
@@ -407,6 +408,7 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                     context=copy.deepcopy(owner_context), previous_ack=copy.deepcopy(adapter.last_ack))
             adapter = SemanticActuationDispatch(adapter, plan, nominal_geometry_context=geometry,
                 continuation_pause_context=self._prepare_continuation_pause_audit(adapter, physics_tick),
+                post_rr_preparation_context=self._prepare_post_rr_prep_audit(adapter, physics_tick),
                 policy_headroom_mode=getattr(self, "_policy_headroom_mode", None),
                 tracking_reference_mode=getattr(self, "_tracking_reference_mode", None),
                 tracking_reference_bootstrap_tick=SETTLE_TICKS + self._reset_prime_tick_count,
@@ -426,6 +428,30 @@ class SemanticIsaacBackend(IsaacFSMBackend):
                     "state": self._rr_capture_assist.snapshot(),
                 }
         return ack
+
+    def _prepare_post_rr_prep_audit(self, adapter, physics_tick):
+        if getattr(self._controller, "mode", None) in ("TEACHER", "TAKEOVER"):
+            return None
+        active = getattr(self._controller, "_semantic", None) or self._controller
+        reader = getattr(active.nominal_provider, "post_rr_preparation_inputs", None)
+        if reader is None:
+            return None
+        state = reader()
+        if not state["post_rr_active"]:
+            return None  # Exact accepted pre-touch controller path.
+        from .semantic_post_rr_front_prep_source import make_context
+        import copy
+        context = make_context(state, dispatch_physics_tick=physics_tick,
+            physics_hz=1. / adapter.physics_dt_s,
+            wheel_rate_rad_s2=self.execution_profile["residual"]["wheel_rate_rad_s2"])
+        from .semantic_rr_continuation_pause import paused_indices
+        pause_context = self._continuation_pause_context(physics_tick)
+        context["post_rr_source_pause_indices"] = list(paused_indices(pause_context)) if pause_context else []
+        context["post_rr_current_rl_swing"] = bool(pause_context and pause_context["rl_current_swing"])
+        adapter._semantic_post_rr_prep_pre_dispatch = dict(context=copy.deepcopy(context),
+            previous_ack=copy.deepcopy(adapter.last_ack), previous_tick=adapter._last_physics_tick,
+            write_count=adapter.write_count)
+        return context
 
     def _continuation_pause_context(self, physics_tick):
         if (not getattr(self, "_continuation_source_pause_enabled", False)

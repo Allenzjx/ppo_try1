@@ -372,6 +372,19 @@ def build_actuator_target_effect_audit(
         except (TypeError,KeyError,ValueError) as exc:
             raise ActuatorTargetEffectError(str(exc)) from exc
 
+    post_rr_receipt = raw_ack.get("post_rr_front_preparation_evidence")
+    post_rr_pre = getattr(adapter, "_semantic_post_rr_prep_pre_dispatch", None)
+    if post_rr_pre is None:
+        if post_rr_receipt is not None:
+            raise ActuatorTargetEffectError("unexpected post-RR preparation receipt")
+    else:
+        from .semantic_post_rr_front_prep_source import final_reference_candidate
+        if (not isinstance(post_rr_receipt, Mapping)
+                or tuple(post_rr_pre["previous_ack"]["drive_target_full12"][:8]) != previous
+                or post_rr_pre["previous_tick"] + 1 != raw_ack["physics_tick"]):
+            raise ActuatorTargetEffectError("post-RR preparation differs from independent pre-dispatch state")
+    post_rr_replayed_branches = {}
+
     def physical_targets(bias: Sequence[float], native_targets: Sequence[float] = corrected_native,
                          *, verify_wheel_receipt: bool = False, rr_branch: str = "zero_current_policy") -> Any:
         servo = []
@@ -404,6 +417,27 @@ def build_actuator_target_effect_audit(
                 previous_tick=pause_pre["previous_tick"],write_count=pause_pre["write_count"],
                 policy_headroom_mode=policy_headroom_mode)
             pause_candidate = replayed_pause["candidate_after_full12"]
+        post_rr_candidate = None
+        if post_rr_pre is not None:
+            import json
+            base_candidate = tuple(a+b for a,b in zip(native_targets,bias,strict=True))
+            for transformed in (assisted, owner_candidate, pause_candidate):
+                if transformed is not None:
+                    base_candidate = transformed
+            try:
+                replayed_post_rr = final_reference_candidate(base_candidate,
+                    native_full12=native_targets, controller_full12=controller_bias,
+                    residual_full12=actuation.projected_residual_full12 if rr_branch == "actual" else (0.,)*12,
+                    context=post_rr_pre["context"], previous_ack=post_rr_pre["previous_ack"],
+                    previous_tick=post_rr_pre["previous_tick"], write_count=post_rr_pre["write_count"],
+                    policy_headroom_mode=policy_headroom_mode)
+            except (TypeError,KeyError,ValueError) as exc:
+                raise ActuatorTargetEffectError(f"invalid post-RR reference reconstruction: {exc}") from exc
+            if rr_branch == "actual" and json.dumps(replayed_post_rr,sort_keys=True,allow_nan=False) != json.dumps(
+                    dict(post_rr_receipt),sort_keys=True,allow_nan=False):
+                raise ActuatorTargetEffectError("post-RR preparation receipt differs from independent reconstruction")
+            post_rr_candidate = replayed_post_rr["candidate_after_full12"]
+            post_rr_replayed_branches[rr_branch] = replayed_post_rr
         for index, name in enumerate(SERVO_ORDER):
             lower, upper = servo_limits_deg(name)
             native_target, effective_bias = native_targets[index], bias[index]
@@ -415,6 +449,8 @@ def build_actuator_target_effect_audit(
                 native_target, effective_bias = owner_candidate[index], 0.
             if pause_candidate is not None and index in pause_receipt["pause_indices"]:
                 native_target, effective_bias = pause_candidate[index], 0.
+            if post_rr_candidate is not None and index in replayed_post_rr["owner_indices"]:
+                native_target, effective_bias = post_rr_candidate[index], 0.
             servo.append(bounded_drive_feedback_step(
                 previous_deg=previous[index],
                 native_deg=native_target,
@@ -425,7 +461,8 @@ def build_actuator_target_effect_audit(
             ))
         # Full12Command owns hard wheel limits; build_physical_batch owns all
         # standing offsets, joint signs, and degree-to-radian conversion.
-        candidate = Full12Command(tuple(servo), tuple(native_targets[index] + bias[index]
+        candidate = Full12Command(tuple(servo), tuple(post_rr_candidate[index]
+            if post_rr_candidate is not None and index in (8,9) else native_targets[index] + bias[index]
             for index in range(8, 12))).clamped().to_full12()
         if rr_carry_wheel_context is not None:
             reconstructed = project_rr_carry_wheels(candidate, context=rr_carry_wheel_context,
@@ -561,6 +598,14 @@ def build_actuator_target_effect_audit(
             policy_request_execution_semantics="raw_sample_unchanged_declared_source_pause_allows_requested_delta",
             all12_policy_channels_unmodified_at_actuator=bool(
                 result.get("all12_policy_channels_unmodified_at_actuator",True) and not pause_receipt["pause_indices"]))
+    if post_rr_receipt is not None:
+        result.update(post_rr_front_preparation_evidence=dict(post_rr_receipt),
+            post_rr_preparation_context_and_ACK_independently_verified=True,
+            post_rr_preparation_native_targets_independently_reconstructed=True,
+            post_rr_preparation_branch_replays=post_rr_replayed_branches,
+            counterfactual_scope="same_pre_tick_state_same_post_RR_reference_without_current_ppo_REQUEST",
+            policy_request_execution_semantics="raw_sample_unchanged_observed_post_touch_reference_rebase_and_preparation",
+            all12_policy_channels_unmodified_at_actuator=False)
     if geometry_enabled:
         # Remove geometry only in this third, zero-current-policy branch.
         # The existing actual-minus-counterfactual fields remain PPO-only.

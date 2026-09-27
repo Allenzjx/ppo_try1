@@ -100,7 +100,8 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
                             rr_carry_wheel_context: Mapping[str, Any] | None = None,
                             rear_owner_recovery: Any = None,
                             rear_owner_context: Mapping[str, Any] | None = None,
-                            continuation_pause_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
+                            continuation_pause_context: Mapping[str, Any] | None = None,
+                            post_rr_preparation_context: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Dispatch independent policy residual without treating it as tracking bias."""
     # Keep the original controller envelope, including for the exact-zero path.
     controller = _full12_drive_feedback_bias(controller_bias_full12)
@@ -149,7 +150,8 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
         any(tracking_reference["previous_requested_full12"][:8]))
     if (not any(residual) and nominal_geometry_context is None and not reference_history_nonzero
             and capture_assist is None and rr_capture_assist is None and rr_carry_wheel_context is None
-            and rear_owner_recovery is None and continuation_pause_context is None):
+            and rear_owner_recovery is None and continuation_pause_context is None
+            and post_rr_preparation_context is None):
         ack = adapter.apply_full12(command, physics_tick=physics_tick,
             tracking_servo_names=tracking_servo_names, drive_feedback_bias_full12=controller)
         if policy_headroom_mode is not None:
@@ -315,6 +317,20 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
             write_count=adapter.write_count, policy_headroom_mode=policy_headroom_mode)
         pause_targets = tuple(receipt["candidate_after_full12"])
         evidence["continuation_source_pause_evidence"] = receipt
+    post_rr_targets = None
+    if post_rr_preparation_context is not None:
+        from .semantic_post_rr_front_prep_source import final_reference_candidate
+        candidate = tuple(a+b for a,b in zip(corrected_native, effective_combined, strict=True))
+        for transformed in (assist_targets, rr_assist_targets, owner_targets, pause_targets):
+            if transformed is not None:
+                candidate = transformed
+        receipt = final_reference_candidate(candidate, native_full12=corrected_native,
+            controller_full12=controller, residual_full12=residual,
+            context=post_rr_preparation_context, previous_ack=adapter.last_ack,
+            previous_tick=adapter._last_physics_tick, write_count=adapter.write_count,
+            policy_headroom_mode=policy_headroom_mode)
+        post_rr_targets = tuple(receipt["candidate_after_full12"])
+        evidence["post_rr_front_preparation_evidence"] = receipt
     final_servo = []
     for index, (name, target, bias) in enumerate(zip(SERVO_ORDER, corrected_native[:8], effective_combined[:8], strict=True)):
         if assist_targets is not None and index in evidence["capture_assist_evidence"]["owner_indices"]:
@@ -325,6 +341,8 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
             target, bias = owner_targets[index], 0.
         if pause_targets is not None and index in evidence["continuation_source_pause_evidence"]["pause_indices"]:
             target, bias = pause_targets[index], 0.
+        if post_rr_targets is not None and index in evidence["post_rr_front_preparation_evidence"]["owner_indices"]:
+            target, bias = post_rr_targets[index], 0.
         lower, upper = servo_limits_deg(name)
         final_servo.append(bounded_drive_feedback_step(
             previous_deg=adapter._final_drive_servo_deg[name], native_deg=target,
@@ -333,6 +351,10 @@ def apply_semantic_residual(adapter: Any, command: Sequence[float], *,
     final_wheels = tuple(max(-WHEEL_VELOCITY_LIMIT_RAD_S,
         min(WHEEL_VELOCITY_LIMIT_RAD_S, target + bias))
         for target, bias in zip(corrected_native[8:], effective_combined[8:], strict=True))
+    if post_rr_targets is not None:
+        final_wheels = tuple(max(-WHEEL_VELOCITY_LIMIT_RAD_S,
+            min(WHEEL_VELOCITY_LIMIT_RAD_S, post_rr_targets[i] if i in (8,9) else final_wheels[i-8]))
+            for i in range(8,12))
     if rr_carry_wheel_context is not None:
         from .semantic_rr_carry_wheel import project_rr_carry_wheels
         if rr_carry_wheel_context.get("dispatch_physics_tick") != tick:
@@ -418,7 +440,8 @@ class SemanticActuationDispatch:
                  rr_capture_assist: Any = None, rr_capture_assist_context: Mapping[str, Any] | None = None,
                  rr_carry_wheel_context: Mapping[str, Any] | None = None,
                  rear_owner_recovery: Any = None, rear_owner_context: Mapping[str, Any] | None = None,
-                 continuation_pause_context: Mapping[str, Any] | None = None):
+                 continuation_pause_context: Mapping[str, Any] | None = None,
+                 post_rr_preparation_context: Mapping[str, Any] | None = None):
         self.adapter, self.plan = adapter, plan
         self.nominal_geometry_context = nominal_geometry_context
         self.policy_headroom_mode = policy_headroom_mode
@@ -432,6 +455,7 @@ class SemanticActuationDispatch:
         self.rear_owner_recovery = rear_owner_recovery
         self.rear_owner_context = rear_owner_context
         self.continuation_pause_context = continuation_pause_context
+        self.post_rr_preparation_context = post_rr_preparation_context
 
     def __getattr__(self, name):
         return getattr(self.adapter, name)
@@ -452,4 +476,5 @@ class SemanticActuationDispatch:
             rr_capture_assist=self.rr_capture_assist, rr_capture_assist_context=self.rr_capture_assist_context,
             rr_carry_wheel_context=self.rr_carry_wheel_context,
             rear_owner_recovery=self.rear_owner_recovery, rear_owner_context=self.rear_owner_context,
-            continuation_pause_context=self.continuation_pause_context)
+            continuation_pause_context=self.continuation_pause_context,
+            post_rr_preparation_context=self.post_rr_preparation_context)

@@ -844,10 +844,22 @@ def diagnostic_request(core, prior_raw, entry, elapsed, captured_targets=None):
                     'contact_holds_actual_FINAL_no_further_angle_ramp':captured_targets is not None}
 
 
-def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False):
-    from .semantic_rr_mean_coordinates import assert_coordinate_binding
-    assert_coordinate_binding(runner, runtime)
-    ledger = auxiliary_events(runner, counts)
+def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False, *, route=None):
+    # An explicit isolated successor may reuse the exact recording loop, not
+    # mutate this module's globals or silently inherit the old action schema.
+    if route is None:
+        from .semantic_rr_mean_coordinates import assert_coordinate_binding
+        assert_coordinate_binding(runner, runtime)
+        ledger = auxiliary_events(runner, counts)
+        eval_cfg, eval_config = settings(), CONFIG
+        encode_request, choose_request = tensor_observation, request
+    else:
+        if diagnostic:
+            raise ValueError('post-RR evaluation cannot use the historical RR direction override')
+        route['validate_runner'](runner, runtime)
+        ledger = copy.deepcopy(route['auxiliary_ledger'])
+        eval_cfg, eval_config = route['settings'], Path(route['config_dir'])
+        encode_request, choose_request = route['tensor_observation'], route['request']
     import torch
     from .semantic_video import REVIEW_CAMERA, capture_task_interval_frame, capture_assist_tick_evidence
     from .semantic_legacy_evaluation import PhysicalEvaluationRecorder
@@ -859,8 +871,8 @@ def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False):
     backend.configure_video_camera(**REVIEW_CAMERA)
     core.reset(seed=4001)
     recorder=ActiveViewportVideoRecorder(source)
-    physical=PhysicalEvaluationRecorder(source,task_spec_path=CONFIG/'stage_task_spec.yaml',
-                                        quality_score_path=CONFIG/'quality_score.yaml')
+    physical=PhysicalEvaluationRecorder(source,task_spec_path=eval_config/'stage_task_spec.yaml',
+                                        quality_score_path=eval_config/'quality_score.yaml')
     physical.start(core.frame)
     heights=HeightDiagnostics(source,backend); heights.start(core.frame)
     for _ in range(3): backend.render_video_frame()
@@ -880,8 +892,8 @@ def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False):
         core.tick_observer=observer
         try:
             while not core.done:
-                obs=tensor_observation(core.observation,runner.device)
-                with torch.inference_mode(): raw,audit=request(runner,obs,stochastic=False)
+                obs=encode_request(core.observation,runner.device)
+                with torch.inference_mode(): raw,audit=choose_request(runner,obs,stochastic=False)
                 issued=raw[0].cpu().tolist()
                 if diagnostic and core.task.snapshot()['active']:
                     if entry is None:
@@ -915,21 +927,21 @@ def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False):
                 'prior':prior,'counts':counts,'source_run':str(run),'continuous_natural_P01':True,
                 'checkpoint_load_provenance':runner.checkpoint_load_provenance,
                 'rear_owner_projection':False,'ignored_legacy_sampling_profile':True,
-                'control_contributions':{'policy_version':settings()['version'], 'observation_dimension':settings()['observation_dimension'],
-                    'local_mean_coordinate_gain_full12':list(settings()['local_mean_coordinate_gain_full12']),
+                'control_contributions':{'policy_version':eval_cfg['version'], 'observation_dimension':eval_cfg['observation_dimension'],
+                    'local_mean_coordinate_gain_full12':list(eval_cfg['local_mean_coordinate_gain_full12']),
                     'local_mean_coordinate_migrations':copy.deepcopy(getattr(runner, 'local_mean_coordinate_migrations', [])),
-                    'capture_source_dispatch':settings()['capture_source_dispatch'],
-                    'source_tracking_owner_revision':settings()['source_tracking_owner_revision'],
+                    'capture_source_dispatch':eval_cfg['capture_source_dispatch'],
+                    'source_tracking_owner_revision':eval_cfg['source_tracking_owner_revision'],
                     'local_branch_counters':dict(counts), 'frozen_prior':prior,
                     'local_auxiliary_events':copy.deepcopy(ledger),
                     'local_auxiliary_optimizer_steps':counts.get('auxiliary_updates', 0),
                     'AUX_updates_during_evaluation':0,
                     'FL_capture_assist_mode':'p05_hip_only_continuation_v1',
-                    'rear_owner_projection':False,'rr_capture_assist_mode':('authorized_fallback_v1' if settings().get('rr_authorized_assist') else None),
+                    'rear_owner_projection':False,'rr_capture_assist_mode':('authorized_fallback_v1' if eval_cfg.get('rr_authorized_assist') else None),
                     'nominal_geometry_advisory':None,'rr_capture_wheel_mode':'off',
                     'diagnostic_only_RR_joint_override':diagnostic},
                 'checkpoint_model_unchanged':unchanged,'policy_switches':0,'front_FL_assist':True,
-                'rear_task_assists':settings().get('rr_authorized_assist', False),'diagnostic_intervention':diagnostic,'PPO_updates':0,
+                'rear_task_assists':eval_cfg.get('rr_authorized_assist', False),'diagnostic_intervention':diagnostic,'PPO_updates':0,
                 'physical_summary':summary,'local_task':core.task.snapshot(),'terminal_info':last_info,
                 'actual_ticks':core.frame.physics_tick,'time_s':core.frame.sim_time_s,
                 'time_receipt':interval_receipt(core.frame.physics_tick),
@@ -938,6 +950,9 @@ def evaluate(core, runner, runtime, prior, counts, run, diagnostic=False):
                 'local_RR_success':bool(core.task.snapshot().get('rr_milestone', core.task.snapshot()['local_success'])),
                 'RR_milestone_is_not_full_success':True,
                 'local_continuation_migrations':copy.deepcopy(getattr(runner, 'local_continuation_migrations', []))}
+            if route is not None:
+                result['schema'] = 'wlr50_clean.post_rr_front_pair_video.v1'
+                result['control_contributions'].update(copy.deepcopy(route['control_contributions']))
             result['sealed_files']={p.name:{'path':str(p),'sha256':sha(p),'bytes':p.stat().st_size}
                 for p in source.iterdir() if p.is_file() and p.name!='source_manifest.json'}
             write(source/'source_manifest.json',result)
