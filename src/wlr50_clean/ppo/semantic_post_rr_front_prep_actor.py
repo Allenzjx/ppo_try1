@@ -20,8 +20,11 @@ from .semantic_rr_capture_local_actor import (
 )
 from .semantic_post_rr_front_prep_task import POST_RR_FIELDS
 
-POLICY_VERSION = 'frozen_cp231936_post_rr_front_pair_v1'
-OBSERVATION_LAYOUT = 'accepted465_post_rr_front_pair487_v1'
+LEGACY_POLICY_VERSION = 'frozen_cp231936_post_rr_front_pair_v1'
+LEGACY_OBSERVATION_LAYOUT = 'accepted465_post_rr_front_pair487_v1'
+LEGACY_OBSERVATION_DIMENSION = 487
+POLICY_VERSION = 'frozen_cp231936_post_rr_front_pair_finish_v2'
+OBSERVATION_LAYOUT = 'accepted465_post_rr_front_pair490_v2'
 ANCHOR_DIMENSION = 465
 OBSERVATION_DIMENSION = ANCHOR_DIMENSION + len(POST_RR_FIELDS)
 REBASE_INDICES = (1, 3, 8, 9)
@@ -36,14 +39,17 @@ class SemanticPostRRHistoryMLPModel(MLPModel):
                  observation_layout=OBSERVATION_LAYOUT,
                  frozen_anchor_configuration=None, initial_post_std=DEFAULT_STD,
                  expected_anchor_state_sha256=None):
-        if (observation_layout != OBSERVATION_LAYOUT or output_dim != 12
+        dimensions = {LEGACY_OBSERVATION_LAYOUT:LEGACY_OBSERVATION_DIMENSION,
+                      OBSERVATION_LAYOUT:OBSERVATION_DIMENSION}
+        dimension = dimensions.get(observation_layout)
+        if (dimension not in (487,490) or output_dim != 12
                 or obs_set != 'actor' or obs_groups.get('actor') != ['policy']
-                or obs['policy'].shape[-1] != OBSERVATION_DIMENSION
+                or obs['policy'].shape[-1] != dimension
                 or obs_normalization is not False
                 or not isinstance(distribution_cfg, dict)
                 or distribution_cfg.get('class_name') != 'HeteroscedasticGaussianDistribution'
                 or distribution_cfg.get('std_type') != 'log'):
-            raise ValueError('post-RR actor requires explicit487/Full12/Identity Gaussian')
+            raise ValueError('post-RR actor requires explicit487/490 Full12 Identity Gaussian')
         super().__init__(obs, obs_groups, obs_set, output_dim, hidden_dims,
                          activation, obs_normalization, copy.deepcopy(distribution_cfg))
         if type(self.distribution) is not HeteroscedasticGaussianDistribution:
@@ -57,9 +63,9 @@ class SemanticPostRRHistoryMLPModel(MLPModel):
             **anchor_cfg)
         self.expected_anchor_state_sha256 = expected_anchor_state_sha256
         self._anchor_state = None
-        self.policy_version = POLICY_VERSION
+        self.policy_version = (LEGACY_POLICY_VERSION if dimension==487 else POLICY_VERSION)
         self.observation_layout = observation_layout
-        self.observation_dimension = OBSERVATION_DIMENSION
+        self.observation_dimension = dimension
         self._last_forward_evidence = None
         std = torch.as_tensor(initial_post_std, dtype=torch.float32)
         if std.shape != (12,) or not bool((torch.isfinite(std) & (std > 0)).all()):
@@ -154,10 +160,15 @@ class SemanticPostRRHistoryMLPModel(MLPModel):
             raise RuntimeError('load immutable full465 anchor before requesting actions')
         obs = unpad_trajectories(obs, masks) if masks is not None and not self.is_recurrent else obs
         latent = self.get_latent(obs, masks, hidden_state)
-        if latent.shape[-1] != OBSERVATION_DIMENSION or not bool(torch.isfinite(latent).all()):
+        if latent.shape[-1] != self.observation_dimension or not bool(torch.isfinite(latent).all()):
             raise ValueError('finite post-RR observation schema required')
         validate_capture_local_latent(latent[..., :465], continuation=True)
         tail = latent[..., 465:]
+        if self.observation_dimension==490:
+            finish = tail[...,22:25]
+            if (not bool(((finish[...,:2]==0)|(finish[...,:2]==1)).all())
+                    or not bool(((finish[...,2]>=0)&(finish[...,2]<=1)).all())):
+                raise ValueError('observed finish flags and normalized clean-window age required')
         flag = tail[..., 0]
         if not bool(((flag == 0) | (flag == 1)).all()):
             raise ValueError('post-touch activation is a physical-event boolean')
@@ -226,7 +237,7 @@ def audited_post_rr_policy_request(actor, observation, action_call, *, stochasti
         if not torch.equal(raw, e['conditional_mean']):
             raise RuntimeError('deterministic action differs from saved policy mean')
         logp = None
-    return raw, dict(schema='wlr50_clean.post_rr_actual_request.v1', policy_version=POLICY_VERSION,
+    return raw, dict(schema='wlr50_clean.post_rr_actual_request.v1', policy_version=actor.policy_version,
         post_rr_active=active, mode='stochastic' if stochastic else 'deterministic',
         selected_raw_full12=vector(raw), selected_tanh_full12=vector(torch.tanh(raw)),
         selected_raw_log_probability=logp, conditional_mean_full12=vector(e['conditional_mean']),

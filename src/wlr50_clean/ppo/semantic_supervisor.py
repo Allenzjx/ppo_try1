@@ -591,12 +591,22 @@ class TaskEvaluator:
     history. Ground contact before crossing revokes qualification, not evidence.
     """
 
-    def __init__(self, task_spec_path: Path | str = DEFAULT_TASK_SPEC_PATH, *, spec: Mapping[str, Any] | None = None):
+    def __init__(self, task_spec_path: Path | str = DEFAULT_TASK_SPEC_PATH, *, spec: Mapping[str, Any] | None = None,
+                 finish_recovery_enabled: bool = False):
         self.spec = dict(spec) if spec is not None else load_task_spec(task_spec_path)
         version = self.spec.get("physical_acceptance_version")
         if version not in (None, "all_stage_v1"):
             raise ValueError("unsupported physical acceptance version")
         self._all_stage = version == "all_stage_v1"
+        if type(finish_recovery_enabled) is not bool or (finish_recovery_enabled and not self._all_stage):
+            raise ValueError("finish recovery requires explicit bool and all-stage physical acceptance")
+        self._finish_recovery_enabled = finish_recovery_enabled
+        self._finish_settle_pending = False
+        self._finish_endpoint_missed = False
+        self._finish_endpoint_miss = None
+        self._finish_clean_since = None
+        self._finish_clean_elapsed_s = 0.
+        self._finish_clean_restarts = 0
         self._functional_rr = self.spec.get("p09_lift_semantics") in FUNCTIONAL_RR_MODES
         self._free_air_rr = self.spec.get("p09_lift_semantics") == P09_FREE_AIR_LIFT_MODE
         from .semantic_rear_policy_timing import LIVE_SWING_MODES
@@ -658,6 +668,17 @@ class TaskEvaluator:
                             if self._functional_rr else "current_active_attempt_air_or_verified_early_top_until_crossing_then_history"
                             if self._all_stage else "current_uninterrupted_airborne_above_top_qualification_until_crossing_then_completed_history"),
                          "lift_attempt_events": [dict(event) for event in self._lift_attempt_events]}}
+        if self._finish_recovery_enabled:
+            result.update(finish_settle_pending=bool(self._finish_settle_pending
+                    and self._failure is None and not self._snapshot.get("success", False)),
+                finish_endpoint_missed=self._finish_endpoint_missed,
+                finish_clean_elapsed_norm=(_clip(self._finish_clean_elapsed_s
+                    / self.spec["final"]["post_completion_observation_s"]) if self._failure is None else 0.),
+                finish_recovery_semantics="speed_only_pending_then_continuous_original_window_v1",
+                evaluation_timing_version="finish_settle_pending_speed_only_v1",
+                finish_endpoint_miss=dict(self._finish_endpoint_miss) if self._finish_endpoint_miss else None,
+                finish_clean_since_s=self._finish_clean_since,
+                finish_clean_restarts=self._finish_clean_restarts)
         if self._soft_air_progress_enabled and "current_legs" in result:
             result["current_legs"]={leg:{**row,
                 "soft_air_actuation_earned":self._soft_air_actuation_earned[leg],
@@ -1259,9 +1280,53 @@ class TaskEvaluator:
             self._fail(TaskResult.INCOMPLETE_CONTROLLER_BLOCKED, "controlled completion lost during fixed post-completion observation")
             self._termination_source = "POST_COMPLETION_LOSS"
         elif post_complete and not controlled_now and self._failure is None:
-            self._fail(TaskResult.INCOMPLETE_CONTROLLER_BLOCKED, "not currently controlled at fixed post-completion observation end")
-            self._termination_source = "POST_COMPLETION_LOSS"
+            # Opt-in applies BEFORE committing a failure, and only when the
+            # missing fact is measured speed. All placed history includes true
+            # RR and RL contacts; AIR never supplies a current support force.
+            verified_support = bool(evidence_ok and support
+                and all(row.get("bearing_verified") is True for row in current.values()))
+            speed_only = bool(self._finish_recovery_enabled and history_complete
+                and region and verified_support and not self._post_completion_loss
+                and not measured_controlled)
+            if speed_only:
+                if not self._finish_endpoint_missed:
+                    self._finish_endpoint_missed = True
+                    self._finish_endpoint_miss = dict(time_s=now,
+                        physics_tick=self._snapshot["physics_tick"],
+                        original_window_start_s=self._completion_observation_since,
+                        original_window_elapsed_s=observed,
+                        body_linear_speed_m_s=_norm(base_linear),
+                        body_angular_speed_rad_s=_norm(base_angular),
+                        maximum_wheel_speed_rad_s=max(map(abs, speeds)),
+                        reason="not currently controlled at fixed post-completion observation end")
+                self._finish_settle_pending = True
+            else:
+                self._fail(TaskResult.INCOMPLETE_CONTROLLER_BLOCKED, "not currently controlled at fixed post-completion observation end")
+                self._termination_source = "POST_COMPLETION_LOSS"
         success = bool(post_complete and controlled_now and not self._post_completion_loss and self._failure is None)
+        if self._finish_settle_pending:
+            # Preserve the original first-window clock and its miss. Only the
+            # NEW explicitly observed clean clock resets on speed fluctuation.
+            if self._failure is None and now >= self.spec["episode_maximum_duration_s"]:
+                self._fail(TaskResult.INCOMPLETE_CONTROLLER_BLOCKED, "global finite task deadline during finish settling")
+                self._termination_source = "GLOBAL_FINITE_TASK_DEADLINE"
+            if self._failure is None and not (history_complete and region and evidence_ok and support
+                    and all(row.get("bearing_verified") is True for row in current.values())):
+                self._fail(TaskResult.INCOMPLETE_CONTROLLER_BLOCKED,
+                    "finish settling lost current verified platform support")
+                self._termination_source = "POST_COMPLETION_LOSS"
+            clean = bool(controlled_now and self._failure is None and not self._post_completion_loss)
+            if clean:
+                if self._finish_clean_since is None:
+                    self._finish_clean_since = now
+                self._finish_clean_elapsed_s = max(0., now-self._finish_clean_since)
+            else:
+                if self._finish_clean_since is not None:
+                    self._finish_clean_restarts += 1
+                self._finish_clean_since = None
+                self._finish_clean_elapsed_s = 0.
+            success = bool(clean and self._finish_clean_elapsed_s+1e-12
+                >= final["post_completion_observation_s"])
         self._snapshot.update(
             evaluator_version="all_stage_v1", run_validity="VALID",
             physical_evidence_status="VERIFIED" if evidence_ok else "CONTACT_BEARING_UNVERIFIED",
@@ -3062,8 +3127,21 @@ class NominalMotionProvider:
             and ev.get("post_completion_loss_observed") is False
             and finite(elapsed) and 0. <= elapsed < self.spec["final"]["post_completion_observation_s"]
             and elapsed <= now)
-        current_valid = bool(takeover_valid and ev.get("final_controlled") is True
-            and ev.get("task_completed_controlled") is True)
+        # The old window remains the ONLY acquisition gate. An already held
+        # stop owner may start its existing one-shot home ramp later during
+        # declared settling; no reacquisition, pulse replay or policy mask.
+        pending_home_valid = bool(ev.get("finish_settle_pending") is True
+            and ev.get("finish_endpoint_missed") is True
+            and ev.get("finish_recovery_semantics") == "speed_only_pending_then_continuous_original_window_v1"
+            and self._final_stop_owner is not None and not self._final_stop_owner_retired
+            and fresh and leg_evidence and in_phase and not terminal
+            and ev.get("valid") is True and ev.get("physical_evidence_status") == "VERIFIED"
+            and all(placed.get(leg) is True for leg in LEG_ORDER)
+            and top_supports >= self.spec["support"]["minimum_other_supports"]
+            and ev.get("final_region_valid") is True and ev.get("final_support_available") is True
+            and ev.get("post_completion_loss_observed") is False)
+        current_valid = bool((takeover_valid or pending_home_valid)
+            and ev.get("final_controlled") is True and ev.get("task_completed_controlled") is True)
         issued_stop = bool(self.state_id == "P13" and any(layer["stage"] == "P13"
             and layer.get("sample") is not None for layer in self._continuous_layers)
             and max(map(abs, self.nominal_full12[8:])) <= self.spec["final"]["maximum_commanded_wheel_speed_rad_s"])
@@ -3093,6 +3171,10 @@ class NominalMotionProvider:
             "preceding_issued_nominal_wheels_stopped": issued_stop,
             "source_clocks_continue_contributions_retired": active,
             "raw_residual_mapper_or_evaluator_reset": False, "task_success_awarded": False}
+        if "finish_settle_pending" in ev:
+            self._final_stop_diagnostic.update(finish_settle_pending=ev["finish_settle_pending"],
+                pending_home_eligibility=pending_home_valid,
+                acquisition_window_unchanged=True)
         return active
 
     def _final_stop_request(self):

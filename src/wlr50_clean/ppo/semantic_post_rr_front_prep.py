@@ -24,6 +24,17 @@ SCHEMA = 'wlr50_clean.frozen_accepted_post_rr_checkpoint.v1'
 sha, write, line = old.sha, old.write, old.line
 CONTROL_FILES = ('execution_profile.yaml', 'stage_task_spec.yaml', 'observation_schema.json',
                  'reward_config.yaml', 'quality_score.yaml', 'action_schema.json', 'local_training.json')
+FINISH_SOURCE_HEAD = '475eb1f4c5723c4c8380516dd5ee9be0cdc75d78'
+FINISH_SOURCE_SHA = '098eb4f6394f1c30ba4f8b2b997a04e9a643aaa8fe7665355a735089eb9a0034'
+FINISH_SOURCE_MANIFEST_SHA = 'ec7b433caf8b2b720111262357bf11bc86c7853467a70fd8b9eaacd9ee43c26f'
+FINISH_CHANGED_FILES = frozenset({
+    'src/wlr50_clean/ppo/semantic_post_rr_front_prep.py',
+    'src/wlr50_clean/ppo/semantic_post_rr_front_prep_actor.py',
+    'src/wlr50_clean/ppo/semantic_post_rr_front_prep_task.py',
+    'src/wlr50_clean/ppo/semantic_post_rr_front_prep_source.py',
+    'src/wlr50_clean/ppo/semantic_supervisor.py',
+    'configs/ppo_post_rr_front_pair_rl_v1/local_training.json',
+})
 
 
 def settings():
@@ -68,11 +79,12 @@ def contract(expected_head):
     return result
 
 
-def tensor_observation(values, device):
+def tensor_observation(values, device, *, dimension=None):
     import torch
     from tensordict import TensorDict
     data = torch.tensor([values], dtype=torch.float32, device=device)
-    if data.shape != (1, settings()['observation_dimension']) or not bool(torch.isfinite(data).all()):
+    dimension = settings()['observation_dimension'] if dimension is None else dimension
+    if dimension not in (487,490) or data.shape != (1,dimension) or not bool(torch.isfinite(data).all()):
         raise ValueError('finite explicit post-RR observation required')
     return TensorDict({'policy':data, 'critic':data.clone()}, batch_size=[1], device=device)
 
@@ -103,7 +115,8 @@ def build_core(app):
     if cfg['capture_source_dispatch'] != MODE or cfg['rr_authorized_assist'] is not False:
         raise ValueError('declared front preparation with rear completion OFF required')
     factory = controller_factory(task_spec_path=control/'stage_task_spec.yaml',
-        read_local_state=lambda:task.accepted.snapshot(), read_post_rr_state=task.snapshot)
+        read_local_state=lambda:task.accepted.snapshot(), read_post_rr_state=task.snapshot,
+        finish_recovery_enabled=cfg.get('finish_recovery',{}).get('enabled',False))
     backend = SemanticIsaacBackend(app, audit_actuator_target_effect=True,
         execution_profile=control/'execution_profile.yaml', task_spec_path=control/'stage_task_spec.yaml',
         controller_factory=factory, continuation_source_pause=True)
@@ -112,11 +125,21 @@ def build_core(app):
         observation_schema_path=control/'observation_schema.json'), task=task)
 
 
-def make_runner(device, seed=1001, *, saved_configuration=None):
+def make_runner(device, seed=1001, *, saved_configuration=None, legacy_finish_source=None):
     import torch
     from types import SimpleNamespace
     from .rl_library_wrapper import build_rsl_runner_config, construct_runner
     cfg = settings()
+    if legacy_finish_source is not None:
+        # This is a construction-only path for the pinned strict cold source;
+        # normal load/train/eval still reject the old runtime under490.
+        if (legacy_finish_source.get('checkpoint_sha256') != FINISH_SOURCE_SHA
+                or legacy_finish_source['runtime_contract']['source_git_commit'] != FINISH_SOURCE_HEAD
+                or saved_configuration != legacy_finish_source['runner_config']):
+            raise ValueError('only the pinned complete487 finish source may use legacy construction')
+        cfg = copy.deepcopy(legacy_finish_source['runtime_contract']['local_contract'])
+        if cfg['observation_dimension'] != 487 or cfg['observation_layout'] != 'accepted465_post_rr_front_pair487_v1':
+            raise ValueError('legacy finish source must be the actual487 recipe')
     _, anchor = source_metadata('anchor')
     _, critic = source_metadata('critic')
     if cfg['learning_rate'] != critic['learning_rate']:
@@ -148,7 +171,7 @@ def make_runner(device, seed=1001, *, saved_configuration=None):
     # Instantiation shapes only, never a physical transition or PPO sample.
     initial = [0.] * cfg['observation_dimension']
     env = SimpleNamespace(num_envs=1, num_actions=12, cfg={'post_rr_task':NAME}, device=device,
-                          get_observations=lambda:tensor_observation(initial, device))
+                          get_observations=lambda:tensor_observation(initial,device,dimension=cfg['observation_dimension']))
     runner = construct_runner(env, configuration, log_dir=None)
     params = list(runner.alg.actor.trainable_parameters()) + list(runner.alg.critic.parameters())
     runner.alg.optimizer = torch.optim.Adam(params, lr=critic['learning_rate'])
@@ -254,13 +277,16 @@ def initialize_from_accepted(runner):
     return lineage, counts
 
 
-def validate_runner(runner, runtime):
-    cfg = settings()
+def _validate_runner_configuration(runner,runtime,cfg):
     if (runtime.get('experiment_id') != NAME or runtime.get('local_contract') != cfg
             or runner.alg.actor.policy_version != cfg['version']
             or runner.alg.actor.observation_dimension != cfg['observation_dimension']):
         raise ValueError('post-RR runtime/actor identity mismatch')
     runner.alg.actor.assert_frozen_state(runner.alg.optimizer)
+
+
+def validate_runner(runner,runtime):
+    _validate_runner_configuration(runner,runtime,settings())
 
 
 def checkpoint_path(counts, runtime):
@@ -290,6 +316,7 @@ def save(runner, runtime, lineage, counts, *, source_run, publish_pointer=True):
         source_run=str(source_run),rollout_empty=True,front_FL_assist=True,rear_task_assists=False,
         public_preparation_module=True,observation_dimension=settings()['observation_dimension'],
         local_auxiliary_events=[],historical_AUX_updates=lineage['accepted_anchor']['counts']['auxiliary_updates'])
+    infos['finish_migrations'] = copy.deepcopy(getattr(runner,'finish_migrations',[]))
     payload.update(infos=infos,iter=counts['post_rr_ppo_updates'])
     torch.save(payload,target)
     reloaded = torch.load(target,map_location=runner.device,weights_only=False)
@@ -310,7 +337,7 @@ def save(runner, runtime, lineage, counts, *, source_run, publish_pointer=True):
     return pointer
 
 
-def load(runner,path,runtime):
+def _load_checkpoint(runner,path,runtime,*,expected_settings):
     import torch
     from .semantic_training import state_hash
     from .rl_library_wrapper import restore_training_rng_state
@@ -327,7 +354,7 @@ def load(runner,path,runtime):
     current_cfg['actor'].setdefault('expected_anchor_state_sha256',expected_hash)
     if current_cfg != expected_cfg:
         raise ValueError('actual constructed runner differs from saved recipe')
-    cfg = settings()
+    cfg = expected_settings
     anchor = meta['lineage']['accepted_anchor']
     if (anchor['checkpoint_sha256'] != cfg['accepted_checkpoint_sha256']
             or anchor['manifest_sha256'] != cfg['accepted_manifest_sha256']
@@ -340,16 +367,169 @@ def load(runner,path,runtime):
     runner.alg.load(data,None,True)
     runner.alg.learning_rate = meta['learning_rate']
     runner.local_configuration = expected_cfg
-    validate_runner(runner,runtime)
+    _validate_runner_configuration(runner,runtime,cfg)
     if any(state_hash(runner.alg.save()[k]) != v for k,v in meta['state_hashes'].items()):
         raise ValueError('actual reloaded actor/critic/Adam state differs')
     runner.current_learning_iteration = meta['counts']['post_rr_ppo_updates']
     runner.post_rr_lineage = copy.deepcopy(meta['lineage'])
+    runner.finish_migrations = copy.deepcopy(meta.get('finish_migrations',[]))
     restore_training_rng_state(meta['training_rng'],expected_seed=1001)
     runner.checkpoint_load_provenance = dict(checkpoint=str(path),checkpoint_sha256=sha(path),
         manifest=str(manifest),manifest_sha256=sha(manifest),strict_actual_composite_load_verified=True,
         actor_critic_optimizer_hashes_verified=True,accepted_whole_composite_frozen=True)
     return copy.deepcopy(meta['lineage']),dict(meta['counts'])
+
+
+def load(runner,path,runtime):
+    """Ordinary execution accepts the current contract only; no legacy fallback."""
+    return _load_checkpoint(runner,path,runtime,expected_settings=settings())
+
+
+def validate_finish_migration_runtime(previous,current):
+    if previous.get('source_git_commit') != FINISH_SOURCE_HEAD:
+        raise ValueError('finish migration requires the exact sealed475 source runtime')
+    old_cfg,new_cfg = previous['local_contract'],current['local_contract']
+    expected = copy.deepcopy(old_cfg)
+    expected.update(schema='wlr50_clean.post_rr_front_pair_contract.v2',
+        version='frozen_cp231936_post_rr_front_pair_finish_v2',observation_dimension=490,
+        observation_layout='accepted465_post_rr_front_pair490_v2',finish_recovery=new_cfg.get('finish_recovery'))
+    if expected != new_cfg or not new_cfg.get('finish_recovery',{}).get('enabled'):
+        raise ValueError('cold finish migration cannot change the learned task/reward/profile')
+    if (new_cfg['finish_recovery'].get('reward_changed') is not False
+            or new_cfg['finish_recovery'].get('policy_or_wheel_override') is not False):
+        raise ValueError('finish recovery must retain reward and ordinary policy/wheel execution')
+    if previous['accepted_configuration'] != current['accepted_configuration']:
+        raise ValueError('accepted predecessor configuration changed')
+    changed={p for p in set(previous['files'])|set(current['files'])
+             if previous['files'].get(p)!=current['files'].get(p)}
+    if not changed or not changed.issubset(FINISH_CHANGED_FILES):
+        raise ValueError('unrelated runtime changes in finish migration: '+str(sorted(changed-FINISH_CHANGED_FILES)))
+    return sorted(changed)
+
+
+def _zero_expand_state(saved,template):
+    """Exactly one non-anchor input matrix487->490; every other tensor exact."""
+    import torch
+    if saved.keys()!=template.keys():
+        raise ValueError('finish migration model keys differ')
+    result,changed={},[]
+    for name,value in saved.items():
+        goal=template[name]
+        if value.shape==goal.shape:
+            result[name]=value.detach().clone()
+        elif (name.startswith('mlp.') and value.ndim==2 and value.shape[1]==487
+              and tuple(goal.shape)==(value.shape[0],490)):
+            result[name]=torch.zeros_like(goal)
+            result[name][:,:487].copy_(value)
+            changed.append(name)
+        else:
+            raise ValueError('unexpected finish model shape change: '+name)
+    if len(changed)!=1:
+        raise ValueError('exactly one new-head/critic input matrix must expand')
+    return result,changed[0]
+
+
+def _ordered_optimizer_parameters(runner):
+    named=[('actor.'+name,p) for name,p in runner.alg.actor.named_parameters() if p.requires_grad]
+    named += [('critic.'+name,p) for name,p in runner.alg.critic.named_parameters() if p.requires_grad]
+    actual=[p for group in runner.alg.optimizer.param_groups for p in group['params']]
+    if len(actual)!=len(named) or any(p is not pair[1] for p,pair in zip(actual,named)):
+        raise ValueError('optimizer parameter name/order changed')
+    return named
+
+
+def expand_finish_training_state(source,target):
+    """Expand model columns and the matching Adam moments, without any step."""
+    import torch
+    from .semantic_training import state_hash
+    old_state=source.alg.save()
+    expanded=copy.deepcopy(old_state)
+    changed={}
+    for kind in ('actor','critic'):
+        key=kind+'_state_dict'
+        expanded[key],matrix=_zero_expand_state(old_state[key],getattr(target.alg,kind).state_dict())
+        changed[kind+'.'+matrix]=key
+    source_named,target_named=_ordered_optimizer_parameters(source),_ordered_optimizer_parameters(target)
+    if [n for n,_ in source_named] != [n for n,_ in target_named]:
+        raise ValueError('optimizer names changed during finish migration')
+    optimizer=expanded['optimizer_state_dict']
+    ids=[p for group in optimizer['param_groups'] for p in group['params']]
+    if len(ids)!=len(source_named):
+        raise ValueError('serialized optimizer parameter count differs')
+    expanded_moments=[]
+    for ident,(name,old_param),(_,new_param) in zip(ids,source_named,target_named):
+        if old_param.shape==new_param.shape:
+            continue
+        if name not in changed or ident not in optimizer['state']:
+            raise ValueError('missing actual trained Adam state for expanded input')
+        moment_names=[]
+        for key,value in optimizer['state'][ident].items():
+            if torch.is_tensor(value) and value.shape==old_param.shape:
+                bigger=value.new_zeros(new_param.shape)
+                bigger[:,:487].copy_(value)
+                optimizer['state'][ident][key]=bigger
+                moment_names.append(key)
+            elif torch.is_tensor(value) and value.ndim!=0:
+                raise ValueError('unexpected Adam tensor shape for '+name+'/'+key)
+        if not {'exp_avg','exp_avg_sq'}.issubset(moment_names):
+            raise ValueError('both actual Adam moments must be preserved')
+        expanded_moments.append(dict(parameter=name,optimizer_id=ident,moments=moment_names))
+    # Collapse only the new zero columns and prove exact complete original
+    # training state, including all Adam steps and param-group hyperparameters.
+    collapsed=copy.deepcopy(expanded)
+    for name,key in changed.items():
+        relative=name.split('.',1)[1]
+        assert torch.count_nonzero(expanded[key][relative][:,487:])==0
+        collapsed[key][relative]=collapsed[key][relative][:,:487].clone()
+    for item in expanded_moments:
+        for key in item['moments']:
+            value=collapsed['optimizer_state_dict']['state'][item['optimizer_id']][key]
+            assert torch.count_nonzero(value[:,487:])==0
+            collapsed['optimizer_state_dict']['state'][item['optimizer_id']][key]=value[:,:487].clone()
+    if state_hash(collapsed)!=state_hash(old_state):
+        raise RuntimeError('zero-column collapse did not recover original actor/critic/Adam')
+    return expanded,dict(expanded_model_parameters=sorted(changed),expanded_Adam_moments=expanded_moments,
+        old_state_exact_after_zero_column_collapse=True,all_old_Adam_steps_preserved=True,
+        source_state_hashes={k:state_hash(v) for k,v in old_state.items()},
+        expanded_state_hashes={k:state_hash(v) for k,v in expanded.items()})
+
+
+def migrate_finish(runner,path,runtime):
+    from .semantic_training import state_hash
+    from .rl_library_wrapper import capture_training_rng_state,restore_training_rng_state
+    path=Path(path).resolve(strict=True)
+    manifest=path.with_name(path.stem+'_manifest.json')
+    if sha(path)!=FINISH_SOURCE_SHA or sha(manifest)!=FINISH_SOURCE_MANIFEST_SHA:
+        raise ValueError('finish migration requires exact sealedCP232960 and sidecar')
+    meta=json.loads(manifest.read_text())
+    changed=validate_finish_migration_runtime(meta['runtime_contract'],runtime)
+    source=make_runner(runner.device,1001,saved_configuration=meta['runner_config'],legacy_finish_source=meta)
+    lineage,counts=_load_checkpoint(source,path,meta['runtime_contract'],expected_settings=meta['runtime_contract']['local_contract'])
+    source.alg.actor.assert_frozen_state(source.alg.optimizer)
+    expanded,proof=expand_finish_training_state(source,runner)
+    runner.alg.actor.expected_anchor_state_sha256=source.alg.actor.expected_anchor_state_sha256
+    runner.alg.load(expanded,None,True)
+    runner.alg.learning_rate=meta['learning_rate']
+    runner.local_configuration['actor']['expected_anchor_state_sha256']=source.alg.actor.expected_anchor_state_sha256
+    validate_runner(runner,runtime)
+    if any(state_hash(runner.alg.save()[k])!=v for k,v in proof['expanded_state_hashes'].items()):
+        raise RuntimeError('actual migrated actor/critic/Adam differs from planned expansion')
+    runner.current_learning_iteration=counts['post_rr_ppo_updates']
+    runner.post_rr_lineage=copy.deepcopy(lineage)
+    restore_training_rng_state(meta['training_rng'],expected_seed=1001)
+    if capture_training_rng_state(seed=1001)!=meta['training_rng']:
+        raise RuntimeError('finish migration did not preserve exact training RNG')
+    receipt=dict(schema='wlr50_clean.post_rr_finish_zero_column_migration.v1',
+        source_checkpoint=str(path),source_checkpoint_sha256=sha(path),source_manifest_sha256=sha(manifest),
+        source_head=FINISH_SOURCE_HEAD,target_head=runtime['source_git_commit'],changed_runtime_files=changed,
+        source_layout='accepted465_post_rr_front_pair487_v1',target_layout=settings()['observation_layout'],
+        additional_fields=['finish_settle_pending','finish_endpoint_missed','finish_clean_elapsed_norm'],
+        complete_accepted465_unchanged=True,gain10_reapplied=False,normalizers='Identity_unchanged',
+        actual_learning_rate=runner.alg.learning_rate,RNG_preserved=True,
+        new_PPO_decisions=0,new_PPO_updates=0,new_Adam_steps=0,new_AUX_updates=0,
+        counts_preserved=dict(counts),old_results_unchanged=True,old_rollout_reused=False,**proof)
+    runner.finish_migrations=copy.deepcopy(meta.get('finish_migrations',[]))+[receipt]
+    return lineage,counts
 
 
 def request(runner,observation,*,stochastic):
@@ -463,6 +643,7 @@ def evaluate(core,runner,runtime,lineage,counts,run):
         control_contributions=dict(accepted_full_composite_anchor=lineage['accepted_anchor'],
             public_preparation_module=True,preparation_channels=[1,3,8,9],
             preparation_candidate=cfg['preparation'],historical_AUX_updates=lineage['accepted_anchor']['counts']['auxiliary_updates'],
+            finish_recovery=cfg.get('finish_recovery'),finish_migrations=copy.deepcopy(getattr(runner,'finish_migrations',[])),
             new_AUX_updates=0,post_touch_branch_counters=dict(counts),
             displayed_label='PPO + local preparation module; full CP231936 anchor frozen; rear helpers OFF'))
     return old.evaluate(core,runner,runtime,lineage,counts,run,False,route=route)
@@ -470,13 +651,15 @@ def evaluate(core,runner,runtime,lineage,counts,run):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode',choices=('initialize','train','eval'))
+    parser.add_argument('mode',choices=('initialize','migrate-finish','train','eval'))
     parser.add_argument('--expected-head',required=True)
     parser.add_argument('--run-dir',type=Path,required=True)
     parser.add_argument('--checkpoint',type=Path)
     parser.add_argument('--decisions',type=int,default=512)
     parser.add_argument('--device',default='cuda:0')
     args = parser.parse_args()
+    if args.mode=='initialize' and settings().get('finish_recovery',{}).get('enabled'):
+        raise ValueError('finish continuation must use migrate-finish or a saved490 checkpoint; reinitialization is prohibited')
     runtime = contract(args.expected_head)
     run = args.run_dir.resolve()
     if not run.is_relative_to(ROOT/'runs'/NAME):
@@ -491,16 +674,19 @@ def main():
         import torch
         import tensordict
         from .rl_library_wrapper import seed_training_rngs
-        if args.mode != 'initialize':
+        if args.mode not in ('initialize','migrate-finish'):
             from isaaclab.app import AppLauncher
             app = AppLauncher(headless=args.mode=='train',enable_cameras=False).app
             app.update()
         seed_training_rngs(1001)
         saved = (json.loads(args.checkpoint.with_name(args.checkpoint.stem+'_manifest.json').read_text())
-                 if args.checkpoint else None)
+                 if args.checkpoint and args.mode!='migrate-finish' else None)
         runner = make_runner(args.device,1001,saved_configuration=saved['runner_config'] if saved else None)
-        lineage,counts = (load(runner,args.checkpoint,runtime) if args.checkpoint else initialize_from_accepted(runner))
-        if args.mode == 'initialize':
+        if args.mode=='migrate-finish':
+            lineage,counts=migrate_finish(runner,args.checkpoint,runtime)
+        else:
+            lineage,counts = (load(runner,args.checkpoint,runtime) if args.checkpoint else initialize_from_accepted(runner))
+        if args.mode in ('initialize','migrate-finish'):
             result = save(runner,runtime,lineage,counts,source_run=run)
         else:
             core = build_core(app)

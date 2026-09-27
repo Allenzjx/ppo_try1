@@ -274,14 +274,19 @@ def provider_type(base):
     return PostRRFrontPreparationProvider
 
 
-def controller_factory(*, task_spec_path, read_local_state, read_post_rr_state):
+def controller_factory(*, task_spec_path, read_local_state, read_post_rr_state,
+                       finish_recovery_enabled=False):
     from pathlib import Path
     from .semantic_supervisor import (NominalMotionProvider, SemanticControllerAdapter,
-        TaskStageSupervisor, load_fsm_spec, load_motion_contract)
+        TaskEvaluator, TaskStageSupervisor, load_fsm_spec, load_motion_contract)
+    if type(finish_recovery_enabled) is not bool:
+        raise ValueError("finish recovery must be an explicit bool")
     def build(fsm_path, motion_contract_path):
         spec = load_fsm_spec(Path(fsm_path)); contract = load_motion_contract(Path(motion_contract_path))
+        evaluator = (TaskEvaluator(task_spec_path, finish_recovery_enabled=True)
+                     if finish_recovery_enabled else None)
         supervisor = continuous_supervisor_type(TaskStageSupervisor)(task_spec_path,
-            read_local_state=read_local_state)
+            read_local_state=read_local_state, evaluator=evaluator)
         provider = provider_type(continuous_provider_type(NominalMotionProvider))(
             contract, spec=supervisor.spec, fsm_spec=spec, read_local_state=read_local_state,
             read_post_rr_state=read_post_rr_state)

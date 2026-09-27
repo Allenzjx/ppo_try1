@@ -1,8 +1,8 @@
 {
-  "schema": "wlr50_clean.post_rr_front_pair_contract.v1",
-  "version": "frozen_cp231936_post_rr_front_pair_v1",
-  "observation_dimension": 487,
-  "observation_layout": "accepted465_post_rr_front_pair487_v1",
+  "schema": "wlr50_clean.post_rr_front_pair_contract.v2",
+  "version": "frozen_cp231936_post_rr_front_pair_finish_v2",
+  "observation_dimension": 490,
+  "observation_layout": "accepted465_post_rr_front_pair490_v2",
   "accepted_control_config": "configs/ppo_rr_capture_first_cp225280_v1",
   "accepted_checkpoint": "outputs/ppo_rr_capture_first_cp225280_v1/checkpoints/history/checkpoint_CP231936_local006656_aux000096_continuous465_v3_g6b2d0df71cb8.pt",
   "accepted_checkpoint_sha256": "8ecfebbb4262234bafadabaab67f33c06e2ea7a6dc35cd9bc37d98099f20f221",
@@ -33,6 +33,15 @@
   "rr_authorized_assist": false,
   "front_FL_assist": "p05_hip_only_continuation_v1",
   "public_preparation_module": true,
+  "finish_recovery": {
+    "enabled": true,
+    "version": "speed_only_endpoint_pending_same_thresholds_v1",
+    "scope": "post_touch_RL_complete_region_and_verified_support_only",
+    "clean_window_from_task_spec": "final.post_completion_observation_s",
+    "original_failed_results_retained": true,
+    "reward_changed": false,
+    "policy_or_wheel_override": false
+  },
   "preparation": {
     "candidate_knee_deg": 30.0,
     "candidate_wheel_rad_s": 1.0,

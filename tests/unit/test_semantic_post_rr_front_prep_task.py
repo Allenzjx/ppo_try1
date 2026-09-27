@@ -86,7 +86,7 @@ class PostRRTaskTests(unittest.TestCase):
             accepted.observe(f)
             out = self.task.observe(f)
             self.assertEqual(self.task.obs16(), accepted.obs16())
-            self.assertEqual(out["post_rr_obs"], (0.,)*22)
+            self.assertEqual(out["post_rr_obs"], (0.,)*25)
             self.assertFalse(out["post_rr_active"])
             self.assertEqual(out["physical_state_or_target_writes"], 0)
             self.assertEqual(f.info, original)
@@ -104,9 +104,34 @@ class PostRRTaskTests(unittest.TestCase):
         self.assertEqual(reward["reward"], 0.)
         self.assertTrue(reward["prefix_excluded"])
         self.assertFalse(reward["terminated"])
-        self.assertEqual(POST_RR_OBSERVATION_DIM,22)
+        self.assertEqual(POST_RR_OBSERVATION_DIM,25)
         self.assertEqual(POST_RR_FIELDS[14], "entry_request_ratio_FL_knee")
         self.assertAlmostEqual(out["post_rr_obs"][14], -32./36.)
+
+    def test_finish_recovery_is_visible_without_changing_reward_or_contact(self):
+        self.prepare()
+        other = PostRRFrontPrepTask(phase_caps_full12={"P11":CAPS, "P12":CAPS})
+        other.observe(frame(0))
+        other.observe(frame(1, top=True, gap=0., bearing=True))
+        other.observe(frame(2, top=True, gap=0., bearing=True,
+                            actual=ready_values(), final=ready_values()))
+        f = frame(3, top=True, gap=0., bearing=True, rl_top=True,
+                  actual=ready_values(), final=ready_values(), phase="P13")
+        before = self.task.snapshot()
+        a = self.task.observe(f)
+        f.info["semantic_task"]["physical_evaluator"].update(
+            finish_settle_pending=True, finish_endpoint_missed=True,
+            finish_clean_elapsed_norm=.375)
+        b = other.observe(f)
+        self.assertEqual(a["post_rr_obs"][:22], b["post_rr_obs"][:22])
+        self.assertEqual(a["post_rr_obs"][22:], (0., 0., 0.))
+        self.assertEqual(b["post_rr_obs"][22:], (1., 1., .375))
+        self.assertEqual(a["metrics"], b["metrics"])
+        self.assertEqual(a["post_rr_potential"], b["post_rr_potential"])
+        self.assertEqual(self.task.reward(before), other.reward(before))
+        self.assertFalse(other.reward(before)["terminated"])
+        other.reset()
+        self.assertEqual(other.post_rr_observation(), (0.,)*25)
 
     def test_near_air_or_historical_touch_does_not_activate(self):
         self.task.observe(frame(0,gap=.007))

@@ -1,6 +1,7 @@
 """Cold CPU only; actual sealed sources, temporary checkpoint, no Isaac credit."""
 import copy
 import json
+from functools import lru_cache
 from pathlib import Path
 
 import pytest
@@ -24,10 +25,15 @@ def preserve_cpu_rng():
     torch.set_num_threads(threads)
 
 
-def observation(active=False,index=0):
+@lru_cache(maxsize=1)
+def base_observation():
     dataset = route.ROOT/'outputs/ppo_rl_recovery_learning_v1/staged_cp225280_front_branch/CP225280_front_replay_dataset.json'
-    values = json.loads(dataset.read_text())['training_rows'][0]['observation'] + [0.]*48
-    assert len(values) == 487
+    return json.loads(dataset.read_text())['training_rows'][0]['observation']
+
+
+def observation(active=False,index=0):
+    values = base_observation() + [0.]*51
+    assert len(values) == 490
     values[439] = 1.  # The accepted learned capture branch, not only the225280 prior.
     values[447] = 1.
     values[465] = float(active)
@@ -146,10 +152,10 @@ def test_actual_512_official_update_whole_anchor_freeze_and_temporary_reload(tmp
 
 def test_critic_expansion_does_not_silently_reset_existing_weights():
     source = {'layer':torch.arange(930.).reshape(2,465),'bias':torch.tensor([2.,3.])}
-    target = {'layer':torch.zeros(2,487),'bias':torch.zeros(2)}
+    target = {'layer':torch.zeros(2,490),'bias':torch.zeros(2)}
     expanded,key = route.expanded_critic_state(source,target)
     assert key == 'layer' and torch.equal(expanded[key][:,:465],source[key])
     assert torch.count_nonzero(expanded[key][:,465:]) == 0
     assert torch.equal(expanded['bias'],source['bias'])
     with pytest.raises(ValueError,match='unexpected critic shape'):
-        route.expanded_critic_state(source,dict(target,layer=torch.zeros(3,487)))
+        route.expanded_critic_state(source,dict(target,layer=torch.zeros(3,490)))

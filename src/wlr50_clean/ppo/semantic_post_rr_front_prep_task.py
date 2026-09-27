@@ -16,7 +16,7 @@ import math
 from .semantic_rr_capture_continuation_task import RRCaptureContinuationTask
 from .semantic_rr_capture_local_task import _finite, _vector12
 
-SCHEMA = "wlr50_clean.post_rr_front_prep_task.v1"
+SCHEMA = "wlr50_clean.post_rr_front_prep_task.v2"
 STAGES = ("POST_RR_FRONT_PREP", "FL_RECOIL_TRANSFER_TO_FR", "RL_SWING_CAPTURE", "FINISH")
 PREP_INDICES = (1, 3, 8, 9)
 POST_RR_FIELDS = (
@@ -29,6 +29,7 @@ POST_RR_FIELDS = (
     "entry_request_ratio_FL_wheel", "entry_request_ratio_FR_wheel",
     "entry_final_norm_FL_knee", "entry_final_norm_FR_knee",
     "entry_final_norm_FL_wheel", "entry_final_norm_FR_wheel",
+    "finish_settle_pending", "finish_endpoint_missed", "finish_clean_elapsed_norm",
 )
 POST_RR_OBSERVATION_DIM = len(POST_RR_FIELDS)
 
@@ -80,7 +81,7 @@ class PostRRFrontPrepTaskConfig:
 
 
 class PostRRFrontPrepTask:
-    """Read-only wrapper with unchanged accepted obs16 and a visible 22 tail.
+    """Read-only wrapper with unchanged accepted obs16 and a visible 25 tail.
 
     ``active`` retains the old RR branch gate; ``post_rr_active`` is the new
     learner gate. Do not give the new optimizer prefix credit using ``active``.
@@ -149,6 +150,9 @@ class PostRRFrontPrepTask:
         # Edge/leg contact alone is legal and is not a blocked-space verdict.
         rl_blocked = rl.get("unrecoverable_obstruction") is True
         return dict(actual=actual, final=final, com=com_position, fr_center=fr_center,
+            finish_settle_pending=ev.get("finish_settle_pending") is True,
+            finish_endpoint_missed=ev.get("finish_endpoint_missed") is True,
+            finish_clean_elapsed_norm=_clip(ev.get("finish_clean_elapsed_norm", 0.)),
             receiver_role_valid=role_valid,
             receiver_workspace=_clip(role.get("workspace_progress")) if role_valid else None,
             receiver_geometry=_vec(workspace.get("wheel_relative_body_m")) if role_valid else None,
@@ -331,6 +335,12 @@ class PostRRFrontPrepTask:
             float(self.post_rr_prep_exhausted)]
         values += [self.entry_residual[i]/self.entry_caps[i] for i in PREP_INDICES]
         values += [self.entry_final[i]/(180. if i < 8 else 2.0943951023931953) for i in PREP_INDICES]
+        # These states change permissible finish timing, not actuator targets.
+        # Keep them explicit for both actor and critic; never hide a retry clock
+        # behind a saturated old phase-progress value. The existing22 stay put.
+        values += [float(self.evidence["finish_settle_pending"]),
+                   float(self.evidence["finish_endpoint_missed"]),
+                   self.evidence["finish_clean_elapsed_norm"]]
         return tuple(values)
 
     def snapshot(self):
@@ -358,6 +368,9 @@ class PostRRFrontPrepTask:
             post_rr_transfer_observation_semantics="signed_live_progress_then_retired_potential_fraction_after_RL_lift",
             post_rr_measured_front=deepcopy({k: v for k, v in (self.evidence or {}).items() if k != "ack"}),
             post_rr_obs=self.post_rr_observation(), post_rr_potential=sum(parts.values()),
+            finish_settle_pending=bool(self.evidence and self.evidence["finish_settle_pending"]),
+            finish_endpoint_missed=bool(self.evidence and self.evidence["finish_endpoint_missed"]),
+            finish_clean_elapsed_norm=(self.evidence["finish_clean_elapsed_norm"] if self.evidence else 0.),
             post_rr_potential_components=parts, post_rr_events=dict(self.rl_events),
             post_rr_prep_timeout_is_terminal=False, physical_state_or_target_writes=0)
         return old
