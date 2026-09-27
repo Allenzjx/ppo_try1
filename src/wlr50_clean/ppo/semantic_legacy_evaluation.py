@@ -54,9 +54,13 @@ def _line(stream, row):
 class PhysicalEvaluationRecorder:
     """Same independent evaluator; no controller success label is substituted."""
     def __init__(self, run_dir: Path | str, *, task_spec_path: Path | str | None = None,
-                 quality_score_path: Path | str | None = None):
+                 quality_score_path: Path | str | None = None,
+                 finish_recovery_enabled: bool = False):
         self.run_dir = Path(run_dir)
-        self.evaluator = TaskEvaluator() if task_spec_path is None else TaskEvaluator(task_spec_path)
+        self.evaluator = (TaskEvaluator(finish_recovery_enabled=finish_recovery_enabled)
+                          if task_spec_path is None else TaskEvaluator(task_spec_path,
+                              finish_recovery_enabled=finish_recovery_enabled))
+        self.finish_recovery_enabled = finish_recovery_enabled
         self.metrics = (SemanticMetricsAccumulator() if quality_score_path is None
                         else SemanticMetricsAccumulator(quality_score_path))
         self._streams = {name: (self.run_dir / name).open("x", encoding="utf-8") for name in (
@@ -91,11 +95,12 @@ class PhysicalEvaluationRecorder:
         if native.get("source_phase_id") != before.state_id:
             raise RuntimeError("physical evaluation audit source phase mismatch")
         ev = self.evaluator.observe(after.info["raw_observation"])
-        # No standing tail is allowed to dilute RMS after real completion.
-        if self._first_success_time is None:
-            self.metrics.observe(before, after, projection)
-            if ev["success"]:
-                self._first_success_time = after.sim_time_s
+        # Success can be transient within a continuing physical episode. Keep
+        # every observed physical interval, including any later loss/recovery;
+        # video-only padding never calls observe and cannot dilute this window.
+        self.metrics.observe(before, after, projection)
+        if self._first_success_time is None and ev["success"]:
+            self._first_success_time = after.sim_time_s
         _line(self._streams["physical_observations.jsonl"], measured_observation(after.info["raw_observation"]))
         _line(self._streams["native_tick_audit.jsonl"], {
             "episode_physics_tick": after.physics_tick, "source_phase_id": before.state_id,
@@ -132,7 +137,17 @@ class PhysicalEvaluationRecorder:
                 writer.writeheader(); writer.writerows(self.metrics.rows)
         ev = self.evaluator.snapshot
         return {"task_success": bool(ev["success"]), "physical_task_evaluation": ev,
-                "physical_task_duration_s": self._first_success_time if ev["success"] else self._last_frame.sim_time_s,
+                "physical_task_duration_s": self._last_frame.sim_time_s,
+                "first_observed_success_time_s": self._first_success_time,
+                "evaluation_timing_schema": "wlr50_clean.physical_evaluation_timing.v2",
+                "evaluation_timing_version": ev.get("evaluation_timing_version", "original_task_spec_timing"),
+                "finish_recovery_enabled": self.finish_recovery_enabled,
+                "metric_coverage": {
+                    "version": "all_observed_physical_intervals_v2",
+                    "end_time_s": self._last_frame.sim_time_s,
+                    "first_success_is_diagnostic_not_collection_cutoff": True,
+                    "includes_post_first_success_physical_intervals": True,
+                    "video_only_padding_included": False},
                 "observed_physics_ticks": self._ticks, "quality_metrics": quality,
                 "evaluation_artifacts": {name: str(self.run_dir / name) for name in (
                     *self._streams, "phase_metrics.csv", "physics_quality_metrics.csv")}}
